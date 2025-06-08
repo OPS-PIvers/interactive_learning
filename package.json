@@ -1,0 +1,34 @@
+{
+  "name": "interactive_learning",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build:client": "webpack --mode production",
+    "build:server": "tsc --project tsconfig.json",
+    "prepare-gas": "node scripts/prepare-gas-deployment.js",
+    "copy-assets": "cp dist/server/Code.js dist/ && cp appsscript.json dist/",
+    "build": "npm run build:server && npm run build:client && npm run prepare-gas && npm run copy-assets",
+    "deploy": "npm run build && clasp push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@google/clasp": "^3.0.6-alpha",
+    "@types/google-apps-script": "^1.0.97",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
