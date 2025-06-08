@@ -11,6 +11,20 @@
   "jsonExtensions": [
     ".json"
   ],
-  "filePushOrder": [],
-  "skipSubdirectories": false
+  "filePushOrder": [
+    "Code.js",
+    "appsscript.json",
+    "bundle.html"
+  ],
+  "skipSubdirectories": false,
+  "ignoredFiles": [
+    "**/*.ts",
+    "**/*.map",
+    "node_modules/**",
+    "webpack.config.js",
+    "vite.config.ts",
+    "tsconfig*.json",
+    "package*.json",
+    ".git/**"
+  ]
 }

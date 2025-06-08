@@ -7,7 +7,14 @@ export default defineConfig(({ mode }) => {
       root: 'src/client',
       build: {
         outDir: '../../dist',
-        emptyOutDir: false
+        emptyOutDir: false,
+        rollupOptions: {
+          output: {
+            entryFileNames: 'bundle.js',
+            chunkFileNames: 'bundle.js',
+            assetFileNames: 'bundle.[ext]'
+          }
+        }
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
