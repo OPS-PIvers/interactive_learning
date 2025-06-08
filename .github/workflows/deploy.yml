@@ -19,7 +19,7 @@ jobs:
     - name: Authenticate clasp
       run: |
         # Create the credentials file from the secret
-        echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+        echo '${{ secrets.CLASP_AUTH_JSON }}' > ~/.clasprc.json
         # Validate JSON format (fails if not valid)
         jq empty ~/.clasprc.json || { echo "Invalid JSON in credentials"; cat ~/.clasprc.json; exit 1; }
     - name: Push code to Apps Script
