@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:server": "tsc src/server/Code.ts --outDir dist --target ES2015 --module ES2015 --lib ES2015",
+    "build:client": "vite build",
+    "prepare-gas": "node scripts/prepare-gas-deployment.js",
+    "copy-assets": "cp appsscript.json dist/ && cp .clasp.json dist/"
   },
   "dependencies": {
     "react": "^19.1.0",
