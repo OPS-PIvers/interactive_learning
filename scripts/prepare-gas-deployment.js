@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Prepare Google Apps Script deployment
@@ -7,17 +11,25 @@ const path = require('path');
  */
 function prepareGasDeployment() {
   const distDir = path.join(__dirname, '..', 'dist');
-  const bundlePath = path.join(distDir, 'bundle.js');
-  const htmlPath = path.join(distDir, 'index.html');
+  const bundlePath = path.join(distDir, 'assets');
+  // Find the JS bundle file (Vite generates with hash)
+  const assetsDir = path.join(distDir, 'assets');
+  let bundleFile = null;
+  if (fs.existsSync(assetsDir)) {
+    const files = fs.readdirSync(assetsDir);
+    bundleFile = files.find(file => file.endsWith('.js') && file.startsWith('index-'));
+  }
   
-  // Check if bundle exists
-  if (!fs.existsSync(bundlePath)) {
-    console.error('bundle.js not found. Please run webpack build first.');
+  if (!bundleFile) {
+    console.error('No JS bundle found in dist/assets/. Please run build first.');
     process.exit(1);
   }
   
+  const actualBundlePath = path.join(assetsDir, bundleFile);
+  const htmlPath = path.join(distDir, 'index.html');
+  
   // Read the bundle content
-  const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+  const bundleContent = fs.readFileSync(actualBundlePath, 'utf8');
   
   // Create a separate bundle.html file that Apps Script can include
   const bundleHtmlPath = path.join(distDir, 'bundle.html');
