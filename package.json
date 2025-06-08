@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:server": "tsc src/server/Code.ts --outDir dist --target ES2015 --module ES2015 --lib ES2015",
+    "build:server": "tsc --project tsconfig.server.json",
     "build:client": "vite build",
     "prepare-gas": "node scripts/prepare-gas-deployment.js",
     "copy-assets": "cp appsscript.json dist/ && cp .clasp.json dist/"
@@ -17,8 +17,10 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@types/google-apps-script": "^1.0.83",
     "@types/node": "^22.14.0",
     "typescript": "~5.7.2",
+    "undici-types": "^6.20.0",
     "vite": "^6.2.0"
   }
 }
