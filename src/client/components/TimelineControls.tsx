@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimelineEventData, InteractionType, HotspotData } from '../types';
+import { TimelineEventData, InteractionType, HotspotData } from '../../shared/types';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PencilIcon } from './icons/PencilIcon'; // Import PencilIcon

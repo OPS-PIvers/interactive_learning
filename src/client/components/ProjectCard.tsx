@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Project } from '../types';
+import { Project } from '../../shared/types';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon'; // Assuming you'll create this

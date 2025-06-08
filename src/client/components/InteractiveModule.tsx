@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../types';
+import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import TimelineControls from './TimelineControls';

@@ -1,12 +1,12 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Project, InteractiveModuleState, InteractionType } from './types';
-import ProjectCard from './components/ProjectCard';
-import Modal from './components/Modal';
-import InteractiveModule from './components/InteractiveModule';
-import AdminToggle from './components/AdminToggle';
-import { appScriptProxy } from './lib/googleAppScriptProxy'; // Updated import
-import { PlusCircleIcon } from './components/icons/PlusCircleIcon';
+import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
+import ProjectCard from './ProjectCard';
+import Modal from './Modal';
+import InteractiveModule from './InteractiveModule';
+import AdminToggle from './AdminToggle';
+import { appScriptProxy } from '../lib/googleAppScriptProxy';
+import { PlusCircleIcon } from './icons/PlusCircleIcon';
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);

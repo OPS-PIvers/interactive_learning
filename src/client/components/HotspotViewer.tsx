@@ -1,5 +1,5 @@
 import React from 'react';
-import { HotspotData } from '../types';
+import { HotspotData } from '../../shared/types';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;

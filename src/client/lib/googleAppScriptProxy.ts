@@ -1,5 +1,5 @@
 
-import { Project, InteractiveModuleState, InteractionType } from '../types';
+import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
 
 // Initial in-memory database for the mock environment
 let mockProjectsDB: Project[] = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimelineEventData, HotspotData } from '../types';
+import { TimelineEventData, HotspotData } from '../../shared/types';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];

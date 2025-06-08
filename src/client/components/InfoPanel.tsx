@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
-import { HotspotData } from '../types';
+import { HotspotData } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PencilIcon } from './icons/PencilIcon';
 
