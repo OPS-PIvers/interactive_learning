@@ -6,59 +6,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Prepare Google Apps Script deployment
- * This script creates HTML template files for Apps Script web app deployment
+ * Prepare Google Apps Script deployment with separate files
+ * This creates index.html, css.html, and javascript.html files
  */
 function prepareGasDeployment() {
   const distDir = path.join(__dirname, '..', 'dist');
   const bundlePath = path.join(distDir, 'bundle.js');
-  const indexHtmlPath = path.join(distDir, 'index.html');
   
   // Check if bundle exists
   if (!fs.existsSync(bundlePath)) {
-    console.error('bundle.js not found. Please run build first.');
+    console.error('❌ bundle.js not found. Please run build first.');
     process.exit(1);
   }
   
-  // Read the bundle content and original HTML
+  // Read the bundle content
   const bundleContent = fs.readFileSync(bundlePath, 'utf8');
-  const htmlContent = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, 'utf8') : '';
   
   // Verify bundle content is complete
-  console.log(`Bundle size: ${bundleContent.length} characters`);
+  console.log(`📦 Bundle size: ${bundleContent.length} characters`);
   if (bundleContent.length === 0) {
-    console.error('Bundle content is empty!');
+    console.error('❌ Bundle content is empty!');
     process.exit(1);
   }
   
-  // Check if bundle is too large for Google Apps Script (50KB HTML limit)
-  if (bundleContent.length > 50000) {
-    console.error(`⚠️  Bundle is too large (${bundleContent.length} chars) for Google Apps Script.`);
-    console.error('GAS has a ~50KB limit for HTML files. Consider:');
-    console.error('1. Using external CDN for React');
-    console.error('2. Code splitting');
-    console.error('3. Removing unused dependencies');
-    
-    // Create a warning HTML instead
-    const warningHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <title>Bundle Too Large</title>
-</head>
-<body>
-  <h1>Bundle Too Large for Google Apps Script</h1>
-  <p>Your bundle is ${bundleContent.length} characters, but GAS has a ~50KB limit.</p>
-  <p>Please reduce bundle size and rebuild.</p>
-</body>
-</html>`;
-    
-    fs.writeFileSync(indexHtmlPath, warningHtml, 'utf8');
-    console.log('Created warning HTML file instead.');
-    process.exit(1);
-  }
-  
-  // Create the HTML template parts separately to avoid template literal issues
-  const htmlStart = `<!DOCTYPE html>
+  // Step 1: Create the main index.html file
+  const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -67,33 +39,9 @@ function prepareGasDeployment() {
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
-  <style>
-    /* Custom scrollbar for better aesthetics */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-
-    /* Subtle pulse animation for hotspots in idle mode */
-    .subtle-pulse-animation {
-      animation: subtle-pulse-keyframes 2s infinite ease-in-out;
-    }
-    @keyframes subtle-pulse-keyframes {
-      0%, 100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.08); }
-    }
-  </style>
+  
+  <!-- Include CSS from separate file -->
+  <?!= HtmlService.createHtmlOutputFromFile('css').getContent() ?>
 </head>
 <body class="bg-slate-100">
   <div id="root">
@@ -108,35 +56,95 @@ function prepareGasDeployment() {
     </div>
   </div>
   
-  <!-- Self-contained Application Bundle with React included -->
-  <script>
-`;
-
-  const htmlEnd = `
-  </script>
+  <!-- Include JavaScript from separate file -->
+  <?!= HtmlService.createHtmlOutputFromFile('javascript').getContent() ?>
 </body>
 </html>`;
 
-  // Combine the parts without using template literals for the bundle content
-  const indexTemplate = htmlStart + bundleContent + htmlEnd;
+  // Step 2: Create the css.html file
+  const cssHtml = `<style>
+  /* Custom scrollbar for better aesthetics */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 
-  // Replace the original index.html with the template version (JavaScript embedded directly)
+  /* Subtle pulse animation for hotspots in idle mode */
+  .subtle-pulse-animation {
+    animation: subtle-pulse-keyframes 2s infinite ease-in-out;
+  }
+  @keyframes subtle-pulse-keyframes {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+
+  /* Additional styles from your build process can go here */
+</style>`;
+
+  // Step 3: Create the javascript.html file
+  const javascriptHtml = `<script>
+${bundleContent}
+</script>`;
+
+  // Step 4: Write all three files
   try {
-    fs.writeFileSync(indexHtmlPath, indexTemplate, 'utf8');
-    console.log(`Written index.html: ${indexTemplate.length} characters total`);
+    const indexPath = path.join(distDir, 'index.html');
+    const cssPath = path.join(distDir, 'css.html');
+    const jsPath = path.join(distDir, 'javascript.html');
+
+    fs.writeFileSync(indexPath, indexHtml, 'utf8');
+    fs.writeFileSync(cssPath, cssHtml, 'utf8');
+    fs.writeFileSync(jsPath, javascriptHtml, 'utf8');
+
+    console.log(`✅ Created index.html: ${indexHtml.length} characters`);
+    console.log(`✅ Created css.html: ${cssHtml.length} characters`);
+    console.log(`✅ Created javascript.html: ${javascriptHtml.length} characters`);
+
+    // Check if any individual file is too large
+    const maxSize = 50000; // 50KB limit for Apps Script
+    let hasOversizedFiles = false;
+
+    if (indexHtml.length > maxSize) {
+      console.error(`❌ index.html is too large (${indexHtml.length} chars)`);
+      hasOversizedFiles = true;
+    }
+    if (cssHtml.length > maxSize) {
+      console.error(`❌ css.html is too large (${cssHtml.length} chars)`);
+      hasOversizedFiles = true;
+    }
+    if (javascriptHtml.length > maxSize) {
+      console.error(`❌ javascript.html is too large (${javascriptHtml.length} chars)`);
+      hasOversizedFiles = true;
+    }
+
+    if (hasOversizedFiles) {
+      console.error('⚠️  One or more files exceed Google Apps Script 50KB limit');
+      console.error('Consider further code splitting or optimization');
+    } else {
+      console.log('✅ All files are within Google Apps Script size limits');
+    }
+
   } catch (error) {
-    console.error('Error writing index.html:', error);
+    console.error('❌ Error writing HTML files:', error);
     process.exit(1);
   }
   
-  console.log('✅ Created index.html with embedded JavaScript for Apps Script');
-  
-  // Clean up files that Apps Script doesn't need
+  // Step 5: Clean up files that Apps Script doesn't need
   const filesToRemove = [
+    'bundle.js',  // Remove original bundle since it's now in javascript.html
     'bundle.js.LICENSE.txt',
-    'app-bundle.html',  // Remove old bundle file if it exists
-    'bundle.js',  // Remove bundle.js since it's embedded in index.html
-    'gas-mocks.html'  // Remove gas-mocks.html to prevent it from being pushed
+    'gas-mocks.html'
   ];
   
   filesToRemove.forEach(file => {
@@ -148,6 +156,10 @@ function prepareGasDeployment() {
   });
   
   console.log('🚀 Google Apps Script deployment files prepared successfully!');
+  console.log('📁 Files created:');
+  console.log('   - index.html (main template)');
+  console.log('   - css.html (styles)');
+  console.log('   - javascript.html (application code)');
 }
 
 // Run the script
