@@ -8,11 +8,19 @@ export default defineConfig(({ mode }) => {
       build: {
         outDir: '../../dist',
         emptyOutDir: false,
+        target: 'es2015',
+        minify: 'terser',
         rollupOptions: {
+          external: ['react', 'react-dom'],
           output: {
             entryFileNames: 'bundle.js',
             chunkFileNames: 'bundle.js',
-            assetFileNames: 'bundle.[ext]'
+            assetFileNames: 'bundle.[ext]',
+            format: 'iife',
+            globals: {
+              'react': 'React',
+              'react-dom': 'ReactDOM'
+            }
           }
         }
       },

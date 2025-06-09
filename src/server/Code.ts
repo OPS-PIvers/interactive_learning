@@ -16,7 +16,16 @@ function include(filename: string): string {
 // Data storage functions for the interactive modules
 function getProjects(): any[] {
   try {
-    const folder = DriveApp.getFoldersByName('Interactive Training Modules').next();
+    // Check if the main folder exists first
+    const folders = DriveApp.getFoldersByName('Interactive Training Modules');
+    if (!folders.hasNext()) {
+      // Create the main folder if it doesn't exist
+      const mainFolder = DriveApp.createFolder('Interactive Training Modules');
+      console.log('Created main folder: Interactive Training Modules');
+      return []; // Return empty array for new installation
+    }
+    
+    const folder = folders.next();
     const projects: any[] = [];
     
     const projectFolders = folder.getFolders();
