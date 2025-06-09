@@ -32,6 +32,7 @@ export interface TimelineEventData {
 
 export interface InteractiveModuleState {
   backgroundImage?: string; // Base64 string of the image when loaded, or undefined
+  backgroundImageFileId?: string;
   hotspots: HotspotData[];
   timelineEvents: TimelineEventData[];
 }
@@ -48,5 +49,6 @@ export interface Project {
   title: string;
   description: string;
   thumbnailUrl?: string; // Base64 string of the background image, for card display
+  backgroundImageFileId?: string;
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
