@@ -24,14 +24,8 @@ function prepareGasDeployment() {
   const bundleContent = fs.readFileSync(bundlePath, 'utf8');
   const htmlContent = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, 'utf8') : '';
   
-  // Escape the bundle content to prevent JavaScript injection issues
-  const escapedBundleContent = bundleContent
-    .replace(/\\/g, '\\\\')
-    .replace(/`/g, '\\`')
-    .replace(/\$/g, '\\$');
-
-  // Create Apps Script compatible template with embedded bundle
-  const indexTemplate = `<!DOCTYPE html>
+  // Create the HTML template parts separately to avoid template literal issues
+  const htmlStart = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -81,10 +75,15 @@ function prepareGasDeployment() {
   
   <!-- Self-contained Application Bundle with React included -->
   <script>
-${bundleContent}
+`;
+
+  const htmlEnd = `
   </script>
 </body>
 </html>`;
+
+  // Combine the parts without using template literals for the bundle content
+  const indexTemplate = htmlStart + bundleContent + htmlEnd;
 
   // Replace the original index.html with the template version (JavaScript embedded directly)
   fs.writeFileSync(indexHtmlPath, indexTemplate);
