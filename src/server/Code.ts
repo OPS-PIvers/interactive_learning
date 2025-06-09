@@ -49,16 +49,14 @@ function gs_listProjects(): Project[] {
         let bgFileId: string | undefined = undefined;
         if (storedData.interactiveData.backgroundImageFileId) {
           try {
-            // We might still want to check if the file exists and is accessible,
-            // but we won't fetch its content here.
-            // This try-catch is now more about validating the ID's existence if desired,
-            // or could be removed if we trust the stored ID.
-            // For now, let's assume the ID is valid if it exists.
+            // Attempt to verify the file's existence. This will throw if the file is not found or inaccessible.
+            DriveApp.getFileById(storedData.interactiveData.backgroundImageFileId);
             bgFileId = storedData.interactiveData.backgroundImageFileId;
-            // Optional: DriveApp.getFileById(bgFileId); // to verify, but don't process
+            Logger.log(`Successfully verified background image file ID ${bgFileId} for project ${projectFolder.getName()}.`);
           } catch (e: unknown) {
             const errorDetails = e instanceof Error ? e.stack : String(e);
-            Logger.log(`Error accessing background image file ID ${storedData.interactiveData.backgroundImageFileId} for project ${projectFolder.getName()}: ${errorDetails}`);
+            Logger.log(`Error accessing/verifying background image file ID ${storedData.interactiveData.backgroundImageFileId} for project ${projectFolder.getName()}: ${errorDetails}. Setting bgFileId to undefined.`);
+            bgFileId = undefined; // Ensure client doesn't get a known-bad ID
           }
         }
 
@@ -413,19 +411,34 @@ function gs_getImageData(fileId: string): string {
     Logger.log(`gs_getImageData: ${unsupportedMessage}`);
     throw new Error(unsupportedMessage);
 
-  } catch (e: any) {
-    // Check if the error is because the file was not found (often a generic message from DriveApp)
-    // or if it's one of our specific thrown errors.
-    const errorMessage = e.message || String(e);
-    Logger.log(`gs_getImageData: Error processing file ID ${fileId}. Raw error: ${errorMessage}`);
+  } catch (e: unknown) { // Changed 'any' to 'unknown'
+    let errorMessage: string;
+    let errorStack: string | undefined;
 
-    if (errorMessage.includes('Invalid argument: id') || errorMessage.includes('File not found') || errorMessage.includes('No item with the given ID could be found')) {
-      // This attempts to catch typical "file not found" errors from DriveApp.getFileById
-      throw new Error(`File not found for ID ${fileId}. Original error: ${errorMessage}`);
+    if (e instanceof Error) {
+      errorMessage = e.message;
+      errorStack = e.stack;
+    } else {
+      errorMessage = String(e);
     }
 
-    // Re-throw other errors (could be our specific errors or other Drive API errors)
-    // If it's already one of our specific errors, re-throwing it is fine.
+    Logger.log(`gs_getImageData: Error processing file ID ${fileId}. Raw error: ${errorMessage}${errorStack ? `\nStack: ${errorStack}` : ''}`);
+
+    // Check for typical "file not found" messages or if it's one of our specific thrown errors.
+    if (errorMessage.includes('Invalid argument: id') ||
+        errorMessage.includes('File not found') || // Covers general file not found
+        errorMessage.includes('No item with the given ID could be found') || // Another DriveApp message
+        errorMessage.startsWith('File not found for ID') // To catch our re-thrown specific error
+       ) {
+      // Standardize the error message for file not found
+      throw new Error(`File not found for ID ${fileId}. Original error: ${errorMessage}`);
+    } else if (errorMessage.startsWith('Invalid URL content in .link file') ||
+               errorMessage.startsWith('File ID') && errorMessage.includes('is not a supported image type or a valid .link file')) {
+      // Re-throw our specific, already formatted errors
+      throw e;
+    }
+
+    // For other types of errors, wrap them generally
     throw new Error(`Failed to process file ID ${fileId}: ${errorMessage}`);
   }
 }
