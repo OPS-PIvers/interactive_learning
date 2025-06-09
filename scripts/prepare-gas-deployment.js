@@ -24,6 +24,12 @@ function prepareGasDeployment() {
   const bundleContent = fs.readFileSync(bundlePath, 'utf8');
   const htmlContent = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, 'utf8') : '';
   
+  // Escape the bundle content to prevent JavaScript injection issues
+  const escapedBundleContent = bundleContent
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$/g, '\\$');
+
   // Create Apps Script compatible template with embedded bundle
   const indexTemplate = `<!DOCTYPE html>
 <html lang="en">
