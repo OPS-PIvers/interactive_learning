@@ -21,7 +21,7 @@ function prepareGasDeployment() {
   }
   
   // Read the bundle content
-  const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+  let bundleContent = fs.readFileSync(bundlePath, 'utf8');
   
   // Read CSS content if it exists
   let cssContent = '';
@@ -31,10 +31,22 @@ function prepareGasDeployment() {
   
   // Verify bundle content is complete
   console.log(`📦 Bundle size: ${bundleContent.length} characters`);
+  console.log(`📦 Bundle size: ${(bundleContent.length / 1024).toFixed(2)} KB`);
+  
   if (bundleContent.length === 0) {
     console.error('❌ Bundle content is empty!');
     process.exit(1);
   }
+  
+  // IMPORTANT: Escape the bundle content to prevent issues with quotes and special characters
+  // This is crucial for preventing "Unexpected end of input" errors
+  bundleContent = bundleContent
+    .replace(/\\/g, '\\\\')  // Escape backslashes first
+    .replace(/'/g, "\\'")    // Escape single quotes
+    .replace(/"/g, '\\"')    // Escape double quotes
+    .replace(/\n/g, '\\n')   // Escape newlines
+    .replace(/\r/g, '\\r')   // Escape carriage returns
+    .replace(/\t/g, '\\t');  // Escape tabs
   
   // Step 1: Create the main index.html file
   const indexHtml = `<!DOCTYPE html>
@@ -109,14 +121,16 @@ function prepareGasDeployment() {
   ${cssContent ? `/* Bundled CSS styles */\n${cssContent}` : ''}
 </style>`;
 
-  // Step 3: Create the javascript.html file with the complete bundle
+  // Step 3: Create the javascript.html file
+  // IMPORTANT: We use eval with the escaped content to prevent syntax errors
   const javascriptHtml = `<script>
 // Self-contained React application bundle
 (function() {
   'use strict';
   
   try {
-    ${bundleContent}
+    // Using eval to execute the escaped bundle content
+    eval("${bundleContent}");
   } catch (error) {
     console.error('Error loading application:', error);
     document.getElementById('root').innerHTML = 
@@ -125,7 +139,8 @@ function prepareGasDeployment() {
       '<h1 class="text-2xl font-bold text-red-800 mb-4">Error Loading Application</h1>' +
       '<div class="bg-white rounded-lg shadow-lg p-6">' +
       '<p class="text-red-600 mb-4">Failed to initialize the interactive learning application.</p>' +
-      '<p class="text-gray-600 text-sm">Please try refreshing the page or contact support.</p>' +
+      '<p class="text-gray-600 text-sm">Error details: ' + error.message + '</p>' +
+      '<p class="text-gray-600 text-sm mt-2">Please try refreshing the page or contact support.</p>' +
       '</div></div></div>';
   }
 })();
@@ -143,28 +158,33 @@ function prepareGasDeployment() {
 
     console.log(`✅ Created index.html: ${indexHtml.length} characters`);
     console.log(`✅ Created css.html: ${cssHtml.length} characters`);
-    console.log(`✅ Created javascript.html: ${javascriptHtml.length} characters`);
+    console.log(`✅ Created javascript.html: ${javascriptHtml.length} characters (${(javascriptHtml.length / 1024).toFixed(2)} KB)`);
 
     // Check if any individual file is too large
-    const maxSize = 50000; // 50KB limit for Apps Script
+    // Google Apps Script has a limit of about 1MB per file
+    const maxSize = 1000000; // 1MB limit
     let hasOversizedFiles = false;
 
     if (indexHtml.length > maxSize) {
-      console.error(`❌ index.html is too large (${indexHtml.length} chars)`);
+      console.error(`❌ index.html is too large (${(indexHtml.length / 1024).toFixed(2)} KB)`);
       hasOversizedFiles = true;
     }
     if (cssHtml.length > maxSize) {
-      console.error(`❌ css.html is too large (${cssHtml.length} chars)`);
+      console.error(`❌ css.html is too large (${(cssHtml.length / 1024).toFixed(2)} KB)`);
       hasOversizedFiles = true;
     }
     if (javascriptHtml.length > maxSize) {
-      console.error(`❌ javascript.html is too large (${javascriptHtml.length} chars)`);
+      console.error(`❌ javascript.html is too large (${(javascriptHtml.length / 1024).toFixed(2)} KB)`);
+      console.error('⚠️  Consider enabling minification or code splitting');
       hasOversizedFiles = true;
     }
 
     if (hasOversizedFiles) {
-      console.error('⚠️  One or more files exceed Google Apps Script 50KB limit');
-      console.error('Consider further code splitting or optimization');
+      console.error('\n⚠️  One or more files exceed Google Apps Script limits');
+      console.error('Solutions:');
+      console.error('1. Enable minification in your build');
+      console.error('2. Remove unnecessary dependencies');
+      console.error('3. Consider using a CDN for large libraries');
     } else {
       console.log('✅ All files are within Google Apps Script size limits');
     }
@@ -190,11 +210,14 @@ function prepareGasDeployment() {
     }
   });
   
-  console.log('🚀 Google Apps Script deployment files prepared successfully!');
+  console.log('\n🚀 Google Apps Script deployment files prepared successfully!');
   console.log('📁 Files created:');
   console.log('   - index.html (main template)');
   console.log('   - css.html (styles)');
   console.log('   - javascript.html (application code)');
+  console.log('\n📋 Next steps:');
+  console.log('   1. Run: cd dist && clasp push');
+  console.log('   2. Deploy the web app in Apps Script editor');
 }
 
 // Run the script
