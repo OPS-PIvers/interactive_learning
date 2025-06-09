@@ -73,11 +73,7 @@ function prepareGasDeployment() {
     </div>
   </div>
   
-  <!-- React and ReactDOM from CDN -->
-  <script src="https://unpkg.com/react@19.1.0/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@19.1.0/umd/react-dom.production.min.js"></script>
-  
-  <!-- Full Application Bundle -->
+  <!-- Self-contained Application Bundle with React included -->
   <script>
 ${bundleContent}
   </script>
