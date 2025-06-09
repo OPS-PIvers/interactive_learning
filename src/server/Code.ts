@@ -371,3 +371,61 @@ function gs_deleteProject(projectId: string): string {
     throw new Error(`Failed to delete project: ${exceptionMessage}`); // The exception message for the client is now e.message or stringified error
   }
 }
+
+/**
+ * Retrieves image data or a URL based on a file ID.
+ *
+ * @param {string} fileId The ID of the file to retrieve.
+ * @return {string} The base64 encoded data URL of the image, or the URL string from a .link file.
+ * @throws {Error} If the file cannot be found, or if the file type is unsupported.
+ */
+function gs_getImageData(fileId: string): string {
+  Logger.log(`gs_getImageData: Attempting to retrieve file with ID: ${fileId}`);
+  try {
+    const file = DriveApp.getFileById(fileId);
+    const fileName = file.getName();
+    const mimeType = file.getMimeType();
+    Logger.log(`gs_getImageData: File ${fileId} retrieved. Name: ${fileName}, MimeType: ${mimeType}`);
+
+    // Handle Image Files
+    if (mimeType.startsWith('image/')) {
+      const blob = file.getBlob();
+      const base64Data = Utilities.base64Encode(blob.getBytes());
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      Logger.log(`gs_getImageData: Successfully generated data URL for image file ${fileId}.`);
+      return dataUrl;
+    }
+
+    // Handle .link Files (Google Apps Script MimeType enum for plain text)
+    if (fileName.endsWith('.link') && mimeType === MimeType.PLAIN_TEXT) {
+      const url = file.getBlob().getDataAsString();
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        Logger.log(`gs_getImageData: Successfully retrieved URL from .link file ${fileId}: ${url}`);
+        return url;
+      } else {
+        Logger.log(`gs_getImageData: Content of .link file ${fileId} is not a valid URL: ${url}`);
+        throw new Error(`Invalid URL content in .link file for ID ${fileId}.`);
+      }
+    }
+
+    // If neither image nor .link file, it's an unsupported type or misconfigured
+    const unsupportedMessage = `File ID ${fileId} (Name: ${fileName}, MimeType: ${mimeType}) is not a supported image type or a valid .link file.`;
+    Logger.log(`gs_getImageData: ${unsupportedMessage}`);
+    throw new Error(unsupportedMessage);
+
+  } catch (e: any) {
+    // Check if the error is because the file was not found (often a generic message from DriveApp)
+    // or if it's one of our specific thrown errors.
+    const errorMessage = e.message || String(e);
+    Logger.log(`gs_getImageData: Error processing file ID ${fileId}. Raw error: ${errorMessage}`);
+
+    if (errorMessage.includes('Invalid argument: id') || errorMessage.includes('File not found') || errorMessage.includes('No item with the given ID could be found')) {
+      // This attempts to catch typical "file not found" errors from DriveApp.getFileById
+      throw new Error(`File not found for ID ${fileId}. Original error: ${errorMessage}`);
+    }
+
+    // Re-throw other errors (could be our specific errors or other Drive API errors)
+    // If it's already one of our specific errors, re-throwing it is fine.
+    throw new Error(`Failed to process file ID ${fileId}: ${errorMessage}`);
+  }
+}
