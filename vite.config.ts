@@ -13,9 +13,14 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           external: ['react', 'react-dom', 'react-dom/client'],
           output: {
-            entryFileNames: 'bundle.js',
-            chunkFileNames: 'bundle.js',
-            assetFileNames: 'bundle.[ext]',
+            entryFileNames: 'javascript.js',
+            chunkFileNames: 'javascript.js',
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name?.endsWith('.css')) {
+                return 'css.css';
+              }
+              return 'assets/[name].[ext]';
+            },
             format: 'iife',
             name: 'InteractiveLearningApp',
             globals: {
@@ -24,7 +29,8 @@ export default defineConfig(({ mode }) => {
               'react-dom/client': 'ReactDOM'
             }
           }
-        }
+        },
+        cssCodeSplit: false
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
