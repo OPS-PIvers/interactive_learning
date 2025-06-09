@@ -1,4 +1,5 @@
 // src/server/Code.ts - Complete implementation for Google Apps Script
+import { Project, InteractiveModuleState, StoredInteractiveModuleData } from '../shared/types';
 
 const APP_ROOT_FOLDER_NAME = 'InteractiveLearningModulesApp_Data';
 const MODULE_DATA_FILE_NAME = 'module_data.json';
@@ -31,11 +32,11 @@ function gs_initializeIfNeeded_() {
   }
 }
 
-function gs_listProjects(): any[] {
+function gs_listProjects(): Project[] {
   gs_initializeIfNeeded_();
   const rootFolder = getAppRootFolder();
   const projectFolders = rootFolder.getFolders();
-  const projects: any[] = [];
+  const projects: Project[] = [];
 
   while (projectFolders.hasNext()) {
     const projectFolder = projectFolders.next();
@@ -45,7 +46,7 @@ function gs_listProjects(): any[] {
       try {
         const storedData = JSON.parse(projectFiles.next().getBlob().getDataAsString());
 
-        let backgroundImageContent = null;
+        let backgroundImageContent: string | undefined = undefined;
         if (storedData.interactiveData.backgroundImageFileId) {
           try {
             const imgFile = DriveApp.getFileById(storedData.interactiveData.backgroundImageFileId);
@@ -80,18 +81,23 @@ function gs_listProjects(): any[] {
   return projects.sort((a, b) => a.title.localeCompare(b.title));
 }
 
-function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, title: string, description: string, interactiveData: any) {
+function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, title: string, description: string, interactiveData: Partial<InteractiveModuleState> | null) {
   const projectFolder = rootFolder.createFolder(title.replace(/[^a-zA-Z0-9_ .-]/g, '_') + `_${Utilities.getUuid().substring(0,8)}`);
   const projectId = projectFolder.getId();
 
-  let bgImageFileId = null;
-  let actualBackgroundImageSourceForClient = null;
+  let bgImageFileId: string | undefined = undefined;
+  let actualBackgroundImageSourceForClient: string | undefined = undefined;
 
   if (interactiveData && interactiveData.backgroundImage) {
     actualBackgroundImageSourceForClient = interactiveData.backgroundImage;
     if (interactiveData.backgroundImage.startsWith('data:image')) {
       const [header, base64Data] = interactiveData.backgroundImage.split(',');
-      const mimeType = header.match(/:(.*?);/)![1];
+      const mimeMatch = header.match(/:(.*?);/);
+      if (!mimeMatch || !mimeMatch[1]) {
+        Logger.log(`Error: Could not parse mime type from image data URL header: ${header}`);
+        throw new Error('Invalid image data URL: Mime type could not be parsed.');
+      }
+      const mimeType = mimeMatch[1];
       const extension = mimeType.split('/')[1] || 'png';
       const imageBlob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, `${DEFAULT_BACKGROUND_IMAGE_NAME}.${extension}`);
       const imageFile = projectFolder.createFile(imageBlob);
@@ -107,7 +113,7 @@ function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, ti
     description: description,
     id: projectId,
     interactiveData: {
-      backgroundImageFileId: bgImageFileId,
+      backgroundImageFileId: bgImageFileId || undefined, // Ensure undefined if null/empty
       hotspots: (interactiveData && interactiveData.hotspots) ? interactiveData.hotspots : [],
       timelineEvents: (interactiveData && interactiveData.timelineEvents) ? interactiveData.timelineEvents : [],
     }
@@ -119,28 +125,28 @@ function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, ti
     id: projectId,
     title: title,
     description: description,
-    thumbnailUrl: actualBackgroundImageSourceForClient,
+    thumbnailUrl: actualBackgroundImageSourceForClient || undefined,
     interactiveData: {
-      backgroundImage: actualBackgroundImageSourceForClient,
+      backgroundImage: actualBackgroundImageSourceForClient || undefined,
       hotspots: moduleContent.interactiveData.hotspots,
       timelineEvents: moduleContent.interactiveData.timelineEvents,
     }
   };
 }
 
-function gs_createProject(title: string, description: string): any {
+function gs_createProject(title: string, description: string): Project {
   Logger.log(`gs_createProject: Title: ${title}`);
   const rootFolder = getAppRootFolder();
-  return gs_createProjectInternal_(rootFolder, title, description, { backgroundImage: null, hotspots: [], timelineEvents: [] });
+  return gs_createProjectInternal_(rootFolder, title, description, { backgroundImage: undefined, hotspots: [], timelineEvents: [] });
 }
 
-function gs_saveProject(projectObject: any): any {
+function gs_saveProject(projectObject: Project): Project {
   Logger.log(`gs_saveProject: Saving project ID ${projectObject.id}`);
   const projectFolder = DriveApp.getFolderById(projectObject.id);
   if (!projectFolder) throw new Error("Project folder not found.");
 
   let currentModuleDataFiles = projectFolder.getFilesByName(MODULE_DATA_FILE_NAME);
-  let currentStoredData: any = { interactiveData: {} };
+  let currentStoredData: Partial<StoredInteractiveModuleData> = {};
 
   if (currentModuleDataFiles.hasNext()) {
     try {
@@ -150,8 +156,8 @@ function gs_saveProject(projectObject: any): any {
     }
   }
 
-  let newBgImageFileId = currentStoredData.interactiveData ? currentStoredData.interactiveData.backgroundImageFileId : null;
-  let actualBackgroundImageSourceForClient = projectObject.interactiveData.backgroundImage;
+  let newBgImageFileId: string | undefined = currentStoredData.backgroundImageFileId || undefined;
+  let actualBackgroundImageSourceForClient: string | undefined = projectObject.interactiveData.backgroundImage || undefined;
 
   const oldBgImageFileId = newBgImageFileId;
 
@@ -166,7 +172,12 @@ function gs_saveProject(projectObject: any): any {
 
     if (projectObject.interactiveData.backgroundImage.startsWith('data:image')) {
       const [header, base64Data] = projectObject.interactiveData.backgroundImage.split(',');
-      const mimeType = header.match(/:(.*?);/)![1];
+      const mimeMatch = header.match(/:(.*?);/);
+      if (!mimeMatch || !mimeMatch[1]) {
+        Logger.log(`Error: Could not parse mime type from image data URL header: ${header}`);
+        throw new Error('Invalid image data URL: Mime type could not be parsed.');
+      }
+      const mimeType = mimeMatch[1];
       const extension = mimeType.split('/')[1] || 'png';
       const imageBlob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, `${DEFAULT_BACKGROUND_IMAGE_NAME}.${extension}`);
       const imageFile = projectFolder.createFile(imageBlob);
@@ -183,8 +194,8 @@ function gs_saveProject(projectObject: any): any {
         Logger.log("Old image/link not found for deletion: " + String(e));
       }
     }
-    newBgImageFileId = null;
-    actualBackgroundImageSourceForClient = null;
+    newBgImageFileId = undefined;
+    actualBackgroundImageSourceForClient = undefined;
   }
 
   const newModuleContent = {
@@ -192,7 +203,7 @@ function gs_saveProject(projectObject: any): any {
     description: projectObject.description,
     id: projectObject.id,
     interactiveData: {
-      backgroundImageFileId: newBgImageFileId,
+      backgroundImageFileId: newBgImageFileId || undefined,
       hotspots: projectObject.interactiveData.hotspots,
       timelineEvents: projectObject.interactiveData.timelineEvents,
     }
@@ -211,9 +222,9 @@ function gs_saveProject(projectObject: any): any {
     id: projectObject.id,
     title: projectObject.title,
     description: projectObject.description,
-    thumbnailUrl: actualBackgroundImageSourceForClient,
+    thumbnailUrl: actualBackgroundImageSourceForClient || undefined,
     interactiveData: {
-      backgroundImage: actualBackgroundImageSourceForClient,
+      backgroundImage: actualBackgroundImageSourceForClient || undefined,
       hotspots: newModuleContent.interactiveData.hotspots,
       timelineEvents: newModuleContent.interactiveData.timelineEvents,
     }

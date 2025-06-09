@@ -8,13 +8,14 @@
     "skipLibCheck": true,
     "noEmit": false,
     "outDir": "./dist",
-    "rootDir": "./src/server",
+    "rootDir": "./src",
     "declaration": false,
     "removeComments": true,
     "types": ["google-apps-script"]
   },
   "include": [
-    "src/server/**/*"
+    "src/server/**/*",
+    "src/shared/**/*"
   ],
   "exclude": [
     "node_modules",
