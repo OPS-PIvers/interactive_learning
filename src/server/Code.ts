@@ -54,8 +54,8 @@ function gs_listProjects(): any[] {
             } else if (imgFile.getMimeType() === MimeType.PLAIN_TEXT || imgFile.getName().endsWith('.link')) {
               backgroundImageContent = imgFile.getBlob().getDataAsString();
             }
-          } catch (e: any) {
-            Logger.log(`Error accessing background image for project ${projectFolder.getName()}: ${e.toString()}`);
+          } catch (e: unknown) {
+            Logger.log(`Error accessing background image for project ${projectFolder.getName()}: ${String(e)}`);
           }
         }
 
@@ -70,8 +70,8 @@ function gs_listProjects(): any[] {
             timelineEvents: storedData.interactiveData.timelineEvents || [],
           }
         });
-      } catch (e: any) {
-        Logger.log(`Error parsing project data for ${projectFolder.getName()}: ${e.toString()}`);
+      } catch (e: unknown) {
+        Logger.log(`Error parsing project data for ${projectFolder.getName()}: ${String(e)}`);
       }
     }
   }
@@ -145,8 +145,8 @@ function gs_saveProject(projectObject: any): any {
   if (currentModuleDataFiles.hasNext()) {
     try {
       currentStoredData = JSON.parse(currentModuleDataFiles.next().getBlob().getDataAsString());
-    } catch(e: any) {
-      Logger.log(`Error parsing existing module data for ${projectObject.id}, will overwrite: ${e}`);
+    } catch(e: unknown) {
+      Logger.log(`Error parsing existing module data for ${projectObject.id}, will overwrite: ${String(e)}`);
     }
   }
 
@@ -159,8 +159,8 @@ function gs_saveProject(projectObject: any): any {
     if (oldBgImageFileId) {
       try {
         DriveApp.getFileById(oldBgImageFileId).setTrashed(true);
-      } catch(e: any) {
-        Logger.log("Old image/link not found or error trashing: " + e);
+      } catch(e: unknown) {
+        Logger.log("Old image/link not found or error trashing: " + String(e));
       }
     }
 
@@ -179,8 +179,8 @@ function gs_saveProject(projectObject: any): any {
     if (oldBgImageFileId) {
       try {
         DriveApp.getFileById(oldBgImageFileId).setTrashed(true);
-      } catch(e: any) {
-        Logger.log("Old image/link not found for deletion: " + e);
+      } catch(e: unknown) {
+        Logger.log("Old image/link not found for deletion: " + String(e));
       }
     }
     newBgImageFileId = null;
@@ -227,8 +227,14 @@ function gs_deleteProject(projectId: string): string {
     projectFolder.setTrashed(true);
     Logger.log(`Project ${projectId} trashed.`);
     return "Project deleted successfully.";
-  } catch (e: any) {
-    Logger.log(`Error deleting project ${projectId}: ${e.toString()}`);
-    throw new Error(`Failed to delete project: ${(e as Error).message}`);
+  } catch (e: unknown) {
+    let exceptionMessage = "unknown error";
+    if (e instanceof Error) {
+      exceptionMessage = e.message;
+    } else {
+      exceptionMessage = String(e);
+    }
+    Logger.log(`Error deleting project ${projectId}: ${String(e)}`);
+    throw new Error(`Failed to delete project: ${exceptionMessage}`);
   }
 }
