@@ -102,7 +102,7 @@ function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, ti
       Logger.log(`gs_createProjectInternal_: Handling background image for project ${projectId}`);
       if (interactiveData.backgroundImage.startsWith('data:image')) {
         const [header, base64Data] = interactiveData.backgroundImage.split(',');
-        const mimeMatch = header.match(/:(.*?);/);
+        const mimeMatch = header.match(/^data:([\w\/\+\.-]+);base64,/i);
         if (!mimeMatch || !mimeMatch[1]) {
           const errMsg = `Invalid image data URL: Mime type could not be parsed from header: ${header}`;
           Logger.log(`gs_createProjectInternal_: Error for project ${projectId}: ${errMsg}`);
@@ -209,7 +209,7 @@ function gs_saveProject(projectObject: Project): Project {
     if (projectObject.interactiveData.backgroundImage.startsWith('data:image')) {
       Logger.log(`gs_saveProject: New background is a data URL for project ${projectObject.id}. Uploading new file.`);
       const [header, base64Data] = projectObject.interactiveData.backgroundImage.split(',');
-      const mimeMatch = header.match(/:(.*?);/);
+      const mimeMatch = header.match(/^data:([\w\/\+\.-]+);base64,/i);
       if (!mimeMatch || !mimeMatch[1]) {
         const errMsg = `Invalid image data URL: Mime type could not be parsed from header: ${header}`;
         Logger.log(`gs_saveProject: Error for project ${projectObject.id}: ${errMsg}`);
@@ -223,11 +223,45 @@ function gs_saveProject(projectObject: Project): Project {
       finalBgImageFileIdForJson = uploadedProvisionalNewBgImageFileId; // This will be the new ID in JSON
       Logger.log(`gs_saveProject: Uploaded new image file ${uploadedProvisionalNewBgImageFileId} for project ${projectObject.id}.`);
     } else { // It's a URL
-      Logger.log(`gs_saveProject: New background is a URL for project ${projectObject.id}. Creating link file.`);
-      const linkFile = projectFolder.createFile(`${DEFAULT_BACKGROUND_IMAGE_NAME}.link`, projectObject.interactiveData.backgroundImage, MimeType.PLAIN_TEXT);
-      uploadedProvisionalNewBgImageFileId = linkFile.getId();
-      finalBgImageFileIdForJson = uploadedProvisionalNewBgImageFileId; // This will be the new ID in JSON
-      Logger.log(`gs_saveProject: Created new link file ${uploadedProvisionalNewBgImageFileId} for project ${projectObject.id}.`);
+      Logger.log(`gs_saveProject: New background is a URL for project ${projectObject.id}.`);
+      let oldUrlContent: string | undefined = undefined;
+      if (oldBgImageFileIdFromStoredData) {
+        try {
+          // Attempt to get the old file only if an ID exists.
+          const oldLinkFile = DriveApp.getFileById(oldBgImageFileIdFromStoredData);
+          // A simple check to see if it's likely our link file.
+          // More robust checks could involve checking mime type if it was set specifically for these link files.
+          if (oldLinkFile.getName().endsWith('.link') && oldLinkFile.getMimeType() === MimeType.PLAIN_TEXT) {
+            oldUrlContent = oldLinkFile.getBlob().getDataAsString();
+            Logger.log(`gs_saveProject: Successfully retrieved content of old link file ${oldBgImageFileIdFromStoredData}.`);
+          } else {
+            Logger.log(`gs_saveProject: Old file ${oldBgImageFileIdFromStoredData} is not a .link file or not plain text. Will treat as different.`);
+          }
+        } catch (e: unknown) {
+          const errorDetails = e instanceof Error ? e.stack : String(e);
+          Logger.log(`gs_saveProject: Could not retrieve or validate old link file content for ${oldBgImageFileIdFromStoredData}. Error: ${errorDetails}. Will create new link file.`);
+          // oldUrlContent remains undefined, old file (if it exists but was inaccessible) will be orphaned & cleaned up if imageStateChanged is true.
+        }
+      }
+
+      if (oldUrlContent && oldUrlContent === projectObject.interactiveData.backgroundImage) {
+        Logger.log(`gs_saveProject: New URL is the same as the old one (${projectObject.interactiveData.backgroundImage}). No change needed for file ID ${oldBgImageFileIdFromStoredData}.`);
+        finalBgImageFileIdForJson = oldBgImageFileIdFromStoredData; // Keep the old file ID
+        imageStateChanged = false; // Signal that the image file resource itself hasn't changed.
+        // uploadedProvisionalNewBgImageFileId remains undefined.
+      } else {
+        if (oldUrlContent) {
+          Logger.log(`gs_saveProject: New URL (${projectObject.interactiveData.backgroundImage}) is different from old URL (${oldUrlContent}). Creating new link file.`);
+        } else {
+          Logger.log(`gs_saveProject: No valid old URL content found. Creating new link file for URL: ${projectObject.interactiveData.backgroundImage}.`);
+        }
+        // imageStateChanged is already true here because projectObject.interactiveData.backgroundImage is truthy.
+        // The old file (if one existed and oldBgImageFileIdFromStoredData was set) will be cleaned up later due to imageStateChanged=true and different finalBgImageFileIdForJson.
+        const linkFile = projectFolder.createFile(`${DEFAULT_BACKGROUND_IMAGE_NAME}.link`, projectObject.interactiveData.backgroundImage, MimeType.PLAIN_TEXT);
+        uploadedProvisionalNewBgImageFileId = linkFile.getId();
+        finalBgImageFileIdForJson = uploadedProvisionalNewBgImageFileId;
+        Logger.log(`gs_saveProject: Created new link file ${uploadedProvisionalNewBgImageFileId} for project ${projectObject.id}.`);
+      }
     }
   } else { // Client sent no image data (projectObject.interactiveData.backgroundImage is null/undefined)
     if (oldBgImageFileIdFromStoredData) {
@@ -327,13 +361,13 @@ function gs_deleteProject(projectId: string): string {
     let exceptionMessage = "unknown error";
     let logMessage = "";
     if (e instanceof Error) {
-      exceptionMessage = e.stack || e.message; // Use stack if available, else message
-      logMessage = e.stack || String(e); // Log stack if available
+      exceptionMessage = e.message; // Use message for client-facing error
+      logMessage = e.stack || String(e); // Log stack if available, else string representation
     } else {
       exceptionMessage = String(e);
       logMessage = String(e);
     }
     Logger.log(`Error deleting project ${projectId}: ${logMessage}`);
-    throw new Error(`Failed to delete project: ${exceptionMessage}`); // The exception message for the client can be less verbose
+    throw new Error(`Failed to delete project: ${exceptionMessage}`); // The exception message for the client is now e.message or stringified error
   }
 }
