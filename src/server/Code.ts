@@ -111,7 +111,7 @@ function saveProjectData(projectData: any): any {
       existingFile.setContent(dataContent);
     } else {
       // Create new file
-      folder.createFile('module_data.json', dataContent, MimeType.PLAIN_TEXT);
+      folder.createFile('module_data.json', dataContent);
     }
     
     return {
@@ -171,6 +171,121 @@ function saveImageToProject(projectId: string, imageData: string, filename: stri
       success: false,
       message: error instanceof Error ? error.message : String(error)
     };
+  }
+}
+
+// Client-callable functions for Google Apps Script proxy
+function gs_listProjects(): any[] {
+  return getProjects();
+}
+
+function gs_createProject(title: string, description: string): any {
+  try {
+    // Create main folder if it doesn't exist
+    let parentFolder;
+    const folders = DriveApp.getFoldersByName('Interactive Training Modules');
+    if (folders.hasNext()) {
+      parentFolder = folders.next();
+    } else {
+      parentFolder = DriveApp.createFolder('Interactive Training Modules');
+    }
+    
+    // Create project folder
+    const projectFolder = parentFolder.createFolder(title);
+    const projectId = projectFolder.getId();
+    
+    // Create initial module data
+    const initialData = {
+      description: description,
+      hotspots: [],
+      timelineEvents: [],
+      backgroundImageFileId: undefined
+    };
+    
+    const dataContent = JSON.stringify(initialData, null, 2);
+    projectFolder.createFile('module_data.json', dataContent);
+    
+    // Return project data in expected format
+    return {
+      id: projectId,
+      title: title,
+      description: description,
+      thumbnailUrl: undefined,
+      interactiveData: {
+        backgroundImage: undefined,
+        hotspots: [],
+        timelineEvents: []
+      }
+    };
+  } catch (error) {
+    console.error('Error creating project:', error);
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
+}
+
+function gs_saveProject(project: any): void {
+  try {
+    const folder = DriveApp.getFolderById(project.id);
+    
+    // Handle background image if present
+    let backgroundImageFileId = undefined;
+    if (project.interactiveData.backgroundImage) {
+      // Check if it's a data URL (new upload)
+      if (project.interactiveData.backgroundImage.startsWith('data:')) {
+        const imageResult = saveImageToProject(project.id, project.interactiveData.backgroundImage, 'background.jpg');
+        if (imageResult.success) {
+          backgroundImageFileId = imageResult.fileId;
+        }
+      } else {
+        // It's already a file reference, try to find existing background image file
+        const imageFiles = folder.getFiles();
+        while (imageFiles.hasNext()) {
+          const file = imageFiles.next();
+          if (file.getName().startsWith('background.')) {
+            backgroundImageFileId = file.getId();
+            break;
+          }
+        }
+      }
+    }
+    
+    // Update project data
+    const dataToSave = {
+      description: project.description,
+      hotspots: project.interactiveData.hotspots,
+      timelineEvents: project.interactiveData.timelineEvents,
+      backgroundImageFileId: backgroundImageFileId
+    };
+    
+    const dataContent = JSON.stringify(dataToSave, null, 2);
+    
+    // Update module_data.json
+    const existingFiles = folder.getFilesByName('module_data.json');
+    if (existingFiles.hasNext()) {
+      const existingFile = existingFiles.next();
+      existingFile.setContent(dataContent);
+    } else {
+      folder.createFile('module_data.json', dataContent);
+    }
+    
+    // Update folder name if title changed
+    if (folder.getName() !== project.title) {
+      folder.setName(project.title);
+    }
+    
+  } catch (error) {
+    console.error('Error saving project:', error);
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
+}
+
+function gs_deleteProject(projectId: string): void {
+  try {
+    const folder = DriveApp.getFolderById(projectId);
+    folder.setTrashed(true);
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw new Error(error instanceof Error ? error.message : String(error));
   }
 }
 
