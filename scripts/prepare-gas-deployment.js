@@ -24,9 +24,7 @@ function prepareGasDeployment() {
   
   // Create JavaScript.html file that Apps Script can include
   const jsHtmlPath = path.join(distDir, 'JavaScript.html');
-  const jsHtmlContent = `<script>
-${bundleContent}
-</script>`;
+  const jsHtmlContent = `<script>\n${bundleContent}\n</script>`;
   fs.writeFileSync(jsHtmlPath, jsHtmlContent);
   console.log('✅ Created JavaScript.html for Apps Script');
   
@@ -37,9 +35,7 @@ ${bundleContent}
   if (fs.existsSync(cssPath)) {
     cssContent = fs.readFileSync(cssPath, 'utf8');
   }
-  const cssHtmlContent = `<style>
-${cssContent}
-</style>`;
+  const cssHtmlContent = `<style>\n${cssContent}\n</style>`;
   fs.writeFileSync(cssHtmlPath, cssHtmlContent);
   console.log('✅ Created CSS.html for Apps Script');
 
