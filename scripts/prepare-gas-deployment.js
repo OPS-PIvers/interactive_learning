@@ -175,7 +175,8 @@ function prepareGasDeployment() {
   const filesToRemove = [
     'bundle.js.LICENSE.txt',
     'app-bundle.html',  // Remove old bundle file if it exists
-    'bundle.js'  // Remove bundle.js since it's embedded in index.html
+    'bundle.js',  // Remove bundle.js since it's embedded in index.html
+    'gas-mocks.html'  // Remove gas-mocks.html to prevent it from being pushed
   ];
   
   filesToRemove.forEach(file => {
@@ -185,35 +186,6 @@ function prepareGasDeployment() {
       console.log(`🗑️  Removed ${file}`);
     }
   });
-  
-  // Add Google Apps Script API mocks for local development
-  const mockScript = `
-// Google Apps Script API mocks for local development
-if (typeof google === 'undefined') {
-  window.google = {
-    script: {
-      run: function(functionName) {
-        console.log('Mock google.script.run called:', functionName);
-        const mockResponse = { success: true, data: 'mock data' };
-        return {
-          withSuccessHandler: function(callback) {
-            setTimeout(() => callback(mockResponse), 100);
-            return this;
-          },
-          withFailureHandler: function(callback) {
-            return this;
-          }
-        };
-      }
-    }
-  };
-  console.log('🔧 Google Apps Script API mocks loaded for local development');
-}
-`;
-  
-  const mockPath = path.join(distDir, 'gas-mocks.html');
-  fs.writeFileSync(mockPath, mockScript);
-  console.log('✅ Created gas-mocks.html for local development');
   
   console.log('🚀 Google Apps Script deployment files prepared successfully!');
 }
