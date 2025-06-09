@@ -17,7 +17,7 @@ function getAppRootFolder() {
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Interactive Training Module Creator')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
 }
 
