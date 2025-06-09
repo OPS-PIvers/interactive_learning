@@ -11,12 +11,18 @@ export default defineConfig(({ mode }) => {
         target: 'es2015',
         minify: 'terser',
         rollupOptions: {
+          external: ['react', 'react-dom', 'react-dom/client'],
           output: {
             entryFileNames: 'bundle.js',
             chunkFileNames: 'bundle.js',
             assetFileNames: 'bundle.[ext]',
             format: 'iife',
-            name: 'InteractiveLearningApp'
+            name: 'InteractiveLearningApp',
+            globals: {
+              'react': 'React',
+              'react-dom': 'ReactDOM',
+              'react-dom/client': 'ReactDOM'
+            }
           }
         }
       },

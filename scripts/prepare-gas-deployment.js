@@ -24,6 +24,39 @@ function prepareGasDeployment() {
   const bundleContent = fs.readFileSync(bundlePath, 'utf8');
   const htmlContent = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, 'utf8') : '';
   
+  // Verify bundle content is complete
+  console.log(`Bundle size: ${bundleContent.length} characters`);
+  if (bundleContent.length === 0) {
+    console.error('Bundle content is empty!');
+    process.exit(1);
+  }
+  
+  // Check if bundle is too large for Google Apps Script (50KB HTML limit)
+  if (bundleContent.length > 50000) {
+    console.error(`⚠️  Bundle is too large (${bundleContent.length} chars) for Google Apps Script.`);
+    console.error('GAS has a ~50KB limit for HTML files. Consider:');
+    console.error('1. Using external CDN for React');
+    console.error('2. Code splitting');
+    console.error('3. Removing unused dependencies');
+    
+    // Create a warning HTML instead
+    const warningHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Bundle Too Large</title>
+</head>
+<body>
+  <h1>Bundle Too Large for Google Apps Script</h1>
+  <p>Your bundle is ${bundleContent.length} characters, but GAS has a ~50KB limit.</p>
+  <p>Please reduce bundle size and rebuild.</p>
+</body>
+</html>`;
+    
+    fs.writeFileSync(indexHtmlPath, warningHtml, 'utf8');
+    console.log('Created warning HTML file instead.');
+    process.exit(1);
+  }
+  
   // Create the HTML template parts separately to avoid template literal issues
   const htmlStart = `<!DOCTYPE html>
 <html lang="en">
@@ -32,6 +65,8 @@ function prepareGasDeployment() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Training Modules</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
   <style>
     /* Custom scrollbar for better aesthetics */
     ::-webkit-scrollbar {
@@ -86,7 +121,13 @@ function prepareGasDeployment() {
   const indexTemplate = htmlStart + bundleContent + htmlEnd;
 
   // Replace the original index.html with the template version (JavaScript embedded directly)
-  fs.writeFileSync(indexHtmlPath, indexTemplate);
+  try {
+    fs.writeFileSync(indexHtmlPath, indexTemplate, 'utf8');
+    console.log(`Written index.html: ${indexTemplate.length} characters total`);
+  } catch (error) {
+    console.error('Error writing index.html:', error);
+    process.exit(1);
+  }
   
   console.log('✅ Created index.html with embedded JavaScript for Apps Script');
   
