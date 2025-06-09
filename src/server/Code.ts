@@ -46,17 +46,19 @@ function gs_listProjects(): Project[] {
       try {
         const storedData = JSON.parse(projectFiles.next().getBlob().getDataAsString());
 
-        let backgroundImageContent: string | undefined = undefined;
+        let bgFileId: string | undefined = undefined;
         if (storedData.interactiveData.backgroundImageFileId) {
           try {
-            const imgFile = DriveApp.getFileById(storedData.interactiveData.backgroundImageFileId);
-            if (imgFile.getMimeType().startsWith('image/')) {
-              backgroundImageContent = `data:${imgFile.getMimeType()};base64,${Utilities.base64Encode(imgFile.getBlob().getBytes())}`;
-            } else if (imgFile.getMimeType() === MimeType.PLAIN_TEXT || imgFile.getName().endsWith('.link')) {
-              backgroundImageContent = imgFile.getBlob().getDataAsString();
-            }
+            // We might still want to check if the file exists and is accessible,
+            // but we won't fetch its content here.
+            // This try-catch is now more about validating the ID's existence if desired,
+            // or could be removed if we trust the stored ID.
+            // For now, let's assume the ID is valid if it exists.
+            bgFileId = storedData.interactiveData.backgroundImageFileId;
+            // Optional: DriveApp.getFileById(bgFileId); // to verify, but don't process
           } catch (e: unknown) {
-            Logger.log(`Error accessing background image for project ${projectFolder.getName()}: ${String(e)}`);
+            const errorDetails = e instanceof Error ? e.stack : String(e);
+            Logger.log(`Error accessing background image file ID ${storedData.interactiveData.backgroundImageFileId} for project ${projectFolder.getName()}: ${errorDetails}`);
           }
         }
 
@@ -64,15 +66,18 @@ function gs_listProjects(): Project[] {
           id: projectFolder.getId(),
           title: storedData.title || projectFolder.getName(),
           description: storedData.description || "",
-          thumbnailUrl: backgroundImageContent,
+          thumbnailUrl: undefined, // Client will handle thumbnail generation using file ID
+          backgroundImageFileId: bgFileId, // New field for the client
           interactiveData: {
-            backgroundImage: backgroundImageContent,
+            backgroundImage: undefined, // Client will handle this using file ID
+            backgroundImageFileId: bgFileId, // Also pass here for consistency if needed by InteractiveModuleState
             hotspots: storedData.interactiveData.hotspots || [],
             timelineEvents: storedData.interactiveData.timelineEvents || [],
           }
         });
       } catch (e: unknown) {
-        Logger.log(`Error parsing project data for ${projectFolder.getName()}: ${String(e)}`);
+        const errorDetails = e instanceof Error ? e.stack : String(e);
+        Logger.log(`Error parsing project data for ${projectFolder.getName()}: ${errorDetails}`);
       }
     }
   }
@@ -147,13 +152,13 @@ function gs_createProjectInternal_(rootFolder: GoogleAppsScript.Drive.Folder, ti
       }
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error && error.stack ? error.stack : String(error);
     Logger.log(`Error creating project [${title}] with ID [${projectId}]: ${errorMessage}. Cleaning up created folder.`);
     try {
       projectFolder.setTrashed(true);
       Logger.log(`Successfully trashed folder for project [${title}] with ID [${projectId}].`);
     } catch (cleanupError: unknown) {
-      const cleanupErrorMessage = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+      const cleanupErrorMessage = cleanupError instanceof Error && cleanupError.stack ? cleanupError.stack : String(cleanupError);
       Logger.log(`Failed to trash folder for project [${title}] with ID [${projectId}]. Cleanup error: ${cleanupErrorMessage}`);
     }
     throw error; // Re-throw the original error
@@ -181,7 +186,8 @@ function gs_saveProject(projectObject: Project): Project {
       currentStoredData = JSON.parse(moduleDataFiles.next().getBlob().getDataAsString());
       Logger.log(`gs_saveProject: Successfully parsed existing module data for project ${projectObject.id}`);
     } catch (e: unknown) {
-      Logger.log(`gs_saveProject: Error parsing existing module data for project ${projectObject.id}, will proceed as if empty. Error: ${String(e)}`);
+      const errorDetails = e instanceof Error && e.stack ? e.stack : String(e);
+      Logger.log(`gs_saveProject: Error parsing existing module data for project ${projectObject.id}, will proceed as if empty. Error: ${errorDetails}`);
     }
   } else {
     Logger.log(`gs_saveProject: No existing module data file found for project ${projectObject.id}.`);
@@ -266,7 +272,8 @@ function gs_saveProject(projectObject: Project): Project {
         DriveApp.getFileById(oldBgImageFileIdFromStoredData).setTrashed(true);
         Logger.log(`gs_saveProject: Successfully trashed old image file ${oldBgImageFileIdFromStoredData} for project ${projectObject.id}.`);
       } catch (e: unknown) {
-        Logger.log(`gs_saveProject: Failed to trash old image file ${oldBgImageFileIdFromStoredData} for project ${projectObject.id}. Error: ${String(e)}`);
+        const errorDetails = e instanceof Error && e.stack ? e.stack : String(e);
+        Logger.log(`gs_saveProject: Failed to trash old image file ${oldBgImageFileIdFromStoredData} for project ${projectObject.id}. Error: ${errorDetails}`);
         // Non-fatal for the save operation itself, as JSON is consistent.
       }
     } else if (imageStateChanged && oldBgImageFileIdFromStoredData) {
@@ -292,7 +299,7 @@ function gs_saveProject(projectObject: Project): Project {
     };
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error && error.stack ? error.stack : String(error);
     Logger.log(`gs_saveProject: Error writing module_data.json for project ${projectObject.id}. Error: ${errorMessage}`);
 
     if (uploadedProvisionalNewBgImageFileId) {
@@ -301,7 +308,8 @@ function gs_saveProject(projectObject: Project): Project {
         DriveApp.getFileById(uploadedProvisionalNewBgImageFileId).setTrashed(true);
         Logger.log(`gs_saveProject: Successfully trashed orphaned new image file ${uploadedProvisionalNewBgImageFileId}.`);
       } catch (cleanupError: unknown) {
-        Logger.log(`gs_saveProject: Failed to trash orphaned new image file ${uploadedProvisionalNewBgImageFileId}. Cleanup error: ${String(cleanupError)}`);
+        const cleanupErrorMessage = cleanupError instanceof Error && cleanupError.stack ? cleanupError.stack : String(cleanupError);
+        Logger.log(`gs_saveProject: Failed to trash orphaned new image file ${uploadedProvisionalNewBgImageFileId}. Cleanup error: ${cleanupErrorMessage}`);
       }
     }
     throw error;
@@ -317,12 +325,15 @@ function gs_deleteProject(projectId: string): string {
     return "Project deleted successfully.";
   } catch (e: unknown) {
     let exceptionMessage = "unknown error";
+    let logMessage = "";
     if (e instanceof Error) {
-      exceptionMessage = e.message;
+      exceptionMessage = e.stack || e.message; // Use stack if available, else message
+      logMessage = e.stack || String(e); // Log stack if available
     } else {
       exceptionMessage = String(e);
+      logMessage = String(e);
     }
-    Logger.log(`Error deleting project ${projectId}: ${String(e)}`);
-    throw new Error(`Failed to delete project: ${exceptionMessage}`);
+    Logger.log(`Error deleting project ${projectId}: ${logMessage}`);
+    throw new Error(`Failed to delete project: ${exceptionMessage}`); // The exception message for the client can be less verbose
   }
 }
