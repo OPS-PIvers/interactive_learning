@@ -13,7 +13,8 @@
   ],
   "filePushOrder": [
     "Code.js",
-    "appsscript.json",
+    "appsscript.json", 
+    "index.html",
     "bundle.html"
   ],
   "skipSubdirectories": false,

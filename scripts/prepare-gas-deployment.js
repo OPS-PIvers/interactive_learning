@@ -69,7 +69,7 @@ function prepareGasDeployment() {
   
   <!-- App bundle -->
   <script>
-    <?= include('bundle') ?>
+<?= include('bundle') ?>
   </script>
 </body>
 </html>`;

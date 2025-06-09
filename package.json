@@ -10,7 +10,9 @@
     "build:server": "tsc --project tsconfig.server.json",
     "build:client": "vite build",
     "prepare-gas": "node scripts/prepare-gas-deployment.js",
-    "copy-assets": "cp appsscript.json dist/ && cp .clasp.json dist/"
+    "copy-assets": "cp appsscript.json dist/ && cp .clasp.json dist/",
+    "build:gas": "npm run build:server && npm run build:client && npm run prepare-gas",
+    "deploy": "npm run build:gas && clasp push"
   },
   "dependencies": {
     "react": "^19.1.0",
