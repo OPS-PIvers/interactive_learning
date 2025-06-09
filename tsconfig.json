@@ -23,8 +23,15 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    /* CSS imports support */
+    "types": ["vite/client"],
+
     "paths": {
       "@/*" :  ["./*"]
     }
-  }
+  },
+  "include": [
+    "src/**/*",
+    "global.d.ts"
+  ]
 }

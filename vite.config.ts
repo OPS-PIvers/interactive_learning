@@ -11,23 +11,19 @@ export default defineConfig(({ mode }) => {
         target: 'es2015',
         minify: 'terser',
         rollupOptions: {
-          external: ['react', 'react-dom', 'react-dom/client'],
+          // Remove external configuration - bundle everything together
           output: {
-            entryFileNames: 'javascript.js',
-            chunkFileNames: 'javascript.js',
+            entryFileNames: 'bundle.js',
+            chunkFileNames: 'bundle-chunk.js',
             assetFileNames: (assetInfo) => {
               if (assetInfo.name?.endsWith('.css')) {
-                return 'css.css';
+                return 'styles.css';
               }
               return 'assets/[name].[ext]';
             },
             format: 'iife',
-            name: 'InteractiveLearningApp',
-            globals: {
-              'react': 'React',
-              'react-dom': 'ReactDOM',
-              'react-dom/client': 'ReactDOM'
-            }
+            name: 'InteractiveLearningApp'
+            // Remove globals - everything will be bundled
           }
         },
         cssCodeSplit: false

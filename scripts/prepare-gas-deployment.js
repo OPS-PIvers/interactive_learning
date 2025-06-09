@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 function prepareGasDeployment() {
   const distDir = path.join(__dirname, '..', 'dist');
   const bundlePath = path.join(distDir, 'bundle.js');
+  const stylesPath = path.join(distDir, 'styles.css');
   
   // Check if bundle exists
   if (!fs.existsSync(bundlePath)) {
@@ -21,6 +22,12 @@ function prepareGasDeployment() {
   
   // Read the bundle content
   const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+  
+  // Read CSS content if it exists
+  let cssContent = '';
+  if (fs.existsSync(stylesPath)) {
+    cssContent = fs.readFileSync(stylesPath, 'utf8');
+  }
   
   // Verify bundle content is complete
   console.log(`📦 Bundle size: ${bundleContent.length} characters`);
@@ -36,9 +43,6 @@ function prepareGasDeployment() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Training Modules</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
   
   <!-- Include CSS from separate file -->
   <?!= HtmlService.createHtmlOutputFromFile('css').getContent() ?>
@@ -61,8 +65,11 @@ function prepareGasDeployment() {
 </body>
 </html>`;
 
-  // Step 2: Create the css.html file
-  const cssHtml = `<style>
+  // Step 2: Create the css.html file with Tailwind CDN and custom styles
+  const cssHtml = `<!-- Tailwind CSS from CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
   /* Custom scrollbar for better aesthetics */
   ::-webkit-scrollbar {
     width: 8px;
@@ -89,12 +96,39 @@ function prepareGasDeployment() {
     50% { opacity: 1; transform: scale(1.08); }
   }
 
-  /* Additional styles from your build process can go here */
+  /* Additional styles for better loading experience */
+  .loading-container {
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  /* Hide loading screen once React app mounts */
+  .react-loaded .loading-container {
+    display: none;
+  }
+  
+  ${cssContent ? `/* Bundled CSS styles */\n${cssContent}` : ''}
 </style>`;
 
-  // Step 3: Create the javascript.html file
+  // Step 3: Create the javascript.html file with the complete bundle
   const javascriptHtml = `<script>
-${bundleContent}
+// Self-contained React application bundle
+(function() {
+  'use strict';
+  
+  try {
+    ${bundleContent}
+  } catch (error) {
+    console.error('Error loading application:', error);
+    document.getElementById('root').innerHTML = 
+      '<div class="min-h-screen flex items-center justify-center">' +
+      '<div class="max-w-md mx-auto text-center">' +
+      '<h1 class="text-2xl font-bold text-red-800 mb-4">Error Loading Application</h1>' +
+      '<div class="bg-white rounded-lg shadow-lg p-6">' +
+      '<p class="text-red-600 mb-4">Failed to initialize the interactive learning application.</p>' +
+      '<p class="text-gray-600 text-sm">Please try refreshing the page or contact support.</p>' +
+      '</div></div></div>';
+  }
+})();
 </script>`;
 
   // Step 4: Write all three files
@@ -144,6 +178,7 @@ ${bundleContent}
   const filesToRemove = [
     'bundle.js',  // Remove original bundle since it's now in javascript.html
     'bundle.js.LICENSE.txt',
+    'styles.css',  // Remove original CSS since it's now in css.html
     'gas-mocks.html'
   ];
   
