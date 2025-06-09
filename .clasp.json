@@ -14,8 +14,7 @@
   "filePushOrder": [
     "Code.js",
     "appsscript.json", 
-    "index.html",
-    "bundle.html"
+    "index.html"
   ],
   "skipSubdirectories": false,
   "ignoredFiles": [
@@ -26,6 +25,8 @@
     "vite.config.ts",
     "tsconfig*.json",
     "package*.json",
-    ".git/**"
+    ".git/**",
+    "bundle.js",
+    "gas-mocks.html"
   ]
 }
