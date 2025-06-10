@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TimelineEventData, InteractionType, HotspotData } from '../../shared/types';
+import { EnhancedTimelineEventModal } from './EnhancedTimelineEventModal';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PencilIcon } from './icons/PencilIcon'; // Import PencilIcon
@@ -17,10 +18,33 @@ interface TimelineControlsProps {
 }
 
 const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep, maxStep, onStepChange, isEditing, onAddEvent, onRemoveEvent, onEditEvent, hotspots }) => {
-  
+  const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
+  const [enhancedModalOpen, setEnhancedModalOpen] = useState(false);
+  // State to hold the event being edited, if any. For now, modal is only for new events.
+  // const [editingTimelineEvent, setEditingTimelineEvent] = useState<TimelineEventData | undefined>(undefined);
+
+
   if (!isEditing) {
     return null; // Render nothing if not in editing mode
   }
+
+  const handleAddEventClick = () => {
+    if (useEnhancedEditor) {
+      // setEditingTimelineEvent(undefined); // Ensure we are adding a new event
+      setEnhancedModalOpen(true);
+    } else {
+      onAddEvent(); // Call original onAddEvent for the legacy editor
+    }
+  };
+
+  const handleSaveEnhancedEvent = (eventData: TimelineEventData) => {
+    // Assuming onAddEvent can handle a TimelineEventData object if provided,
+    // or that it's a generic "trigger add" function and the actual data is handled upstream.
+    // For now, let's assume onAddEvent is flexible enough or will be adapted.
+    // If onAddEvent is just a trigger, we might need a different prop like onCreateEvent(eventData).
+    onAddEvent(eventData); // This might need to be onUpdateEvent if editingTimelineEvent is set
+    setEnhancedModalOpen(false);
+  };
 
   const getEventDetails = (event: TimelineEventData): string => {
     let details = `${event.type}`;
@@ -45,7 +69,21 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
   
   return (
     <div className="bg-slate-800 p-4 rounded-lg shadow-lg h-full flex flex-col">
-      <h3 className="text-xl font-semibold mb-4 text-slate-100">Timeline</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-xl font-semibold text-slate-100">Timeline</h3>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="useEnhancedEditorToggle"
+            checked={useEnhancedEditor}
+            onChange={(e) => setUseEnhancedEditor(e.target.checked)}
+            className="mr-2 h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+          />
+          <label htmlFor="useEnhancedEditorToggle" className="text-sm text-slate-300 select-none">
+            Use Enhanced Editor (Beta)
+          </label>
+        </div>
+      </div>
       
       <div className="flex-grow overflow-y-auto pr-2 space-y-2 mb-4 max-h-[300px] lg:max-h-none min-h-[100px]">
         {events.length === 0 && <p className="text-slate-400">No timeline events yet.</p>}
@@ -108,7 +146,7 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
           </button>
         </div>
         <button
-          onClick={onAddEvent}
+          onClick={handleAddEventClick}
           className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md flex items-center justify-center space-x-2"
           aria-label="Add new timeline event"
         >
@@ -116,6 +154,18 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
           <span>Add Timeline Event</span>
         </button>
       </>
+
+      {enhancedModalOpen && (
+        <EnhancedTimelineEventModal
+          isOpen={enhancedModalOpen}
+          onClose={() => setEnhancedModalOpen(false)}
+          onSave={handleSaveEnhancedEvent}
+          hotspots={hotspots}
+          // event={editingTimelineEvent} // Pass this when enabling edit mode for enhanced editor
+          // For now, the modal is only for adding new events as per current subtask scope
+          availableInteractionTypes={Object.values(InteractionType)} // Pass all for now
+        />
+      )}
     </div>
   );
 };
