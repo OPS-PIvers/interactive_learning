@@ -1,12 +1,47 @@
 
 export enum InteractionType {
+  // Keep existing ones
   SHOW_HOTSPOT = 'SHOW_HOTSPOT',
   HIDE_HOTSPOT = 'HIDE_HOTSPOT',
   PULSE_HOTSPOT = 'PULSE_HOTSPOT',
   SHOW_MESSAGE = 'SHOW_MESSAGE',
   PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
   HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT',
-  // Future: SHOW_OVERLAY, HIDE_OVERLAY, RESET_VIEW
+  
+  // Add new interaction types
+  SHOW_TEXT = 'SHOW_TEXT',
+  SHOW_IMAGE = 'SHOW_IMAGE',
+  PAN_ZOOM = 'PAN_ZOOM',
+  SPOTLIGHT = 'SPOTLIGHT',
+  QUIZ = 'QUIZ',
+  PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT',
+  PLAY_AUDIO = 'PLAY_AUDIO'
+}
+
+// New interaction system - ADDITIVE to existing
+export interface InteractionData {
+  id: string;
+  type: InteractionType;
+  // Text interactions
+  content?: string;
+  // Image interactions  
+  imageUrl?: string;
+  caption?: string;
+  // Pan/Zoom interactions
+  zoomLevel?: number;
+  smooth?: boolean;
+  // Spotlight interactions
+  radius?: number;
+  intensity?: number;
+  // Quiz interactions
+  question?: string;
+  options?: string[];
+  correctAnswer?: number;
+  // Audio interactions
+  audioUrl?: string;
+  volume?: number;
+  // Pulse interactions
+  duration?: number;
 }
 
 export interface HotspotData {
@@ -16,6 +51,9 @@ export interface HotspotData {
   title: string;
   description: string;
   color?: string; // e.g., 'bg-red-500'
+  
+  // NEW: Add default pulse setting (optional)
+  defaultPulse?: boolean;
 }
 
 export interface TimelineEventData {
@@ -23,11 +61,16 @@ export interface TimelineEventData {
   step: number; // Sequence number, 1-indexed
   name: string;
   type: InteractionType;
+  
+  // Keep existing properties for backward compatibility
   targetId?: string; // ID of HotspotData
   message?: string;
   duration?: number; // in ms, for timed events like pulse
   zoomFactor?: number; // For PAN_ZOOM_TO_HOTSPOT, e.g., 2 for 2x zoom, defaults to 2
   highlightRadius?: number; // For HIGHLIGHT_HOTSPOT, in pixels on original image for clear area, defaults to 60
+  
+  // NEW: Add interactions array (optional for backward compatibility)
+  interactions?: InteractionData[];
 }
 
 export interface InteractiveModuleState {

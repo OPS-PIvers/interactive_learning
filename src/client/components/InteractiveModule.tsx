@@ -4,7 +4,8 @@ import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
-import InfoPanel from './InfoPanel'; // Import the new InfoPanel component
+import InfoPanel from './InfoPanel';
+import HotspotPulseSettings from './HotspotPulseSettings';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -37,7 +38,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents);
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
-  const [currentStep, setCurrentStep] = useState<number>(1); 
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  
+  // New state for enhanced features
+  const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
+  const [showPulseSettings, setShowPulseSettings] = useState<boolean>(false); 
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -402,7 +407,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot]);
 
-  const handleAddTimelineEvent = useCallback(() => { 
+  const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
+    // If an event is passed (from enhanced editor), use it directly
+    if (event) {
+      setTimelineEvents(prev => {
+        const filtered = prev.filter(e => e.id !== event.id); // Remove existing if editing
+        return [...filtered, event].sort((a,b) => a.step - b.step);
+      });
+      if (isEditing) setCurrentStep(event.step);
+      return;
+    }
+    
+    // Legacy prompt-based event creation 
     const name = prompt("Enter event name (e.g., 'Highlight Petal'):");
     if (!name) return;
     
@@ -556,10 +572,58 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     return hotspots.find(h => h.id === activeHotspotInfoId) || null;
   }, [activeHotspotInfoId, hotspots]);
 
+  const renderGlobalSettings = () => {
+    if (!isEditing) return null;
+
+    return (
+      <div className="my-4 p-4 bg-slate-800 rounded-lg shadow">
+        <h4 className="text-lg font-semibold mb-3 text-slate-100">Module Settings</h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
+              Enable auto-progression (Timing Mode):
+            </label>
+            <input
+              type="checkbox"
+              id="timingModeToggle"
+              checked={isTimedMode}
+              onChange={(e) => setIsTimedMode(e.target.checked)}
+              className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-300">
+              Timeline Events: {timelineEvents.length}
+            </span>
+            <button
+              onClick={() => setShowPulseSettings(prev => !prev)}
+              className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md"
+            >
+              {showPulseSettings ? 'Hide' : 'Configure'} Pulse Settings
+            </button>
+          </div>
+        </div>
+        {showPulseSettings && (
+          <div className="mt-4">
+            <HotspotPulseSettings
+              hotspots={hotspots}
+              onUpdateHotspot={(hotspotId, updates) => {
+                setHotspots(prevHotspots => prevHotspots.map(h =>
+                  h.id === hotspotId ? { ...h, ...updates } : h
+                ));
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full text-slate-200">
       <div className="lg:w-2/3 flex flex-col relative">
         {isEditing && !backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
+        {renderGlobalSettings()}
         
         <div 
           ref={imageContainerRef}
@@ -719,6 +783,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           onRemoveEvent={handleRemoveTimelineEvent}
           onEditEvent={handleEditTimelineEvent}
           hotspots={hotspots}
+          isTimedMode={isTimedMode}
         />
         {isEditing && (
           <button onClick={handleSave} className="mt-auto w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-200">

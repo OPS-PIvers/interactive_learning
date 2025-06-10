@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TimelineEventData, InteractionType, HotspotData } from '../../shared/types';
+import EnhancedTimelineEventModal from './EnhancedTimelineEventModal';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { PencilIcon } from './icons/PencilIcon'; // Import PencilIcon
+import { PencilIcon } from './icons/PencilIcon';
 
 interface TimelineControlsProps {
   events: TimelineEventData[];
@@ -10,17 +11,60 @@ interface TimelineControlsProps {
   maxStep: number;
   onStepChange: (step: number) => void;
   isEditing: boolean;
-  onAddEvent: () => void;
+  onAddEvent: (event?: TimelineEventData) => void;
   onRemoveEvent: (eventId: string) => void;
-  onEditEvent: (eventId: string) => void; // Added for edit functionality
-  hotspots: HotspotData[]; 
+  onEditEvent: (eventId: string) => void;
+  hotspots: HotspotData[];
+  isTimedMode?: boolean;
 }
 
-const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep, maxStep, onStepChange, isEditing, onAddEvent, onRemoveEvent, onEditEvent, hotspots }) => {
-  
+const TimelineControls: React.FC<TimelineControlsProps> = ({ 
+  events, 
+  currentStep, 
+  maxStep, 
+  onStepChange, 
+  isEditing, 
+  onAddEvent, 
+  onRemoveEvent, 
+  onEditEvent, 
+  hotspots,
+  isTimedMode = false
+}) => {
+  // Add feature toggle
+  const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
+  const [enhancedModalOpen, setEnhancedModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
+
   if (!isEditing) {
     return null; // Render nothing if not in editing mode
   }
+
+  const handleAddEvent = () => {
+    if (useEnhancedEditor) {
+      setEditingEvent(null);
+      setEnhancedModalOpen(true);
+    } else {
+      onAddEvent();
+    }
+  };
+
+  const handleEditEvent = (eventId: string) => {
+    if (useEnhancedEditor) {
+      const event = events.find(e => e.id === eventId);
+      if (event) {
+        setEditingEvent(event);
+        setEnhancedModalOpen(true);
+      }
+    } else {
+      onEditEvent(eventId);
+    }
+  };
+
+  const handleSaveEnhancedEvent = (eventData: TimelineEventData) => {
+    onAddEvent(eventData);
+    setEnhancedModalOpen(false);
+    setEditingEvent(null);
+  };
 
   const getEventDetails = (event: TimelineEventData): string => {
     let details = `${event.type}`;
@@ -45,7 +89,21 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
   
   return (
     <div className="bg-slate-800 p-4 rounded-lg shadow-lg h-full flex flex-col">
-      <h3 className="text-xl font-semibold mb-4 text-slate-100">Timeline</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-xl font-semibold text-slate-100">Timeline</h3>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="useEnhancedEditorToggle"
+            checked={useEnhancedEditor}
+            onChange={(e) => setUseEnhancedEditor(e.target.checked)}
+            className="mr-2 h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+          />
+          <label htmlFor="useEnhancedEditorToggle" className="text-sm text-slate-300 select-none">
+            Enhanced Editor
+          </label>
+        </div>
+      </div>
       
       <div className="flex-grow overflow-y-auto pr-2 space-y-2 mb-4 max-h-[300px] lg:max-h-none min-h-[100px]">
         {events.length === 0 && <p className="text-slate-400">No timeline events yet.</p>}
@@ -69,7 +127,7 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
             </div>
             <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
               <button
-                  onClick={(e) => { e.stopPropagation(); onEditEvent(event.id); }}
+                  onClick={(e) => { e.stopPropagation(); handleEditEvent(event.id); }}
                   className="p-1 bg-blue-500/30 hover:bg-blue-500 text-white rounded-full"
                   aria-label={`Edit event ${event.name}`}
                 >
@@ -108,7 +166,7 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
           </button>
         </div>
         <button
-          onClick={onAddEvent}
+          onClick={handleAddEvent}
           className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md flex items-center justify-center space-x-2"
           aria-label="Add new timeline event"
         >
@@ -116,6 +174,19 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({ events, currentStep
           <span>Add Timeline Event</span>
         </button>
       </>
+
+      {/* Enhanced modal */}
+      <EnhancedTimelineEventModal
+        isOpen={enhancedModalOpen}
+        onClose={() => {
+          setEnhancedModalOpen(false);
+          setEditingEvent(null);
+        }}
+        onSave={handleSaveEnhancedEvent}
+        event={editingEvent}
+        hotspots={hotspots}
+        isTimedMode={isTimedMode}
+      />
     </div>
   );
 };
