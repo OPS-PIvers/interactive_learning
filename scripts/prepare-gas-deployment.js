@@ -49,6 +49,7 @@ function prepareGasDeployment() {
     .replace(/\t/g, '\\t');  // Escape tabs
   
   // Step 1: Create the main index.html file
+  const timestamp = new Date().toISOString();
   const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +57,7 @@ function prepareGasDeployment() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Interactive Training Modules</title>
   
+  <!-- Build timestamp: ${timestamp} -->
   <!-- Include CSS from separate file -->
   <?!= HtmlService.createHtmlOutputFromFile('css').getContent() ?>
 </head>
@@ -125,6 +127,7 @@ function prepareGasDeployment() {
   // IMPORTANT: We use eval with the escaped content to prevent syntax errors
   const javascriptHtml = `<script>
 // Self-contained React application bundle
+// Build timestamp: ${timestamp}
 (function() {
   'use strict';
   

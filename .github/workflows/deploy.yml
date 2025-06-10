@@ -43,6 +43,10 @@ jobs:
     - name: Push code to Apps Script
       run: |
         cd dist
+        # Touch all files to update timestamps and force recognition of changes
+        find . -name "*.html" -o -name "*.js" -o -name "*.json" | xargs touch
+        echo "Files being pushed:"
+        ls -la
         clasp push --force
         
     - name: Update deployment

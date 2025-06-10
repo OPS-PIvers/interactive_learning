@@ -44,6 +44,8 @@ export interface InteractionData {
   duration?: number;
 }
 
+export type HotspotSize = 'small' | 'medium' | 'large';
+
 export interface HotspotData {
   id: string;
   x: number; // percentage 0-100
@@ -51,6 +53,7 @@ export interface HotspotData {
   title: string;
   description: string;
   color?: string; // e.g., 'bg-red-500'
+  size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   
   // NEW: Add default pulse setting (optional)
   defaultPulse?: boolean;

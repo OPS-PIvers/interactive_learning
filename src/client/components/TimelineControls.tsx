@@ -30,8 +30,8 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
   hotspots,
   isTimedMode = false
 }) => {
-  // Add feature toggle
-  const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
+  // Enhanced editor is now the default and only option
+  const useEnhancedEditor = true;
   const [enhancedModalOpen, setEnhancedModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
 
@@ -40,23 +40,15 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
   }
 
   const handleAddEvent = () => {
-    if (useEnhancedEditor) {
-      setEditingEvent(null);
-      setEnhancedModalOpen(true);
-    } else {
-      onAddEvent();
-    }
+    setEditingEvent(null);
+    setEnhancedModalOpen(true);
   };
 
   const handleEditEvent = (eventId: string) => {
-    if (useEnhancedEditor) {
-      const event = events.find(e => e.id === eventId);
-      if (event) {
-        setEditingEvent(event);
-        setEnhancedModalOpen(true);
-      }
-    } else {
-      onEditEvent(eventId);
+    const event = events.find(e => e.id === eventId);
+    if (event) {
+      setEditingEvent(event);
+      setEnhancedModalOpen(true);
     }
   };
 
@@ -91,18 +83,6 @@ const TimelineControls: React.FC<TimelineControlsProps> = ({
     <div className="bg-slate-800 p-4 rounded-lg shadow-lg h-full flex flex-col">
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-xl font-semibold text-slate-100">Timeline</h3>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="useEnhancedEditorToggle"
-            checked={useEnhancedEditor}
-            onChange={(e) => setUseEnhancedEditor(e.target.checked)}
-            className="mr-2 h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-          />
-          <label htmlFor="useEnhancedEditorToggle" className="text-sm text-slate-300 select-none">
-            Enhanced Editor
-          </label>
-        </div>
       </div>
       
       <div className="flex-grow overflow-y-auto pr-2 space-y-2 mb-4 max-h-[300px] lg:max-h-none min-h-[100px]">

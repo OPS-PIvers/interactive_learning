@@ -6,9 +6,13 @@ import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
 import HotspotPulseSettings from './HotspotPulseSettings';
+import HotspotEditModal from './HotspotEditModal';
+import ImageControls from './ImageControls';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
+import CheckIcon from './icons/CheckIcon';
 
 interface InteractiveModuleProps {
   initialData: InteractiveModuleState;
@@ -42,7 +46,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // New state for enhanced features
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
-  const [showPulseSettings, setShowPulseSettings] = useState<boolean>(false); 
+  const [showPulseSettings, setShowPulseSettings] = useState<boolean>(false);
+  const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
+  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
+  
+  // Save state management
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+  
+  // Image display state
+  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>('cover'); 
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -313,13 +326,37 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
   const handleImageUpload = useCallback((file: File) => {
+    // If there's already an image and hotspots, warn the user
+    if (backgroundImage && hotspots.length > 0) {
+      const confirmReplace = confirm(
+        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
+      );
+      if (!confirmReplace) return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => { setBackgroundImage(reader.result as string); };
     reader.readAsDataURL(file);
+  }, [backgroundImage, hotspots.length]);
+
+  const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
+    setImageFitMode(fitMode);
   }, []);
 
-  const handleSave = useCallback(() => {
-    onSave({ backgroundImage, hotspots, timelineEvents });
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      await onSave({ backgroundImage, hotspots, timelineEvents });
+      // Show success message
+      setShowSuccessMessage(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (error) {
+      console.error('Save failed:', error);
+      // Error handling is managed by parent component
+    } finally {
+      setIsSaving(false);
+    }
   }, [backgroundImage, hotspots, timelineEvents, onSave]);
 
   const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
@@ -329,7 +366,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     const newHotspot: HotspotData = {
       id: `h${Date.now()}`, x: imageXPercent, y: imageYPercent, title,
       description: description || "Default description",
-      color: ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'][hotspots.length % 5]
+      color: ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'][hotspots.length % 5],
+      size: 'medium' // Default size
     };
     setHotspots(prev => [...prev, newHotspot]);
     setPendingHotspot(null);
@@ -348,12 +386,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const handleEditHotspotRequest = useCallback((hotspotId: string) => {
     const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
     if (!hotspotToEdit) return;
-    const newTitle = prompt("Enter new hotspot title:", hotspotToEdit.title);
-    if (newTitle === null) return; 
-    const newDescription = prompt("Enter new hotspot description:", hotspotToEdit.description);
-    if (newDescription === null) return; 
-    setHotspots(prevHotspots => prevHotspots.map(h => h.id === hotspotId ? { ...h, title: newTitle, description: newDescription } : h));
+    setEditingHotspot(hotspotToEdit);
+    setShowHotspotEditModal(true);
   }, [hotspots]);
+
+  const handleSaveHotspot = useCallback((updatedHotspot: HotspotData) => {
+    setHotspots(prevHotspots => 
+      prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h)
+    );
+    setShowHotspotEditModal(false);
+    setEditingHotspot(null);
+  }, []);
+
+  const handleHotspotPositionChange = useCallback((hotspotId: string, x: number, y: number) => {
+    setHotspots(prevHotspots => 
+      prevHotspots.map(h => h.id === hotspotId ? { ...h, x, y } : h)
+    );
+  }, []);
 
   const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (pendingHotspot) { // If confirming a pending hotspot, don't place another
@@ -417,118 +466,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       if (isEditing) setCurrentStep(event.step);
       return;
     }
-    
-    // Legacy prompt-based event creation 
-    const name = prompt("Enter event name (e.g., 'Highlight Petal'):");
-    if (!name) return;
-    
-    const typeValues = Object.values(InteractionType).join('\n - ');
-    const typeStr = prompt(`Enter event type:\n - ${typeValues}`, InteractionType.SHOW_MESSAGE);
-    if (!typeStr || !Object.values(InteractionType).includes(typeStr as InteractionType)) {
-      alert('Invalid event type.');
-      return;
-    }
-    const type = typeStr as InteractionType;
-    
-    const defaultStep = currentStep > 0 ? currentStep : (editorMaxStep +1);
-    const stepStr = prompt("Enter step number:", defaultStep.toString());
-    const step = parseInt(stepStr || defaultStep.toString(), 10);
-    if (isNaN(step) || step < 1) {
-      alert('Invalid step number.');
-      return;
-    }
-
-    let newEvent: Partial<TimelineEventData> = { id: `te${Date.now()}`, name, type, step };
-
-    if (type === InteractionType.SHOW_HOTSPOT || type === InteractionType.HIDE_HOTSPOT || type === InteractionType.PULSE_HOTSPOT || type === InteractionType.PAN_ZOOM_TO_HOTSPOT || type === InteractionType.HIGHLIGHT_HOTSPOT) {
-      const targetId = prompt(`Enter Hotspot ID (available: ${hotspots.map(h => `${h.id} (${h.title})`).join(', ') || 'none'}):`);
-      if (!targetId || !hotspots.find(h => h.id === targetId)) {
-        alert('Invalid or non-existent Hotspot ID.');
-        return;
-      }
-      newEvent.targetId = targetId;
-      if (type === InteractionType.PULSE_HOTSPOT) {
-        const durationStr = prompt("Enter pulse duration (ms, e.g., 2000):", "2000");
-        newEvent.duration = parseInt(durationStr || '2000', 10);
-      }
-      if (type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
-        const zoomStr = prompt("Enter zoom factor (e.g., 2 for 2x zoom):", "2");
-        newEvent.zoomFactor = parseFloat(zoomStr || '2');
-      }
-      if (type === InteractionType.HIGHLIGHT_HOTSPOT) {
-        const radiusStr = prompt("Enter highlight radius (px for clear area, e.g., 60):", "60");
-        newEvent.highlightRadius = parseInt(radiusStr || '60', 10);
-      }
-    } else if (type === InteractionType.SHOW_MESSAGE) {
-      const message = prompt("Enter message to display:");
-      newEvent.message = message || "";
-    }
-    
-    setTimelineEvents(prev => [...prev, newEvent as TimelineEventData].sort((a,b) => a.step - b.step));
-    if (isEditing) setCurrentStep(step);
   }, [editorMaxStep, hotspots, currentStep, isEditing]);
   
-  const handleEditTimelineEvent = useCallback((eventId: string) => { 
-    const eventToEdit = timelineEvents.find(e => e.id === eventId);
-    if (!eventToEdit) return;
-
-    const name = prompt("Enter event name:", eventToEdit.name);
-    if (name === null) return;
-
-    const stepStr = prompt("Enter step number:", eventToEdit.step.toString());
-    const step = parseInt(stepStr || eventToEdit.step.toString(), 10);
-    if (isNaN(step) || step < 1) {
-      alert('Invalid step number.');
-      return;
-    }
-
-    const typeValues = Object.values(InteractionType).join('\n - ');
-    const typeStr = prompt(`Enter event type:\n - ${typeValues}`, eventToEdit.type);
-    if (!typeStr || !Object.values(InteractionType).includes(typeStr as InteractionType)) {
-      alert('Invalid event type.');
-      return;
-    }
-    const type = typeStr as InteractionType;
-
-    let updatedEvent: TimelineEventData = { ...eventToEdit, name, step, type };
-    if (type !== eventToEdit.type) {
-        delete updatedEvent.message;
-        delete updatedEvent.targetId;
-        delete updatedEvent.duration;
-        delete updatedEvent.zoomFactor;
-        delete updatedEvent.highlightRadius;
-    }
-
-    if (type === InteractionType.SHOW_HOTSPOT || type === InteractionType.HIDE_HOTSPOT || type === InteractionType.PULSE_HOTSPOT || type === InteractionType.PAN_ZOOM_TO_HOTSPOT || type === InteractionType.HIGHLIGHT_HOTSPOT) {
-      const targetId = prompt(`Enter Hotspot ID (available: ${hotspots.map(h => `${h.id} (${h.title})`).join(', ') || 'none'}):`, updatedEvent.targetId || '');
-      if (!targetId || !hotspots.find(h => h.id === targetId)) {
-        alert('Invalid or non-existent Hotspot ID.');
-        return;
-      }
-      updatedEvent.targetId = targetId;
-
-      if (type === InteractionType.PULSE_HOTSPOT) {
-        const durationStr = prompt("Enter pulse duration (ms):", (updatedEvent.duration || 2000).toString());
-        updatedEvent.duration = parseInt(durationStr || '2000', 10);
-      }
-      if (type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
-        const zoomStr = prompt("Enter zoom factor:", (updatedEvent.zoomFactor || 2).toString());
-        updatedEvent.zoomFactor = parseFloat(zoomStr || '2');
-      }
-      if (type === InteractionType.HIGHLIGHT_HOTSPOT) {
-        const radiusStr = prompt("Enter highlight radius (px):", (updatedEvent.highlightRadius || 60).toString());
-        updatedEvent.highlightRadius = parseInt(radiusStr || '60', 10);
-      }
-    } else if (type === InteractionType.SHOW_MESSAGE) {
-      const message = prompt("Enter message to display:", updatedEvent.message || "");
-      updatedEvent.message = message || "";
-    }
-
-    setTimelineEvents(prev => 
-      prev.map(e => e.id === eventId ? updatedEvent : e).sort((a,b) => a.step - b.step)
-    );
-    if(isEditing) setCurrentStep(step);
-  }, [timelineEvents, hotspots, isEditing]);
+  // Legacy edit function removed - now handled by enhanced editor
 
   const handleRemoveHotspot = useCallback((hotspotId: string) => {
     if (!confirm(`Are you sure you want to remove hotspot ${hotspotId} and its related timeline events?`)) return;
@@ -623,6 +563,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     <div className="flex flex-col lg:flex-row gap-6 h-full text-slate-200">
       <div className="lg:w-2/3 flex flex-col relative">
         {isEditing && !backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
+        {isEditing && backgroundImage && (
+          <ImageControls
+            backgroundImage={backgroundImage}
+            onImageUpload={handleImageUpload}
+            onImageFit={handleImageFitChange}
+            currentFitMode={imageFitMode}
+          />
+        )}
         {renderGlobalSettings()}
         
         <div 
@@ -640,7 +588,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 className="absolute w-full h-full"
                 style={{
                   backgroundImage: `url(${backgroundImage})`,
-                  backgroundSize: 'cover', backgroundPosition: 'center', transformOrigin: '0 0',
+                  backgroundSize: imageFitMode, 
+                  backgroundPosition: 'center', 
+                  backgroundRepeat: 'no-repeat',
+                  transformOrigin: '0 0',
                   transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
                   transition: 'transform 0.5s ease-in-out',
                 }}
@@ -657,7 +608,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     isPulsing={(moduleState === 'learning' || isEditing) && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
                     isDimmedInEditMode={isEditing && currentStep > 0 && !timelineEvents.some(e => e.step === currentStep && e.targetId === hotspot.id && (e.type === InteractionType.SHOW_HOTSPOT || e.type === InteractionType.PULSE_HOTSPOT || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.HIGHLIGHT_HOTSPOT))}
                     isEditing={isEditing}
-                    onFocusRequest={handleFocusHotspot} // Changed from onEditRequest/onRemove
+                    onFocusRequest={handleFocusHotspot}
+                    onPositionChange={isEditing ? handleHotspotPositionChange : undefined}
                     isContinuouslyPulsing={moduleState === 'idle' && !isEditing && !exploredHotspotId}
                   />
                 ))}
@@ -781,16 +733,59 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           isEditing={isEditing}
           onAddEvent={handleAddTimelineEvent}
           onRemoveEvent={handleRemoveTimelineEvent}
-          onEditEvent={handleEditTimelineEvent}
+          onEditEvent={() => {}} // No longer used - enhanced editor handles this internally
           hotspots={hotspots}
           isTimedMode={isTimedMode}
         />
         {isEditing && (
-          <button onClick={handleSave} className="mt-auto w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-200">
-            Save Changes
+          <button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className={`mt-auto w-full font-semibold py-3 px-4 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center space-x-2 ${
+              isSaving 
+                ? 'bg-green-500 cursor-not-allowed' 
+                : showSuccessMessage 
+                  ? 'bg-green-500' 
+                  : 'bg-green-600 hover:bg-green-700'
+            } text-white`}
+          >
+            {isSaving ? (
+              <>
+                <LoadingSpinnerIcon className="w-5 h-5" />
+                <span>Saving...</span>
+              </>
+            ) : showSuccessMessage ? (
+              <>
+                <CheckIcon className="w-5 h-5" />
+                <span>Saved!</span>
+              </>
+            ) : (
+              <span>Save Changes</span>
+            )}
           </button>
         )}
+        
+        {/* Success Message Toast */}
+        {showSuccessMessage && (
+          <div className="mt-4 p-3 bg-green-600/90 backdrop-blur-sm rounded-lg shadow-lg border border-green-500/50 animate-pulse">
+            <div className="flex items-center justify-center space-x-2 text-white">
+              <CheckIcon className="w-5 h-5" />
+              <span className="font-medium">Project saved successfully!</span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Hotspot Edit Modal */}
+      <HotspotEditModal
+        isOpen={showHotspotEditModal}
+        onClose={() => {
+          setShowHotspotEditModal(false);
+          setEditingHotspot(null);
+        }}
+        onSave={handleSaveHotspot}
+        hotspot={editingHotspot}
+      />
     </div>
   );
 };
