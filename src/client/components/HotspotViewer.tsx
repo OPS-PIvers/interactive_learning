@@ -41,22 +41,25 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startHotspotX = hotspot.x;
+    const startHotspotY = hotspot.y;
+    
+    // Get the parent container (should be the scaled image div) at mousedown time
+    const parentElement = (e.currentTarget as HTMLElement).parentElement;
+    if (!parentElement) return;
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - dragStart.x;
-      const deltaY = moveEvent.clientY - dragStart.y;
-      
-      // Get the parent container (should be the scaled image div)
-      const parentElement = (e.currentTarget as HTMLElement).parentElement;
-      if (!parentElement) return;
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
       
       const parentRect = parentElement.getBoundingClientRect();
-      const newX = Math.max(0, Math.min(100, hotspot.x + (deltaX / parentRect.width) * 100));
-      const newY = Math.max(0, Math.min(100, hotspot.y + (deltaY / parentRect.height) * 100));
+      const newX = Math.max(0, Math.min(100, startHotspotX + (deltaX / parentRect.width) * 100));
+      const newY = Math.max(0, Math.min(100, startHotspotY + (deltaY / parentRect.height) * 100));
       
       onPositionChange(hotspot.id, newX, newY);
-      setDragStart({ x: moveEvent.clientX, y: moveEvent.clientY });
     };
     
     const handleMouseUp = () => {
@@ -67,7 +70,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, dragStart.x, dragStart.y]);
+  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y]);
   
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';

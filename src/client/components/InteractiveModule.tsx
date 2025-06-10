@@ -512,66 +512,71 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     return hotspots.find(h => h.id === activeHotspotInfoId) || null;
   }, [activeHotspotInfoId, hotspots]);
 
-  const renderGlobalSettings = () => {
-    if (!isEditing) return null;
-
-    return (
-      <div className="my-4 p-4 bg-slate-800 rounded-lg shadow">
-        <h4 className="text-lg font-semibold mb-3 text-slate-100">Module Settings</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
-              Enable auto-progression (Timing Mode):
-            </label>
-            <input
-              type="checkbox"
-              id="timingModeToggle"
-              checked={isTimedMode}
-              onChange={(e) => setIsTimedMode(e.target.checked)}
-              className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-300">
-              Timeline Events: {timelineEvents.length}
-            </span>
-            <button
-              onClick={() => setShowPulseSettings(prev => !prev)}
-              className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md"
-            >
-              {showPulseSettings ? 'Hide' : 'Configure'} Pulse Settings
-            </button>
-          </div>
-        </div>
-        {showPulseSettings && (
-          <div className="mt-4">
-            <HotspotPulseSettings
-              hotspots={hotspots}
-              onUpdateHotspot={(hotspotId, updates) => {
-                setHotspots(prevHotspots => prevHotspots.map(h =>
-                  h.id === hotspotId ? { ...h, ...updates } : h
-                ));
-              }}
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full text-slate-200">
       <div className="lg:w-2/3 flex flex-col relative">
         {isEditing && !backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
+        
+        {/* Consolidated Settings Panel for Editor */}
         {isEditing && backgroundImage && (
-          <ImageControls
-            backgroundImage={backgroundImage}
-            onImageUpload={handleImageUpload}
-            onImageFit={handleImageFitChange}
-            currentFitMode={imageFitMode}
-          />
+          <div className="mb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Image Controls */}
+              <ImageControls
+                backgroundImage={backgroundImage}
+                onImageUpload={handleImageUpload}
+                onImageFit={handleImageFitChange}
+                currentFitMode={imageFitMode}
+              />
+              
+              {/* Project Settings */}
+              <div className="p-4 bg-slate-800 rounded-lg shadow-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-slate-100">Project Settings</h4>
+                  <button
+                    onClick={() => setShowPulseSettings(prev => !prev)}
+                    className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md transition-colors"
+                  >
+                    {showPulseSettings ? 'Hide' : 'Configure'} Pulse
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
+                      Auto-progression:
+                    </label>
+                    <input
+                      type="checkbox"
+                      id="timingModeToggle"
+                      checked={isTimedMode}
+                      onChange={(e) => setIsTimedMode(e.target.checked)}
+                      className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                    <span>Events: {timelineEvents.length}</span>
+                    <span>Hotspots: {hotspots.length}</span>
+                  </div>
+                </div>
+                
+                {showPulseSettings && (
+                  <div className="mt-4 pt-4 border-t border-slate-600">
+                    <HotspotPulseSettings
+                      hotspots={hotspots}
+                      onUpdateHotspot={(hotspotId, updates) => {
+                        setHotspots(prevHotspots => prevHotspots.map(h =>
+                          h.id === hotspotId ? { ...h, ...updates } : h
+                        ));
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
-        {renderGlobalSettings()}
         
         <div 
           ref={imageContainerRef}
@@ -693,7 +698,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         </div>
 
         {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
-          <div className="mt-2 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
+          <div className={`${isEditing ? 'mt-4' : 'mt-2'} bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md`}>
             <HorizontalTimeline
                 uniqueSortedSteps={uniqueSortedSteps}
                 currentStep={currentStep}
