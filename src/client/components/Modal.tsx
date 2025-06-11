@@ -14,7 +14,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out">
-      <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden border border-slate-700">
+      <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] h-[95vh] flex flex-col overflow-hidden border border-slate-700">
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">
           <h2 className="text-xl sm:text-2xl font-semibold text-white">{title}</h2>
           <button

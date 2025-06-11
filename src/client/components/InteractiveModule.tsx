@@ -514,73 +514,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full text-slate-200">
-      <div className="lg:w-2/3 flex flex-col relative">
-        {isEditing && !backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
-        
-        {/* Consolidated Settings Panel for Editor */}
-        {isEditing && backgroundImage && (
-          <div className="mb-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Image Controls */}
-              <ImageControls
-                backgroundImage={backgroundImage}
-                onImageUpload={handleImageUpload}
-                onImageFit={handleImageFitChange}
-                currentFitMode={imageFitMode}
-              />
-              
-              {/* Project Settings */}
-              <div className="p-4 bg-slate-800 rounded-lg shadow-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-lg font-semibold text-slate-100">Project Settings</h4>
-                  <button
-                    onClick={() => setShowPulseSettings(prev => !prev)}
-                    className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md transition-colors"
-                  >
-                    {showPulseSettings ? 'Hide' : 'Configure'} Pulse
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
-                      Auto-progression:
-                    </label>
-                    <input
-                      type="checkbox"
-                      id="timingModeToggle"
-                      checked={isTimedMode}
-                      onChange={(e) => setIsTimedMode(e.target.checked)}
-                      className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
-                    <span>Events: {timelineEvents.length}</span>
-                    <span>Hotspots: {hotspots.length}</span>
-                  </div>
-                </div>
-                
-                {showPulseSettings && (
-                  <div className="mt-4 pt-4 border-t border-slate-600">
-                    <HotspotPulseSettings
-                      hotspots={hotspots}
-                      onUpdateHotspot={(hotspotId, updates) => {
-                        setHotspots(prevHotspots => prevHotspots.map(h =>
-                          h.id === hotspotId ? { ...h, ...updates } : h
-                        ));
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-row gap-6 h-full text-slate-200">
+      <div className="flex-1 flex flex-col relative min-w-0">
         
         <div 
           ref={imageContainerRef}
-          className="relative w-full aspect-[4/3] bg-slate-900 rounded-lg overflow-hidden shadow-lg"
+          className="relative w-full flex-1 bg-slate-900 rounded-lg overflow-auto shadow-lg"
           style={{ cursor: isEditing && backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
           onClick={handleImageClick}
           role={isEditing && backgroundImage ? "button" : undefined}
@@ -697,39 +636,92 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           )}
         </div>
 
-        {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
-          <div className={`${isEditing ? 'mt-4' : 'mt-2'} bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md`}>
-            <HorizontalTimeline
-                uniqueSortedSteps={uniqueSortedSteps}
-                currentStep={currentStep}
-                onStepSelect={handleTimelineDotClick}
-                isEditing={isEditing}
-                timelineEvents={timelineEvents}
-                hotspots={hotspots}
-            />
-          </div>
-        )}
 
-        {pendingHotspot && isEditing && (
-            <div className="hotspot-confirmation-dialog mt-4 p-4 bg-slate-700 rounded-lg shadow-md">
-                <h4 className="text-lg font-semibold mb-2">Confirm Hotspot</h4>
-                <p className="text-sm text-slate-300 mb-1">Place at: Image X: {pendingHotspot.imageXPercent.toFixed(1)}%, Image Y: {pendingHotspot.imageYPercent.toFixed(1)}%</p>
-                <p className="text-xs text-slate-400 mb-3">(Coordinates are relative to the image content)</p>
-                <button 
-                    onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2"
-                >Add Hotspot Here</button>
-                <button onClick={() => setPendingHotspot(null)} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
-            </div>
-        )}
-        {(moduleState === 'learning' || isEditing) && currentMessage && (
-          <div className="mt-4 p-3 bg-slate-700 rounded-lg shadow text-center" role="alert">
-            <p className="text-slate-100">{currentMessage}</p>
-          </div>
-        )}
       </div>
 
-      <div className="lg:w-1/3 flex flex-col timeline-controls-container">
+      <div className="flex flex-col w-80 flex-shrink-0">
+        {/* Editing Tools */}
+        {isEditing && (
+          <div className="mb-4 p-4 bg-slate-800 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-slate-100 mb-3">Editing Tools</h3>
+            {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
+            {backgroundImage && (
+              <div className="space-y-4">
+                <ImageControls
+                  backgroundImage={backgroundImage}
+                  onImageUpload={handleImageUpload}
+                  onImageFit={handleImageFitChange}
+                  currentFitMode={imageFitMode}
+                />
+                <div className="border-t border-slate-600 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-md font-medium text-slate-100">Project Settings</h4>
+                    <button
+                      onClick={() => setShowPulseSettings(prev => !prev)}
+                      className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md transition-colors"
+                    >
+                      {showPulseSettings ? 'Hide' : 'Configure'} Pulse
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
+                        Auto-progression:
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="timingModeToggle"
+                        checked={isTimedMode}
+                        onChange={(e) => setIsTimedMode(e.target.checked)}
+                        className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                      <span>Events: {timelineEvents.length}</span>
+                      <span>Hotspots: {hotspots.length}</span>
+                    </div>
+                  </div>
+                  {showPulseSettings && (
+                    <div className="mt-4 pt-4 border-t border-slate-600">
+                      <HotspotPulseSettings
+                        hotspots={hotspots}
+                        onUpdateHotspot={(hotspotId, updates) => {
+                          setHotspots(prevHotspots => prevHotspots.map(h =>
+                            h.id === hotspotId ? { ...h, ...updates } : h
+                          ));
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Pending Hotspot Confirmation */}
+            {pendingHotspot && (
+              <div className="mt-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+                <h4 className="text-md font-semibold mb-2">Confirm Hotspot</h4>
+                <p className="text-sm text-slate-300 mb-1">Place at: X: {pendingHotspot.imageXPercent.toFixed(1)}%, Y: {pendingHotspot.imageYPercent.toFixed(1)}%</p>
+                <div className="flex gap-2 mt-3">
+                  <button 
+                    onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
+                    className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
+                  >Add Here</button>
+                  <button 
+                    onClick={() => setPendingHotspot(null)} 
+                    className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
+                  >Cancel</button>
+                </div>
+              </div>
+            )}
+            {/* Current Message Display */}
+            {currentMessage && (
+              <div className="mt-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+                <p className="text-slate-100 text-sm">{currentMessage}</p>
+              </div>
+            )}
+          </div>
+        )}
+        
         <TimelineControls
           events={timelineEvents}
           currentStep={currentStep} 
@@ -777,6 +769,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               <CheckIcon className="w-5 h-5" />
               <span className="font-medium">Project saved successfully!</span>
             </div>
+          </div>
+        )}
+        
+        {/* Timeline at bottom */}
+        {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
+          <div className="mt-4 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
+            <HorizontalTimeline
+                uniqueSortedSteps={uniqueSortedSteps}
+                currentStep={currentStep}
+                onStepSelect={handleTimelineDotClick}
+                isEditing={isEditing}
+                timelineEvents={timelineEvents}
+                hotspots={hotspots}
+            />
           </div>
         )}
       </div>
