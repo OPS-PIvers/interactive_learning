@@ -749,18 +749,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           </div>
         )}
         
-        <TimelineControls
-          events={timelineEvents}
-          currentStep={currentStep} 
-          maxStep={editorMaxStep}   
-          onStepChange={setCurrentStep} 
-          isEditing={isEditing}
-          onAddEvent={handleAddTimelineEvent}
-          onRemoveEvent={handleRemoveTimelineEvent}
-          onEditEvent={() => {}} // No longer used - enhanced editor handles this internally
-          hotspots={hotspots}
-          isTimedMode={isTimedMode}
-        />
         {isEditing && (
           <button 
             onClick={handleSave} 
