@@ -6,13 +6,17 @@ interface ImageControlsProps {
   onImageUpload: (file: File) => void;
   onImageFit?: (fitMode: 'cover' | 'contain' | 'fill') => void;
   currentFitMode?: 'cover' | 'contain' | 'fill';
+  viewportZoom?: number;
+  onViewportZoomChange?: (zoom: number) => void;
 }
 
 const ImageControls: React.FC<ImageControlsProps> = ({ 
   backgroundImage, 
   onImageUpload, 
   onImageFit,
-  currentFitMode = 'cover'
+  currentFitMode = 'cover',
+  viewportZoom = 1,
+  onViewportZoomChange
 }) => {
   const [showReplaceUpload, setShowReplaceUpload] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -109,6 +113,52 @@ const ImageControls: React.FC<ImageControlsProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Viewport Zoom Controls */}
+      {onViewportZoomChange && (
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Viewport Zoom ({Math.round(viewportZoom * 100)}%)
+          </label>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onViewportZoomChange(Math.max(0.25, viewportZoom - 0.25))}
+              className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded text-sm transition-colors"
+              title="Zoom out"
+            >
+              -
+            </button>
+            <div className="flex-1">
+              <input
+                type="range"
+                min="0.25"
+                max="3"
+                step="0.25"
+                value={viewportZoom}
+                onChange={(e) => onViewportZoomChange(parseFloat(e.target.value))}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+              />
+            </div>
+            <button
+              onClick={() => onViewportZoomChange(Math.min(3, viewportZoom + 0.25))}
+              className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded text-sm transition-colors"
+              title="Zoom in"
+            >
+              +
+            </button>
+            <button
+              onClick={() => onViewportZoomChange(1)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-sm transition-colors"
+              title="Reset zoom"
+            >
+              Reset
+            </button>
+          </div>
+          <div className="mt-2 text-xs text-slate-400">
+            <p><strong>Viewport Zoom:</strong> Scales the entire image view like a magnifying glass</p>
+          </div>
+        </div>
+      )}
 
       {/* Image Replacement Upload */}
       {showReplaceUpload && (

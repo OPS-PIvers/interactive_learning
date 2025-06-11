@@ -69,9 +69,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
   const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+  const [viewportZoom, setViewportZoom] = useState<number>(1);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
 
@@ -161,18 +163,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (activeHotspotInfoId && imageContainerRef.current && scaledImageDivRef.current) {
       const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
       if (hotspot) {
-        const containerRect = imageContainerRef.current.getBoundingClientRect(); // Overall container
+        const containerRect = imageContainerRef.current.getBoundingClientRect(); // Image container
         const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect(); // The div that is actually scaled/translated
 
         // Calculate dot's center relative to the scaled image div's content
         const dotCenterXOnScaledImg = (hotspot.x / 100) * scaledImgDivRect.width;
         const dotCenterYOnScaledImg = (hotspot.y / 100) * scaledImgDivRect.height;
 
-        // Calculate dot's center relative to the viewport
+        // Calculate dot's center relative to the browser viewport
         const dotCenterXViewport = scaledImgDivRect.left + dotCenterXOnScaledImg;
         const dotCenterYViewport = scaledImgDivRect.top + dotCenterYOnScaledImg;
         
-        // Convert to coordinates relative to the imageContainerRef (which is the InfoPanel's positioning parent)
+        // Convert to coordinates relative to the image container (InfoPanel's positioning parent)
+        // Since both the InfoPanel and hotspots are inside the viewport container, they share the same scaling
         const anchorX = dotCenterXViewport - containerRect.left;
         const anchorY = dotCenterYViewport - containerRect.top;
 
@@ -183,7 +186,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     } else {
       setInfoPanelAnchor(null);
     }
-  }, [activeHotspotInfoId, hotspots, imageTransform, imageContainerRect]); // Rerun if these change
+  }, [activeHotspotInfoId, hotspots, imageTransform, imageContainerRect, viewportZoom]); // Rerun if these change
 
 
   useEffect(() => {
@@ -429,9 +432,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         }
         
         const containerRect = imageContainerRef.current.getBoundingClientRect();
+        const viewportContainerRect = viewportContainerRef.current?.getBoundingClientRect();
         const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect();
 
-        // Click position relative to the viewport
+        // Click position relative to the browser viewport
         const clickX_viewport = event.clientX;
         const clickY_viewport = event.clientY;
 
@@ -450,9 +454,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         const imageXPercent = Math.max(0, Math.min(100, (clickX_on_scaled_img / scaledImgDivRect.width) * 100));
         const imageYPercent = Math.max(0, Math.min(100, (clickY_on_scaled_img / scaledImgDivRect.height) * 100));
         
-        // For visual pending marker, use click relative to container
-        const viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-        const viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
+        // For visual pending marker, convert click to viewport container coordinates (accounting for viewport zoom)
+        // The image container is now nested inside the viewport container that's scaled by viewportZoom
+        let viewXPercent, viewYPercent;
+        if (viewportContainerRect) {
+          // Click relative to the viewport container, adjusted for viewport zoom
+          const clickX_in_viewport = (clickX_viewport - viewportContainerRect.left) / viewportZoom;
+          const clickY_in_viewport = (clickY_viewport - viewportContainerRect.top) / viewportZoom;
+          
+          // Convert to percentage relative to the unscaled viewport container dimensions
+          const unscaledViewportWidth = viewportContainerRect.width / viewportZoom;
+          const unscaledViewportHeight = viewportContainerRect.height / viewportZoom;
+          viewXPercent = Math.max(0, Math.min(100, (clickX_in_viewport / unscaledViewportWidth) * 100));
+          viewYPercent = Math.max(0, Math.min(100, (clickY_in_viewport / unscaledViewportHeight) * 100));
+        } else {
+          // Fallback to the old method if viewport container ref is not available
+          viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
+          viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
+        }
 
         setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
         setActiveHotspotInfoId(null); // Hide any open info panel when trying to place new one
@@ -473,7 +492,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         }
         setActiveHotspotInfoId(null);
     }
-  }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot]);
+  }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot, viewportZoom]);
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
@@ -637,6 +656,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       </div>
                     </div>
                     
+                    {/* Image Controls Section */}
+                    {backgroundImage && (
+                      <div className="mb-8">
+                        <ImageControls
+                          backgroundImage={backgroundImage}
+                          onImageUpload={handleImageUpload}
+                          onImageFit={(fitMode) => setImageFitMode(fitMode)}
+                          currentFitMode={imageFitMode}
+                          viewportZoom={viewportZoom}
+                          onViewportZoomChange={setViewportZoom}
+                        />
+                      </div>
+                    )}
+                    
                     {/* Module Behavior Section */}
                     <div className="mb-8">
                       <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
@@ -742,14 +775,38 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       <div className="flex flex-row gap-6 flex-1">
         <div className={`flex flex-col relative ${(isEditing && activeHotspotInfoId) ? 'flex-1 min-w-0' : 'w-full'}`}>
         
+        {/* Viewport Container - scales with manual zoom */}
         <div 
-          ref={imageContainerRef}
-          className="relative w-full flex-1 bg-slate-900 rounded-lg overflow-auto shadow-lg"
-          style={{ cursor: isEditing && backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
-          onClick={handleImageClick}
-          role={isEditing && backgroundImage ? "button" : undefined}
-          aria-label={isEditing && backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
+          className="relative w-full flex-1 overflow-auto bg-slate-900 rounded-lg shadow-lg"
+          style={{
+            // Ensure scrollbars appear when content is larger than container
+            scrollBehavior: 'smooth',
+            // Custom scrollbar styling for better UX
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#475569 #1e293b',
+          }}
         >
+          <div
+            ref={viewportContainerRef}
+            className="min-w-full min-h-full"
+            style={{
+              transform: `scale(${viewportZoom})`,
+              transformOrigin: '0 0',
+              transition: 'transform 0.3s ease-out',
+              // When zoomed, the content needs more space
+              width: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
+              height: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
+            }}
+          >
+            {/* Image Container - contains content transforms for pan/zoom hotspot feature */}
+            <div 
+              ref={imageContainerRef}
+              className="relative w-full h-full bg-slate-900"
+              style={{ cursor: isEditing && backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
+              onClick={handleImageClick}
+              role={isEditing && backgroundImage ? "button" : undefined}
+              aria-label={isEditing && backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
+            >
           {backgroundImage ? (
             <>
               <div 
@@ -860,9 +917,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               <p>{isEditing ? 'Upload an image to start.' : 'No background image set.'}</p>
             </div>
           )}
+            </div>
+          </div>
         </div>
 
-        
         {/* Pending Hotspot Confirmation - shown when no hotspot selected */}
         {pendingHotspot && isEditing && !activeHotspotInfoId && (
           <div className="mt-2 p-3 bg-slate-700 rounded-lg border border-slate-600">
