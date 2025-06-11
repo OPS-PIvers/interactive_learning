@@ -730,7 +730,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               {/* Zoom Controls */}
               {backgroundImage && (
                 <div className="mt-3 pt-3 border-t border-slate-600">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-slate-300">Image Zoom</span>
                     <div className="flex items-center gap-2">
                       <button
@@ -750,14 +750,36 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       >
                         +
                       </button>
-                      <button
-                        onClick={() => setViewportZoom(1)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-2 h-7 rounded text-xs transition-colors"
-                        title="Reset zoom"
-                      >
-                        Reset
-                      </button>
                     </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setViewportZoom(1)}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded text-xs transition-colors"
+                      title="Reset to 100%"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Calculate zoom to fit image in viewable area
+                        if (viewportContainerRef.current && scaledImageDivRef.current) {
+                          const viewportRect = viewportContainerRef.current.getBoundingClientRect();
+                          const imageRect = scaledImageDivRef.current.getBoundingClientRect();
+                          
+                          // Calculate the zoom needed to fit the image in the viewport
+                          const scaleX = viewportRect.width / imageRect.width;
+                          const scaleY = viewportRect.height / imageRect.height;
+                          const fitZoom = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 100%
+                          
+                          setViewportZoom(Math.max(0.25, Math.min(3, fitZoom)));
+                        }
+                      }}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded text-xs transition-colors"
+                      title="Fit to viewable area"
+                    >
+                      Fit
+                    </button>
                   </div>
                 </div>
               )}
