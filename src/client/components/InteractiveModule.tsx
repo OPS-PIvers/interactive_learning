@@ -65,6 +65,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [activeHotspotInfoId, setActiveHotspotInfoId] = useState<string | null>(null);
   const [infoPanelAnchor, setInfoPanelAnchor] = useState<{ x: number, y: number } | null>(null);
   const [imageContainerRect, setImageContainerRect] = useState<DOMRectReadOnly | undefined>(undefined);
+  const [activeEditorTab, setActiveEditorTab] = useState<'properties' | 'timeline'>('properties');
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -899,8 +900,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         <div className="flex flex-col w-80 flex-shrink-0">
         
         {/* Main Editing Toolbar */}
-        {isEditing && activeHotspotInfoId && (
-          <div className="flex-1 bg-slate-800 rounded-lg shadow-lg">
+        <div className="flex-1 bg-slate-800 rounded-lg shadow-lg">
             {/* Tab Navigation */}
             <div className="flex border-b border-slate-600">
               <button
@@ -1201,6 +1201,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   </div>
                   
                   {/* Add New Interactions */}
+                  {activeHotspotInfoId && (
                   <div>
                     <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
                       ➕ Add New Interaction
@@ -1438,6 +1439,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 </div>
               )}
             </div>
+            )}
             
             {/* Current Message Display */}
             {currentMessage && (
@@ -1447,8 +1449,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               </div>
             )}
           </div>
-        )}
-        
+        </div>
         </div>
       )}
       </div>
