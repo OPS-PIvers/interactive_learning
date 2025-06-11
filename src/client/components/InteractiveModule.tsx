@@ -574,7 +574,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   className="min-w-full min-h-full"
                   style={{
                     transform: `scale(${viewportZoom})`,
-                    transformOrigin: '0 0',
+                    transformOrigin: 'center center',
                     transition: 'transform 0.3s ease-out',
                     width: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
                     height: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
