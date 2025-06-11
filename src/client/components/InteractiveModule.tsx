@@ -551,49 +551,157 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 </svg>
               </button>
               {showPulseSettings && (
-                <div className="absolute right-0 top-full mt-1 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
-                  <div className="p-4 space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-100 border-b border-slate-600 pb-2">Project Settings</h3>
+                <div className="absolute right-0 top-full mt-2 w-96 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto">
+                  <div className="p-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-600">
+                      <h3 className="text-xl font-bold text-slate-100">Project Settings</h3>
+                      <button
+                        onClick={() => setShowPulseSettings(false)}
+                        className="text-slate-400 hover:text-slate-200 p-1 rounded transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                     
-                    {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
-                    {backgroundImage && (
-                      <ImageControls
-                        backgroundImage={backgroundImage}
-                        onImageUpload={handleImageUpload}
-                        onImageFit={handleImageFitChange}
-                        currentFitMode={imageFitMode}
-                      />
-                    )}
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="timingModeToggle" className="text-sm text-slate-300">
-                          Auto-progression:
-                        </label>
-                        <input
-                          type="checkbox"
-                          id="timingModeToggle"
-                          checked={isTimedMode}
-                          onChange={(e) => setIsTimedMode(e.target.checked)}
-                          className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-                        />
-                      </div>
-                      <div className="text-sm text-slate-300 grid grid-cols-2 gap-4">
-                        <span>Events: {timelineEvents.length}</span>
-                        <span>Hotspots: {hotspots.length}</span>
+                    {/* Image Configuration Section */}
+                    <div className="mb-8">
+                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Image Configuration
+                      </h4>
+                      
+                      <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
+                        {!backgroundImage ? (
+                          <div>
+                            <p className="text-sm text-slate-300 mb-3">Upload a background image to get started</p>
+                            <FileUpload onFileUpload={handleImageUpload} />
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {/* Image Upload/Replace */}
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">Background Image</label>
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded border border-slate-600 bg-slate-700 bg-cover bg-center" 
+                                     style={{ backgroundImage: `url(${backgroundImage})` }}></div>
+                                <div className="flex-1">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
+                                    className="hidden"
+                                    id="image-upload"
+                                  />
+                                  <label 
+                                    htmlFor="image-upload"
+                                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg cursor-pointer transition-colors"
+                                  >
+                                    Replace Image
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Display Mode */}
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-3">Display Mode</label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {[
+                                  { value: 'cover', label: 'Cover', desc: 'Fill container, crop if needed' },
+                                  { value: 'contain', label: 'Contain', desc: 'Fit entire image, may have gaps' },
+                                  { value: 'fill', label: 'Fill', desc: 'Stretch to fill container' }
+                                ].map(mode => (
+                                  <button
+                                    key={mode.value}
+                                    onClick={() => handleImageFitChange(mode.value as any)}
+                                    className={`p-3 rounded-lg border text-center transition-all ${
+                                      imageFitMode === mode.value
+                                        ? 'bg-blue-600 border-blue-500 text-white'
+                                        : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
+                                    }`}
+                                  >
+                                    <div className="font-medium text-sm">{mode.label}</div>
+                                    <div className="text-xs mt-1 opacity-80">{mode.desc}</div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
-                    <div className="border-t border-slate-600 pt-3">
-                      <h4 className="text-sm font-medium text-slate-200 mb-3">Hotspot Defaults</h4>
-                      <HotspotPulseSettings
-                        hotspots={hotspots}
-                        onUpdateHotspot={(hotspotId, updates) => {
-                          setHotspots(prevHotspots => prevHotspots.map(h =>
-                            h.id === hotspotId ? { ...h, ...updates } : h
-                          ));
-                        }}
-                      />
+                    {/* Module Behavior Section */}
+                    <div className="mb-8">
+                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                        </svg>
+                        Module Behavior
+                      </h4>
+                      
+                      <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
+                        {/* Auto-progression */}
+                        <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                          <div>
+                            <label className="text-sm font-medium text-slate-200">Auto-progression</label>
+                            <p className="text-xs text-slate-400 mt-1">Automatically advance through timeline steps</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isTimedMode}
+                              onChange={(e) => setIsTimedMode(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                        
+                        {/* Project Stats */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-slate-700 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-blue-400">{timelineEvents.length}</div>
+                            <div className="text-xs text-slate-400">Timeline Events</div>
+                          </div>
+                          <div className="bg-slate-700 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-purple-400">{hotspots.length}</div>
+                            <div className="text-xs text-slate-400">Hotspots</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Hotspot Configuration Section */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Hotspot Configuration
+                      </h4>
+                      
+                      <div className="bg-slate-700/50 rounded-lg p-4">
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-slate-300 mb-2">Default Animation Settings</label>
+                          <p className="text-xs text-slate-400 mb-3">Configure default pulse and animation settings for all hotspots</p>
+                        </div>
+                        
+                        <HotspotPulseSettings
+                          hotspots={hotspots}
+                          onUpdateHotspot={(hotspotId, updates) => {
+                            setHotspots(prevHotspots => prevHotspots.map(h =>
+                              h.id === hotspotId ? { ...h, ...updates } : h
+                            ));
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -791,200 +899,364 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         <div className="flex flex-col w-80 flex-shrink-0">
         
         {/* Main Editing Toolbar */}
-        {isEditing && (
-          <div className="flex-1 bg-slate-800 rounded-lg shadow-lg p-4">
-            <h3 className="text-lg font-semibold text-slate-100 mb-3">Editing Tools</h3>
+        {isEditing && activeHotspotInfoId && (
+          <div className="flex-1 bg-slate-800 rounded-lg shadow-lg">
+            {/* Tab Navigation */}
+            <div className="flex border-b border-slate-600">
+              <button
+                onClick={() => setActiveEditorTab('properties')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeEditorTab === 'properties'
+                    ? 'bg-slate-700 text-white border-b-2 border-blue-500'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-750'
+                }`}
+              >
+                🎯 Hotspot Properties
+              </button>
+              <button
+                onClick={() => setActiveEditorTab('timeline')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeEditorTab === 'timeline'
+                    ? 'bg-slate-700 text-white border-b-2 border-blue-500'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-750'
+                }`}
+              >
+                ⏱️ Timeline Events
+              </button>
+            </div>
             
-            
-            {/* Selected Hotspot Editor */}
-            {activeHotspotInfoId && (
-              <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
-                <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
-                  🎯 Edit Hotspot
-                  <button
-                    onClick={handleEditHotspotRequest.bind(null, activeHotspotInfoId)}
-                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded"
-                  >
-                    Advanced Edit
-                  </button>
-                </h4>
-                {(() => {
-                  const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
-                  if (!hotspot) return null;
-                  return (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Title:</label>
-                        <input
-                          type="text"
-                          value={hotspot.title}
-                          onChange={(e) => {
-                            setHotspots(prev => prev.map(h => 
-                              h.id === activeHotspotInfoId ? { ...h, title: e.target.value } : h
-                            ));
-                          }}
-                          className="w-full px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-slate-300 mb-1">Description:</label>
-                        <textarea
-                          value={hotspot.description}
-                          onChange={(e) => {
-                            setHotspots(prev => prev.map(h => 
-                              h.id === activeHotspotInfoId ? { ...h, description: e.target.value } : h
-                            ));
-                          }}
-                          className="w-full px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
-                          rows={2}
-                        />
-                      </div>
-                      <div className="flex gap-4">
+            <div className="p-6">
+              {/* Tab Content */}
+              {activeEditorTab === 'properties' && (
+                <div className="space-y-6">
+                  {(() => {
+                    const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+                    if (!hotspot) return <div className="text-slate-400">No hotspot selected</div>;
+                    
+                    return (
+                      <>
+                        {/* Basic Info Section */}
                         <div>
-                          <label className="block text-sm text-slate-300 mb-1">Size:</label>
-                          <select
-                            value={hotspot.size || 'medium'}
-                            onChange={(e) => {
-                              setHotspots(prev => prev.map(h => 
-                                h.id === activeHotspotInfoId ? { ...h, size: e.target.value as any } : h
-                              ));
-                            }}
-                            className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
-                          >
-                            <option value="small">Small</option>
-                            <option value="medium">Medium</option>
-                            <option value="large">Large</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm text-slate-300 mb-1">Color:</label>
-                          <select
-                            value={hotspot.color}
-                            onChange={(e) => {
-                              setHotspots(prev => prev.map(h => 
-                                h.id === activeHotspotInfoId ? { ...h, color: e.target.value } : h
-                              ));
-                            }}
-                            className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
-                          >
-                            <option value="bg-red-500">Red</option>
-                            <option value="bg-blue-500">Blue</option>
-                            <option value="bg-green-500">Green</option>
-                            <option value="bg-yellow-500">Yellow</option>
-                            <option value="bg-purple-500">Purple</option>
-                            <option value="bg-pink-500">Pink</option>
-                            <option value="bg-cyan-500">Cyan</option>
-                          </select>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveHotspot(activeHotspotInfoId)}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded"
-                      >
-                        🗑️ Delete Hotspot
-                      </button>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-            
-            {/* Timeline Interaction Tools */}
-            <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
-              <h4 className="text-md font-semibold mb-3">⏱️ Timeline & Interactions</h4>
-              
-              {/* Step Controls */}
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Current Step:</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={currentStep}
-                      onChange={(e) => setCurrentStep(parseInt(e.target.value) || 1)}
-                      min={1}
-                      max={editorMaxStep + 1}
-                      className="w-16 px-2 py-1 bg-slate-800 border border-slate-600 rounded text-xs text-white"
-                    />
-                    <span className="text-slate-400">/ {uniqueSortedSteps.length}</span>
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-                    className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-1 px-2 rounded text-xs"
-                  >← Prev</button>
-                  <button
-                    onClick={() => setCurrentStep(currentStep + 1)}
-                    className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-1 px-2 rounded text-xs"
-                  >→ Next</button>
-                </div>
-              </div>
-              
-              {/* Events for Current Step */}
-              <div className="mb-4">
-                <h5 className="text-sm font-medium text-slate-200 mb-2">Events in Step {currentStep}:</h5>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {timelineEvents
-                    .filter(e => e.step === currentStep)
-                    .sort((a, b) => a.id.localeCompare(b.id))
-                    .map(event => {
-                      const hotspot = hotspots.find(h => h.id === event.targetId);
-                      return (
-                        <div key={event.id} className="flex items-center justify-between bg-slate-800 p-2 rounded text-xs">
-                          <div className="flex-1">
-                            <div className="font-medium text-white">{event.type.replace('_', ' ')}</div>
-                            {hotspot && <div className="text-slate-400">{hotspot.title}</div>}
-                            {event.message && <div className="text-slate-400 truncate">"{event.message}"</div>}
+                          <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                            📝 Basic Information
+                          </h4>
+                          <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">Title</label>
+                              <input
+                                type="text"
+                                value={hotspot.title}
+                                onChange={(e) => {
+                                  setHotspots(prev => prev.map(h => 
+                                    h.id === activeHotspotInfoId ? { ...h, title: e.target.value } : h
+                                  ));
+                                }}
+                                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter hotspot title..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                              <textarea
+                                value={hotspot.description}
+                                onChange={(e) => {
+                                  setHotspots(prev => prev.map(h => 
+                                    h.id === activeHotspotInfoId ? { ...h, description: e.target.value } : h
+                                  ));
+                                }}
+                                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                rows={3}
+                                placeholder="Describe what this hotspot shows..."
+                              />
+                            </div>
+                            <div className="bg-slate-800 rounded p-3">
+                              <label className="block text-sm font-medium text-slate-300 mb-1">Position</label>
+                              <div className="text-sm text-slate-400">
+                                X: {hotspot.x.toFixed(1)}% • Y: {hotspot.y.toFixed(1)}%
+                              </div>
+                              <div className="text-xs text-slate-500 mt-1">Drag the hotspot on the image to reposition</div>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => handleRemoveTimelineEvent(event.id)}
-                            className="text-red-400 hover:text-red-300 p-1"
-                            title="Remove event"
-                          >×</button>
                         </div>
-                      );
-                    })
-                  }
-                  {timelineEvents.filter(e => e.step === currentStep).length === 0 && (
-                    <div className="text-slate-400 text-xs italic">No events in this step</div>
-                  )}
+                        
+                        {/* Appearance Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                            🎨 Appearance
+                          </h4>
+                          <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">Size</label>
+                                <select
+                                  value={hotspot.size || 'medium'}
+                                  onChange={(e) => {
+                                    setHotspots(prev => prev.map(h => 
+                                      h.id === activeHotspotInfoId ? { ...h, size: e.target.value as any } : h
+                                    ));
+                                  }}
+                                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="small">Small (12px)</option>
+                                  <option value="medium">Medium (16px)</option>
+                                  <option value="large">Large (20px)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">Color</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {[
+                                    { value: 'bg-red-500', color: 'bg-red-500', name: 'Red' },
+                                    { value: 'bg-blue-500', color: 'bg-blue-500', name: 'Blue' },
+                                    { value: 'bg-green-500', color: 'bg-green-500', name: 'Green' },
+                                    { value: 'bg-yellow-500', color: 'bg-yellow-500', name: 'Yellow' },
+                                    { value: 'bg-purple-500', color: 'bg-purple-500', name: 'Purple' },
+                                    { value: 'bg-pink-500', color: 'bg-pink-500', name: 'Pink' },
+                                    { value: 'bg-cyan-500', color: 'bg-cyan-500', name: 'Cyan' },
+                                    { value: 'bg-orange-500', color: 'bg-orange-500', name: 'Orange' }
+                                  ].map(color => (
+                                    <button
+                                      key={color.value}
+                                      onClick={() => {
+                                        setHotspots(prev => prev.map(h => 
+                                          h.id === activeHotspotInfoId ? { ...h, color: color.value } : h
+                                        ));
+                                      }}
+                                      className={`w-8 h-8 rounded-full ${color.color} border-2 transition-all ${
+                                        hotspot.color === color.value
+                                          ? 'border-white scale-110'
+                                          : 'border-slate-600 hover:border-slate-400'
+                                      }`}
+                                      title={color.name}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Advanced Actions Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                            ⚙️ Advanced Actions
+                          </h4>
+                          <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
+                            <button
+                              onClick={() => handleEditHotspotRequest(activeHotspotInfoId)}
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                              ✏️ Advanced Editor
+                            </button>
+                            
+                            <div className="pt-3 border-t border-slate-600">
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete the hotspot "${hotspot.title}"? This will also remove all related timeline events.`)) {
+                                    handleRemoveHotspot(activeHotspotInfoId);
+                                  }
+                                }}
+                                className="w-full bg-slate-600 hover:bg-red-600 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                              >
+                                ⚠️ Delete Hotspot
+                              </button>
+                              <p className="text-xs text-slate-500 mt-1 text-center">This action cannot be undone</p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
-              </div>
+              )}
               
-              {/* Add Interactions for Selected Hotspot */}
-              {activeHotspotInfoId && (
-                <div className="border-t border-slate-600 pt-3">
-                  <h5 className="text-sm font-medium text-slate-200 mb-2">Add Interaction:</h5>
-                  <div className="space-y-2">
-                    {/* Basic Interactions */}
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      <button
-                        onClick={() => {
-                          const event = {
-                            id: `te_show_${activeHotspotInfoId}_${Date.now()}`,
-                            step: currentStep,
-                            name: `Show ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
-                            type: InteractionType.SHOW_HOTSPOT,
-                            targetId: activeHotspotInfoId
-                          };
-                          handleAddTimelineEvent(event);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded"
-                      >Show</button>
-                      <button
-                        onClick={() => {
-                          setInteractionParams(prev => ({ 
-                            ...prev, 
-                            showingPulseSlider: !prev.showingPulseSlider,
-                            showingZoomSlider: false,
-                            showingHighlightSlider: false
-                          }));
-                        }}
-                        className={`bg-purple-600 hover:bg-purple-700 text-white py-1 px-2 rounded ${
-                          interactionParams.showingPulseSlider ? 'ring-2 ring-purple-300' : ''
-                        }`}
-                      >Pulse</button>
+              {activeEditorTab === 'timeline' && (
+                <div className="space-y-6">
+                  {/* Step Navigation */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                      📍 Step Navigation
+                    </h4>
+                    <div className="bg-slate-700/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-slate-300 font-medium">Current Step:</span>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="number"
+                            value={currentStep}
+                            onChange={(e) => setCurrentStep(parseInt(e.target.value) || 1)}
+                            min={1}
+                            max={editorMaxStep + 1}
+                            className="w-16 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-center focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-slate-400">of {uniqueSortedSteps.length}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="mb-4">
+                        <div className="flex items-center gap-1 mb-2">
+                          {Array.from({ length: Math.max(uniqueSortedSteps.length, 5) }, (_, i) => {
+                            const stepNum = i + 1;
+                            const isActive = stepNum === currentStep;
+                            const hasEvents = timelineEvents.some(e => e.step === stepNum);
+                            return (
+                              <button
+                                key={stepNum}
+                                onClick={() => setCurrentStep(stepNum)}
+                                className={`flex-1 h-2 rounded-full transition-all ${
+                                  isActive
+                                    ? 'bg-blue-500'
+                                    : hasEvents
+                                      ? 'bg-green-500/60 hover:bg-green-500'
+                                      : 'bg-slate-600 hover:bg-slate-500'
+                                }`}
+                                title={`Step ${stepNum}${hasEvents ? ' (has events)' : ' (empty)'}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-400">
+                          <span>Step 1</span>
+                          <span>Step {Math.max(uniqueSortedSteps.length, 5)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+                          disabled={currentStep <= 1}
+                          className="flex-1 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700 disabled:text-slate-500 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          ← Previous
+                        </button>
+                        <button
+                          onClick={() => setCurrentStep(currentStep + 1)}
+                          className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Events in Current Step */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                      🎬 Events in Step {currentStep}
+                    </h4>
+                    <div className="bg-slate-700/50 rounded-lg p-4">
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {timelineEvents
+                          .filter(e => e.step === currentStep)
+                          .sort((a, b) => a.id.localeCompare(b.id))
+                          .map(event => {
+                            const hotspot = hotspots.find(h => h.id === event.targetId);
+                            const getEventDisplay = (type: string) => {
+                              switch (type) {
+                                case 'SHOW_HOTSPOT': return { icon: '📍', name: 'Show Hotspot' };
+                                case 'HIDE_HOTSPOT': return { icon: '🙈', name: 'Hide Hotspot' };
+                                case 'PULSE_HOTSPOT': return { icon: '💫', name: 'Pulse Animation' };
+                                case 'PAN_ZOOM_TO_HOTSPOT': return { icon: '🔍', name: 'Zoom to Location' };
+                                case 'HIGHLIGHT_HOTSPOT': return { icon: '✨', name: 'Highlight Area' };
+                                case 'SHOW_MESSAGE': return { icon: '💬', name: 'Show Message' };
+                                default: return { icon: '⚙️', name: type.replace('_', ' ') };
+                              }
+                            };
+                            const display = getEventDisplay(event.type);
+                            
+                            return (
+                              <div key={event.id} className="flex items-center justify-between bg-slate-800 p-3 rounded-lg">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <span className="text-lg">{display.icon}</span>
+                                  <div className="flex-1">
+                                    <div className="font-medium text-white">{display.name}</div>
+                                    {hotspot && <div className="text-sm text-slate-400">Target: {hotspot.title}</div>}
+                                    {event.message && <div className="text-sm text-slate-400 truncate">Message: "{event.message}"</div>}
+                                    {event.duration && <div className="text-xs text-slate-500">Duration: {event.duration}ms</div>}
+                                    {event.zoomFactor && <div className="text-xs text-slate-500">Zoom: {event.zoomFactor}x</div>}
+                                    {event.highlightRadius && <div className="text-xs text-slate-500">Radius: {event.highlightRadius}px</div>}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleRemoveTimelineEvent(event.id)}
+                                  className="text-slate-400 hover:text-red-400 p-2 rounded transition-colors"
+                                  title="Remove event"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })
+                        }
+                        {timelineEvents.filter(e => e.step === currentStep).length === 0 && (
+                          <div className="text-center py-8 text-slate-400">
+                            <div className="text-4xl mb-2">🎬</div>
+                            <div className="font-medium">No events in this step</div>
+                            <div className="text-sm">Add interactions below to bring this step to life</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Add New Interactions */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                      ➕ Add New Interaction
+                    </h4>
+                    <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
+                      {/* Visual Effects Group */}
+                      <div>
+                        <h5 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                          ✨ Visual Effects
+                        </h5>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => {
+                              const event = {
+                                id: `te_show_${activeHotspotInfoId}_${Date.now()}`,
+                                step: currentStep,
+                                name: `Show ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                                type: InteractionType.SHOW_HOTSPOT,
+                                targetId: activeHotspotInfoId
+                              };
+                              handleAddTimelineEvent(event);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            📍 Show
+                          </button>
+                          <button
+                            onClick={() => {
+                              const event = {
+                                id: `te_hide_${activeHotspotInfoId}_${Date.now()}`,
+                                step: currentStep,
+                                name: `Hide ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                                type: InteractionType.HIDE_HOTSPOT,
+                                targetId: activeHotspotInfoId
+                              };
+                              handleAddTimelineEvent(event);
+                            }}
+                            className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            🙈 Hide
+                          </button>
+                          <button
+                            onClick={() => {
+                              setInteractionParams(prev => ({ 
+                                ...prev, 
+                                showingPulseSlider: !prev.showingPulseSlider,
+                                showingZoomSlider: false,
+                                showingHighlightSlider: false
+                              }));
+                            }}
+                            className={`bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                              interactionParams.showingPulseSlider ? 'ring-2 ring-purple-300' : ''
+                            }`}
+                          >
+                            💫 Pulse
+                          </button>
                       <button
                         onClick={() => {
                           setInteractionParams(prev => ({ 
@@ -998,19 +1270,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                           interactionParams.showingZoomSlider ? 'ring-2 ring-green-300' : ''
                         }`}
                       >Zoom</button>
-                      <button
-                        onClick={() => {
-                          setInteractionParams(prev => ({ 
-                            ...prev, 
-                            showingHighlightSlider: !prev.showingHighlightSlider,
-                            showingZoomSlider: false,
-                            showingPulseSlider: false
-                          }));
-                        }}
-                        className={`bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-2 rounded ${
-                          interactionParams.showingHighlightSlider ? 'ring-2 ring-yellow-300' : ''
-                        }`}
-                      >Highlight</button>
+                          <button
+                            onClick={() => {
+                              setInteractionParams(prev => ({ 
+                                ...prev, 
+                                showingHighlightSlider: !prev.showingHighlightSlider,
+                                showingZoomSlider: false,
+                                showingPulseSlider: false
+                              }));
+                            }}
+                            className={`bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                              interactionParams.showingHighlightSlider ? 'ring-2 ring-yellow-300' : ''
+                            }`}
+                          >
+                            ✨ Highlight
+                          </button>
+                        </div>
                     </div>
                     
                     {/* Parameter Sliders */}
