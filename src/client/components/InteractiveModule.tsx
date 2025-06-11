@@ -636,7 +636,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           )}
         </div>
 
-
+        {/* Timeline pinned to bottom of image container */}
+        {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
+          <div className="mt-2 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
+            <HorizontalTimeline
+                uniqueSortedSteps={uniqueSortedSteps}
+                currentStep={currentStep}
+                onStepSelect={handleTimelineDotClick}
+                isEditing={isEditing}
+                timelineEvents={timelineEvents}
+                hotspots={hotspots}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col w-80 flex-shrink-0">
@@ -647,50 +659,65 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
             {backgroundImage && (
               <div className="space-y-4">
-                <ImageControls
-                  backgroundImage={backgroundImage}
-                  onImageUpload={handleImageUpload}
-                  onImageFit={handleImageFitChange}
-                  currentFitMode={imageFitMode}
-                />
-                <div className="border-t border-slate-600 pt-4">
-                  <div className="flex items-center justify-between mb-3">
+                {/* Collapsible Project Settings */}
+                <div className="border border-slate-600 rounded-lg">
+                  <button
+                    onClick={() => setShowPulseSettings(prev => !prev)}
+                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700 transition-colors"
+                  >
                     <h4 className="text-md font-medium text-slate-100">Project Settings</h4>
-                    <button
-                      onClick={() => setShowPulseSettings(prev => !prev)}
-                      className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded-md transition-colors"
-                    >
-                      {showPulseSettings ? 'Hide' : 'Configure'} Pulse
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
-                        Auto-progression:
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="timingModeToggle"
-                        checked={isTimedMode}
-                        onChange={(e) => setIsTimedMode(e.target.checked)}
-                        className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
-                      <span>Events: {timelineEvents.length}</span>
-                      <span>Hotspots: {hotspots.length}</span>
-                    </div>
-                  </div>
+                    <span className={`transform transition-transform ${showPulseSettings ? 'rotate-90' : ''}`}>
+                      ▶
+                    </span>
+                  </button>
                   {showPulseSettings && (
-                    <div className="mt-4 pt-4 border-t border-slate-600">
-                      <HotspotPulseSettings
-                        hotspots={hotspots}
-                        onUpdateHotspot={(hotspotId, updates) => {
-                          setHotspots(prevHotspots => prevHotspots.map(h =>
-                            h.id === hotspotId ? { ...h, ...updates } : h
-                          ));
-                        }}
-                      />
+                    <div className="p-3 border-t border-slate-600 space-y-4">
+                      {/* Image Controls */}
+                      <div>
+                        <h5 className="text-sm font-medium text-slate-200 mb-2">Image Display</h5>
+                        <ImageControls
+                          backgroundImage={backgroundImage}
+                          onImageUpload={handleImageUpload}
+                          onImageFit={handleImageFitChange}
+                          currentFitMode={imageFitMode}
+                        />
+                      </div>
+                      
+                      {/* Project Settings */}
+                      <div className="border-t border-slate-600 pt-4">
+                        <h5 className="text-sm font-medium text-slate-200 mb-3">Project Options</h5>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
+                              Auto-progression:
+                            </label>
+                            <input
+                              type="checkbox"
+                              id="timingModeToggle"
+                              checked={isTimedMode}
+                              onChange={(e) => setIsTimedMode(e.target.checked)}
+                              className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                            <span>Events: {timelineEvents.length}</span>
+                            <span>Hotspots: {hotspots.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Hotspot Pulse Settings */}
+                      <div className="border-t border-slate-600 pt-4">
+                        <h5 className="text-sm font-medium text-slate-200 mb-3">Hotspot Pulse Settings</h5>
+                        <HotspotPulseSettings
+                          hotspots={hotspots}
+                          onUpdateHotspot={(hotspotId, updates) => {
+                            setHotspots(prevHotspots => prevHotspots.map(h =>
+                              h.id === hotspotId ? { ...h, ...updates } : h
+                            ));
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
