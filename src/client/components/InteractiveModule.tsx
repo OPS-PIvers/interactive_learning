@@ -515,7 +515,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   return (
     <div className="flex flex-row gap-6 h-full text-slate-200">
-      <div className="flex-1 flex flex-col relative min-w-0">
+      <div className={`flex flex-col relative ${isEditing ? 'flex-1 min-w-0' : 'w-full'}`}>
         
         <div 
           ref={imageContainerRef}
@@ -616,7 +616,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   </div>
                 </div>
               )}
-               {/* Render InfoPanel here, outside the scaled div */}
+               {/* Draggable InfoPanel */}
               {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
                 <InfoPanel
                   hotspot={activeInfoHotspot}
@@ -636,6 +636,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           )}
         </div>
 
+        
         {/* Timeline pinned to bottom of image container */}
         {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
           <div className="mt-2 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
@@ -651,88 +652,76 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         )}
       </div>
 
-      <div className="flex flex-col w-80 flex-shrink-0">
-        {/* Editing Tools */}
+      {isEditing && (
+        <div className="flex flex-col w-80 flex-shrink-0">
+        {/* Compact Project Settings */}
         {isEditing && (
-          <div className="mb-4 p-4 bg-slate-800 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold text-slate-100 mb-3">Editing Tools</h3>
+          <div className="mb-2">
             {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
             {backgroundImage && (
-              <div className="space-y-4">
-                {/* Collapsible Project Settings */}
-                <div className="border border-slate-600 rounded-lg">
-                  <button
-                    onClick={() => setShowPulseSettings(prev => !prev)}
-                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700 transition-colors"
-                  >
-                    <h4 className="text-md font-medium text-slate-100">Project Settings</h4>
-                    <span className={`transform transition-transform ${showPulseSettings ? 'rotate-90' : ''}`}>
-                      ▶
-                    </span>
-                  </button>
-                  {showPulseSettings && (
-                    <div className="p-3 border-t border-slate-600 space-y-4">
-                      {/* Image Controls */}
-                      <div>
-                        <h5 className="text-sm font-medium text-slate-200 mb-2">Image Display</h5>
-                        <ImageControls
-                          backgroundImage={backgroundImage}
-                          onImageUpload={handleImageUpload}
-                          onImageFit={handleImageFitChange}
-                          currentFitMode={imageFitMode}
-                        />
-                      </div>
-                      
-                      {/* Project Settings */}
-                      <div className="border-t border-slate-600 pt-4">
-                        <h5 className="text-sm font-medium text-slate-200 mb-3">Project Options</h5>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <label htmlFor="timingModeToggle" className="text-sm text-slate-300 select-none">
-                              Auto-progression:
-                            </label>
-                            <input
-                              type="checkbox"
-                              id="timingModeToggle"
-                              checked={isTimedMode}
-                              onChange={(e) => setIsTimedMode(e.target.checked)}
-                              className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
-                            <span>Events: {timelineEvents.length}</span>
-                            <span>Hotspots: {hotspots.length}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Hotspot Pulse Settings */}
-                      <div className="border-t border-slate-600 pt-4">
-                        <h5 className="text-sm font-medium text-slate-200 mb-3">Hotspot Pulse Settings</h5>
-                        <HotspotPulseSettings
-                          hotspots={hotspots}
-                          onUpdateHotspot={(hotspotId, updates) => {
-                            setHotspots(prevHotspots => prevHotspots.map(h =>
-                              h.id === hotspotId ? { ...h, ...updates } : h
-                            ));
-                          }}
-                        />
-                      </div>
+              <div className="bg-slate-800 rounded-lg border border-slate-600">
+                <button
+                  onClick={() => setShowPulseSettings(prev => !prev)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-700 transition-colors text-sm"
+                >
+                  <span className="text-slate-300">⚙️ Project Settings</span>
+                  <span className={`transform transition-transform text-slate-400 ${showPulseSettings ? 'rotate-90' : ''}`}>
+                    ▶
+                  </span>
+                </button>
+                {showPulseSettings && (
+                  <div className="px-3 pb-3 border-t border-slate-600 space-y-3">
+                    <ImageControls
+                      backgroundImage={backgroundImage}
+                      onImageUpload={handleImageUpload}
+                      onImageFit={handleImageFitChange}
+                      currentFitMode={imageFitMode}
+                    />
+                    <div className="flex items-center justify-between text-sm">
+                      <label htmlFor="timingModeToggle" className="text-slate-300">
+                        Auto-progression:
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="timingModeToggle"
+                        checked={isTimedMode}
+                        onChange={(e) => setIsTimedMode(e.target.checked)}
+                        className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+                      />
                     </div>
-                  )}
-                </div>
+                    <div className="text-xs text-slate-400">
+                      Events: {timelineEvents.length} | Hotspots: {hotspots.length}
+                    </div>
+                    <HotspotPulseSettings
+                      hotspots={hotspots}
+                      onUpdateHotspot={(hotspotId, updates) => {
+                        setHotspots(prevHotspots => prevHotspots.map(h =>
+                          h.id === hotspotId ? { ...h, ...updates } : h
+                        ));
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Main Editing Toolbar */}
+        {isEditing && (
+          <div className="flex-1 bg-slate-800 rounded-lg shadow-lg p-4">
+            <h3 className="text-lg font-semibold text-slate-100 mb-3">Editing Tools</h3>
+            
             {/* Pending Hotspot Confirmation */}
             {pendingHotspot && (
-              <div className="mt-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
-                <h4 className="text-md font-semibold mb-2">Confirm Hotspot</h4>
-                <p className="text-sm text-slate-300 mb-1">Place at: X: {pendingHotspot.imageXPercent.toFixed(1)}%, Y: {pendingHotspot.imageYPercent.toFixed(1)}%</p>
+              <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+                <h4 className="text-md font-semibold mb-2">🎯 Confirm New Hotspot</h4>
+                <p className="text-sm text-slate-300 mb-1">Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%</p>
                 <div className="flex gap-2 mt-3">
                   <button 
                     onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
                     className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
-                  >Add Here</button>
+                  >Add Hotspot</button>
                   <button 
                     onClick={() => setPendingHotspot(null)} 
                     className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
@@ -740,9 +729,294 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 </div>
               </div>
             )}
+            
+            {/* Selected Hotspot Editor */}
+            {activeHotspotInfoId && (
+              <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+                <h4 className="text-md font-semibold mb-3 flex items-center gap-2">
+                  🎯 Edit Hotspot
+                  <button
+                    onClick={handleEditHotspotRequest.bind(null, activeHotspotInfoId)}
+                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded"
+                  >
+                    Advanced Edit
+                  </button>
+                </h4>
+                {(() => {
+                  const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+                  if (!hotspot) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm text-slate-300 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={hotspot.title}
+                          onChange={(e) => {
+                            setHotspots(prev => prev.map(h => 
+                              h.id === activeHotspotInfoId ? { ...h, title: e.target.value } : h
+                            ));
+                          }}
+                          className="w-full px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-slate-300 mb-1">Description:</label>
+                        <textarea
+                          value={hotspot.description}
+                          onChange={(e) => {
+                            setHotspots(prev => prev.map(h => 
+                              h.id === activeHotspotInfoId ? { ...h, description: e.target.value } : h
+                            ));
+                          }}
+                          className="w-full px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="flex gap-4">
+                        <div>
+                          <label className="block text-sm text-slate-300 mb-1">Size:</label>
+                          <select
+                            value={hotspot.size || 'medium'}
+                            onChange={(e) => {
+                              setHotspots(prev => prev.map(h => 
+                                h.id === activeHotspotInfoId ? { ...h, size: e.target.value as any } : h
+                              ));
+                            }}
+                            className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
+                          >
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-slate-300 mb-1">Color:</label>
+                          <select
+                            value={hotspot.color}
+                            onChange={(e) => {
+                              setHotspots(prev => prev.map(h => 
+                                h.id === activeHotspotInfoId ? { ...h, color: e.target.value } : h
+                              ));
+                            }}
+                            className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white"
+                          >
+                            <option value="bg-red-500">Red</option>
+                            <option value="bg-blue-500">Blue</option>
+                            <option value="bg-green-500">Green</option>
+                            <option value="bg-yellow-500">Yellow</option>
+                            <option value="bg-purple-500">Purple</option>
+                            <option value="bg-pink-500">Pink</option>
+                            <option value="bg-cyan-500">Cyan</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveHotspot(activeHotspotInfoId)}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded"
+                      >
+                        🗑️ Delete Hotspot
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+            
+            {/* Timeline Interaction Tools */}
+            <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+              <h4 className="text-md font-semibold mb-3">⏱️ Timeline & Interactions</h4>
+              
+              {/* Step Controls */}
+              <div className="space-y-2 text-sm mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300">Current Step:</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={currentStep}
+                      onChange={(e) => setCurrentStep(parseInt(e.target.value) || 1)}
+                      min={1}
+                      max={editorMaxStep + 1}
+                      className="w-16 px-2 py-1 bg-slate-800 border border-slate-600 rounded text-xs text-white"
+                    />
+                    <span className="text-slate-400">/ {uniqueSortedSteps.length}</span>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+                    className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-1 px-2 rounded text-xs"
+                  >← Prev</button>
+                  <button
+                    onClick={() => setCurrentStep(currentStep + 1)}
+                    className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-1 px-2 rounded text-xs"
+                  >→ Next</button>
+                </div>
+              </div>
+              
+              {/* Events for Current Step */}
+              <div className="mb-4">
+                <h5 className="text-sm font-medium text-slate-200 mb-2">Events in Step {currentStep}:</h5>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {timelineEvents
+                    .filter(e => e.step === currentStep)
+                    .sort((a, b) => a.id.localeCompare(b.id))
+                    .map(event => {
+                      const hotspot = hotspots.find(h => h.id === event.targetId);
+                      return (
+                        <div key={event.id} className="flex items-center justify-between bg-slate-800 p-2 rounded text-xs">
+                          <div className="flex-1">
+                            <div className="font-medium text-white">{event.type.replace('_', ' ')}</div>
+                            {hotspot && <div className="text-slate-400">{hotspot.title}</div>}
+                            {event.message && <div className="text-slate-400 truncate">"{event.message}"</div>}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveTimelineEvent(event.id)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                            title="Remove event"
+                          >×</button>
+                        </div>
+                      );
+                    })
+                  }
+                  {timelineEvents.filter(e => e.step === currentStep).length === 0 && (
+                    <div className="text-slate-400 text-xs italic">No events in this step</div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Add Interactions for Selected Hotspot */}
+              {activeHotspotInfoId && (
+                <div className="border-t border-slate-600 pt-3">
+                  <h5 className="text-sm font-medium text-slate-200 mb-2">Add Interaction:</h5>
+                  <div className="space-y-2">
+                    {/* Basic Interactions */}
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <button
+                        onClick={() => {
+                          const event = {
+                            id: `te_show_${activeHotspotInfoId}_${Date.now()}`,
+                            step: currentStep,
+                            name: `Show ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                            type: InteractionType.SHOW_HOTSPOT,
+                            targetId: activeHotspotInfoId
+                          };
+                          handleAddTimelineEvent(event);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded"
+                      >Show</button>
+                      <button
+                        onClick={() => {
+                          const duration = parseInt(prompt('Pulse duration (ms):', '2000') || '2000');
+                          const event = {
+                            id: `te_pulse_${activeHotspotInfoId}_${Date.now()}`,
+                            step: currentStep,
+                            name: `Pulse ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                            type: InteractionType.PULSE_HOTSPOT,
+                            targetId: activeHotspotInfoId,
+                            duration
+                          };
+                          handleAddTimelineEvent(event);
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white py-1 px-2 rounded"
+                      >Pulse</button>
+                      <button
+                        onClick={() => {
+                          const zoomFactor = parseFloat(prompt('Zoom factor (e.g., 2.0):', '2.0') || '2.0');
+                          const event = {
+                            id: `te_zoom_${activeHotspotInfoId}_${Date.now()}`,
+                            step: currentStep,
+                            name: `Zoom to ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                            type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+                            targetId: activeHotspotInfoId,
+                            zoomFactor
+                          };
+                          handleAddTimelineEvent(event);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded"
+                      >Zoom</button>
+                      <button
+                        onClick={() => {
+                          const highlightRadius = parseInt(prompt('Highlight radius (pixels):', '60') || '60');
+                          const event = {
+                            id: `te_highlight_${activeHotspotInfoId}_${Date.now()}`,
+                            step: currentStep,
+                            name: `Highlight ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                            type: InteractionType.HIGHLIGHT_HOTSPOT,
+                            targetId: activeHotspotInfoId,
+                            highlightRadius
+                          };
+                          handleAddTimelineEvent(event);
+                        }}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-2 rounded"
+                      >Highlight</button>
+                    </div>
+                    
+                    {/* Advanced Interactions */}
+                    <div className="grid grid-cols-1 gap-1 text-xs">
+                      <button
+                        onClick={() => {
+                          const event = {
+                            id: `te_hide_${activeHotspotInfoId}_${Date.now()}`,
+                            step: currentStep,
+                            name: `Hide ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                            type: InteractionType.HIDE_HOTSPOT,
+                            targetId: activeHotspotInfoId
+                          };
+                          handleAddTimelineEvent(event);
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded"
+                      >Hide Hotspot</button>
+                      <button
+                        onClick={() => {
+                          const message = prompt('Enter message to display:');
+                          if (message) {
+                            const event = {
+                              id: `te_message_${Date.now()}`,
+                              step: currentStep,
+                              name: 'Show Message',
+                              type: InteractionType.SHOW_MESSAGE,
+                              message
+                            };
+                            handleAddTimelineEvent(event);
+                          }
+                        }}
+                        className="bg-cyan-600 hover:bg-cyan-700 text-white py-1 px-2 rounded"
+                      >Show Message</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* General Timeline Actions */}
+              {!activeHotspotInfoId && (
+                <div className="border-t border-slate-600 pt-3">
+                  <h5 className="text-sm font-medium text-slate-200 mb-2">General Actions:</h5>
+                  <button
+                    onClick={() => {
+                      const message = prompt('Enter message to display:');
+                      if (message) {
+                        const event = {
+                          id: `te_message_${Date.now()}`,
+                          step: currentStep,
+                          name: 'Show Message',
+                          type: InteractionType.SHOW_MESSAGE,
+                          message
+                        };
+                        handleAddTimelineEvent(event);
+                      }
+                    }}
+                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2 px-2 rounded text-xs"
+                  >Add Message to Step</button>
+                </div>
+              )}
+            </div>
+            
             {/* Current Message Display */}
             {currentMessage && (
-              <div className="mt-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
+              <div className="p-3 bg-slate-700 rounded-lg border border-slate-600">
+                <h4 className="text-sm font-medium text-slate-200 mb-1">💬 Current Message</h4>
                 <p className="text-slate-100 text-sm">{currentMessage}</p>
               </div>
             )}
@@ -786,21 +1060,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             </div>
           </div>
         )}
-        
-        {/* Timeline at bottom */}
-        {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
-          <div className="mt-4 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
-            <HorizontalTimeline
-                uniqueSortedSteps={uniqueSortedSteps}
-                currentStep={currentStep}
-                onStepSelect={handleTimelineDotClick}
-                isEditing={isEditing}
-                timelineEvents={timelineEvents}
-                hotspots={hotspots}
-            />
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Hotspot Edit Modal */}
       <HotspotEditModal
