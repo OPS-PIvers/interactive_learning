@@ -55,7 +55,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   
   // Image display state
-  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>('cover'); 
+  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -76,6 +76,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
   const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
+  
+  // Interaction parameter states
+  const [interactionParams, setInteractionParams] = useState({
+    zoomFactor: 2.0,
+    highlightRadius: 60,
+    pulseDuration: 2000,
+    showingZoomSlider: false,
+    showingHighlightSlider: false,
+    showingPulseSlider: false
+  });
 
   const uniqueSortedSteps = useMemo(() => {
     if (timelineEvents.length === 0) return isEditing ? [1] : [];
@@ -115,6 +125,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setBackgroundImage(initialData.backgroundImage);
     setHotspots(initialData.hotspots);
     setTimelineEvents(initialData.timelineEvents);
+    setImageFitMode(initialData.imageFitMode || 'cover');
     
     const newInitialModuleState = isEditing ? 'learning' : 'idle';
     setModuleState(newInitialModuleState);
@@ -346,7 +357,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     try {
-      await onSave({ backgroundImage, hotspots, timelineEvents });
+      await onSave({ backgroundImage, hotspots, timelineEvents, imageFitMode });
       // Show success message
       setShowSuccessMessage(true);
       // Auto-hide success message after 3 seconds
@@ -357,7 +368,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     } finally {
       setIsSaving(false);
     }
-  }, [backgroundImage, hotspots, timelineEvents, onSave]);
+  }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave]);
 
   const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
     const title = prompt("Enter hotspot title:", "New Hotspot");
@@ -453,6 +464,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         setExploredHotspotId(null);
         setExploredHotspotPanZoomActive(false);
         setActiveHotspotInfoId(null);
+    } else if (isEditing && backgroundImage && !pendingHotspot) {
+        // In editing mode, clicking empty space deselects hotspot
+        const target = event.target as HTMLElement;
+        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.image-navigation-controls') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]') || target.closest('.timeline-controls-container')) {
+            return;
+        }
+        setActiveHotspotInfoId(null);
     }
   }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot]);
 
@@ -514,8 +532,106 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
   return (
-    <div className="flex flex-row gap-6 h-full text-slate-200">
-      <div className={`flex flex-col relative ${isEditing ? 'flex-1 min-w-0' : 'w-full'}`}>
+    <div className="flex flex-col h-full text-slate-200">
+      {/* Top Menu Bar */}
+      {isEditing && (
+        <div className="flex items-center justify-between p-3 bg-slate-800 border-b border-slate-600">
+          <h2 className="text-lg font-semibold text-slate-100">Interactive Module Editor</h2>
+          <div className="flex items-center gap-2">
+            {/* Project Settings Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowPulseSettings(prev => !prev)}
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-white"
+                title="Project Settings"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              {showPulseSettings && (
+                <div className="absolute right-0 top-full mt-1 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
+                  <div className="p-4 space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-100 border-b border-slate-600 pb-2">Project Settings</h3>
+                    
+                    {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
+                    {backgroundImage && (
+                      <ImageControls
+                        backgroundImage={backgroundImage}
+                        onImageUpload={handleImageUpload}
+                        onImageFit={handleImageFitChange}
+                        currentFitMode={imageFitMode}
+                      />
+                    )}
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="timingModeToggle" className="text-sm text-slate-300">
+                          Auto-progression:
+                        </label>
+                        <input
+                          type="checkbox"
+                          id="timingModeToggle"
+                          checked={isTimedMode}
+                          onChange={(e) => setIsTimedMode(e.target.checked)}
+                          className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
+                        />
+                      </div>
+                      <div className="text-sm text-slate-300 grid grid-cols-2 gap-4">
+                        <span>Events: {timelineEvents.length}</span>
+                        <span>Hotspots: {hotspots.length}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-slate-600 pt-3">
+                      <h4 className="text-sm font-medium text-slate-200 mb-3">Hotspot Defaults</h4>
+                      <HotspotPulseSettings
+                        hotspots={hotspots}
+                        onUpdateHotspot={(hotspotId, updates) => {
+                          setHotspots(prevHotspots => prevHotspots.map(h =>
+                            h.id === hotspotId ? { ...h, ...updates } : h
+                          ));
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Save Button */}
+            <button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              className={`font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200 flex items-center space-x-2 ${
+                isSaving 
+                  ? 'bg-green-500 cursor-not-allowed' 
+                  : showSuccessMessage 
+                    ? 'bg-green-500' 
+                    : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
+            >
+              {isSaving ? (
+                <>
+                  <LoadingSpinnerIcon className="w-4 h-4" />
+                  <span>Saving...</span>
+                </>
+              ) : showSuccessMessage ? (
+                <>
+                  <CheckIcon className="w-4 h-4" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <span>Save</span>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="flex flex-row gap-6 flex-1">
+        <div className={`flex flex-col relative ${(isEditing && activeHotspotInfoId) ? 'flex-1 min-w-0' : 'w-full'}`}>
         
         <div 
           ref={imageContainerRef}
@@ -626,6 +742,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   isEditing={isEditing}
                   onRemove={handleRemoveHotspot}
                   onEditRequest={handleEditHotspotRequest}
+                  imageTransform={imageTransform}
                 />
               )}
             </>
@@ -636,6 +753,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           )}
         </div>
 
+        
+        {/* Pending Hotspot Confirmation - shown when no hotspot selected */}
+        {pendingHotspot && isEditing && !activeHotspotInfoId && (
+          <div className="mt-2 p-3 bg-slate-700 rounded-lg border border-slate-600">
+            <h4 className="text-md font-semibold mb-2">🎯 Confirm New Hotspot</h4>
+            <p className="text-sm text-slate-300 mb-1">Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%</p>
+            <div className="flex gap-2 mt-3">
+              <button 
+                onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
+                className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
+              >Add Hotspot</button>
+              <button 
+                onClick={() => setPendingHotspot(null)} 
+                className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
+              >Cancel</button>
+            </div>
+          </div>
+        )}
         
         {/* Timeline pinned to bottom of image container */}
         {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
@@ -652,83 +787,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         )}
       </div>
 
-      {isEditing && (
+      {isEditing && activeHotspotInfoId && (
         <div className="flex flex-col w-80 flex-shrink-0">
-        {/* Compact Project Settings */}
-        {isEditing && (
-          <div className="mb-2">
-            {!backgroundImage && <FileUpload onFileUpload={handleImageUpload} />}
-            {backgroundImage && (
-              <div className="bg-slate-800 rounded-lg border border-slate-600">
-                <button
-                  onClick={() => setShowPulseSettings(prev => !prev)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-700 transition-colors text-sm"
-                >
-                  <span className="text-slate-300">⚙️ Project Settings</span>
-                  <span className={`transform transition-transform text-slate-400 ${showPulseSettings ? 'rotate-90' : ''}`}>
-                    ▶
-                  </span>
-                </button>
-                {showPulseSettings && (
-                  <div className="px-3 pb-3 border-t border-slate-600 space-y-3">
-                    <ImageControls
-                      backgroundImage={backgroundImage}
-                      onImageUpload={handleImageUpload}
-                      onImageFit={handleImageFitChange}
-                      currentFitMode={imageFitMode}
-                    />
-                    <div className="flex items-center justify-between text-sm">
-                      <label htmlFor="timingModeToggle" className="text-slate-300">
-                        Auto-progression:
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="timingModeToggle"
-                        checked={isTimedMode}
-                        onChange={(e) => setIsTimedMode(e.target.checked)}
-                        className="h-4 w-4 rounded text-purple-600 focus:ring-purple-500 border-slate-500 bg-slate-700"
-                      />
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      Events: {timelineEvents.length} | Hotspots: {hotspots.length}
-                    </div>
-                    <HotspotPulseSettings
-                      hotspots={hotspots}
-                      onUpdateHotspot={(hotspotId, updates) => {
-                        setHotspots(prevHotspots => prevHotspots.map(h =>
-                          h.id === hotspotId ? { ...h, ...updates } : h
-                        ));
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
         
         {/* Main Editing Toolbar */}
         {isEditing && (
           <div className="flex-1 bg-slate-800 rounded-lg shadow-lg p-4">
             <h3 className="text-lg font-semibold text-slate-100 mb-3">Editing Tools</h3>
             
-            {/* Pending Hotspot Confirmation */}
-            {pendingHotspot && (
-              <div className="mb-4 p-3 bg-slate-700 rounded-lg border border-slate-600">
-                <h4 className="text-md font-semibold mb-2">🎯 Confirm New Hotspot</h4>
-                <p className="text-sm text-slate-300 mb-1">Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%</p>
-                <div className="flex gap-2 mt-3">
-                  <button 
-                    onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
-                    className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
-                  >Add Hotspot</button>
-                  <button 
-                    onClick={() => setPendingHotspot(null)} 
-                    className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
-                  >Cancel</button>
-                </div>
-              </div>
-            )}
             
             {/* Selected Hotspot Editor */}
             {activeHotspotInfoId && (
@@ -908,50 +974,135 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       >Show</button>
                       <button
                         onClick={() => {
-                          const duration = parseInt(prompt('Pulse duration (ms):', '2000') || '2000');
-                          const event = {
-                            id: `te_pulse_${activeHotspotInfoId}_${Date.now()}`,
-                            step: currentStep,
-                            name: `Pulse ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
-                            type: InteractionType.PULSE_HOTSPOT,
-                            targetId: activeHotspotInfoId,
-                            duration
-                          };
-                          handleAddTimelineEvent(event);
+                          setInteractionParams(prev => ({ 
+                            ...prev, 
+                            showingPulseSlider: !prev.showingPulseSlider,
+                            showingZoomSlider: false,
+                            showingHighlightSlider: false
+                          }));
                         }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white py-1 px-2 rounded"
+                        className={`bg-purple-600 hover:bg-purple-700 text-white py-1 px-2 rounded ${
+                          interactionParams.showingPulseSlider ? 'ring-2 ring-purple-300' : ''
+                        }`}
                       >Pulse</button>
                       <button
                         onClick={() => {
-                          const zoomFactor = parseFloat(prompt('Zoom factor (e.g., 2.0):', '2.0') || '2.0');
-                          const event = {
-                            id: `te_zoom_${activeHotspotInfoId}_${Date.now()}`,
-                            step: currentStep,
-                            name: `Zoom to ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
-                            type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
-                            targetId: activeHotspotInfoId,
-                            zoomFactor
-                          };
-                          handleAddTimelineEvent(event);
+                          setInteractionParams(prev => ({ 
+                            ...prev, 
+                            showingZoomSlider: !prev.showingZoomSlider,
+                            showingHighlightSlider: false,
+                            showingPulseSlider: false
+                          }));
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded"
+                        className={`bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded ${
+                          interactionParams.showingZoomSlider ? 'ring-2 ring-green-300' : ''
+                        }`}
                       >Zoom</button>
                       <button
                         onClick={() => {
-                          const highlightRadius = parseInt(prompt('Highlight radius (pixels):', '60') || '60');
-                          const event = {
-                            id: `te_highlight_${activeHotspotInfoId}_${Date.now()}`,
-                            step: currentStep,
-                            name: `Highlight ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
-                            type: InteractionType.HIGHLIGHT_HOTSPOT,
-                            targetId: activeHotspotInfoId,
-                            highlightRadius
-                          };
-                          handleAddTimelineEvent(event);
+                          setInteractionParams(prev => ({ 
+                            ...prev, 
+                            showingHighlightSlider: !prev.showingHighlightSlider,
+                            showingZoomSlider: false,
+                            showingPulseSlider: false
+                          }));
                         }}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-2 rounded"
+                        className={`bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-2 rounded ${
+                          interactionParams.showingHighlightSlider ? 'ring-2 ring-yellow-300' : ''
+                        }`}
                       >Highlight</button>
                     </div>
+                    
+                    {/* Parameter Sliders */}
+                    {interactionParams.showingZoomSlider && (
+                      <div className="bg-slate-800 p-3 rounded border border-green-500">
+                        <label className="block text-xs text-slate-300 mb-2">Zoom Factor: {interactionParams.zoomFactor}x</label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="5"
+                          step="0.1"
+                          value={interactionParams.zoomFactor}
+                          onChange={(e) => setInteractionParams(prev => ({ ...prev, zoomFactor: parseFloat(e.target.value) }))}
+                          className="w-full mb-2"
+                        />
+                        <button
+                          onClick={() => {
+                            const event = {
+                              id: `te_zoom_${activeHotspotInfoId}_${Date.now()}`,
+                              step: currentStep,
+                              name: `Zoom to ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                              type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+                              targetId: activeHotspotInfoId,
+                              zoomFactor: interactionParams.zoomFactor
+                            };
+                            handleAddTimelineEvent(event);
+                            setInteractionParams(prev => ({ ...prev, showingZoomSlider: false }));
+                          }}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded text-xs"
+                        >Add Zoom Interaction</button>
+                      </div>
+                    )}
+                    
+                    {interactionParams.showingHighlightSlider && (
+                      <div className="bg-slate-800 p-3 rounded border border-yellow-500">
+                        <label className="block text-xs text-slate-300 mb-2">Highlight Radius: {interactionParams.highlightRadius}px</label>
+                        <input
+                          type="range"
+                          min="20"
+                          max="200"
+                          step="10"
+                          value={interactionParams.highlightRadius}
+                          onChange={(e) => setInteractionParams(prev => ({ ...prev, highlightRadius: parseInt(e.target.value) }))}
+                          className="w-full mb-2"
+                        />
+                        <button
+                          onClick={() => {
+                            const event = {
+                              id: `te_highlight_${activeHotspotInfoId}_${Date.now()}`,
+                              step: currentStep,
+                              name: `Highlight ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                              type: InteractionType.HIGHLIGHT_HOTSPOT,
+                              targetId: activeHotspotInfoId,
+                              highlightRadius: interactionParams.highlightRadius
+                            };
+                            handleAddTimelineEvent(event);
+                            setInteractionParams(prev => ({ ...prev, showingHighlightSlider: false }));
+                          }}
+                          className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-2 rounded text-xs"
+                        >Add Highlight Interaction</button>
+                      </div>
+                    )}
+                    
+                    {interactionParams.showingPulseSlider && (
+                      <div className="bg-slate-800 p-3 rounded border border-purple-500">
+                        <label className="block text-xs text-slate-300 mb-2">Pulse Duration: {interactionParams.pulseDuration}ms</label>
+                        <input
+                          type="range"
+                          min="500"
+                          max="5000"
+                          step="100"
+                          value={interactionParams.pulseDuration}
+                          onChange={(e) => setInteractionParams(prev => ({ ...prev, pulseDuration: parseInt(e.target.value) }))}
+                          className="w-full mb-2"
+                        />
+                        <button
+                          onClick={() => {
+                            const event = {
+                              id: `te_pulse_${activeHotspotInfoId}_${Date.now()}`,
+                              step: currentStep,
+                              name: `Pulse ${hotspots.find(h => h.id === activeHotspotInfoId)?.title}`,
+                              type: InteractionType.PULSE_HOTSPOT,
+                              targetId: activeHotspotInfoId,
+                              duration: interactionParams.pulseDuration
+                            };
+                            handleAddTimelineEvent(event);
+                            setInteractionParams(prev => ({ ...prev, showingPulseSlider: false }));
+                          }}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1 px-2 rounded text-xs"
+                        >Add Pulse Interaction</button>
+                      </div>
+                    )}
                     
                     {/* Advanced Interactions */}
                     <div className="grid grid-cols-1 gap-1 text-xs">
@@ -1023,45 +1174,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           </div>
         )}
         
-        {isEditing && (
-          <button 
-            onClick={handleSave} 
-            disabled={isSaving}
-            className={`mt-auto w-full font-semibold py-3 px-4 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center space-x-2 ${
-              isSaving 
-                ? 'bg-green-500 cursor-not-allowed' 
-                : showSuccessMessage 
-                  ? 'bg-green-500' 
-                  : 'bg-green-600 hover:bg-green-700'
-            } text-white`}
-          >
-            {isSaving ? (
-              <>
-                <LoadingSpinnerIcon className="w-5 h-5" />
-                <span>Saving...</span>
-              </>
-            ) : showSuccessMessage ? (
-              <>
-                <CheckIcon className="w-5 h-5" />
-                <span>Saved!</span>
-              </>
-            ) : (
-              <span>Save Changes</span>
-            )}
-          </button>
-        )}
-        
-        {/* Success Message Toast */}
-        {showSuccessMessage && (
-          <div className="mt-4 p-3 bg-green-600/90 backdrop-blur-sm rounded-lg shadow-lg border border-green-500/50 animate-pulse">
-            <div className="flex items-center justify-center space-x-2 text-white">
-              <CheckIcon className="w-5 h-5" />
-              <span className="font-medium">Project saved successfully!</span>
-            </div>
-          </div>
-        )}
         </div>
       )}
+      </div>
 
       {/* Hotspot Edit Modal */}
       <HotspotEditModal

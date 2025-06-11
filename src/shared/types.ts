@@ -80,6 +80,7 @@ export interface InteractiveModuleState {
   backgroundImage?: string; // Base64 string of the image when loaded, or undefined
   hotspots: HotspotData[];
   timelineEvents: TimelineEventData[];
+  imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
 }
 
 // Stored in simulated Drive (module_data.json within project folder)
@@ -87,6 +88,7 @@ export interface StoredInteractiveModuleData {
   hotspots: HotspotData[];
   timelineEvents: TimelineEventData[];
   backgroundImageFileId?: string; // Reference to the image file in simulated Drive
+  imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
 }
 
 export interface Project {

@@ -11,6 +11,7 @@ interface InfoPanelProps {
   isEditing: boolean;
   onRemove: (id: string) => void;
   onEditRequest: (id: string) => void;
+  imageTransform?: { scale: number; translateX: number; translateY: number }; // Image transform state
 }
 
 const InfoPanel: React.FC<InfoPanelProps> = ({
@@ -21,6 +22,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   isEditing,
   onRemove,
   onEditRequest,
+  imageTransform = { scale: 1, translateX: 0, translateY: 0 },
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0, opacity: 0 });
