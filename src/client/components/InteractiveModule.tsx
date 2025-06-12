@@ -74,6 +74,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
   const [viewportZoom, setViewportZoom] = useState<number>(1);
+  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Transform origin as percentage
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
 
@@ -122,6 +123,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       return () => resizeObserver.disconnect();
     }
   }, []);
+
+  // Add wheel event listener for Ctrl+scroll zoom
+  useEffect(() => {
+    const container = viewportContainerRef.current;
+    if (!container) return;
+
+    // Add event listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleWheelZoom, { passive: false });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheelZoom);
+    };
+  }, [handleWheelZoom]);
 
 
   useEffect(() => {
@@ -419,6 +433,37 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     );
   }, []);
 
+  const handleZoomToPoint = useCallback((delta: number, clientX: number, clientY: number) => {
+    if (!viewportContainerRef.current) return;
+
+    const container = viewportContainerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate mouse position relative to container as percentage
+    const mouseXPercent = ((clientX - containerRect.left) / containerRect.width) * 100;
+    const mouseYPercent = ((clientY - containerRect.top) / containerRect.height) * 100;
+    
+    // Calculate new zoom level with finer increments
+    const zoomIncrement = 0.1;
+    const newZoom = Math.max(0.25, Math.min(3, viewportZoom + (delta > 0 ? zoomIncrement : -zoomIncrement)));
+    
+    if (newZoom !== viewportZoom) {
+      setZoomOrigin({ x: mouseXPercent, y: mouseYPercent });
+      setViewportZoom(newZoom);
+    }
+  }, [viewportZoom]);
+
+  const handleWheelZoom = useCallback((event: WheelEvent) => {
+    // Only handle Ctrl+scroll for zooming
+    if (!event.ctrlKey) return;
+    
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    
+    // Use deltaY for zoom direction (negative = zoom in, positive = zoom out)
+    handleZoomToPoint(-event.deltaY, event.clientX, event.clientY);
+  }, [handleZoomToPoint]);
+
   const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (pendingHotspot) { // If confirming a pending hotspot, don't place another
         const target = event.target as HTMLElement;
@@ -574,8 +619,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   className="min-w-full min-h-full"
                   style={{
                     transform: `scale(${viewportZoom})`,
-                    transformOrigin: 'center center',
-                    transition: 'transform 0.3s ease-out',
+                    transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+                    transition: 'transform 0.2s ease-out',
                     width: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
                     height: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
                   }}
@@ -731,10 +776,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               {backgroundImage && (
                 <div className="mt-3 pt-3 border-t border-slate-600">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-slate-300">Image Zoom</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-300">Image Zoom</span>
+                      <span className="text-xs text-slate-400" title="Hold Ctrl and scroll to zoom at cursor position">
+                        (Ctrl+Scroll)
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setViewportZoom(Math.max(0.25, viewportZoom - 0.25))}
+                        onClick={() => {
+                          setZoomOrigin({x: 50, y: 50}); // Reset to center for manual controls
+                          setViewportZoom(Math.max(0.25, viewportZoom - 0.25));
+                        }}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
                         title="Zoom out"
                       >
@@ -744,7 +797,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         {Math.round(viewportZoom * 100)}%
                       </span>
                       <button
-                        onClick={() => setViewportZoom(Math.min(3, viewportZoom + 0.25))}
+                        onClick={() => {
+                          setZoomOrigin({x: 50, y: 50}); // Reset to center for manual controls
+                          setViewportZoom(Math.min(3, viewportZoom + 0.25));
+                        }}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
                         title="Zoom in"
                       >
@@ -754,7 +810,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => setViewportZoom(1)}
+                      onClick={() => {
+                        setZoomOrigin({x: 50, y: 50}); // Reset to center
+                        setViewportZoom(1);
+                      }}
                       className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded text-xs transition-colors"
                       title="Reset to 100%"
                     >
@@ -762,6 +821,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     </button>
                     <button
                       onClick={() => {
+                        setZoomOrigin({x: 50, y: 50}); // Reset to center for fit
                         // Calculate zoom to fit image in viewable area
                         if (viewportContainerRef.current && scaledImageDivRef.current) {
                           const viewportRect = viewportContainerRef.current.getBoundingClientRect();
