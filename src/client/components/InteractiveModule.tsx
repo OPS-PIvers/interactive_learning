@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
+import HotspotEditorPanel from './HotspotEditorPanel';
 import HotspotViewer from './HotspotViewer';
 import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
@@ -960,13 +961,50 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {/* Sidebar Content */}
             <div className="flex-1 overflow-y-auto p-4">
               {activeHotspotInfoId ? (
-                /* Hotspot Editing Tools */
-                <div className="space-y-6">
-                  <div className="text-center text-slate-400">
-                    <p>Hotspot editing tools will go here</p>
-                    <p className="text-sm">Selected: {activeHotspotInfoId}</p>
+                <>
+                  {/* Tab Headers */}
+                  <div className="flex border-b border-slate-600 mb-4 px-4"> {/* Added px-4 for padding consistency */}
+                    <button
+                      onClick={() => setActiveEditorTab('properties')}
+                      className={`px-3 py-2 text-sm font-medium focus:outline-none transition-colors ${
+                        activeEditorTab === 'properties'
+                          ? 'text-purple-400 border-b-2 border-purple-400'
+                          : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
+                      }`}
+                    >
+                      Properties
+                    </button>
+                    <button
+                      onClick={() => setActiveEditorTab('timeline')}
+                      className={`px-3 py-2 text-sm font-medium focus:outline-none transition-colors ${
+                        activeEditorTab === 'timeline'
+                          ? 'text-purple-400 border-b-2 border-purple-400'
+                          : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
+                      }`}
+                    >
+                      Timeline
+                    </button>
                   </div>
-                </div>
+
+                  {/* HotspotEditorPanel with activeTab prop */}
+                  <HotspotEditorPanel
+                    hotspot={hotspots.find(h => h.id === activeHotspotInfoId)!}
+                    timelineEvents={timelineEvents}
+                    allHotspots={hotspots}
+                    onUpdateHotspot={(updatedHotspot) => {
+                      setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
+                    }}
+                    onRemoveHotspot={handleRemoveHotspot}
+                    onAddTimelineEvent={handleAddTimelineEvent}
+                    onEditTimelineEvent={(eventId) => {
+                      console.log('Attempting to edit timeline event from InteractiveModule via onEditTimelineEvent prop:', eventId);
+                    }}
+                    onRemoveTimelineEvent={handleRemoveTimelineEvent}
+                    currentStep={currentStep}
+                    onStepChange={setCurrentStep}
+                    activeTab={activeEditorTab} // Pass the active tab state
+                  />
+                </>
               ) : (
                 /* No Hotspot Selected */
                 <div className="text-center text-slate-400 py-8">
