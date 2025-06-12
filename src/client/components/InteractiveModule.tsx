@@ -7,7 +7,9 @@ import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
 import HotspotPulseSettings from './HotspotPulseSettings';
 import HotspotEditModal from './HotspotEditModal';
+import EnhancedTimelineEventModal from './EnhancedTimelineEventModal';
 import ImageControls from './ImageControls';
+import HotspotEditorPanel from './HotspotEditorPanel';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -50,6 +52,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
+  // Timeline event modal state
+  const [showTimelineEventModal, setShowTimelineEventModal] = useState<boolean>(false);
+  const [editingTimelineEvent, setEditingTimelineEvent] = useState<TimelineEventData | null>(null);
+
   // Save state management
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
@@ -412,6 +418,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setShowHotspotEditModal(false);
     setEditingHotspot(null);
   }, []);
+
+  const handleSaveTimelineEvent = useCallback((eventData: TimelineEventData) => {
+    setTimelineEvents(prev => {
+      const filtered = prev.filter(e => e.id !== eventData.id); // Remove existing if editing
+      return [...filtered, eventData].sort((a,b) => a.step - b.step);
+    });
+    setShowTimelineEventModal(false);
+    setEditingTimelineEvent(null);
+    if (isEditing) setCurrentStep(eventData.step);
+  }, [isEditing, setCurrentStep, setTimelineEvents]);
 
   const handleHotspotPositionChange = useCallback((hotspotId: string, x: number, y: number) => {
     setHotspots(prevHotspots => 
@@ -960,13 +976,64 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {/* Sidebar Content */}
             <div className="flex-1 overflow-y-auto p-4">
               {activeHotspotInfoId ? (
-                /* Hotspot Editing Tools */
-                <div className="space-y-6">
-                  <div className="text-center text-slate-400">
-                    <p>Hotspot editing tools will go here</p>
-                    <p className="text-sm">Selected: {activeHotspotInfoId}</p>
-                  </div>
-                </div>
+                /* Hotspot Editor */
+                (() => {
+                  const selectedHotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+                  const relatedEvents = timelineEvents.filter(e => e.targetId === activeHotspotInfoId);
+
+                  if (!selectedHotspot) {
+                    return (
+                      <div className="text-center text-slate-400 py-8">
+                        <p>Hotspot not found</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <HotspotEditorPanel
+                      hotspot={selectedHotspot}
+                      relatedEvents={relatedEvents}
+                      onUpdateHotspot={(updates) => {
+                        setHotspots(prevHotspots =>
+                          prevHotspots.map(h =>
+                            h.id === activeHotspotInfoId ? { ...h, ...updates } : h
+                          )
+                        );
+                      }}
+                      onEditHotspot={() => handleEditHotspotRequest(activeHotspotInfoId)}
+                      onDeleteHotspot={() => {
+                        handleRemoveHotspot(activeHotspotInfoId);
+                        setActiveHotspotInfoId(null);
+                      }}
+                      onAddEvent={() => {
+                        // Create a new timeline event for this hotspot
+                        const newStep = Math.max(1, Math.max(...timelineEvents.map(e => e.step), 0) + 1);
+                        const newEvent: TimelineEventData = {
+                          id: `event_${Date.now()}`,
+                          name: `New Event for ${selectedHotspot.title}`,
+                          step: newStep,
+                          type: InteractionType.SHOW_HOTSPOT, // Make sure InteractionType is imported from ../../types
+                          targetId: selectedHotspot.id
+                        };
+                        setTimelineEvents(prev => [...prev, newEvent].sort((a, b) => a.step - b.step));
+                        setCurrentStep(newStep);
+                      }}
+                      onEditEvent={(eventId) => {
+                        const eventToEdit = timelineEvents.find(e => e.id === eventId);
+                        if (eventToEdit) {
+                          setEditingTimelineEvent(eventToEdit);
+                          setShowTimelineEventModal(true);
+                        }
+                      }}
+                      onDeleteEvent={(eventId) => {
+                        // Consider using a custom confirm modal here if available, instead of window.confirm
+                        if (confirm('Are you sure you want to delete this timeline event?')) {
+                          setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
+                        }
+                      }}
+                    />
+                  );
+                })()
               ) : (
                 /* No Hotspot Selected */
                 <div className="text-center text-slate-400 py-8">
@@ -1140,6 +1207,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         }}
         onSave={handleSaveHotspot}
         hotspot={editingHotspot}
+      />
+
+      {/* Timeline Event Edit Modal */}
+      <EnhancedTimelineEventModal
+        isOpen={showTimelineEventModal}
+        onClose={() => {
+          setShowTimelineEventModal(false);
+          setEditingTimelineEvent(null);
+        }}
+        onSave={handleSaveTimelineEvent}
+        event={editingTimelineEvent}
+        hotspots={hotspots} // Pass hotspots data
+        isTimedMode={isTimedMode} // Pass isTimedMode
       />
     </div>
   );
