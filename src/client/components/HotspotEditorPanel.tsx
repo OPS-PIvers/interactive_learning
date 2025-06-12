@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../types'; // Assuming types are in src/types
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 
 interface HotspotEditorPanelProps {
   hotspot: HotspotData;
@@ -54,6 +54,7 @@ const HotspotEditorPanel: React.FC<HotspotEditorPanelProps> = ({
   const handleTitleBlur = () => {
     if (title.trim() === '') {
       setTitle(hotspot.title); // Reset if empty
+      onUpdateHotspot({ title: hotspot.title }); // Also update parent state
     } else {
       onUpdateHotspot({ title });
     }
