@@ -20,17 +20,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Build server-side TypeScript
-      run: npm run build:server
-      
-    - name: Build client-side React app
-      run: npm run build:client
-      
-    - name: Prepare for Google Apps Script
-      run: npm run prepare-gas
-      
-    - name: Copy required files to dist
-      run: npm run copy-assets
+    - name: Build for Google Apps Script
+      run: npm run build:gas
       
     - name: Install clasp
       run: npm install -g @google/clasp
