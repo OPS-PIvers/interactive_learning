@@ -70,6 +70,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
+  const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container
   const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
@@ -126,7 +127,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Add wheel event listener for Ctrl+scroll zoom
   useEffect(() => {
-    const container = viewportContainerRef.current;
+    const container = scrollableContainerRef.current;
     if (!container) return;
 
     // Add event listener with passive: false to allow preventDefault
@@ -434,12 +435,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
   const handleZoomToPoint = useCallback((delta: number, clientX: number, clientY: number) => {
-    if (!viewportContainerRef.current) return;
+    if (!scrollableContainerRef.current) return;
 
-    const container = viewportContainerRef.current;
+    const container = scrollableContainerRef.current;
     const containerRect = container.getBoundingClientRect();
     
-    // Calculate mouse position relative to container as percentage
+    // Calculate mouse position relative to scrollable container as percentage
     const mouseXPercent = ((clientX - containerRect.left) / containerRect.width) * 100;
     const mouseYPercent = ((clientY - containerRect.top) / containerRect.height) * 100;
     
@@ -458,10 +459,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (!event.ctrlKey) return;
     
     event.preventDefault();
+    event.stopPropagation();
     event.stopImmediatePropagation();
     
+    // Normalize deltaY for consistent zoom behavior across different devices
+    const delta = Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100);
+    
     // Use deltaY for zoom direction (negative = zoom in, positive = zoom out)
-    handleZoomToPoint(-event.deltaY, event.clientX, event.clientY);
+    handleZoomToPoint(-delta, event.clientX, event.clientY);
   }, [handleZoomToPoint]);
 
   const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -607,6 +612,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             <div className="absolute inset-0">
               {/* Viewport Container - scales with manual zoom */}
               <div 
+                ref={scrollableContainerRef}
                 className="w-full h-full overflow-auto bg-slate-900"
                 style={{
                   scrollBehavior: 'smooth',
@@ -739,7 +745,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </button>
                   
