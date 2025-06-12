@@ -9,10 +9,11 @@ interface HotspotViewerProps {
   onPositionChange?: (id: string, x: number, y: number) => void; // Callback for drag updates
   isDimmedInEditMode?: boolean;
   isContinuouslyPulsing?: boolean; // For idle mode gentle pulse
+  imageElement?: HTMLImageElement | null; // NEW PROP for editing mode
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing
+  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -47,17 +48,18 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     const startHotspotX = hotspot.x;
     const startHotspotY = hotspot.y;
     
-    // Get the parent container (should be the scaled image div) at mousedown time
-    const parentElement = (e.currentTarget as HTMLElement).parentElement;
-    if (!parentElement) return;
+    // Use image element for calculations in editing mode, fallback to parent element for viewer mode
+    const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
+    if (!referenceElement) return;
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       
-      const parentRect = parentElement.getBoundingClientRect();
-      const newX = Math.max(0, Math.min(100, startHotspotX + (deltaX / parentRect.width) * 100));
-      const newY = Math.max(0, Math.min(100, startHotspotY + (deltaY / parentRect.height) * 100));
+      // Use image element's dimensions for calculations
+      const referenceRect = referenceElement.getBoundingClientRect();
+      const newX = Math.max(0, Math.min(100, startHotspotX + (deltaX / referenceRect.width) * 100));
+      const newY = Math.max(0, Math.min(100, startHotspotY + (deltaY / referenceRect.height) * 100));
       
       onPositionChange(hotspot.id, newX, newY);
     };
@@ -70,7 +72,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y]);
+  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, imageElement]);
   
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';

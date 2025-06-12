@@ -72,10 +72,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container
   const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image
+  
+  // New refs for the img-based system (editing mode only)
+  const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
+  const actualImageRef = useRef<HTMLImageElement>(null);
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-  const [viewportZoom, setViewportZoom] = useState<number>(1);
-  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Transform origin as percentage
+  const [viewportZoom, setViewportZoom] = useState<number>(1); // Keep for viewer mode
+  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Keep for viewer mode
+  
+  // New state for editing mode
+  const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
+  const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
 
@@ -127,35 +135,77 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Define wheel zoom handler before the useEffect that uses it
   const handleWheelZoom = useCallback((event: WheelEvent) => {
-    // Only handle Ctrl+scroll for zooming
-    if (!event.ctrlKey) return;
+    if (!event.ctrlKey || !isEditing) return;
     
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
     
-    // Zoom to point logic inline to avoid circular dependencies
-    if (!scrollableContainerRef.current) return;
-
     const container = scrollableContainerRef.current;
+    const imageContainer = zoomedImageContainerRef.current;
+    if (!container || !imageContainer) return;
+
+    // Get mouse position relative to the scroll container
     const containerRect = container.getBoundingClientRect();
+    const mouseX = event.clientX - containerRect.left;
+    const mouseY = event.clientY - containerRect.top;
     
-    // Calculate mouse position relative to scrollable container as percentage
-    const mouseXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-    const mouseYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
+    // Calculate current scroll position
+    const scrollLeft = container.scrollLeft;
+    const scrollTop = container.scrollTop;
     
-    // Normalize deltaY for consistent zoom behavior across different devices
-    const delta = Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100);
+    // Calculate mouse position in the scrollable content
+    const contentMouseX = mouseX + scrollLeft;
+    const contentMouseY = mouseY + scrollTop;
     
-    // Calculate new zoom level with finer increments
-    const zoomIncrement = 0.1;
-    const newZoom = Math.max(0.25, Math.min(3, viewportZoom + (-delta > 0 ? zoomIncrement : -zoomIncrement)));
+    // Calculate new zoom level (5% increments)
+    const delta = Math.sign(event.deltaY);
+    const zoomIncrement = 0.05; // 5%
+    const newZoom = Math.max(0.25, Math.min(5, editingZoom + (-delta * zoomIncrement)));
     
-    if (newZoom !== viewportZoom) {
-      setZoomOrigin({ x: mouseXPercent, y: mouseYPercent });
-      setViewportZoom(newZoom);
+    if (newZoom !== editingZoom) {
+      // Calculate the zoom ratio
+      const zoomRatio = newZoom / editingZoom;
+      
+      // Calculate new scroll position to keep mouse position stable
+      const newScrollLeft = contentMouseX * zoomRatio - mouseX;
+      const newScrollTop = contentMouseY * zoomRatio - mouseY;
+      
+      setEditingZoom(newZoom);
+      
+      // Apply new scroll position after zoom
+      requestAnimationFrame(() => {
+        container.scrollLeft = Math.max(0, newScrollLeft);
+        container.scrollTop = Math.max(0, newScrollTop);
+      });
     }
-  }, [viewportZoom]);
+  }, [editingZoom, isEditing]);
+
+  // New image load handler for editing mode
+  const handleImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    setImageNaturalDimensions({
+      width: img.naturalWidth,
+      height: img.naturalHeight
+    });
+  }, []);
+
+  // New zoom handler functions for editing mode
+  const handleZoomIn = useCallback(() => {
+    setEditingZoom(prev => Math.min(5, prev + 0.05));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setEditingZoom(prev => Math.max(0.25, prev - 0.05));
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    setEditingZoom(1);
+    if (scrollableContainerRef.current) {
+      scrollableContainerRef.current.scrollLeft = 0;
+      scrollableContainerRef.current.scrollTop = 0;
+    }
+  }, []);
 
   // Add wheel event listener for Ctrl+scroll zoom
   useEffect(() => {
@@ -209,22 +259,40 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Effect for managing InfoPanel anchor point
   useEffect(() => {
-    if (activeHotspotInfoId && imageContainerRef.current && scaledImageDivRef.current) {
+    if (activeHotspotInfoId && isEditing && actualImageRef.current) {
       const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
       if (hotspot) {
-        const containerRect = imageContainerRef.current.getBoundingClientRect(); // Image container
-        const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect(); // The div that is actually scaled/translated
+        const imgElement = actualImageRef.current;
+        const imgRect = imgElement.getBoundingClientRect();
+        const containerRect = imageContainerRef.current?.getBoundingClientRect();
+        
+        if (containerRect) {
+          // Calculate hotspot position on the actual image
+          const dotCenterX = imgRect.left + (hotspot.x / 100) * imgRect.width;
+          const dotCenterY = imgRect.top + (hotspot.y / 100) * imgRect.height;
+          
+          // Convert to coordinates relative to the image container
+          const anchorX = dotCenterX - containerRect.left;
+          const anchorY = dotCenterY - containerRect.top;
+          
+          setInfoPanelAnchor({ x: anchorX, y: anchorY });
+        }
+      } else {
+        setInfoPanelAnchor(null);
+      }
+    } else if (activeHotspotInfoId && !isEditing && imageContainerRef.current && scaledImageDivRef.current) {
+      // Keep the old logic for viewer mode
+      const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+      if (hotspot) {
+        const containerRect = imageContainerRef.current.getBoundingClientRect();
+        const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect();
 
-        // Calculate dot's center relative to the scaled image div's content
         const dotCenterXOnScaledImg = (hotspot.x / 100) * scaledImgDivRect.width;
         const dotCenterYOnScaledImg = (hotspot.y / 100) * scaledImgDivRect.height;
 
-        // Calculate dot's center relative to the browser viewport
         const dotCenterXViewport = scaledImgDivRect.left + dotCenterXOnScaledImg;
         const dotCenterYViewport = scaledImgDivRect.top + dotCenterYOnScaledImg;
         
-        // Convert to coordinates relative to the image container (InfoPanel's positioning parent)
-        // Since both the InfoPanel and hotspots are inside the viewport container, they share the same scaling
         const anchorX = dotCenterXViewport - containerRect.left;
         const anchorY = dotCenterYViewport - containerRect.top;
 
@@ -235,7 +303,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     } else {
       setInfoPanelAnchor(null);
     }
-  }, [activeHotspotInfoId, hotspots, imageTransform, imageContainerRect, viewportZoom]); // Rerun if these change
+  }, [activeHotspotInfoId, hotspots, editingZoom, imageNaturalDimensions, isEditing, imageTransform, imageContainerRect, viewportZoom]);
 
 
   useEffect(() => {
@@ -474,57 +542,47 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         const target = event.target as HTMLElement;
         if(target.closest('.hotspot-confirmation-dialog')) return; // Click was on confirmation
     }
-    if (isEditing && backgroundImage && imageContainerRef.current && scaledImageDivRef.current) {
+    if (isEditing && backgroundImage && actualImageRef.current) {
         const target = event.target as HTMLElement;
-         // Check if click is on InfoPanel or its children, or other UI controls
-        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.image-navigation-controls') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]') || target.closest('.timeline-controls-container')) {
-            return;
+        
+        // Check if click is on UI elements
+        if (target.closest('.hotspot-info-panel') || 
+            target.closest('[role="button"][aria-label^="Hotspot:"]') || 
+            target.closest('.image-navigation-controls') || 
+            target.closest('.initial-view-buttons') || 
+            target.closest('[aria-label="Module Timeline"]') || 
+            target.closest('.timeline-controls-container')) {
+          return;
         }
         
-        const containerRect = imageContainerRef.current.getBoundingClientRect();
-        const viewportContainerRect = viewportContainerRef.current?.getBoundingClientRect();
-        const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect();
-
-        // Click position relative to the browser viewport
-        const clickX_viewport = event.clientX;
-        const clickY_viewport = event.clientY;
-
-        // Check if click is within the scaled image div bounds
-        if (clickX_viewport < scaledImgDivRect.left || clickX_viewport > scaledImgDivRect.right ||
-            clickY_viewport < scaledImgDivRect.top || clickY_viewport > scaledImgDivRect.bottom) {
-            setPendingHotspot(null); // Click was outside the dynamic image area
-            return;
+        const imgElement = actualImageRef.current;
+        const imgRect = imgElement.getBoundingClientRect();
+        
+        // Check if click is within the image bounds
+        if (event.clientX < imgRect.left || event.clientX > imgRect.right ||
+            event.clientY < imgRect.top || event.clientY > imgRect.bottom) {
+          setPendingHotspot(null);
+          return;
         }
         
-        // Click position relative to the scaled image div's top-left
-        const clickX_on_scaled_img = clickX_viewport - scaledImgDivRect.left;
-        const clickY_on_scaled_img = clickY_viewport - scaledImgDivRect.top;
-
-        // Convert to percentage relative to the scaled image's dimensions
-        const imageXPercent = Math.max(0, Math.min(100, (clickX_on_scaled_img / scaledImgDivRect.width) * 100));
-        const imageYPercent = Math.max(0, Math.min(100, (clickY_on_scaled_img / scaledImgDivRect.height) * 100));
+        // Calculate click position relative to the image
+        const clickX = event.clientX - imgRect.left;
+        const clickY = event.clientY - imgRect.top;
         
-        // For visual pending marker, convert click to viewport container coordinates (accounting for viewport zoom)
-        // The image container is now nested inside the viewport container that's scaled by viewportZoom
-        let viewXPercent, viewYPercent;
-        if (viewportContainerRect) {
-          // Click relative to the viewport container, adjusted for viewport zoom
-          const clickX_in_viewport = (clickX_viewport - viewportContainerRect.left) / viewportZoom;
-          const clickY_in_viewport = (clickY_viewport - viewportContainerRect.top) / viewportZoom;
+        // Convert to percentage of actual image dimensions
+        const imageXPercent = (clickX / imgRect.width) * 100;
+        const imageYPercent = (clickY / imgRect.height) * 100;
+        
+        // For visual pending marker (relative to the container)
+        const container = imageContainerRef.current;
+        if (container) {
+          const containerRect = container.getBoundingClientRect();
+          const viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
+          const viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
           
-          // Convert to percentage relative to the unscaled viewport container dimensions
-          const unscaledViewportWidth = viewportContainerRect.width / viewportZoom;
-          const unscaledViewportHeight = viewportContainerRect.height / viewportZoom;
-          viewXPercent = Math.max(0, Math.min(100, (clickX_in_viewport / unscaledViewportWidth) * 100));
-          viewYPercent = Math.max(0, Math.min(100, (clickY_in_viewport / unscaledViewportHeight) * 100));
-        } else {
-          // Fallback to the old method if viewport container ref is not available
-          viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-          viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
+          setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
+          setActiveHotspotInfoId(null);
         }
-
-        setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
-        setActiveHotspotInfoId(null); // Hide any open info panel when trying to place new one
 
     } else if (moduleState === 'idle' && !isEditing && backgroundImage) {
         const target = event.target as HTMLElement;
@@ -621,89 +679,90 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 }}
               >
                 <div
-                  ref={viewportContainerRef}
-                  className="min-w-full min-h-full"
-                  style={{
-                    transform: `scale(${viewportZoom})`,
-                    transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
-                    transition: 'transform 0.2s ease-out',
-                    width: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
-                    height: viewportZoom > 1 ? `${100 * viewportZoom}%` : '100%',
-                  }}
+                  ref={imageContainerRef}
+                  className="relative flex items-center justify-center min-w-full min-h-full"
+                  style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
+                  onClick={handleImageClick}
+                  role={backgroundImage ? "button" : undefined}
+                  aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
                 >
-                  {/* Image Container */}
-                  <div 
-                    ref={imageContainerRef}
-                    className="relative w-full h-full bg-slate-900"
-                    style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
-                    onClick={handleImageClick}
-                    role={backgroundImage ? "button" : undefined}
-                    aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
-                  >
-                    {backgroundImage ? (
-                      <>
+                  {backgroundImage ? (
+                    <div 
+                      ref={zoomedImageContainerRef}
+                      className="relative"
+                      style={{
+                        transform: `scale(${editingZoom})`,
+                        transformOrigin: 'center',
+                        transition: 'transform 0.2s ease-out',
+                      }}
+                    >
+                      <img
+                        ref={actualImageRef}
+                        src={backgroundImage}
+                        alt="Interactive module background"
+                        className="block max-w-none"
+                        style={{
+                          width: scrollableContainerRef.current?.clientWidth || 'auto',
+                          height: 'auto',
+                        }}
+                        onLoad={handleImageLoad}
+                        draggable={false}
+                      />
+                      
+                      {/* Highlight overlay */}
+                      {highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
                         <div 
-                          ref={scaledImageDivRef}
-                          className="absolute w-full h-full"
-                          style={{
-                            backgroundImage: `url(${backgroundImage})`,
-                            backgroundSize: imageFitMode, 
-                            backgroundPosition: 'center', 
-                            backgroundRepeat: 'no-repeat',
-                            transformOrigin: '0 0',
-                            transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                            transition: 'transform 0.5s ease-in-out',
-                          }}
+                          className="absolute inset-0 pointer-events-none" 
+                          style={getHighlightGradientStyle()} 
                           aria-hidden="true"
-                        >
-                          {highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                            <div className="absolute inset-0 pointer-events-none" style={getHighlightGradientStyle()} aria-hidden="true"/>
-                          )}
-                          {hotspots.map(hotspot => (
-                            <HotspotViewer
-                              key={hotspot.id}
-                              hotspot={hotspot}
-                              isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                              isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e => e.step === currentStep && e.targetId === hotspot.id && (e.type === InteractionType.SHOW_HOTSPOT || e.type === InteractionType.PULSE_HOTSPOT || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.HIGHLIGHT_HOTSPOT))}
-                              isEditing={isEditing}
-                              onFocusRequest={handleFocusHotspot}
-                              onPositionChange={handleHotspotPositionChange}
-                              isContinuouslyPulsing={false}
-                            />
-                          ))}
-                        </div>
-                        
-                        {pendingHotspot && imageContainerRef.current && (
-                          <div 
-                            className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
-                            style={{ left: `${pendingHotspot.viewXPercent}%`, top: `${pendingHotspot.viewYPercent}%`}}
-                            aria-hidden="true"
-                          ><PlusIcon className="w-5 h-5 text-white"/></div>
-                        )}
-
-                        {/* InfoPanel */}
-                        {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
-                          <InfoPanel
-                            hotspot={activeInfoHotspot}
-                            anchorX={infoPanelAnchor.x}
-                            anchorY={infoPanelAnchor.y}
-                            imageContainerRect={imageContainerRect}
-                            isEditing={isEditing}
-                            onRemove={handleRemoveHotspot}
-                            onEditRequest={handleEditHotspotRequest}
-                            imageTransform={imageTransform}
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <div className="text-center">
-                          <p className="text-lg mb-4">Upload an image to start editing</p>
-                          <FileUpload onFileUpload={handleImageUpload} />
-                        </div>
+                        />
+                      )}
+                      
+                      {/* Hotspots */}
+                      {hotspots.map(hotspot => (
+                        <HotspotViewer
+                          key={hotspot.id}
+                          hotspot={hotspot}
+                          imageElement={actualImageRef.current}
+                          isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                          isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e => e.step === currentStep && e.targetId === hotspot.id && (e.type === InteractionType.SHOW_HOTSPOT || e.type === InteractionType.PULSE_HOTSPOT || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.HIGHLIGHT_HOTSPOT))}
+                          isEditing={isEditing}
+                          onFocusRequest={handleFocusHotspot}
+                          onPositionChange={handleHotspotPositionChange}
+                          isContinuouslyPulsing={false}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <div className="text-center">
+                        <p className="text-lg mb-4">Upload an image to start editing</p>
+                        <FileUpload onFileUpload={handleImageUpload} />
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  
+                  {pendingHotspot && imageContainerRef.current && (
+                    <div 
+                      className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
+                      style={{ left: `${pendingHotspot.viewXPercent}%`, top: `${pendingHotspot.viewYPercent}%`}}
+                      aria-hidden="true"
+                    ><PlusIcon className="w-5 h-5 text-white"/></div>
+                  )}
+
+                  {/* InfoPanel */}
+                  {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
+                    <InfoPanel
+                      hotspot={activeInfoHotspot}
+                      anchorX={infoPanelAnchor.x}
+                      anchorY={infoPanelAnchor.y}
+                      imageContainerRect={imageContainerRect}
+                      isEditing={isEditing}
+                      onRemove={handleRemoveHotspot}
+                      onEditRequest={handleEditHotspotRequest}
+                      imageTransform={imageTransform}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -790,25 +849,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          setZoomOrigin({x: 50, y: 50}); // Reset to center for manual controls
-                          setViewportZoom(Math.max(0.25, viewportZoom - 0.25));
-                        }}
+                        onClick={handleZoomOut}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
-                        title="Zoom out"
+                        title="Zoom out (5%)"
                       >
                         -
                       </button>
                       <span className="text-slate-300 text-sm min-w-[50px] text-center">
-                        {Math.round(viewportZoom * 100)}%
+                        {Math.round(editingZoom * 100)}%
                       </span>
                       <button
-                        onClick={() => {
-                          setZoomOrigin({x: 50, y: 50}); // Reset to center for manual controls
-                          setViewportZoom(Math.min(3, viewportZoom + 0.25));
-                        }}
+                        onClick={handleZoomIn}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
-                        title="Zoom in"
+                        title="Zoom in (5%)"
                       >
                         +
                       </button>
@@ -816,10 +869,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => {
-                        setZoomOrigin({x: 50, y: 50}); // Reset to center
-                        setViewportZoom(1);
-                      }}
+                      onClick={handleZoomReset}
                       className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded text-xs transition-colors"
                       title="Reset to 100%"
                     >
@@ -827,31 +877,31 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     </button>
                     <button
                       onClick={() => {
-                        setZoomOrigin({x: 50, y: 50}); // Center the image at current zoom
+                        // Center the image in the scroll container
+                        const container = scrollableContainerRef.current;
+                        if (container && zoomedImageContainerRef.current) {
+                          const containerRect = container.getBoundingClientRect();
+                          const imageRect = zoomedImageContainerRef.current.getBoundingClientRect();
+                          
+                          container.scrollLeft = Math.max(0, (imageRect.width - containerRect.width) / 2);
+                          container.scrollTop = Math.max(0, (imageRect.height - containerRect.height) / 2);
+                        }
                       }}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white h-7 rounded text-xs transition-colors"
-                      title="Center image at current zoom level"
+                      title="Center image in view"
                     >
                       Center
                     </button>
                     <button
                       onClick={() => {
-                        setZoomOrigin({x: 50, y: 50}); // Reset to center for fit
-                        // Calculate zoom to fit image in viewable area
-                        if (viewportContainerRef.current && scaledImageDivRef.current) {
-                          const viewportRect = viewportContainerRef.current.getBoundingClientRect();
-                          const imageRect = scaledImageDivRef.current.getBoundingClientRect();
-                          
-                          // Calculate the zoom needed to fit the image in the viewport
-                          const scaleX = viewportRect.width / imageRect.width;
-                          const scaleY = viewportRect.height / imageRect.height;
-                          const fitZoom = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 100%
-                          
-                          setViewportZoom(Math.max(0.25, Math.min(3, fitZoom)));
+                        setEditingZoom(1);
+                        if (scrollableContainerRef.current) {
+                          scrollableContainerRef.current.scrollLeft = 0;
+                          scrollableContainerRef.current.scrollTop = 0;
                         }
                       }}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded text-xs transition-colors"
-                      title="Fit to viewable area"
+                      title="Fit image to container width"
                     >
                       Fit
                     </button>
