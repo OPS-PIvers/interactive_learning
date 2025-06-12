@@ -125,6 +125,38 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, []);
 
+  // Define wheel zoom handler before the useEffect that uses it
+  const handleWheelZoom = useCallback((event: WheelEvent) => {
+    // Only handle Ctrl+scroll for zooming
+    if (!event.ctrlKey) return;
+    
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    
+    // Zoom to point logic inline to avoid circular dependencies
+    if (!scrollableContainerRef.current) return;
+
+    const container = scrollableContainerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate mouse position relative to scrollable container as percentage
+    const mouseXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
+    const mouseYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
+    
+    // Normalize deltaY for consistent zoom behavior across different devices
+    const delta = Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100);
+    
+    // Calculate new zoom level with finer increments
+    const zoomIncrement = 0.1;
+    const newZoom = Math.max(0.25, Math.min(3, viewportZoom + (-delta > 0 ? zoomIncrement : -zoomIncrement)));
+    
+    if (newZoom !== viewportZoom) {
+      setZoomOrigin({ x: mouseXPercent, y: mouseYPercent });
+      setViewportZoom(newZoom);
+    }
+  }, [viewportZoom]);
+
   // Add wheel event listener for Ctrl+scroll zoom
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -436,36 +468,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     );
   }, []);
 
-  const handleWheelZoom = useCallback((event: WheelEvent) => {
-    // Only handle Ctrl+scroll for zooming
-    if (!event.ctrlKey) return;
-    
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    
-    // Zoom to point logic inline to avoid circular dependencies
-    if (!scrollableContainerRef.current) return;
-
-    const container = scrollableContainerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    
-    // Calculate mouse position relative to scrollable container as percentage
-    const mouseXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-    const mouseYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
-    
-    // Normalize deltaY for consistent zoom behavior across different devices
-    const delta = Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 100);
-    
-    // Calculate new zoom level with finer increments
-    const zoomIncrement = 0.1;
-    const newZoom = Math.max(0.25, Math.min(3, viewportZoom + (-delta > 0 ? zoomIncrement : -zoomIncrement)));
-    
-    if (newZoom !== viewportZoom) {
-      setZoomOrigin({ x: mouseXPercent, y: mouseYPercent });
-      setViewportZoom(newZoom);
-    }
-  }, [viewportZoom]);
 
   const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (pendingHotspot) { // If confirming a pending hotspot, don't place another
@@ -822,6 +824,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       title="Reset to 100%"
                     >
                       Reset
+                    </button>
+                    <button
+                      onClick={() => {
+                        setZoomOrigin({x: 50, y: 50}); // Center the image at current zoom
+                      }}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white h-7 rounded text-xs transition-colors"
+                      title="Center image at current zoom level"
+                    >
+                      Center
                     </button>
                     <button
                       onClick={() => {
