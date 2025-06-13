@@ -99,17 +99,7 @@ export interface Project {
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
 
-export type HotspotColorClass =
-  | "bg-red-500"
-  | "bg-blue-500"
-  | "bg-green-500"
-  | "bg-yellow-500"
-  | "bg-purple-500"
-  | "bg-pink-500"
-  | "bg-indigo-500"
-  | "bg-gray-500";
-
-export const HOTSPOT_COLORS: HotspotColorClass[] = [
+export const HOTSPOT_COLORS = [
   "bg-red-500",
   "bg-blue-500",
   "bg-green-500",
@@ -118,4 +108,6 @@ export const HOTSPOT_COLORS: HotspotColorClass[] = [
   "bg-pink-500",
   "bg-indigo-500",
   "bg-gray-500",
-];
+] as const;
+
+export type HotspotColorClass = typeof HOTSPOT_COLORS[number];

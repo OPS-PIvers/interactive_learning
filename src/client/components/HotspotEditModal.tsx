@@ -92,8 +92,16 @@ const HotspotEditModal: React.FC<HotspotEditModalProps> = ({
             {HOTSPOT_COLORS.map(color => (
               <div
                 key={color}
+                role="button"
+                tabIndex={0}
                 className={`w-6 h-6 rounded cursor-pointer flex items-center justify-center ${color} ${editingHotspot.color === color ? 'ring-2 ring-offset-2 ring-offset-slate-800 ring-white' : ''}`}
                 onClick={() => setEditingHotspot(prev => prev ? { ...prev, color } : null)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setEditingHotspot(prev => prev ? { ...prev, color } : null);
+                  }
+                }}
               >
                 {editingHotspot.color === color && <CheckIcon className="w-4 h-4 text-white" />}
               </div>
