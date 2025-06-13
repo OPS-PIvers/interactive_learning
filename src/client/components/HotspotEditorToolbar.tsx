@@ -3,6 +3,8 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import { PlusIcon } from './icons/PlusIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import EditableEventCard from './EditableEventCard';
+import EventTypeSelector from './EventTypeSelector';
 
 interface HotspotEditorToolbarProps {
   selectedHotspot: HotspotData;
@@ -32,6 +34,9 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   onJumpToStep,
 }) => {
   const [activeTab, setActiveTab] = useState<'properties' | 'events'>('properties');
+  const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [newEventType, setNewEventType] = useState<InteractionType>(InteractionType.SHOW_HOTSPOT);
 
   const handleDeleteHotspot = () => {
     if (confirm(`Delete "${selectedHotspot.title}" and all its events?`)) {
@@ -39,32 +44,82 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
     }
   };
 
-  const handleEditEvent = (event: TimelineEventData) => {
-    onEditEvent(event);
+  const handleUpdateEvent = (updatedEvent: TimelineEventData) => {
+    onEditEvent(updatedEvent);
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    const event = relatedEvents.find(e => e.id === eventId);
-    if (event && confirm(`Delete event "${event.name}"?`)) {
-      onDeleteEvent(eventId);
-    }
+    onDeleteEvent(eventId);
   };
 
   const handleAddEvent = () => {
-    const eventName = prompt("Enter event name:", `Event for ${selectedHotspot.title}`);
+    setShowAddEventModal(true);
+  };
+
+  const handleCreateEvent = () => {
+    const eventName = prompt("Enter event name:", `${newEventType.replace(/_/g, ' ')} for ${selectedHotspot.title}`);
     if (!eventName) return;
 
     const maxStep = allTimelineEvents.length > 0 ? Math.max(...allTimelineEvents.map(e => e.step)) : 0;
     
     const newEvent: TimelineEventData = {
-      id: `te_show_${selectedHotspot.id}_${Date.now()}`,
+      id: `te_${newEventType.toLowerCase()}_${selectedHotspot.id}_${Date.now()}`,
       step: maxStep + 1,
       name: eventName,
-      type: InteractionType.SHOW_HOTSPOT,
-      targetId: selectedHotspot.id
+      type: newEventType,
+      targetId: selectedHotspot.id,
+      // Set default values based on event type
+      ...(newEventType === InteractionType.PAN_ZOOM_TO_HOTSPOT && { zoomFactor: 2.0 }),
+      ...(newEventType === InteractionType.HIGHLIGHT_HOTSPOT && { highlightRadius: 60 }),
+      ...(newEventType === InteractionType.PULSE_HOTSPOT && { duration: 2000 }),
+      ...(newEventType === InteractionType.SHOW_MESSAGE && { message: '' })
     };
 
     onAddEvent(newEvent);
+    setShowAddEventModal(false);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, eventId: string) => {
+    setDraggedEventId(eventId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', eventId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetEventId: string) => {
+    e.preventDefault();
+    
+    if (!draggedEventId || draggedEventId === targetEventId) {
+      setDraggedEventId(null);
+      return;
+    }
+
+    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
+    const draggedIndex = sortedEvents.findIndex(event => event.id === draggedEventId);
+    const targetIndex = sortedEvents.findIndex(event => event.id === targetEventId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedEventId(null);
+      return;
+    }
+
+    // Reorder the events
+    const reorderedEvents = [...sortedEvents];
+    const [draggedEvent] = reorderedEvents.splice(draggedIndex, 1);
+    reorderedEvents.splice(targetIndex, 0, draggedEvent);
+
+    // Update step numbers to reflect new order
+    reorderedEvents.forEach((event, index) => {
+      const updatedEvent = { ...event, step: index + 1 };
+      onEditEvent(updatedEvent);
+    });
+
+    setDraggedEventId(null);
   };
 
   const renderHeader = () => (
@@ -102,6 +157,40 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
           <TrashIcon className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Add Event Modal */}
+      {showAddEventModal && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">Add New Event</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Event Type</label>
+                <EventTypeSelector
+                  value={newEventType}
+                  onChange={setNewEventType}
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleCreateEvent}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Create Event
+              </button>
+              <button
+                onClick={() => setShowAddEventModal(false)}
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -181,88 +270,80 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
           💡 Drag the hotspot on the image to reposition
         </p>
       </div>
+
+      <div className="bg-slate-700/50 rounded-lg p-4">
+        <h4 className="font-medium text-slate-200 mb-3">Info Panel Display</h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-300">Show info panel</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                defaultChecked={true}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+          <div className="text-xs text-slate-400">
+            <p>💡 Control when the hotspot info panel appears by adding a "Show Message" event to the timeline</p>
+            <p className="mt-1">The panel will display when that event is triggered instead of immediately on click</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
-  const renderEventsTab = () => (
-    <div className="p-4">
-      {relatedEvents.length === 0 ? (
-        <div className="text-center py-8 text-slate-400">
-          <svg className="w-12 h-12 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <p className="font-medium">No Events Yet</p>
-          <p className="text-sm">This hotspot has no timeline events</p>
-          <button
-            onClick={handleAddEvent}
-            className="mt-3 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            Add First Event
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-medium text-slate-200">Timeline Events</h4>
-            <span className="text-sm text-slate-400">{relatedEvents.length} events</span>
-          </div>
-          
-          {relatedEvents.map(event => (
-            <div
-              key={event.id}
-              className={`p-3 rounded-lg border transition-all ${
-                currentStep === event.step
-                  ? 'bg-purple-600/20 border-purple-500'
-                  : 'bg-slate-700/50 border-slate-600 hover:bg-slate-700'
-              }`}
+  const renderEventsTab = () => {
+    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
+
+    return (
+      <div className="p-4">
+        {relatedEvents.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            <svg className="w-12 h-12 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <p className="font-medium">No Events Yet</p>
+            <p className="text-sm">This hotspot has no timeline events</p>
+            <button
+              onClick={handleAddEvent}
+              className="mt-3 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-slate-600 text-slate-300 px-2 py-1 rounded">
-                      Step {event.step}
-                    </span>
-                    {currentStep === event.step && (
-                      <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
-                        Active
-                      </span>
-                    )}
-                  </div>
-                  <h5 className="font-medium text-slate-100 text-sm">{event.name}</h5>
-                  <p className="text-xs text-slate-400">{event.type.replace(/_/g, ' ')}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => onJumpToStep(event.step)}
-                    className="p-1 text-slate-400 hover:text-purple-400 transition-colors"
-                    title="Jump to this step"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleEditEvent(event)}
-                    className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
-                    title="Edit event"
-                  >
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEvent(event.id)}
-                    className="p-1 text-slate-400 hover:text-red-400 transition-colors"
-                    title="Delete event"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
+              Add First Event
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-medium text-slate-200">Timeline Events</h4>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-slate-400">{relatedEvents.length} events</span>
+                <span className="text-xs text-slate-500">💡 Drag to reorder</span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            
+            <div className="space-y-2">
+              {sortedEvents.map(event => (
+                <EditableEventCard
+                  key={event.id}
+                  event={event}
+                  isActive={currentStep === event.step}
+                  isDragging={draggedEventId === event.id}
+                  onUpdate={handleUpdateEvent}
+                  onDelete={handleDeleteEvent}
+                  onJumpToStep={onJumpToStep}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="h-full flex flex-col">
