@@ -143,14 +143,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
       [InteractionType.PULSE_HOTSPOT]: '💓',
       [InteractionType.SHOW_MESSAGE]: '💬',
       [InteractionType.PAN_ZOOM_TO_HOTSPOT]: '🔍',
-      [InteractionType.HIGHLIGHT_HOTSPOT]: '🎯',
-      [InteractionType.SHOW_TEXT]: '📝',
-      [InteractionType.SHOW_IMAGE]: '🖼️',
-      [InteractionType.PAN_ZOOM]: '🔍',
-      [InteractionType.SPOTLIGHT]: '💡',
-      [InteractionType.QUIZ]: '❓',
-      [InteractionType.PULSE_HIGHLIGHT]: '✨',
-      [InteractionType.PLAY_AUDIO]: '🔊'
+      [InteractionType.HIGHLIGHT_HOTSPOT]: '🎯'
     };
     return icons[type] || '❓';
   };
@@ -526,13 +519,6 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
             <option value={InteractionType.SHOW_MESSAGE}>💬 Show Message</option>
             <option value={InteractionType.PAN_ZOOM_TO_HOTSPOT}>🔍 Pan & Zoom</option>
             <option value={InteractionType.HIGHLIGHT_HOTSPOT}>🎯 Highlight</option>
-            <option value={InteractionType.SHOW_TEXT}>📝 Show Text</option>
-            <option value={InteractionType.SHOW_IMAGE}>🖼️ Show Image</option>
-            <option value={InteractionType.PAN_ZOOM}>🔍 Pan & Zoom</option>
-            <option value={InteractionType.SPOTLIGHT}>💡 Spotlight</option>
-            <option value={InteractionType.QUIZ}>❓ Quiz</option>
-            <option value={InteractionType.PULSE_HIGHLIGHT}>✨ Pulse Highlight</option>
-            <option value={InteractionType.PLAY_AUDIO}>🔊 Play Audio</option>
           </select>
         </div>
 

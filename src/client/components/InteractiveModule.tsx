@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
-import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
 import HotspotEditModal from './HotspotEditModal';
