@@ -6,7 +6,7 @@ import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
 import HotspotEditModal from './HotspotEditModal';
-import HotspotEditorToolbar from './HotspotEditorToolbar';
+import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -845,37 +845,28 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
           {/* Fixed Right Sidebar */}
           <div className="w-80 bg-slate-800 flex flex-col">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold text-slate-100">Module Editor</h2>
-              {backgroundImage && (
-                <div className="text-xs text-slate-400 mt-2">
-                  Click on hotspots to edit • Click image to add new hotspots
-                </div>
-              )}
-            </div>
-
-
             {/* Sidebar Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-hidden">
               {activeHotspotInfoId ? (
-                <HotspotEditorToolbar
+                <StreamlinedHotspotEditor
                   selectedHotspot={hotspots.find(h => h.id === activeHotspotInfoId)!}
                   relatedEvents={timelineEvents.filter(e => e.targetId === activeHotspotInfoId)}
-                  allHotspots={hotspots}
                   allTimelineEvents={timelineEvents}
                   currentStep={currentStep}
-                  onEditHotspot={(hotspot) => {
-                    setEditingHotspot(hotspot);
-                    setShowHotspotEditModal(true);
+                  onUpdateHotspot={(updatedHotspot) => {
+                    setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
                   }}
                   onDeleteHotspot={handleRemoveHotspot}
                   onAddEvent={handleAddTimelineEvent}
-                  onEditEvent={(event) => {
-                    // For now, this will need to be implemented with a modal
-                    console.log('Edit event:', event);
+                  onUpdateEvent={(updatedEvent) => {
+                    setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
                   }}
                   onDeleteEvent={handleRemoveTimelineEvent}
+                  onReorderEvents={(eventIds) => {
+                    // Handle reordering - this is handled automatically in the component
+                  }}
                   onJumpToStep={setCurrentStep}
+                  onClose={() => setActiveHotspotInfoId(null)}
                 />
               ) : (
                 <div className="text-center text-slate-400 py-8 p-4">
