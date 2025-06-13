@@ -206,6 +206,7 @@ const App: React.FC = () => {
             initialData={selectedProject.interactiveData}
             isEditing={isEditingMode}
             onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+            onClose={handleCloseModal}
             projectName={selectedProject.title}
           />
         </Modal>
