@@ -98,3 +98,14 @@ export interface Project {
   thumbnailUrl?: string; // Base64 string of the background image, for card display
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
+
+export const HOTSPOT_COLORS = [
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-gray-500",
+];

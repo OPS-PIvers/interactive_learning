@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { HotspotData, HotspotSize } from '../../shared/types';
+import { HotspotData, HotspotSize, HOTSPOT_COLORS } from '../../shared/types';
 import Modal from './Modal';
+import CheckIcon from './icons/CheckIcon';
+import SliderControl from './SliderControl';
 
 interface HotspotEditModalProps {
   isOpen: boolean;
@@ -17,9 +19,21 @@ const HotspotEditModal: React.FC<HotspotEditModalProps> = ({
 }) => {
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
 
+  const sizeToSliderValue: Record<HotspotSize, number> = {
+    small: 0,
+    medium: 1,
+    large: 2,
+  };
+
+  const sliderValueToSize: Record<number, HotspotSize> = {
+    0: 'small',
+    1: 'medium',
+    2: 'large',
+  };
+
   useEffect(() => {
     if (hotspot) {
-      setEditingHotspot({ ...hotspot });
+      setEditingHotspot({ ...hotspot, size: hotspot.size || 'medium' });
     }
   }, [hotspot]);
 
@@ -68,20 +82,33 @@ const HotspotEditModal: React.FC<HotspotEditModalProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">
-            Marker Size
+            Hotspot Color
           </label>
-          <select
-            value={editingHotspot.size || 'medium'}
-            onChange={(e) => setEditingHotspot(prev => prev ? { ...prev, size: e.target.value as HotspotSize } : null)}
-            className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-white"
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium (Default)</option>
-            <option value="large">Large</option>
-          </select>
-          <p className="text-xs text-slate-400 mt-1">
-            Choose the size of the hotspot marker. Medium is recommended for most use cases.
-          </p>
+          <div className="flex space-x-2">
+            {HOTSPOT_COLORS.map(color => (
+              <div
+                key={color}
+                className={`w-6 h-6 rounded cursor-pointer flex items-center justify-center ${color} ${editingHotspot.color === color ? 'ring-2 ring-offset-2 ring-offset-slate-800 ring-white' : ''}`}
+                onClick={() => setEditingHotspot(prev => prev ? { ...prev, color } : null)}
+              >
+                {editingHotspot.color === color && <CheckIcon className="w-4 h-4 text-white" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <SliderControl
+            label="Marker Size"
+            min={0}
+            max={2}
+            step={1}
+            value={editingHotspot.size ? sizeToSliderValue[editingHotspot.size] : 1}
+            onChange={(value) => {
+              setEditingHotspot(prev => prev ? { ...prev, size: sliderValueToSize[value] } : null);
+            }}
+            valueLabelMap={['Small', 'Medium', 'Large']}
+          />
         </div>
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-slate-600">
