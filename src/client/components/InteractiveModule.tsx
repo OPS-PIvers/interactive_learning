@@ -367,14 +367,48 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             stepHasPanZoomEvent = true;
             if (event.targetId) {
               const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              if (imageContainerRef.current && targetHotspot) {
+              if (targetHotspot && imageContainerRef.current) {
                 const scale = event.zoomFactor || 2;
-                const { clientWidth: cW, clientHeight: cH } = imageContainerRef.current;
-                // Calculate based on image's natural aspect ratio if available, or container if not
-                // For simplicity, using clientWidth/Height of container for hotspot position calculation
-                const hX = (targetHotspot.x / 100) * cW; 
-                const hY = (targetHotspot.y / 100) * cH;
-                newImageTransform = { scale, translateX: cW / 2 - hX * scale, translateY: cH / 2 - hY * scale, targetHotspotId: event.targetId };
+                const container = imageContainerRef.current;
+                const containerRect = container.getBoundingClientRect();
+                let imageWidth, imageHeight;
+                
+                if (isEditing && actualImageRef.current) {
+                  // In editing mode, use the actual image dimensions
+                  const imgRect = actualImageRef.current.getBoundingClientRect();
+                  imageWidth = imgRect.width;
+                  imageHeight = imgRect.height;
+                } else if (!isEditing && scaledImageDivRef.current) {
+                  // In viewer mode, calculate the effective image content area
+                  const divRect = scaledImageDivRef.current.getBoundingClientRect();
+                  
+                  if (imageFitMode === 'cover' || imageFitMode === 'contain') {
+                    // For cover/contain, we need to calculate the actual content area
+                    // This is a simplified calculation - the real image content depends on aspect ratio
+                    imageWidth = divRect.width;
+                    imageHeight = divRect.height;
+                  } else {
+                    // For fill mode, the content fills the entire div
+                    imageWidth = divRect.width;
+                    imageHeight = divRect.height;
+                  }
+                } else {
+                  // Fallback to container dimensions
+                  imageWidth = containerRect.width;
+                  imageHeight = containerRect.height;
+                }
+                
+                // Calculate hotspot position on the unscaled image
+                const hX = (targetHotspot.x / 100) * imageWidth; 
+                const hY = (targetHotspot.y / 100) * imageHeight;
+                
+                // Calculate translation to center the hotspot in the container
+                const centerX = containerRect.width / 2;
+                const centerY = containerRect.height / 2;
+                const translateX = centerX - hX * scale;
+                const translateY = centerY - hY * scale;
+                
+                newImageTransform = { scale, translateX, translateY, targetHotspotId: event.targetId };
                 newActiveHotspotInfoId = event.targetId;
               }
             }
@@ -421,9 +455,46 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
         if (hotspot && panZoomEvent && imageContainerRef.current) {
             const scale = panZoomEvent.zoomFactor || 2;
-            const { clientWidth: cW, clientHeight: cH } = imageContainerRef.current;
-            const hX = (hotspot.x / 100) * cW; const hY = (hotspot.y / 100) * cH;
-            setImageTransform({ scale, translateX: cW / 2 - hX * scale, translateY: cH / 2 - hY * scale, targetHotspotId: hotspot.id });
+            const container = imageContainerRef.current;
+            const containerRect = container.getBoundingClientRect();
+            let imageWidth, imageHeight;
+            
+            if (isEditing && actualImageRef.current) {
+              // In editing mode, use the actual image dimensions
+              const imgRect = actualImageRef.current.getBoundingClientRect();
+              imageWidth = imgRect.width;
+              imageHeight = imgRect.height;
+            } else if (!isEditing && scaledImageDivRef.current) {
+              // In viewer mode, calculate the effective image content area
+              const divRect = scaledImageDivRef.current.getBoundingClientRect();
+              
+              if (imageFitMode === 'cover' || imageFitMode === 'contain') {
+                // For cover/contain, we need to calculate the actual content area
+                // This is a simplified calculation - the real image content depends on aspect ratio
+                imageWidth = divRect.width;
+                imageHeight = divRect.height;
+              } else {
+                // For fill mode, the content fills the entire div
+                imageWidth = divRect.width;
+                imageHeight = divRect.height;
+              }
+            } else {
+              // Fallback to container dimensions
+              imageWidth = containerRect.width;
+              imageHeight = containerRect.height;
+            }
+            
+            // Calculate hotspot position on the unscaled image
+            const hX = (hotspot.x / 100) * imageWidth; 
+            const hY = (hotspot.y / 100) * imageHeight;
+            
+            // Calculate translation to center the hotspot in the container
+            const centerX = containerRect.width / 2;
+            const centerY = containerRect.height / 2;
+            const translateX = centerX - hX * scale;
+            const translateY = centerY - hY * scale;
+            
+            setImageTransform({ scale, translateX, translateY, targetHotspotId: hotspot.id });
         } else { 
             setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
         }
