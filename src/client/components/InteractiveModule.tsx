@@ -277,6 +277,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       // might need its own throttling or careful review if it's causing performance issues.
       // For now, only the imageContainerRect update is throttled as per the issue's direct implication.
       // Original transform recalculation logic (needs review if it should also be throttled or debounced):
+      // TODO: Review if this transform recalculation logic should also be throttled or debounced
       if (imageTransform.scale > 1 && imageTransform.targetHotspotId) {
         const targetHotspot = hotspots.find(h => h.id === imageTransform.targetHotspotId);
         if (targetHotspot) {
@@ -619,6 +620,62 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [initialData, isEditing]);
 
+  // Keyboard shortcut handlers
+  const handleArrowLeftKey = useCallback((): boolean => {
+    if (moduleState === 'learning') {
+      handlePrevStep();
+      return true;
+    }
+    return false;
+  }, [moduleState, handlePrevStep]);
+
+  const handleArrowRightKey = useCallback((): boolean => {
+    if (moduleState === 'learning') {
+      handleNextStep();
+      return true;
+    }
+    return false;
+  }, [moduleState, handleNextStep]);
+
+  const handleEscapeKey = useCallback((): boolean => {
+    if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
+      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      return true;
+    } else if (activeHotspotInfoId) {
+      setActiveHotspotInfoId(null);
+      return true;
+    } else if (pendingHotspot) {
+      setPendingHotspot(null);
+      return true;
+    }
+    return false;
+  }, [imageTransform, activeHotspotInfoId, pendingHotspot, setImageTransform, setActiveHotspotInfoId, setPendingHotspot]);
+
+  const handlePlusKey = useCallback((e: KeyboardEvent): boolean => {
+    if (isEditing && (e.ctrlKey || e.metaKey)) {
+      handleZoomIn();
+      return true;
+    }
+    return false;
+  }, [isEditing, handleZoomIn]);
+
+  const handleMinusKey = useCallback((e: KeyboardEvent): boolean => {
+    if (isEditing && (e.ctrlKey || e.metaKey)) {
+      handleZoomOut();
+      return true;
+    }
+    return false;
+  }, [isEditing, handleZoomOut]);
+
+  const handleZeroKey = useCallback((e: KeyboardEvent): boolean => {
+    if (isEditing && (e.ctrlKey || e.metaKey)) {
+      handleZoomReset();
+      return true;
+    }
+    return false;
+  }, [isEditing, handleZoomReset]);
+
+  // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
@@ -632,55 +689,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
       let preventDefault = false;
 
-      switch (e.key) {
-        case 'ArrowLeft':
-          if (moduleState === 'learning') {
-            handlePrevStep();
-            preventDefault = true;
-          }
-          break;
-
-        case 'ArrowRight':
-          if (moduleState === 'learning') {
-            handleNextStep();
-            preventDefault = true;
-          }
-          break;
-
-        case 'Escape':
-          if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
-            setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-            preventDefault = true;
-          } else if (activeHotspotInfoId) {
-            setActiveHotspotInfoId(null);
-            preventDefault = true;
-          } else if (pendingHotspot) {
-            setPendingHotspot(null);
-            preventDefault = true;
-          }
-          break;
-
-        case '+':
-        case '=': // Handle both '+' and '=' for zoom in
-          if (isEditing && (e.ctrlKey || e.metaKey)) { // Check for Ctrl (Windows/Linux) or Cmd (Mac)
-            handleZoomIn();
-            preventDefault = true;
-          }
-          break;
-
-        case '-':
-          if (isEditing && (e.ctrlKey || e.metaKey)) {
-            handleZoomOut();
-            preventDefault = true;
-          }
-          break;
-
-        case '0':
-          if (isEditing && (e.ctrlKey || e.metaKey)) {
-            handleZoomReset();
-            preventDefault = true;
-          }
-          break;
+      if (e.key === 'ArrowLeft') {
+        preventDefault = handleArrowLeftKey();
+      } else if (e.key === 'ArrowRight') {
+        preventDefault = handleArrowRightKey();
+      } else if (e.key === 'Escape') {
+        preventDefault = handleEscapeKey();
+      } else if (e.key === '+' || e.key === '=') {
+        preventDefault = handlePlusKey(e);
+      } else if (e.key === '-') {
+        preventDefault = handleMinusKey(e);
+      } else if (e.key === '0') {
+        preventDefault = handleZeroKey(e);
       }
 
       if (preventDefault) {
@@ -693,22 +713,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [
-    moduleState,
-    imageTransform.scale,
-    imageTransform.translateX,
-    imageTransform.translateY,
-    activeHotspotInfoId,
-    pendingHotspot, // Added pendingHotspot
-    isEditing,
-    handlePrevStep,
-    handleNextStep,
-    handleZoomIn,
-    handleZoomOut,
-    handleZoomReset,
-    setImageTransform, // Added setImageTransform
-    setActiveHotspotInfoId, // Added setActiveHotspotInfoId
-    setPendingHotspot, // Added setPendingHotspot
-    debugLog // Added debugLog
+    debugLog,
+    handleArrowLeftKey,
+    handleArrowRightKey,
+    handleEscapeKey,
+    handlePlusKey,
+    handleMinusKey,
+    handleZeroKey
   ]);
 
 // Universal InfoPanel positioning
