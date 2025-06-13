@@ -89,6 +89,32 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
 
+  const handleCenter = useCallback(() => {
+    const container = scrollableContainerRef.current;
+    const imageDisplay = zoomedImageContainerRef.current; // Or actualImageRef.current depending on what needs centering
+    if (container && imageDisplay) {
+      // const containerRect = container.getBoundingClientRect();
+      // const imageRect = imageDisplay.getBoundingClientRect(); // Get dimensions of the zoomed image or its container
+
+      // Calculate scroll positions to center the image
+      // This logic might need adjustment based on how `editingZoom` affects `imageDisplay` dimensions
+      // The goal is to set scrollLeft and scrollTop to center the content of imageDisplay within container.
+      // A common approach:
+      // container.scrollLeft = Math.max(0, (imageDisplay.scrollWidth * editingZoom - containerRect.width) / 2);
+      // container.scrollTop = Math.max(0, (imageDisplay.scrollHeight * editingZoom - containerRect.height) / 2);
+      // If using actualImageRef and its dimensions directly:
+
+      // Simplified centering:
+      // Get current dimensions of the scaled image content
+      const imageContentWidth = (actualImageRef.current?.width || 0) * editingZoom;
+      const imageContentHeight = (actualImageRef.current?.height || 0) * editingZoom;
+
+      // Calculate scroll position to center this content within the container
+      container.scrollLeft = Math.max(0, (imageContentWidth - container.clientWidth) / 2);
+      container.scrollTop = Math.max(0, (imageContentHeight - container.clientHeight) / 2);
+    }
+  }, [editingZoom]); // Add other dependencies if necessary, like actualImageRef
+
   const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
   const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
   
@@ -792,9 +818,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           </div>
 
           {/* Fixed Right Sidebar */}
-          <div className="w-80 bg-slate-800 border-l border-slate-600 flex flex-col">
+          <div className="w-80 bg-slate-800 flex flex-col">
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-slate-600">
+            <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {/* Back Button */}
@@ -851,74 +877,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 </div>
               </div>
 
-              {/* Zoom Controls */}
+              {/* Compact Status Bar */}
               {backgroundImage && (
-                <div className="mt-3 pt-3 border-t border-slate-600">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-300">Image Zoom</span>
-                      <span className="text-xs text-slate-400" title="Hold Ctrl and scroll to zoom at cursor position">
-                        (Ctrl+Scroll)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleZoomOut}
-                        className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
-                        title="Zoom out (5%)"
-                      >
-                        -
-                      </button>
-                      <span className="text-slate-300 text-sm min-w-[50px] text-center">
-                        {Math.round(editingZoom * 100)}%
-                      </span>
-                      <button
-                        onClick={handleZoomIn}
-                        className="bg-slate-700 hover:bg-slate-600 text-slate-300 w-7 h-7 rounded text-sm transition-colors flex items-center justify-center"
-                        title="Zoom in (5%)"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between py-2 px-1 bg-slate-700/30 rounded text-xs mt-3">
+                  <span className="text-slate-400">Zoom: {Math.round(editingZoom * 100)}%</span>
                   <div className="flex gap-1">
-                    <button
-                      onClick={handleZoomReset}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded text-xs transition-colors"
-                      title="Reset to 100%"
-                    >
-                      Reset
-                    </button>
-                    <button
-                      onClick={() => {
-                        // Center the image in the scroll container
-                        const container = scrollableContainerRef.current;
-                        if (container && zoomedImageContainerRef.current) {
-                          const containerRect = container.getBoundingClientRect();
-                          const imageRect = zoomedImageContainerRef.current.getBoundingClientRect();
-                          
-                          container.scrollLeft = Math.max(0, (imageRect.width - containerRect.width) / 2);
-                          container.scrollTop = Math.max(0, (imageRect.height - containerRect.height) / 2);
-                        }
-                      }}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white h-7 rounded text-xs transition-colors"
-                      title="Center image in view"
-                    >
-                      Center
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingZoom(1);
-                        if (scrollableContainerRef.current) {
-                          scrollableContainerRef.current.scrollLeft = 0;
-                          scrollableContainerRef.current.scrollTop = 0;
-                        }
-                      }}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded text-xs transition-colors"
-                      title="Fit image to container width"
-                    >
-                      Fit
-                    </button>
+                    <button onClick={handleZoomReset} className="text-purple-400 hover:text-purple-300" title="Reset Zoom (R)">Reset</button>
+                    <button onClick={handleCenter} className="text-green-400 hover:text-green-300" title="Center Image (C)">Center</button>
                   </div>
                 </div>
               )}
@@ -1135,7 +1100,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           {/* Fixed Bottom Timeline */}
           <div className="absolute bottom-0 left-0 right-80 z-10">
             {backgroundImage && uniqueSortedSteps.length > 0 && (
-              <div className="bg-slate-800/95 backdrop-blur-sm border-t border-slate-600 shadow-lg">
+              <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
                 <HorizontalTimeline
                   uniqueSortedSteps={uniqueSortedSteps}
                   currentStep={currentStep}

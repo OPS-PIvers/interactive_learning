@@ -123,101 +123,72 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   };
 
   const renderHeader = () => (
-    <div className="p-4 border-b border-slate-600">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`w-4 h-4 rounded-full ${selectedHotspot.color || 'bg-gray-500'}`} />
-        <div className="flex-1">
-          <h3 className="font-semibold text-slate-100">{selectedHotspot.title}</h3>
-          <p className="text-xs text-slate-400">
-            Position: {selectedHotspot.x.toFixed(1)}%, {selectedHotspot.y.toFixed(1)}%
-          </p>
-        </div>
+    {/* Hotspot Quick Info */}
+    <div className="bg-slate-700/50 rounded-lg p-3 m-4"> {/* Added m-4 for spacing similar to old p-4 */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`w-3 h-3 rounded-full ${selectedHotspot.color || 'bg-gray-400'}`} /> {/* Added fallback color */}
+        <h3 className="font-medium text-slate-100 flex-1">{selectedHotspot.title}</h3>
       </div>
 
+      <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+        <span>Position: {selectedHotspot.x.toFixed(1)}%, {selectedHotspot.y.toFixed(1)}%</span>
+        <span>{relatedEvents.length} events</span>
+      </div>
+
+      {/* Action Buttons - Horizontal Layout */}
       <div className="flex gap-2">
         <button
-          onClick={handleAddEvent}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-        >
+          onClick={handleAddEvent} // Assumes handleAddEvent is defined or calls props.onAddEvent
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-sm font-medium flex items-center justify-center gap-1">
           <PlusIcon className="w-4 h-4" />
           Add Event
         </button>
         <button
           onClick={() => onEditHotspot(selectedHotspot)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
-          title="Edit Properties"
+          className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+          title="Edit Properties" // Added title for clarity
         >
           <PencilIcon className="w-4 h-4" />
         </button>
         <button
-          onClick={handleDeleteHotspot}
-          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
-          title="Delete Hotspot"
+          onClick={handleDeleteHotspot} // Assumes handleDeleteHotspot is defined
+          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
+          title="Delete Hotspot" // Added title for clarity
         >
           <TrashIcon className="w-4 h-4" />
         </button>
       </div>
-
-      {/* Add Event Modal */}
-      {showAddEventModal && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">Add New Event</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Event Type</label>
-                <EventTypeSelector
-                  value={newEventType}
-                  onChange={setNewEventType}
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleCreateEvent}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Create Event
-              </button>
-              <button
-                onClick={() => setShowAddEventModal(false)}
-                className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 
   const renderTabs = () => (
-    <div className="flex border-b border-slate-600">
-      {[
-        { id: 'properties', label: 'Properties', icon: '⚙️' },
-        { id: 'events', label: 'Events', icon: '📅', badge: relatedEvents.length }
-      ].map(tab => (
-        <button
-          key={tab.id}
-          onClick={() => setActiveTab(tab.id as any)}
-          className={`flex-1 px-4 py-3 text-sm font-medium tab-transition flex items-center justify-center gap-2 ${
-            activeTab === tab.id
-              ? 'bg-purple-600 text-white border-b-2 border-purple-400'
-              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-700'
-          }`}
-        >
-          <span>{tab.icon}</span>
-          {tab.label}
-          {tab.badge && (
-            <span className="bg-slate-600 text-xs px-2 py-1 rounded-full">
-              {tab.badge}
-            </span>
-          )}
-        </button>
-      ))}
+    {/* Integrated Tabs */}
+    <div className="flex bg-slate-700/30 rounded-lg p-1 mx-4 mb-4"> {/* Added mx-4 for horizontal alignment with header */}
+      <button
+        onClick={() => setActiveTab('properties')}
+        className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-all ${
+          activeTab === 'properties'
+            ? 'bg-slate-600 text-white shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+        }`}
+      >
+        Properties
+      </button>
+      <button
+        onClick={() => setActiveTab('events')}
+        className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+          activeTab === 'events'
+            ? 'bg-slate-600 text-white shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+        }`}
+      >
+        Events
+        {relatedEvents.length > 0 && (
+          <span className="bg-purple-500 text-xs px-1.5 py-0.5 rounded-full">
+            {relatedEvents.length}
+          </span>
+        )}
+      </button>
     </div>
   );
 
@@ -352,6 +323,40 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
       <div className="flex-1 overflow-y-auto toolbar-scroll">
         {activeTab === 'properties' ? renderPropertiesTab() : renderEventsTab()}
       </div>
+
+      {/* Add Event Modal - Moved here from renderHeader */}
+      {showAddEventModal && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">Add New Event</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Event Type</label>
+                <EventTypeSelector
+                  value={newEventType}
+                  onChange={setNewEventType}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleCreateEvent}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Create Event
+              </button>
+              <button
+                onClick={() => setShowAddEventModal(false)}
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
