@@ -52,6 +52,7 @@ export interface HotspotData {
   y: number; // percentage 0-100
   title: string;
   description: string;
+  // Uses HotspotColorClass for type safety, restricting colors to a predefined set of Tailwind CSS classes defined in HOTSPOT_COLORS.
   color?: HotspotColorClass; // e.g., 'bg-red-500'
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   
