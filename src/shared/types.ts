@@ -52,7 +52,7 @@ export interface HotspotData {
   y: number; // percentage 0-100
   title: string;
   description: string;
-  color?: string; // e.g., 'bg-red-500'
+  color?: HotspotColorClass; // e.g., 'bg-red-500'
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   
   // NEW: Add default pulse setting (optional)
@@ -99,7 +99,17 @@ export interface Project {
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
 
-export const HOTSPOT_COLORS = [
+export type HotspotColorClass =
+  | "bg-red-500"
+  | "bg-blue-500"
+  | "bg-green-500"
+  | "bg-yellow-500"
+  | "bg-purple-500"
+  | "bg-pink-500"
+  | "bg-indigo-500"
+  | "bg-gray-500";
+
+export const HOTSPOT_COLORS: HotspotColorClass[] = [
   "bg-red-500",
   "bg-blue-500",
   "bg-green-500",

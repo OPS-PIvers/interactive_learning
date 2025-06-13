@@ -33,7 +33,11 @@ const HotspotEditModal: React.FC<HotspotEditModalProps> = ({
 
   useEffect(() => {
     if (hotspot) {
-      setEditingHotspot({ ...hotspot, size: hotspot.size || 'medium' });
+      setEditingHotspot({
+        ...hotspot,
+        size: hotspot.size || 'medium',
+        color: hotspot.color || HOTSPOT_COLORS[0],
+      });
     }
   }, [hotspot]);
 
