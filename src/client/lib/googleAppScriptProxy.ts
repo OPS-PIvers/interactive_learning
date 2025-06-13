@@ -122,16 +122,14 @@ const getRunner = () => {
         try {
           const index = mockProjectsDB.findIndex(p => p.id === project.id);
           if (index !== -1) {
-            // Simulate creation of thumbnail from background image if not present (simple logic)
             const projectCopy = JSON.parse(JSON.stringify(project));
+            // Simulate background image processing for thumbnail and other server-side transformations
             if (projectCopy.interactiveData.backgroundImage && !projectCopy.thumbnailUrl) {
-                projectCopy.thumbnailUrl = projectCopy.interactiveData.backgroundImage;
+                projectCopy.thumbnailUrl = projectCopy.interactiveData.backgroundImage; // Simulate thumbnail
             }
             mockProjectsDB[index] = projectCopy;
-            this._successCallback(undefined, this._userObject); // gs_saveProject often returns void or a success message string
+            this._successCallback(projectCopy, this._userObject); // Return the project
           } else {
-            // Optionally, create if not found, or error out.
-            // For this mock, let's assume it should exist for save.
              this._failureCallback(new Error(`Mock: Project with ID ${project.id} not found for saving.`), this._userObject);
           }
         } catch (e) {
@@ -147,7 +145,7 @@ const getRunner = () => {
           const initialLength = mockProjectsDB.length;
           mockProjectsDB = mockProjectsDB.filter(p => p.id !== projectId);
           if (mockProjectsDB.length < initialLength) {
-            this._successCallback(undefined, this._userObject); // gs_deleteProject often returns void or a success message string
+            this._successCallback({ success: true, projectId: projectId }, this._userObject); // Return success object
           } else {
             this._failureCallback(new Error(`Mock: Project with ID ${projectId} not found for deletion.`), this._userObject);
           }
@@ -188,25 +186,21 @@ export const appScriptProxy = {
     });
   },
 
-  saveProject: async (project: Project): Promise<void> => {
-    // Note: The server-side gs_saveProject might return the updated project or just a success status.
-    // This proxy matches void for simplicity with current mock setup.
-    // If gs_saveProject returns the updated Project, change Promise<void> to Promise<Project>.
+  saveProject: async (project: Project): Promise<Project> => { // Changed to Promise<Project>
     console.log(`appScriptProxy: Forwarding to (mock or real) gs_saveProject for project ID: ${project.id}`);
     return new Promise((resolve, reject) => {
       getRunner()
-        .withSuccessHandler((response) => resolve(response)) // Handle potential response from save
+        .withSuccessHandler((savedProject: Project, userObject?: any) => resolve(savedProject)) // Resolve with savedProject
         .withFailureHandler(reject)
         .gs_saveProject(project);
     });
   },
 
-  deleteProject: async (projectId: string): Promise<void> => {
-    // Similar to save, if gs_deleteProject returns specific data, adjust Promise type.
+  deleteProject: async (projectId: string): Promise<{ success: true, projectId: string }> => { // Changed return type
     console.log(`appScriptProxy: Forwarding to (mock or real) gs_deleteProject for project ID: ${projectId}`);
     return new Promise((resolve, reject) => {
       getRunner()
-        .withSuccessHandler((response) => resolve(response))
+        .withSuccessHandler((response: { success: true, projectId: string }, userObject?: any) => resolve(response)) // Resolve with response
         .withFailureHandler(reject)
         .gs_deleteProject(projectId);
     });
