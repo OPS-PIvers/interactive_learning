@@ -68,7 +68,7 @@ const ImageControls: React.FC<ImageControlsProps> = ({
         </button>
       </div>
 
-      {/* Image Fit Controls */}
+      {/* Image Fit Controls Commented Out
       <div className="mb-3">
         <label className="block text-sm font-medium text-slate-300 mb-2">
           Image Display Mode
@@ -113,8 +113,9 @@ const ImageControls: React.FC<ImageControlsProps> = ({
           </div>
         </div>
       </div>
+      */}
 
-      {/* Viewport Zoom Controls */}
+      {/* Viewport Zoom Controls Commented Out
       {onViewportZoomChange && (
         <div className="mb-3">
           <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -159,6 +160,7 @@ const ImageControls: React.FC<ImageControlsProps> = ({
           </div>
         </div>
       )}
+      */}
 
       {/* Image Replacement Upload */}
       {showReplaceUpload && (
