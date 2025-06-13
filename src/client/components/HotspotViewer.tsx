@@ -103,7 +103,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
   const containerClasses = `absolute transform -translate-x-1/2 -translate-y-1/2 group ${
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
-  } ${isDragging ? 'z-50' : ''}`;
+} ${isDragging ? 'z-50' : 'z-20'}`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isDragging) return; // Don't trigger click during drag
