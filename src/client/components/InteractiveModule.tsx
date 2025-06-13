@@ -8,6 +8,7 @@ import InfoPanel from './InfoPanel';
 import HotspotEditModal from './HotspotEditModal';
 import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
+import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -456,6 +457,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setCurrentStep(uniqueSortedSteps[0] || 1); 
   };
 
+  const handleStartExploring = useCallback(() => {
+    setModuleState('idle');
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
+    setActiveHotspotInfoId(null);
+  }, []);
+
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
       const currentIndex = uniqueSortedSteps.indexOf(currentStep);
@@ -692,7 +700,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
   return (
-    <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'flex flex-col h-full'}`}>
+    <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
       {isEditing ? (
         <div className="fixed inset-0 z-50 bg-slate-900 pt-14"> {/* Add pt-14 for toolbar space */}
           {/* Add Toolbar */}
@@ -900,161 +908,136 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         </div>
         </div>
       ) : (
-        /* Non-Editing Mode - Viewer Layout */
-        <div className="flex flex-col h-full">
-          <div className="flex flex-row gap-6 flex-1">
-            <div className="flex flex-col relative w-full">
-              
-              <div 
-                ref={imageContainerRef}
-                className="relative w-full flex-1 bg-slate-900 rounded-lg overflow-auto shadow-lg"
-                style={{ cursor: 'default' }}
-                onClick={handleImageClick}
-                role={backgroundImage ? "button" : undefined}
-                aria-label={backgroundImage ? "Interactive image" : undefined}
-              >
-                {backgroundImage ? (
-                  <>
-                    {/* Back Button for Viewer Mode */}
-                    {onClose && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <button
-                          onClick={onClose}
-                          className="flex items-center gap-2 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white px-3 py-2 rounded-lg shadow-xl transition-all"
-                          title="Back to Projects"
-                        >
-                          <ChevronLeftIcon className="w-5 h-5" />
-                          <span className="text-sm font-medium">Back</span>
-                        </button>
+        /* New Viewer Layout */
+        <div className="fixed inset-0 z-50 bg-slate-900 pt-14">
+          {/* Add ViewerToolbar */}
+          <ViewerToolbar
+            projectName={projectName}
+            onBack={onClose || (() => {})}
+            moduleState={moduleState}
+            onStartLearning={handleStartLearning}
+            onStartExploring={handleStartExploring}
+            hasContent={!!backgroundImage}
+          />
+          
+          {/* Main content area */}
+          <div className="flex flex-col h-full">
+            {/* Image container - full width */}
+            <div className="flex-1 relative bg-slate-900">
+              <div className="absolute inset-0">
+                <div 
+                  ref={imageContainerRef}
+                  className="w-full h-full flex items-center justify-center bg-slate-900"
+                  style={{ cursor: 'default' }}
+                  onClick={handleImageClick}
+                  role={backgroundImage ? "button" : undefined}
+                  aria-label={backgroundImage ? "Interactive image" : undefined}
+                >
+                  {backgroundImage ? (
+                    <>
+                      <div 
+                        ref={scaledImageDivRef}
+                        className="relative"
+                        style={{
+                          backgroundImage: `url(${backgroundImage})`,
+                          backgroundSize: imageFitMode, 
+                          backgroundPosition: 'center', 
+                          backgroundRepeat: 'no-repeat',
+                          transformOrigin: 'center',
+                          transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
+                          transition: 'transform 0.5s ease-in-out',
+                          width: '80vw', // Centered, not full width
+                          height: '80vh',
+                          maxWidth: '1200px',
+                          maxHeight: '800px'
+                        }}
+                        aria-hidden="true"
+                      >
+                        {(moduleState === 'learning' || isEditing) && highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
+                          <div className="absolute inset-0 pointer-events-none" style={getHighlightGradientStyle()} aria-hidden="true"/>
+                        )}
+                        {hotspots.map(hotspot => (
+                          (isEditing || (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle')) && 
+                          <HotspotViewer
+                            key={hotspot.id}
+                            hotspot={hotspot}
+                            isPulsing={(moduleState === 'learning' || isEditing) && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                            isDimmedInEditMode={false}
+                            isEditing={isEditing}
+                            onFocusRequest={handleFocusHotspot}
+                            onPositionChange={undefined}
+                            isContinuouslyPulsing={moduleState === 'idle' && !isEditing && !exploredHotspotId}
+                          />
+                        ))}
                       </div>
-                    )}
-                    
-                    <div 
-                      ref={scaledImageDivRef}
-                      className="absolute w-full h-full"
-                      style={{
-                        backgroundImage: `url(${backgroundImage})`,
-                        backgroundSize: imageFitMode, 
-                        backgroundPosition: 'center', 
-                        backgroundRepeat: 'no-repeat',
-                        transformOrigin: '0 0',
-                        transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                        transition: 'transform 0.5s ease-in-out',
-                      }}
-                      aria-hidden="true"
-                    >
-                      {(moduleState === 'learning' || isEditing) && highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                        <div className="absolute inset-0 pointer-events-none" style={getHighlightGradientStyle()} aria-hidden="true"/>
-                      )}
-                      {hotspots.map(hotspot => (
-                        (isEditing || (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle')) && 
-                        <HotspotViewer
-                          key={hotspot.id}
-                          hotspot={hotspot}
-                          isPulsing={(moduleState === 'learning' || isEditing) && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                          isDimmedInEditMode={false}
-                          isEditing={isEditing}
-                          onFocusRequest={handleFocusHotspot}
-                          onPositionChange={undefined}
-                          isContinuouslyPulsing={moduleState === 'idle' && !isEditing && !exploredHotspotId}
-                        />
-                      ))}
-                    </div>
-                    
-                    {!isEditing && backgroundImage && moduleState === 'learning' && uniqueSortedSteps.length > 0 && (
-                      <div className="image-navigation-controls absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-black/50 backdrop-blur-sm p-2 rounded-lg shadow-xl">
-                        <button
-                          onClick={handlePrevStep}
-                          disabled={currentStepIndex === 0}
-                          className="p-2 rounded-full text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          aria-label="Previous step"
-                        ><ChevronLeftIcon className="w-6 h-6" /></button>
-                        <button
-                          onClick={handleNextStep}
-                          disabled={currentStepIndex >= totalTimelineInteractionPoints - 1}
-                          className="p-2 rounded-full text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          aria-label="Next step"
-                        ><ChevronRightIcon className="w-6 h-6" /></button>
-                      </div>
-                    )}
-
-                    {moduleState === 'idle' && !isEditing && backgroundImage && (
-                      <div className="initial-view-buttons absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                        <div className="text-center space-y-6 p-8 bg-black/60 rounded-2xl border border-white/20 shadow-2xl max-w-md">
-                          <div>
-                            <h2 className="text-2xl font-bold text-white mb-2">Interactive Module Ready</h2>
-                            <p className="text-slate-300 text-sm">Choose how you'd like to explore this content</p>
-                          </div>
-                          <div className="flex flex-col space-y-3">
-                            <button
-                              onClick={() => {
-                                setModuleState('idle');
-                                setExploredHotspotId(null);
-                                setExploredHotspotPanZoomActive(false);
-                                setActiveHotspotInfoId(null);
-                              }}
-                              className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200"
-                            >
-                              Explore Module
-                            </button>
-                            <button
-                              onClick={handleStartLearning}
-                              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200"
-                            >
-                              Start Guided Tour
-                            </button>
+                      
+                      {/* Initial view buttons overlay when in idle mode */}
+                      {moduleState === 'idle' && !isEditing && backgroundImage && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                          <div className="text-center space-y-6 p-8 bg-black/60 rounded-2xl border border-white/20 shadow-2xl max-w-md">
+                            <div>
+                              <h2 className="text-2xl font-bold text-white mb-2">Interactive Module Ready</h2>
+                              <p className="text-slate-300 text-sm">Choose how you'd like to explore this content</p>
+                            </div>
+                            <div className="flex flex-col space-y-3">
+                              <button
+                                onClick={handleStartExploring}
+                                className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200"
+                              >
+                                Explore Module
+                              </button>
+                              <button
+                                onClick={handleStartLearning}
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200"
+                              >
+                                Start Guided Tour
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                     {/* Draggable InfoPanel */}
-                    {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
-                      <InfoPanel
-                        hotspot={activeInfoHotspot}
-                        anchorX={infoPanelAnchor.x}
-                        anchorY={infoPanelAnchor.y}
-                        imageContainerRect={imageContainerRect}
-                        isEditing={isEditing}
-                        onRemove={handleRemoveHotspot}
-                        onEditRequest={handleEditHotspotRequest}
-                        imageTransform={imageTransform}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400 relative">
-                    {/* Back Button for Viewer Mode when no image */}
-                    {onClose && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <button
-                          onClick={onClose}
-                          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg shadow-xl transition-all"
-                          title="Back to Projects"
-                        >
-                          <ChevronLeftIcon className="w-5 h-5" />
-                          <span className="text-sm font-medium">Back</span>
-                        </button>
-                      </div>
-                    )}
-                    <p>No background image set.</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Timeline pinned to bottom of image container */}
-              {backgroundImage && (moduleState === 'learning' || isEditing) && uniqueSortedSteps.length > 0 && (
-                <div className="mt-2 bg-slate-800/70 backdrop-blur-sm rounded-lg shadow-md">
-                  <HorizontalTimeline
-                      uniqueSortedSteps={uniqueSortedSteps}
-                      currentStep={currentStep}
-                      onStepSelect={handleTimelineDotClick}
-                      isEditing={isEditing}
-                      timelineEvents={timelineEvents}
-                      hotspots={hotspots}
-                  />
+                      )}
+                      
+                      {/* InfoPanel */}
+                      {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
+                        <InfoPanel
+                          hotspot={activeInfoHotspot}
+                          anchorX={infoPanelAnchor.x}
+                          anchorY={infoPanelAnchor.y}
+                          imageContainerRect={imageContainerRect}
+                          isEditing={isEditing}
+                          onRemove={handleRemoveHotspot}
+                          onEditRequest={handleEditHotspotRequest}
+                          imageTransform={imageTransform}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center text-slate-400">
+                      <p>No background image set.</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
+            
+            {/* Timeline at bottom - full width */}
+            {backgroundImage && uniqueSortedSteps.length > 0 && (
+              <div className="bg-slate-800 border-t border-slate-700">
+                <HorizontalTimeline
+                  uniqueSortedSteps={uniqueSortedSteps}
+                  currentStep={currentStep}
+                  onStepSelect={handleTimelineDotClick}
+                  isEditing={isEditing}
+                  timelineEvents={timelineEvents}
+                  hotspots={hotspots}
+                  moduleState={moduleState}
+                  onPrevStep={handlePrevStep}
+                  onNextStep={handleNextStep}
+                  currentStepIndex={currentStepIndex}
+                  totalSteps={totalTimelineInteractionPoints}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

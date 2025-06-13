@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { TimelineEventData, HotspotData } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -10,6 +12,11 @@ interface HorizontalTimelineProps {
   timelineEvents: TimelineEventData[];
   hotspots: HotspotData[];
   showPreviews?: boolean; // New optional prop
+  moduleState?: 'idle' | 'learning';
+  onPrevStep?: () => void;
+  onNextStep?: () => void;
+  currentStepIndex?: number;
+  totalSteps?: number;
 }
 
 const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
@@ -20,6 +27,11 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   timelineEvents,
   hotspots,
   showPreviews = true,
+  moduleState,
+  onPrevStep,
+  onNextStep,
+  currentStepIndex,
+  totalSteps,
 }) => {
   // Add state for preview
   const [activePreview, setActivePreview] = useState<number | null>(null);
@@ -120,46 +132,80 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     }
   }, [onStepSelect, showPreviews]);
 
-  return (
-    <div className="w-full px-4 py-2" aria-label="Module Timeline">
-      <div className="relative w-full h-8 flex items-center">
-        {/* Timeline track */}
-        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
-
-        {/* Timeline dots */}
-        <div className="relative w-full flex items-center justify-between">
-          {uniqueSortedSteps.map((step, index) => {
-            const isActive = step === currentStep;
-            return (
-              <button
-                key={step}
-                onClick={(event) => handleStepClick(step, event)}
-                className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
-                  ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                  flex items-center justify-center
-                `}
-                aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-                aria-current={isActive ? "step" : undefined}
-                title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-              >
-                {/* Optional: Inner dot or number if needed, for now just color indicates active */}
-                 {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Preview Card */}
-        {activePreview && showPreviews && (
-          <EventPreviewCard
-            step={activePreview}
-            events={timelineEvents}
-            hotspots={hotspots}
-            position={previewPosition}
-            onClose={() => setActivePreview(null)}
-          />
-        )}
+  // Add navigation section for viewer mode
+  const renderNavigationControls = () => {
+    if (isEditing || moduleState !== 'learning') return null;
+    
+    return (
+      <div className="flex items-center justify-center gap-4 py-2">
+        <button
+          onClick={onPrevStep}
+          disabled={currentStepIndex === 0}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+        >
+          <ChevronLeftIcon className="w-4 h-4" />
+          Previous
+        </button>
+        
+        <span className="text-slate-300 text-sm">
+          Step {(currentStepIndex || 0) + 1} of {totalSteps}
+        </span>
+        
+        <button
+          onClick={onNextStep}
+          disabled={currentStepIndex !== undefined && totalSteps !== undefined && currentStepIndex >= totalSteps - 1}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+        >
+          Next
+          <ChevronRightIcon className="w-4 h-4" />
+        </button>
       </div>
+    );
+  };
+
+  return (
+    <div className="w-full" aria-label="Module Timeline">
+      <div className="px-4 py-2">
+        <div className="relative w-full h-8 flex items-center">
+          {/* Timeline track */}
+          <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
+
+          {/* Timeline dots */}
+          <div className="relative w-full flex items-center justify-between">
+            {uniqueSortedSteps.map((step, index) => {
+              const isActive = step === currentStep;
+              return (
+                <button
+                  key={step}
+                  onClick={(event) => handleStepClick(step, event)}
+                  className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                    ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                    flex items-center justify-center
+                  `}
+                  aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                  aria-current={isActive ? "step" : undefined}
+                  title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                >
+                  {/* Optional: Inner dot or number if needed, for now just color indicates active */}
+                   {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Preview Card */}
+          {activePreview && showPreviews && (
+            <EventPreviewCard
+              step={activePreview}
+              events={timelineEvents}
+              hotspots={hotspots}
+              position={previewPosition}
+              onClose={() => setActivePreview(null)}
+            />
+          )}
+        </div>
+      </div>
+      {renderNavigationControls()}
     </div>
   );
 };
