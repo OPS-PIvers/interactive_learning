@@ -123,8 +123,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   };
 
   const renderHeader = () => (
-    {/* Hotspot Quick Info */}
-    <div className="bg-slate-700/50 rounded-lg p-3 m-4"> {/* Added m-4 for spacing similar to old p-4 */}
+    <div className="bg-slate-700/50 rounded-lg p-3 m-4"> {/* Hotspot Quick Info - Added m-4 for spacing similar to old p-4 */}
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-3 h-3 rounded-full ${selectedHotspot.color || 'bg-gray-400'}`} /> {/* Added fallback color */}
         <h3 className="font-medium text-slate-100 flex-1">{selectedHotspot.title}</h3>
@@ -162,8 +161,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   );
 
   const renderTabs = () => (
-    {/* Integrated Tabs */}
-    <div className="flex bg-slate-700/30 rounded-lg p-1 mx-4 mb-4"> {/* Added mx-4 for horizontal alignment with header */}
+    <div className="flex bg-slate-700/30 rounded-lg p-1 mx-4 mb-4"> {/* Integrated Tabs - Added mx-4 for horizontal alignment with header */}
       <button
         onClick={() => setActiveTab('properties')}
         className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-all ${
