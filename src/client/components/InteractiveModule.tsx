@@ -5,10 +5,9 @@ import HotspotViewer from './HotspotViewer';
 import TimelineControls from './TimelineControls';
 import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
-import HotspotPulseSettings from './HotspotPulseSettings';
 import HotspotEditModal from './HotspotEditModal';
 import HotspotEditorToolbar from './HotspotEditorToolbar';
-import ImageControls from './ImageControls';
+import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import { PlusIcon } from './icons/PlusIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -48,7 +47,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // New state for enhanced features
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
-  const [showPulseSettings, setShowPulseSettings] = useState<boolean>(false);
+  const [colorScheme, setColorScheme] = useState<string>('Default');
+  const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
   const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
@@ -523,10 +523,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     const title = prompt("Enter hotspot title:", "New Hotspot");
     if (!title) { setPendingHotspot(null); return; }
     const description = prompt("Enter hotspot description:", "");
+    
+    // Get current color scheme
+    const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
+    
     const newHotspot: HotspotData = {
       id: `h${Date.now()}`, x: imageXPercent, y: imageYPercent, title,
       description: description || "Default description",
-      color: ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'][hotspots.length % 5],
+      color: currentScheme.colors[hotspots.length % currentScheme.colors.length],
       size: 'medium' // Default size
     };
     setHotspots(prev => [...prev, newHotspot]);
@@ -541,7 +545,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setCurrentStep(newEventStep); 
       setActiveHotspotInfoId(newHotspot.id); // Show info panel for newly added hotspot in editor
     }
-  }, [hotspots, timelineEvents, editorMaxStep, isEditing]);
+  }, [hotspots, colorScheme, timelineEvents, editorMaxStep, isEditing]);
 
   const handleEditHotspotRequest = useCallback((hotspotId: string) => {
     const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
@@ -690,9 +694,31 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   return (
     <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'flex flex-col h-full'}`}>
       {isEditing ? (
-        /* Full-Screen Editing Layout */
-        <div className="flex h-screen">
-          {/* Main Image Canvas Area */}
+        <div className="fixed inset-0 z-50 bg-slate-900 pt-14"> {/* Add pt-14 for toolbar space */}
+          {/* Add Toolbar */}
+          <EditorToolbar
+            projectName={projectName}
+            onBack={onClose || (() => {})}
+            onReplaceImage={handleImageUpload}
+            isAutoProgression={isTimedMode}
+            onToggleAutoProgression={setIsTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
+            onAutoProgressionDurationChange={setAutoProgressionDuration}
+            currentZoom={editingZoom}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomReset={handleZoomReset}
+            onCenter={handleCenter}
+            currentColorScheme={colorScheme}
+            onColorSchemeChange={setColorScheme}
+            onSave={handleSave}
+            isSaving={isSaving}
+            showSuccessMessage={showSuccessMessage}
+          />
+          
+          {/* Main editing content - remove toolbar height */}
+          <div className="flex h-full">
+            {/* Main Image Canvas Area */}
           <div className="flex-1 relative bg-slate-900">
             {/* Full-screen image container with zoom */}
             <div className="absolute inset-0">
@@ -819,247 +845,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
           {/* Fixed Right Sidebar */}
           <div className="w-80 bg-slate-800 flex flex-col">
-            {/* Sidebar Header */}
             <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {/* Back Button */}
-                  {onClose && (
-                    <button
-                      onClick={onClose}
-                      className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-white"
-                      title="Back to Projects"
-                    >
-                      <ChevronLeftIcon className="w-5 h-5" />
-                    </button>
-                  )}
-                  <h2 className="text-lg font-semibold text-slate-100">Module Editor</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Project Settings */}
-                  <button
-                    onClick={() => setShowPulseSettings(prev => !prev)}
-                    className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-white"
-                    title="Project Settings"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
-                  
-                  {/* Save Button */}
-                  <button 
-                    onClick={handleSave} 
-                    disabled={isSaving}
-                    className={`font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200 flex items-center space-x-2 ${
-                      isSaving 
-                        ? 'bg-green-500 cursor-not-allowed' 
-                        : showSuccessMessage 
-                          ? 'bg-green-500' 
-                          : 'bg-green-600 hover:bg-green-700'
-                    } text-white`}
-                  >
-                    {isSaving ? (
-                      <>
-                        <LoadingSpinnerIcon className="w-4 h-4" />
-                        <span>Saving...</span>
-                      </>
-                    ) : showSuccessMessage ? (
-                      <>
-                        <CheckIcon className="w-4 h-4" />
-                        <span>Saved!</span>
-                      </>
-                    ) : (
-                      <span>Save</span>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Compact Status Bar */}
+              <h2 className="text-lg font-semibold text-slate-100">Module Editor</h2>
               {backgroundImage && (
-                <div className="flex items-center justify-between py-2 px-1 bg-slate-700/30 rounded text-xs mt-3">
-                  <span className="text-slate-400">Zoom: {Math.round(editingZoom * 100)}%</span>
-                  <div className="flex gap-1">
-                    <button onClick={handleZoomReset} className="text-purple-400 hover:text-purple-300" title="Reset Zoom (R)">Reset</button>
-                    <button onClick={handleCenter} className="text-green-400 hover:text-green-300" title="Center Image (C)">Center</button>
-                  </div>
-                </div>
-              )}
-
-              {/* Project Settings Dropdown */}
-              {showPulseSettings && (
-                <div className="absolute right-4 top-16 w-96 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto">
-                  <div className="p-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-600">
-                      <h3 className="text-xl font-bold text-slate-100">Project Settings</h3>
-                      <button
-                        onClick={() => setShowPulseSettings(false)}
-                        className="text-slate-400 hover:text-slate-200 p-1 rounded transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    {/* Image Configuration Section */}
-                    <div className="mb-8">
-                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Image Configuration
-                      </h4>
-                      
-                      <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
-                        {!backgroundImage ? (
-                          <div>
-                            <p className="text-sm text-slate-300 mb-3">Upload a background image to get started</p>
-                            <FileUpload onFileUpload={handleImageUpload} />
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {/* Image Upload/Replace */}
-                            <div>
-                              <label className="block text-sm font-medium text-slate-300 mb-2">Background Image</label>
-                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded border border-slate-600 bg-slate-700 bg-cover bg-center" 
-                                     style={{ backgroundImage: `url(${backgroundImage})` }}></div>
-                                <div className="flex-1">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
-                                    className="hidden"
-                                    id="image-upload"
-                                  />
-                                  <label 
-                                    htmlFor="image-upload"
-                                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg cursor-pointer transition-colors"
-                                  >
-                                    Replace Image
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Display Mode */}
-                            <div>
-                              <label className="block text-sm font-medium text-slate-300 mb-3">Display Mode</label>
-                              <div className="grid grid-cols-3 gap-2">
-                                {[
-                                  { value: 'cover', label: 'Cover', desc: 'Fill container, crop if needed' },
-                                  { value: 'contain', label: 'Contain', desc: 'Fit entire image, may have gaps' },
-                                  { value: 'fill', label: 'Fill', desc: 'Stretch to fill container' }
-                                ].map(mode => (
-                                  <button
-                                    key={mode.value}
-                                    onClick={() => handleImageFitChange(mode.value as any)}
-                                    className={`p-3 rounded-lg border text-center transition-all ${
-                                      imageFitMode === mode.value
-                                        ? 'bg-blue-600 border-blue-500 text-white'
-                                        : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
-                                    }`}
-                                  >
-                                    <div className="font-medium text-sm">{mode.label}</div>
-                                    <div className="text-xs mt-1 opacity-80">{mode.desc}</div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Image Controls Section */}
-                    {backgroundImage && (
-                      <div className="mb-8">
-                        <ImageControls
-                          backgroundImage={backgroundImage}
-                          onImageUpload={handleImageUpload}
-                          onImageFit={(fitMode) => setImageFitMode(fitMode)}
-                          currentFitMode={imageFitMode}
-                          viewportZoom={viewportZoom}
-                          onViewportZoomChange={setViewportZoom}
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Module Behavior Section */}
-                    <div className="mb-8">
-                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                        </svg>
-                        Module Behavior
-                      </h4>
-                      
-                      <div className="bg-slate-700/50 rounded-lg p-4 space-y-4">
-                        {/* Auto-progression */}
-                        <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
-                          <div>
-                            <label className="text-sm font-medium text-slate-200">Auto-progression</label>
-                            <p className="text-xs text-slate-400 mt-1">Automatically advance through timeline steps</p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={isTimedMode}
-                              onChange={(e) => setIsTimedMode(e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                        
-                        {/* Project Stats */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-slate-700 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-blue-400">{timelineEvents.length}</div>
-                            <div className="text-xs text-slate-400">Timeline Events</div>
-                          </div>
-                          <div className="bg-slate-700 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-purple-400">{hotspots.length}</div>
-                            <div className="text-xs text-slate-400">Hotspots</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Hotspot Configuration Section */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Hotspot Configuration
-                      </h4>
-                      
-                      <div className="bg-slate-700/50 rounded-lg p-4">
-                        <div className="mb-3">
-                          <label className="block text-sm font-medium text-slate-300 mb-2">Default Animation Settings</label>
-                          <p className="text-xs text-slate-400 mb-3">Configure default pulse and animation settings for all hotspots</p>
-                        </div>
-                        
-                        <HotspotPulseSettings
-                          hotspots={hotspots}
-                          onUpdateHotspot={(hotspotId, updates) => {
-                            setHotspots(prevHotspots => prevHotspots.map(h =>
-                              h.id === hotspotId ? { ...h, ...updates } : h
-                            ));
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div className="text-xs text-slate-400 mt-2">
+                  Click on hotspots to edit • Click image to add new hotspots
                 </div>
               )}
             </div>
+
 
             {/* Sidebar Content */}
             <div className="flex-1 overflow-y-auto">
@@ -1112,6 +906,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               </div>
             )}
           </div>
+        </div>
         </div>
       ) : (
         /* Non-Editing Mode - Viewer Layout */
