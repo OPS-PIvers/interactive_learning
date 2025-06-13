@@ -85,35 +85,49 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // New state for editing mode
   const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
+  // Already exists for editor mode, ensure it's used in viewer mode too
   const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
 
+  // Debug mode for development
+  const [debugMode] = useState(() => process.env.NODE_ENV === 'development' && localStorage.getItem('debug_positioning') === 'true');
+
+  // Track if transform is transitioning for smooth animations
+  const [isTransforming, setIsTransforming] = useState(false);
+
   const handleCenter = useCallback(() => {
     const container = scrollableContainerRef.current;
-    const imageDisplay = zoomedImageContainerRef.current; // Or actualImageRef.current depending on what needs centering
-    if (container && imageDisplay) {
-      // const containerRect = container.getBoundingClientRect();
-      // const imageRect = imageDisplay.getBoundingClientRect(); // Get dimensions of the zoomed image or its container
+    if (!container || !actualImageRef.current) return; // Ensure actualImageRef.current also exists for safety
 
-      // Calculate scroll positions to center the image
-      // This logic might need adjustment based on how `editingZoom` affects `imageDisplay` dimensions
-      // The goal is to set scrollLeft and scrollTop to center the content of imageDisplay within container.
-      // A common approach:
-      // container.scrollLeft = Math.max(0, (imageDisplay.scrollWidth * editingZoom - containerRect.width) / 2);
-      // container.scrollTop = Math.max(0, (imageDisplay.scrollHeight * editingZoom - containerRect.height) / 2);
-      // If using actualImageRef and its dimensions directly:
+    // Check if there is an active transform targeting a hotspot
+    if (imageTransform.targetHotspotId && imageTransform.scale > 1) {
+      const targetHotspot = hotspots.find(h => h.id === imageTransform.targetHotspotId);
 
-      // Simplified centering:
-      // Get current dimensions of the scaled image content
-      const imageContentWidth = (actualImageRef.current?.width || 0) * editingZoom;
-      const imageContentHeight = (actualImageRef.current?.height || 0) * editingZoom;
+      if (targetHotspot) {
+        // Calculate base hotspot position on the unzoomed image (1x scale of actualImageRef content)
+        const hotspotXBase = (targetHotspot.x / 100) * actualImageRef.current.width;
+        const hotspotYBase = (targetHotspot.y / 100) * actualImageRef.current.height;
 
-      // Calculate scroll position to center this content within the container
-      container.scrollLeft = Math.max(0, (imageContentWidth - container.clientWidth) / 2);
-      container.scrollTop = Math.max(0, (imageContentHeight - container.clientHeight) / 2);
+        // Apply the editor's own canvas zoom (`editingZoom`) to this base position
+        const hotspotXEditorZoomed = hotspotXBase * editingZoom;
+        const hotspotYEditorZoomed = hotspotYBase * editingZoom;
+
+        // Scroll the container to center this editor-zoomed hotspot position
+        container.scrollLeft = Math.max(0, hotspotXEditorZoomed - (container.clientWidth / 2));
+        container.scrollTop = Math.max(0, hotspotYEditorZoomed - (container.clientHeight / 2));
+
+        return; // Centering handled for transformed hotspot
+      }
     }
-  }, [editingZoom]); // Add other dependencies if necessary, like actualImageRef
+
+    // Default centering logic: center the entire (potentially editor-zoomed) image content
+    const imageContentWidth = actualImageRef.current.width * editingZoom;
+    const imageContentHeight = actualImageRef.current.height * editingZoom;
+
+    container.scrollLeft = Math.max(0, (imageContentWidth - container.clientWidth) / 2);
+    container.scrollTop = Math.max(0, (imageContentHeight - container.clientHeight) / 2);
+  }, [editingZoom, imageTransform, hotspots]); // Dependencies as specified in the issue
 
   const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
   const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
@@ -149,17 +163,52 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, [timelineEvents]);
 
   useEffect(() => {
-    if (imageContainerRef.current) {
-      setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
-      const resizeObserver = new ResizeObserver(() => {
-        if (imageContainerRef.current) {
-          setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
-        }
-      });
-      resizeObserver.observe(imageContainerRef.current);
-      return () => resizeObserver.disconnect();
-    }
-  }, []);
+    if (!imageContainerRef.current) return;
+
+    let resizeTimer: number | null = null;
+
+    const handleResize = () => {
+      if (imageContainerRef.current) {
+        setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
+
+        // Debounce transform recalculation
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          // Recalculate transform if zoomed
+          if (imageTransform.scale > 1 && imageTransform.targetHotspotId) {
+            const targetHotspot = hotspots.find(h => h.id === imageTransform.targetHotspotId);
+            if (targetHotspot) {
+              const imageBounds = getImageBounds();
+              const viewportCenter = getViewportCenter();
+
+              if (imageBounds && viewportCenter) {
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                const translateX = viewportCenter.centerX - (hotspotX * imageTransform.scale) - imageBounds.left;
+                const translateY = viewportCenter.centerY - (hotspotY * imageTransform.scale) - imageBounds.top;
+
+                setImageTransform(prev => ({
+                  ...prev,
+                  translateX,
+                  translateY
+                }));
+              }
+            }
+          }
+        }, 100);
+      }
+    };
+
+    handleResize(); // Initial calculation
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(imageContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      if (resizeTimer) clearTimeout(resizeTimer);
+    };
+  }, [imageTransform.scale, imageTransform.targetHotspotId, hotspots, getImageBounds, getViewportCenter]);
 
   // Define wheel zoom handler before the useEffect that uses it
   const handleWheelZoom = useCallback((event: WheelEvent) => {
@@ -217,6 +266,182 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       height: img.naturalHeight
     });
   }, []);
+
+  // Universal helper to get the actual rendered image dimensions and position
+  const getImageBounds = useCallback(() => {
+    if (isEditing && actualImageRef.current && imageContainerRef.current) {
+      // Editor mode: Use actual img element
+      const imgRect = actualImageRef.current.getBoundingClientRect();
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+      return {
+        // Image dimensions as rendered
+        width: imgRect.width,
+        height: imgRect.height,
+        // Position relative to the image container
+        left: imgRect.left - containerRect.left,
+        top: imgRect.top - containerRect.top,
+        // Absolute position for other calculations
+        absoluteLeft: imgRect.left,
+        absoluteTop: imgRect.top
+      };
+    } else if (!isEditing && scaledImageDivRef.current && imageContainerRef.current && backgroundImage && imageNaturalDimensions) {
+      // Viewer mode: Calculate actual content area of background-image
+      const divRect = scaledImageDivRef.current.getBoundingClientRect();
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+      // Calculate actual rendered dimensions based on fit mode
+      const containerAspect = divRect.width / divRect.height;
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+
+      let width, height, left = 0, top = 0;
+
+      if (imageFitMode === 'cover') {
+        // Image covers entire container, may be clipped
+        if (containerAspect > imageAspect) {
+          width = divRect.width;
+          height = width / imageAspect;
+          top = (divRect.height - height) / 2;
+        } else {
+          height = divRect.height;
+          width = height * imageAspect;
+          left = (divRect.width - width) / 2;
+        }
+      } else if (imageFitMode === 'contain') {
+        // Image fits entirely within container
+        if (containerAspect > imageAspect) {
+          height = divRect.height;
+          width = height * imageAspect;
+          left = (divRect.width - width) / 2;
+        } else {
+          width = divRect.width;
+          height = width / imageAspect;
+          top = (divRect.height - height) / 2;
+        }
+      } else { // fill
+        // Image stretches to fill container
+        width = divRect.width;
+        height = divRect.height;
+      }
+
+      return {
+        width,
+        height,
+        left: divRect.left - containerRect.left + left,
+        top: divRect.top - containerRect.top + top,
+        absoluteLeft: divRect.left + left,
+        absoluteTop: divRect.top + top
+      };
+    }
+    return null;
+  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode]);
+
+  // Helper to convert hotspot percentage to absolute pixel coordinates
+  const getHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
+    const imageBounds = getImageBounds();
+    if (!imageBounds) return null;
+
+    // Apply any current transform
+    const scale = imageTransform.scale;
+    const translateX = imageTransform.translateX;
+    const translateY = imageTransform.translateY;
+
+    // Calculate base position on the image
+    const baseX = (hotspot.x / 100) * imageBounds.width;
+    const baseY = (hotspot.y / 100) * imageBounds.height;
+
+    // Apply transform
+    const transformedX = (baseX * scale) + translateX + imageBounds.left;
+    const transformedY = (baseY * scale) + translateY + imageBounds.top;
+
+    return {
+      x: transformedX,
+      y: transformedY,
+      // Also return the base position for centering calculations
+      baseX: baseX + imageBounds.left,
+      baseY: baseY + imageBounds.top
+    };
+  }, [getImageBounds, imageTransform]);
+
+  // Helper to get viewport center for centering operations
+  const getViewportCenter = useCallback(() => {
+    if (!imageContainerRef.current) return null;
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    // In viewer mode, account for timeline at bottom
+    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+
+    return {
+      centerX: containerRect.width / 2,
+      centerY: (containerRect.height - timelineHeight) / 2
+    };
+  }, [isEditing, uniqueSortedSteps.length]);
+
+  // Helper to constrain transforms and prevent UI overlap
+  const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
+    const imageBounds = getImageBounds();
+    const viewportCenter = getViewportCenter();
+
+    if (!imageBounds || !viewportCenter || !imageContainerRef.current) {
+      return transform;
+    }
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+    // Calculate the scaled image dimensions using imageBounds for content size
+    const scaledWidth = imageBounds.width * transform.scale;
+    const scaledHeight = imageBounds.height * transform.scale;
+
+    // Reserve space for UI elements
+    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+    const sidebarWidth = isEditing ? 320 : 0; // Corrected: Was w-80 = 20rem = 320px
+
+    // This is the available visual area for the image content
+    const availableWidth = containerRect.width - sidebarWidth;
+    const availableHeight = containerRect.height - timelineHeight;
+
+    // Allow the image to move but keep at least 20% of its own scaled dimension visible
+    const minVisibleImagePartWidth = scaledWidth * 0.2;
+    const minVisibleImagePartHeight = scaledHeight * 0.2;
+
+    // Translation limits for transform.translateX and transform.translateY
+    const minTranslateX = -scaledWidth + minVisibleImagePartWidth;
+    const maxTranslateX = availableWidth - minVisibleImagePartWidth;
+
+    const minTranslateY = -scaledHeight + minVisibleImagePartHeight;
+    const maxTranslateY = availableHeight - minVisibleImagePartHeight;
+
+    // Apply constraints
+    const constrainedTx = Math.max(minTranslateX, Math.min(maxTranslateX, transform.translateX));
+    const constrainedTy = Math.max(minTranslateY, Math.min(maxTranslateY, transform.translateY));
+
+    const constrainedTransform = {
+      ...transform,
+      translateX: constrainedTx,
+      translateY: constrainedTy,
+    };
+
+    return constrainedTransform;
+  }, [getImageBounds, getViewportCenter, isEditing, uniqueSortedSteps.length]);
+
+  const applyTransform = useCallback((newTransform: ImageTransformState) => {
+    setIsTransforming(true);
+    setImageTransform(newTransform);
+
+    // Reset transition flag after animation completes
+    // Ensure this timeout matches the CSS transition duration (0.5s for viewer mode)
+    setTimeout(() => {
+      setIsTransforming(false);
+    }, 500);
+  }, [setImageTransform]); // Dependency: setImageTransform if it's from props, or empty if it's from local useState
+
+  // Memoized hotspot positions to prevent recalculation
+  const hotspotsWithPositions = useMemo(() => {
+    return hotspots.map(hotspot => ({
+      ...hotspot,
+      pixelPosition: getHotspotPixelPosition(hotspot)
+    }));
+  }, [hotspots, getHotspotPixelPosition]);
 
   // New zoom handler functions for editing mode
   const handleZoomIn = useCallback(() => {
@@ -285,53 +510,33 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [initialData, isEditing]);
 
-  // Effect for managing InfoPanel anchor point
-  useEffect(() => {
-    if (activeHotspotInfoId && isEditing && actualImageRef.current) {
-      const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
-      if (hotspot) {
-        const imgElement = actualImageRef.current;
-        const imgRect = imgElement.getBoundingClientRect();
-        const containerRect = imageContainerRef.current?.getBoundingClientRect();
-        
-        if (containerRect) {
-          // Calculate hotspot position on the actual image
-          const dotCenterX = imgRect.left + (hotspot.x / 100) * imgRect.width;
-          const dotCenterY = imgRect.top + (hotspot.y / 100) * imgRect.height;
-          
-          // Convert to coordinates relative to the image container
-          const anchorX = dotCenterX - containerRect.left;
-          const anchorY = dotCenterY - containerRect.top;
-          
-          setInfoPanelAnchor({ x: anchorX, y: anchorY });
+// Universal InfoPanel positioning
+useEffect(() => {
+  if (activeHotspotInfoId) {
+    const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+    if (hotspot) {
+      const pixelPos = getHotspotPixelPosition(hotspot);
+      if (pixelPos) {
+        setInfoPanelAnchor({ x: pixelPos.x, y: pixelPos.y });
+      } else {
+        // Fallback to container-relative positioning
+        if (imageContainerRef.current) {
+          const containerRect = imageContainerRef.current.getBoundingClientRect();
+          setInfoPanelAnchor({
+            x: (hotspot.x / 100) * containerRect.width,
+            y: (hotspot.y / 100) * containerRect.height
+          });
+        } else {
+          setInfoPanelAnchor(null);
         }
-      } else {
-        setInfoPanelAnchor(null);
-      }
-    } else if (activeHotspotInfoId && !isEditing && imageContainerRef.current && scaledImageDivRef.current) {
-      // Keep the old logic for viewer mode
-      const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
-      if (hotspot) {
-        const containerRect = imageContainerRef.current.getBoundingClientRect();
-        const scaledImgDivRect = scaledImageDivRef.current.getBoundingClientRect();
-
-        const dotCenterXOnScaledImg = (hotspot.x / 100) * scaledImgDivRect.width;
-        const dotCenterYOnScaledImg = (hotspot.y / 100) * scaledImgDivRect.height;
-
-        const dotCenterXViewport = scaledImgDivRect.left + dotCenterXOnScaledImg;
-        const dotCenterYViewport = scaledImgDivRect.top + dotCenterYOnScaledImg;
-        
-        const anchorX = dotCenterXViewport - containerRect.left;
-        const anchorY = dotCenterYViewport - containerRect.top;
-
-        setInfoPanelAnchor({ x: anchorX, y: anchorY });
-      } else {
-        setInfoPanelAnchor(null);
       }
     } else {
       setInfoPanelAnchor(null);
     }
-  }, [activeHotspotInfoId, hotspots, editingZoom, imageNaturalDimensions, isEditing, imageTransform, imageContainerRect, viewportZoom]);
+  } else {
+    setInfoPanelAnchor(null);
+  }
+}, [activeHotspotInfoId, hotspots, getHotspotPixelPosition, imageTransform]); // Added imageTransform dependency
 
 
   useEffect(() => {
@@ -366,49 +571,80 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             stepHasPanZoomEvent = true;
             if (event.targetId) {
               const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              if (targetHotspot && imageContainerRef.current) {
+              // Ensure hotspotsWithPositions is used if available, otherwise find in hotspots
+              // const targetHotspot = hotspotsWithPositions.find(h => h.id === event.targetId) || hotspots.find(h => h.id === event.targetId);
+
+              const imageBounds = getImageBounds();
+              const viewportCenter = getViewportCenter();
+
+              if (targetHotspot && imageBounds && viewportCenter) {
                 const scale = event.zoomFactor || 2;
-                const container = imageContainerRef.current;
-                const containerRect = container.getBoundingClientRect();
-                let imageWidth, imageHeight;
+
+                // Calculate hotspot position on the unscaled image, relative to imageBounds content area
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                // Calculate translation to center the hotspot
+                // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
+                // The hotspot's scaled position without additional translation would be:
+                // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
+                // OR more simply, if thinking about the image content itself:
+                // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
+                // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
+                // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
+
+                // The CSS transform `translate(tx, ty) scale(s)` on a div means:
+                // screenX = divOriginalScreenX * s + tx
+                // screenY = divOriginalScreenY * s + ty
+                // If the div has `transform-origin: center center`, it's more complex.
+                // The `scaledImageDivRef` has `transform-origin: center`.
+
+                // Let's use the formula from the issue, as it's specified.
+                // It calculates translateX/Y such that when the `scaledImageDivRef` is translated and scaled,
+                // the specific hotspot point (hotspotX, hotspotY, which is relative to image content origin)
+                // lands on viewportCenter.
+                // The `imageBounds.left` and `imageBounds.top` are the offsets of the image content
+                // *within* the `scaledImageDivRef` before the main `imageTransform` is applied.
+                // So, if the `scaledImageDivRef` itself is at (0,0) in the container,
+                // the image content origin is at `(imageBounds.left, imageBounds.top)`.
+                // A point `(hotspotX, hotspotY)` on the image content is at
+                // `(imageBounds.left + hotspotX, imageBounds.top + hotspotY)` relative to `scaledImageDivRef` origin.
+                // After scaling this by `scale` (around `scaledImageDivRef`'s origin, which is `center`),
+                // and then translating by `translateX, translateY`:
+                // target_on_screen_X = ( (imageBounds.left + hotspotX) - divCenterX) * scale + divCenterX + translateX
+                // target_on_screen_Y = ( (imageBounds.top + hotspotY) - divCenterY) * scale + divCenterY + translateY
+                // We want target_on_screen_X = viewportCenter.centerX
                 
-                if (isEditing && actualImageRef.current) {
-                  // In editing mode, use the actual image dimensions
-                  const imgRect = actualImageRef.current.getBoundingClientRect();
-                  imageWidth = imgRect.width;
-                  imageHeight = imgRect.height;
-                } else if (!isEditing && scaledImageDivRef.current) {
-                  // In viewer mode, calculate the effective image content area
-                  const divRect = scaledImageDivRef.current.getBoundingClientRect();
-                  
-                  if (imageFitMode === 'cover' || imageFitMode === 'contain') {
-                    // For cover/contain, we need to calculate the actual content area
-                    // This is a simplified calculation - the real image content depends on aspect ratio
-                    imageWidth = divRect.width;
-                    imageHeight = divRect.height;
-                  } else {
-                    // For fill mode, the content fills the entire div
-                    imageWidth = divRect.width;
-                    imageHeight = divRect.height;
-                  }
-                } else {
-                  // Fallback to container dimensions
-                  imageWidth = containerRect.width;
-                  imageHeight = containerRect.height;
-                }
+                // The provided formula is:
+                // translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
+                // translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
+                // This formula assumes that the `transform-origin` for the scale is top-left (0,0) of the `scaledImageDivRef`,
+                // and `imageBounds.left/top` are offsets within that.
+                // Given `transform-origin: center` for `scaledImageDivRef`, this might need adjustment.
+                // However, `getImageBounds()` calculates `imageBounds.left/top` as the offset of the *visible content area*
+                // from the *container's* top-left.
+                // And `imageTransform.translateX/Y` is applied to `scaledImageDivRef`.
+
+                // Let's assume the provided formula is correct in the context of how these values are used.
+                // The most important part is using `imageBounds.left/top` in the calculation.
+
+                const translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
+                const translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
                 
-                // Calculate hotspot position on the unscaled image
-                const hX = (targetHotspot.x / 100) * imageWidth; 
-                const hY = (targetHotspot.y / 100) * imageHeight;
-                
-                // Calculate translation to center the hotspot in the container
-                const centerX = containerRect.width / 2;
-                const centerY = containerRect.height / 2;
-                const translateX = centerX - hX * scale;
-                const translateY = centerY - hY * scale;
-                
-                newImageTransform = { scale, translateX, translateY, targetHotspotId: event.targetId };
+                let newTransform = {
+                  scale,
+                  translateX,
+                  translateY,
+                  targetHotspotId: event.targetId
+                };
+
+                newTransform = constrainTransform(newTransform);
+
+                newImageTransform = newTransform;
                 newActiveHotspotInfoId = event.targetId;
+              } else if (targetHotspot) { // imageBounds or viewportCenter might be null
+                  // Fallback or error? For now, do nothing if critical info is missing.
+                  // Or reset? The default is to reset if no pan/zoom event.
               }
             }
             break;
@@ -446,64 +682,78 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setHighlightedHotspotId(null); 
       setActiveHotspotInfoId(exploredHotspotId); // Show info for explored hotspot
 
+      // This replaces the logic block for idle mode pan/zoom based on exploredHotspotId
       if (exploredHotspotId && exploredHotspotPanZoomActive) {
         const hotspot = hotspots.find(h => h.id === exploredHotspotId);
         const panZoomEvent = timelineEvents
-            .filter(e => e.targetId === exploredHotspotId && e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
-            .sort((a,b) => a.step - b.step)[0];
+          .filter(e => e.targetId === exploredHotspotId && e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
+          .sort((a, b) => a.step - b.step)[0];
 
-        if (hotspot && panZoomEvent && imageContainerRef.current) {
-            const scale = panZoomEvent.zoomFactor || 2;
-            const container = imageContainerRef.current;
-            const containerRect = container.getBoundingClientRect();
-            let imageWidth, imageHeight;
+        if (hotspot && panZoomEvent) {
+          const imageBounds = getImageBounds();
+          const viewportCenter = getViewportCenter();
+
+          if (imageBounds && viewportCenter) {
+            const scale = panZoomEvent.zoomFactor || 2; // Use event's zoomFactor, fallback to 2
+            const hotspotX = (hotspot.x / 100) * imageBounds.width;
+            const hotspotY = (hotspot.y / 100) * imageBounds.height;
+            const translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
+            const translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
             
-            if (isEditing && actualImageRef.current) {
-              // In editing mode, use the actual image dimensions
-              const imgRect = actualImageRef.current.getBoundingClientRect();
-              imageWidth = imgRect.width;
-              imageHeight = imgRect.height;
-            } else if (!isEditing && scaledImageDivRef.current) {
-              // In viewer mode, calculate the effective image content area
-              const divRect = scaledImageDivRef.current.getBoundingClientRect();
-              
-              if (imageFitMode === 'cover' || imageFitMode === 'contain') {
-                // For cover/contain, we need to calculate the actual content area
-                // This is a simplified calculation - the real image content depends on aspect ratio
-                imageWidth = divRect.width;
-                imageHeight = divRect.height;
-              } else {
-                // For fill mode, the content fills the entire div
-                imageWidth = divRect.width;
-                imageHeight = divRect.height;
-              }
-            } else {
-              // Fallback to container dimensions
-              imageWidth = containerRect.width;
-              imageHeight = containerRect.height;
-            }
-            
-            // Calculate hotspot position on the unscaled image
-            const hX = (hotspot.x / 100) * imageWidth; 
-            const hY = (hotspot.y / 100) * imageHeight;
-            
-            // Calculate translation to center the hotspot in the container
-            const centerX = containerRect.width / 2;
-            const centerY = containerRect.height / 2;
-            const translateX = centerX - hX * scale;
-            const translateY = centerY - hY * scale;
-            
-            setImageTransform({ scale, translateX, translateY, targetHotspotId: hotspot.id });
-        } else { 
-            setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+            let transform = {
+              scale,
+              translateX,
+              translateY,
+              targetHotspotId: hotspot.id
+            };
+            newImageTransform = constrainTransform(transform); // Assign to newImageTransform
+          } else {
+            // Fallback if imageBounds or viewportCenter is null
+            newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+          }
+        } else {
+          // Fallback if hotspot or its panZoomEvent is not found
+          newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
         }
-      } else {
-         setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      } else if (exploredHotspotId && !exploredHotspotPanZoomActive) {
+        // If a hotspot was explored and zoomed, but pan/zoom is no longer active (e.g., mouse out),
+        // set to reset. This specific reset will be harmonized by the general reset logic in step 4
+        // if no other zoom condition (like stepHasPanZoomEvent) is active.
+        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
       }
+      // Note: If 'exploredHotspotId' itself is null, this entire block is skipped.
+      // The general transform reset logic (to be updated in step 4) should handle the default case
+      // where neither timeline-driven pan/zoom nor idle-explored-hotspot pan/zoom is active.
+      //setImageTransform(newImageTransform); // Apply the determined transform // This line is removed as per the logic flow of the issue
+    } else {
+      // This block executes if no PAN_ZOOM_TO_HOTSPOT event is active for the current step,
+      // AND idle mode pan/zoom (exploredHotspotId && exploredHotspotPanZoomActive) is also not active.
+      if (imageTransform.scale !== 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
+        // If the current transform is not the default, a reset is needed.
+        const resetTransform = {
+          scale: 1,
+          translateX: 0,
+          translateY: 0,
+          targetHotspotId: undefined
+        };
+        // Apply constraints even to the reset state.
+        newImageTransform = constrainTransform(resetTransform);
+      } else {
+        // If the current transform is already the default, ensure newImageTransform is set to this default state.
+        // This is crucial if newImageTransform was not initialized to imageTransform at the start of the useEffect's logic.
+        newImageTransform = imageTransform;
+      }
+    }
+    // Apply the determined transform at the end, only if it has changed
+    if (newImageTransform.scale !== imageTransform.scale ||
+        newImageTransform.translateX !== imageTransform.translateX ||
+        newImageTransform.translateY !== imageTransform.translateY ||
+        newImageTransform.targetHotspotId !== imageTransform.targetHotspotId) {
+      applyTransform(newImageTransform);
     }
     
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, imageTransform.scale, imageTransform.translateX, imageTransform.translateY]); // Added imageTransform fields to dependencies
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, imageTransform, getImageBounds, getViewportCenter, constrainTransform, applyTransform]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
@@ -743,19 +993,51 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
   const getHighlightGradientStyle = () => {
-    if (!highlightedHotspotId || !backgroundImage || !scaledImageDivRef.current) return {};
+    if (!highlightedHotspotId || !backgroundImage || !imageContainerRef.current) return {};
+
     const hotspotToHighlight = hotspots.find(h => h.id === highlightedHotspotId);
     if (!hotspotToHighlight) return {};
-    
+
     const currentEvents = timelineEvents.filter(e => e.step === currentStep);
-    const eventData = currentEvents.find(e => e.type === InteractionType.HIGHLIGHT_HOTSPOT && e.targetId === highlightedHotspotId);
-    
-    // Radius needs to be scaled with the image zoom to maintain visual consistency
-    const radius = (eventData?.highlightRadius || 60) * imageTransform.scale; 
-    
-    // Highlight position is relative to the scaled image div
-    const highlightXPercent = hotspotToHighlight.x;
-    const highlightYPercent = hotspotToHighlight.y;
+    const eventData = currentEvents.find(e =>
+      e.type === InteractionType.HIGHLIGHT_HOTSPOT &&
+      e.targetId === highlightedHotspotId
+    );
+
+    const imageBounds = getImageBounds();
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+    let highlightXPercent = hotspotToHighlight.x; // Fallback to original hotspot x percentage
+    let highlightYPercent = hotspotToHighlight.y; // Fallback to original hotspot y percentage
+
+    if (imageBounds && containerRect.width > 0 && containerRect.height > 0) {
+      // Calculate the hotspot's center in pixels, relative to the image's content area origin
+      const hotspotPixelX_withinImageContent = (hotspotToHighlight.x / 100) * imageBounds.width;
+      const hotspotPixelY_withinImageContent = (hotspotToHighlight.y / 100) * imageBounds.height;
+
+      // Calculate the hotspot's center in pixels, relative to the imageContainerRef's origin.
+      // imageBounds.left and imageBounds.top are offsets of the image content area from the container's origin.
+      const hotspotPixelX_inContainer = imageBounds.left + hotspotPixelX_withinImageContent;
+      const hotspotPixelY_inContainer = imageBounds.top + hotspotPixelY_withinImageContent;
+
+      // Convert these absolute pixel positions (relative to container) to percentages of the container's dimensions
+      highlightXPercent = (hotspotPixelX_inContainer / containerRect.width) * 100;
+      highlightYPercent = (hotspotPixelY_inContainer / containerRect.height) * 100;
+    } else if (imageBounds === null && containerRect.width > 0 && containerRect.height > 0) {
+      // Fallback if imageBounds is null (e.g. before image loads) but container exists.
+      // Use hotspot's original percentages directly, assuming they are relative to the container in this scenario.
+      // This matches the fallback logic in the original issue snippet when imageBounds is null.
+      // (The original snippet's fallback was inside `if (!imageBounds)`)
+      // No change needed here for highlightXPercent, highlightYPercent as they are already set to fallbacks.
+    }
+
+
+    const radius = (eventData?.highlightRadius || 60) * imageTransform.scale;
+
+    // Ensure percentages are within bounds for safety if the gradient is applied to the container.
+    // If hotspot x/y can be outside 0-100 (e.g. due to data error), this clips the gradient center.
+    highlightXPercent = Math.max(0, Math.min(100, highlightXPercent));
+    highlightYPercent = Math.max(0, Math.min(100, highlightYPercent));
 
     return {
       background: `radial-gradient(circle at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,0.7) ${radius + 10}px)`,
@@ -801,6 +1083,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {/* Full-screen image container with zoom */}
             <div className="absolute inset-0">
               {/* Viewport Container - scales with manual zoom */}
+            {debugMode && (
+              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 z-50 font-mono space-y-1">
+                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
+                <div>Image Bounds: {JSON.stringify(getImageBounds(), null, 2)}</div>
+                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
+                <div>Viewport Center: {JSON.stringify(getViewportCenter())}</div>
+                <div>Image Fit: {imageFitMode}</div>
+                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
+              </div>
+            )}
               <div 
                 ref={scrollableContainerRef}
                 className="w-full h-full overflow-auto bg-slate-900"
@@ -824,7 +1116,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       className="relative"
                       style={{
                         transform: `scale(${editingZoom})`,
-                        transformOrigin: 'center',
+                        transformOrigin: 'center', // As specified, though often top-left for editor canvas
                         transition: 'transform 0.2s ease-out',
                       }}
                     >
@@ -851,19 +1143,32 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                       )}
                       
                       {/* Hotspots */}
-                      {hotspots.map(hotspot => (
-                        <HotspotViewer
-                          key={hotspot.id}
-                          hotspot={hotspot}
-                          imageElement={actualImageRef.current}
-                          isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                          isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e => e.step === currentStep && e.targetId === hotspot.id && (e.type === InteractionType.SHOW_HOTSPOT || e.type === InteractionType.PULSE_HOTSPOT || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.HIGHLIGHT_HOTSPOT))}
-                          isEditing={isEditing}
-                          onFocusRequest={handleFocusHotspot}
-                          onPositionChange={handleHotspotPositionChange}
-                          isContinuouslyPulsing={false}
-                        />
-                      ))}
+                      {hotspotsWithPositions.map(hotspot => { // Use hotspotsWithPositions
+                        // const pixelPos = getHotspotPixelPosition(hotspot); // No longer needed here
+
+                        return (
+                          <HotspotViewer
+                            key={hotspot.id}
+                            hotspot={hotspot} // Pass the whole hotspot object which includes pixelPosition
+                            pixelPosition={hotspot.pixelPosition} // Access pre-calculated position
+                            usePixelPositioning={true}
+                            imageElement={actualImageRef.current}
+                            isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                            isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e =>
+                              e.step === currentStep &&
+                              e.targetId === hotspot.id &&
+                              (e.type === InteractionType.SHOW_HOTSPOT ||
+                               e.type === InteractionType.PULSE_HOTSPOT ||
+                               e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
+                               e.type === InteractionType.HIGHLIGHT_HOTSPOT)
+                            )}
+                            isEditing={isEditing}
+                            onFocusRequest={handleFocusHotspot}
+                            onPositionChange={handleHotspotPositionChange}
+                            isContinuouslyPulsing={false}
+                          />
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -995,6 +1300,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {/* Image container - full width */}
             <div className="flex-1 relative bg-slate-900">
               <div className="absolute inset-0">
+            {debugMode && (
+              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 z-50 font-mono space-y-1">
+                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
+                <div>Image Bounds: {JSON.stringify(getImageBounds(), null, 2)}</div>
+                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
+                <div>Viewport Center: {JSON.stringify(getViewportCenter())}</div>
+                <div>Image Fit: {imageFitMode}</div>
+                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
+              </div>
+            )}
                 <div 
                   ref={imageContainerRef}
                   className="w-full h-full flex items-center justify-center bg-slate-900"
@@ -1005,40 +1320,63 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 >
                   {backgroundImage ? (
                     <>
+                      {backgroundImage && !isEditing && (
+                        <img
+                          src={backgroundImage}
+                          onLoad={(e) => setImageNaturalDimensions({
+                            width: e.currentTarget.naturalWidth,
+                            height: e.currentTarget.naturalHeight
+                          })}
+                          style={{ display: 'none' }}
+                          alt=""
+                          aria-hidden="true"
+                        />
+                      )}
                       <div 
                         ref={scaledImageDivRef}
                         className="relative"
                         style={{
-                          backgroundImage: `url(${backgroundImage})`,
-                          backgroundSize: imageFitMode, 
-                          backgroundPosition: 'center', 
+                          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+                          backgroundSize: imageFitMode,
+                          backgroundPosition: 'center',
                           backgroundRepeat: 'no-repeat',
                           transformOrigin: 'center',
                           transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                          transition: 'transform 0.5s ease-in-out',
-                          width: '80vw', // Centered, not full width
-                          height: '80vh',
-                          maxWidth: '1200px',
-                          maxHeight: '800px'
+                          transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                          width: '80vw', // From issue
+                          height: '80vh', // From issue
+                          maxWidth: '1200px', // From issue
+                          maxHeight: '800px', // From issue
                         }}
                         aria-hidden="true"
                       >
                         {(moduleState === 'learning' || isEditing) && highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
                           <div className="absolute inset-0 pointer-events-none" style={getHighlightGradientStyle()} aria-hidden="true"/>
                         )}
-                        {hotspots.map(hotspot => (
-                          (isEditing || (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle')) && 
-                          <HotspotViewer
-                            key={hotspot.id}
-                            hotspot={hotspot}
-                            isPulsing={(moduleState === 'learning' || isEditing) && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                            isDimmedInEditMode={false}
-                            isEditing={isEditing}
-                            onFocusRequest={handleFocusHotspot}
-                            onPositionChange={undefined}
-                            isContinuouslyPulsing={moduleState === 'idle' && !isEditing && !exploredHotspotId}
-                          />
-                        ))}
+                        {hotspotsWithPositions.map(hotspot => { // Use hotspotsWithPositions
+                          const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) ||
+                                            (moduleState === 'idle');
+
+                          if (!shouldShow) return null;
+
+                          // const pixelPos = getHotspotPixelPosition(hotspot); // No longer needed here
+
+                          return (
+                            <HotspotViewer
+                              key={hotspot.id}
+                              hotspot={hotspot} // Pass the whole hotspot object which includes pixelPosition
+                              pixelPosition={hotspot.pixelPosition} // Access pre-calculated position
+                              usePixelPositioning={true}
+                              isPulsing={(moduleState === 'learning' || isEditing) &&
+                                         pulsingHotspotId === hotspot.id &&
+                                         activeHotspotDisplayIds.has(hotspot.id)}
+                              isDimmedInEditMode={false}
+                              isEditing={false}
+                              onFocusRequest={handleFocusHotspot}
+                              isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
+                            />
+                          );
+                        })}
                       </div>
                       
                       {/* Initial view buttons overlay when in idle mode */}
