@@ -1,6 +1,8 @@
 
 # Interactive Training Module Creator - Apps Script Web App Guide
 
+*Last updated: June 14, 2025 - Testing automation workflow*
+
 This document outlines how to take the refactored React application and deploy it as a Google Apps Script web app. The refactoring primarily involved replacing the local storage-based `googleDriveSimulator` with `lib/googleAppScriptProxy.ts`, which is designed to communicate with server-side Apps Script functions using `google.script.run`.
 
 **Local Development Note:** The `lib/googleAppScriptProxy.ts` now includes a mock for `google.script.run`. This means you can run the application locally (e.g., using `npm run dev` or `yarn dev`) without it crashing due to the `google` object being undefined. The mock simulates the Apps Script backend functions using in-memory data, allowing for UI development and testing. A warning will appear in your browser's console indicating that the mock is active. For real data persistence and backend logic, you must deploy the application to Google Apps Script.
