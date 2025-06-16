@@ -3,7 +3,6 @@ import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import HorizontalTimeline from './HorizontalTimeline';
-import InfoPanel from './InfoPanel';
 import HotspotEditModal from './HotspotEditModal';
 import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
 import HotspotEditorModal from './HotspotEditorModal';
@@ -134,11 +133,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
-  // For the InfoPanel component
-  const [activeHotspotInfoId, setActiveHotspotInfoId] = useState<string | null>(null);
-  const [infoPanelAnchor, setInfoPanelAnchor] = useState<{ x: number, y: number } | null>(null);
-  const [imageContainerRect, setImageContainerRect] = useState<DOMRectReadOnly | undefined>(undefined);
-  const [activeEditorTab, setActiveEditorTab] = useState<'properties' | 'timeline'>('properties');
+  // Removed old InfoPanel state - using modal now
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
@@ -728,8 +723,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setActiveHotspotDisplayIds(new Set());
     setPulsingHotspotId(null);
     setCurrentMessage(null);
-    setActiveHotspotInfoId(null);
-    setInfoPanelAnchor(null);
     setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
     setHighlightedHotspotId(null);
     setExploredHotspotId(null);
@@ -784,15 +777,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
       setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
       return true;
-    } else if (activeHotspotInfoId) {
-      setActiveHotspotInfoId(null);
+    } else if (isHotspotModalOpen) {
+      setIsHotspotModalOpen(false);
+      setSelectedHotspotForModal(null);
       return true;
     } else if (pendingHotspot) {
       setPendingHotspot(null);
       return true;
     }
     return false;
-  }, [imageTransform, activeHotspotInfoId, pendingHotspot, setImageTransform, setActiveHotspotInfoId, setPendingHotspot]);
+  }, [imageTransform, isHotspotModalOpen, pendingHotspot]);
 
   const handlePlusKey = useCallback((e: KeyboardEvent): boolean => {
     if (isEditing && (e.ctrlKey || e.metaKey)) {
@@ -865,39 +859,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     handleZeroKey
   ]);
 
-// Universal InfoPanel positioning
-useEffect(() => {
-  if (activeHotspotInfoId) {
-    const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
-    if (hotspot) {
-      const pixelPos = getSafeHotspotPixelPosition(hotspot);
-      if (pixelPos) { // safeGetHotspotPixelPosition guarantees a non-null return
-        setInfoPanelAnchor({ x: pixelPos.x, y: pixelPos.y });
-      } else { // This else branch might now be logically unreachable if fallback is always an object
-        // Fallback to container-relative positioning
-        if (imageContainerRef.current) {
-          const containerRect = imageContainerRef.current.getBoundingClientRect();
-          setInfoPanelAnchor({
-            x: (hotspot.x / 100) * containerRect.width,
-            y: (hotspot.y / 100) * containerRect.height
-          });
-        } else {
-          setInfoPanelAnchor(null);
-        }
-      }
-    } else {
-      setInfoPanelAnchor(null);
-    }
-  } else {
-    setInfoPanelAnchor(null);
-  }
-}, [activeHotspotInfoId, hotspots, getSafeHotspotPixelPosition]); // Removed imageTransform dependency to prevent loops
+// Removed InfoPanel positioning - using modal now
 
 
   useEffect(() => {
     if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
 
-    let newActiveHotspotInfoId: string | null = null; // To determine which InfoPanel to show
+    // Removed newActiveHotspotInfoId - using modal now
     let newImageTransform: ImageTransformState = lastAppliedTransformRef.current; // Use ref instead of state
 
     if (moduleState === 'learning') {
@@ -913,10 +881,10 @@ useEffect(() => {
         if (event.targetId) newActiveDisplayIds.add(event.targetId);
         switch (event.type) {
           case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
-          case InteractionType.SHOW_HOTSPOT: if (event.targetId) newActiveHotspotInfoId = event.targetId; break;
+          case InteractionType.SHOW_HOTSPOT: if (event.targetId) { /* Show in modal instead */ } break;
           case InteractionType.PULSE_HOTSPOT:
             if (event.targetId) {
-              newPulsingHotspotId = event.targetId; newActiveHotspotInfoId = event.targetId;
+              newPulsingHotspotId = event.targetId;
               if (event.duration) {
                 pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
               }
@@ -998,7 +966,6 @@ useEffect(() => {
                 newTransform = constrainTransform(newTransform);
 
                 newImageTransform = newTransform;
-                newActiveHotspotInfoId = event.targetId;
               } else if (targetHotspot) { // imageBounds or viewportCenter might be null
                   // Fallback or error? For now, do nothing if critical info is missing.
                   // Or reset? The default is to reset if no pan/zoom event.
@@ -1006,7 +973,7 @@ useEffect(() => {
             }
             break;
           case InteractionType.HIGHLIGHT_HOTSPOT:
-            if (event.targetId) { newHighlightedHotspotId = event.targetId; newActiveHotspotInfoId = event.targetId; }
+            if (event.targetId) { newHighlightedHotspotId = event.targetId; }
             break;
         }
       });
@@ -1021,7 +988,7 @@ useEffect(() => {
           if (newPulsingHotspotId === event.targetId) newPulsingHotspotId = null;
           if (newHighlightedHotspotId === event.targetId) newHighlightedHotspotId = null;
           if (newImageTransform.targetHotspotId === event.targetId) newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-          if (newActiveHotspotInfoId === event.targetId) newActiveHotspotInfoId = null; // Hide info if hotspot is hidden
+          // Remove info display - using modal now
         }
       });
       
@@ -1029,14 +996,12 @@ useEffect(() => {
       setCurrentMessage(newMessage);
       setPulsingHotspotId(newPulsingHotspotId);
       setHighlightedHotspotId(newHighlightedHotspotId);
-      setActiveHotspotInfoId(newActiveHotspotInfoId); // This will trigger InfoPanel
     
     } else if (moduleState === 'idle' && !isEditing) {
       setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id))); 
       setCurrentMessage(null);
       setPulsingHotspotId(null); 
-      setHighlightedHotspotId(null); 
-      setActiveHotspotInfoId(exploredHotspotId); // Show info for explored hotspot
+      setHighlightedHotspotId(null);
 
       // This replaces the logic block for idle mode pan/zoom based on exploredHotspotId
       if (exploredHotspotId && exploredHotspotPanZoomActive) {
@@ -1154,8 +1119,7 @@ useEffect(() => {
   const handleStartLearning = () => {
     setModuleState('learning');
     setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false);
-    setActiveHotspotInfoId(null); 
+    setExploredHotspotPanZoomActive(false); 
     setCurrentStep(uniqueSortedSteps[0] || 1); 
   };
 
@@ -1163,7 +1127,6 @@ useEffect(() => {
     setModuleState('idle');
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
-    setActiveHotspotInfoId(null);
   }, []);
 
   const handleTimelineDotClick = useCallback((step: number) => {
@@ -1171,7 +1134,6 @@ useEffect(() => {
         setModuleState('learning');
         setExploredHotspotId(null);
         setExploredHotspotPanZoomActive(false);
-        setActiveHotspotInfoId(null);
     }
     setCurrentStep(step);
   }, [moduleState, isEditing]);
@@ -1246,7 +1208,9 @@ useEffect(() => {
     setTimelineEvents(prev => [...prev, newEvent].sort((a,b) => a.step - b.step));
     if (isEditing) {
       setCurrentStep(newEventStep); 
-      setActiveHotspotInfoId(newHotspot.id); // Show info panel for newly added hotspot in editor
+      // Open modal for newly added hotspot in editor
+      setSelectedHotspotForModal(newHotspot.id);
+      setIsHotspotModalOpen(true);
     }
   }, [hotspots, colorScheme, timelineEvents, editorMaxStep, isEditing]);
 
@@ -1316,7 +1280,6 @@ useEffect(() => {
           const viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
           
           setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
-          setActiveHotspotInfoId(null);
         }
 
     } else if (moduleState === 'idle' && !isEditing && backgroundImage) {
@@ -1326,7 +1289,6 @@ useEffect(() => {
         }
         setExploredHotspotId(null);
         setExploredHotspotPanZoomActive(false);
-        setActiveHotspotInfoId(null);
     } else if (isEditing && backgroundImage && !pendingHotspot) {
         // In editing mode, clicking empty space deselects hotspot
         const target = event.target as HTMLElement;
@@ -1393,7 +1355,6 @@ useEffect(() => {
     if (!confirm(`Are you sure you want to remove hotspot ${hotspotId} and its related timeline events?`)) return;
     setHotspots(prev => prev.filter(h => h.id !== hotspotId));
     setTimelineEvents(prev => prev.filter(event => event.targetId !== hotspotId));
-    if (activeHotspotInfoId === hotspotId) setActiveHotspotInfoId(null);
     if (exploredHotspotId === hotspotId) {
       setExploredHotspotId(null);
       setExploredHotspotPanZoomActive(false);
@@ -1458,10 +1419,7 @@ useEffect(() => {
     };
   };
   
-  const activeInfoHotspot = useMemo(() => {
-    if (!activeHotspotInfoId) return null;
-    return hotspots.find(h => h.id === activeHotspotInfoId) || null;
-  }, [activeHotspotInfoId, hotspots]);
+  // Removed activeInfoHotspot - using modal now
 
   // Sub-component for displaying transform information
   const TransformIndicator = () => {
@@ -1503,7 +1461,6 @@ useEffect(() => {
     batchedSetState([
       () => setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined }),
       () => setEditingZoom(1),
-      () => setActiveHotspotInfoId(null),
       () => setExploredHotspotId(null),
       () => setPulsingHotspotId(null),
       () => setHighlightedHotspotId(null),
@@ -1528,7 +1485,6 @@ useEffect(() => {
     debugLog,
     setImageTransform,
     setEditingZoom,
-    setActiveHotspotInfoId,
     setExploredHotspotId,
     setPulsingHotspotId,
     setHighlightedHotspotId
@@ -1678,21 +1634,7 @@ useEffect(() => {
                     ><PlusIcon className="w-5 h-5 text-white"/></div>
                   )}
 
-                  {/* InfoPanel */}
-                  {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
-                    <div style={{ zIndex: Z_INDEX.INFO_PANEL }}>
-                    <InfoPanel
-                      hotspot={activeInfoHotspot}
-                      anchorX={infoPanelAnchor.x}
-                      anchorY={infoPanelAnchor.y}
-                      imageContainerRect={imageContainerRect}
-                      isEditing={isEditing}
-                      onRemove={handleRemoveHotspot}
-                      onEditRequest={handleEditHotspotRequest}
-                      imageTransform={imageTransform}
-                    />
-                    </div>
-                  )}
+                  {/* InfoPanel removed - using modal now */}
                 </div>
               </div>
             </div>
@@ -1869,21 +1811,7 @@ useEffect(() => {
                         </div>
                       )}
                       
-                      {/* InfoPanel */}
-                      {activeInfoHotspot && infoPanelAnchor && imageContainerRect && (
-                        <div style={{ zIndex: Z_INDEX.INFO_PANEL }}>
-                        <InfoPanel
-                          hotspot={activeInfoHotspot}
-                          anchorX={infoPanelAnchor.x}
-                          anchorY={infoPanelAnchor.y}
-                          imageContainerRect={imageContainerRect}
-                          isEditing={isEditing}
-                          onRemove={handleRemoveHotspot}
-                          onEditRequest={handleEditHotspotRequest}
-                          imageTransform={imageTransform}
-                        />
-                        </div>
-                      )}
+                      {/* InfoPanel removed - using modal now */}
                     </>
                   ) : (
                     <div className="text-center text-slate-400">

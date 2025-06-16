@@ -197,38 +197,16 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             {/* Appearance Tab */}
             {activeTab === 'appearance' && (
               <div className="space-y-6">
-                {/* Position */}
+                {/* Position info - read only */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-medium text-slate-900 dark:text-white">Position</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        X Position: {selectedHotspot.x.toFixed(1)}%
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={selectedHotspot.x}
-                        onChange={(e) => handleHotspotUpdate('x', parseFloat(e.target.value))}
-                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Y Position: {selectedHotspot.y.toFixed(1)}%
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={selectedHotspot.y}
-                        onChange={(e) => handleHotspotUpdate('y', parseFloat(e.target.value))}
-                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
-                      />
-                    </div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      📍 Current position: {selectedHotspot.x.toFixed(1)}%, {selectedHotspot.y.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                      💡 Drag the hotspot on the image to reposition
+                    </p>
                   </div>
                 </div>
 
@@ -382,6 +360,91 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Event Editing Form */}
+          {showEventForm && editingEvent && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Edit Event</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Event Type</label>
+                    <select
+                      value={editingEvent.type}
+                      onChange={(e) => setEditingEvent({...editingEvent, type: e.target.value as InteractionType})}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    >
+                      <option value={InteractionType.SHOW_HOTSPOT}>Show Hotspot</option>
+                      <option value={InteractionType.HIDE_HOTSPOT}>Hide Hotspot</option>
+                      <option value={InteractionType.SHOW_INFO}>Show Info</option>
+                      <option value={InteractionType.HIDE_INFO}>Hide Info</option>
+                      <option value={InteractionType.PAN_ZOOM}>Pan & Zoom</option>
+                      <option value={InteractionType.RESET_VIEW}>Reset View</option>
+                      <option value={InteractionType.PULSE_HOTSPOT}>Pulse Hotspot</option>
+                      <option value={InteractionType.SHOW_MESSAGE}>Show Message</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Step</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingEvent.step}
+                      onChange={(e) => setEditingEvent({...editingEvent, step: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  
+                  {(editingEvent.type === InteractionType.SHOW_MESSAGE || editingEvent.type === InteractionType.SHOW_INFO) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Content</label>
+                      <textarea
+                        value={editingEvent.content || ''}
+                        onChange={(e) => setEditingEvent({...editingEvent, content: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                        rows={3}
+                      />
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Duration (ms)</label>
+                    <input
+                      type="number"
+                      min="100"
+                      value={editingEvent.duration || 3000}
+                      onChange={(e) => setEditingEvent({...editingEvent, duration: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-2 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowEventForm(false);
+                      setEditingEvent(null);
+                    }}
+                    className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      onUpdateEvent(editingEvent);
+                      setShowEventForm(false);
+                      setEditingEvent(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Modal Footer */}
           <div className="flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
