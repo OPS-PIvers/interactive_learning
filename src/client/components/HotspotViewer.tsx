@@ -10,6 +10,9 @@ interface HotspotViewerProps {
   isDimmedInEditMode?: boolean;
   isContinuouslyPulsing?: boolean; // For idle mode gentle pulse
   imageElement?: HTMLImageElement | null; // NEW PROP for editing mode
+  // NEW PROPS:
+  pixelPosition?: { x: number; y: number } | null;
+  usePixelPositioning?: boolean;
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
@@ -38,41 +41,57 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   // Drag handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!isEditing || !onPositionChange) return;
-    
+
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
-    
+    setIsDragging(true); // Assuming setIsDragging is a state setter
+
     const startX = e.clientX;
     const startY = e.clientY;
+
+    // Store initial position
     const startHotspotX = hotspot.x;
     const startHotspotY = hotspot.y;
-    
-    // Use image element for calculations in editing mode, fallback to parent element for viewer mode
-    const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
-    if (!referenceElement) return;
-    
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
-      
-      // Use image element's dimensions for calculations
+
+      // Get current image bounds.
+      // In editor mode, actualImageRef is passed as imageElement.
+      // This element's BoundingClientRect directly gives the rendered image dimensions.
+      const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
+      if (!referenceElement) return;
+
       const referenceRect = referenceElement.getBoundingClientRect();
-      const newX = Math.max(0, Math.min(100, startHotspotX + (deltaX / referenceRect.width) * 100));
-      const newY = Math.max(0, Math.min(100, startHotspotY + (deltaY / referenceRect.height) * 100));
+
+      // Calculate new percentage position based on the reference element's dimensions
+      // This referenceRect should be the dimensions of the actual rendered image.
+      let percentDeltaX = 0;
+      if (referenceRect.width > 0) { // Avoid division by zero
+          percentDeltaX = (deltaX / referenceRect.width) * 100;
+      }
+
+      let percentDeltaY = 0;
+      if (referenceRect.height > 0) { // Avoid division by zero
+          percentDeltaY = (deltaY / referenceRect.height) * 100;
+      }
       
+      const newX = Math.max(0, Math.min(100, startHotspotX + percentDeltaX));
+      const newY = Math.max(0, Math.min(100, startHotspotY + percentDeltaY));
+
       onPositionChange(hotspot.id, newX, newY);
     };
-    
+
     const handleMouseUp = () => {
-      setIsDragging(false);
+      setIsDragging(false); // Assuming setIsDragging is a state setter
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-    
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, imageElement]);
+  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, imageElement, setIsDragging]); // Added setIsDragging to dependencies
   
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
@@ -84,7 +103,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
   const containerClasses = `absolute transform -translate-x-1/2 -translate-y-1/2 group ${
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
-  } ${isDragging ? 'z-50' : ''}`;
+} ${isDragging ? 'z-50' : 'z-20'}`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isDragging) return; // Don't trigger click during drag
@@ -103,7 +122,16 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   return (
     <div
       className={containerClasses}
-      style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%` }}
+      style={{
+        position: 'absolute',
+        left: usePixelPositioning && pixelPosition
+          ? `${pixelPosition.x}px`
+          : `${hotspot.x}%`,
+        top: usePixelPositioning && pixelPosition
+          ? `${pixelPosition.y}px`
+          : `${hotspot.y}%`,
+        transform: 'translate(-50%, -50%)'
+      }}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onKeyPress={handleKeyPress}
