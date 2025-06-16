@@ -200,16 +200,32 @@ const App: React.FC = () => {
       </div>
 
       {selectedProject && (
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
-          <InteractiveModule
-            key={`${selectedProject.id}-${isEditingMode}`} 
-            initialData={selectedProject.interactiveData}
-            isEditing={isEditingMode}
-            onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-            onClose={handleCloseModal}
-            projectName={selectedProject.title}
-          />
-        </Modal>
+        <>
+          {isEditingMode ? (
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
+              <InteractiveModule
+                key={`${selectedProject.id}-${isEditingMode}`} 
+                initialData={selectedProject.interactiveData}
+                isEditing={isEditingMode}
+                onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                onClose={handleCloseModal}
+                projectName={selectedProject.title}
+              />
+            </Modal>
+          ) : (
+            // Full-screen viewer mode
+            <div className="fixed inset-0 z-50 bg-slate-900">
+              <InteractiveModule
+                key={`${selectedProject.id}-${isEditingMode}`} 
+                initialData={selectedProject.interactiveData}
+                isEditing={isEditingMode}
+                onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                onClose={handleCloseModal}
+                projectName={selectedProject.title}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
