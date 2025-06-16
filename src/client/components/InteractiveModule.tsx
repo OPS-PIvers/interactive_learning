@@ -133,8 +133,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
-  // Container rect state - needed for layout calculations
-  const [imageContainerRect, setImageContainerRect] = useState<DOMRectReadOnly | undefined>(undefined);
+  // Removed old InfoPanel state - using modal now
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
