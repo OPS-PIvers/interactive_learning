@@ -6,6 +6,7 @@ import HorizontalTimeline from './HorizontalTimeline';
 import InfoPanel from './InfoPanel';
 import HotspotEditModal from './HotspotEditModal';
 import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
+import HotspotEditorModal from './HotspotEditorModal';
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon';
@@ -138,6 +139,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [infoPanelAnchor, setInfoPanelAnchor] = useState<{ x: number, y: number } | null>(null);
   const [imageContainerRect, setImageContainerRect] = useState<DOMRectReadOnly | undefined>(undefined);
   const [activeEditorTab, setActiveEditorTab] = useState<'properties' | 'timeline'>('properties');
+  
+  // For the Hotspot Editor Modal
+  const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
+  const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -423,7 +428,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
     // Reserve space for UI elements
     const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
-    const sidebarWidth = isEditing ? 320 : 0; // Corrected: Was w-80 = 20rem = 320px
+    const sidebarWidth = 0; // No sidebar anymore - removed
 
     // This is the available visual area for the image content
     const availableWidth = containerRect.width - sidebarWidth;
@@ -1132,7 +1137,9 @@ useEffect(() => {
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
-      setActiveHotspotInfoId(hotspotId);
+      // Open the modal for editing
+      setSelectedHotspotForModal(hotspotId);
+      setIsHotspotModalOpen(true);
     } else if (moduleState === 'idle') {
       setExploredHotspotId(hotspotId);
       const firstEventForHotspot = timelineEvents
@@ -1556,9 +1563,9 @@ useEffect(() => {
           </div>
           
           {/* Main editing content - remove toolbar height */}
-          <div className="flex h-full">
-            {/* Main Image Canvas Area */}
-          <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+          <div className="h-full">
+            {/* Main Image Canvas Area - Full Width */}
+          <div className="relative bg-slate-900 h-full" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
             {/* Full-screen image container with zoom */}
             <div className="absolute inset-0">
               <TransformIndicator />
@@ -1692,8 +1699,8 @@ useEffect(() => {
 
 
             {/* Pending Hotspot Confirmation Overlay */}
-            {pendingHotspot && !activeHotspotInfoId && (
-              <div className="absolute top-4 right-80" style={{ zIndex: Z_INDEX.MODAL }}>
+            {pendingHotspot && (
+              <div className="absolute top-4 right-4" style={{ zIndex: Z_INDEX.MODAL }}>
                 <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 border border-slate-600">
                   <h4 className="text-md font-semibold mb-2 text-slate-200">🎯 Confirm New Hotspot</h4>
                   <p className="text-sm text-slate-300 mb-3">Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%</p>
@@ -1712,47 +1719,9 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Fixed Right Sidebar */}
-          <div className="w-80 bg-slate-800 flex flex-col" style={{ zIndex: Z_INDEX.TOOLBAR }}>
-            {/* Sidebar Content */}
-            <div className="flex-1 overflow-hidden">
-              {activeHotspotInfoId ? (
-                <StreamlinedHotspotEditor
-                  selectedHotspot={hotspots.find(h => h.id === activeHotspotInfoId)!}
-                  relatedEvents={timelineEvents.filter(e => e.targetId === activeHotspotInfoId)}
-                  allTimelineEvents={timelineEvents}
-                  currentStep={currentStep}
-                  onUpdateHotspot={(updatedHotspot) => {
-                    setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
-                  }}
-                  onDeleteHotspot={handleRemoveHotspot}
-                  onAddEvent={handleAddTimelineEvent}
-                  onUpdateEvent={(updatedEvent) => {
-                    setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
-                  }}
-                  onDeleteEvent={handleRemoveTimelineEvent}
-                  onReorderEvents={(eventIds) => {
-                    // Handle reordering - this is handled automatically in the component
-                  }}
-                  onJumpToStep={setCurrentStep}
-                  onClose={() => setActiveHotspotInfoId(null)}
-                />
-              ) : (
-                <div className="text-center text-slate-400 py-8 p-4">
-                  <svg className="w-16 h-16 mx-auto mb-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <h3 className="text-lg font-medium text-slate-300 mb-2">No Hotspot Selected</h3>
-                  <p className="text-sm">Click on a hotspot in the image to edit its properties and timeline events</p>
-                  <p className="text-sm mt-2">Or click on the image to add a new hotspot</p>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Fixed Bottom Timeline */}
-          <div className="absolute bottom-0 left-0 right-80" style={{ zIndex: Z_INDEX.TIMELINE }}>
+          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
             {backgroundImage && uniqueSortedSteps.length > 0 && (
               <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
                 <HorizontalTimeline
@@ -1956,6 +1925,36 @@ useEffect(() => {
         }}
         onSave={handleSaveHotspot}
         hotspot={editingHotspot}
+      />
+
+      {/* New Hotspot Editor Modal */}
+      <HotspotEditorModal
+        isOpen={isHotspotModalOpen}
+        selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
+        relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
+        allTimelineEvents={timelineEvents}
+        currentStep={currentStep}
+        onUpdateHotspot={(updatedHotspot) => {
+          setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
+        }}
+        onDeleteHotspot={(hotspotId) => {
+          handleRemoveHotspot(hotspotId);
+          setIsHotspotModalOpen(false);
+          setSelectedHotspotForModal(null);
+        }}
+        onAddEvent={handleAddTimelineEvent}
+        onUpdateEvent={(updatedEvent) => {
+          setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+        }}
+        onDeleteEvent={handleRemoveTimelineEvent}
+        onReorderEvents={(eventIds) => {
+          // Handle reordering if needed
+        }}
+        onJumpToStep={setCurrentStep}
+        onClose={() => {
+          setIsHotspotModalOpen(false);
+          setSelectedHotspotForModal(null);
+        }}
       />
     </div>
   );
