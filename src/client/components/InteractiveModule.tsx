@@ -159,6 +159,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
+  
+  // Refs to break dependency loops
+  const isApplyingTransformRef = useRef(false);
+  const lastAppliedTransformRef = useRef<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
 
   const batchedSetState = useCallback((updates: Array<() => void>) => {
     ReactDOM.unstable_batchedUpdates(() => {
@@ -410,15 +414,33 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const applyTransform = useCallback((newTransform: ImageTransformState) => {
     debugLog('Transform', 'Applying new transform', newTransform);
+    isApplyingTransformRef.current = true;
+    lastAppliedTransformRef.current = newTransform;
     setIsTransforming(true);
     setImageTransform(newTransform);
 
-    // Reset transition flag after animation completes
-    // Ensure this timeout matches the CSS transition duration (0.5s for viewer mode)
+    // Reset flags after animation completes
     setTimeout(() => {
       setIsTransforming(false);
+      isApplyingTransformRef.current = false;
     }, 500);
-  }, [setImageTransform, debugLog]); // Dependency: setImageTransform if it's from props, or empty if it's from local useState
+  }, [debugLog]);
+
+  // Debounced transform to prevent rapid successive applications
+  const debouncedApplyTransform = useMemo(
+    () => {
+      let timeoutId: number | null = null;
+      return (newTransform: ImageTransformState) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        timeoutId = window.setTimeout(() => {
+          applyTransform(newTransform);
+        }, 16); // ~60fps
+      };
+    },
+    [applyTransform]
+  );
 
   // Memoized hotspot positions to prevent recalculation
   const hotspotsWithPositions = useMemo(() => {
@@ -477,38 +499,49 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   useEffect(() => {
     if (!imageContainerRef.current) return;
 
-    //let resizeTimer: number | null = null; // resizeTimer is no longer needed due to throttle
-
     const handleResize = () => {
       throttledRecalculatePositions();
-      // The transform recalculation logic that was here is complex and
-      // might need its own throttling or careful review if it's causing performance issues.
-      // For now, only the imageContainerRect update is throttled as per the issue's direct implication.
-      // Original transform recalculation logic (needs review if it should also be throttled or debounced):
-      // TODO: Review if this transform recalculation logic should also be throttled or debounced
-      if (imageTransform.scale > 1 && imageTransform.targetHotspotId) {
-        const targetHotspot = hotspots.find(h => h.id === imageTransform.targetHotspotId);
-        if (targetHotspot) {
-          const imageBounds = getSafeImageBounds(); // Assuming this is fast enough to not need throttling itself
-          const viewportCenter = getSafeViewportCenter(); // Same assumption
-          if (imageBounds && viewportCenter) {
-            const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-            const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-            
-            // Calculate translation for center-origin transform (same as above)
-            const divDimensions = getScaledImageDivDimensions();
-            const divCenterX = divDimensions.width / 2;
-            const divCenterY = divDimensions.height / 2;
-            
-            const hotspotOriginalX = imageBounds.left + hotspotX;
-            const hotspotOriginalY = imageBounds.top + hotspotY;
-            
-            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * imageTransform.scale - divCenterX;
-            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * imageTransform.scale - divCenterY;
-            
-            setImageTransform(prev => ({ ...prev, translateX, translateY }));
+      
+      // Only recalculate transform if we're not in the middle of applying one
+      // and if the transform was user-initiated (not timeline-driven)
+      const currentTransform = lastAppliedTransformRef.current;
+      if (!isApplyingTransformRef.current && 
+          currentTransform.scale > 1 && 
+          currentTransform.targetHotspotId &&
+          moduleState === 'idle') { // Only in idle mode for user-initiated zooms
+        
+        // Use a separate timeout to avoid immediate recalculation
+        setTimeout(() => {
+          if (!isApplyingTransformRef.current) {
+            const targetHotspot = hotspots.find(h => h.id === currentTransform.targetHotspotId);
+            if (targetHotspot) {
+              const imageBounds = getSafeImageBounds();
+              const viewportCenter = getSafeViewportCenter();
+              if (imageBounds && viewportCenter) {
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+                
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+                
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+                
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * currentTransform.scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * currentTransform.scale - divCenterY;
+                
+                // Only update if values have actually changed significantly
+                const threshold = 1; // 1px threshold
+                if (Math.abs(translateX - currentTransform.translateX) > threshold ||
+                    Math.abs(translateY - currentTransform.translateY) > threshold) {
+                  setImageTransform(prev => ({ ...prev, translateX, translateY }));
+                  lastAppliedTransformRef.current = { ...currentTransform, translateX, translateY };
+                }
+              }
+            }
           }
-        }
+        }, 50); // Small delay to let other effects settle
       }
     };
 
@@ -521,9 +554,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
     return () => {
       resizeObserver.disconnect();
-      // if (resizeTimer) clearTimeout(resizeTimer); // resizeTimer no longer used
     };
-  }, [imageTransform.scale, imageTransform.targetHotspotId, hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions]);
+  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState, getScaledImageDivDimensions]);
 
   // Define wheel zoom handler before the useEffect that uses it
   const handleWheelZoom = useCallback((event: WheelEvent) => {
@@ -808,14 +840,14 @@ useEffect(() => {
   } else {
     setInfoPanelAnchor(null);
   }
-}, [activeHotspotInfoId, hotspots, getSafeHotspotPixelPosition, imageTransform]); // Added imageTransform dependency
+}, [activeHotspotInfoId, hotspots, getSafeHotspotPixelPosition]); // Removed imageTransform dependency to prevent loops
 
 
   useEffect(() => {
     if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
 
     let newActiveHotspotInfoId: string | null = null; // To determine which InfoPanel to show
-    let newImageTransform: ImageTransformState = imageTransform; // Moved to top level for proper scoping
+    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current; // Use ref instead of state
 
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();
@@ -928,7 +960,7 @@ useEffect(() => {
         }
       });
 
-      if (!stepHasPanZoomEvent && (imageTransform.scale !== 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0)) {
+      if (!stepHasPanZoomEvent && (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0)) {
         newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
       }
 
@@ -945,7 +977,6 @@ useEffect(() => {
       setActiveHotspotDisplayIds(newActiveDisplayIds);
       setCurrentMessage(newMessage);
       setPulsingHotspotId(newPulsingHotspotId);
-      setImageTransform(newImageTransform);
       setHighlightedHotspotId(newHighlightedHotspotId);
       setActiveHotspotInfoId(newActiveHotspotInfoId); // This will trigger InfoPanel
     
@@ -1011,7 +1042,7 @@ useEffect(() => {
     } else {
       // This block executes if no PAN_ZOOM_TO_HOTSPOT event is active for the current step,
       // AND idle mode pan/zoom (exploredHotspotId && exploredHotspotPanZoomActive) is also not active.
-      if (imageTransform.scale !== 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
+      if (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0) {
         // If the current transform is not the default, a reset is needed.
         const resetTransform = {
           scale: 1,
@@ -1023,20 +1054,35 @@ useEffect(() => {
         newImageTransform = constrainTransform(resetTransform);
       } else {
         // If the current transform is already the default, ensure newImageTransform is set to this default state.
-        // This is crucial if newImageTransform was not initialized to imageTransform at the start of the useEffect's logic.
-        newImageTransform = imageTransform;
+        newImageTransform = lastAppliedTransformRef.current;
       }
     }
-    // Apply the determined transform at the end, only if it has changed
-    if (newImageTransform.scale !== imageTransform.scale ||
-        newImageTransform.translateX !== imageTransform.translateX ||
-        newImageTransform.translateY !== imageTransform.translateY ||
-        newImageTransform.targetHotspotId !== imageTransform.targetHotspotId) {
+    // Apply the determined transform at the end, only if it has actually changed
+    const currentTransform = lastAppliedTransformRef.current;
+    if (newImageTransform.scale !== currentTransform.scale ||
+        Math.abs(newImageTransform.translateX - currentTransform.translateX) > 1 ||
+        Math.abs(newImageTransform.translateY - currentTransform.translateY) > 1 ||
+        newImageTransform.targetHotspotId !== currentTransform.targetHotspotId) {
+      
+      lastAppliedTransformRef.current = newImageTransform;
       applyTransform(newImageTransform);
     }
     
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, imageTransform, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
+
+  // Debug effect to track transform changes and detect loops
+  useEffect(() => {
+    if (debugMode) {
+      debugLog('Transform State', 'Transform changed', {
+        scale: imageTransform.scale,
+        translateX: imageTransform.translateX.toFixed(2),
+        translateY: imageTransform.translateY.toFixed(2),
+        targetHotspotId: imageTransform.targetHotspotId,
+        stack: new Error().stack?.split('\n').slice(1, 4)
+      });
+    }
+  }, [imageTransform, debugMode, debugLog]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
