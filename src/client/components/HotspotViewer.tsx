@@ -101,9 +101,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'
   } ${isDragging ? 'scale-110 shadow-lg' : ''}`;
 
-  const containerClasses = `absolute transform -translate-x-1/2 -translate-y-1/2 group ${
+  // Positioning container - uses absolute positioning only
+  const positioningContainerClasses = `absolute group ${
+    isDragging ? 'z-50' : 'z-20'
+  }`;
+
+  // Centering wrapper - handles the -50% translation for centering
+  const centeringWrapperClasses = `transform -translate-x-1/2 -translate-y-1/2 ${
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
-} ${isDragging ? 'z-50' : 'z-20'}`;
+  }`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isDragging) return; // Don't trigger click during drag
@@ -121,28 +127,30 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
   return (
     <div
-      className={containerClasses}
+      className={positioningContainerClasses}
       style={{
-        position: 'absolute',
         left: usePixelPositioning && pixelPosition
           ? `${pixelPosition.x}px`
           : `${hotspot.x}%`,
         top: usePixelPositioning && pixelPosition
           ? `${pixelPosition.y}px`
           : `${hotspot.y}%`,
-        transform: 'translate(-50%, -50%)'
       }}
-      onClick={handleClick}
-      onMouseDown={handleMouseDown}
-      onKeyPress={handleKeyPress}
-      role="button"
-      aria-label={`Hotspot: ${hotspot.title}${isEditing && onPositionChange ? ' (draggable)' : ''}`}
-      tabIndex={0} // Make it focusable
     >
-      <span className={dotClasses} aria-hidden="true">
-        {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
-      </span>
-      {/* Info panel rendering is now handled by InteractiveModule using InfoPanel component */}
+      <div
+        className={centeringWrapperClasses}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onKeyPress={handleKeyPress}
+        role="button"
+        aria-label={`Hotspot: ${hotspot.title}${isEditing && onPositionChange ? ' (draggable)' : ''}`}
+        tabIndex={0} // Make it focusable
+      >
+        <span className={dotClasses} aria-hidden="true">
+          {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
+        </span>
+        {/* Info panel rendering is now handled by InteractiveModule using InfoPanel component */}
+      </div>
     </div>
   );
 };

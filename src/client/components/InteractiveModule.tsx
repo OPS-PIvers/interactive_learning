@@ -197,6 +197,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [debugMode]);
 
+  // Helper to get the actual div dimensions (viewer mode only)
+  const getScaledImageDivDimensions = useCallback(() => {
+    const divWidth = 80 * window.innerWidth / 100; // 80vw
+    const divHeight = 80 * window.innerHeight / 100; // 80vh
+    const maxWidth = 1200;
+    const maxHeight = 800;
+    
+    return {
+      width: Math.min(divWidth, maxWidth),
+      height: Math.min(divHeight, maxHeight)
+    };
+  }, []);
+
   const throttledRecalculatePositions = useMemo(
     () => throttle(() => {
       if (imageContainerRef.current) {
@@ -226,19 +239,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const editorMaxStep = useMemo(() => {
     return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
   }, [timelineEvents]);
-
-  // Helper to get the actual div dimensions (viewer mode only)
-  const getScaledImageDivDimensions = useCallback(() => {
-    const divWidth = 80 * window.innerWidth / 100; // 80vw
-    const divHeight = 80 * window.innerHeight / 100; // 80vh
-    const maxWidth = 1200;
-    const maxHeight = 800;
-    
-    return {
-      width: Math.min(divWidth, maxWidth),
-      height: Math.min(divHeight, maxHeight)
-    };
-  }, []);
 
   // Universal helper to get the actual rendered image dimensions and position
   const getImageBounds = useCallback(() => {
