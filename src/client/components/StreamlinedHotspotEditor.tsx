@@ -5,6 +5,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import DragHandle from './DragHandle';
+import { DEFAULT_HOTSPOT_COLOR_HEX } from '../../shared/constants'; // <<< ADD THIS LINE
 
 interface StreamlinedHotspotEditorProps {
   selectedHotspot: HotspotData;
@@ -32,8 +33,6 @@ const COLOR_PRESETS = [
   { name: 'Indigo', value: '#6366F1' },
   { name: 'Cyan', value: '#06B6D4' }
 ];
-
-const DEFAULT_HOTSPOT_COLOR_HEX = '#3B82F6'; // New constant
 
 const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
   selectedHotspot,

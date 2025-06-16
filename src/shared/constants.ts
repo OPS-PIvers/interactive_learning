@@ -1,0 +1,1 @@
+export const DEFAULT_HOTSPOT_COLOR_HEX = '#3B82F6';

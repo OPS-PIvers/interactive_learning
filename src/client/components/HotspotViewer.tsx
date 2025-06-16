@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
+import { DEFAULT_HOTSPOT_COLOR_HEX } from '../../shared/constants'; // <<< ADD THIS LINE
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -18,7 +19,6 @@ interface HotspotViewerProps {
 const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
   hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning
 }) => {
-  const DEFAULT_HOTSPOT_COLOR_HEX = '#3B82F6'; // New constant
   const TAILWIND_COLOR_MAP: { [key: string]: string } = {
     'red': '#EF4444',
     'blue': '#3B82F6',
@@ -29,14 +29,17 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     'indigo': '#6366F1',
     'cyan': '#06B6D4'
   };
-
-  let finalColor = DEFAULT_HOTSPOT_COLOR_HEX; // Default value
+  const hexRegex = /^#([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/i; // Regex for 3,4,6,8 char hex
+  let finalColor = DEFAULT_HOTSPOT_COLOR_HEX; // Uses imported constant
 
   if (hotspot.color) {
     if (hotspot.color.startsWith('#')) {
-      finalColor = hotspot.color; // It's a hex color
+      if (hexRegex.test(hotspot.color)) {
+        finalColor = hotspot.color; // It's a valid hex color
+      } else {
+        // Invalid hex format, finalColor remains DEFAULT_HOTSPOT_COLOR_HEX
+      }
     } else if (hotspot.color.startsWith('bg-')) {
-      // Attempt to parse Tailwind class, e.g., "bg-red-500"
       const parts = hotspot.color.split('-');
       if (parts.length >= 2) {
         const colorName = parts[1];
@@ -44,11 +47,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         if (mappedColor) {
           finalColor = mappedColor;
         }
-        // If not in map, it remains DEFAULT_HOTSPOT_COLOR_HEX
+        // If not in map, finalColor remains DEFAULT_HOTSPOT_COLOR_HEX
       }
-      // If parsing fails (e.g., "bg-"), it remains DEFAULT_HOTSPOT_COLOR_HEX
+      // If parsing fails, finalColor remains DEFAULT_HOTSPOT_COLOR_HEX
     }
-    // Any other format of hotspot.color will also result in DEFAULT_HOTSPOT_COLOR_HEX
+    // Any other format of hotspot.color will also result in finalColor remaining DEFAULT_HOTSPOT_COLOR_HEX
   }
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
