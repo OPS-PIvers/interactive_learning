@@ -33,6 +33,8 @@ const COLOR_PRESETS = [
   { name: 'Cyan', value: '#06B6D4' }
 ];
 
+const DEFAULT_HOTSPOT_COLOR_HEX = '#3B82F6'; // New constant
+
 const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
   selectedHotspot,
   relatedEvents,
@@ -218,7 +220,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
                 <label className="block text-xs text-slate-400 mb-1">Color</label>
                 <div className="relative">
                   <select
-                    value={selectedHotspot.color || '#3B82F6'} // Default to a hex blue
+                    value={selectedHotspot.color || DEFAULT_HOTSPOT_COLOR_HEX} // Use constant
                     onChange={(e) => handleHotspotUpdate({ color: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
                   >
@@ -231,7 +233,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
                   {/* The visual preview div will be updated in the next step */}
                   <div
                     className="absolute right-8 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full"
-                    style={{ backgroundColor: selectedHotspot.color || '#3B82F6' }} // Default to hex blue
+                    style={{ backgroundColor: selectedHotspot.color || DEFAULT_HOTSPOT_COLOR_HEX }} // Use constant
                   />
                 </div>
               </div>
