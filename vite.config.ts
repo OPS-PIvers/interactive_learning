@@ -8,8 +8,8 @@ export default defineConfig(({ mode }) => {
       build: {
         outDir: '../../dist',
         emptyOutDir: false,
-        target: 'es2015',
-        minify: 'terser',
+        target: 'es2018',
+        minify: false,
         rollupOptions: {
           input: path.resolve(__dirname, 'src/client/index.tsx'),
           // Make sure React and ReactDOM are bundled, not external

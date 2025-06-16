@@ -38,15 +38,17 @@ function prepareGasDeployment() {
     process.exit(1);
   }
   
-  // IMPORTANT: Escape the bundle content to prevent issues with quotes and special characters
-  // This is crucial for preventing "Unexpected end of input" errors
+  // IMPORTANT: Escape the bundle content to prevent template literal interpretation
+  // This is crucial for preventing syntax errors when injecting into HTML
   bundleContent = bundleContent
-    .replace(/\\/g, '\\\\')  // Escape backslashes first
-    .replace(/'/g, "\\'")    // Escape single quotes
-    .replace(/"/g, '\\"')    // Escape double quotes
-    .replace(/\n/g, '\\n')   // Escape newlines
-    .replace(/\r/g, '\\r')   // Escape carriage returns
-    .replace(/\t/g, '\\t');  // Escape tabs
+    .replace(/\\/g, '\\\\')     // Escape backslashes first
+    .replace(/`/g, '\\`')       // Escape backticks (template literals)
+    .replace(/\$\{/g, '\\${')   // Escape template literal expressions
+    .replace(/'/g, "\\'")       // Escape single quotes
+    .replace(/"/g, '\\"')       // Escape double quotes
+    .replace(/\n/g, '\\n')      // Escape newlines
+    .replace(/\r/g, '\\r')      // Escape carriage returns
+    .replace(/\t/g, '\\t');     // Escape tabs
   
   // Step 1: Create the main index.html file
   const timestamp = new Date().toISOString();
@@ -124,7 +126,7 @@ function prepareGasDeployment() {
 </style>`;
 
   // Step 3: Create the javascript.html file
-  // IMPORTANT: We use eval with the escaped content to prevent syntax errors
+  // IMPORTANT: Use escaped content with eval for proper execution in Apps Script
   const javascriptHtml = `<script>
 // Self-contained React application bundle
 // Build timestamp: ${timestamp}
@@ -132,7 +134,7 @@ function prepareGasDeployment() {
   'use strict';
   
   try {
-    // Using eval to execute the escaped bundle content
+    // Execute the escaped bundle content
     eval("${bundleContent}");
   } catch (error) {
     console.error('Error loading application:', error);

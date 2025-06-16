@@ -200,6 +200,221 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     [setImageContainerRect] // Dependency: ensure setImageContainerRect is stable or included
   );
 
+  const uniqueSortedSteps = useMemo(() => {
+    if (timelineEvents.length === 0) return isEditing ? [1] : [];
+    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+    return steps.length > 0 ? steps : (isEditing ? [1] : []);
+  }, [timelineEvents, isEditing]);
+
+  const currentStepIndex = useMemo(() => { 
+    if (moduleState === 'learning') {
+      const idx = uniqueSortedSteps.indexOf(currentStep);
+      return idx !== -1 ? idx : 0; 
+    }
+    return -1; 
+  }, [currentStep, uniqueSortedSteps, moduleState]);
+  
+  const totalTimelineInteractionPoints = useMemo(() => uniqueSortedSteps.length, [uniqueSortedSteps]);
+  
+  const editorMaxStep = useMemo(() => {
+    return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
+  }, [timelineEvents]);
+
+  // Universal helper to get the actual rendered image dimensions and position
+  const getImageBounds = useCallback(() => {
+    if (isEditing && actualImageRef.current && imageContainerRef.current) {
+      // Editor mode: Use actual img element
+      const imgRect = actualImageRef.current.getBoundingClientRect();
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+      return {
+        // Image dimensions as rendered
+        width: imgRect.width,
+        height: imgRect.height,
+        // Position relative to the image container
+        left: imgRect.left - containerRect.left,
+        top: imgRect.top - containerRect.top,
+        // Absolute position for other calculations
+        absoluteLeft: imgRect.left,
+        absoluteTop: imgRect.top
+      };
+    } else if (!isEditing && scaledImageDivRef.current && imageContainerRef.current && backgroundImage && imageNaturalDimensions) {
+      // Viewer mode: Calculate actual content area of background-image
+      const divRect = scaledImageDivRef.current.getBoundingClientRect();
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+      // Calculate actual rendered dimensions based on fit mode
+      const containerAspect = divRect.width / divRect.height;
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+
+      let width, height, left = 0, top = 0;
+
+      if (imageFitMode === 'cover') {
+        // Image covers entire container, may be clipped
+        if (containerAspect > imageAspect) {
+          width = divRect.width;
+          height = width / imageAspect;
+          top = (divRect.height - height) / 2;
+        } else {
+          height = divRect.height;
+          width = height * imageAspect;
+          left = (divRect.width - width) / 2;
+        }
+      } else if (imageFitMode === 'contain') {
+        // Image fits entirely within container
+        if (containerAspect > imageAspect) {
+          height = divRect.height;
+          width = height * imageAspect;
+          left = (divRect.width - width) / 2;
+        } else {
+          width = divRect.width;
+          height = width / imageAspect;
+          top = (divRect.height - height) / 2;
+        }
+      } else { // fill
+        // Image stretches to fill container
+        width = divRect.width;
+        height = divRect.height;
+      }
+
+      return {
+        width,
+        height,
+        left: divRect.left - containerRect.left + left,
+        top: divRect.top - containerRect.top + top,
+        absoluteLeft: divRect.left + left,
+        absoluteTop: divRect.top + top
+      };
+    }
+    return null;
+  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode]);
+
+  const getSafeImageBounds = useCallback(() => {
+    return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
+  }, [getImageBounds]);
+
+  // Helper to get viewport center for centering operations
+  const getViewportCenter = useCallback(() => {
+    if (!imageContainerRef.current) return null;
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    // In viewer mode, account for timeline at bottom
+    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+
+    return {
+      centerX: containerRect.width / 2,
+      centerY: (containerRect.height - timelineHeight) / 2
+    };
+  }, [isEditing, uniqueSortedSteps.length]);
+
+  const getSafeViewportCenter = useCallback(() => {
+    return safeGetPosition(
+      () => getViewportCenter(),
+      { centerX: 400, centerY: 300 } // Fallback to a default center object
+    );
+  }, [getViewportCenter]);
+
+  // Helper to convert hotspot percentage to absolute pixel coordinates
+  const getHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
+    const imageBounds = getSafeImageBounds();
+    if (!imageBounds) return null;
+
+    // Apply any current transform
+    const scale = imageTransform.scale;
+    const translateX = imageTransform.translateX;
+    const translateY = imageTransform.translateY;
+
+    // Calculate base position on the image
+    const baseX = (hotspot.x / 100) * imageBounds.width;
+    const baseY = (hotspot.y / 100) * imageBounds.height;
+
+    // Apply transform
+    const transformedX = (baseX * scale) + translateX + imageBounds.left;
+    const transformedY = (baseY * scale) + translateY + imageBounds.top;
+
+    return {
+      x: transformedX,
+      y: transformedY,
+      // Also return the base position for centering calculations
+      baseX: baseX + imageBounds.left,
+      baseY: baseY + imageBounds.top
+    };
+  }, [getSafeImageBounds, imageTransform]);
+
+  const getSafeHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
+    return safeGetPosition(
+      () => getHotspotPixelPosition(hotspot),
+      { x: 0, y: 0, baseX: 0, baseY: 0 } // Fallback to a default position object
+    );
+  }, [getHotspotPixelPosition]);
+
+  // Helper to constrain transforms and prevent UI overlap
+  const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
+    const imageBounds = getSafeImageBounds();
+    const viewportCenter = getSafeViewportCenter();
+
+    if (!imageBounds || !viewportCenter || !imageContainerRef.current) {
+      return transform;
+    }
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+    // Calculate the scaled image dimensions using imageBounds for content size
+    const scaledWidth = imageBounds.width * transform.scale;
+    const scaledHeight = imageBounds.height * transform.scale;
+
+    // Reserve space for UI elements
+    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+    const sidebarWidth = isEditing ? 320 : 0; // Corrected: Was w-80 = 20rem = 320px
+
+    // This is the available visual area for the image content
+    const availableWidth = containerRect.width - sidebarWidth;
+    const availableHeight = containerRect.height - timelineHeight;
+
+    // Allow the image to move but keep at least 20% of its own scaled dimension visible
+    const minVisibleImagePartWidth = scaledWidth * 0.2;
+    const minVisibleImagePartHeight = scaledHeight * 0.2;
+
+    // Translation limits for transform.translateX and transform.translateY
+    const minTranslateX = -scaledWidth + minVisibleImagePartWidth;
+    const maxTranslateX = availableWidth - minVisibleImagePartWidth;
+
+    const minTranslateY = -scaledHeight + minVisibleImagePartHeight;
+    const maxTranslateY = availableHeight - minVisibleImagePartHeight;
+
+    // Apply constraints
+    const constrainedTx = Math.max(minTranslateX, Math.min(maxTranslateX, transform.translateX));
+    const constrainedTy = Math.max(minTranslateY, Math.min(maxTranslateY, transform.translateY));
+
+    const constrainedTransform = {
+      ...transform,
+      translateX: constrainedTx,
+      translateY: constrainedTy,
+    };
+
+    return constrainedTransform;
+  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length]);
+
+  const applyTransform = useCallback((newTransform: ImageTransformState) => {
+    debugLog('Transform', 'Applying new transform', newTransform);
+    setIsTransforming(true);
+    setImageTransform(newTransform);
+
+    // Reset transition flag after animation completes
+    // Ensure this timeout matches the CSS transition duration (0.5s for viewer mode)
+    setTimeout(() => {
+      setIsTransforming(false);
+    }, 500);
+  }, [setImageTransform, debugLog]); // Dependency: setImageTransform if it's from props, or empty if it's from local useState
+
+  // Memoized hotspot positions to prevent recalculation
+  const hotspotsWithPositions = useMemo(() => {
+    return hotspots.map(hotspot => ({
+      ...hotspot,
+      pixelPosition: getSafeHotspotPixelPosition(hotspot)
+    }));
+  }, [hotspots, getSafeHotspotPixelPosition]);
+
   const handleCenter = useCallback(() => {
     const container = scrollableContainerRef.current;
     if (!container || !actualImageRef.current) return; // Ensure actualImageRef.current also exists for safety
@@ -245,26 +460,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     showingHighlightSlider: false,
     showingPulseSlider: false
   });
-
-  const uniqueSortedSteps = useMemo(() => {
-    if (timelineEvents.length === 0) return isEditing ? [1] : [];
-    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    return steps.length > 0 ? steps : (isEditing ? [1] : []);
-  }, [timelineEvents, isEditing]);
-
-  const currentStepIndex = useMemo(() => { 
-    if (moduleState === 'learning') {
-      const idx = uniqueSortedSteps.indexOf(currentStep);
-      return idx !== -1 ? idx : 0; 
-    }
-    return -1; 
-  }, [currentStep, uniqueSortedSteps, moduleState]);
-  
-  const totalTimelineInteractionPoints = useMemo(() => uniqueSortedSteps.length, [uniqueSortedSteps]);
-  
-  const editorMaxStep = useMemo(() => {
-    return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
-  }, [timelineEvents]);
 
   useEffect(() => {
     if (!imageContainerRef.current) return;
@@ -376,182 +571,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }, 0);
   }, [debugLog]);
 
-  // Universal helper to get the actual rendered image dimensions and position
-  const getImageBounds = useCallback(() => {
-    if (isEditing && actualImageRef.current && imageContainerRef.current) {
-      // Editor mode: Use actual img element
-      const imgRect = actualImageRef.current.getBoundingClientRect();
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
-
-      return {
-        // Image dimensions as rendered
-        width: imgRect.width,
-        height: imgRect.height,
-        // Position relative to the image container
-        left: imgRect.left - containerRect.left,
-        top: imgRect.top - containerRect.top,
-        // Absolute position for other calculations
-        absoluteLeft: imgRect.left,
-        absoluteTop: imgRect.top
-      };
-    } else if (!isEditing && scaledImageDivRef.current && imageContainerRef.current && backgroundImage && imageNaturalDimensions) {
-      // Viewer mode: Calculate actual content area of background-image
-      const divRect = scaledImageDivRef.current.getBoundingClientRect();
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
-
-      // Calculate actual rendered dimensions based on fit mode
-      const containerAspect = divRect.width / divRect.height;
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-
-      let width, height, left = 0, top = 0;
-
-      if (imageFitMode === 'cover') {
-        // Image covers entire container, may be clipped
-        if (containerAspect > imageAspect) {
-          width = divRect.width;
-          height = width / imageAspect;
-          top = (divRect.height - height) / 2;
-        } else {
-          height = divRect.height;
-          width = height * imageAspect;
-          left = (divRect.width - width) / 2;
-        }
-      } else if (imageFitMode === 'contain') {
-        // Image fits entirely within container
-        if (containerAspect > imageAspect) {
-          height = divRect.height;
-          width = height * imageAspect;
-          left = (divRect.width - width) / 2;
-        } else {
-          width = divRect.width;
-          height = width / imageAspect;
-          top = (divRect.height - height) / 2;
-        }
-      } else { // fill
-        // Image stretches to fill container
-        width = divRect.width;
-        height = divRect.height;
-      }
-
-      return {
-        width,
-        height,
-        left: divRect.left - containerRect.left + left,
-        top: divRect.top - containerRect.top + top,
-        absoluteLeft: divRect.left + left,
-        absoluteTop: divRect.top + top
-      };
-    }
-    return null;
-  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode]);
-
-  // Helper to convert hotspot percentage to absolute pixel coordinates
-  const getHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
-    const imageBounds = getSafeImageBounds();
-    if (!imageBounds) return null;
-
-    // Apply any current transform
-    const scale = imageTransform.scale;
-    const translateX = imageTransform.translateX;
-    const translateY = imageTransform.translateY;
-
-    // Calculate base position on the image
-    const baseX = (hotspot.x / 100) * imageBounds.width;
-    const baseY = (hotspot.y / 100) * imageBounds.height;
-
-    // Apply transform
-    const transformedX = (baseX * scale) + translateX + imageBounds.left;
-    const transformedY = (baseY * scale) + translateY + imageBounds.top;
-
-    return {
-      x: transformedX,
-      y: transformedY,
-      // Also return the base position for centering calculations
-      baseX: baseX + imageBounds.left,
-      baseY: baseY + imageBounds.top
-    };
-  }, [getImageBounds, imageTransform]);
-
-  // Helper to get viewport center for centering operations
-  const getViewportCenter = useCallback(() => {
-    if (!imageContainerRef.current) return null;
-
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
-    // In viewer mode, account for timeline at bottom
-    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
-
-    return {
-      centerX: containerRect.width / 2,
-      centerY: (containerRect.height - timelineHeight) / 2
-    };
-  }, [isEditing, uniqueSortedSteps.length]);
-
-  // Helper to constrain transforms and prevent UI overlap
-  const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
-    const imageBounds = getSafeImageBounds();
-    const viewportCenter = getSafeViewportCenter();
-
-    if (!imageBounds || !viewportCenter || !imageContainerRef.current) {
-      return transform;
-    }
-
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
-
-    // Calculate the scaled image dimensions using imageBounds for content size
-    const scaledWidth = imageBounds.width * transform.scale;
-    const scaledHeight = imageBounds.height * transform.scale;
-
-    // Reserve space for UI elements
-    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
-    const sidebarWidth = isEditing ? 320 : 0; // Corrected: Was w-80 = 20rem = 320px
-
-    // This is the available visual area for the image content
-    const availableWidth = containerRect.width - sidebarWidth;
-    const availableHeight = containerRect.height - timelineHeight;
-
-    // Allow the image to move but keep at least 20% of its own scaled dimension visible
-    const minVisibleImagePartWidth = scaledWidth * 0.2;
-    const minVisibleImagePartHeight = scaledHeight * 0.2;
-
-    // Translation limits for transform.translateX and transform.translateY
-    const minTranslateX = -scaledWidth + minVisibleImagePartWidth;
-    const maxTranslateX = availableWidth - minVisibleImagePartWidth;
-
-    const minTranslateY = -scaledHeight + minVisibleImagePartHeight;
-    const maxTranslateY = availableHeight - minVisibleImagePartHeight;
-
-    // Apply constraints
-    const constrainedTx = Math.max(minTranslateX, Math.min(maxTranslateX, transform.translateX));
-    const constrainedTy = Math.max(minTranslateY, Math.min(maxTranslateY, transform.translateY));
-
-    const constrainedTransform = {
-      ...transform,
-      translateX: constrainedTx,
-      translateY: constrainedTy,
-    };
-
-    return constrainedTransform;
-  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length]);
-
-  const applyTransform = useCallback((newTransform: ImageTransformState) => {
-    debugLog('Transform', 'Applying new transform', newTransform);
-    setIsTransforming(true);
-    setImageTransform(newTransform);
-
-    // Reset transition flag after animation completes
-    // Ensure this timeout matches the CSS transition duration (0.5s for viewer mode)
-    setTimeout(() => {
-      setIsTransforming(false);
-    }, 500);
-  }, [setImageTransform, debugLog]); // Dependency: setImageTransform if it's from props, or empty if it's from local useState
-
-  // Memoized hotspot positions to prevent recalculation
-  const hotspotsWithPositions = useMemo(() => {
-    return hotspots.map(hotspot => ({
-      ...hotspot,
-      pixelPosition: getSafeHotspotPixelPosition(hotspot)
-    }));
-  }, [hotspots, getSafeHotspotPixelPosition]);
 
   // New zoom handler functions for editing mode
   const handleZoomIn = useCallback(() => {
@@ -619,6 +638,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       pulseTimeoutRef.current = null;
     }
   }, [initialData, isEditing]);
+
+  const handlePrevStep = useCallback(() => {
+    if (moduleState === 'learning') {
+      const currentIndex = uniqueSortedSteps.indexOf(currentStep);
+      if (currentIndex > 0) {
+        setCurrentStep(uniqueSortedSteps[currentIndex - 1]);
+      }
+    }
+  }, [currentStep, uniqueSortedSteps, moduleState]);
+
+  const handleNextStep = useCallback(() => {
+    if (moduleState === 'learning') {
+      const currentIndex = uniqueSortedSteps.indexOf(currentStep);
+      if (currentIndex < uniqueSortedSteps.length - 1) {
+        setCurrentStep(uniqueSortedSteps[currentIndex + 1]);
+      }
+    }
+  }, [currentStep, uniqueSortedSteps, moduleState]);
 
   // Keyboard shortcut handlers
   const handleArrowLeftKey = useCallback((): boolean => {
@@ -755,12 +792,12 @@ useEffect(() => {
     if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
 
     let newActiveHotspotInfoId: string | null = null; // To determine which InfoPanel to show
+    let newImageTransform: ImageTransformState = imageTransform; // Moved to top level for proper scoping
 
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();
       let newMessage: string | null = null;
       let newPulsingHotspotId: string | null = null;
-      let newImageTransform: ImageTransformState = imageTransform;
       let newHighlightedHotspotId: string | null = null;
       
       const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
@@ -995,24 +1032,6 @@ useEffect(() => {
     setExploredHotspotPanZoomActive(false);
     setActiveHotspotInfoId(null);
   }, []);
-
-  const handlePrevStep = useCallback(() => {
-    if (moduleState === 'learning') {
-      const currentIndex = uniqueSortedSteps.indexOf(currentStep);
-      if (currentIndex > 0) {
-        setCurrentStep(uniqueSortedSteps[currentIndex - 1]);
-      }
-    }
-  }, [currentStep, uniqueSortedSteps, moduleState]);
-
-  const handleNextStep = useCallback(() => {
-    if (moduleState === 'learning') {
-      const currentIndex = uniqueSortedSteps.indexOf(currentStep);
-      if (currentIndex < uniqueSortedSteps.length - 1) {
-        setCurrentStep(uniqueSortedSteps[currentIndex + 1]);
-      }
-    }
-  }, [currentStep, uniqueSortedSteps, moduleState]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
     if (moduleState === 'idle' && !isEditing) {
@@ -1337,23 +1356,6 @@ useEffect(() => {
     );
   };
 
-  const getSafeImageBounds = useCallback(() => {
-    return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
-  }, [getImageBounds]);
-
-  const getSafeHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
-    return safeGetPosition(
-      () => getHotspotPixelPosition(hotspot),
-      { x: 0, y: 0, baseX: 0, baseY: 0 } // Fallback to a default position object
-    );
-  }, [getHotspotPixelPosition]);
-
-  const getSafeViewportCenter = useCallback(() => {
-    return safeGetPosition(
-      () => getViewportCenter(),
-      { centerX: 400, centerY: 300 } // Fallback to a default center object
-    );
-  }, [getViewportCenter]);
 
   const handleAttemptClose = useCallback(() => {
     if (isModeSwitching) {

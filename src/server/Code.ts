@@ -197,7 +197,7 @@ function saveImageToProject(projectId: string, imageData: string, filename: stri
         const parts = filename.split('.');
         if (parts.length > 1) {
           const ext = parts.pop();
-          if (ext && ['jpg', 'jpeg', 'png', 'gif'].includes(ext.toLowerCase())) {
+          if (ext && ['jpg', 'jpeg', 'png', 'gif'].indexOf(ext.toLowerCase()) !== -1) {
             extension = '.' + ext.toLowerCase();
           } else {
             extension = '.jpg'; // default if unrecognized
