@@ -21,22 +21,22 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
-  // Get size classes based on hotspot size
-  const getSizeClasses = (size: HotspotSize = 'medium') => {
+  // Get size in pixels based on hotspot size
+  const getHotspotDimensions = (size: HotspotSize = 'medium'): { width: string; height: string; afterSize: string } => {
     switch (size) {
       case 'small':
-        return 'h-3 w-3 sm:h-3 sm:w-3';
+        return { width: '18px', height: '18px', afterSize: '6px' }; // After size approx 1/3 of main
       case 'medium':
-        return 'h-4 w-4 sm:h-5 sm:w-5';
+        return { width: '24px', height: '24px', afterSize: '8px' };
       case 'large':
-        return 'h-5 w-5 sm:h-6 sm:w-6';
+        return { width: '30px', height: '30px', afterSize: '10px' };
       default:
-        return 'h-4 w-4 sm:h-5 sm:w-5';
+        return { width: '24px', height: '24px', afterSize: '8px' };
     }
   };
   
-  const baseColor = hotspot.color || 'bg-sky-500';
-  const hoverColor = hotspot.color ? hotspot.color.replace('500', '400').replace('600','500') : 'bg-sky-400'; // ensure hover works for darker colors too
+  const baseColor = hotspot.color || '#3b82f6'; // Default to the blue from new CSS if not provided
+  // hoverColor is now handled by CSS :hover pseudo-class
   
   // Drag handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -93,15 +93,17 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, imageElement, setIsDragging]); // Added setIsDragging to dependencies
   
-  const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
-  const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
+  // timelinePulseClasses and continuousPulseDotClasses are removed as animation is handled by the 'hotspot' class CSS.
 
-  const sizeClasses = getSizeClasses(hotspot.size);
-  const dotClasses = `relative inline-flex rounded-full ${sizeClasses} ${baseColor} group-hover:${hoverColor} transition-all duration-200 ${continuousPulseDotClasses} ${
-    isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'
-  } ${isDragging ? 'scale-110 shadow-lg' : ''}`;
+  const hotspotDimensions = getHotspotDimensions(hotspot.size);
 
-  const containerClasses = `absolute transform -translate-x-1/2 -translate-y-1/2 group ${
+  // Apply the new 'hotspot' class. Dynamic classes for cursor and dragging state are appended.
+  // Tailwind classes for size, color, rounded-full, group-hover, transition-all, duration-200 are removed.
+  const dotClasses = `hotspot ${
+    isEditing && onPositionChange ? 'cursor-move' : '' // cursor-pointer is in .hotspot
+  } ${isDragging ? 'scale-110 shadow-lg' : ''}`; // isDragging can temporarily override transform
+
+  const containerClasses = `absolute group ${ // transform -translate-x-1/2 -translate-y-1/2 is in .hotspot
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
 } ${isDragging ? 'z-50' : 'z-20'}`;
 
@@ -130,7 +132,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         top: usePixelPositioning && pixelPosition
           ? `${pixelPosition.y}px`
           : `${hotspot.y}%`,
-        transform: 'translate(-50%, -50%)'
+        // transform: 'translate(-50%, -50%)' // This is now part of the .hotspot class,
+                                               // but .hotspot is on the child span, so keep it here for the div.
+                                               // Or, if .hotspot was intended for this div, this could be removed.
+                                               // The prompt implies .hotspot is the visible circle (the span).
       }}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
@@ -139,8 +144,19 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       aria-label={`Hotspot: ${hotspot.title}${isEditing && onPositionChange ? ' (draggable)' : ''}`}
       tabIndex={0} // Make it focusable
     >
-      <span className={dotClasses} aria-hidden="true">
-        {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
+      <span
+        className={dotClasses}
+        aria-hidden="true"
+        style={{
+          backgroundColor: baseColor.startsWith('bg-') ? undefined : baseColor,
+          width: hotspotDimensions.width,
+          height: hotspotDimensions.height,
+          // For scaling ::after element. CSS variables are a clean way.
+          // @ts-ignore CSS custom properties
+          '--hotspot-after-size': hotspotDimensions.afterSize,
+        }}
+      >
+        {/* The ping animation span (previously using timelinePulseClasses) is removed. */}
       </span>
       {/* Info panel rendering is now handled by InteractiveModule using InfoPanel component */}
     </div>
