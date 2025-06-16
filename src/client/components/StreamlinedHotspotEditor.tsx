@@ -230,7 +230,6 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
                       </option>
                     ))}
                   </select>
-                  {/* The visual preview div will be updated in the next step */}
                   <div
                     className="absolute right-8 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full"
                     style={{ backgroundColor: selectedHotspot.color || DEFAULT_HOTSPOT_COLOR_HEX }} // Use constant

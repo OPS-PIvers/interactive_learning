@@ -18,6 +18,38 @@ interface HotspotViewerProps {
 const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
   hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning
 }) => {
+  const DEFAULT_HOTSPOT_COLOR_HEX = '#3B82F6'; // New constant
+  const TAILWIND_COLOR_MAP: { [key: string]: string } = {
+    'red': '#EF4444',
+    'blue': '#3B82F6',
+    'green': '#22C55E',
+    'yellow': '#EAB308',
+    'purple': '#8B5CF6',
+    'pink': '#EC4899',
+    'indigo': '#6366F1',
+    'cyan': '#06B6D4'
+  };
+
+  let finalColor = DEFAULT_HOTSPOT_COLOR_HEX; // Default value
+
+  if (hotspot.color) {
+    if (hotspot.color.startsWith('#')) {
+      finalColor = hotspot.color; // It's a hex color
+    } else if (hotspot.color.startsWith('bg-')) {
+      // Attempt to parse Tailwind class, e.g., "bg-red-500"
+      const parts = hotspot.color.split('-');
+      if (parts.length >= 2) {
+        const colorName = parts[1];
+        const mappedColor = TAILWIND_COLOR_MAP[colorName];
+        if (mappedColor) {
+          finalColor = mappedColor;
+        }
+        // If not in map, it remains DEFAULT_HOTSPOT_COLOR_HEX
+      }
+      // If parsing fails (e.g., "bg-"), it remains DEFAULT_HOTSPOT_COLOR_HEX
+    }
+    // Any other format of hotspot.color will also result in DEFAULT_HOTSPOT_COLOR_HEX
+  }
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
@@ -35,7 +67,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     }
   };
   
-  const baseColor = hotspot.color || '#3b82f6'; // Default to the blue from new CSS if not provided
   // hoverColor is now handled by CSS :hover pseudo-class
   
   // Drag handlers
@@ -154,7 +185,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         className={dotClasses}
         aria-hidden="true"
         style={{
-          backgroundColor: baseColor, // Directly use baseColor
+          backgroundColor: finalColor, // Use the new finalColor
           width: hotspotDimensions.width,
           height: hotspotDimensions.height,
           // For scaling ::after element. CSS variables are a clean way.
