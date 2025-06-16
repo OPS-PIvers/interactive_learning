@@ -163,6 +163,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Refs to break dependency loops
   const isApplyingTransformRef = useRef(false);
   const lastAppliedTransformRef = useRef<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+  
+  // Store original untransformed bounds to prevent feedback loops
+  const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
 
   const batchedSetState = useCallback((updates: Array<() => void>) => {
     ReactDOM.unstable_batchedUpdates(() => {
@@ -224,6 +227,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
   }, [timelineEvents]);
 
+  // Helper to get the actual div dimensions (viewer mode only)
+  const getScaledImageDivDimensions = useCallback(() => {
+    const divWidth = 80 * window.innerWidth / 100; // 80vw
+    const divHeight = 80 * window.innerHeight / 100; // 80vh
+    const maxWidth = 1200;
+    const maxHeight = 800;
+    
+    return {
+      width: Math.min(divWidth, maxWidth),
+      height: Math.min(divHeight, maxHeight)
+    };
+  }, []);
+
   // Universal helper to get the actual rendered image dimensions and position
   const getImageBounds = useCallback(() => {
     if (isEditing && actualImageRef.current && imageContainerRef.current) {
@@ -243,12 +259,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         absoluteTop: imgRect.top
       };
     } else if (!isEditing && scaledImageDivRef.current && imageContainerRef.current && backgroundImage && imageNaturalDimensions) {
-      // Viewer mode: Calculate actual content area of background-image
-      const divRect = scaledImageDivRef.current.getBoundingClientRect();
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
+      // Viewer mode: Return original untransformed bounds to prevent feedback loops
+      
+      // If we have cached original bounds and the image hasn't changed, use them
+      if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
+        return originalImageBoundsRef.current;
+      }
 
+      // Calculate original bounds based on untransformed div dimensions
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+      
+      // Use the div's configured dimensions (80vw/80vh with max constraints)
+      const divDimensions = getScaledImageDivDimensions();
+      
       // Calculate actual rendered dimensions based on fit mode
-      const containerAspect = divRect.width / divRect.height;
+      const containerAspect = divDimensions.width / divDimensions.height;
       const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
 
       let width, height, left = 0, top = 0;
@@ -256,46 +281,64 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       if (imageFitMode === 'cover') {
         // Image covers entire container, may be clipped
         if (containerAspect > imageAspect) {
-          width = divRect.width;
+          width = divDimensions.width;
           height = width / imageAspect;
-          top = (divRect.height - height) / 2;
+          top = (divDimensions.height - height) / 2;
         } else {
-          height = divRect.height;
+          height = divDimensions.height;
           width = height * imageAspect;
-          left = (divRect.width - width) / 2;
+          left = (divDimensions.width - width) / 2;
         }
       } else if (imageFitMode === 'contain') {
         // Image fits entirely within container
         if (containerAspect > imageAspect) {
-          height = divRect.height;
+          height = divDimensions.height;
           width = height * imageAspect;
-          left = (divRect.width - width) / 2;
+          left = (divDimensions.width - width) / 2;
         } else {
-          width = divRect.width;
+          width = divDimensions.width;
           height = width / imageAspect;
-          top = (divRect.height - height) / 2;
+          top = (divDimensions.height - height) / 2;
         }
       } else { // fill
         // Image stretches to fill container
-        width = divRect.width;
-        height = divRect.height;
+        width = divDimensions.width;
+        height = divDimensions.height;
       }
 
-      return {
+      // Calculate position relative to container (not transformed div)
+      // Assume div is centered in container when untransformed
+      const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
+      const availableHeight = containerRect.height - timelineHeight;
+      const availableWidth = containerRect.width;
+      
+      const divLeft = (availableWidth - divDimensions.width) / 2;
+      const divTop = (availableHeight - divDimensions.height) / 2;
+
+      const bounds = {
         width,
         height,
-        left: divRect.left - containerRect.left + left,
-        top: divRect.top - containerRect.top + top,
-        absoluteLeft: divRect.left + left,
-        absoluteTop: divRect.top + top
+        left: divLeft + left,
+        top: divTop + top,
+        absoluteLeft: containerRect.left + divLeft + left,
+        absoluteTop: containerRect.top + divTop + top
       };
+
+      // Cache the original bounds
+      originalImageBoundsRef.current = bounds;
+      return bounds;
     }
     return null;
-  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode]);
+  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
 
   const getSafeImageBounds = useCallback(() => {
     return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
   }, [getImageBounds]);
+
+  // Helper to clear cached bounds when needed
+  const clearImageBoundsCache = useCallback(() => {
+    originalImageBoundsRef.current = null;
+  }, []);
 
   // Helper to get viewport center for centering operations
   const getViewportCenter = useCallback(() => {
@@ -319,31 +362,42 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, [getViewportCenter]);
 
   // Helper to convert hotspot percentage to absolute pixel coordinates
-  const getHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
+  // Now independent of current transform state to prevent feedback loops
+  const getHotspotPixelPosition = useCallback((hotspot: HotspotData, transform?: ImageTransformState) => {
     const imageBounds = getSafeImageBounds();
     if (!imageBounds) return null;
 
-    // Apply any current transform
-    const scale = imageTransform.scale;
-    const translateX = imageTransform.translateX;
-    const translateY = imageTransform.translateY;
+    // Use provided transform or current transform
+    const currentTransform = transform || lastAppliedTransformRef.current;
+    const scale = currentTransform.scale;
+    const translateX = currentTransform.translateX;
+    const translateY = currentTransform.translateY;
 
-    // Calculate base position on the image
+    // Calculate base position on the original untransformed image
     const baseX = (hotspot.x / 100) * imageBounds.width;
     const baseY = (hotspot.y / 100) * imageBounds.height;
 
-    // Apply transform
-    const transformedX = (baseX * scale) + translateX + imageBounds.left;
-    const transformedY = (baseY * scale) + translateY + imageBounds.top;
+    // For center-origin transforms, we need to account for the div center
+    const divDimensions = getScaledImageDivDimensions();
+    const divCenterX = divDimensions.width / 2;
+    const divCenterY = divDimensions.height / 2;
+    
+    // Original position relative to div center
+    const basePosX = imageBounds.left + baseX;
+    const basePosY = imageBounds.top + baseY;
+    
+    // Apply center-origin transform
+    const transformedX = (basePosX - divCenterX) * scale + divCenterX + translateX;
+    const transformedY = (basePosY - divCenterY) * scale + divCenterY + translateY;
 
     return {
       x: transformedX,
       y: transformedY,
       // Also return the base position for centering calculations
-      baseX: baseX + imageBounds.left,
-      baseY: baseY + imageBounds.top
+      baseX: basePosX,
+      baseY: basePosY
     };
-  }, [getSafeImageBounds, imageTransform]);
+  }, [getSafeImageBounds, getScaledImageDivDimensions]);
 
   const getSafeHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
     return safeGetPosition(
@@ -351,19 +405,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       { x: 0, y: 0, baseX: 0, baseY: 0 } // Fallback to a default position object
     );
   }, [getHotspotPixelPosition]);
-
-  // Helper to get the actual div dimensions (viewer mode only)
-  const getScaledImageDivDimensions = useCallback(() => {
-    const divWidth = 80 * window.innerWidth / 100; // 80vw
-    const divHeight = 80 * window.innerHeight / 100; // 80vh
-    const maxWidth = 1200;
-    const maxHeight = 800;
-    
-    return {
-      width: Math.min(divWidth, maxWidth),
-      height: Math.min(divHeight, maxHeight)
-    };
-  }, []);
 
   // Helper to constrain transforms and prevent UI overlap
   const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
@@ -442,13 +483,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     [applyTransform]
   );
 
-  // Memoized hotspot positions to prevent recalculation
+  // Memoized hotspot positions that update with explicit transform changes
   const hotspotsWithPositions = useMemo(() => {
+    const currentTransform = lastAppliedTransformRef.current;
     return hotspots.map(hotspot => ({
       ...hotspot,
-      pixelPosition: getSafeHotspotPixelPosition(hotspot)
+      pixelPosition: getHotspotPixelPosition(hotspot, currentTransform)
     }));
-  }, [hotspots, getSafeHotspotPixelPosition]);
+  }, [hotspots, getHotspotPixelPosition, imageTransform]); // Keep imageTransform to trigger updates
 
   const handleCenter = useCallback(() => {
     const container = scrollableContainerRef.current;
@@ -688,11 +730,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
 
+    // Clear cached bounds when data changes
+    clearImageBoundsCache();
+    lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+
     if (pulseTimeoutRef.current) {
       clearTimeout(pulseTimeoutRef.current);
       pulseTimeoutRef.current = null;
     }
-  }, [initialData, isEditing]);
+  }, [initialData, isEditing, clearImageBoundsCache]);
 
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
