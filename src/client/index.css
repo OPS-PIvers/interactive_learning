@@ -270,10 +270,8 @@
 /* Base class for the hotspot element.
 */
 .hotspot {
-  /* Positioning: Assumes it will be placed absolutely on a relative container */
-  position: absolute;
-  /* Centering trick: Ensures top/left coordinates correspond to the center of the circle */
-  transform: translate(-50%, -50%);
+  /* Positioning: Now relative to its parent, which handles absolute positioning and centering. */
+  position: relative; /* Changed from absolute */
 
   /* Appearance */
   width: 24px;
@@ -290,6 +288,7 @@
   /* Smooth transitions for hover/focus states */
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* The transform in the transition property here refers to scaling transforms (e.g., on hover/drag), not translational ones for centering. */
 }
 
 /* Inner dot for a more refined look.
@@ -313,7 +312,7 @@
 .hotspot:hover {
   animation-play-state: paused;
   background-color: #2563eb; /* Tailwind's blue-600 */
-  transform: translate(-50%, -50%) scale(1.15);
+  transform: scale(1.15); /* Centering transform is handled by parent */
 }
 
 /* Interaction state: Focus (for keyboard accessibility)
@@ -323,4 +322,17 @@
   outline: 3px solid #60a5fa; /* Tailwind's blue-400 */
   outline-offset: 2px;
   animation-play-state: paused;
+}
+
+/* Styling for hotspot when it is being dragged.
+   Combines scaling and shadow. Centering is handled by the parent container.
+*/
+.hotspot-dragging {
+  transform: scale(1.15); /* Centering transform is handled by parent */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Ensure other properties like cursor are not unintentionally overridden if they were
+     part of the Tailwind classes being removed. The .hotspot class should provide the base.
+     The z-index might also be important for dragging, but it's currently handled by `containerClasses` in the JS.
+     Let's keep this class focused on transform and box-shadow for now.
+  */
 }

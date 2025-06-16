@@ -99,9 +99,18 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
   // Apply the new 'hotspot' class. Dynamic classes for cursor and dragging state are appended.
   // Tailwind classes for size, color, rounded-full, group-hover, transition-all, duration-200 are removed.
-  const dotClasses = `hotspot ${
-    isEditing && onPositionChange ? 'cursor-move' : '' // cursor-pointer is in .hotspot
-  } ${isDragging ? 'scale-110 shadow-lg' : ''}`; // isDragging can temporarily override transform
+  // const dotClasses = `hotspot ${
+  //   isEditing && onPositionChange ? 'cursor-move' : '' // cursor-pointer is in .hotspot
+  // } ${isDragging ? 'scale-110 shadow-lg' : ''}`; // isDragging can temporarily override transform
+
+  const dynamicClasses = ['hotspot'];
+  if (isEditing && onPositionChange) {
+    dynamicClasses.push('cursor-move'); // cursor-pointer is default in .hotspot
+  }
+  if (isDragging) {
+    dynamicClasses.push('hotspot-dragging'); // Replaces 'scale-110 shadow-lg'
+  }
+  const dotClasses = dynamicClasses.join(' ');
 
   const containerClasses = `absolute group ${ // transform -translate-x-1/2 -translate-y-1/2 is in .hotspot
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
@@ -132,10 +141,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         top: usePixelPositioning && pixelPosition
           ? `${pixelPosition.y}px`
           : `${hotspot.y}%`,
-        // transform: 'translate(-50%, -50%)' // This is now part of the .hotspot class,
-                                               // but .hotspot is on the child span, so keep it here for the div.
-                                               // Or, if .hotspot was intended for this div, this could be removed.
-                                               // The prompt implies .hotspot is the visible circle (the span).
+        transform: 'translate(-50%, -50%)', // Restored for correct positioning of the container
       }}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
