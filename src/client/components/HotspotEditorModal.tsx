@@ -197,19 +197,6 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             {/* Appearance Tab */}
             {activeTab === 'appearance' && (
               <div className="space-y-6">
-                {/* Position info - read only */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Position</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      📍 Current position: {selectedHotspot.x.toFixed(1)}%, {selectedHotspot.y.toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                      💡 Drag the hotspot on the image to reposition
-                    </p>
-                  </div>
-                </div>
-
                 {/* Size */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-medium text-slate-900 dark:text-white">Size</h3>
