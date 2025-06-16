@@ -17,7 +17,7 @@ export interface HotspotData {
   y: number; // percentage 0-100
   title: string;
   description: string;
-  color?: string; // e.g., 'bg-red-500'
+  color?: string; // e.g., '#FF0000' (hex color string)
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
 }
 

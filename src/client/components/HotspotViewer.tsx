@@ -154,7 +154,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         className={dotClasses}
         aria-hidden="true"
         style={{
-          backgroundColor: baseColor.startsWith('bg-') ? undefined : baseColor,
+          backgroundColor: baseColor, // Directly use baseColor
           width: hotspotDimensions.width,
           height: hotspotDimensions.height,
           // For scaling ::after element. CSS variables are a clean way.

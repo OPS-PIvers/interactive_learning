@@ -23,8 +23,14 @@ interface StreamlinedHotspotEditorProps {
 
 // Color preset options
 const COLOR_PRESETS = [
-  'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
-  'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-cyan-500'
+  { name: 'Red', value: '#EF4444' },
+  { name: 'Blue', value: '#3B82F6' },
+  { name: 'Green', value: '#22C55E' },
+  { name: 'Yellow', value: '#EAB308' },
+  { name: 'Purple', value: '#8B5CF6' },
+  { name: 'Pink', value: '#EC4899' },
+  { name: 'Indigo', value: '#6366F1' },
+  { name: 'Cyan', value: '#06B6D4' }
 ];
 
 const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
@@ -212,18 +218,20 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
                 <label className="block text-xs text-slate-400 mb-1">Color</label>
                 <div className="relative">
                   <select
-                    value={selectedHotspot.color || 'bg-blue-500'}
+                    value={selectedHotspot.color || '#3B82F6'} // Default to a hex blue
                     onChange={(e) => handleHotspotUpdate({ color: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
                   >
                     {COLOR_PRESETS.map(color => (
-                      <option key={color} value={color}>
-                        {color.replace('bg-', '').replace('-500', '')}
+                      <option key={color.name} value={color.value}>
+                        {color.name}
                       </option>
                     ))}
                   </select>
-                  <div 
-                    className={`absolute right-8 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full ${selectedHotspot.color || 'bg-blue-500'}`}
+                  {/* The visual preview div will be updated in the next step */}
+                  <div
+                    className="absolute right-8 top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full"
+                    style={{ backgroundColor: selectedHotspot.color || '#3B82F6' }} // Default to hex blue
                   />
                 </div>
               </div>
