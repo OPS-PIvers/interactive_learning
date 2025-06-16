@@ -348,6 +348,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     );
   }, [getHotspotPixelPosition]);
 
+  // Helper to get the actual div dimensions (viewer mode only)
+  const getScaledImageDivDimensions = useCallback(() => {
+    const divWidth = 80 * window.innerWidth / 100; // 80vw
+    const divHeight = 80 * window.innerHeight / 100; // 80vh
+    const maxWidth = 1200;
+    const maxHeight = 800;
+    
+    return {
+      width: Math.min(divWidth, maxWidth),
+      height: Math.min(divHeight, maxHeight)
+    };
+  }, []);
+
   // Helper to constrain transforms and prevent UI overlap
   const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
     const imageBounds = getSafeImageBounds();
@@ -393,7 +406,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     };
 
     return constrainedTransform;
-  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length]);
+  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length, getScaledImageDivDimensions]);
 
   const applyTransform = useCallback((newTransform: ImageTransformState) => {
     debugLog('Transform', 'Applying new transform', newTransform);
@@ -481,8 +494,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           if (imageBounds && viewportCenter) {
             const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
             const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-            const translateX = viewportCenter.centerX - (hotspotX * imageTransform.scale) - imageBounds.left;
-            const translateY = viewportCenter.centerY - (hotspotY * imageTransform.scale) - imageBounds.top;
+            
+            // Calculate translation for center-origin transform (same as above)
+            const divDimensions = getScaledImageDivDimensions();
+            const divCenterX = divDimensions.width / 2;
+            const divCenterY = divDimensions.height / 2;
+            
+            const hotspotOriginalX = imageBounds.left + hotspotX;
+            const hotspotOriginalY = imageBounds.top + hotspotY;
+            
+            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * imageTransform.scale - divCenterX;
+            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * imageTransform.scale - divCenterY;
+            
             setImageTransform(prev => ({ ...prev, translateX, translateY }));
           }
         }
@@ -864,21 +887,23 @@ useEffect(() => {
                 // target_on_screen_Y = ( (imageBounds.top + hotspotY) - divCenterY) * scale + divCenterY + translateY
                 // We want target_on_screen_X = viewportCenter.centerX
                 
-                // The provided formula is:
-                // translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
-                // translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
-                // This formula assumes that the `transform-origin` for the scale is top-left (0,0) of the `scaledImageDivRef`,
-                // and `imageBounds.left/top` are offsets within that.
-                // Given `transform-origin: center` for `scaledImageDivRef`, this might need adjustment.
-                // However, `getImageBounds()` calculates `imageBounds.left/top` as the offset of the *visible content area*
-                // from the *container's* top-left.
-                // And `imageTransform.translateX/Y` is applied to `scaledImageDivRef`.
-
-                // Let's assume the provided formula is correct in the context of how these values are used.
-                // The most important part is using `imageBounds.left/top` in the calculation.
-
-                const translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
-                const translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
+                // Calculate translation for center-origin transform
+                // With transform-origin: center, we need to account for the div's center point
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+                
+                // For center-origin scaling, the transform formula is:
+                // final_position = (original_position - center) * scale + center + translate
+                // We want: hotspot_final_position = viewportCenter
+                // So: translate = viewportCenter - ((hotspot_original - center) * scale + center)
+                // Simplifying: translate = viewportCenter - (hotspot_original - center) * scale - center
+                
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+                
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
                 
                 let newTransform = {
                   scale,
@@ -946,8 +971,17 @@ useEffect(() => {
             const scale = panZoomEvent.zoomFactor || 2; // Use event's zoomFactor, fallback to 2
             const hotspotX = (hotspot.x / 100) * imageBounds.width;
             const hotspotY = (hotspot.y / 100) * imageBounds.height;
-            const translateX = viewportCenter.centerX - (hotspotX * scale) - (imageBounds.left * scale);
-            const translateY = viewportCenter.centerY - (hotspotY * scale) - (imageBounds.top * scale);
+            
+            // Calculate translation for center-origin transform (same as above)
+            const divDimensions = getScaledImageDivDimensions();
+            const divCenterX = divDimensions.width / 2;
+            const divCenterY = divDimensions.height / 2;
+            
+            const hotspotOriginalX = imageBounds.left + hotspotX;
+            const hotspotOriginalY = imageBounds.top + hotspotY;
+            
+            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
             
             let transform = {
               scale,
@@ -1002,7 +1036,7 @@ useEffect(() => {
     }
     
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, imageTransform, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform]);
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, imageTransform, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
