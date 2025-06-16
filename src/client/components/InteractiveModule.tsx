@@ -133,7 +133,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
-  // Removed old InfoPanel state - using modal now
+  // Container rect state - needed for layout calculations
+  const [imageContainerRect, setImageContainerRect] = useState<DOMRectReadOnly | undefined>(undefined);
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
@@ -1359,7 +1360,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setExploredHotspotId(null);
       setExploredHotspotPanZoomActive(false);
     }
-  }, [activeHotspotInfoId, exploredHotspotId]);
+  }, [exploredHotspotId]);
 
   const handleRemoveTimelineEvent = useCallback((eventId: string) => {
     if (!confirm(`Are you sure you want to remove timeline event ${eventId}?`)) return;
