@@ -14,6 +14,7 @@ import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import ReactDOM from 'react-dom';
+import { appScriptProxy } from '../../lib/firebaseProxy';
 
 const MemoizedHotspotViewer = React.memo(HotspotViewer);
 
@@ -86,6 +87,7 @@ interface InteractiveModuleProps {
   onSave: (data: InteractiveModuleState) => void;
   onClose?: () => void;
   projectName: string;
+  projectId?: string;
 }
 
 interface ImageTransformState {
@@ -103,7 +105,7 @@ interface PendingHotspotInfo {
 }
 
 
-const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEditing, onSave, onClose, projectName }) => {
+const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEditing, onSave, onClose, projectName, projectId }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents);
@@ -1140,7 +1142,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, [moduleState, isEditing]);
 
 
-  const handleImageUpload = useCallback((file: File) => {
+  const handleImageUpload = useCallback(async (file: File) => {
     // If there's already an image and hotspots, warn the user
     if (backgroundImage && hotspots.length > 0) {
       const confirmReplace = confirm(
@@ -1148,22 +1150,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       );
       if (!confirmReplace) return;
     }
+    
     debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
     setImageLoading(true);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setBackgroundImage(reader.result as string);
+    try {
+      // Upload to Firebase Storage and get URL
+      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
+      setBackgroundImage(imageUrl);
       setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
       setEditingZoom(1);
-      // imageLoading will be set to false by handleImageLoad
-    };
-    reader.onerror = () => {
       setImageLoading(false);
-      alert('Failed to load image. Please try again.');
-    };
-    reader.readAsDataURL(file);
-  }, [backgroundImage, hotspots.length, debugLog]);
+    } catch (error) {
+      setImageLoading(false);
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+  }, [backgroundImage, hotspots.length, debugLog, projectId]);
 
   const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
     setImageFitMode(fitMode);

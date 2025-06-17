@@ -7,55 +7,31 @@ export default defineConfig(({ mode }) => {
       root: 'src/client',
       build: {
         outDir: '../../dist',
-        emptyOutDir: false,
-        target: 'es2018',
-        minify: false,
+        emptyOutDir: true,
+        target: 'es2020',
+        minify: 'terser',
         rollupOptions: {
-          input: path.resolve(__dirname, 'src/client/index.tsx'),
-          // Make sure React and ReactDOM are bundled, not external
-          external: [],
+          input: path.resolve(__dirname, 'src/client/index.html'),
           output: {
-            entryFileNames: 'bundle.js',
-            chunkFileNames: 'bundle-chunk.js',
-            assetFileNames: (assetInfo) => {
-              if (assetInfo.name?.endsWith('.css')) {
-                return 'styles.css';
-              }
-              return 'assets/[name].[ext]';
-            },
-            format: 'iife',
-            name: 'InteractiveLearningApp',
-            // Ensure all dependencies are bundled
-            manualChunks: undefined,
-            inlineDynamicImports: true
+            entryFileNames: 'assets/[name].[hash].js',
+            chunkFileNames: 'assets/[name].[hash].js',
+            assetFileNames: 'assets/[name].[hash].[ext]',
+            format: 'es'
           }
         },
-        cssCodeSplit: false,
-        // Increase chunk size warning limit since we're bundling everything
-        chunkSizeWarningLimit: 1000,
-        // Ensure source maps are disabled for production
-        sourcemap: false,
-        // Optimize the bundle
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true
-          }
-        }
+        cssCodeSplit: true,
+        sourcemap: false
       },
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.NODE_ENV': JSON.stringify('production')
+        'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production')
       },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
       },
-      // Ensure Vite doesn't try to optimize React separately
       optimizeDeps: {
-        include: ['react', 'react-dom']
+        include: ['firebase/app', 'firebase/firestore', 'firebase/storage', 'react', 'react-dom']
       }
     };
 });

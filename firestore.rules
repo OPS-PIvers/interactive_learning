@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Projects collection - anyone can read, but limit writes
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+      
+      // Hotspots subcollection
+      match /hotspots/{hotspotId} {
+        allow read, write: if true;
+      }
+      
+      // Timeline events subcollection  
+      match /timeline_events/{eventId} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Deny all other document access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

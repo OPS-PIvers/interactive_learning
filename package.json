@@ -7,14 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:server": "tsc --project tsconfig.server.json",
-    "build:client": "vite build",
-    "prepare-gas": "node scripts/prepare-gas-deployment.js",
-    "copy-assets": "cp appsscript.json dist/ && cp .clasp.json dist/",
-    "build:gas": "npm run build:client && npm run build:server && npm run prepare-gas && npm run copy-assets",
-    "deploy": "npm run build:gas && cd dist && clasp push"
+    "firebase:build": "npm run build",
+    "firebase:deploy": "firebase deploy --only hosting",
+    "firebase:serve": "firebase serve --only hosting",
+    "deploy": "npm run firebase:build && npm run firebase:deploy",
+    "deploy:all": "npm run firebase:build && firebase deploy",
+    "backup": "npx ts-node scripts/backup-data.ts"
   },
   "dependencies": {
+    "firebase": "^11.9.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

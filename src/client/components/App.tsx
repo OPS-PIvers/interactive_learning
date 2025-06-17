@@ -5,7 +5,7 @@ import ProjectCard from './ProjectCard';
 import Modal from './Modal';
 import InteractiveModule from './InteractiveModule';
 import AdminToggle from './AdminToggle';
-import { appScriptProxy } from '../lib/googleAppScriptProxy';
+import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 
 const App: React.FC = () => {
@@ -210,6 +210,7 @@ const App: React.FC = () => {
                 onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
                 onClose={handleCloseModal}
                 projectName={selectedProject.title}
+                projectId={selectedProject.id}
               />
             </Modal>
           ) : (
@@ -222,6 +223,7 @@ const App: React.FC = () => {
                 onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
                 onClose={handleCloseModal}
                 projectName={selectedProject.title}
+                projectId={selectedProject.id}
               />
             </div>
           )}
