@@ -5,6 +5,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import './styles.css';
 import './index.css';
 
+// Force rebuild with React plugin
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
