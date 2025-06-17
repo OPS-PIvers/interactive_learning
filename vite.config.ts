@@ -3,8 +3,25 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    
+    // Detect if we're in GitHub Codespaces
+    const isCodespaces = !!process.env.CODESPACES;
+    
     return {
       root: 'src/client',
+      server: {
+        // Make server accessible from outside container
+        host: isCodespaces ? '0.0.0.0' : 'localhost',
+        port: 3000, // Use a consistent port
+        // Auto-open browser in Codespaces
+        open: !isCodespaces,
+      },
+      preview: {
+        // Configure preview server for 'npm run preview'
+        host: isCodespaces ? '0.0.0.0' : 'localhost',
+        port: 4173,
+        open: !isCodespaces
+      },
       build: {
         outDir: '../../dist',
         emptyOutDir: true,
@@ -20,7 +37,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         cssCodeSplit: true,
-        sourcemap: false
+        sourcemap: mode === 'development' // Enable sourcemaps for dev
       },
       define: {
         'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production')

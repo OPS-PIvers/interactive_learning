@@ -1,0 +1,54 @@
+name: Auto Deploy Apps Script
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build for Google Apps Script
+      run: npm run build:gas
+      
+    - name: Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: Authenticate clasp
+      run: |
+        echo '${{ secrets.CLASP_AUTH_JSON }}' > ~/.clasprc.json
+        jq empty ~/.clasprc.json || { echo "Invalid JSON in credentials"; exit 1; }
+        
+    - name: Push code to Apps Script
+      run: |
+        cd dist
+        # Touch all files to update timestamps and force recognition of changes
+        find . -name "*.html" -o -name "*.js" -o -name "*.json" | xargs touch
+        echo "Files being pushed:"
+        ls -la
+        clasp push --force
+        
+    - name: Update deployment
+      run: |
+        cd dist
+        if [ -n "${{ secrets.DEPLOYMENT_ID }}" ]; then
+          clasp deploy --deploymentId ${{ secrets.DEPLOYMENT_ID }} --description "Auto-deployment $(date)"
+        else
+          clasp deploy --description "Auto-deployment $(date)"
+        fi
+        
+    - name: Clean up credentials
+      if: always()
+      run: rm -f ~/.clasprc.json

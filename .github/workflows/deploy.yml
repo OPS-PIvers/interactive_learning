@@ -1,54 +1,96 @@
-name: Auto Deploy Apps Script
+name: Deploy to Firebase Hosting
+
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build_and_preview:
+    if: '${{ github.event_name == ''pull_request'' }}'
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'lts/*'
-        cache: 'npm'
+      - name: Checkout code
+        uses: actions/checkout@v4
         
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build for Google Apps Script
-      run: npm run build:gas
-      
-    - name: Install clasp
-      run: npm install -g @google/clasp
-      
-    - name: Authenticate clasp
-      run: |
-        echo '${{ secrets.CLASP_AUTH_JSON }}' > ~/.clasprc.json
-        jq empty ~/.clasprc.json || { echo "Invalid JSON in credentials"; exit 1; }
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
         
-    - name: Push code to Apps Script
-      run: |
-        cd dist
-        # Touch all files to update timestamps and force recognition of changes
-        find . -name "*.html" -o -name "*.js" -o -name "*.json" | xargs touch
-        echo "Files being pushed:"
-        ls -la
-        clasp push --force
+      - name: Create environment file
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          EOF
         
-    - name: Update deployment
-      run: |
-        cd dist
-        if [ -n "${{ secrets.DEPLOYMENT_ID }}" ]; then
-          clasp deploy --deploymentId ${{ secrets.DEPLOYMENT_ID }} --description "Auto-deployment $(date)"
-        else
-          clasp deploy --description "Auto-deployment $(date)"
-        fi
+      - name: Build application
+        run: npm run build
         
-    - name: Clean up credentials
-      if: always()
-      run: rm -f ~/.clasprc.json
+      - name: Deploy to Firebase Hosting (Preview)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+
+  build_and_deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Create environment file
+        run: |
+          cat > .env.local << EOF
+          NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          EOF
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Deploy to Firebase Hosting (Live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          channelId: live
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+          
+      - name: Post-deployment notification
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "Your app is live at: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app"
