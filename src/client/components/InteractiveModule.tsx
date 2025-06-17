@@ -1421,14 +1421,45 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
     const radius = (eventData?.highlightRadius || 60) * imageTransform.scale;
+    const shape = eventData?.highlightShape || 'circle';
+    const dimOpacity = (eventData?.dimPercentage || 70) / 100;
 
     // Ensure percentages are within bounds for safety if the gradient is applied to the container.
     // If hotspot x/y can be outside 0-100 (e.g. due to data error), this clips the gradient center.
     highlightXPercent = Math.max(0, Math.min(100, highlightXPercent));
     highlightYPercent = Math.max(0, Math.min(100, highlightYPercent));
 
+    // Create different gradients based on shape
+    let backgroundStyle = '';
+    if (shape === 'circle') {
+      backgroundStyle = `radial-gradient(circle at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,${dimOpacity}) ${radius + 10}px)`;
+    } else if (shape === 'oval') {
+      backgroundStyle = `radial-gradient(ellipse at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,${dimOpacity}) ${radius + 10}px)`;
+    } else if (shape === 'rectangle') {
+      // For rectangle, we'll create a mask using linear gradients
+      const halfRadius = radius / 2;
+      backgroundStyle = `linear-gradient(
+        to right,
+        rgba(0,0,0,${dimOpacity}) 0%,
+        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% - ${halfRadius}px),
+        transparent calc(${highlightXPercent}% - ${halfRadius}px),
+        transparent calc(${highlightXPercent}% + ${halfRadius}px),
+        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% + ${halfRadius}px),
+        rgba(0,0,0,${dimOpacity}) 100%
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(0,0,0,${dimOpacity}) 0%,
+        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% - ${halfRadius}px),
+        transparent calc(${highlightYPercent}% - ${halfRadius}px),
+        transparent calc(${highlightYPercent}% + ${halfRadius}px),
+        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% + ${halfRadius}px),
+        rgba(0,0,0,${dimOpacity}) 100%
+      )`;
+    }
+
     return {
-      background: `radial-gradient(circle at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,0.7) ${radius + 10}px)`,
+      background: backgroundStyle,
       transition: 'background 0.3s ease-in-out',
     };
   };

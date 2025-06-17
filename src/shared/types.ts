@@ -32,6 +32,8 @@ export interface TimelineEventData {
   duration?: number; // in ms, for timed events like pulse
   zoomFactor?: number; // For PAN_ZOOM_TO_HOTSPOT, e.g., 2 for 2x zoom, defaults to 2
   highlightRadius?: number; // For HIGHLIGHT_HOTSPOT, in pixels on original image for clear area, defaults to 60
+  highlightShape?: 'circle' | 'rectangle' | 'oval'; // Shape of the highlight area, defaults to 'circle'
+  dimPercentage?: number; // Percentage of dimming for highlight overlay (0-100), defaults to 70
 }
 
 export interface InteractiveModuleState {

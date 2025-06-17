@@ -45,6 +45,8 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
       updatedEvent.zoomFactor = updatedEvent.zoomFactor || 2.0;
     } else if (newType === InteractionType.HIGHLIGHT_HOTSPOT) {
       updatedEvent.highlightRadius = updatedEvent.highlightRadius || 60;
+      updatedEvent.highlightShape = updatedEvent.highlightShape || 'circle';
+      updatedEvent.dimPercentage = updatedEvent.dimPercentage || 70;
     } else if (newType === InteractionType.SHOW_MESSAGE) {
       updatedEvent.message = updatedEvent.message || '';
     } else if (newType === InteractionType.PULSE_HOTSPOT) {
@@ -69,6 +71,18 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
 
   const handleHighlightRadiusChange = (highlightRadius: number) => {
     const updatedEvent = { ...editedEvent, highlightRadius };
+    setEditedEvent(updatedEvent);
+    onUpdate(updatedEvent);
+  };
+
+  const handleHighlightShapeChange = (highlightShape: 'circle' | 'rectangle' | 'oval') => {
+    const updatedEvent = { ...editedEvent, highlightShape };
+    setEditedEvent(updatedEvent);
+    onUpdate(updatedEvent);
+  };
+
+  const handleDimPercentageChange = (dimPercentage: number) => {
+    const updatedEvent = { ...editedEvent, dimPercentage };
     setEditedEvent(updatedEvent);
     onUpdate(updatedEvent);
   };
@@ -107,9 +121,28 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
     switch (editedEvent.type) {
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
         return (
-          <div className="mt-3">
+          <div className="mt-3 space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Zoom Presets</label>
+              <div className="grid grid-cols-5 gap-2">
+                {[1.0, 1.5, 2.0, 3.0, 5.0].map((preset) => (
+                  <button
+                    key={preset}
+                    onClick={() => handleZoomFactorChange(preset)}
+                    className={`px-3 py-2 text-sm rounded border transition-all ${
+                      Math.abs((editedEvent.zoomFactor || 2.0) - preset) < 0.1
+                        ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                        : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
+                    }`}
+                  >
+                    {preset}x
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             <SliderControl
-              label="Zoom Factor"
+              label="Custom Zoom Factor"
               value={editedEvent.zoomFactor || 2.0}
               min={1.0}
               max={5.0}
@@ -122,7 +155,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         
       case InteractionType.HIGHLIGHT_HOTSPOT:
         return (
-          <div className="mt-3">
+          <div className="mt-3 space-y-3">
             <SliderControl
               label="Highlight Radius"
               value={editedEvent.highlightRadius || 60}
@@ -131,6 +164,42 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               step={5}
               unit="px"
               onChange={handleHighlightRadiusChange}
+            />
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Highlight Shape</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'circle', label: 'Circle', icon: '●' },
+                  { value: 'rectangle', label: 'Rectangle', icon: '■' },
+                  { value: 'oval', label: 'Oval', icon: '⬭' }
+                ].map((shape) => (
+                  <button
+                    key={shape.value}
+                    onClick={() => handleHighlightShapeChange(shape.value as 'circle' | 'rectangle' | 'oval')}
+                    className={`p-2 text-sm rounded border transition-all ${
+                      (editedEvent.highlightShape || 'circle') === shape.value
+                        ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                        : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-lg mb-1">{shape.icon}</div>
+                      <div className="text-xs">{shape.label}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <SliderControl
+              label="Dim Percentage"
+              value={editedEvent.dimPercentage || 70}
+              min={0}
+              max={100}
+              step={5}
+              unit="%"
+              onChange={handleDimPercentageChange}
             />
           </div>
         );

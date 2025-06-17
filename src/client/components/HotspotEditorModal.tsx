@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import DragHandle from './DragHandle';
+import EditableEventCard from './EditableEventCard';
 
 interface HotspotEditorModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const COLOR_OPTIONS = [
   { name: 'Gray', value: 'bg-gray-500' },
 ];
 
-const SIZE_OPTIONS = [
+const SIZE_OPTIONS: { label: string; value: HotspotSize; icon: string }[] = [
   { label: 'Small', value: 'small', icon: '🔸' },
   { label: 'Medium', value: 'medium', icon: '🔹' },
   { label: 'Large', value: 'large', icon: '🔶' },
@@ -71,7 +72,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   
   // Auto-save functionality
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const debouncedAutoSave = useCallback((updates: Partial<HotspotData>) => {
     if (autoSaveTimeoutRef.current) {
@@ -104,13 +105,11 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
   const getEventIcon = (type: InteractionType): string => {
     switch (type) {
       case InteractionType.SHOW_HOTSPOT: return '👁️';
-      case InteractionType.HIDE_HOTSPOT: return '🙈';
-      case InteractionType.SHOW_INFO: return 'ℹ️';
-      case InteractionType.HIDE_INFO: return '❌';
-      case InteractionType.PAN_ZOOM: return '🔍';
-      case InteractionType.RESET_VIEW: return '🏠';
+      case InteractionType.HIDE_HOTSPOT: return '🫥';
       case InteractionType.PULSE_HOTSPOT: return '💓';
       case InteractionType.SHOW_MESSAGE: return '💬';
+      case InteractionType.PAN_ZOOM_TO_HOTSPOT: return '🔍';
+      case InteractionType.HIGHLIGHT_HOTSPOT: return '🎯';
       default: return '⚡';
     }
   };
@@ -125,8 +124,6 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
       targetId: selectedHotspot.id,
       name: `Show ${selectedHotspot.title}`,
       duration: 3000,
-      content: '',
-      isUserTriggered: false,
     };
     
     onAddEvent(newEvent);
@@ -138,16 +135,45 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, eventId: string) => {
+    setDraggedEventId(eventId);
+    e.dataTransfer.setData('text/plain', eventId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetEventId: string) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (draggedId && draggedId !== targetEventId) {
+      // Find the dragged and target events
+      const draggedEventIndex = relatedEvents.findIndex(event => event.id === draggedId);
+      const targetEventIndex = relatedEvents.findIndex(event => event.id === targetEventId);
+      
+      if (draggedEventIndex !== -1 && targetEventIndex !== -1) {
+        // Create new array with reordered events
+        const reorderedEvents = [...relatedEvents];
+        const [draggedEvent] = reorderedEvents.splice(draggedEventIndex, 1);
+        reorderedEvents.splice(targetEventIndex, 0, draggedEvent);
+        
+        // Update step numbers based on new order
+        const eventIds = reorderedEvents.map(event => event.id);
+        onReorderEvents(eventIds);
+      }
+    }
+    setDraggedEventId(null);
+  };
+
   const getEventTypeName = (type: InteractionType): string => {
     switch (type) {
       case InteractionType.SHOW_HOTSPOT: return 'Show Hotspot';
       case InteractionType.HIDE_HOTSPOT: return 'Hide Hotspot';
-      case InteractionType.SHOW_INFO: return 'Show Info';
-      case InteractionType.HIDE_INFO: return 'Hide Info';
-      case InteractionType.PAN_ZOOM: return 'Pan & Zoom';
-      case InteractionType.RESET_VIEW: return 'Reset View';
       case InteractionType.PULSE_HOTSPOT: return 'Pulse Hotspot';
       case InteractionType.SHOW_MESSAGE: return 'Show Message';
+      case InteractionType.PAN_ZOOM_TO_HOTSPOT: return 'Pan & Zoom';
+      case InteractionType.HIGHLIGHT_HOTSPOT: return 'Highlight';
       default: return type;
     }
   };
@@ -158,11 +184,10 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
     const newEvent: TimelineEventData = {
       id: `event_${Date.now()}`,
       step: currentStep,
+      name: `Show ${selectedHotspot.title}`,
       type: InteractionType.SHOW_HOTSPOT,
       targetId: selectedHotspot.id,
       duration: 3000,
-      content: '',
-      isUserTriggered: false,
     };
     
     onAddEvent(newEvent);
@@ -271,27 +296,22 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
 
             {activeTab === 'events' && (
               <div className="space-y-4">
-                {/* Events List - Compact */}
+                {/* Events List - Full Featured */}
                 {relatedEvents.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {relatedEvents.sort((a, b) => a.step - b.step).map((event) => (
-                      <div key={event.id} className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg">{getEventIcon(event.type)}</span>
-                            <div>
-                              <div className="font-medium text-sm">{event.name}</div>
-                              <div className="text-xs text-gray-500">Step {event.step}</div>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteEvent(event.id)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <XMarkIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                      <EditableEventCard
+                        key={event.id}
+                        event={event}
+                        isActive={event.step === currentStep}
+                        isDragging={draggedEventId === event.id}
+                        onUpdate={onUpdateEvent}
+                        onDelete={handleDeleteEvent}
+                        onJumpToStep={onJumpToStep}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                      />
                     ))}
                   </div>
                 ) : (
