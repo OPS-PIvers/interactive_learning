@@ -1174,15 +1174,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
+    console.log('=== SAVE DEBUG ===');
+    console.log('Hotspots:', hotspots);
+    console.log('Timeline Events:', timelineEvents);
+    console.log('Background Image:', backgroundImage ? 'Present' : 'Missing');
+    
     try {
       await onSave({ backgroundImage, hotspots, timelineEvents, imageFitMode });
+      console.log('Save completed successfully');
       // Show success message
       setShowSuccessMessage(true);
       // Auto-hide success message after 3 seconds
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
       console.error('Save failed:', error);
-      // Error handling is managed by parent component
+      alert('Save failed: ' + error.message);
     } finally {
       setIsSaving(false);
     }
@@ -1204,10 +1210,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     };
     setHotspots(prev => [...prev, newHotspot]);
     setPendingHotspot(null);
-    const newEventStep = editorMaxStep > 0 ? editorMaxStep : 1; 
+    // ALWAYS create a Show event automatically (no longer optional)
+    const newEventStep = Math.max(...timelineEvents.map(e => e.step), 0) + 1; 
     const newEvent: TimelineEventData = {
-      id: `te_show_${newHotspot.id}_${Date.now()}`, step: newEventStep, name: `Show ${title}`,
-      type: InteractionType.SHOW_HOTSPOT, targetId: newHotspot.id
+      id: `te_show_${newHotspot.id}_${Date.now()}`, 
+      step: newEventStep, 
+      name: `Show ${title}`,
+      type: InteractionType.SHOW_HOTSPOT, 
+      targetId: newHotspot.id
     };
     setTimelineEvents(prev => [...prev, newEvent].sort((a,b) => a.step - b.step));
     if (isEditing) {
@@ -1668,7 +1678,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
           {/* Fixed Bottom Timeline */}
           <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
-            {backgroundImage && uniqueSortedSteps.length > 0 && (
+            {backgroundImage && (
               <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
                 <HorizontalTimeline
                   uniqueSortedSteps={uniqueSortedSteps}
@@ -1827,7 +1837,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             </div>
             
             {/* Timeline at bottom - full width */}
-            {backgroundImage && uniqueSortedSteps.length > 0 && (
+            {backgroundImage && (
               <div className="bg-slate-800 border-t border-slate-700" style={{ position: 'relative', zIndex: Z_INDEX.TIMELINE }}>
                 <HorizontalTimeline
                   uniqueSortedSteps={uniqueSortedSteps}
@@ -1867,6 +1877,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         allTimelineEvents={timelineEvents}
         currentStep={currentStep}
         onUpdateHotspot={(updatedHotspot) => {
+          console.log('Updating hotspot:', updatedHotspot); // Debug log
           setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
         }}
         onDeleteHotspot={(hotspotId) => {
@@ -1876,6 +1887,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         }}
         onAddEvent={handleAddTimelineEvent}
         onUpdateEvent={(updatedEvent) => {
+          console.log('Updating event:', updatedEvent); // Debug log
           setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
         }}
         onDeleteEvent={handleRemoveTimelineEvent}
