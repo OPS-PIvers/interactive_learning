@@ -122,6 +122,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
+  // Missing state declaration for imageContainerRect
+  const [imageContainerRect, setImageContainerRect] = useState<DOMRect | null>(null);
+  
   // Save state management
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
@@ -217,7 +220,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         // Potentially other position-dependent logic could be called here if needed.
       }
     }, 100), // 100ms delay
-    [setImageContainerRect] // Dependency: ensure setImageContainerRect is stable or included
+    [] // Remove setImageContainerRect from dependencies since it's stable
   );
 
   const uniqueSortedSteps = useMemo(() => {
@@ -662,8 +665,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       if (imageContainerRef.current) {
         setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
       }
-      // Any other position-dependent recalculations that need to happen here
-      // For now, the main one is imageContainerRect as per the issue
       setPositionCalculating(false);
     }, 0);
   }, [debugLog]);
@@ -1295,7 +1296,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.image-navigation-controls') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]') || target.closest('.timeline-controls-container')) {
             return;
         }
-        setActiveHotspotInfoId(null);
+        // Removed setActiveHotspotInfoId - using modal now
     }
   }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot, viewportZoom]);
 
