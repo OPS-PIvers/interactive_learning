@@ -49,6 +49,7 @@ export default defineConfig(({ mode }) => {
         sourcemap: false, // Disable sourcemaps for production
         assetsInlineLimit: 4096,
         reportCompressedSize: false
+        // JSX fix deployed - forcing cache refresh
       },
       define: {
         // CRITICAL: Explicit environment definitions
