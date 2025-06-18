@@ -5,14 +5,16 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getPerformance } from 'firebase/performance'
 import { getAnalytics } from 'firebase/analytics'
 
-// Debug environment variables
-console.log('Environment variables:', {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'MISSING',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'MISSING',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'MISSING',
-  allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
-  fullEnv: import.meta.env
-});
+// Debug environment variables (development only)
+if (import.meta.env.DEV) {
+  console.log('Environment variables:', {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'MISSING',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'MISSING',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'MISSING',
+    allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
+    fullEnv: import.meta.env
+  });
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
@@ -24,7 +26,9 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-FQZK3QEV9L"
 }
 
-console.log('Firebase config:', firebaseConfig);
+if (import.meta.env.DEV) {
+  console.log('Firebase config:', firebaseConfig);
+}
 
 const app = initializeApp(firebaseConfig)
 
@@ -40,9 +44,13 @@ if (typeof window !== 'undefined') {
   try {
     performance = getPerformance(app)
     analytics = getAnalytics(app)
-    console.log('Firebase Performance and Analytics initialized')
+    if (import.meta.env.DEV) {
+      console.log('Firebase Performance and Analytics initialized')
+    }
   } catch (error) {
-    console.log('Analytics/Performance not available:', error)
+    if (import.meta.env.DEV) {
+      console.log('Analytics/Performance not available:', error)
+    }
   }
 }
 

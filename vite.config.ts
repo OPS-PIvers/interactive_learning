@@ -2,16 +2,26 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
     const isCodespaces = !!process.env.CODESPACES;
-
+    
+    // Explicit environment detection
+    const isProduction = mode === 'production' || process.env.NODE_ENV === 'production' || command === 'build';
+    const isDevelopment = !isProduction;
+    
+    // Debug logging for mode detection
+    console.log(`🔧 Vite Config - Mode: ${mode}, Command: ${command}, Production: ${isProduction}, Development: ${isDevelopment}`);
+    
     return {
       plugins: [
         react({
-          // Explicitly tell the plugin to use the dev runtime ONLY in development mode.
-          // This is the key fix for the "jsxDEV is not a function" error in production builds.
-          jsxDev: mode === 'development',
+          // CRITICAL: Explicit JSX development mode control
+          // Only use development JSX runtime in actual development
+          jsxDev: isDevelopment,
+          // Explicit JSX runtime configuration
+          jsxRuntime: 'automatic',
+          jsxImportSource: 'react',
         })
       ],
       root: 'src/client',
@@ -29,7 +39,7 @@ export default defineConfig(({ mode }) => {
         outDir: '../../dist',
         emptyOutDir: true,
         target: 'es2020',
-        minify: 'terser',
+        minify: isProduction ? 'terser' : false,
         rollupOptions: {
           input: path.resolve(__dirname, 'src/client/index.html'),
           output: {
@@ -40,13 +50,13 @@ export default defineConfig(({ mode }) => {
           }
         },
         cssCodeSplit: true,
-        sourcemap: false,
+        sourcemap: isDevelopment,
         reportCompressedSize: false
       },
       define: {
-        // Correctly defines the environment for React and other libraries.
-        'process.env.NODE_ENV': JSON.stringify(mode),
-        '__DEV__': mode === 'development',
+        // CRITICAL: Explicit environment definitions
+        'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
+        '__DEV__': isDevelopment,
         'global': 'globalThis'
       },
       resolve: {
@@ -56,10 +66,8 @@ export default defineConfig(({ mode }) => {
       },
       optimizeDeps: {
         include: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage'],
-        // The `force: true` setting is a heavy-handed approach.
-        // With the explicit jsxDev fix, it's likely no longer necessary.
-        // It's commented out but can be re-enabled if other dependency issues arise.
-        // force: true
+        // Force pre-bundling in development for consistency
+        force: isDevelopment
       }
     };
 });
