@@ -57,17 +57,14 @@ if (typeof window !== 'undefined') {
 export { performance, analytics }
 
 // For local development with emulators (optional)
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if (import.meta.env.DEV && typeof window !== 'undefined' && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
   try {
-    // Only connect to emulators if they're not already connected
-    if (!db._delegate._databaseId.database.includes('(default)')) {
-      connectFirestoreEmulator(db, 'localhost', 8080)
-      connectStorageEmulator(storage, 'localhost', 9199)
-      connectAuthEmulator(auth, 'http://localhost:9099')
-      console.log('Connected to Firebase emulators')
-    }
+    connectFirestoreEmulator(db, 'localhost', 8080)
+    connectStorageEmulator(storage, 'localhost', 9199)
+    connectAuthEmulator(auth, 'http://localhost:9099')
+    console.log('Connected to Firebase emulators')
   } catch (error) {
-    console.log('Emulators not available or already connected')
+    console.log('Emulators not available or already connected:', error)
   }
 }
 
