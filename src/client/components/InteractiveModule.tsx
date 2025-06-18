@@ -222,7 +222,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         // Potentially other position-dependent logic could be called here if needed.
       }
     }, 100), // 100ms delay
-    [] // Remove setImageContainerRect from dependencies since it's stable
+    [setImageContainerRect] // Include setImageContainerRect to prevent closure issues
   );
 
   const uniqueSortedSteps = useMemo(() => {
@@ -490,7 +490,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Memoized hotspot positions that update with explicit transform changes
   const hotspotsWithPositions = useMemo(() => {
-    const currentTransform = lastAppliedTransformRef.current;
+    // Add safety checks to prevent temporal dead zone issues
+    if (!hotspots || !Array.isArray(hotspots) || !getHotspotPixelPosition) {
+      return [];
+    }
+    
+    const currentTransform = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
     return hotspots.map(hotspot => ({
       ...hotspot,
       pixelPosition: getHotspotPixelPosition(hotspot, currentTransform)
@@ -866,10 +871,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
 
   useEffect(() => {
+    // Add safety checks to prevent temporal dead zone issues
+    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || !timelineEvents || !hotspots) {
+      return;
+    }
+    
     if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
 
     // Removed newActiveHotspotInfoId - using modal now
-    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current; // Use ref instead of state
+    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
 
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();

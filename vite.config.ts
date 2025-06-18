@@ -50,7 +50,7 @@ export default defineConfig(({ mode, command }) => {
           }
         },
         cssCodeSplit: true,
-        sourcemap: isDevelopment,
+        sourcemap: true, // Enable source maps in production for debugging
         reportCompressedSize: false
       },
       define: {

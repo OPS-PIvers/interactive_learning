@@ -20,7 +20,20 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('React Error Boundary caught an error:', error, errorInfo);
+    console.error('React Error Boundary caught an error:', error);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('Error stack:', error.stack);
+    
+    // Log additional debugging info for temporal dead zone errors
+    if (error.message.includes('before initialization') || error.message.includes('pt')) {
+      console.error('Temporal Dead Zone Error Detected:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 
   render() {
