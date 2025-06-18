@@ -119,7 +119,6 @@ export class FirebaseProjectAPI {
    * Save/update a project with all its data
    */
   async saveProject(project: Project): Promise<Project> {
-    // Clear cache since we're updating data
     projectCache.clear()
     
     try {
@@ -137,10 +136,31 @@ export class FirebaseProjectAPI {
         updatedAt: serverTimestamp()
       }, { merge: true })
       
-      // Clear existing hotspots and timeline events
-      await this.clearProjectSubcollections(project.id)
+      // Get existing subcollection documents to determine what to delete vs update
+      const [existingHotspots, existingEvents] = await Promise.all([
+        getDocs(collection(db, 'projects', project.id, 'hotspots')),
+        getDocs(collection(db, 'projects', project.id, 'timeline_events'))
+      ])
       
-      // Add hotspots
+      // Track which documents we're keeping
+      const newHotspotIds = new Set(project.interactiveData.hotspots.map(h => h.id))
+      const newEventIds = new Set(project.interactiveData.timelineEvents.map(e => e.id))
+      
+      // Delete hotspots that are no longer in the project
+      existingHotspots.docs.forEach(doc => {
+        if (!newHotspotIds.has(doc.id)) {
+          batch.delete(doc.ref)
+        }
+      })
+      
+      // Delete events that are no longer in the project
+      existingEvents.docs.forEach(doc => {
+        if (!newEventIds.has(doc.id)) {
+          batch.delete(doc.ref)
+        }
+      })
+      
+      // Add/update hotspots
       for (const hotspot of project.interactiveData.hotspots) {
         const hotspotRef = doc(db, 'projects', project.id, 'hotspots', hotspot.id)
         batch.set(hotspotRef, {
@@ -149,7 +169,7 @@ export class FirebaseProjectAPI {
         })
       }
       
-      // Add timeline events
+      // Add/update timeline events
       for (const event of project.interactiveData.timelineEvents) {
         const eventRef = doc(db, 'projects', project.id, 'timeline_events', event.id)
         batch.set(eventRef, {
@@ -160,7 +180,7 @@ export class FirebaseProjectAPI {
       
       await batch.commit()
       
-      console.log(`Project ${project.id} saved successfully`)
+      console.log(`Project ${project.id} saved successfully with ${project.interactiveData.hotspots.length} hotspots`)
       return project
     } catch (error) {
       console.error('Error saving project:', error)
@@ -278,19 +298,8 @@ export class FirebaseProjectAPI {
    * Clear all subcollections for a project (for clean updates)
    */
   private async clearProjectSubcollections(projectId: string): Promise<void> {
-    const batch = writeBatch(db)
-    
-    // Clear hotspots
-    const hotspotsSnapshot = await getDocs(collection(db, 'projects', projectId, 'hotspots'))
-    hotspotsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
-    
-    // Clear timeline events
-    const eventsSnapshot = await getDocs(collection(db, 'projects', projectId, 'timeline_events'))
-    eventsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
-    
-    if (hotspotsSnapshot.docs.length > 0 || eventsSnapshot.docs.length > 0) {
-      await batch.commit()
-    }
+    // This function was causing data loss - it's now handled in saveProject with upsert logic
+    console.log(`Skipping clear operation for project ${projectId} - using upsert instead`)
   }
 }
 

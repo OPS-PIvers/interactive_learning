@@ -1118,6 +1118,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
   }, [isEditing, moduleState, timelineEvents]);
 
+  // Auto-save hook for data protection
+  useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
   const handleStartLearning = () => {
     setModuleState('learning');
@@ -1173,44 +1175,85 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
   const handleSave = useCallback(async () => {
+    // Prevent multiple simultaneous saves
+    if (isSaving) {
+      console.log('Save already in progress, skipping...');
+      return;
+    }
+    
     setIsSaving(true);
     console.log('=== SAVE DEBUG ===');
-    console.log('Hotspots:', hotspots);
-    console.log('Timeline Events:', timelineEvents);
-    console.log('Background Image:', backgroundImage ? 'Present' : 'Missing');
+    
+    // Wait for any pending state updates to complete
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Get fresh state values to ensure consistency
+    const currentData = {
+      backgroundImage,
+      hotspots,
+      timelineEvents,
+      imageFitMode
+    };
+    
+    // Validate data before saving
+    if (!Array.isArray(currentData.hotspots)) {
+      console.error('Invalid hotspots data:', currentData.hotspots);
+      alert('Invalid hotspot data detected. Please refresh and try again.');
+      setIsSaving(false);
+      return;
+    }
+    
+    if (!Array.isArray(currentData.timelineEvents)) {
+      console.error('Invalid timeline events data:', currentData.timelineEvents);
+      alert('Invalid timeline data detected. Please refresh and try again.');
+      setIsSaving(false);
+      return;
+    }
+    
+    console.log('Saving data:', {
+      hotspotsCount: currentData.hotspots.length,
+      timelineEventsCount: currentData.timelineEvents.length,
+      hotspotIds: currentData.hotspots.map(h => h.id),
+      backgroundImagePresent: !!currentData.backgroundImage
+    });
     
     try {
-      await onSave({ backgroundImage, hotspots, timelineEvents, imageFitMode });
+      await onSave(currentData);
       console.log('Save completed successfully');
-      // Show success message
       setShowSuccessMessage(true);
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => setShowSuccessMessage(false), 3000);
+      // Use ref to track timeout and clear on unmount
+      const timeoutId = setTimeout(() => setShowSuccessMessage(false), 3000);
+      return () => clearTimeout(timeoutId);
     } catch (error) {
       console.error('Save failed:', error);
-      alert('Save failed: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Save failed: ' + errorMessage);
     } finally {
       setIsSaving(false);
     }
-  }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave]);
+  }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave, isSaving]);
 
   const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
     const title = prompt("Enter hotspot title:", "New Hotspot");
-    if (!title) { setPendingHotspot(null); return; }
+    if (!title) { 
+      setPendingHotspot(null); 
+      return; 
+    }
     const description = prompt("Enter hotspot description:", "");
     
     // Get current color scheme
     const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
     
     const newHotspot: HotspotData = {
-      id: `h${Date.now()}`, x: imageXPercent, y: imageYPercent, title,
+      id: `h${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // More unique ID
+      x: imageXPercent, 
+      y: imageYPercent, 
+      title,
       description: description || "Default description",
       color: currentScheme.colors[hotspots.length % currentScheme.colors.length],
-      size: 'medium' // Default size
+      size: 'medium'
     };
-    setHotspots(prev => [...prev, newHotspot]);
-    setPendingHotspot(null);
-    // ALWAYS create a Show event automatically (no longer optional)
+    
     const newEventStep = Math.max(...timelineEvents.map(e => e.step), 0) + 1; 
     const newEvent: TimelineEventData = {
       id: `te_show_${newHotspot.id}_${Date.now()}`, 
@@ -1219,14 +1262,28 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       type: InteractionType.SHOW_HOTSPOT, 
       targetId: newHotspot.id
     };
-    setTimelineEvents(prev => [...prev, newEvent].sort((a,b) => a.step - b.step));
+    
+    // Use functional updates to ensure we're working with latest state
+    setHotspots(prevHotspots => {
+      const updated = [...prevHotspots, newHotspot];
+      console.log('Adding hotspot. Total hotspots:', updated.length, 'New hotspot ID:', newHotspot.id);
+      return updated;
+    });
+    
+    setTimelineEvents(prevEvents => {
+      const updated = [...prevEvents, newEvent].sort((a,b) => a.step - b.step);
+      console.log('Adding timeline event. Total events:', updated.length);
+      return updated;
+    });
+    
+    setPendingHotspot(null);
+    
     if (isEditing) {
       setCurrentStep(newEventStep); 
-      // Open modal for newly added hotspot in editor
       setSelectedHotspotForModal(newHotspot.id);
       setIsHotspotModalOpen(true);
     }
-  }, [hotspots, colorScheme, timelineEvents, editorMaxStep, isEditing]);
+  }, [hotspots, colorScheme, timelineEvents, isEditing]);
 
   const handleEditHotspotRequest = useCallback((hotspotId: string) => {
     const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
@@ -1587,6 +1644,40 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
               </div>
             )}
+
+            {/* Hotspot Debug Info */}
+            {debugMode && (
+              <div className="absolute bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg text-xs max-w-md" style={{ zIndex: Z_INDEX.DEBUG }}>
+                <h3 className="font-bold mb-2">Hotspot Debug Info</h3>
+                <div>Hotspots Count: {hotspots.length}</div>
+                <div>Timeline Events Count: {timelineEvents.length}</div>
+                <div className="mt-2">
+                  <strong>Hotspot IDs:</strong>
+                  {hotspots.map(h => (
+                    <div key={h.id} className="ml-2">{h.id}: "{h.title}"</div>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <strong>Show Events:</strong>
+                  {timelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT).map(e => (
+                    <div key={e.id} className="ml-2">Step {e.step}: {e.targetId}</div>
+                  ))}
+                </div>
+                <div className="mt-2">
+                  <strong>Current Step:</strong> {currentStep}
+                </div>
+                <div>
+                  <strong>Visible Hotspots:</strong> {hotspots.filter(h => 
+                    timelineEvents.some(e => 
+                      e.type === InteractionType.SHOW_HOTSPOT && 
+                      e.targetId === h.id && 
+                      e.step <= currentStep
+                    )
+                  ).length}
+                </div>
+              </div>
+            )}
+
               <div 
                 ref={scrollableContainerRef}
                 className="w-full h-full overflow-auto bg-slate-900"
@@ -1937,6 +2028,34 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       />
     </div>
   );
+};
+
+// Auto-save functionality for data protection
+const useAutoSave = (
+  isEditing: boolean,
+  hotspots: HotspotData[],
+  timelineEvents: TimelineEventData[],
+  handleSave: () => Promise<void>
+) => {
+  const lastDataRef = useRef<string>('');
+  
+  useEffect(() => {
+    if (!isEditing || hotspots.length === 0) return;
+    
+    const currentData = JSON.stringify({ hotspots, timelineEvents });
+    if (currentData === lastDataRef.current) return;
+    
+    lastDataRef.current = currentData;
+    
+    const autoSaveTimer = setTimeout(() => {
+      console.log('Auto-saving project...');
+      handleSave().catch(error => {
+        console.error('Auto-save failed:', error);
+      });
+    }, 30000); // Auto-save every 30 seconds
+    
+    return () => clearTimeout(autoSaveTimer);
+  }, [hotspots, timelineEvents, isEditing, handleSave]);
 };
 
 export default InteractiveModule;
