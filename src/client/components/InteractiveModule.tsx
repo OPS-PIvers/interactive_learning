@@ -1914,6 +1914,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
         relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
         currentStep={currentStep}
+        backgroundImage={backgroundImage || ''}
         onUpdateHotspot={(updatedHotspot) => {
           setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
         }}

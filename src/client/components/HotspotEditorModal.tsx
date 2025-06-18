@@ -4,13 +4,14 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
-import SpotlightPreview from './SpotlightPreview';
+import EnhancedHotspotPreview from './EnhancedHotspotPreview';
 
 interface EnhancedHotspotEditorModalProps {
   isOpen: boolean;
   selectedHotspot: HotspotData | null;
   relatedEvents: TimelineEventData[];
   currentStep: number;
+  backgroundImage: string;
   onUpdateHotspot: (hotspot: HotspotData) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   onAddEvent: (event: TimelineEventData) => void;
@@ -24,6 +25,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   selectedHotspot,
   relatedEvents,
   currentStep,
+  backgroundImage,
   onUpdateHotspot,
   onDeleteHotspot,
   onAddEvent,
@@ -40,6 +42,10 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const [dimPercentage, setDimPercentage] = useState(70);
   const [textContent, setTextContent] = useState('');
   const [textPosition, setTextPosition] = useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center');
+
+  // Position states for preview
+  const [spotlightPosition, setSpotlightPosition] = useState({ x: 35, y: 30, width: 120, height: 120 });
+  const [textBoxPosition, setTextBoxPosition] = useState({ x: 50, y: 20, width: 200, height: 60 });
 
   // Initialize state from existing events
   useEffect(() => {
@@ -98,7 +104,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         targetId: selectedHotspot.id
       };
 
-      // Add type-specific properties
+      // Add type-specific properties with positioning
       switch (type) {
         case InteractionType.PAN_ZOOM_TO_HOTSPOT:
           baseEvent.zoomFactor = zoomLevel;
@@ -106,11 +112,18 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         case InteractionType.HIGHLIGHT_HOTSPOT:
           baseEvent.highlightShape = spotlightShape;
           baseEvent.dimPercentage = dimPercentage;
-          baseEvent.highlightRadius = 60; // Default radius
+          baseEvent.spotlightX = spotlightPosition.x;
+          baseEvent.spotlightY = spotlightPosition.y;
+          baseEvent.spotlightWidth = spotlightPosition.width;
+          baseEvent.spotlightHeight = spotlightPosition.height;
           break;
         case InteractionType.SHOW_TEXT:
           baseEvent.textContent = textContent;
           baseEvent.textPosition = textPosition;
+          baseEvent.textX = textBoxPosition.x;
+          baseEvent.textY = textBoxPosition.y;
+          baseEvent.textWidth = textBoxPosition.width;
+          baseEvent.textHeight = textBoxPosition.height;
           break;
         case InteractionType.PULSE_HOTSPOT:
           baseEvent.duration = 3000; // Default duration
@@ -131,6 +144,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     dimPercentage,
     textContent,
     textPosition,
+    spotlightPosition,
+    textBoxPosition,
     onDeleteEvent,
     onAddEvent,
     onClose
@@ -234,53 +249,46 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           </div>
         </div>
 
-        {/* Right Panel - Preview */}
+        {/* Right Panel - Enhanced Preview */}
         <div className="w-1/2 p-4 sm:p-6 bg-slate-800">
-          <SpotlightPreview
-            shape={spotlightShape}
-            dimPercentage={dimPercentage}
+          <EnhancedHotspotPreview
+            backgroundImage={backgroundImage}
+            hotspot={selectedHotspot}
+            selectedEventTypes={selectedEventTypes}
             zoomLevel={zoomLevel}
+            spotlightShape={spotlightShape}
+            dimPercentage={dimPercentage}
+            textContent={textContent}
+            textPosition={textPosition}
+            onSpotlightPositionChange={setSpotlightPosition}
+            onTextPositionChange={setTextBoxPosition}
           />
           
-          {/* Active Events List */}
+          {/* Event Sequence List - Enhanced */}
           <div className="bg-slate-700 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-slate-300 mb-2">Active Events</h4>
+            <h4 className="text-sm font-medium text-slate-300 mb-2">Event Sequence</h4>
             <div className="space-y-2">
-              {Array.from(selectedEventTypes).map(type => {
+              {Array.from(selectedEventTypes).map((type, index) => {
                 const getEventDisplay = () => {
                   switch (type) {
                     case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-                      return `Pan & Zoom (${zoomLevel.toFixed(1)}x)`;
+                      return `${index + 1}. Pan & Zoom (${zoomLevel.toFixed(1)}x)`;
                     case InteractionType.HIGHLIGHT_HOTSPOT:
-                      return `Spotlight (${spotlightShape}, ${dimPercentage}% dim)`;
+                      return `${index + 1}. Spotlight (${spotlightShape}, ${dimPercentage}% dim)`;
                     case InteractionType.SHOW_TEXT:
-                      return 'Show Text';
-                    case InteractionType.QUIZ:
-                      return 'Quiz Question';
-                    case InteractionType.MEDIA:
-                      return 'Media Content';
+                      return `${index + 1}. Show Text: "${textContent.substring(0, 20)}${textContent.length > 20 ? '...' : ''}"`;
                     case InteractionType.PULSE_HOTSPOT:
-                      return 'Pulse Animation';
+                      return `${index + 1}. Pulse Animation`;
                     default:
-                      return type.replace('_', ' ');
-                  }
-                };
-
-                const getEventColor = () => {
-                  switch (type) {
-                    case InteractionType.PAN_ZOOM_TO_HOTSPOT: return 'bg-blue-500';
-                    case InteractionType.HIGHLIGHT_HOTSPOT: return 'bg-yellow-500';
-                    case InteractionType.SHOW_TEXT: return 'bg-purple-500';
-                    case InteractionType.QUIZ: return 'bg-red-500';
-                    case InteractionType.MEDIA: return 'bg-green-500';
-                    case InteractionType.PULSE_HOTSPOT: return 'bg-pink-500';
-                    default: return 'bg-gray-500';
+                      return `${index + 1}. ${type.replace('_', ' ')}`;
                   }
                 };
 
                 return (
                   <div key={type} className="flex items-center space-x-2 text-sm text-slate-300">
-                    <span className={`w-3 h-3 ${getEventColor()} rounded-full`}></span>
+                    <span className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+                      {index + 1}
+                    </span>
                     <span>{getEventDisplay()}</span>
                   </div>
                 );
