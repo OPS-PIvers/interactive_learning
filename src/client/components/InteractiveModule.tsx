@@ -179,7 +179,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
   // Debug mode for development
-  const [debugMode] = useState(() => process.env.NODE_ENV === 'development' && localStorage.getItem('debug_positioning') === 'true');
+  const [debugMode] = useState(() => import.meta.env.DEV && localStorage.getItem('debug_positioning') === 'true');
 
   // Track if transform is transitioning for smooth animations
   const [isTransforming, setIsTransforming] = useState(false);
@@ -1128,62 +1128,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
   }, [isEditing, moduleState, timelineEvents]);
 
-  // Auto-save hook for data protection
-  useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
-
-  const handleStartLearning = () => {
-    setModuleState('learning');
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false); 
-    setCurrentStep(uniqueSortedSteps[0] || 1); 
-  };
-
-  const handleStartExploring = useCallback(() => {
-    setModuleState('idle');
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false);
-  }, []);
-
-  const handleTimelineDotClick = useCallback((step: number) => {
-    if (moduleState === 'idle' && !isEditing) {
-        setModuleState('learning');
-        setExploredHotspotId(null);
-        setExploredHotspotPanZoomActive(false);
-    }
-    setCurrentStep(step);
-  }, [moduleState, isEditing]);
-
-
-  const handleImageUpload = useCallback(async (file: File) => {
-    // If there's already an image and hotspots, warn the user
-    if (backgroundImage && hotspots.length > 0) {
-      const confirmReplace = confirm(
-        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
-      );
-      if (!confirmReplace) return;
-    }
-    
-    debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
-    setImageLoading(true);
-
-    try {
-      // Upload to Firebase Storage and get URL
-      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
-      setBackgroundImage(imageUrl);
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      setEditingZoom(1);
-      setImageLoading(false);
-    } catch (error) {
-      setImageLoading(false);
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
-    }
-  }, [backgroundImage, hotspots.length, debugLog, projectId]);
-
-  const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
-    setImageFitMode(fitMode);
-  }, []);
-
+  // Move handleSave before useAutoSave to fix temporal dead zone
   const handleSave = useCallback(async () => {
     // Prevent multiple simultaneous saves
     if (isSaving) {
@@ -1242,6 +1187,62 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setIsSaving(false);
     }
   }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave, isSaving]);
+
+  // Auto-save hook for data protection
+  useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
+
+  const handleStartLearning = () => {
+    setModuleState('learning');
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false); 
+    setCurrentStep(uniqueSortedSteps[0] || 1); 
+  };
+
+  const handleStartExploring = useCallback(() => {
+    setModuleState('idle');
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
+  }, []);
+
+  const handleTimelineDotClick = useCallback((step: number) => {
+    if (moduleState === 'idle' && !isEditing) {
+        setModuleState('learning');
+        setExploredHotspotId(null);
+        setExploredHotspotPanZoomActive(false);
+    }
+    setCurrentStep(step);
+  }, [moduleState, isEditing]);
+
+
+  const handleImageUpload = useCallback(async (file: File) => {
+    // If there's already an image and hotspots, warn the user
+    if (backgroundImage && hotspots.length > 0) {
+      const confirmReplace = confirm(
+        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
+      );
+      if (!confirmReplace) return;
+    }
+    
+    debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
+    setImageLoading(true);
+
+    try {
+      // Upload to Firebase Storage and get URL
+      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
+      setBackgroundImage(imageUrl);
+      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      setEditingZoom(1);
+      setImageLoading(false);
+    } catch (error) {
+      setImageLoading(false);
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+  }, [backgroundImage, hotspots.length, debugLog, projectId]);
+
+  const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
+    setImageFitMode(fitMode);
+  }, []);
 
   const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
     const title = prompt("Enter hotspot title:", "New Hotspot");
