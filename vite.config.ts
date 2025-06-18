@@ -5,19 +5,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     const isCodespaces = !!process.env.CODESPACES;
-    
+
     return {
       plugins: [
         react({
-          // CRITICAL: Explicit JSX runtime configuration
-          jsxRuntime: 'automatic',
-          jsxImportSource: 'react',
-          // Ensure proper development/production transforms
-          babel: {
-            parserOpts: {
-              plugins: ['decorators-legacy']
-            }
-          }
+          // Explicitly tell the plugin to use the dev runtime ONLY in development mode.
+          // This is the key fix for the "jsxDEV is not a function" error in production builds.
+          jsxDev: mode === 'development',
         })
       ],
       root: 'src/client',
@@ -46,14 +40,12 @@ export default defineConfig(({ mode }) => {
           }
         },
         cssCodeSplit: true,
-        sourcemap: false, // Disable sourcemaps for production
-        assetsInlineLimit: 4096,
+        sourcemap: false,
         reportCompressedSize: false
-        // JSX fix deployed - forcing cache refresh
       },
       define: {
-        // CRITICAL: Explicit environment definitions
-        'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production'),
+        // Correctly defines the environment for React and other libraries.
+        'process.env.NODE_ENV': JSON.stringify(mode),
         '__DEV__': mode === 'development',
         'global': 'globalThis'
       },
@@ -64,8 +56,10 @@ export default defineConfig(({ mode }) => {
       },
       optimizeDeps: {
         include: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage'],
-        // CRITICAL: Force React pre-bundling to prevent runtime issues
-        force: true
+        // The `force: true` setting is a heavy-handed approach.
+        // With the explicit jsxDev fix, it's likely no longer necessary.
+        // It's commented out but can be re-enabled if other dependency issues arise.
+        // force: true
       }
     };
 });
