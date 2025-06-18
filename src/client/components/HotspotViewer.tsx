@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 
 interface HotspotViewerProps {
@@ -13,13 +13,16 @@ interface HotspotViewerProps {
   // NEW PROPS:
   pixelPosition?: { x: number; y: number } | null;
   usePixelPositioning?: boolean;
+  onEditRequest?: (id: string) => void; // Add edit callback
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning
+  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isHolding, setIsHolding] = useState(false);
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const dragThresholdRef = useRef(false);
   
   // Get size classes based on hotspot size
   const getSizeClasses = (size: HotspotSize = 'medium') => {
@@ -38,60 +41,97 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const baseColor = hotspot.color || 'bg-sky-500';
   const hoverColor = hotspot.color ? hotspot.color.replace('500', '400').replace('600','500') : 'bg-sky-400'; // ensure hover works for darker colors too
   
-  // Drag handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isEditing || !onPositionChange) return;
+  // Unified pointer handler for hold-to-edit and drag
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (!isEditing) {
+      // In viewing mode, single tap for focus
+      onFocusRequest(hotspot.id);
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true); // Assuming setIsDragging is a state setter
-
+    
     const startX = e.clientX;
     const startY = e.clientY;
+    const startTime = Date.now();
+    
+    setIsHolding(true);
+    dragThresholdRef.current = false;
 
-    // Store initial position
-    const startHotspotX = hotspot.x;
-    const startHotspotY = hotspot.y;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-
-      // Get current image bounds.
-      // In editor mode, actualImageRef is passed as imageElement.
-      // This element's BoundingClientRect directly gives the rendered image dimensions.
-      const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
-      if (!referenceElement) return;
-
-      const referenceRect = referenceElement.getBoundingClientRect();
-
-      // Calculate new percentage position based on the reference element's dimensions
-      // This referenceRect should be the dimensions of the actual rendered image.
-      let percentDeltaX = 0;
-      if (referenceRect.width > 0) { // Avoid division by zero
-          percentDeltaX = (deltaX / referenceRect.width) * 100;
+    // Start hold timer for edit
+    holdTimeoutRef.current = setTimeout(() => {
+      if (isHolding && !dragThresholdRef.current && onEditRequest) {
+        setIsHolding(false);
+        onEditRequest(hotspot.id);
+        return;
       }
+    }, 600); // 600ms hold time
 
-      let percentDeltaY = 0;
-      if (referenceRect.height > 0) { // Avoid division by zero
-          percentDeltaY = (deltaY / referenceRect.height) * 100;
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const deltaX = Math.abs(moveEvent.clientX - startX);
+      const deltaY = Math.abs(moveEvent.clientY - startY);
+      
+      // If moved more than 10px, it's a drag
+      if (deltaX > 10 || deltaY > 10) {
+        dragThresholdRef.current = true;
+        if (holdTimeoutRef.current) {
+          clearTimeout(holdTimeoutRef.current);
+        }
+        
+        if (!isDragging && onPositionChange) {
+          setIsDragging(true);
+          setIsHolding(false);
+          
+          // Start drag logic
+          const startHotspotX = hotspot.x;
+          const startHotspotY = hotspot.y;
+          
+          const continueDrag = (dragEvent: PointerEvent) => {
+            const totalDeltaX = dragEvent.clientX - startX;
+            const totalDeltaY = dragEvent.clientY - startY;
+            
+            const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
+            if (!referenceElement) return;
+
+            const referenceRect = referenceElement.getBoundingClientRect();
+            
+            const percentDeltaX = referenceRect.width > 0 ? (totalDeltaX / referenceRect.width) * 100 : 0;
+            const percentDeltaY = referenceRect.height > 0 ? (totalDeltaY / referenceRect.height) * 100 : 0;
+            
+            const newX = Math.max(0, Math.min(100, startHotspotX + percentDeltaX));
+            const newY = Math.max(0, Math.min(100, startHotspotY + percentDeltaY));
+            
+            onPositionChange(hotspot.id, newX, newY);
+          };
+
+          document.addEventListener('pointermove', continueDrag);
+          document.addEventListener('pointerup', () => {
+            setIsDragging(false);
+            document.removeEventListener('pointermove', continueDrag);
+          }, { once: true });
+        }
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (holdTimeoutRef.current) {
+        clearTimeout(holdTimeoutRef.current);
+      }
+      setIsHolding(false);
+      
+      // If it was a quick tap without drag, show info
+      if (!dragThresholdRef.current && Date.now() - startTime < 300) {
+        onFocusRequest(hotspot.id);
       }
       
-      const newX = Math.max(0, Math.min(100, startHotspotX + percentDeltaX));
-      const newY = Math.max(0, Math.min(100, startHotspotY + percentDeltaY));
-
-      onPositionChange(hotspot.id, newX, newY);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
     };
 
-    const handleMouseUp = () => {
-      setIsDragging(false); // Assuming setIsDragging is a state setter
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [isEditing, onPositionChange, hotspot.id, hotspot.x, hotspot.y, imageElement, setIsDragging]); // Added setIsDragging to dependencies
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerup', handlePointerUp);
+  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement]);
   
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
@@ -99,7 +139,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const sizeClasses = getSizeClasses(hotspot.size);
   const dotClasses = `relative inline-flex rounded-full ${sizeClasses} ${baseColor} group-hover:${hoverColor} transition-all duration-200 ${continuousPulseDotClasses} ${
     isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'
-  } ${isDragging ? 'scale-110 shadow-lg' : ''}`;
+  } ${isDragging ? 'hotspot-dragging scale-115 shadow-lg' : ''} ${isHolding ? 'hotspot-holding scale-110 animate-pulse' : ''}`;
 
   // Positioning container - uses absolute positioning only
   const positioningContainerClasses = `absolute group ${
@@ -110,12 +150,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const centeringWrapperClasses = `transform -translate-x-1/2 -translate-y-1/2 ${
     isDimmedInEditMode ? 'opacity-40 hover:opacity-100 focus-within:opacity-100 transition-opacity' : ''
   }`;
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (isDragging) return; // Don't trigger click during drag
-    e.stopPropagation(); 
-    onFocusRequest(hotspot.id);
-  };
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -139,11 +173,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     >
       <div
         className={centeringWrapperClasses}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
         onKeyPress={handleKeyPress}
         role="button"
-        aria-label={`Hotspot: ${hotspot.title}${isEditing && onPositionChange ? ' (draggable)' : ''}`}
+        aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}
         tabIndex={0} // Make it focusable
       >
         <span className={dotClasses} aria-hidden="true">

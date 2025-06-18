@@ -4,22 +4,29 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
-    
-    // Detect if we're in GitHub Codespaces
     const isCodespaces = !!process.env.CODESPACES;
     
     return {
-      plugins: [react()],
+      plugins: [
+        react({
+          // CRITICAL: Explicit JSX runtime configuration
+          jsxRuntime: 'automatic',
+          jsxImportSource: 'react',
+          // Ensure proper development/production transforms
+          babel: {
+            parserOpts: {
+              plugins: ['decorators-legacy']
+            }
+          }
+        })
+      ],
       root: 'src/client',
       server: {
-        // Make server accessible from outside container
         host: isCodespaces ? '0.0.0.0' : 'localhost',
-        port: 3000, // Use a consistent port
-        // Auto-open browser in Codespaces
+        port: 3000,
         open: !isCodespaces,
       },
       preview: {
-        // Configure preview server for 'npm run preview'
         host: isCodespaces ? '0.0.0.0' : 'localhost',
         port: 4173,
         open: !isCodespaces
@@ -39,10 +46,15 @@ export default defineConfig(({ mode }) => {
           }
         },
         cssCodeSplit: true,
-        sourcemap: mode === 'development' // Enable sourcemaps for dev
+        sourcemap: false, // Disable sourcemaps for production
+        assetsInlineLimit: 4096,
+        reportCompressedSize: false
       },
       define: {
-        'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production')
+        // CRITICAL: Explicit environment definitions
+        'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production'),
+        '__DEV__': mode === 'development',
+        'global': 'globalThis'
       },
       resolve: {
         alias: {
@@ -50,7 +62,9 @@ export default defineConfig(({ mode }) => {
         }
       },
       optimizeDeps: {
-        include: ['firebase/app', 'firebase/firestore', 'firebase/storage', 'react', 'react-dom']
+        include: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage'],
+        // CRITICAL: Force React pre-bundling to prevent runtime issues
+        force: true
       }
     };
 });

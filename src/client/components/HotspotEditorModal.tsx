@@ -1,346 +1,294 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
+import React, { useState, useCallback, useEffect } from 'react';
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { PlusIcon } from './icons/PlusIcon';
-import { TrashIcon } from './icons/TrashIcon';
-import { PencilIcon } from './icons/PencilIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import DragHandle from './DragHandle';
-import EditableEventCard from './EditableEventCard';
+import EventTypeToggle from './EventTypeToggle';
+import PanZoomSettings from './PanZoomSettings';
+import SpotlightSettings from './SpotlightSettings';
+import SpotlightPreview from './SpotlightPreview';
 
-interface HotspotEditorModalProps {
+interface EnhancedHotspotEditorModalProps {
   isOpen: boolean;
   selectedHotspot: HotspotData | null;
   relatedEvents: TimelineEventData[];
-  allTimelineEvents: TimelineEventData[];
   currentStep: number;
   onUpdateHotspot: (hotspot: HotspotData) => void;
   onDeleteHotspot: (hotspotId: string) => void;
   onAddEvent: (event: TimelineEventData) => void;
   onUpdateEvent: (event: TimelineEventData) => void;
   onDeleteEvent: (eventId: string) => void;
-  onReorderEvents: (eventIds: string[]) => void;
-  onJumpToStep: (step: number) => void;
   onClose: () => void;
 }
 
-interface ColorPreset {
-  name: string;
-  value: string;
-  bgClass: string;
-}
-
-const COLOR_OPTIONS = [
-  { name: 'Red', value: 'bg-red-500' },
-  { name: 'Orange', value: 'bg-orange-500' },
-  { name: 'Yellow', value: 'bg-yellow-500' },
-  { name: 'Green', value: 'bg-green-500' },
-  { name: 'Blue', value: 'bg-blue-500' },
-  { name: 'Indigo', value: 'bg-indigo-500' },
-  { name: 'Purple', value: 'bg-purple-500' },
-  { name: 'Pink', value: 'bg-pink-500' },
-  { name: 'Teal', value: 'bg-teal-500' },
-  { name: 'Cyan', value: 'bg-cyan-500' },
-  { name: 'Slate', value: 'bg-slate-500' },
-  { name: 'Gray', value: 'bg-gray-500' },
-];
-
-const SIZE_OPTIONS: { label: string; value: HotspotSize; icon: string }[] = [
-  { label: 'Small', value: 'small', icon: '🔸' },
-  { label: 'Medium', value: 'medium', icon: '🔹' },
-  { label: 'Large', value: 'large', icon: '🔶' },
-];
-
-const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
+const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   isOpen,
   selectedHotspot,
   relatedEvents,
-  allTimelineEvents,
   currentStep,
   onUpdateHotspot,
   onDeleteHotspot,
   onAddEvent,
   onUpdateEvent,
   onDeleteEvent,
-  onReorderEvents,
-  onJumpToStep,
   onClose
 }) => {
-  const [activeTab, setActiveTab] = useState('appearance');
-  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
+  // State for selected event types
+  const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set());
   
-  // Auto-save functionality
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  // State for event settings
+  const [zoomLevel, setZoomLevel] = useState(2.5);
+  const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle'>('circle');
+  const [dimPercentage, setDimPercentage] = useState(70);
+  const [textContent, setTextContent] = useState('');
+  const [textPosition, setTextPosition] = useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center');
 
-  const debouncedAutoSave = useCallback((updates: Partial<HotspotData>) => {
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-    
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      if (!selectedHotspot) return;
-      onUpdateHotspot({ ...selectedHotspot, ...updates });
-    }, 500); // Auto-save after 500ms of no changes
-  }, [selectedHotspot, onUpdateHotspot]);
-
-  const handleHotspotUpdate = useCallback((field: keyof HotspotData, value: any) => {
-    if (!selectedHotspot) return;
-    // Immediate update for UI responsiveness
-    const updates = { [field]: value };
-    // Use debounced save for persistence
-    debouncedAutoSave(updates);
-  }, [selectedHotspot, debouncedAutoSave]);
-
-  // Cleanup on unmount
+  // Initialize state from existing events
   useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
+    if (!selectedHotspot) return;
+
+    const eventTypes = new Set<InteractionType>();
+    relatedEvents.forEach(event => {
+      eventTypes.add(event.type);
+      
+      // Load existing settings
+      if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && event.zoomFactor) {
+        setZoomLevel(event.zoomFactor);
       }
-    };
+      if (event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
+        if (event.highlightShape) setSpotlightShape(event.highlightShape);
+        if (event.dimPercentage) setDimPercentage(event.dimPercentage);
+      }
+      if (event.type === InteractionType.SHOW_TEXT && event.textContent) {
+        setTextContent(event.textContent);
+        if (event.textPosition) setTextPosition(event.textPosition);
+      }
+    });
+    
+    setSelectedEventTypes(eventTypes);
+  }, [selectedHotspot, relatedEvents]);
+
+  const handleEventTypeToggle = useCallback((type: InteractionType) => {
+    setSelectedEventTypes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(type)) {
+        newSet.delete(type);
+      } else {
+        newSet.add(type);
+      }
+      return newSet;
+    });
   }, []);
 
-  const getEventIcon = (type: InteractionType): string => {
-    switch (type) {
-      case InteractionType.SHOW_HOTSPOT: return '👁️';
-      case InteractionType.HIDE_HOTSPOT: return '🫥';
-      case InteractionType.PULSE_HOTSPOT: return '💓';
-      case InteractionType.SHOW_MESSAGE: return '💬';
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT: return '🔍';
-      case InteractionType.HIGHLIGHT_HOTSPOT: return '🎯';
-      default: return '⚡';
-    }
-  };
-
-  const handleAddEvent = () => {
+  const handleSave = useCallback(() => {
     if (!selectedHotspot) return;
-    
-    const newEvent: TimelineEventData = {
-      id: `event_${Date.now()}`,
-      step: currentStep + 1,
-      type: InteractionType.SHOW_HOTSPOT,
-      targetId: selectedHotspot.id,
-      name: `Show ${selectedHotspot.title}`,
-      duration: 3000,
-    };
-    
-    onAddEvent(newEvent);
-  };
 
-  const handleDeleteEvent = (eventId: string) => {
-    if (confirm('Delete this event?')) {
-      onDeleteEvent(eventId);
-    }
-  };
-
-  const handleDragStart = (e: React.DragEvent, eventId: string) => {
-    setDraggedEventId(eventId);
-    e.dataTransfer.setData('text/plain', eventId);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, targetEventId: string) => {
-    e.preventDefault();
-    const draggedId = e.dataTransfer.getData('text/plain');
-    if (draggedId && draggedId !== targetEventId) {
-      // Find the dragged and target events
-      const draggedEventIndex = relatedEvents.findIndex(event => event.id === draggedId);
-      const targetEventIndex = relatedEvents.findIndex(event => event.id === targetEventId);
-      
-      if (draggedEventIndex !== -1 && targetEventIndex !== -1) {
-        // Create new array with reordered events
-        const reorderedEvents = [...relatedEvents];
-        const [draggedEvent] = reorderedEvents.splice(draggedEventIndex, 1);
-        reorderedEvents.splice(targetEventIndex, 0, draggedEvent);
-        
-        // Update step numbers based on new order
-        const eventIds = reorderedEvents.map(event => event.id);
-        onReorderEvents(eventIds);
+    // Delete existing events for this hotspot at current step
+    relatedEvents.forEach(event => {
+      if (event.step === currentStep) {
+        onDeleteEvent(event.id);
       }
-    }
-    setDraggedEventId(null);
-  };
+    });
 
-  const getEventTypeName = (type: InteractionType): string => {
-    switch (type) {
-      case InteractionType.SHOW_HOTSPOT: return 'Show Hotspot';
-      case InteractionType.HIDE_HOTSPOT: return 'Hide Hotspot';
-      case InteractionType.PULSE_HOTSPOT: return 'Pulse Hotspot';
-      case InteractionType.SHOW_MESSAGE: return 'Show Message';
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT: return 'Pan & Zoom';
-      case InteractionType.HIGHLIGHT_HOTSPOT: return 'Highlight';
-      default: return type;
-    }
-  };
+    // Create new events based on selected types
+    selectedEventTypes.forEach(type => {
+      const baseEvent: TimelineEventData = {
+        id: `event_${type}_${Date.now()}_${Math.random()}`,
+        step: currentStep,
+        name: `${type} ${selectedHotspot.title}`,
+        type,
+        targetId: selectedHotspot.id
+      };
 
-  const createNewEvent = () => {
-    if (!selectedHotspot) return;
-    
-    const newEvent: TimelineEventData = {
-      id: `event_${Date.now()}`,
-      step: currentStep,
-      name: `Show ${selectedHotspot.title}`,
-      type: InteractionType.SHOW_HOTSPOT,
-      targetId: selectedHotspot.id,
-      duration: 3000,
-    };
-    
-    onAddEvent(newEvent);
-    setEditingEvent(newEvent);
-    setShowEventForm(true);
-  };
+      // Add type-specific properties
+      switch (type) {
+        case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+          baseEvent.zoomFactor = zoomLevel;
+          break;
+        case InteractionType.HIGHLIGHT_HOTSPOT:
+          baseEvent.highlightShape = spotlightShape;
+          baseEvent.dimPercentage = dimPercentage;
+          baseEvent.highlightRadius = 60; // Default radius
+          break;
+        case InteractionType.SHOW_TEXT:
+          baseEvent.textContent = textContent;
+          baseEvent.textPosition = textPosition;
+          break;
+        case InteractionType.PULSE_HOTSPOT:
+          baseEvent.duration = 3000; // Default duration
+          break;
+      }
+
+      onAddEvent(baseEvent);
+    });
+
+    onClose();
+  }, [
+    selectedHotspot,
+    relatedEvents,
+    currentStep,
+    selectedEventTypes,
+    zoomLevel,
+    spotlightShape,
+    dimPercentage,
+    textContent,
+    textPosition,
+    onDeleteEvent,
+    onAddEvent,
+    onClose
+  ]);
 
   if (!isOpen || !selectedHotspot) return null;
 
   return (
-    <div 
-      className={`fixed inset-0 z-50 overflow-y-auto ${isOpen ? 'block' : 'hidden'}`}
-      aria-labelledby="modal-title" 
-      role="dialog" 
-      aria-modal="true"
-    >
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
+    <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out">
+      <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] max-h-[95vh] flex overflow-hidden border border-slate-700">
         
-        <div className="relative bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-          {/* Compact Header */}
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-white">{selectedHotspot.title}</h3>
-                <p className="text-blue-100 text-sm">Customize appearance and timeline events</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-white hover:text-gray-200 transition-colors"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
+        {/* Left Panel - Event Configuration */}
+        <div className="w-1/2 p-4 sm:p-6 border-r border-slate-700 overflow-y-auto">
+          {/* Header */}
+          <header className="flex justify-between items-center border-b border-slate-700 bg-slate-800/50 pb-4 mb-6">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">Edit Hotspot</h2>
+              <p className="text-sm text-slate-400">Configure interactions and behavior</p>
             </div>
-          </div>
-
-          {/* Compact Tabs */}
-          <div className="border-b border-gray-200 dark:border-slate-700">
-            <nav className="flex" aria-label="Tabs">
-              {[
-                { id: 'appearance', name: 'Style', icon: '🎨' },
-                { id: 'events', name: 'Events', icon: '⚡' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Compact Content */}
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
-            {activeTab === 'appearance' && (
-              <div className="space-y-4">
-                {/* Size - Compact Grid */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Size</h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    {SIZE_OPTIONS.map((size) => (
-                      <button
-                        key={size.value}
-                        onClick={() => debouncedAutoSave({ size: size.value })}
-                        className={`p-3 rounded-lg border-2 transition-all text-sm ${
-                          selectedHotspot.size === size.value
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
-                        }`}
-                      >
-                        <div className="text-center">
-                          <div className="text-lg mb-1">{size.icon}</div>
-                          <div className="font-medium">{size.label}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color - Compact Grid */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</h4>
-                  <div className="grid grid-cols-5 gap-2">
-                    {COLOR_OPTIONS.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() => debouncedAutoSave({ color: color.value })}
-                        className={`w-12 h-12 rounded-lg border-2 transition-all ${color.value} ${
-                          selectedHotspot.color === color.value
-                            ? 'border-gray-800 dark:border-white scale-110'
-                            : 'border-gray-300 dark:border-gray-600 hover:scale-105'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'events' && (
-              <div className="space-y-4">
-                {/* Events List - Full Featured */}
-                {relatedEvents.length > 0 ? (
-                  <div className="space-y-3">
-                    {relatedEvents.sort((a, b) => a.step - b.step).map((event) => (
-                      <EditableEventCard
-                        key={event.id}
-                        event={event}
-                        isActive={event.step === currentStep}
-                        isDragging={draggedEventId === event.id}
-                        onUpdate={onUpdateEvent}
-                        onDelete={handleDeleteEvent}
-                        onJumpToStep={onJumpToStep}
-                        onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">⚡</div>
-                    <p>No timeline events yet</p>
-                  </div>
-                )}
-
-                {/* Add Event Button */}
-                <button
-                  onClick={handleAddEvent}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-                >
-                  + Add Timeline Event
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Compact Footer */}
-          <div className="bg-gray-50 dark:bg-slate-800 px-6 py-3 flex justify-between items-center">
-            <span className="text-xs text-gray-500">Changes save automatically</span>
-            <button
-              onClick={() => onDeleteHotspot(selectedHotspot.id)}
-              className="text-red-500 hover:text-red-700 text-sm font-medium"
+            <button 
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-700" 
+              aria-label="Close modal"
             >
-              Delete Hotspot
+              <XMarkIcon className="w-7 h-7" />
             </button>
+          </header>
+
+          {/* Event Type Selection */}
+          <EventTypeToggle 
+            selectedTypes={selectedEventTypes}
+            onToggle={handleEventTypeToggle}
+          />
+
+          {/* Dynamic Settings Panels */}
+          {selectedEventTypes.has(InteractionType.PAN_ZOOM_TO_HOTSPOT) && (
+            <PanZoomSettings 
+              zoomLevel={zoomLevel}
+              onZoomChange={setZoomLevel}
+            />
+          )}
+
+          {selectedEventTypes.has(InteractionType.HIGHLIGHT_HOTSPOT) && (
+            <SpotlightSettings
+              shape={spotlightShape}
+              dimPercentage={dimPercentage}
+              onShapeChange={setSpotlightShape}
+              onDimPercentageChange={setDimPercentage}
+            />
+          )}
+
+          {selectedEventTypes.has(InteractionType.SHOW_TEXT) && (
+            <div className="mb-6 bg-slate-700 rounded-lg p-4">
+              <h4 className="text-md font-medium text-white mb-4 flex items-center">
+                <span className="text-xl mr-2">💬</span>
+                Text Settings
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Message</label>
+                  <textarea 
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-white resize-none" 
+                    rows={3} 
+                    placeholder="Enter your message..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Position</label>
+                  <select 
+                    value={textPosition}
+                    onChange={(e) => setTextPosition(e.target.value as any)}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-white"
+                  >
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="center">Center</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+            <button 
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleSave}
+              className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+
+        {/* Right Panel - Preview */}
+        <div className="w-1/2 p-4 sm:p-6 bg-slate-800">
+          <SpotlightPreview
+            shape={spotlightShape}
+            dimPercentage={dimPercentage}
+            zoomLevel={zoomLevel}
+          />
+          
+          {/* Active Events List */}
+          <div className="bg-slate-700 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-slate-300 mb-2">Active Events</h4>
+            <div className="space-y-2">
+              {Array.from(selectedEventTypes).map(type => {
+                const getEventDisplay = () => {
+                  switch (type) {
+                    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+                      return `Pan & Zoom (${zoomLevel.toFixed(1)}x)`;
+                    case InteractionType.HIGHLIGHT_HOTSPOT:
+                      return `Spotlight (${spotlightShape}, ${dimPercentage}% dim)`;
+                    case InteractionType.SHOW_TEXT:
+                      return 'Show Text';
+                    case InteractionType.QUIZ:
+                      return 'Quiz Question';
+                    case InteractionType.MEDIA:
+                      return 'Media Content';
+                    case InteractionType.PULSE_HOTSPOT:
+                      return 'Pulse Animation';
+                    default:
+                      return type.replace('_', ' ');
+                  }
+                };
+
+                const getEventColor = () => {
+                  switch (type) {
+                    case InteractionType.PAN_ZOOM_TO_HOTSPOT: return 'bg-blue-500';
+                    case InteractionType.HIGHLIGHT_HOTSPOT: return 'bg-yellow-500';
+                    case InteractionType.SHOW_TEXT: return 'bg-purple-500';
+                    case InteractionType.QUIZ: return 'bg-red-500';
+                    case InteractionType.MEDIA: return 'bg-green-500';
+                    case InteractionType.PULSE_HOTSPOT: return 'bg-pink-500';
+                    default: return 'bg-gray-500';
+                  }
+                };
+
+                return (
+                  <div key={type} className="flex items-center space-x-2 text-sm text-slate-300">
+                    <span className={`w-3 h-3 ${getEventColor()} rounded-full`}></span>
+                    <span>{getEventDisplay()}</span>
+                  </div>
+                );
+              })}
+              {selectedEventTypes.size === 0 && (
+                <p className="text-sm text-slate-400">No events selected</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -348,4 +296,4 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
   );
 };
 
-export default HotspotEditorModal;
+export default EnhancedHotspotEditorModal;

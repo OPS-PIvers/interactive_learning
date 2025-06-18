@@ -1235,6 +1235,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setShowHotspotEditModal(true);
   }, [hotspots]);
 
+  // New handler for enhanced hotspot editor modal
+  const handleHotspotEditRequest = useCallback((hotspotId: string) => {
+    setSelectedHotspotForModal(hotspotId);
+    setIsHotspotModalOpen(true);
+  }, []);
+
   const handleSaveHotspot = useCallback((updatedHotspot: HotspotData) => {
     setHotspots(prevHotspots => 
       prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h)
@@ -1656,6 +1662,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                             )}
                             isEditing={isEditing}
                             onFocusRequest={handleFocusHotspot}
+                            onEditRequest={handleHotspotEditRequest}
                             onPositionChange={handleHotspotPositionChange}
                             isContinuouslyPulsing={false}
                           />
@@ -1823,6 +1830,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               isDimmedInEditMode={false}
                               isEditing={false}
                               onFocusRequest={handleFocusHotspot}
+                              onEditRequest={handleHotspotEditRequest}
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
                             />
                           );
@@ -1900,15 +1908,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         hotspot={editingHotspot}
       />
 
-      {/* New Hotspot Editor Modal */}
+      {/* Enhanced Hotspot Editor Modal */}
       <HotspotEditorModal
         isOpen={isHotspotModalOpen}
         selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
         relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
-        allTimelineEvents={timelineEvents}
         currentStep={currentStep}
         onUpdateHotspot={(updatedHotspot) => {
-          console.log('Updating hotspot:', updatedHotspot); // Debug log
           setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
         }}
         onDeleteHotspot={(hotspotId) => {
@@ -1918,14 +1924,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         }}
         onAddEvent={handleAddTimelineEvent}
         onUpdateEvent={(updatedEvent) => {
-          console.log('Updating event:', updatedEvent); // Debug log
           setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
         }}
-        onDeleteEvent={handleRemoveTimelineEvent}
-        onReorderEvents={(eventIds) => {
-          // Handle reordering if needed
+        onDeleteEvent={(eventId) => {
+          setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
         }}
-        onJumpToStep={setCurrentStep}
         onClose={() => {
           setIsHotspotModalOpen(false);
           setSelectedHotspotForModal(null);

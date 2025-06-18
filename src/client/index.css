@@ -248,3 +248,21 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Hold-to-edit visual feedback */
+.hotspot-holding {
+  animation: hold-pulse 0.6s ease-in-out;
+}
+
+@keyframes hold-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(1.1); }
+}
+
+/* Drag state styling */
+.hotspot-dragging {
+  transform: scale(1.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}

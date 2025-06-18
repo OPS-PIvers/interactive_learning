@@ -1,11 +1,17 @@
 
 export enum InteractionType {
+  // Existing types
   SHOW_HOTSPOT = 'SHOW_HOTSPOT',
   HIDE_HOTSPOT = 'HIDE_HOTSPOT',
   PULSE_HOTSPOT = 'PULSE_HOTSPOT',
   SHOW_MESSAGE = 'SHOW_MESSAGE',
   PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
-  HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT'
+  HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT',
+  
+  // New types
+  SHOW_TEXT = 'SHOW_TEXT',
+  QUIZ = 'QUIZ',
+  MEDIA = 'MEDIA'
 }
 
 
@@ -30,10 +36,36 @@ export interface TimelineEventData {
   targetId?: string; // ID of HotspotData
   message?: string;
   duration?: number; // in ms, for timed events like pulse
+  
+  // Enhanced zoom properties
   zoomFactor?: number; // For PAN_ZOOM_TO_HOTSPOT, e.g., 2 for 2x zoom, defaults to 2
+  
+  // Enhanced spotlight properties
   highlightRadius?: number; // For HIGHLIGHT_HOTSPOT, in pixels on original image for clear area, defaults to 60
-  highlightShape?: 'circle' | 'rectangle' | 'oval'; // Shape of the highlight area, defaults to 'circle'
+  highlightShape?: 'circle' | 'rectangle'; // Shape of the highlight area, defaults to 'circle'
   dimPercentage?: number; // Percentage of dimming for highlight overlay (0-100), defaults to 70
+  spotlightX?: number; // Percentage position
+  spotlightY?: number; // Percentage position
+  spotlightWidth?: number; // Pixels
+  spotlightHeight?: number; // Pixels
+  
+  // New properties for enhanced events
+  textContent?: string;
+  textPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  quizQuestion?: string;
+  quizOptions?: string[];
+  quizCorrectAnswer?: number;
+  mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
+  mediaUrl?: string;
+}
+
+// New interface for managing multiple simultaneous events
+export interface HotspotEventGroup {
+  id: string;
+  step: number;
+  name: string;
+  targetId: string;
+  events: TimelineEventData[]; // Multiple events that happen simultaneously
 }
 
 export interface InteractiveModuleState {
