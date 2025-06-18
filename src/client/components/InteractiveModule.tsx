@@ -2040,7 +2040,7 @@ const useAutoSave = (
   const lastDataRef = useRef<string>('');
   
   useEffect(() => {
-    if (!isEditing || hotspots.length === 0) return;
+    if (!isEditing) return; // Remove hotspots.length requirement - auto-save even empty projects
     
     const currentData = JSON.stringify({ hotspots, timelineEvents });
     if (currentData === lastDataRef.current) return;
@@ -2052,7 +2052,7 @@ const useAutoSave = (
       handleSave().catch(error => {
         console.error('Auto-save failed:', error);
       });
-    }, 30000); // Auto-save every 30 seconds
+    }, 10000); // Auto-save every 10 seconds (3x faster)
     
     return () => clearTimeout(autoSaveTimer);
   }, [hotspots, timelineEvents, isEditing, handleSave]);
