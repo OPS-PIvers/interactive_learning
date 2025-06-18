@@ -13,6 +13,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
+import { DataSanitizer } from './dataSanitizer'
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, { data: any, timestamp: number }>()
@@ -136,6 +137,10 @@ export class FirebaseProjectAPI {
         updatedAt: serverTimestamp()
       }, { merge: true })
       
+      // Sanitize data before processing to remove undefined values
+      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
+      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
+      
       // Get existing subcollection documents to determine what to delete vs update
       const [existingHotspots, existingEvents] = await Promise.all([
         getDocs(collection(db, 'projects', project.id, 'hotspots')),
@@ -143,8 +148,8 @@ export class FirebaseProjectAPI {
       ])
       
       // Track which documents we're keeping
-      const newHotspotIds = new Set(project.interactiveData.hotspots.map(h => h.id))
-      const newEventIds = new Set(project.interactiveData.timelineEvents.map(e => e.id))
+      const newHotspotIds = new Set(sanitizedHotspots.map(h => h.id!))
+      const newEventIds = new Set(sanitizedEvents.map(e => e.id!))
       
       // Delete hotspots that are no longer in the project
       existingHotspots.docs.forEach(doc => {
@@ -161,8 +166,8 @@ export class FirebaseProjectAPI {
       })
       
       // Add/update hotspots
-      for (const hotspot of project.interactiveData.hotspots) {
-        const hotspotRef = doc(db, 'projects', project.id, 'hotspots', hotspot.id)
+      for (const hotspot of sanitizedHotspots) {
+        const hotspotRef = doc(db, 'projects', project.id, 'hotspots', hotspot.id!)
         batch.set(hotspotRef, {
           ...hotspot,
           updatedAt: serverTimestamp()
@@ -170,8 +175,8 @@ export class FirebaseProjectAPI {
       }
       
       // Add/update timeline events
-      for (const event of project.interactiveData.timelineEvents) {
-        const eventRef = doc(db, 'projects', project.id, 'timeline_events', event.id)
+      for (const event of sanitizedEvents) {
+        const eventRef = doc(db, 'projects', project.id, 'timeline_events', event.id!)
         batch.set(eventRef, {
           ...event,
           updatedAt: serverTimestamp()
@@ -180,7 +185,7 @@ export class FirebaseProjectAPI {
       
       await batch.commit()
       
-      console.log(`Project ${project.id} saved successfully with ${project.interactiveData.hotspots.length} hotspots`)
+      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots`)
       return project
     } catch (error) {
       console.error('Error saving project:', error)

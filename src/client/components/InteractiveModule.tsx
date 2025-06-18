@@ -1271,7 +1271,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       step: newEventStep, 
       name: `Show ${title}`,
       type: InteractionType.SHOW_HOTSPOT, 
-      targetId: newHotspot.id
+      targetId: newHotspot.id,
+      message: '' // Explicitly set to empty string to prevent undefined Firebase errors
     };
     
     // Use functional updates to ensure we're working with latest state

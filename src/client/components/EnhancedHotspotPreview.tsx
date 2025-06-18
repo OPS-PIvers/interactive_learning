@@ -243,13 +243,25 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
     }
   }, [previewMode, animationSequence.length]);
 
-  // Zoom/Pan handlers
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (previewMode === 'edit' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      setPreviewZoom(prev => Math.max(0.1, Math.min(5, prev * delta)));
-    }
+  // Native wheel event handler to fix passive event listener warnings
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      if (previewMode === 'edit' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        setPreviewZoom(prev => Math.max(0.1, Math.min(5, prev * delta)));
+      }
+    };
+
+    // Add event listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleNativeWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleNativeWheel);
+    };
   }, [previewMode]);
 
   // Spotlight drag handlers
@@ -345,7 +357,6 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
       <div 
         ref={containerRef}
         className="relative bg-slate-700 rounded-lg h-80 overflow-hidden cursor-grab active:cursor-grabbing"
-        onWheel={handleWheel}
         style={{ 
           transform: `scale(${previewZoom}) translate(${previewPan.x}px, ${previewPan.y}px)`,
           transformOrigin: 'center',

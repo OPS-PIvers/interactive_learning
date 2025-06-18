@@ -101,7 +101,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         step: currentStep,
         name: `${type} ${selectedHotspot.title}`,
         type,
-        targetId: selectedHotspot.id
+        targetId: selectedHotspot.id,
+        message: '' // Explicitly set to empty string to prevent undefined Firebase errors
       };
 
       // Add type-specific properties with positioning
