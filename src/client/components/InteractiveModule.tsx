@@ -37,8 +37,6 @@ const safeGetPosition = <T extends any>(
 ): T => {
   try {
     const result = fn();
-    // Ensure that if fn() returns null, the fallback is used.
-    // Also handles cases where fn() might return other falsy values if not strictly T | null
     return result === null || result === undefined ? fallback : result;
   } catch (error) {
     console.error('Position calculation error:', error);
@@ -60,22 +58,19 @@ const throttle = <T extends (...args: any[]) => any>(
 
     if (timeSinceLastExec > delay) {
       lastExecTime = currentTime;
-      // Clear any existing timeout that would execute the last call
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
       return func(...args);
     } else {
-      // If a timeout is already set, clear it to reset the timer with the new call
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      // Set a new timeout to execute after the remaining delay
       timeoutId = window.setTimeout(() => {
         lastExecTime = Date.now();
         func(...args);
-        timeoutId = null; // Clear the timeoutId after execution
+        timeoutId = null;
       }, delay - timeSinceLastExec);
     }
   }) as T;
@@ -87,58 +82,83 @@ interface InteractiveModuleProps {
   onSave: (data: InteractiveModuleState) => void;
   onClose?: () => void;
   projectName: string;
-  projectId?: string;
+  projectId: string;
 }
 
-interface ImageTransformState {
+type PendingHotspotInfo = {
+  x: number;
+  y: number;
+  imageX: number;
+  imageY: number;
+};
+
+type ImageTransformState = {
   scale: number;
   translateX: number;
   translateY: number;
-  targetHotspotId?: string; 
+  targetHotspotId?: string;
+};
+
+// Hook for auto-save functionality
+function useAutoSave(
+  isEditing: boolean, 
+  hotspots: HotspotData[], 
+  timelineEvents: TimelineEventData[], 
+  handleSave: () => void
+) {
+  const [lastSaveData, setLastSaveData] = useState<string>('');
+  const autoSaveTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const currentData = JSON.stringify({ hotspots, timelineEvents });
+    
+    if (currentData !== lastSaveData && lastSaveData !== '') {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      
+      autoSaveTimeoutRef.current = window.setTimeout(() => {
+        console.log('Auto-saving...');
+        handleSave();
+      }, 3000);
+    }
+    
+    setLastSaveData(currentData);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [isEditing, hotspots, timelineEvents, handleSave, lastSaveData]);
 }
 
-interface PendingHotspotInfo {
-  viewXPercent: number; 
-  viewYPercent: number; 
-  imageXPercent: number; 
-  imageYPercent: number; 
-}
-
-
-const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEditing, onSave, onClose, projectName, projectId }) => {
-  const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
-  const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents);
-  
-  const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
+const InteractiveModule: React.FC<InteractiveModuleProps> = ({ 
+  initialData, 
+  isEditing, 
+  onSave, 
+  onClose, 
+  projectName,
+  projectId 
+}) => {
+  const [backgroundImage, setBackgroundImage] = useState<string>(initialData.backgroundImage || '');
+  const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
+  const [imageFitMode, setImageFitMode] = useState<'contain' | 'cover' | 'fill'>(initialData.imageFitMode || 'contain');
+  const [moduleState, setModuleState] = useState<'idle' | 'learning'>('idle');
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [imageLoading, setImageLoading] = useState(false);
-  const [positionCalculating, setPositionCalculating] = useState(false);
-  const [isModeSwitching, setIsModeSwitching] = useState(false);
-  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
-  
-  // New state for enhanced features
-  const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
-  const [colorScheme, setColorScheme] = useState<string>('Default');
-  const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
-  const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
-  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
-  
-  // Missing state declaration for imageContainerRect
-  const [imageContainerRect, setImageContainerRect] = useState<DOMRect | null>(null);
-  
-  // Save state management
+  const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
+  const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
+  const [activeHotspotInfoId, setActiveHotspotInfoId] = useState<string | null>(null);
+  const [infoPanelAnchor, setInfoPanelAnchor] = useState<{x: number, y: number} | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
-  
-  // Image display state
-  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
-  
-  const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
+  const [imageLoading, setImageLoading] = useState<boolean>(false);
+  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
-  
-  // Removed old InfoPanel state - using modal now
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
@@ -146,21 +166,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
-  const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container
-  const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image
+  const viewportContainerRef = useRef<HTMLDivElement>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const scaledImageDivRef = useRef<HTMLDivElement>(null);
   
   // New refs for the img-based system (editing mode only)
   const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
   const actualImageRef = useRef<HTMLImageElement>(null);
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-  const [viewportZoom, setViewportZoom] = useState<number>(1); // Keep for viewer mode
-  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Keep for viewer mode
+  const [viewportZoom, setViewportZoom] = useState<number>(1);
+  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50});
   
   // New state for editing mode
-  const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
-  // Already exists for editor mode, ensure it's used in viewer mode too
+  const [editingZoom, setEditingZoom] = useState<number>(1);
   const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
@@ -178,58 +197,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     });
   }, []);
 
-  // Debug mode for development
+  // Debug mode for development and coordinate precision fixes
   const [debugMode] = useState(() => import.meta.env.DEV && localStorage.getItem('debug_positioning') === 'true');
+  const [debugPositioning, setDebugPositioning] = useState(false);
 
   // Track if transform is transitioning for smooth animations
   const [isTransforming, setIsTransforming] = useState(false);
 
   const debugLog = useCallback((category: string, message: string, data?: any) => {
-    if (!debugMode) return;
-
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] [${category}] ${message}`;
-
-    console.log(logEntry, data !== undefined ? data : '');
-
-    try {
-      const logs = JSON.parse(sessionStorage.getItem('debug_logs') || '[]');
-      logs.push({ timestamp, category, message, data: data !== undefined ? data : null });
-      if (logs.length > 100) logs.shift(); // Keep last 100 entries
-      sessionStorage.setItem('debug_logs', JSON.stringify(logs));
-    } catch (error) {
-      console.error("Failed to write to sessionStorage for debug logs:", error);
+    if (debugMode) {
+      console.log(`[${category}] ${message}`, data || '');
     }
   }, [debugMode]);
 
-  // Helper to get the actual div dimensions (viewer mode only)
-  const getScaledImageDivDimensions = useCallback(() => {
-    const divWidth = 80 * window.innerWidth / 100; // 80vw
-    const divHeight = 80 * window.innerHeight / 100; // 80vh
-    const maxWidth = 1200;
-    const maxHeight = 800;
-    
-    return {
-      width: Math.min(divWidth, maxWidth),
-      height: Math.min(divHeight, maxHeight)
-    };
-  }, []);
-
-  const throttledRecalculatePositions = useMemo(
-    () => throttle(() => {
-      if (imageContainerRef.current) {
-        setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
-        // Potentially other position-dependent logic could be called here if needed.
-      }
-    }, 100), // 100ms delay
-    [setImageContainerRect] // Include setImageContainerRect to prevent closure issues
-  );
-
   const uniqueSortedSteps = useMemo(() => {
-    if (timelineEvents.length === 0) return isEditing ? [1] : [];
-    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    return steps.length > 0 ? steps : (isEditing ? [1] : []);
-  }, [timelineEvents, isEditing]);
+    const stepsWithHotspots = timelineEvents
+      .filter(event => hotspots.some(h => h.id === event.hotspotId))
+      .map(event => event.step);
+    
+    const uniqueSteps = Array.from(new Set(stepsWithHotspots)).sort((a, b) => a - b);
+    return uniqueSteps.length > 0 ? uniqueSteps : (isEditing ? [1] : []);
+  }, [timelineEvents, hotspots, isEditing]);
 
   const currentStepIndex = useMemo(() => { 
     if (moduleState === 'learning') {
@@ -245,46 +233,63 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
   }, [timelineEvents]);
 
+  // Get dimensions for the scaled image div (used in viewer mode)
+  const getScaledImageDivDimensions = useCallback(() => {
+    if (!imageContainerRef.current || !imageNaturalDimensions) {
+      return { width: 400, height: 300 }; // fallback
+    }
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    
+    // Account for timeline space in viewer mode
+    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+    const availableHeight = containerRect.height - timelineHeight;
+    const availableWidth = containerRect.width;
+
+    // Calculate based on 80vw/80vh with max constraints, similar to CSS
+    const maxWidth = Math.min(availableWidth * 0.8, 1200);
+    const maxHeight = Math.min(availableHeight * 0.8, 800);
+
+    const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+    const containerAspect = maxWidth / maxHeight;
+
+    let width, height;
+    if (imageAspect > containerAspect) {
+      width = maxWidth;
+      height = maxWidth / imageAspect;
+    } else {
+      height = maxHeight;
+      width = maxHeight * imageAspect;
+    }
+
+    return { width, height };
+  }, [imageNaturalDimensions, isEditing, uniqueSortedSteps.length]);
+
   // Universal helper to get the actual rendered image dimensions and position
   const getImageBounds = useCallback(() => {
     if (isEditing && actualImageRef.current && imageContainerRef.current) {
-      // Editor mode: Use actual img element
+      // Editor mode: Use actual img element (most reliable)
       const imgRect = actualImageRef.current.getBoundingClientRect();
       const containerRect = imageContainerRef.current.getBoundingClientRect();
 
       return {
-        // Image dimensions as rendered
         width: imgRect.width,
         height: imgRect.height,
-        // Position relative to the image container
         left: imgRect.left - containerRect.left,
         top: imgRect.top - containerRect.top,
-        // Absolute position for other calculations
         absoluteLeft: imgRect.left,
         absoluteTop: imgRect.top
       };
     } else if (!isEditing && scaledImageDivRef.current && imageContainerRef.current && backgroundImage && imageNaturalDimensions) {
-      // Viewer mode: Return original untransformed bounds to prevent feedback loops
-      
-      // If we have cached original bounds and the image hasn't changed, use them
-      if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
-        return originalImageBoundsRef.current;
-      }
-
-      // Calculate original bounds based on untransformed div dimensions
+      // Viewer mode: Calculate based on natural dimensions to avoid transform feedback
       const containerRect = imageContainerRef.current.getBoundingClientRect();
-      
-      // Use the div's configured dimensions (80vw/80vh with max constraints)
       const divDimensions = getScaledImageDivDimensions();
-      
-      // Calculate actual rendered dimensions based on fit mode
       const containerAspect = divDimensions.width / divDimensions.height;
       const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
 
       let width, height, left = 0, top = 0;
 
       if (imageFitMode === 'cover') {
-        // Image covers entire container, may be clipped
         if (containerAspect > imageAspect) {
           width = divDimensions.width;
           height = width / imageAspect;
@@ -295,7 +300,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           left = (divDimensions.width - width) / 2;
         }
       } else if (imageFitMode === 'contain') {
-        // Image fits entirely within container
         if (containerAspect > imageAspect) {
           height = divDimensions.height;
           width = height * imageAspect;
@@ -306,13 +310,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           top = (divDimensions.height - height) / 2;
         }
       } else { // fill
-        // Image stretches to fill container
         width = divDimensions.width;
         height = divDimensions.height;
       }
 
-      // Calculate position relative to container (not transformed div)
-      // Assume div is centered in container when untransformed
       const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
       const availableHeight = containerRect.height - timelineHeight;
       const availableWidth = containerRect.width;
@@ -320,7 +321,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       const divLeft = (availableWidth - divDimensions.width) / 2;
       const divTop = (availableHeight - divDimensions.height) / 2;
 
-      const bounds = {
+      return {
         width,
         height,
         left: divLeft + left,
@@ -328,16 +329,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         absoluteLeft: containerRect.left + divLeft + left,
         absoluteTop: containerRect.top + divTop + top
       };
-
-      // Cache the original bounds
-      originalImageBoundsRef.current = bounds;
-      return bounds;
     }
     return null;
   }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
 
   const getSafeImageBounds = useCallback(() => {
-    return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
+    return safeGetPosition(() => getImageBounds(), null);
   }, [getImageBounds]);
 
   // Helper to clear cached bounds when needed
@@ -345,12 +342,39 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     originalImageBoundsRef.current = null;
   }, []);
 
+  // Add coordinate helper functions
+  const naturalToRenderedCoordinates = useCallback((naturalX: number, naturalY: number) => {
+    const imageBounds = getImageBounds();
+    if (!imageBounds) return null;
+    
+    return {
+      x: imageBounds.left + (naturalX / 100) * imageBounds.width,
+      y: imageBounds.top + (naturalY / 100) * imageBounds.height
+    };
+  }, [getImageBounds]);
+
+  const renderedToNaturalCoordinates = useCallback((renderedX: number, renderedY: number) => {
+    const imageBounds = getImageBounds();
+    if (!imageBounds || !imageContainerRef.current) return null;
+    
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    const containerRelativeX = renderedX - containerRect.left;
+    const containerRelativeY = renderedY - containerRect.top;
+    
+    const relativeX = containerRelativeX - imageBounds.left;
+    const relativeY = containerRelativeY - imageBounds.top;
+    
+    return {
+      x: (relativeX / imageBounds.width) * 100,
+      y: (relativeY / imageBounds.height) * 100
+    };
+  }, [getImageBounds]);
+
   // Helper to get viewport center for centering operations
   const getViewportCenter = useCallback(() => {
     if (!imageContainerRef.current) return null;
 
     const containerRect = imageContainerRef.current.getBoundingClientRect();
-    // In viewer mode, account for timeline at bottom
     const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
 
     return {
@@ -362,389 +386,253 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const getSafeViewportCenter = useCallback(() => {
     return safeGetPosition(
       () => getViewportCenter(),
-      { centerX: 400, centerY: 300 } // Fallback to a default center object
+      { centerX: 400, centerY: 300 }
     );
   }, [getViewportCenter]);
 
-  // Helper to convert hotspot percentage to absolute pixel coordinates
-  // Now independent of current transform state to prevent feedback loops
-  const getHotspotPixelPosition = useCallback((hotspot: HotspotData, transform?: ImageTransformState) => {
-    const imageBounds = getSafeImageBounds();
-    if (!imageBounds) return null;
-
-    // Use provided transform or current transform
-    const currentTransform = transform || lastAppliedTransformRef.current;
-    const scale = currentTransform.scale;
-    const translateX = currentTransform.translateX;
-    const translateY = currentTransform.translateY;
-
-    // Calculate base position on the original untransformed image
-    const baseX = (hotspot.x / 100) * imageBounds.width;
-    const baseY = (hotspot.y / 100) * imageBounds.height;
-
-    // For center-origin transforms, we need to account for the div center
-    const divDimensions = getScaledImageDivDimensions();
-    const divCenterX = divDimensions.width / 2;
-    const divCenterY = divDimensions.height / 2;
+  // Reset function to handle data changes
+  const resetModuleToInitialState = useCallback(() => {
+    setModuleState('idle');
+    setCurrentStep(uniqueSortedSteps[0] || 1);
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
+    setActiveHotspotInfoId(null);
+    setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+    setViewportZoom(1);
+    setEditingZoom(1);
+    clearImageBoundsCache();
     
-    // Original position relative to div center
-    const basePosX = imageBounds.left + baseX;
-    const basePosY = imageBounds.top + baseY;
-    
-    // Apply center-origin transform
-    const transformedX = (basePosX - divCenterX) * scale + divCenterX + translateX;
-    const transformedY = (basePosY - divCenterY) * scale + divCenterY + translateY;
+    debugLog('Reset', 'Module reset to initial state');
+  }, [uniqueSortedSteps, clearImageBoundsCache, debugLog]);
 
-    return {
-      x: transformedX,
-      y: transformedY,
-      // Also return the base position for centering calculations
-      baseX: basePosX,
-      baseY: basePosY
-    };
-  }, [getSafeImageBounds, getScaledImageDivDimensions]);
+  // Effect to handle initial data loading with validation
+  useEffect(() => {
+    if (initialData) {
+      // Validate and fix any coordinate issues from existing data
+      const validatedHotspots = initialData.hotspots.map(hotspot => ({
+        ...hotspot,
+        x: Math.max(0, Math.min(100, hotspot.x)),
+        y: Math.max(0, Math.min(100, hotspot.y))
+      }));
+      
+      setHotspots(validatedHotspots);
+      setTimelineEvents(initialData.timelineEvents);
+      
+      resetModuleToInitialState();
+    }
+  }, [initialData, resetModuleToInitialState]);
 
-  const getSafeHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
-    return safeGetPosition(
-      () => getHotspotPixelPosition(hotspot),
-      { x: 0, y: 0, baseX: 0, baseY: 0 } // Fallback to a default position object
-    );
-  }, [getHotspotPixelPosition]);
+  const handleImageClick = useCallback((event: React.MouseEvent) => {
+    if (!isEditing || !imageContainerRef.current) return;
 
-  // Helper to constrain transforms and prevent UI overlap
-  const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
-    const imageBounds = getSafeImageBounds();
-    const viewportCenter = getSafeViewportCenter();
-
-    if (!imageBounds || !viewportCenter || !imageContainerRef.current) {
-      return transform;
+    // Get current rendered image bounds
+    const imageBounds = getImageBounds();
+    if (!imageBounds) {
+      setPendingHotspot(null);
+      return;
     }
 
     const containerRect = imageContainerRef.current.getBoundingClientRect();
+    const containerRelativeX = event.clientX - containerRect.left;
+    const containerRelativeY = event.clientY - containerRect.top;
 
-    // Calculate the scaled image dimensions using imageBounds for content size
-    const scaledWidth = imageBounds.width * transform.scale;
-    const scaledHeight = imageBounds.height * transform.scale;
-
-    // Reserve space for UI elements
-    const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
-    const sidebarWidth = 0; // No sidebar anymore - removed
-
-    // This is the available visual area for the image content
-    const availableWidth = containerRect.width - sidebarWidth;
-    const availableHeight = containerRect.height - timelineHeight;
-
-    // Allow the image to move but keep at least 20% of its own scaled dimension visible
-    const minVisibleImagePartWidth = scaledWidth * 0.2;
-    const minVisibleImagePartHeight = scaledHeight * 0.2;
-
-    // Translation limits for transform.translateX and transform.translateY
-    const minTranslateX = -scaledWidth + minVisibleImagePartWidth;
-    const maxTranslateX = availableWidth - minVisibleImagePartWidth;
-
-    const minTranslateY = -scaledHeight + minVisibleImagePartHeight;
-    const maxTranslateY = availableHeight - minVisibleImagePartHeight;
-
-    // Apply constraints
-    const constrainedTx = Math.max(minTranslateX, Math.min(maxTranslateX, transform.translateX));
-    const constrainedTy = Math.max(minTranslateY, Math.min(maxTranslateY, transform.translateY));
-
-    const constrainedTransform = {
-      ...transform,
-      translateX: constrainedTx,
-      translateY: constrainedTy,
-    };
-
-    return constrainedTransform;
-  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length, getScaledImageDivDimensions]);
-
-  const applyTransform = useCallback((newTransform: ImageTransformState) => {
-    debugLog('Transform', 'Applying new transform', newTransform);
-    isApplyingTransformRef.current = true;
-    lastAppliedTransformRef.current = newTransform;
-    setIsTransforming(true);
-    setImageTransform(newTransform);
-
-    // Reset flags after animation completes
-    setTimeout(() => {
-      setIsTransforming(false);
-      isApplyingTransformRef.current = false;
-    }, 500);
-  }, [debugLog]);
-
-  // Debounced transform to prevent rapid successive applications
-  const debouncedApplyTransform = useMemo(
-    () => {
-      let timeoutId: number | null = null;
-      return (newTransform: ImageTransformState) => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        timeoutId = window.setTimeout(() => {
-          applyTransform(newTransform);
-        }, 16); // ~60fps
-      };
-    },
-    [applyTransform]
-  );
-
-  // Memoized hotspot positions that update with explicit transform changes
-  const hotspotsWithPositions = useMemo(() => {
-    // Add safety checks to prevent temporal dead zone issues
-    if (!hotspots || !Array.isArray(hotspots) || !getHotspotPixelPosition) {
-      return [];
-    }
-    
-    const currentTransform = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-    return hotspots.map(hotspot => ({
-      ...hotspot,
-      pixelPosition: getHotspotPixelPosition(hotspot, currentTransform)
-    }));
-  }, [hotspots, getHotspotPixelPosition, imageTransform]); // Keep imageTransform to trigger updates
-
-  const handleCenter = useCallback(() => {
-    const container = scrollableContainerRef.current;
-    if (!container || !actualImageRef.current) return; // Ensure actualImageRef.current also exists for safety
-
-    // Check if there is an active transform targeting a hotspot
-    if (imageTransform.targetHotspotId && imageTransform.scale > 1) {
-      const targetHotspot = hotspots.find(h => h.id === imageTransform.targetHotspotId);
-
-      if (targetHotspot) {
-        // Calculate base hotspot position on the unzoomed image (1x scale of actualImageRef content)
-        const hotspotXBase = (targetHotspot.x / 100) * actualImageRef.current.width;
-        const hotspotYBase = (targetHotspot.y / 100) * actualImageRef.current.height;
-
-        // Apply the editor's own canvas zoom (`editingZoom`) to this base position
-        const hotspotXEditorZoomed = hotspotXBase * editingZoom;
-        const hotspotYEditorZoomed = hotspotYBase * editingZoom;
-
-        // Scroll the container to center this editor-zoomed hotspot position
-        container.scrollLeft = Math.max(0, hotspotXEditorZoomed - (container.clientWidth / 2));
-        container.scrollTop = Math.max(0, hotspotYEditorZoomed - (container.clientHeight / 2));
-
-        return; // Centering handled for transformed hotspot
-      }
+    // Check if click is within image bounds
+    if (containerRelativeX < imageBounds.left || 
+        containerRelativeX > imageBounds.left + imageBounds.width ||
+        containerRelativeY < imageBounds.top || 
+        containerRelativeY > imageBounds.top + imageBounds.height) {
+      setPendingHotspot(null);
+      return;
     }
 
-    // Default centering logic: center the entire (potentially editor-zoomed) image content
-    const imageContentWidth = actualImageRef.current.width * editingZoom;
-    const imageContentHeight = actualImageRef.current.height * editingZoom;
+    // Convert to natural image coordinates (key fix!)
+    const relativeX = containerRelativeX - imageBounds.left;
+    const relativeY = containerRelativeY - imageBounds.top;
 
-    container.scrollLeft = Math.max(0, (imageContentWidth - container.clientWidth) / 2);
-    container.scrollTop = Math.max(0, (imageContentHeight - container.clientHeight) / 2);
-  }, [editingZoom, imageTransform, hotspots]); // Dependencies as specified in the issue
+    const imageXPercent = Math.max(0, Math.min(100, (relativeX / imageBounds.width) * 100));
+    const imageYPercent = Math.max(0, Math.min(100, (relativeY / imageBounds.height) * 100));
 
-  const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
-  const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
-  
-  // Interaction parameter states
-  const [interactionParams, setInteractionParams] = useState({
-    zoomFactor: 2.0,
-    highlightRadius: 60,
-    pulseDuration: 2000,
-    showingZoomSlider: false,
-    showingHighlightSlider: false,
-    showingPulseSlider: false
-  });
+    setPendingHotspot({
+      x: containerRelativeX,
+      y: containerRelativeY,
+      imageX: imageXPercent,
+      imageY: imageYPercent
+    });
+  }, [isEditing, getImageBounds]);
 
+  // Effect for InfoPanel anchor calculation
   useEffect(() => {
-    if (!imageContainerRef.current) return;
-
-    const handleResize = () => {
-      throttledRecalculatePositions();
-      
-      // Only recalculate transform if we're not in the middle of applying one
-      // and if the transform was user-initiated (not timeline-driven)
-      const currentTransform = lastAppliedTransformRef.current;
-      if (!isApplyingTransformRef.current && 
-          currentTransform.scale > 1 && 
-          currentTransform.targetHotspotId &&
-          moduleState === 'idle') { // Only in idle mode for user-initiated zooms
-        
-        // Use a separate timeout to avoid immediate recalculation
-        setTimeout(() => {
-          if (!isApplyingTransformRef.current) {
-            const targetHotspot = hotspots.find(h => h.id === currentTransform.targetHotspotId);
-            if (targetHotspot) {
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-              if (imageBounds && viewportCenter) {
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-                
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-                
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-                
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * currentTransform.scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * currentTransform.scale - divCenterY;
-                
-                // Only update if values have actually changed significantly
-                const threshold = 1; // 1px threshold
-                if (Math.abs(translateX - currentTransform.translateX) > threshold ||
-                    Math.abs(translateY - currentTransform.translateY) > threshold) {
-                  setImageTransform(prev => ({ ...prev, translateX, translateY }));
-                  lastAppliedTransformRef.current = { ...currentTransform, translateX, translateY };
-                }
-              }
-            }
+    if (activeHotspotInfoId) {
+      const hotspot = hotspots.find(h => h.id === activeHotspotInfoId);
+      if (hotspot && imageContainerRef.current) {
+        if (isEditing && actualImageRef.current) {
+          // Editor mode: Use actual img element
+          const imgElement = actualImageRef.current;
+          const imgRect = imgElement.getBoundingClientRect();
+          const containerRect = imageContainerRef.current.getBoundingClientRect();
+          
+          const dotCenterX = imgRect.left + (hotspot.x / 100) * imgRect.width;
+          const dotCenterY = imgRect.top + (hotspot.y / 100) * imgRect.height;
+          
+          const anchorX = dotCenterX - containerRect.left;
+          const anchorY = dotCenterY - containerRect.top;
+          
+          setInfoPanelAnchor({ x: anchorX, y: anchorY });
+        } else if (!isEditing) {
+          // Viewer mode: Use natural coordinate conversion
+          const renderCoords = naturalToRenderedCoordinates(hotspot.x, hotspot.y);
+          if (renderCoords) {
+            setInfoPanelAnchor({ x: renderCoords.x, y: renderCoords.y });
+          } else {
+            setInfoPanelAnchor(null);
           }
-        }, 50); // Small delay to let other effects settle
+        }
+      } else {
+        setInfoPanelAnchor(null);
       }
-    };
-
-    // Call it once initially
-    if (imageContainerRef.current) {
-       setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
+    } else {
+      setInfoPanelAnchor(null);
     }
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(imageContainerRef.current);
+  }, [activeHotspotInfoId, hotspots, isEditing, naturalToRenderedCoordinates]);
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState, getScaledImageDivDimensions]);
-
-  // Define wheel zoom handler before the useEffect that uses it
-  const handleWheelZoom = useCallback((event: WheelEvent) => {
-    if (!event.ctrlKey || !isEditing) return;
+  // Debug overlay component
+  const DebugOverlay = () => {
+    if (!debugPositioning || !imageNaturalDimensions) return null;
     
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    const imageBounds = getImageBounds();
+    if (!imageBounds) return null;
     
-    const container = scrollableContainerRef.current;
-    const imageContainer = zoomedImageContainerRef.current;
-    if (!container || !imageContainer) return;
-
-    // Get mouse position relative to the scroll container
-    const containerRect = container.getBoundingClientRect();
-    const mouseX = event.clientX - containerRect.left;
-    const mouseY = event.clientY - containerRect.top;
-    
-    // Calculate current scroll position
-    const scrollLeft = container.scrollLeft;
-    const scrollTop = container.scrollTop;
-    
-    // Calculate mouse position in the scrollable content
-    const contentMouseX = mouseX + scrollLeft;
-    const contentMouseY = mouseY + scrollTop;
-    
-    // Calculate new zoom level (5% increments)
-    const delta = Math.sign(event.deltaY);
-    const zoomIncrement = 0.05; // 5%
-    const newZoom = Math.max(0.25, Math.min(5, editingZoom + (-delta * zoomIncrement)));
-    
-    if (newZoom !== editingZoom) {
-      // Calculate the zoom ratio
-      const zoomRatio = newZoom / editingZoom;
-      
-      // Calculate new scroll position to keep mouse position stable
-      const newScrollLeft = contentMouseX * zoomRatio - mouseX;
-      const newScrollTop = contentMouseY * zoomRatio - mouseY;
-      
-      setEditingZoom(newZoom);
-      
-      // Apply new scroll position after zoom
-      requestAnimationFrame(() => {
-        container.scrollLeft = Math.max(0, newScrollLeft);
-        container.scrollTop = Math.max(0, newScrollTop);
-      });
-    }
-  }, [editingZoom, isEditing]);
-
-  // New image load handler for editing mode
-  const handleImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget;
-    const newDimensions = {
-      width: img.naturalWidth,
-      height: img.naturalHeight
-    };
-    setImageNaturalDimensions(newDimensions);
-    debugLog('Image', 'Image loaded successfully', newDimensions);
-    setImageLoading(false);
-    setPositionCalculating(true);
-    setTimeout(() => {
-      if (imageContainerRef.current) {
-        setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
-      }
-      setPositionCalculating(false);
-    }, 0);
-  }, [debugLog]);
-
-
-  // New zoom handler functions for editing mode
-  const handleZoomIn = useCallback(() => {
-    setEditingZoom(prev => Math.min(5, prev + 0.05));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setEditingZoom(prev => Math.max(0.25, prev - 0.05));
-  }, []);
-
-  const handleZoomReset = useCallback(() => {
-    setEditingZoom(1);
-    if (scrollableContainerRef.current) {
-      scrollableContainerRef.current.scrollLeft = 0;
-      scrollableContainerRef.current.scrollTop = 0;
-    }
-  }, []);
-
-  // Add wheel event listener for Ctrl+scroll zoom
-  useEffect(() => {
-    const container = scrollableContainerRef.current;
-    if (!container || !isEditing) return; // Only add when editing
-
-    // Add event listener with passive: false to allow preventDefault
-    container.addEventListener('wheel', handleWheelZoom, { passive: false });
-    
-    return () => {
-      if (container) {
-        container.removeEventListener('wheel', handleWheelZoom);
-      }
-    };
-  }, [handleWheelZoom, isEditing]);
-
-
-  useEffect(() => {
-    setBackgroundImage(initialData.backgroundImage);
-    setHotspots(initialData.hotspots);
-    setTimelineEvents(initialData.timelineEvents);
-    setImageFitMode(initialData.imageFitMode || 'cover');
-    
-    const newInitialModuleState = isEditing ? 'learning' : 'idle';
-    setModuleState(newInitialModuleState);
-    
-    const newUniqueSortedSteps = [...new Set(initialData.timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    let initialStepValue = 1;
-    if (newInitialModuleState === 'learning' && newUniqueSortedSteps.length > 0) {
-        initialStepValue = newUniqueSortedSteps[0];
-    } else if (newInitialModuleState === 'idle' && newUniqueSortedSteps.length > 0) {
-        initialStepValue = newUniqueSortedSteps[0];
-    }
-    setCurrentStep(initialStepValue);
+    return (
+      <div className="absolute inset-0 pointer-events-none z-40">
+        <div 
+          className="absolute border-2 border-red-500 bg-red-500/10"
+          style={{
+            left: imageBounds.left,
+            top: imageBounds.top,
+            width: imageBounds.width,
+            height: imageBounds.height
+          }}
+        />
         
-    setActiveHotspotDisplayIds(new Set());
-    setPulsingHotspotId(null);
-    setCurrentMessage(null);
-    setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-    setHighlightedHotspotId(null);
+        {[0, 25, 50, 75, 100].map(percent => (
+          <React.Fragment key={percent}>
+            <div
+              className="absolute border-l border-blue-300 opacity-50"
+              style={{
+                left: imageBounds.left + (percent / 100) * imageBounds.width,
+                top: imageBounds.top,
+                height: imageBounds.height
+              }}
+            />
+            <div
+              className="absolute border-t border-blue-300 opacity-50"
+              style={{
+                left: imageBounds.left,
+                top: imageBounds.top + (percent / 100) * imageBounds.height,
+                width: imageBounds.width
+              }}
+            />
+          </React.Fragment>
+        ))}
+        
+        {hotspots.map(hotspot => {
+          const renderCoords = naturalToRenderedCoordinates(hotspot.x, hotspot.y);
+          if (!renderCoords) return null;
+          
+          return (
+            <div
+              key={hotspot.id}
+              className="absolute bg-black/75 text-white text-xs p-1 rounded pointer-events-none"
+              style={{
+                left: renderCoords.x + 10,
+                top: renderCoords.y - 30
+              }}
+            >
+              {hotspot.x.toFixed(1)}%, {hotspot.y.toFixed(1)}%
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Save functionality
+  const handleSave = useCallback(async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    
+    const currentData: InteractiveModuleState = {
+      backgroundImage,
+      hotspots,
+      timelineEvents,
+      imageFitMode,
+      isEmpty: !backgroundImage
+    };
+    
+    try {
+      await onSave(currentData);
+      console.log('Save completed successfully');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (error) {
+      console.error('Save failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Save failed: ' + errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave, isSaving]);
+
+  // Auto-save hook for data protection
+  useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
+
+  const handleStartLearning = () => {
+    setModuleState('learning');
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
+    setActiveHotspotInfoId(null); 
+    setCurrentStep(uniqueSortedSteps[0] || 1); 
+  };
 
-    // Clear cached bounds when data changes
-    clearImageBoundsCache();
-    lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+  const handleStartExploring = useCallback(() => {
+    setModuleState('idle');
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
+  }, []);
 
-    if (pulseTimeoutRef.current) {
-      clearTimeout(pulseTimeoutRef.current);
-      pulseTimeoutRef.current = null;
+  const handleTimelineDotClick = useCallback((step: number) => {
+    if (moduleState === 'idle' && !isEditing) {
+        setModuleState('learning');
+        setExploredHotspotId(null);
+        setExploredHotspotPanZoomActive(false);
     }
-  }, [initialData, isEditing, clearImageBoundsCache]);
+    setCurrentStep(step);
+  }, [moduleState, isEditing]);
+
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (backgroundImage && hotspots.length > 0) {
+      const confirmReplace = confirm(
+        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
+      );
+      if (!confirmReplace) return;
+    }
+    
+    debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
+    setImageLoading(true);
+
+    try {
+      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
+      setBackgroundImage(imageUrl);
+      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      setEditingZoom(1);
+      setImageLoading(false);
+    } catch (error) {
+      setImageLoading(false);
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+  }, [backgroundImage, hotspots.length, projectId, debugLog]);
 
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
@@ -764,1181 +652,255 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [currentStep, uniqueSortedSteps, moduleState]);
 
-  // Keyboard shortcut handlers
-  const handleArrowLeftKey = useCallback((): boolean => {
-    if (moduleState === 'learning') {
-      handlePrevStep();
-      return true;
-    }
-    return false;
-  }, [moduleState, handlePrevStep]);
-
-  const handleArrowRightKey = useCallback((): boolean => {
-    if (moduleState === 'learning') {
-      handleNextStep();
-      return true;
-    }
-    return false;
-  }, [moduleState, handleNextStep]);
-
-  const handleEscapeKey = useCallback((): boolean => {
-    if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      return true;
-    } else if (isHotspotModalOpen) {
-      setIsHotspotModalOpen(false);
-      setSelectedHotspotForModal(null);
-      return true;
-    } else if (pendingHotspot) {
-      setPendingHotspot(null);
-      return true;
-    }
-    return false;
-  }, [imageTransform, isHotspotModalOpen, pendingHotspot]);
-
-  const handlePlusKey = useCallback((e: KeyboardEvent): boolean => {
-    if (isEditing && (e.ctrlKey || e.metaKey)) {
-      handleZoomIn();
-      return true;
-    }
-    return false;
-  }, [isEditing, handleZoomIn]);
-
-  const handleMinusKey = useCallback((e: KeyboardEvent): boolean => {
-    if (isEditing && (e.ctrlKey || e.metaKey)) {
-      handleZoomOut();
-      return true;
-    }
-    return false;
-  }, [isEditing, handleZoomOut]);
-
-  const handleZeroKey = useCallback((e: KeyboardEvent): boolean => {
-    if (isEditing && (e.ctrlKey || e.metaKey)) {
-      handleZoomReset();
-      return true;
-    }
-    return false;
-  }, [isEditing, handleZoomReset]);
-
-  // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
-      // Don't interfere with input fields
-      if (e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement ||
-          (e.target instanceof HTMLElement && e.target.isContentEditable)
-         ) {
-        return;
-      }
-
-      let preventDefault = false;
-
-      if (e.key === 'ArrowLeft') {
-        preventDefault = handleArrowLeftKey();
-      } else if (e.key === 'ArrowRight') {
-        preventDefault = handleArrowRightKey();
-      } else if (e.key === 'Escape') {
-        preventDefault = handleEscapeKey();
-      } else if (e.key === '+' || e.key === '=') {
-        preventDefault = handlePlusKey(e);
-      } else if (e.key === '-') {
-        preventDefault = handleMinusKey(e);
-      } else if (e.key === '0') {
-        preventDefault = handleZeroKey(e);
-      }
-
-      if (preventDefault) {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [
-    debugLog,
-    handleArrowLeftKey,
-    handleArrowRightKey,
-    handleEscapeKey,
-    handlePlusKey,
-    handleMinusKey,
-    handleZeroKey
-  ]);
-
-// Removed InfoPanel positioning - using modal now
-
-
-  useEffect(() => {
-    // Add safety checks to prevent temporal dead zone issues
-    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || !timelineEvents || !hotspots) {
-      return;
-    }
-    
-    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
-
-    // Removed newActiveHotspotInfoId - using modal now
-    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-
-    if (moduleState === 'learning') {
-      const newActiveDisplayIds = new Set<string>();
-      let newMessage: string | null = null;
-      let newPulsingHotspotId: string | null = null;
-      let newHighlightedHotspotId: string | null = null;
-      
-      const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
-      let stepHasPanZoomEvent = false;
-
-      eventsForCurrentStep.forEach(event => {
-        if (event.targetId) newActiveDisplayIds.add(event.targetId);
-        switch (event.type) {
-          case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
-          case InteractionType.SHOW_HOTSPOT: if (event.targetId) { /* Show in modal instead */ } break;
-          case InteractionType.PULSE_HOTSPOT:
-            if (event.targetId) {
-              newPulsingHotspotId = event.targetId;
-              if (event.duration) {
-                pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
-              }
-            }
-            break;
-          case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-            stepHasPanZoomEvent = true;
-            if (event.targetId) {
-              const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              // Ensure hotspotsWithPositions is used if available, otherwise find in hotspots
-              // const targetHotspot = hotspotsWithPositions.find(h => h.id === event.targetId) || hotspots.find(h => h.id === event.targetId);
-
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-
-              if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomFactor || 2;
-
-                // Calculate hotspot position on the unscaled image, relative to imageBounds content area
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-
-                // Calculate translation to center the hotspot
-                // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
-                // The hotspot's scaled position without additional translation would be:
-                // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
-                // OR more simply, if thinking about the image content itself:
-                // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
-                // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
-                // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
-
-                // The CSS transform `translate(tx, ty) scale(s)` on a div means:
-                // screenX = divOriginalScreenX * s + tx
-                // screenY = divOriginalScreenY * s + ty
-                // If the div has `transform-origin: center center`, it's more complex.
-                // The `scaledImageDivRef` has `transform-origin: center`.
-
-                // Let's use the formula from the issue, as it's specified.
-                // It calculates translateX/Y such that when the `scaledImageDivRef` is translated and scaled,
-                // the specific hotspot point (hotspotX, hotspotY, which is relative to image content origin)
-                // lands on viewportCenter.
-                // The `imageBounds.left` and `imageBounds.top` are the offsets of the image content
-                // *within* the `scaledImageDivRef` before the main `imageTransform` is applied.
-                // So, if the `scaledImageDivRef` itself is at (0,0) in the container,
-                // the image content origin is at `(imageBounds.left, imageBounds.top)`.
-                // A point `(hotspotX, hotspotY)` on the image content is at
-                // `(imageBounds.left + hotspotX, imageBounds.top + hotspotY)` relative to `scaledImageDivRef` origin.
-                // After scaling this by `scale` (around `scaledImageDivRef`'s origin, which is `center`),
-                // and then translating by `translateX, translateY`:
-                // target_on_screen_X = ( (imageBounds.left + hotspotX) - divCenterX) * scale + divCenterX + translateX
-                // target_on_screen_Y = ( (imageBounds.top + hotspotY) - divCenterY) * scale + divCenterY + translateY
-                // We want target_on_screen_X = viewportCenter.centerX
-                
-                // Calculate translation for center-origin transform
-                // With transform-origin: center, we need to account for the div's center point
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-                
-                // For center-origin scaling, the transform formula is:
-                // final_position = (original_position - center) * scale + center + translate
-                // We want: hotspot_final_position = viewportCenter
-                // So: translate = viewportCenter - ((hotspot_original - center) * scale + center)
-                // Simplifying: translate = viewportCenter - (hotspot_original - center) * scale - center
-                
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-                
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
-                
-                let newTransform = {
-                  scale,
-                  translateX,
-                  translateY,
-                  targetHotspotId: event.targetId
-                };
-
-                newTransform = constrainTransform(newTransform);
-
-                newImageTransform = newTransform;
-              } else if (targetHotspot) { // imageBounds or viewportCenter might be null
-                  // Fallback or error? For now, do nothing if critical info is missing.
-                  // Or reset? The default is to reset if no pan/zoom event.
-              }
-            }
-            break;
-          case InteractionType.HIGHLIGHT_HOTSPOT:
-            if (event.targetId) { newHighlightedHotspotId = event.targetId; }
-            break;
-        }
-      });
-
-      if (!stepHasPanZoomEvent && (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0)) {
-        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-      }
-
-      eventsForCurrentStep.forEach(event => {
-        if (event.type === InteractionType.HIDE_HOTSPOT && event.targetId) {
-          newActiveDisplayIds.delete(event.targetId);
-          if (newPulsingHotspotId === event.targetId) newPulsingHotspotId = null;
-          if (newHighlightedHotspotId === event.targetId) newHighlightedHotspotId = null;
-          if (newImageTransform.targetHotspotId === event.targetId) newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-          // Remove info display - using modal now
-        }
-      });
-      
-      setActiveHotspotDisplayIds(newActiveDisplayIds);
-      setCurrentMessage(newMessage);
-      setPulsingHotspotId(newPulsingHotspotId);
-      setHighlightedHotspotId(newHighlightedHotspotId);
-    
-    } else if (moduleState === 'idle' && !isEditing) {
-      setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id))); 
-      setCurrentMessage(null);
-      setPulsingHotspotId(null); 
-      setHighlightedHotspotId(null);
-
-      // This replaces the logic block for idle mode pan/zoom based on exploredHotspotId
-      if (exploredHotspotId && exploredHotspotPanZoomActive) {
-        const hotspot = hotspots.find(h => h.id === exploredHotspotId);
-        const panZoomEvent = timelineEvents
-          .filter(e => e.targetId === exploredHotspotId && e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
-          .sort((a, b) => a.step - b.step)[0];
-
-        if (hotspot && panZoomEvent) {
-          const imageBounds = getSafeImageBounds();
-          const viewportCenter = getSafeViewportCenter();
-
-          if (imageBounds && viewportCenter) {
-            const scale = panZoomEvent.zoomFactor || 2; // Use event's zoomFactor, fallback to 2
-            const hotspotX = (hotspot.x / 100) * imageBounds.width;
-            const hotspotY = (hotspot.y / 100) * imageBounds.height;
-            
-            // Calculate translation for center-origin transform (same as above)
-            const divDimensions = getScaledImageDivDimensions();
-            const divCenterX = divDimensions.width / 2;
-            const divCenterY = divDimensions.height / 2;
-            
-            const hotspotOriginalX = imageBounds.left + hotspotX;
-            const hotspotOriginalY = imageBounds.top + hotspotY;
-            
-            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
-            
-            let transform = {
-              scale,
-              translateX,
-              translateY,
-              targetHotspotId: hotspot.id
-            };
-            newImageTransform = constrainTransform(transform); // Assign to newImageTransform
-          } else {
-            // Fallback if imageBounds or viewportCenter is null
-            newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-          }
-        } else {
-          // Fallback if hotspot or its panZoomEvent is not found
-          newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-        }
-      } else if (exploredHotspotId && !exploredHotspotPanZoomActive) {
-        // If a hotspot was explored and zoomed, but pan/zoom is no longer active (e.g., mouse out),
-        // set to reset. This specific reset will be harmonized by the general reset logic in step 4
-        // if no other zoom condition (like stepHasPanZoomEvent) is active.
-        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-      }
-      // Note: If 'exploredHotspotId' itself is null, this entire block is skipped.
-      // The general transform reset logic (to be updated in step 4) should handle the default case
-      // where neither timeline-driven pan/zoom nor idle-explored-hotspot pan/zoom is active.
-      //setImageTransform(newImageTransform); // Apply the determined transform // This line is removed as per the logic flow of the issue
-    } else {
-      // This block executes if no PAN_ZOOM_TO_HOTSPOT event is active for the current step,
-      // AND idle mode pan/zoom (exploredHotspotId && exploredHotspotPanZoomActive) is also not active.
-      if (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0) {
-        // If the current transform is not the default, a reset is needed.
-        const resetTransform = {
-          scale: 1,
-          translateX: 0,
-          translateY: 0,
-          targetHotspotId: undefined
-        };
-        // Apply constraints even to the reset state.
-        newImageTransform = constrainTransform(resetTransform);
-      } else {
-        // If the current transform is already the default, ensure newImageTransform is set to this default state.
-        newImageTransform = lastAppliedTransformRef.current;
-      }
-    }
-    // Apply the determined transform at the end, only if it has actually changed
-    const currentTransform = lastAppliedTransformRef.current;
-    if (newImageTransform.scale !== currentTransform.scale ||
-        Math.abs(newImageTransform.translateX - currentTransform.translateX) > 1 ||
-        Math.abs(newImageTransform.translateY - currentTransform.translateY) > 1 ||
-        newImageTransform.targetHotspotId !== currentTransform.targetHotspotId) {
-      
-      lastAppliedTransformRef.current = newImageTransform;
-      applyTransform(newImageTransform);
-    }
-    
-    return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
-
-  // Debug effect to track transform changes and detect loops
-  useEffect(() => {
-    if (debugMode) {
-      debugLog('Transform State', 'Transform changed', {
-        scale: imageTransform.scale,
-        translateX: imageTransform.translateX.toFixed(2),
-        translateY: imageTransform.translateY.toFixed(2),
-        targetHotspotId: imageTransform.targetHotspotId,
-        stack: new Error().stack?.split('\n').slice(1, 4)
-      });
-    }
-  }, [imageTransform, debugMode, debugLog]);
-
-  const handleFocusHotspot = useCallback((hotspotId: string) => {
-    if (isEditing) {
-      // Open the modal for editing
-      setSelectedHotspotForModal(hotspotId);
-      setIsHotspotModalOpen(true);
-    } else if (moduleState === 'idle') {
-      setExploredHotspotId(hotspotId);
-      const firstEventForHotspot = timelineEvents
-        .filter(e => e.targetId === hotspotId)
-        .sort((a, b) => a.step - b.step)[0];
-      setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM_TO_HOTSPOT));
-    }
-    // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-  }, [isEditing, moduleState, timelineEvents]);
-
-  // Move handleSave before useAutoSave to fix temporal dead zone
-  const handleSave = useCallback(async () => {
-    // Prevent multiple simultaneous saves
-    if (isSaving) {
-      console.log('Save already in progress, skipping...');
-      return;
-    }
-    
-    setIsSaving(true);
-    console.log('=== SAVE DEBUG ===');
-    
-    // Wait for any pending state updates to complete
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Get fresh state values to ensure consistency
-    const currentData = {
-      backgroundImage,
-      hotspots,
-      timelineEvents,
-      imageFitMode
-    };
-    
-    // Validate data before saving
-    if (!Array.isArray(currentData.hotspots)) {
-      console.error('Invalid hotspots data:', currentData.hotspots);
-      alert('Invalid hotspot data detected. Please refresh and try again.');
-      setIsSaving(false);
-      return;
-    }
-    
-    if (!Array.isArray(currentData.timelineEvents)) {
-      console.error('Invalid timeline events data:', currentData.timelineEvents);
-      alert('Invalid timeline data detected. Please refresh and try again.');
-      setIsSaving(false);
-      return;
-    }
-    
-    console.log('Saving data:', {
-      hotspotsCount: currentData.hotspots.length,
-      timelineEventsCount: currentData.timelineEvents.length,
-      hotspotIds: currentData.hotspots.map(h => h.id),
-      backgroundImagePresent: !!currentData.backgroundImage
-    });
-    
-    try {
-      await onSave(currentData);
-      console.log('Save completed successfully');
-      setShowSuccessMessage(true);
-      // Use ref to track timeout and clear on unmount
-      const timeoutId = setTimeout(() => setShowSuccessMessage(false), 3000);
-      return () => clearTimeout(timeoutId);
-    } catch (error) {
-      console.error('Save failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert('Save failed: ' + errorMessage);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [backgroundImage, hotspots, timelineEvents, imageFitMode, onSave, isSaving]);
-
-  // Auto-save hook for data protection
-  useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
-
-  const handleStartLearning = () => {
-    setModuleState('learning');
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false); 
-    setCurrentStep(uniqueSortedSteps[0] || 1); 
-  };
-
-  const handleStartExploring = useCallback(() => {
-    setModuleState('idle');
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false);
-  }, []);
-
-  const handleTimelineDotClick = useCallback((step: number) => {
-    if (moduleState === 'idle' && !isEditing) {
-        setModuleState('learning');
-        setExploredHotspotId(null);
-        setExploredHotspotPanZoomActive(false);
-    }
-    setCurrentStep(step);
-  }, [moduleState, isEditing]);
-
-
-  const handleImageUpload = useCallback(async (file: File) => {
-    // If there's already an image and hotspots, warn the user
-    if (backgroundImage && hotspots.length > 0) {
-      const confirmReplace = confirm(
-        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
-      );
-      if (!confirmReplace) return;
-    }
-    
-    debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
-    setImageLoading(true);
-
-    try {
-      // Upload to Firebase Storage and get URL
-      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
-      setBackgroundImage(imageUrl);
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      setEditingZoom(1);
-      setImageLoading(false);
-    } catch (error) {
-      setImageLoading(false);
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
-    }
-  }, [backgroundImage, hotspots.length, debugLog, projectId]);
-
-  const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
-    setImageFitMode(fitMode);
-  }, []);
-
-  const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
-    const title = prompt("Enter hotspot title:", "New Hotspot");
-    if (!title) { 
-      setPendingHotspot(null); 
-      return; 
-    }
-    const description = prompt("Enter hotspot description:", "");
-    
-    // Get current color scheme
-    const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
-    
-    const newHotspot: HotspotData = {
-      id: `h${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // More unique ID
-      x: imageXPercent, 
-      y: imageYPercent, 
-      title,
-      description: description || "Default description",
-      color: currentScheme.colors[hotspots.length % currentScheme.colors.length],
-      size: 'medium'
-    };
-    
-    const newEventStep = Math.max(...timelineEvents.map(e => e.step), 0) + 1; 
-    const newEvent: TimelineEventData = {
-      id: `te_show_${newHotspot.id}_${Date.now()}`, 
-      step: newEventStep, 
-      name: `Show ${title}`,
-      type: InteractionType.SHOW_HOTSPOT, 
-      targetId: newHotspot.id,
-      message: '' // Explicitly set to empty string to prevent undefined Firebase errors
-    };
-    
-    // Use functional updates to ensure we're working with latest state
-    setHotspots(prevHotspots => {
-      const updated = [...prevHotspots, newHotspot];
-      console.log('Adding hotspot. Total hotspots:', updated.length, 'New hotspot ID:', newHotspot.id);
-      return updated;
-    });
-    
-    setTimelineEvents(prevEvents => {
-      const updated = [...prevEvents, newEvent].sort((a,b) => a.step - b.step);
-      console.log('Adding timeline event. Total events:', updated.length);
-      return updated;
-    });
-    
-    setPendingHotspot(null);
-    
-    if (isEditing) {
-      setCurrentStep(newEventStep); 
-      setSelectedHotspotForModal(newHotspot.id);
-      setIsHotspotModalOpen(true);
-    }
-  }, [hotspots, colorScheme, timelineEvents, isEditing]);
-
-  const handleEditHotspotRequest = useCallback((hotspotId: string) => {
-    const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
-    if (!hotspotToEdit) return;
-    setEditingHotspot(hotspotToEdit);
-    setShowHotspotEditModal(true);
-  }, [hotspots]);
-
-  // New handler for enhanced hotspot editor modal
-  const handleHotspotEditRequest = useCallback((hotspotId: string) => {
-    setSelectedHotspotForModal(hotspotId);
-    setIsHotspotModalOpen(true);
-  }, []);
-
-  const handleSaveHotspot = useCallback((updatedHotspot: HotspotData) => {
-    setHotspots(prevHotspots => 
-      prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h)
-    );
-    setShowHotspotEditModal(false);
-    setEditingHotspot(null);
-  }, []);
-
   const handleHotspotPositionChange = useCallback((hotspotId: string, x: number, y: number) => {
     setHotspots(prevHotspots => 
       prevHotspots.map(h => h.id === hotspotId ? { ...h, x, y } : h)
     );
   }, []);
 
-
-  const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (pendingHotspot) { // If confirming a pending hotspot, don't place another
-        const target = event.target as HTMLElement;
-        if(target.closest('.hotspot-confirmation-dialog')) return; // Click was on confirmation
-    }
-    if (isEditing && backgroundImage && actualImageRef.current) {
-        const target = event.target as HTMLElement;
-        
-        // Check if click is on UI elements
-        if (target.closest('.hotspot-info-panel') || 
-            target.closest('[role="button"][aria-label^="Hotspot:"]') || 
-            target.closest('.image-navigation-controls') || 
-            target.closest('.initial-view-buttons') || 
-            target.closest('[aria-label="Module Timeline"]') || 
-            target.closest('.timeline-controls-container')) {
-          return;
-        }
-        
-        const imgElement = actualImageRef.current;
-        const imgRect = imgElement.getBoundingClientRect();
-        
-        // Check if click is within the image bounds
-        if (event.clientX < imgRect.left || event.clientX > imgRect.right ||
-            event.clientY < imgRect.top || event.clientY > imgRect.bottom) {
-          setPendingHotspot(null);
-          return;
-        }
-        
-        // Calculate click position relative to the image
-        const clickX = event.clientX - imgRect.left;
-        const clickY = event.clientY - imgRect.top;
-        
-        // Convert to percentage of actual image dimensions
-        const imageXPercent = (clickX / imgRect.width) * 100;
-        const imageYPercent = (clickY / imgRect.height) * 100;
-        
-        // For visual pending marker (relative to the container)
-        const container = imageContainerRef.current;
-        if (container) {
-          const containerRect = container.getBoundingClientRect();
-          const viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-          const viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
-          
-          setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
-        }
-
-    } else if (moduleState === 'idle' && !isEditing && backgroundImage) {
-        const target = event.target as HTMLElement;
-        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]')) {
-          return; 
-        }
-        setExploredHotspotId(null);
-        setExploredHotspotPanZoomActive(false);
-    } else if (isEditing && backgroundImage && !pendingHotspot) {
-        // In editing mode, clicking empty space deselects hotspot
-        const target = event.target as HTMLElement;
-        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.image-navigation-controls') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]') || target.closest('.timeline-controls-container')) {
-            return;
-        }
-        // Removed setActiveHotspotInfoId - using modal now
-    }
-  }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot, viewportZoom]);
-
-  const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
-    // If an event is passed (from enhanced editor), use it directly
-    if (event) {
-      setTimelineEvents(prev => {
-        const filtered = prev.filter(e => e.id !== event.id); // Remove existing if editing
-        return [...filtered, event].sort((a,b) => a.step - b.step);
-      });
-      if (isEditing) setCurrentStep(event.step);
-      return;
-    }
-  }, [editorMaxStep, hotspots, currentStep, isEditing]);
-  
-  // Legacy edit function removed - now handled by enhanced editor
-
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-    if (e.touches.length === 2) {
-      // Prevent default only if we are sure we are handling this gesture
-      // e.preventDefault(); // Be cautious with preventDefault in touchstart
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setTouchStartDistance(distance);
-    }
-  }, [debugLog]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && touchStartDistance !== null) {
-      debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-      e.preventDefault(); // Prevent scrolling/other default actions during pinch
-
-      const newDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-
-      const scaleFactor = newDistance / touchStartDistance;
-
-      // Apply the scale factor to the current imageTransform.scale
-      // This makes the pinch feel more natural as it scales relative to the current zoom
-      setImageTransform(prevTransform => {
-        const newZoom = Math.max(0.25, Math.min(5, prevTransform.scale * scaleFactor));
-        return { ...prevTransform, scale: newZoom };
-      });
-
-      // Update touchStartDistance for continuous scaling in the same gesture
-      // This means the next move event will scale relative to this new distance and zoom
-      setTouchStartDistance(newDistance);
-    }
-  }, [touchStartDistance, setImageTransform, debugLog]);
-
-  const handleRemoveHotspot = useCallback((hotspotId: string) => {
-    if (!confirm(`Are you sure you want to remove hotspot ${hotspotId} and its related timeline events?`)) return;
-    setHotspots(prev => prev.filter(h => h.id !== hotspotId));
-    setTimelineEvents(prev => prev.filter(event => event.targetId !== hotspotId));
-    if (exploredHotspotId === hotspotId) {
-      setExploredHotspotId(null);
-      setExploredHotspotPanZoomActive(false);
-    }
-  }, [exploredHotspotId]);
-
-  const handleRemoveTimelineEvent = useCallback((eventId: string) => {
-    if (!confirm(`Are you sure you want to remove timeline event ${eventId}?`)) return;
-    setTimelineEvents(prev => prev.filter(event => event.id !== eventId));
-  }, []);
-
-  const getHighlightGradientStyle = () => {
-    if (!highlightedHotspotId || !backgroundImage || !imageContainerRef.current) return {};
-
-    const hotspotToHighlight = hotspots.find(h => h.id === highlightedHotspotId);
-    if (!hotspotToHighlight) return {};
-
-    const currentEvents = timelineEvents.filter(e => e.step === currentStep);
-    const eventData = currentEvents.find(e =>
-      e.type === InteractionType.HIGHLIGHT_HOTSPOT &&
-      e.targetId === highlightedHotspotId
-    );
-
-    const imageBounds = getSafeImageBounds(); // Use safe version
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
-
-    let highlightXPercent = hotspotToHighlight.x; // Fallback to original hotspot x percentage
-    let highlightYPercent = hotspotToHighlight.y; // Fallback to original hotspot y percentage
-
-    if (imageBounds && containerRect.width > 0 && containerRect.height > 0) {
-      // Calculate the hotspot's center in pixels, relative to the image's content area origin
-      const hotspotPixelX_withinImageContent = (hotspotToHighlight.x / 100) * imageBounds.width;
-      const hotspotPixelY_withinImageContent = (hotspotToHighlight.y / 100) * imageBounds.height;
-
-      // Calculate the hotspot's center in pixels, relative to the imageContainerRef's origin.
-      // imageBounds.left and imageBounds.top are offsets of the image content area from the container's origin.
-      const hotspotPixelX_inContainer = imageBounds.left + hotspotPixelX_withinImageContent;
-      const hotspotPixelY_inContainer = imageBounds.top + hotspotPixelY_withinImageContent;
-
-      // Convert these absolute pixel positions (relative to container) to percentages of the container's dimensions
-      highlightXPercent = (hotspotPixelX_inContainer / containerRect.width) * 100;
-      highlightYPercent = (hotspotPixelY_inContainer / containerRect.height) * 100;
-    } else if (imageBounds === null && containerRect.width > 0 && containerRect.height > 0) {
-      // Fallback if imageBounds is null (e.g. before image loads) but container exists.
-      // Use hotspot's original percentages directly, assuming they are relative to the container in this scenario.
-      // This matches the fallback logic in the original issue snippet when imageBounds is null.
-      // (The original snippet's fallback was inside `if (!imageBounds)`)
-      // No change needed here for highlightXPercent, highlightYPercent as they are already set to fallbacks.
-    }
-
-
-    const radius = (eventData?.highlightRadius || 60) * imageTransform.scale;
-    const shape = eventData?.highlightShape || 'circle';
-    const dimOpacity = (eventData?.dimPercentage || 70) / 100;
-
-    // Ensure percentages are within bounds for safety if the gradient is applied to the container.
-    // If hotspot x/y can be outside 0-100 (e.g. due to data error), this clips the gradient center.
-    highlightXPercent = Math.max(0, Math.min(100, highlightXPercent));
-    highlightYPercent = Math.max(0, Math.min(100, highlightYPercent));
-
-    // Create different gradients based on shape
-    let backgroundStyle = '';
-    if (shape === 'circle') {
-      backgroundStyle = `radial-gradient(circle at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,${dimOpacity}) ${radius + 10}px)`;
-    } else if (shape === 'oval') {
-      backgroundStyle = `radial-gradient(ellipse at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,${dimOpacity}) ${radius + 10}px)`;
-    } else if (shape === 'rectangle') {
-      // For rectangle, we'll create a mask using linear gradients
-      const halfRadius = radius / 2;
-      backgroundStyle = `linear-gradient(
-        to right,
-        rgba(0,0,0,${dimOpacity}) 0%,
-        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% - ${halfRadius}px),
-        transparent calc(${highlightXPercent}% - ${halfRadius}px),
-        transparent calc(${highlightXPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) 100%
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(0,0,0,${dimOpacity}) 0%,
-        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% - ${halfRadius}px),
-        transparent calc(${highlightYPercent}% - ${halfRadius}px),
-        transparent calc(${highlightYPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) 100%
-      )`;
-    }
-
-    return {
-      background: backgroundStyle,
-      transition: 'background 0.3s ease-in-out',
-    };
-  };
-  
-  // Removed activeInfoHotspot - using modal now
-
-  // Sub-component for displaying transform information
-  const TransformIndicator = () => {
-    if (imageTransform.scale === 1) {
-      return null;
-    }
-
-    const focusedHotspot = imageTransform.targetHotspotId
-      ? hotspots.find(h => h.id === imageTransform.targetHotspotId)
-      : null;
-
-    return (
-      <div
-        className="absolute top-20 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm"
-        style={{ zIndex: Z_INDEX.INFO_PANEL }}
-      >
-        Zoom: {imageTransform.scale.toFixed(1)}x
-        {focusedHotspot && (
-          <span className="ml-2">(focused on {focusedHotspot.title})</span>
-        )}
-        {!isEditing && (
-          <div className="mt-1 text-xs text-slate-300">Click empty area to reset view</div>
-        )}
-      </div>
-    );
-  };
-
-
-  const handleAttemptClose = useCallback(() => {
-    if (isModeSwitching) {
-      debugLog('ModeSwitch', 'Already switching, aborting close attempt.');
-      return;
-    }
-
-    debugLog('ModeSwitch', 'Starting mode switch / close sequence.');
-    setIsModeSwitching(true);
-
-    // Reset internal states of InteractiveModule
-    batchedSetState([
-      () => setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined }),
-      () => setEditingZoom(1),
-      () => setExploredHotspotId(null),
-      () => setPulsingHotspotId(null),
-      () => setHighlightedHotspotId(null),
-      // Add any other relevant states from InteractiveModule that need resetting
-    ]);
-
-    setTimeout(() => {
-      debugLog('ModeSwitch', 'Executing actual close action.');
-      if (onClose) {
-        onClose();
-      }
-      // The issue also mentions setIsModalOpen(false), setSelectedProject(null), etc.
-      // These would be handled by the parent component that calls onClose.
-
-      setIsModeSwitching(false);
-      debugLog('ModeSwitch', 'Mode switch / close sequence finished.');
-    }, 100); // 100ms delay
-  }, [
-    isModeSwitching,
-    onClose,
-    batchedSetState,
-    debugLog,
-    setImageTransform,
-    setEditingZoom,
-    setExploredHotspotId,
-    setPulsingHotspotId,
-    setHighlightedHotspotId
-  ]);
-
-
   return (
-    <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
-      {isEditing ? (
-        <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
-          {/* Add Toolbar */}
-          <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
-          <EditorToolbar
-            projectName={projectName}
-            onBack={handleAttemptClose}
-            onReplaceImage={handleImageUpload}
-            isAutoProgression={isTimedMode}
-            onToggleAutoProgression={setIsTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            onAutoProgressionDurationChange={setAutoProgressionDuration}
-            currentZoom={editingZoom}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onZoomReset={handleZoomReset}
-            onCenter={handleCenter}
-            currentColorScheme={colorScheme}
-            onColorSchemeChange={setColorScheme}
-            onSave={handleSave}
-            isSaving={isSaving}
-            showSuccessMessage={showSuccessMessage}
-          />
-          </div>
-          
-          {/* Main editing content - remove toolbar height */}
-          <div className="h-full">
-            {/* Main Image Canvas Area - Full Width */}
-          <div className="relative bg-slate-900 h-full" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
-            {/* Full-screen image container with zoom */}
-            <div className="absolute inset-0">
-              <TransformIndicator />
-              {/* Viewport Container - scales with manual zoom */}
-            {debugMode && (
-              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
-                <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
-                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
-                <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
-                <div>Image Fit: {imageFitMode}</div>
-                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
-              </div>
-            )}
+    <div className="w-full h-full flex flex-col bg-slate-900 text-slate-200">
+      {/* Debug toggle button */}
+      {isEditing && (
+        <button
+          onClick={() => setDebugPositioning(!debugPositioning)}
+          className="absolute top-4 right-16 z-50 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-75 hover:opacity-100"
+          title="Toggle coordinate debug overlay"
+        >
+          Debug: {debugPositioning ? 'ON' : 'OFF'}
+        </button>
+      )}
 
-            {/* Hotspot Debug Info */}
-            {debugMode && (
-              <div className="absolute bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg text-xs max-w-md" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <h3 className="font-bold mb-2">Hotspot Debug Info</h3>
-                <div>Hotspots Count: {hotspots.length}</div>
-                <div>Timeline Events Count: {timelineEvents.length}</div>
-                <div className="mt-2">
-                  <strong>Hotspot IDs:</strong>
-                  {hotspots.map(h => (
-                    <div key={h.id} className="ml-2">{h.id}: "{h.title}"</div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <strong>Show Events:</strong>
-                  {timelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT).map(e => (
-                    <div key={e.id} className="ml-2">Step {e.step}: {e.targetId}</div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <strong>Current Step:</strong> {currentStep}
-                </div>
-                <div>
-                  <strong>Visible Hotspots:</strong> {hotspots.filter(h => 
-                    timelineEvents.some(e => 
-                      e.type === InteractionType.SHOW_HOTSPOT && 
-                      e.targetId === h.id && 
-                      e.step <= currentStep
-                    )
-                  ).length}
-                </div>
-              </div>
-            )}
-
-              <div 
-                ref={scrollableContainerRef}
-                className="w-full h-full overflow-auto bg-slate-900"
-                style={{
-                  scrollBehavior: 'smooth',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#475569 #1e293b',
-                }}
-              >
-                <div
-                  ref={imageContainerRef}
-                  className="relative flex items-center justify-center min-w-full min-h-full"
-                  style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default', zIndex: Z_INDEX.IMAGE_BASE }}
-                  onClick={handleImageClick}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={() => setTouchStartDistance(null)}
-                  role={backgroundImage ? "button" : undefined}
-                  aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
-                >
-                  {backgroundImage ? (
-                    <div 
-                      ref={zoomedImageContainerRef}
-                      className="relative"
-                      style={{
-                        transform: `scale(${editingZoom})`,
-                        transformOrigin: 'center', // As specified, though often top-left for editor canvas
-                        transition: 'transform 0.2s ease-out',
-                        zIndex: editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
-                      }}
-                    >
-                      <img
-                        ref={actualImageRef}
-                        src={backgroundImage}
-                        alt="Interactive module background"
-                        className="block max-w-none"
-                        style={{
-                          width: scrollableContainerRef.current?.clientWidth || 'auto',
-                          height: 'auto',
-                        }}
-                        onLoad={handleImageLoad}
-                        draggable={false}
-                      />
-                      
-                      {/* Highlight overlay */}
-                      {highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                        <div 
-                          className="absolute inset-0 pointer-events-none" 
-                          style={getHighlightGradientStyle()} 
-                          aria-hidden="true"
-                        />
-                      )}
-                      
-                      {/* Hotspots */}
-                      {hotspotsWithPositions.map(hotspot => { // Use hotspotsWithPositions
-                        // const pixelPos = getHotspotPixelPosition(hotspot); // No longer needed here
-
-                        return (
-                          <MemoizedHotspotViewer
-                            key={hotspot.id}
-                            hotspot={hotspot} // Pass the whole hotspot object which includes pixelPosition
-                            pixelPosition={hotspot.pixelPosition} // Access pre-calculated position
-                            usePixelPositioning={true}
-                            imageElement={actualImageRef.current}
-                            isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                            isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e =>
-                              e.step === currentStep &&
-                              e.targetId === hotspot.id &&
-                              (e.type === InteractionType.SHOW_HOTSPOT ||
-                               e.type === InteractionType.PULSE_HOTSPOT ||
-                               e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
-                               e.type === InteractionType.HIGHLIGHT_HOTSPOT)
-                            )}
-                            isEditing={isEditing}
-                            onFocusRequest={handleFocusHotspot}
-                            onEditRequest={handleHotspotEditRequest}
-                            onPositionChange={handleHotspotPositionChange}
-                            isContinuouslyPulsing={false}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <div className="text-center">
-                        <p className="text-lg mb-4">Upload an image to start editing</p>
-                        <FileUpload onFileUpload={handleImageUpload} />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {pendingHotspot && imageContainerRef.current && (
-                    <div 
-                      className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
-                      style={{ left: `${pendingHotspot.viewXPercent}%`, top: `${pendingHotspot.viewYPercent}%`}}
-                      aria-hidden="true"
-                    ><PlusIcon className="w-5 h-5 text-white"/></div>
-                  )}
-
-                  {/* InfoPanel removed - using modal now */}
-                </div>
-              </div>
-            </div>
-
-
-            {/* Pending Hotspot Confirmation Overlay */}
-            {pendingHotspot && (
-              <div className="absolute top-4 right-4" style={{ zIndex: Z_INDEX.MODAL }}>
-                <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 border border-slate-600">
-                  <h4 className="text-md font-semibold mb-2 text-slate-200">🎯 Confirm New Hotspot</h4>
-                  <p className="text-sm text-slate-300 mb-3">Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%</p>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
-                      className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
-                    >Add Hotspot</button>
-                    <button 
-                      onClick={() => setPendingHotspot(null)} 
-                      className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
-                    >Cancel</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-
-          {/* Fixed Bottom Timeline */}
-          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
-            {backgroundImage && (
-              <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-                <HorizontalTimeline
-                  uniqueSortedSteps={uniqueSortedSteps}
-                  currentStep={currentStep}
-                  onStepSelect={handleTimelineDotClick}
-                  isEditing={isEditing}
-                  timelineEvents={timelineEvents}
-                  hotspots={hotspots}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        </div>
-      ) : (
-        /* New Viewer Layout */
-        <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden">
-          {/* Add ViewerToolbar */}
-          <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
-          <ViewerToolbar
-            projectName={projectName}
-            onBack={handleAttemptClose}
-            moduleState={moduleState}
-            onStartLearning={handleStartLearning}
-            onStartExploring={handleStartExploring}
-            hasContent={!!backgroundImage}
-          />
-          </div>
-          
-          {/* Main content area */}
-          <div className="flex flex-col h-full">
-            {/* Image container - full width */}
-            <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+      {/* Main layout */}
+      <div className={isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'flex flex-col h-full'}>
+        {isEditing ? (
+          /* Full-Screen Editing Layout */
+          <div className="flex h-screen">
+            {/* Main Image Canvas Area */}
+            <div className="flex-1 relative bg-slate-900">
               <div className="absolute inset-0">
-                <TransformIndicator />
-            {debugMode && (
-              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
-                <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
-                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
-                <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
-                <div>Image Fit: {imageFitMode}</div>
-                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
-              </div>
-            )}
                 <div 
-                  ref={imageContainerRef}
-                  className="w-full h-full flex items-center justify-center bg-slate-900"
-                  style={{ cursor: 'default' }}
-                  onClick={handleImageClick}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={() => setTouchStartDistance(null)}
-                  role={backgroundImage ? "button" : undefined}
-                  aria-label={backgroundImage ? "Interactive image" : undefined}
+                  ref={scrollableContainerRef}
+                  className="w-full h-full overflow-auto bg-slate-900"
+                  style={{
+                    scrollBehavior: 'smooth',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#475569 #1e293b',
+                  }}
                 >
-                  {backgroundImage ? (
-                    <>
-                      {backgroundImage && !isEditing && (
+                  <div
+                    ref={imageContainerRef}
+                    className="relative flex items-center justify-center min-w-full min-h-full"
+                    style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default' }}
+                    onClick={handleImageClick}
+                    role={backgroundImage ? "button" : undefined}
+                    aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
+                  >
+                    {backgroundImage ? (
+                      <>
                         <img
+                          ref={actualImageRef}
                           src={backgroundImage}
                           onLoad={(e) => setImageNaturalDimensions({
                             width: e.currentTarget.naturalWidth,
                             height: e.currentTarget.naturalHeight
                           })}
-                          style={{ display: 'none' }}
-                          alt=""
-                          aria-hidden="true"
+                          className="max-w-full max-h-full object-contain"
+                          style={{ zoom: editingZoom }}
+                          alt="Interactive content"
                         />
+
+                        {/* Hotspots in editing mode */}
+                        {hotspots.map(hotspot => (
+                          <MemoizedHotspotViewer
+                            key={hotspot.id}
+                            hotspot={hotspot}
+                            isPulsing={pulsingHotspotId === hotspot.id}
+                            isEditing={true}
+                            onFocusRequest={() => setActiveHotspotInfoId(hotspot.id)}
+                            onPositionChange={handleHotspotPositionChange}
+                            imageElement={actualImageRef.current}
+                            isDimmedInEditMode={true}
+                          />
+                        ))}
+
+                        {/* Pending hotspot indicator */}
+                        {pendingHotspot && (
+                          <div
+                            className="absolute w-4 h-4 bg-yellow-400 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2 z-30"
+                            style={{
+                              left: `${pendingHotspot.x}px`,
+                              top: `${pendingHotspot.y}px`
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center text-slate-400">
+                        <FileUpload
+                          onFileUpload={handleImageUpload}
+                          isLoading={imageLoading}
+                          disabled={!backgroundImage}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Debug overlay */}
+              <DebugOverlay />
+            </div>
+
+            {/* Right sidebar for editing tools */}
+            <div className="w-80 bg-slate-800 border-l border-slate-600 flex flex-col">
+              {/* Header */}
+              <div className="p-4 border-b border-slate-600">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-slate-100">Module Editor</h2>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleSave} 
+                      disabled={isSaving}
+                      className={`font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200 flex items-center space-x-2 ${
+                        isSaving 
+                          ? 'bg-green-500 cursor-not-allowed' 
+                          : showSuccessMessage 
+                            ? 'bg-green-500' 
+                            : 'bg-green-600 hover:bg-green-700'
+                      } text-white`}
+                    >
+                      {isSaving ? (
+                        <>
+                          <LoadingSpinnerIcon className="w-4 h-4" />
+                          <span>Saving...</span>
+                        </>
+                      ) : showSuccessMessage ? (
+                        <>
+                          <CheckIcon className="w-4 h-4" />
+                          <span>Saved</span>
+                        </>
+                      ) : (
+                        <span>Save</span>
                       )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editing content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {/* File upload section */}
+                {!backgroundImage && (
+                  <div className="mb-6">
+                    <h3 className="text-md font-semibold text-slate-200 mb-3">Add Background Image</h3>
+                    <FileUpload
+                      onFileUpload={handleImageUpload}
+                      isLoading={imageLoading}
+                      disabled={false}
+                    />
+                  </div>
+                )}
+
+                {/* Hotspot management */}
+                {backgroundImage && (
+                  <div className="mb-6">
+                    <h3 className="text-md font-semibold text-slate-200 mb-3">Hotspots ({hotspots.length})</h3>
+                    {hotspots.length === 0 ? (
+                      <p className="text-slate-400 text-sm">Click on the image to add hotspots</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {hotspots.map(hotspot => (
+                          <div
+                            key={hotspot.id}
+                            className="p-3 bg-slate-700 rounded-lg border border-slate-600"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-200">{hotspot.title}</span>
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => setSelectedHotspotForModal(hotspot.id)}
+                                  className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => setHotspots(prev => prev.filter(h => h.id !== hotspot.id))}
+                                  className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                            <div className="text-xs text-slate-400 mt-1">
+                              Position: {hotspot.x.toFixed(1)}%, {hotspot.y.toFixed(1)}%
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Viewer Layout */
+          <div className="flex flex-col h-full">
+            {/* Image container - full width */}
+            <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+              <div className="absolute inset-0">
+                <div 
+                  ref={imageContainerRef}
+                  className="w-full h-full flex items-center justify-center bg-slate-900"
+                  style={{ cursor: 'default' }}
+                  onClick={handleImageClick}
+                  role={backgroundImage ? "button" : undefined}
+                  aria-label={backgroundImage ? "Interactive image" : undefined}
+                >
+                  {backgroundImage ? (
+                    <>
+                      {/* Hidden image for natural dimensions */}
+                      <img
+                        src={backgroundImage}
+                        onLoad={(e) => setImageNaturalDimensions({
+                          width: e.currentTarget.naturalWidth,
+                          height: e.currentTarget.naturalHeight
+                        })}
+                        style={{ display: 'none' }}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                      
+                      {/* Scaled image div for viewer */}
                       <div 
                         ref={scaledImageDivRef}
                         className="relative"
                         style={{
-                          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+                          backgroundImage: `url(${backgroundImage})`,
                           backgroundSize: imageFitMode,
                           backgroundPosition: 'center',
                           backgroundRepeat: 'no-repeat',
-                          transformOrigin: 'center',
-                          transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                          transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-                          width: '80vw', // From issue
-                          height: '80vh', // From issue
-                          maxWidth: '1200px', // From issue
-                          maxHeight: '800px', // From issue
-                          zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
+                          width: '80vw',
+                          height: '80vh',
+                          maxWidth: '1200px',
+                          maxHeight: '800px',
+                          transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,
+                          transformOrigin: 'center center',
+                          transition: isTransforming ? 'transform 0.3s ease-out' : 'none'
                         }}
-                        aria-hidden="true"
                       >
-                        {(moduleState === 'learning' || isEditing) && highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                          <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
-                        )}
-                        <div style={{ zIndex: Z_INDEX.HOTSPOTS }}>
-                        {hotspotsWithPositions.map(hotspot => { // Use hotspotsWithPositions
-                          const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) ||
-                                            (moduleState === 'idle');
-
-                          if (!shouldShow) return null;
-
-                          // const pixelPos = getHotspotPixelPosition(hotspot); // No longer needed here
-
-                          return (
-                            <MemoizedHotspotViewer
-                              key={hotspot.id}
-                              hotspot={hotspot} // Pass the whole hotspot object which includes pixelPosition
-                              pixelPosition={hotspot.pixelPosition} // Access pre-calculated position
-                              usePixelPositioning={true}
-                              isPulsing={(moduleState === 'learning' || isEditing) &&
-                                         pulsingHotspotId === hotspot.id &&
-                                         activeHotspotDisplayIds.has(hotspot.id)}
-                              isDimmedInEditMode={false}
-                              isEditing={false}
-                              onFocusRequest={handleFocusHotspot}
-                              onEditRequest={handleHotspotEditRequest}
-                              isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
-                            />
-                          );
-                        })}
-                        </div>
+                        {/* Hotspots in viewer mode */}
+                        {hotspots.map(hotspot => (
+                          <MemoizedHotspotViewer
+                            key={hotspot.id}
+                            hotspot={hotspot}
+                            isPulsing={pulsingHotspotId === hotspot.id}
+                            isEditing={false}
+                            onFocusRequest={() => setActiveHotspotInfoId(hotspot.id)}
+                            isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
+                          />
+                        ))}
                       </div>
                       
                       {/* Initial view buttons overlay when in idle mode */}
@@ -1966,108 +928,82 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                           </div>
                         </div>
                       )}
-                      
-                      {/* InfoPanel removed - using modal now */}
                     </>
                   ) : (
                     <div className="text-center text-slate-400">
-                      <p>No background image set.</p>
+                      <h2 className="text-xl mb-4">No image loaded</h2>
+                      <p>Switch to editing mode to add content</p>
                     </div>
                   )}
                 </div>
+
+                {/* Debug overlay */}
+                <DebugOverlay />
               </div>
             </div>
-            
-            {/* Timeline at bottom - full width */}
-            {backgroundImage && (
-              <div className="bg-slate-800 border-t border-slate-700" style={{ position: 'relative', zIndex: Z_INDEX.TIMELINE }}>
+
+            {/* Timeline */}
+            {uniqueSortedSteps.length > 0 && (
+              <div className="h-25 bg-slate-800 border-t border-slate-600" style={{ zIndex: Z_INDEX.TIMELINE }}>
                 <HorizontalTimeline
-                  uniqueSortedSteps={uniqueSortedSteps}
+                  steps={uniqueSortedSteps}
                   currentStep={currentStep}
-                  onStepSelect={handleTimelineDotClick}
-                  isEditing={isEditing}
-                  timelineEvents={timelineEvents}
-                  hotspots={hotspots}
-                  moduleState={moduleState}
+                  onStepClick={handleTimelineDotClick}
                   onPrevStep={handlePrevStep}
                   onNextStep={handleNextStep}
-                  currentStepIndex={currentStepIndex}
-                  totalSteps={totalTimelineInteractionPoints}
+                  canGoPrev={currentStepIndex > 0}
+                  canGoNext={currentStepIndex < uniqueSortedSteps.length - 1}
                 />
               </div>
             )}
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      {selectedHotspotForModal && (
+        <HotspotEditorModal
+          isOpen={true}
+          onClose={() => setSelectedHotspotForModal(null)}
+          hotspot={hotspots.find(h => h.id === selectedHotspotForModal)!}
+          onSave={(updatedHotspot) => {
+            setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
+            setSelectedHotspotForModal(null);
+          }}
+          onDelete={(hotspotId) => {
+            setHotspots(prev => prev.filter(h => h.id !== hotspotId));
+            setSelectedHotspotForModal(null);
+          }}
+          timelineEvents={timelineEvents}
+          onTimelineEventsChange={setTimelineEvents}
+          editorMaxStep={editorMaxStep}
+        />
       )}
 
-      {/* Hotspot Edit Modal */}
-      <HotspotEditModal
-        isOpen={showHotspotEditModal}
-        onClose={() => {
-          setShowHotspotEditModal(false);
-          setEditingHotspot(null);
-        }}
-        onSave={handleSaveHotspot}
-        hotspot={editingHotspot}
-      />
-
-      {/* Enhanced Hotspot Editor Modal */}
-      <HotspotEditorModal
-        isOpen={isHotspotModalOpen}
-        selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
-        relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
-        currentStep={currentStep}
-        backgroundImage={backgroundImage || ''}
-        onUpdateHotspot={(updatedHotspot) => {
-          setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
-        }}
-        onDeleteHotspot={(hotspotId) => {
-          handleRemoveHotspot(hotspotId);
-          setIsHotspotModalOpen(false);
-          setSelectedHotspotForModal(null);
-        }}
-        onAddEvent={handleAddTimelineEvent}
-        onUpdateEvent={(updatedEvent) => {
-          setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
-        }}
-        onDeleteEvent={(eventId) => {
-          setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
-        }}
-        onClose={() => {
-          setIsHotspotModalOpen(false);
-          setSelectedHotspotForModal(null);
-        }}
-      />
+      {pendingHotspot && (
+        <StreamlinedHotspotEditor
+          onConfirm={(hotspotData) => {
+            const newHotspot: HotspotData = {
+              id: `hotspot-${Date.now()}`,
+              x: pendingHotspot.imageX,
+              y: pendingHotspot.imageY,
+              title: hotspotData.title,
+              description: hotspotData.description,
+              color: hotspotData.color,
+              size: hotspotData.size
+            };
+            setHotspots(prev => [...prev, newHotspot]);
+            setPendingHotspot(null);
+          }}
+          onCancel={() => setPendingHotspot(null)}
+          position={{ 
+            x: pendingHotspot.x, 
+            y: pendingHotspot.y 
+          }}
+        />
+      )}
     </div>
   );
-};
-
-// Auto-save functionality for data protection
-const useAutoSave = (
-  isEditing: boolean,
-  hotspots: HotspotData[],
-  timelineEvents: TimelineEventData[],
-  handleSave: () => Promise<void>
-) => {
-  const lastDataRef = useRef<string>('');
-  
-  useEffect(() => {
-    if (!isEditing) return; // Remove hotspots.length requirement - auto-save even empty projects
-    
-    const currentData = JSON.stringify({ hotspots, timelineEvents });
-    if (currentData === lastDataRef.current) return;
-    
-    lastDataRef.current = currentData;
-    
-    const autoSaveTimer = setTimeout(() => {
-      console.log('Auto-saving project...');
-      handleSave().catch(error => {
-        console.error('Auto-save failed:', error);
-      });
-    }, 10000); // Auto-save every 10 seconds (3x faster)
-    
-    return () => clearTimeout(autoSaveTimer);
-  }, [hotspots, timelineEvents, isEditing, handleSave]);
 };
 
 export default InteractiveModule;
