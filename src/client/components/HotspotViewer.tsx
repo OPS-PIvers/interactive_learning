@@ -94,10 +94,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
             const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
             if (!referenceElement) return;
 
-            const referenceRect = referenceElement.getBoundingClientRect();
-            
-            const percentDeltaX = referenceRect.width > 0 ? (totalDeltaX / referenceRect.width) * 100 : 0;
-            const percentDeltaY = referenceRect.height > 0 ? (totalDeltaY / referenceRect.height) * 100 : 0;
+            // Get the actual image bounds for accurate conversion
+            const imageBounds = imageElement?.getBoundingClientRect();
+            if (!imageBounds) return;
+
+            const percentDeltaX = (totalDeltaX / imageBounds.width) * 100;
+            const percentDeltaY = (totalDeltaY / imageBounds.height) * 100;
             
             const newX = Math.max(0, Math.min(100, startHotspotX + percentDeltaX));
             const newY = Math.max(0, Math.min(100, startHotspotY + percentDeltaY));
@@ -163,12 +165,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     <div
       className={positioningContainerClasses}
       style={{
-        left: usePixelPositioning && pixelPosition
-          ? `${pixelPosition.x}px`
-          : `${hotspot.x}%`,
-        top: usePixelPositioning && pixelPosition
-          ? `${pixelPosition.y}px`
-          : `${hotspot.y}%`,
+        left: (isEditing || !usePixelPositioning || !pixelPosition) 
+          ? `${hotspot.x}%` 
+          : `${pixelPosition.x}px`,
+        top: (isEditing || !usePixelPositioning || !pixelPosition) 
+          ? `${hotspot.y}%` 
+          : `${pixelPosition.y}px`
       }}
     >
       <div
