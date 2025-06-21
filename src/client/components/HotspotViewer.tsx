@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
-import { safePercentageDelta, hasValidDimensions, clamp } from '../../lib/safeMathUtils';
+import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
