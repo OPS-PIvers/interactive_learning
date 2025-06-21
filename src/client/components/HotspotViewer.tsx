@@ -97,10 +97,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
             const referenceRect = referenceElement.getBoundingClientRect();
             
-            if (!hasValidDimensions(referenceRect)) {
-              console.warn('Invalid reference rect dimensions during drag');
-              return;
-            }
             const percentDeltaX = safePercentageDelta(totalDeltaX, referenceRect, 'x');
             const percentDeltaY = safePercentageDelta(totalDeltaY, referenceRect, 'y');
             const newX = clamp(startHotspotX + percentDeltaX, 0, 100);
