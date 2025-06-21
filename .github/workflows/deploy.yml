@@ -10,24 +10,24 @@ on:
 
 jobs:
   build_and_preview:
-    if: '${{ github.event_name == ''pull_request'' }}'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'npm'
-          
+
       - name: Clear npm cache
         run: npm cache clean --force
-        
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Create environment file
         run: |
           cat > .env.local << EOF
@@ -40,12 +40,12 @@ jobs:
           VITE_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
           EOF
-        
+
       - name: Build application
         run: NODE_ENV=production npm run build
         env:
           NODE_ENV: production
-        
+
       - name: Deploy to Firebase Hosting (Preview)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -61,19 +61,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'npm'
-          
+
       - name: Clear npm cache
         run: npm cache clean --force
-        
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Create environment file
         run: |
           cat > .env.local << EOF
@@ -86,12 +86,12 @@ jobs:
           VITE_FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }}
           EOF
-        
+
       - name: Build application
         run: NODE_ENV=production npm run build
         env:
           NODE_ENV: production
-        
+
       - name: Deploy to Firebase Hosting (Live)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -101,7 +101,7 @@ jobs:
           channelId: live
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
-          
+
       - name: Post-deployment notification
         run: |
           echo "🎉 Deployment successful!"
