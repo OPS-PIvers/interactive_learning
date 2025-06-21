@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
+import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -96,11 +97,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
             const referenceRect = referenceElement.getBoundingClientRect();
             
-            const percentDeltaX = referenceRect.width > 0 ? (totalDeltaX / referenceRect.width) * 100 : 0;
-            const percentDeltaY = referenceRect.height > 0 ? (totalDeltaY / referenceRect.height) * 100 : 0;
-            
-            const newX = Math.max(0, Math.min(100, startHotspotX + percentDeltaX));
-            const newY = Math.max(0, Math.min(100, startHotspotY + percentDeltaY));
+            const percentDeltaX = safePercentageDelta(totalDeltaX, referenceRect, 'x');
+            const percentDeltaY = safePercentageDelta(totalDeltaY, referenceRect, 'y');
+            const newX = clamp(startHotspotX + percentDeltaX, 0, 100);
+            const newY = clamp(startHotspotY + percentDeltaY, 0, 100);
             
             onPositionChange(hotspot.id, newX, newY);
           };
