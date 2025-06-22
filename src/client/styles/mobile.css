@@ -1,0 +1,153 @@
+/* Mobile viewport fixes */
+@media screen and (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior: none;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  .mobile-viewport-fix {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Touch manipulation */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Mobile-optimized hotspot styling */
+@media screen and (max-width: 768px) {
+  .hotspot-dot {
+    min-width: 44px;
+    min-height: 44px;
+    transform-origin: center;
+  }
+
+  .hotspot-dot:active {
+    transform: scale(0.95);
+  }
+
+  .hotspot-dragging {
+    transform: scale(1.2);
+    z-index: 1000;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  }
+}
+
+/* Mobile toolbar styling */
+@media screen and (max-width: 768px) {
+  .mobile-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .mobile-toolbar-menu {
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 0 0 12px 12px;
+  }
+}
+
+/* Mobile timeline styles */
+@media screen and (max-width: 768px) {
+  .mobile-timeline {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-timeline::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-timeline-step {
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+/* Mobile editor panel styling */
+@media screen and (max-width: 768px) {
+  .mobile-editor-panel {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(keyboard-inset-height, 0);
+  }
+
+  .mobile-tabs {
+    display: flex;
+    background: #334155;
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .mobile-tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-weight: 500;
+  }
+
+  .mobile-tab.active {
+    background: #475569;
+    color: white;
+  }
+
+  .mobile-tab:not(.active) {
+    color: #94a3b8;
+  }
+}
+
+/* Mobile color picker styling */
+@media screen and (max-width: 768px) {
+  .mobile-color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .mobile-color-option {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }
+
+  .mobile-color-option.selected {
+    border-color: white;
+    transform: scale(1.05);
+  }
+
+  .mobile-color-option:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Fix for iOS Safari viewport */
+@supports (-webkit-touch-callout: none) {
+  .ios-viewport-fix {
+    height: -webkit-fill-available;
+  }
+
+  /* Fix iOS Safari bottom bar issues */
+  .ios-safe-area {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

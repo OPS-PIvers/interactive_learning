@@ -1,3 +1,7 @@
+@import url('./styles/mobile.css');
+@import url('./styles/mobile-animations.css');
+@import url('./styles/mobile-accessibility.css');
+
 /* Main styles for the Interactive Training Module Creator */
 
 /* These styles supplement Tailwind CSS loaded from CDN */
