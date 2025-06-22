@@ -1638,7 +1638,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             onSave={handleSave}
             isSaving={isSaving}
             showSuccessMessage={showSuccessMessage}
-            isMobile={isMobile} // ADD THIS
+            isMobile={isMobile}
           />
           </div>
           
@@ -1772,7 +1772,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                             onEditRequest={handleHotspotEditRequest}
                             onPositionChange={handleHotspotPositionChange}
                             isContinuouslyPulsing={false}
-                            isMobile={isMobile} // ADD THIS
+                            isMobile={isMobile}
                           />
                         );
                       })}
@@ -1833,7 +1833,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   isEditing={isEditing}
                   timelineEvents={timelineEvents}
                   hotspots={hotspots}
-                  isMobile={isMobile} // ADD THIS
+                  isMobile={isMobile}
                 />
               </div>
             )}
@@ -1852,7 +1852,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             onStartLearning={handleStartLearning}
             onStartExploring={handleStartExploring}
             hasContent={!!backgroundImage}
-            isMobile={isMobile} // ADD THIS
+            isMobile={isMobile}
           />
           </div>
           
@@ -1942,7 +1942,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               onFocusRequest={handleFocusHotspot}
                               onEditRequest={handleHotspotEditRequest}
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
-                              isMobile={isMobile} // ADD THIS
+                              isMobile={isMobile}
                             />
                           );
                         })}
@@ -2001,7 +2001,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   onNextStep={handleNextStep}
                   currentStepIndex={currentStepIndex}
                   totalSteps={totalTimelineInteractionPoints}
-                  isMobile={isMobile} // ADD THIS
+                  isMobile={isMobile}
                 />
               </div>
             )}

@@ -9,7 +9,6 @@ export const useIsMobile = () => {
       setIsMobile(isMobileDevice());
     };
 
-    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);

@@ -1,4 +1,4 @@
-export const isMobileDevice = () => window.innerWidth <= 768 || 'ontouchstart' in window;
+export const isMobileDevice = () => window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
 
 export const getMobileViewportHeight = () => {
   // Handle mobile viewport quirks
