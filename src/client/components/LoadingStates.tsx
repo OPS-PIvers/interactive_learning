@@ -10,8 +10,12 @@ export const MobileLoading: React.FC<MobileLoadingProps> = ({ type, message }) =
   return null; // Placeholder implementation
 };
 
+interface TouchFeedbackProps {
+  children: React.ReactNode;
+}
+
 // Touch feedback component
-export const TouchFeedback: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TouchFeedback: React.FC<TouchFeedbackProps> = ({ children }) => {
   // Wraps components with touch feedback
   return <>{children}</>; // Placeholder implementation
 };

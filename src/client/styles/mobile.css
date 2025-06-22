@@ -99,7 +99,7 @@
     padding: 12px;
     text-align: center;
     border-radius: 6px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     font-weight: 500;
   }
 
@@ -126,7 +126,7 @@
     aspect-ratio: 1;
     border-radius: 8px;
     border: 2px solid transparent;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
     position: relative;
   }
 
@@ -144,15 +144,6 @@
 @supports (-webkit-touch-callout: none) {
   .ios-viewport-fix {
     height: -webkit-fill-available;
-  }
-
-  /* Prevent iOS zoom on input focus */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  textarea,
-  select {
-    font-size: 16px !important;
   }
 
   /* Fix iOS Safari bottom bar issues */
