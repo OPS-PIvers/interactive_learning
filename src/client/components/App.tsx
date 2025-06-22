@@ -86,27 +86,35 @@ const App: React.FC = () => {
     const updatedProjectData: Project = {
       ...projectToSave,
       interactiveData: data,
-      // Thumbnail will be derived from data.backgroundImage on the server/proxy if needed
+      thumbnailUrl: data.backgroundImage || undefined, // Explicitly set thumbnailUrl
     };
     
     setIsLoading(true);
     try {
+      // Pass the updatedProjectData which now includes the thumbnailUrl to the proxy
       await appScriptProxy.saveProject(updatedProjectData);
-      // Update local state for immediate reflection. 
-      // The server response from saveProject could also return the updated project.
+
+      // Optimistically update the local state with the new data, including the thumbnail.
+      // This ensures the UI updates immediately.
       setProjects(prevProjects =>
-        prevProjects.map(p => (p.id === projectId ? {
-            ...updatedProjectData, 
-            thumbnailUrl: data.backgroundImage // for immediate UI update of thumbnail
-        } : p))
+        prevProjects.map(p => (p.id === projectId ? updatedProjectData : p))
       );
-       // Re-fetch all projects to ensure consistency after save.
-       // Alternatively, appScriptProxy.saveProject could return the updated project itself.
+
+      // Update selectedProject if it's the one being saved
+      if (selectedProject && selectedProject.id === projectId) {
+        setSelectedProject(updatedProjectData);
+      }
+
+      // Optionally, you can still refresh the project list from the server
+      // if you want to ensure full consistency or if the server might make further changes.
+      // However, for the thumbnail issue, the optimistic update should suffice for immediate UI correctness.
+      // For now, let's keep the refresh to ensure data integrity from the backend.
        const refreshedProjects = await appScriptProxy.listProjects();
        setProjects(refreshedProjects);
-       setSelectedProject(refreshedProjects.find(p => p.id === projectId) || null);
+       // Ensure selected project is also updated from the refreshed list
+       setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
 
-      console.log('Project data save initiated via proxy:', projectId);
+      console.log('Project data save initiated via proxy:', projectId, updatedProjectData);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err.message || ''}`);
