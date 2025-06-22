@@ -56,7 +56,7 @@ jobs:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
   build_and_deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
