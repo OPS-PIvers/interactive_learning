@@ -28,6 +28,7 @@ interface EditorToolbarProps {
   onSave: () => void;
   isSaving: boolean;
   showSuccessMessage: boolean;
+  isMobile?: boolean;
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {

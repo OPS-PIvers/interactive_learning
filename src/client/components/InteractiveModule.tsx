@@ -89,7 +89,6 @@ interface InteractiveModuleProps {
   onClose?: () => void;
   projectName: string;
   projectId?: string;
-  isMobile?: boolean; // Added for mobile detection
 }
 
 interface ImageTransformState {

@@ -8,6 +8,7 @@ interface ViewerToolbarProps {
   onStartLearning: () => void;
   onStartExploring: () => void;
   hasContent: boolean;
+  isMobile?: boolean;
 }
 
 const ViewerToolbar: React.FC<ViewerToolbarProps> = ({

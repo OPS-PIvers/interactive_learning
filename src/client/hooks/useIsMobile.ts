@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { isMobileDevice } from '../utils/mobileUtils';
 
 export const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(isMobileDevice());
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+      setIsMobile(isMobileDevice());
     };
 
     checkMobile();

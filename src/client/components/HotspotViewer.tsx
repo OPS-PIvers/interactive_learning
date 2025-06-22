@@ -15,9 +15,10 @@ interface HotspotViewerProps {
   pixelPosition?: { x: number; y: number } | null;
   usePixelPositioning?: boolean;
   onEditRequest?: (id: string) => void; // Add edit callback
+  isMobile?: boolean;
 }
 
-const HotspotViewer: React.FC<HotspotViewerProps> = ({ 
+const HotspotViewer: React.FC<HotspotViewerProps> = ({
   hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest
 }) => {
   const [isDragging, setIsDragging] = useState(false);

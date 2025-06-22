@@ -17,6 +17,7 @@ interface HorizontalTimelineProps {
   onNextStep?: () => void;
   currentStepIndex?: number;
   totalSteps?: number;
+  isMobile?: boolean;
 }
 
 const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
