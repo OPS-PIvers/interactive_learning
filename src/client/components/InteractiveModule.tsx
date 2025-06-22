@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
@@ -88,6 +89,7 @@ interface InteractiveModuleProps {
   onClose?: () => void;
   projectName: string;
   projectId?: string;
+  isMobile?: boolean; // Added for mobile detection
 }
 
 interface ImageTransformState {
@@ -130,6 +132,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Save state management
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+
+  const isMobile = useIsMobile();
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
@@ -1635,6 +1639,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             onSave={handleSave}
             isSaving={isSaving}
             showSuccessMessage={showSuccessMessage}
+            isMobile={isMobile} // ADD THIS
           />
           </div>
           
@@ -1768,6 +1773,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                             onEditRequest={handleHotspotEditRequest}
                             onPositionChange={handleHotspotPositionChange}
                             isContinuouslyPulsing={false}
+                            isMobile={isMobile} // ADD THIS
                           />
                         );
                       })}
@@ -1828,6 +1834,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   isEditing={isEditing}
                   timelineEvents={timelineEvents}
                   hotspots={hotspots}
+                  isMobile={isMobile} // ADD THIS
                 />
               </div>
             )}
@@ -1846,6 +1853,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             onStartLearning={handleStartLearning}
             onStartExploring={handleStartExploring}
             hasContent={!!backgroundImage}
+            isMobile={isMobile} // ADD THIS
           />
           </div>
           
@@ -1935,6 +1943,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               onFocusRequest={handleFocusHotspot}
                               onEditRequest={handleHotspotEditRequest}
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
+                              isMobile={isMobile} // ADD THIS
                             />
                           );
                         })}
@@ -1993,6 +2002,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   onNextStep={handleNextStep}
                   currentStepIndex={currentStepIndex}
                   totalSteps={totalTimelineInteractionPoints}
+                  isMobile={isMobile} // ADD THIS
                 />
               </div>
             )}
