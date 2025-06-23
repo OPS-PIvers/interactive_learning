@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react'; // Added useMemo
 import { HotspotData, HotspotSize } from '../../shared/types';
 import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
 
@@ -18,7 +18,8 @@ interface HotspotViewerProps {
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest, isMobile // Destructure isMobile
+  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest,
+  isMobile = false // Default isMobile to false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
@@ -31,8 +32,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const DRAG_THRESHOLD_DESKTOP = 10; // px
   const DRAG_THRESHOLD_MOBILE = 15; // px
 
-  const currentHoldTime = isMobile ? HOLD_TIME_MOBILE : HOLD_TIME_DESKTOP;
-  const currentDragThreshold = isMobile ? DRAG_THRESHOLD_MOBILE : DRAG_THRESHOLD_DESKTOP;
+  const currentHoldTime = useMemo(() => isMobile ? HOLD_TIME_MOBILE : HOLD_TIME_DESKTOP, [isMobile]);
+  const currentDragThreshold = useMemo(() => isMobile ? DRAG_THRESHOLD_MOBILE : DRAG_THRESHOLD_DESKTOP, [isMobile]);
   
   // Get size classes based on hotspot size, ensuring minimum 44px touch target on mobile for the container
   const getHotspotElementSizeClasses = (size: HotspotSize = 'medium') => {

@@ -193,8 +193,8 @@ export const useTouchGestures = (
       const deltaY = touches[0].clientY - touchState.panStartPoint.y;
 
       // if (Math.abs(deltaX) > panThreshold || Math.abs(deltaY) > panThreshold || touchState.isPanning) {
-      if (imageTransform.scale <= 1) { // Only allow pan if zoomed in
-        // If not zoomed, and user tries to pan, allow native scroll
+      if (imageTransform.scale <= 1) { // Pan is disabled if not zoomed in (scale <= 1)
+        // Allow native scroll or other default browser behavior if not zoomed.
         return;
       }
       e.preventDefault(); // Prevent scroll if panning on zoomed image
