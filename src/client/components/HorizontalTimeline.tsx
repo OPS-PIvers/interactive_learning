@@ -3,6 +3,7 @@ import { TimelineEventData, HotspotData } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -33,13 +34,39 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   onNextStep,
   currentStepIndex,
   totalSteps,
+  isMobile,
 }) => {
   // Add state for preview
   const [activePreview, setActivePreview] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  if (uniqueSortedSteps.length === 0) {
+
+  // Mobile Specific State
+  const [isEventPreviewCollapsed, setIsEventPreviewCollapsed] = useState<boolean>(true);
+  const timelineScrollRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isMobile && timelineScrollRef.current && uniqueSortedSteps.length > 0 && currentStepIndex !== undefined) {
+      const activeDot = timelineScrollRef.current.children[currentStepIndex] as HTMLElement;
+      if (activeDot) {
+        const scrollLeft = activeDot.offsetLeft - (timelineScrollRef.current.offsetWidth / 2) + (activeDot.offsetWidth / 2);
+        timelineScrollRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  }, [currentStepIndex, isMobile, uniqueSortedSteps]);
+
+
+  if (uniqueSortedSteps.length === 0 && !isEditing) { // Allow empty timeline in editing for initial step
     return null;
   }
+
+  if (isMobile && isEditing) { // Hide timeline in mobile editing for now, as per simplified AGENTS.md focus on viewer
+      return (
+        <div className="w-full bg-slate-800 p-2 text-center">
+            <p className="text-xs text-slate-400">Timeline editing is optimized for desktop.</p>
+        </div>
+      );
+  }
+
 
   const getStepTooltip = (step: number): string => {
     const eventsAtStep = timelineEvents.filter(e => e.step === step);
@@ -164,6 +191,92 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     );
   };
 
+  if (isMobile) {
+    const progressPercent = totalSteps && totalSteps > 1 ? ((currentStepIndex || 0) / (totalSteps - 1)) * 100 : 0;
+    const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
+
+    return (
+      <div className="w-full bg-slate-800 py-2 border-t border-slate-700">
+        {/* Event Preview (Collapsible) */}
+        {currentEvent && moduleState === 'learning' && (
+          <div className="px-3 pb-2">
+            <button
+              onClick={() => setIsEventPreviewCollapsed(!isEventPreviewCollapsed)}
+              className="w-full text-left text-xs text-slate-300 hover:text-slate-100 flex justify-between items-center"
+            >
+              <span>Current: <span className="font-medium">{currentEvent.name}</span></span>
+              <ChevronDownIcon className={`w-4 h-4 transform transition-transform ${isEventPreviewCollapsed ? '' : 'rotate-180'}`} />
+            </button>
+            {!isEventPreviewCollapsed && (
+              <div className="mt-1 p-2 bg-slate-700 rounded text-xs text-slate-300">
+                 <p>{currentEvent.message || "No additional details for this event."}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Progress Bar and Step Indicators */}
+        <div className="px-3">
+          <div className="relative h-2 bg-slate-600 rounded-full w-full">
+            <div
+              className="absolute top-0 left-0 h-2 bg-purple-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div
+            ref={timelineScrollRef}
+            className="mt-2 flex gap-x-2 overflow-x-auto pb-2 hide-scrollbar" // hide-scrollbar is a utility class you might need to define
+            style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {uniqueSortedSteps.map((step, index) => {
+              const isActive = step === currentStep;
+              return (
+                <button
+                  key={step}
+                  onClick={() => onStepSelect(step)}
+                  className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-medium transition-all duration-200 ease-in-out border-2
+                    ${isActive ? 'bg-purple-500 border-purple-300 text-white scale-110' : 'bg-slate-500 border-slate-400 text-slate-200 hover:bg-purple-400 hover:border-purple-300'}
+                    flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 focus:ring-offset-slate-800
+                  `}
+                  aria-label={`Step ${index + 1}`}
+                  aria-current={isActive ? "step" : undefined}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Navigation Controls */}
+        {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
+          <div className="flex items-center justify-between mt-2 px-3">
+            <button
+              onClick={onPrevStep}
+              disabled={currentStepIndex === 0}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-60 text-slate-200 hover:text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+              Prev
+            </button>
+            <span className="text-slate-300 text-xs font-medium">
+              Step {(currentStepIndex || 0) + 1} / {totalSteps}
+            </span>
+            <button
+              onClick={onNextStep}
+              disabled={currentStepIndex >= totalSteps - 1}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-60 text-slate-200 hover:text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default Desktop Timeline
   return (
     <div className="w-full" aria-label="Module Timeline">
       <div className="px-4 py-2">
@@ -195,7 +308,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           </div>
 
           {/* Preview Card */}
-          {activePreview && showPreviews && (
+          {activePreview && showPreviews && !isMobile && ( // Don't show desktop preview card on mobile
             <EventPreviewCard
               step={activePreview}
               events={timelineEvents}
