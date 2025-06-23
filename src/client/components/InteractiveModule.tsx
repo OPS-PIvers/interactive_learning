@@ -9,9 +9,11 @@ import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
 import HotspotEditorModal from './HotspotEditorModal';
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
-import { PlusIcon } from './icons/PlusIcon';
+import { PlusIcon } from './icons/PlusIcon'; // Already imported
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
+import MobileHotspotEditor from './MobileHotspotEditor';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import ReactDOM from 'react-dom';
@@ -133,6 +135,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
 
   const isMobile = useIsMobile();
+  const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
+  const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
@@ -1118,9 +1122,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
-      // Open the modal for editing
       setSelectedHotspotForModal(hotspotId);
-      setIsHotspotModalOpen(true);
+      if (isMobile) {
+        // On mobile, focusing a hotspot should also switch to the properties tab
+        setActiveMobileEditorTab('properties');
+      } else {
+        // On desktop, open the modal for editing
+        setIsHotspotModalOpen(true);
+      }
     } else if (moduleState === 'idle') {
       setExploredHotspotId(hotspotId);
       const firstEventForHotspot = timelineEvents
@@ -1129,7 +1138,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM_TO_HOTSPOT));
     }
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-  }, [isEditing, moduleState, timelineEvents]);
+  }, [isEditing, moduleState, timelineEvents, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // Move handleSave before useAutoSave to fix temporal dead zone
   const handleSave = useCallback(async () => {
@@ -1617,38 +1626,255 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   return (
     <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
       {isEditing ? (
-        <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
-          {/* Add Toolbar */}
-          <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
-          <EditorToolbar
-            projectName={projectName}
-            onBack={handleAttemptClose}
-            onReplaceImage={handleImageUpload}
-            isAutoProgression={isTimedMode}
-            onToggleAutoProgression={setIsTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            onAutoProgressionDurationChange={setAutoProgressionDuration}
-            currentZoom={editingZoom}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onZoomReset={handleZoomReset}
-            onCenter={handleCenter}
-            currentColorScheme={colorScheme}
-            onColorSchemeChange={setColorScheme}
-            onSave={handleSave}
-            isSaving={isSaving}
-            showSuccessMessage={showSuccessMessage}
-            isMobile={isMobile}
-          />
+        isMobile ? (
+          //**************************************************//
+          //*********** MOBILE EDITOR LAYOUT START ***********//
+          //**************************************************//
+          <div className="flex flex-col min-h-screen bg-slate-900 pt-14"> {/* pt-14 for toolbar height */}
+            {/* Mobile EditorToolbar */}
+            <div className="flex-shrink-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: Z_INDEX.TOOLBAR }}>
+              <EditorToolbar
+                projectName={projectName}
+                onBack={handleAttemptClose}
+                onReplaceImage={handleImageUpload}
+                isAutoProgression={isTimedMode}
+                onToggleAutoProgression={setIsTimedMode}
+                autoProgressionDuration={autoProgressionDuration}
+                onAutoProgressionDurationChange={setAutoProgressionDuration}
+                currentZoom={editingZoom} // Mobile might need its own zoom state if canvas behaves differently
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                onCenter={handleCenter} // May need mobile specific centering
+                currentColorScheme={colorScheme}
+                onColorSchemeChange={setColorScheme}
+                onSave={handleSave}
+                isSaving={isSaving}
+                showSuccessMessage={showSuccessMessage}
+                isMobile={true}
+              />
+            </div>
+
+            {/* Mobile Editor Layout - Stack Layout */}
+            <div className="flex flex-col flex-1 min-h-0"> {/* Ensure child flex items can shrink */}
+              {/* Image editing area */}
+              {/* Use existing image rendering logic, adapted for mobile space */}
+              {/* This ref is the one specified in AGENTS.md for Agent 4 */}
+              <div ref={imageContainerRef} className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden" onClick={handleImageClick}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={() => setTouchStartDistance(null)}
+                style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default'}}
+              >
+                {/* Adapted from desktop editor's image rendering section */}
+                {backgroundImage ? (
+                  <div
+                    ref={scrollableContainerRef} // Re-use for consistency, or a new one if mobile needs different scroll behavior
+                    className="w-full h-full overflow-auto flex items-center justify-center" // Ensure centering
+                  >
+                    <div
+                      ref={zoomedImageContainerRef}
+                      className="relative"
+                      style={{
+                        transform: `scale(${editingZoom})`, // Use editingZoom
+                        transformOrigin: 'center',
+                        transition: 'transform 0.2s ease-out',
+                      }}
+                    >
+                      <img
+                        ref={actualImageRef}
+                        src={backgroundImage}
+                        alt="Interactive module background"
+                        className="block max-w-full max-h-full object-contain" // Ensure image fits and maintains aspect ratio
+                        onLoad={handleImageLoad}
+                        draggable={false}
+                      />
+                      {/* Hotspots rendering (simplified for brevity, reuse MemoizedHotspotViewer) */}
+                      {hotspotsWithPositions.map(hotspot => (
+                        <MemoizedHotspotViewer
+                          key={hotspot.id}
+                          hotspot={hotspot}
+                          pixelPosition={hotspot.pixelPosition}
+                          usePixelPositioning={true}
+                          imageElement={actualImageRef.current}
+                          isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                          isDimmedInEditMode={currentStep > 0 && !timelineEvents.some(e => e.step === currentStep && e.targetId === hotspot.id)}
+                          isEditing={true}
+                          onFocusRequest={handleFocusHotspot} // Opens modal on desktop, could select for MobileHotspotEditor
+                          onEditRequest={handleHotspotEditRequest} // For modal
+                          onPositionChange={handleHotspotPositionChange}
+                          isMobile={true}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <div className="text-center">
+                      <p className="text-lg mb-4">Upload an image</p>
+                      <FileUpload onFileUpload={handleImageUpload} />
+                    </div>
+                  </div>
+                )}
+                {pendingHotspot && imageContainerRef.current && (
+                    <div
+                      className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
+                      style={{ left: `${pendingHotspot.viewXPercent}%`, top: `${pendingHotspot.viewYPercent}%`}}
+                      aria-hidden="true"
+                    ><PlusIcon className="w-5 h-5 text-white"/></div>
+                )}
+                {/* Pending Hotspot Confirmation Overlay (can be reused or adapted for mobile) */}
+                {pendingHotspot && (
+                  <div className="absolute top-4 right-4 z-50"> {/* Ensure high z-index */}
+                    <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 border border-slate-600">
+                      <h4 className="text-md font-semibold mb-2 text-slate-200">Confirm Hotspot</h4>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAddHotspot(pendingHotspot.imageXPercent, pendingHotspot.imageYPercent)}
+                          className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-3 rounded"
+                        >Add</button>
+                        <button
+                          onClick={() => setPendingHotspot(null)}
+                          className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-3 rounded"
+                        >Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile editor controls panel */}
+              {/* This ref is the one specified in AGENTS.md for Agent 4 */}
+              <div ref={mobileEditorPanelRef} className="flex-shrink-0 bg-slate-800 border-t border-slate-600 overflow-hidden" style={{maxHeight: '50vh'}}> {/* Max height to prevent overflow */}
+                <MobileEditorTabs activeTab={activeMobileEditorTab} onTabChange={setActiveMobileEditorTab} />
+                <div className="flex-1 overflow-y-auto p-0"> {/* p-0 if MobileHotspotEditor has its own padding */}
+                  {/* Tab content */}
+                  {activeMobileEditorTab === 'properties' && (
+                    selectedHotspotForModal && hotspots.find(h => h.id === selectedHotspotForModal) ? (
+                      <MobileHotspotEditor
+                        hotspot={hotspots.find(h => h.id === selectedHotspotForModal)!}
+                        onUpdate={(updates) => {
+                          const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
+                          if (hotspotToUpdate) {
+                            handleSaveHotspot({ ...hotspotToUpdate, ...updates });
+                          }
+                        }}
+                        onDelete={() => {
+                          if(selectedHotspotForModal) handleRemoveHotspot(selectedHotspotForModal);
+                          // Potentially close/deselect hotspot in mobile view
+                          setSelectedHotspotForModal(null);
+                        }}
+                      />
+                    ) : (
+                      <div className="p-4 text-center text-slate-400">Select a hotspot to edit its properties.</div>
+                    )
+                  )}
+                  {activeMobileEditorTab === 'timeline' && (
+                    backgroundImage ? (
+                      <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
+                        <HorizontalTimeline
+                          uniqueSortedSteps={uniqueSortedSteps}
+                          currentStep={currentStep}
+                          onStepSelect={handleTimelineDotClick}
+                          isEditing={isEditing}
+                          timelineEvents={timelineEvents}
+                          hotspots={hotspots}
+                          isMobile={true} // Pass isMobile
+                        />
+                      </div>
+                    ) : (
+                       <div className="p-4 text-center text-slate-400">Upload an image to manage timeline.</div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile floating action button */}
+              <div className="absolute bottom-20 right-4 z-40"> {/* Adjusted bottom to avoid overlap with potential nav bars or timeline if it's part of the bottom panel */}
+                <button
+                  onClick={() => {
+                    if (backgroundImage && actualImageRef.current) {
+                       // For mobile, clicking FAB could directly set pending hotspot state,
+                       // then user taps on image to place it.
+                       // The confirmation dialog for pendingHotspot will handle the actual creation.
+                      const container = imageContainerRef.current;
+                      if (container) {
+                        // Default to center of the current view of the image as a starting point for pending
+                        const defaultXPercent = 50;
+                        const defaultYPercent = 50;
+
+                        // Attempt to find center of actual image if possible, otherwise use viewport center
+                        let initialImageX = defaultXPercent;
+                        let initialImageY = defaultYPercent;
+
+                        if (actualImageRef.current && actualImageRef.current.offsetParent) {
+                            // This logic assumes the image is somewhat centered or visible
+                            // A more robust solution might involve calculating the visible center of the image
+                            initialImageX = (container.clientWidth / 2 / (actualImageRef.current.width * editingZoom)) * 100;
+                            initialImageY = (container.clientHeight / 2 / (actualImageRef.current.height * editingZoom)) * 100;
+                            initialImageX = Math.max(0, Math.min(100, initialImageX));
+                            initialImageY = Math.max(0, Math.min(100, initialImageY));
+                        }
+
+                        setPendingHotspot({
+                            viewXPercent: defaultXPercent, // Visual marker in center of viewport
+                            viewYPercent: defaultYPercent,
+                            imageXPercent: initialImageX, // Actual data coords
+                            imageYPercent: initialImageY,
+                        });
+                         alert("Tap on the image to place the new hotspot.");
+                      }
+                    } else {
+                      alert("Please upload an image first to add hotspots.");
+                    }
+                  }}
+                  className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center text-white shadow-lg"
+                  aria-label="Add hotspot"
+                >
+                  <PlusIcon className="w-7 h-7" />
+                </button>
+              </div>
+            </div>
           </div>
-          
-          {/* Main editing content - remove toolbar height */}
-          <div className="h-full">
-            {/* Main Image Canvas Area - Full Width */}
-          <div className="relative bg-slate-900 h-full" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
-            {/* Full-screen image container with zoom */}
-            <div className="absolute inset-0">
-              <TransformIndicator />
+          //**************************************************//
+          //************* MOBILE EDITOR LAYOUT END ***********//
+          //**************************************************//
+        ) : (
+          //**************************************************//
+          //********** DESKTOP EDITOR LAYOUT START ***********//
+          //**************************************************//
+          <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
+            {/* Add Toolbar */}
+            <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
+            <EditorToolbar
+              projectName={projectName}
+              onBack={handleAttemptClose}
+              onReplaceImage={handleImageUpload}
+              isAutoProgression={isTimedMode}
+              onToggleAutoProgression={setIsTimedMode}
+              autoProgressionDuration={autoProgressionDuration}
+              onAutoProgressionDurationChange={setAutoProgressionDuration}
+              currentZoom={editingZoom}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onZoomReset={handleZoomReset}
+              onCenter={handleCenter}
+              currentColorScheme={colorScheme}
+              onColorSchemeChange={setColorScheme}
+              onSave={handleSave}
+              isSaving={isSaving}
+              showSuccessMessage={showSuccessMessage}
+              isMobile={isMobile} // Will be false here
+            />
+            </div>
+
+            {/* Main editing content - remove toolbar height */}
+            <div className="h-full">
+              {/* Main Image Canvas Area - Full Width */}
+            <div className="relative bg-slate-900 h-full" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+              {/* Full-screen image container with zoom */}
+              <div className="absolute inset-0">
+                <TransformIndicator />
               {/* Viewport Container - scales with manual zoom */}
             {debugMode && (
               <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>

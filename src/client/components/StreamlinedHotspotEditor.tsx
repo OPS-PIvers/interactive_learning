@@ -19,6 +19,7 @@ interface StreamlinedHotspotEditorProps {
   onReorderEvents: (eventIds: string[]) => void;
   onJumpToStep: (step: number) => void;
   onClose: () => void;
+  isMobile?: boolean;
 }
 
 // Color preset options
@@ -354,6 +355,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
             setShowEventForm(false);
             setEditingEvent(null);
           }}
+          isMobile={isMobile} // Pass isMobile prop
         />
       )}
 
@@ -388,9 +390,10 @@ interface EventEditorFormProps {
   hotspotId: string;
   onSave: (event: TimelineEventData) => void;
   onCancel: () => void;
+  isMobile?: boolean;
 }
 
-const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onSave, onCancel }) => {
+const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onSave, onCancel, isMobile }) => {
   const [formData, setFormData] = useState<Partial<TimelineEventData>>(() => ({
     id: event?.id || `event_${Date.now()}`,
     name: event?.name || 'New Event',
