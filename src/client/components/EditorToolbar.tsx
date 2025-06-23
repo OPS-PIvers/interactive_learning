@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+// Assuming these icons exist or will be created
+import { MenuIcon } from './icons/MenuIcon';
+import { ZoomInIcon } from './icons/ZoomInIcon';
+import { ZoomOutIcon } from './icons/ZoomOutIcon';
+import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
+import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 
 interface EditorToolbarProps {
@@ -28,12 +34,92 @@ interface EditorToolbarProps {
   onSave: () => void;
   isSaving: boolean;
   showSuccessMessage: boolean;
-  isMobile?: boolean;
+  isMobile?: boolean; // Already present as per instructions
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false); // For mobile collapsible menu
 
+  if (props.isMobile) {
+    const saveButtonClasses = `p-2 rounded transition-colors flex items-center justify-center ${
+      props.isSaving
+        ? 'text-slate-400 cursor-not-allowed'
+        : props.showSuccessMessage
+        ? 'text-green-400'
+        : 'text-slate-300 hover:text-white'
+    }`;
+
+    return (
+      <>
+        <div className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50 h-14 flex items-center justify-between px-2">
+          {/* Left: Back Button & Title */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={props.onBack}
+              className="p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              <ChevronLeftIcon className="w-6 h-6" />
+            </button>
+            <h1 className="text-md font-semibold text-white truncate max-w-32 sm:max-w-48">
+              {props.projectName}
+            </h1>
+          </div>
+
+          {/* Center: Essential Zoom Controls */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={props.onZoomOut}
+              className="p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              <ZoomOutIcon className="w-6 h-6" />
+            </button>
+            <span className="text-sm text-slate-400 w-10 text-center">{Math.round(props.currentZoom * 100)}%</span>
+            <button
+              onClick={props.onZoomIn}
+              className="p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              <ZoomInIcon className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Right: Save & Menu */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={props.onSave}
+              disabled={props.isSaving}
+              className={saveButtonClasses}
+            >
+              {props.isSaving ? (
+                <span className="animate-spin w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full" />
+              ) : props.showSuccessMessage ? (
+                <CheckIcon className="w-6 h-6 text-green-400" /> // Use CheckIcon for success
+              ) : (
+                <SaveIcon className="w-6 h-6" />
+              )}
+            </button>
+            <button
+              onClick={() => setShowMobileMenu(true)} // Open collapsible menu/modal
+              className="p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              <MenuIcon className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible Menu (Modal for advanced controls) */}
+        {/* Reusing EnhancedModalEditorToolbar for now, might need a more mobile-specific one later */}
+        <EnhancedModalEditorToolbar
+          isOpen={showMobileMenu}
+          onClose={() => setShowMobileMenu(false)}
+          {...props}
+          isMobile={true} // Pass isMobile to the modal as well
+        />
+      </>
+    );
+  }
+
+  // Desktop Toolbar (Original Structure)
   return (
     <>
       {/* Minimal Top Bar with Settings Button */}
