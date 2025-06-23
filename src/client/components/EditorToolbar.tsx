@@ -5,6 +5,7 @@ import { MenuIcon } from './icons/MenuIcon';
 import { ZoomInIcon } from './icons/ZoomInIcon';
 import { ZoomOutIcon } from './icons/ZoomOutIcon';
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
+import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 
 interface EditorToolbarProps {
@@ -90,7 +91,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
               {props.isSaving ? (
                 <span className="animate-spin w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full" />
               ) : props.showSuccessMessage ? (
-                <SaveIcon className="w-6 h-6 text-green-400" /> // Assuming SaveIcon changes color or we use a CheckIcon
+                <CheckIcon className="w-6 h-6 text-green-400" /> // Use CheckIcon for success
               ) : (
                 <SaveIcon className="w-6 h-6" />
               )}

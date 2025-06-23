@@ -1,15 +1,5 @@
-import React, { useState } from 'react';
-
-// Assuming HotspotData type definition exists. If not, create a placeholder.
-// For example:
-interface HotspotData {
-  id: string;
-  title?: string;
-  description?: string;
-  backgroundColor?: string; // e.g., 'bg-red-500' or '#ef4444'
-  size?: 'small' | 'medium' | 'large';
-  // ... other properties
-}
+import React, { useState, useEffect } from 'react';
+import { HotspotData, HotspotSize } from '../../shared/types';
 
 interface MobileHotspotEditorProps {
   hotspot: HotspotData;
@@ -40,8 +30,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
   const [internalHotspot, setInternalHotspot] = useState<HotspotData>(hotspot);
 
+  useEffect(() => {
+    setInternalHotspot(hotspot);
+  }, [hotspot]);
+
   // Update internal state and call onUpdate when changes are made
   const handleChange = (field: keyof HotspotData, value: any) => {
+    // TODO: Consider debouncing onUpdate or calling it only on explicit save/blur
+    // if performance issues arise due to frequent updates to the parent component.
+    // For now, direct update provides real-time feedback.
     const updatedHotspot = { ...internalHotspot, [field]: value };
     setInternalHotspot(updatedHotspot);
     onUpdate({ [field]: value });
