@@ -42,6 +42,14 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false); // For mobile collapsible menu
 
   if (props.isMobile) {
+    const saveButtonClasses = `p-2 rounded transition-colors flex items-center justify-center ${
+      props.isSaving
+        ? 'text-slate-400 cursor-not-allowed'
+        : props.showSuccessMessage
+        ? 'text-green-400'
+        : 'text-slate-300 hover:text-white'
+    }`;
+
     return (
       <>
         <div className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50 h-14 flex items-center justify-between px-2">
@@ -80,13 +88,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             <button
               onClick={props.onSave}
               disabled={props.isSaving}
-              className={`p-2 rounded transition-colors flex items-center justify-center ${
-                props.isSaving
-                  ? 'text-slate-400 cursor-not-allowed'
-                  : props.showSuccessMessage
-                  ? 'text-green-400'
-                  : 'text-slate-300 hover:text-white'
-              }`}
+              className={saveButtonClasses}
             >
               {props.isSaving ? (
                 <span className="animate-spin w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full" />
