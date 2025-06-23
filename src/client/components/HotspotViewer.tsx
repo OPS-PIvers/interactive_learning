@@ -19,7 +19,7 @@ interface HotspotViewerProps {
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest
+  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest, isMobile
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
@@ -28,15 +28,29 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   
   // Get size classes based on hotspot size
   const getSizeClasses = (size: HotspotSize = 'medium') => {
-    switch (size) {
-      case 'small':
-        return 'h-3 w-3 sm:h-3 sm:w-3';
-      case 'medium':
-        return 'h-4 w-4 sm:h-5 sm:w-5';
-      case 'large':
-        return 'h-5 w-5 sm:h-6 sm:w-6';
-      default:
-        return 'h-4 w-4 sm:h-5 sm:w-5';
+    if (isMobile) {
+      switch (size) {
+        case 'small':
+          return 'h-11 w-11'; // 44px
+        case 'medium':
+          return 'h-12 w-12'; // 48px
+        case 'large':
+          return 'h-14 w-14'; // 56px
+        default:
+          return 'h-12 w-12'; // Default mobile size
+      }
+    } else {
+      // Desktop sizes
+      switch (size) {
+        case 'small':
+          return 'h-3 w-3'; // 12px
+        case 'medium':
+          return 'h-5 w-5'; // 20px
+        case 'large':
+          return 'h-6 w-6'; // 24px
+        default:
+          return 'h-5 w-5'; // Default desktop size
+      }
     }
   };
   
@@ -68,14 +82,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         onEditRequest(hotspot.id);
         return;
       }
-    }, 600); // 600ms hold time
+    }, isMobile ? 400 : 600); // Hold time: 400ms for mobile, 600ms for desktop
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const deltaX = Math.abs(moveEvent.clientX - startX);
       const deltaY = Math.abs(moveEvent.clientY - startY);
       
-      // If moved more than 10px, it's a drag
-      if (deltaX > 10 || deltaY > 10) {
+      const dragThreshold = isMobile ? 15 : 10; // Drag threshold: 15px for mobile, 10px for desktop
+      // If moved more than threshold, it's a drag
+      if (deltaX > dragThreshold || deltaY > dragThreshold) {
         dragThresholdRef.current = true;
         if (holdTimeoutRef.current) {
           clearTimeout(holdTimeoutRef.current);
