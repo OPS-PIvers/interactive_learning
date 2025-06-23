@@ -1912,21 +1912,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             </div>
           </div>
           {/* Fixed Bottom Timeline */}
-          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
-            {backgroundImage && (
-              <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-                <HorizontalTimeline
-                  uniqueSortedSteps={uniqueSortedSteps}
-                  currentStep={currentStep}
-                  onStepSelect={handleTimelineDotClick}
-                  isEditing={isEditing}
-                  timelineEvents={timelineEvents}
-                  hotspots={hotspots}
-                  isMobile={isMobile}
-                />
-              </div>
-            )}
-          </div>
+<div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
+  {backgroundImage && (
+    <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
+      <HorizontalTimeline
+        uniqueSortedSteps={uniqueSortedSteps}
+        currentStep={currentStep}
+        onStepSelect={handleTimelineDotClick}
+        isEditing={isEditing}
+        timelineEvents={timelineEvents}
+        hotspots={hotspots}
+        isMobile={isMobile}
+      />
+    </div>
+  )}
+</div>
         </div>
         </div>
       ) : (
