@@ -1996,8 +1996,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             {backgroundImage && (
               <div
                 ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
-                className={`${isMobile ? 'flex-shrink-0' : 'bg-slate-800 border-t border-slate-700'}`}
-                style={{ zIndex: Z_INDEX.TIMELINE, position: isMobile ? 'relative' : 'absolute', bottom: isMobile ? undefined : 0, left: isMobile ? undefined : 0, right: isMobile ? undefined : 0 }}
+                className={`${isMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
+                style={{ zIndex: Z_INDEX.TIMELINE }}
               >
                 <HorizontalTimeline
                   uniqueSortedSteps={uniqueSortedSteps}

@@ -3,6 +3,7 @@ import { TimelineEventData, HotspotData } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -51,7 +52,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         timelineScrollRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
-  }, [currentStep, currentStepIndex, isMobile, uniqueSortedSteps]);
+  }, [currentStepIndex, isMobile, uniqueSortedSteps]);
 
 
   if (uniqueSortedSteps.length === 0 && !isEditing) { // Allow empty timeline in editing for initial step
@@ -322,13 +323,5 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     </div>
   );
 };
-
-// Helper Icon (can be moved to a separate icons file)
-const ChevronDownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-  </svg>
-);
-
 
 export default HorizontalTimeline;
