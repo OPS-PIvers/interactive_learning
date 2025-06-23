@@ -90,3 +90,10 @@ export interface Project {
   thumbnailUrl?: string; // Base64 string of the background image, for card display
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
+
+export interface ImageTransformState {
+  scale: number;
+  translateX: number;
+  translateY: number;
+  targetHotspotId?: string;
+}

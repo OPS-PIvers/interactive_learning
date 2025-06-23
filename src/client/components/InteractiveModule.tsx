@@ -1422,43 +1422,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // Legacy edit function removed - now handled by enhanced editor
 
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-    if (e.touches.length === 2) {
-      // Prevent default only if we are sure we are handling this gesture
-      // e.preventDefault(); // Be cautious with preventDefault in touchstart
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setTouchStartDistance(distance);
-    }
-  }, [debugLog]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && touchStartDistance !== null) {
-      debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-      e.preventDefault(); // Prevent scrolling/other default actions during pinch
-
-      const newDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-
-      const scaleFactor = newDistance / touchStartDistance;
-
-      // Apply the scale factor to the current imageTransform.scale
-      // This makes the pinch feel more natural as it scales relative to the current zoom
-      setImageTransform(prevTransform => {
-        const newZoom = Math.max(0.25, Math.min(5, prevTransform.scale * scaleFactor));
-        return { ...prevTransform, scale: newZoom };
-      });
-
-      // Update touchStartDistance for continuous scaling in the same gesture
-      // This means the next move event will scale relative to this new distance and zoom
-      setTouchStartDistance(newDistance);
-    }
-  }, [touchStartDistance, setImageTransform, debugLog]);
+  // Old handleTouchStart and handleTouchMove are removed as useTouchGestures handles this.
+  // const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => { ... });
+  // const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => { ... });
 
   const handleRemoveHotspot = useCallback((hotspotId: string) => {
     if (!confirm(`Are you sure you want to remove hotspot ${hotspotId} and its related timeline events?`)) return;
@@ -1671,9 +1637,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 ref={imageContainerRef}
                 className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
                 onClick={handleImageClick} // Main click handler for placing pending hotspot
-                onTouchStart={handleTouchStart} // Main touch handlers for pan/zoom on canvas area
-                onTouchMove={handleTouchMove}
-                onTouchEnd={() => setTouchStartDistance(null)}
+                {...(isMobile && isEditing ? touchGestureHandlers : {})} // Apply gesture handlers
                 style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default'}}
               >
                 <ImageEditCanvas
@@ -1991,9 +1955,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
               onClick={!isMobile ? handleImageClick : undefined} // Desktop handles general image click for reset
-              onTouchStart={handleTouchStart} // Common touch handling
-              onTouchMove={handleTouchMove}
-              onTouchEnd={() => setTouchStartDistance(null)}
+              {...(isMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
             >
               <div
                 className="w-full h-full flex items-center justify-center"
