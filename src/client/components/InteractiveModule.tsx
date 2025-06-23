@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useTouchGestures } from '../hooks/useTouchGestures'; // Import the new hook
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
@@ -116,7 +117,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [imageLoading, setImageLoading] = useState(false);
   const [positionCalculating, setPositionCalculating] = useState(false);
   const [isModeSwitching, setIsModeSwitching] = useState(false);
-  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
+  // const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null); // Will be managed by useTouchGestures
   
   // New state for enhanced features
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
@@ -185,7 +186,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [debugMode] = useState(() => import.meta.env.DEV && localStorage.getItem('debug_positioning') === 'true');
 
   // Track if transform is transitioning for smooth animations
-  const [isTransforming, setIsTransforming] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false); // This will be controlled by useTouchGestures as well
+
+  // Initialize useTouchGestures hook
+  // Note: imageContainerRef is used by useTouchGestures.
+  // Ensure that the ref is associated with the element that should capture touch events for gestures (likely the main image viewing area).
+  const {
+    handleTouchStart: gestureHandleTouchStart,
+    handleTouchMove: gestureHandleTouchMove,
+    handleTouchEnd: gestureHandleTouchEnd,
+    // touchState: currentTouchGestureState, // Can be used for debugging or conditional rendering based on gesture state
+    // resetTouchState: resetGestureState,
+  } = useTouchGestures(
+    imageContainerRef, // Ref to the element receiving touch events
+    imageTransform,
+    setImageTransform, // The same state setter used for other transform changes
+    setIsTransforming // To indicate when a gesture is actively changing the transform
+  );
 
   const debugLog = useCallback((category: string, message: string, data?: any) => {
     if (!debugMode) return;
@@ -1405,43 +1422,62 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // Legacy edit function removed - now handled by enhanced editor
 
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-    if (e.touches.length === 2) {
-      // Prevent default only if we are sure we are handling this gesture
-      // e.preventDefault(); // Be cautious with preventDefault in touchstart
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setTouchStartDistance(distance);
-    }
-  }, [debugLog]);
+  // const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  //   debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
+  //   if (e.touches.length === 2) {
+  //     // Prevent default only if we are sure we are handling this gesture
+  //     // e.preventDefault(); // Be cautious with preventDefault in touchstart
+  //     const distance = Math.hypot(
+  //       e.touches[0].clientX - e.touches[1].clientX,
+  //       e.touches[0].clientY - e.touches[1].clientY
+  //     );
+  //     // setTouchStartDistance(distance); // Managed by useTouchGestures
+  //   }
+  //   // Delegate to the hook's handler
+  //   gestureHandleTouchStart(e);
+  // }, [debugLog, gestureHandleTouchStart]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && touchStartDistance !== null) {
-      debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
-      e.preventDefault(); // Prevent scrolling/other default actions during pinch
+  // const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  //   // if (e.touches.length === 2 && touchStartDistance !== null) { // Managed by useTouchGestures
+  //   //   debugLog('Touch', `Touch event: ${e.type}`, { touches: e.touches.length });
+  //   //   e.preventDefault(); // Prevent scrolling/other default actions during pinch
 
-      const newDistance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
+  //   //   const newDistance = Math.hypot(
+  //   //     e.touches[0].clientX - e.touches[1].clientX,
+  //   //     e.touches[0].clientY - e.touches[1].clientY
+  //   //   );
 
-      const scaleFactor = newDistance / touchStartDistance;
+  //   //   const scaleFactor = newDistance / touchStartDistance;
 
-      // Apply the scale factor to the current imageTransform.scale
-      // This makes the pinch feel more natural as it scales relative to the current zoom
-      setImageTransform(prevTransform => {
-        const newZoom = Math.max(0.25, Math.min(5, prevTransform.scale * scaleFactor));
-        return { ...prevTransform, scale: newZoom };
-      });
+  //   //   // Apply the scale factor to the current imageTransform.scale
+  //   //   // This makes the pinch feel more natural as it scales relative to the current zoom
+  //   //   setImageTransform(prevTransform => {
+  //   //     const newZoom = Math.max(0.25, Math.min(5, prevTransform.scale * scaleFactor));
+  //   //     return { ...prevTransform, scale: newZoom };
+  //   //   });
 
-      // Update touchStartDistance for continuous scaling in the same gesture
-      // This means the next move event will scale relative to this new distance and zoom
-      setTouchStartDistance(newDistance);
-    }
-  }, [touchStartDistance, setImageTransform, debugLog]);
+  //   //   // Update touchStartDistance for continuous scaling in the same gesture
+  //   //   // This means the next move event will scale relative to this new distance and zoom
+  //   //   // setTouchStartDistance(newDistance); // Managed by useTouchGestures
+  //   // }
+  //   // Delegate to the hook's handler
+  //   gestureHandleTouchMove(e);
+  // }, [setImageTransform, debugLog, gestureHandleTouchMove]);
+
+  // const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // setTouchStartDistance(null); // Managed by useTouchGestures
+    // Delegate to the hook's handler
+    // gestureHandleTouchEnd(e);
+  // }, [gestureHandleTouchEnd]);
+
+
+  // The existing touch handlers (handleTouchStart, handleTouchMove, handleTouchEnd)
+  // seem to be specific to the editor's image canvas for adding hotspots or simple pinch.
+  // The new useTouchGestures hook provides more comprehensive gesture handling.
+  // We should replace the old handlers with the ones from useTouchGestures on the appropriate element.
+  // The old handleTouchStart, handleTouchMove, handleTouchEnd are removed/commented out.
+  // The gestureHandleTouchStart, gestureHandleTouchMove, gestureHandleTouchEnd from the hook will be used directly.
+
 
   const handleRemoveHotspot = useCallback((hotspotId: string) => {
     if (!confirm(`Are you sure you want to remove hotspot ${hotspotId} and its related timeline events?`)) return;
@@ -1705,12 +1741,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               >
                 <div
                   ref={imageContainerRef}
-                  className="relative flex items-center justify-center min-w-full min-h-full"
+                  className="relative flex items-center justify-center min-w-full min-h-full touch-none" // Added touch-none to prevent browser default touch actions like scroll/zoom if not handled by our gestures
                   style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default', zIndex: Z_INDEX.IMAGE_BASE }}
                   onClick={handleImageClick}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={() => setTouchStartDistance(null)}
+                  onTouchStart={gestureHandleTouchStart}
+                  onTouchMove={gestureHandleTouchMove}
+                  onTouchEnd={gestureHandleTouchEnd}
                   role={backgroundImage ? "button" : undefined}
                   aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
                 >
@@ -1874,12 +1910,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             )}
                 <div 
                   ref={imageContainerRef}
-                  className="w-full h-full flex items-center justify-center bg-slate-900"
+                  className="w-full h-full flex items-center justify-center bg-slate-900 touch-none" // Added touch-none
                   style={{ cursor: 'default' }}
                   onClick={handleImageClick}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={() => setTouchStartDistance(null)}
+                  onTouchStart={gestureHandleTouchStart}
+                  onTouchMove={gestureHandleTouchMove}
+                  onTouchEnd={gestureHandleTouchEnd}
                   role={backgroundImage ? "button" : undefined}
                   aria-label={backgroundImage ? "Interactive image" : undefined}
                 >
