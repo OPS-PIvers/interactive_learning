@@ -148,11 +148,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
   const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
-  const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container
-  const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image
+  const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
+  const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image (viewer)
   
+  // Refs for Agent 4 (Touch Handling) - As per AGENTS.md
+  const viewerImageContainerRef = useRef<HTMLDivElement>(null); // Specifically for mobile viewer image area
+  const viewerTimelineRef = useRef<HTMLDivElement>(null); // Specifically for mobile viewer timeline area
+
   // New refs for the img-based system (editing mode only)
   const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
   const actualImageRef = useRef<HTMLImageElement>(null);
@@ -1841,154 +1845,160 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         </div>
         </div>
       ) : (
-        /* New Viewer Layout */
-        <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden">
-          {/* Add ViewerToolbar */}
-          <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
-          <ViewerToolbar
-            projectName={projectName}
-            onBack={handleAttemptClose}
-            moduleState={moduleState}
-            onStartLearning={handleStartLearning}
-            onStartExploring={handleStartExploring}
-            hasContent={!!backgroundImage}
-            isMobile={isMobile}
-          />
+        /* VIEWER LAYOUT (Desktop and Mobile) */
+        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+          {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
+          <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
+            <ViewerToolbar
+              projectName={projectName}
+              onBack={handleAttemptClose}
+              moduleState={moduleState}
+              onStartLearning={handleStartLearning}
+              onStartExploring={handleStartExploring}
+              hasContent={!!backgroundImage}
+              isMobile={isMobile}
+            />
           </div>
           
-          {/* Main content area */}
-          <div className="flex flex-col h-full">
-            {/* Image container - full width */}
-            <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
-              <div className="absolute inset-0">
+          {/* Main content area (Image + Timeline for Mobile) */}
+          {/* Desktop: This div is part of the fixed layout, for Mobile: it's the flex-1 content area */}
+          <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
+            {/* Image container with mobile-safe sizing */}
+            {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
+            <div
+              ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
+              className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
+              style={{ zIndex: Z_INDEX.IMAGE_BASE }}
+              onClick={!isMobile ? handleImageClick : undefined} // Desktop handles general image click for reset
+              onTouchStart={handleTouchStart} // Common touch handling
+              onTouchMove={handleTouchMove}
+              onTouchEnd={() => setTouchStartDistance(null)}
+            >
+              <div
+                className="w-full h-full flex items-center justify-center"
+                onClick={isMobile ? handleImageClick : undefined} // Mobile handles its own click for reset here
+                role={backgroundImage ? "button" : undefined}
+                aria-label={backgroundImage ? (isMobile ? "Interactive image area" : "Interactive image") : undefined}
+              >
+                {/* TransformIndicator and Debug can be kept for both, or made conditional */}
                 <TransformIndicator />
-            {debugMode && (
-              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
-                <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
-                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
-                <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
-                <div>Image Fit: {imageFitMode}</div>
-                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
-              </div>
-            )}
-                <div 
-                  ref={imageContainerRef}
-                  className="w-full h-full flex items-center justify-center bg-slate-900"
-                  style={{ cursor: 'default' }}
-                  onClick={handleImageClick}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={() => setTouchStartDistance(null)}
-                  role={backgroundImage ? "button" : undefined}
-                  aria-label={backgroundImage ? "Interactive image" : undefined}
-                >
-                  {backgroundImage ? (
-                    <>
-                      {backgroundImage && !isEditing && (
-                        <img
-                          src={backgroundImage}
-                          onLoad={(e) => setImageNaturalDimensions({
-                            width: e.currentTarget.naturalWidth,
-                            height: e.currentTarget.naturalHeight
-                          })}
-                          style={{ display: 'none' }}
-                          alt=""
-                          aria-hidden="true"
-                        />
-                      )}
-                      <div 
-                        ref={scaledImageDivRef}
-                        className="relative"
-                        style={{
-                          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-                          backgroundSize: imageFitMode,
-                          backgroundPosition: 'center',
-                          backgroundRepeat: 'no-repeat',
-                          transformOrigin: 'center',
-                          transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                          transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-                          width: '80vw', // From issue
-                          height: '80vh', // From issue
-                          maxWidth: '1200px', // From issue
-                          maxHeight: '800px', // From issue
-                          zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
-                        }}
+                {debugMode && (
+                  <div className="absolute top-4 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG, marginTop: isMobile ? '0' : '56px' /* Adjust for desktop toolbar if needed */ }}>
+                    <div>Mode: Viewer (isMobile: {isMobile.toString()})</div>
+                    <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
+                    <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
+                    <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
+                    <div>Image Fit: {imageFitMode}</div>
+                    {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
+                  </div>
+                )}
+
+                {backgroundImage ? (
+                  <>
+                    {/* Hidden image for natural dimensions, used by both desktop and mobile */}
+                    {!isEditing && (
+                      <img
+                        src={backgroundImage}
+                        onLoad={(e) => setImageNaturalDimensions({
+                          width: e.currentTarget.naturalWidth,
+                          height: e.currentTarget.naturalHeight
+                        })}
+                        style={{ display: 'none' }}
+                        alt=""
                         aria-hidden="true"
-                      >
-                        {(moduleState === 'learning' || isEditing) && highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                          <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
-                        )}
-                        <div style={{ zIndex: Z_INDEX.HOTSPOTS }}>
-                        {hotspotsWithPositions.map(hotspot => { // Use hotspotsWithPositions
-                          const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) ||
-                                            (moduleState === 'idle');
-
+                      />
+                    )}
+                    {/* Scaled Image Div (used for background image and hotspots) */}
+                    <div
+                      ref={scaledImageDivRef} // This ref is used by getSafeImageBounds for viewer mode
+                      className="relative" // Ensure positioning context for hotspots
+                      style={{
+                        backgroundImage: `url(${backgroundImage})`,
+                        backgroundSize: imageFitMode,
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        transformOrigin: 'center',
+                        transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
+                        transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                        // Sizing: Use 100% of parent for mobile, specific viewport % for desktop
+                        width: isMobile ? '100%' : '80vw',
+                        height: isMobile ? '100%' : '80vh',
+                        maxWidth: isMobile ? '100%' : '1200px',
+                        maxHeight: isMobile ? '100%' : '800px',
+                        zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
+                      }}
+                      aria-hidden="true"
+                    >
+                      {/* Highlight Overlay */}
+                      {(moduleState === 'learning' || isEditing) && highlightedHotspotId && activeHotspotDisplayIds.has(highlightedHotspotId) && (
+                        <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
+                      )}
+                      {/* Hotspots */}
+                      <div style={{ zIndex: Z_INDEX.HOTSPOTS }}>
+                        {hotspotsWithPositions.map(hotspot => {
+                          const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
                           if (!shouldShow) return null;
-
-                          // const pixelPos = getHotspotPixelPosition(hotspot); // No longer needed here
-
                           return (
                             <MemoizedHotspotViewer
                               key={hotspot.id}
-                              hotspot={hotspot} // Pass the whole hotspot object which includes pixelPosition
-                              pixelPosition={hotspot.pixelPosition} // Access pre-calculated position
+                              hotspot={hotspot}
+                              pixelPosition={hotspot.pixelPosition}
                               usePixelPositioning={true}
-                              isPulsing={(moduleState === 'learning' || isEditing) &&
-                                         pulsingHotspotId === hotspot.id &&
-                                         activeHotspotDisplayIds.has(hotspot.id)}
-                              isDimmedInEditMode={false}
+                              isPulsing={(moduleState === 'learning') && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                              isDimmedInEditMode={false} // Not in editing mode here
                               isEditing={false}
                               onFocusRequest={handleFocusHotspot}
-                              onEditRequest={handleHotspotEditRequest}
+                              onEditRequest={handleHotspotEditRequest} // Should not be called in viewer
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
                               isMobile={isMobile}
                             />
                           );
                         })}
-                        </div>
                       </div>
-                      
-                      {/* Initial view buttons overlay when in idle mode */}
-                      {moduleState === 'idle' && !isEditing && backgroundImage && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
-                          <div className="text-center space-y-6 p-8 bg-black/60 rounded-2xl border border-white/20 shadow-2xl max-w-md">
-                            <div>
-                              <h2 className="text-2xl font-bold text-white mb-2">Interactive Module Ready</h2>
-                              <p className="text-slate-300 text-sm">Choose how you'd like to explore this content</p>
-                            </div>
-                            <div className="flex flex-col space-y-3">
-                              <button
-                                onClick={handleStartExploring}
-                                className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200"
-                              >
-                                Explore Module
-                              </button>
-                              <button
-                                onClick={handleStartLearning}
-                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200"
-                              >
-                                Start Guided Tour
-                              </button>
-                            </div>
+                    </div>
+
+                    {/* Initial view buttons overlay (common for desktop/mobile idle) */}
+                    {moduleState === 'idle' && !isEditing && backgroundImage && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
+                        <div className="text-center space-y-4 sm:space-y-6 p-6 sm:p-8 bg-black/60 rounded-lg sm:rounded-2xl border border-white/20 shadow-xl sm:shadow-2xl max-w-xs sm:max-w-md">
+                          <div>
+                            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Interactive Module Ready</h2>
+                            <p className="text-slate-300 text-xs sm:text-sm">Choose how you'd like to explore this content</p>
+                          </div>
+                          <div className="flex flex-col space-y-2.5 sm:space-y-3">
+                            <button
+                              onClick={handleStartExploring}
+                              className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200 text-sm sm:text-base"
+                            >
+                              Explore Module
+                            </button>
+                            <button
+                              onClick={handleStartLearning}
+                              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 text-sm sm:text-base"
+                            >
+                              Start Guided Tour
+                            </button>
                           </div>
                         </div>
-                      )}
-                      
-                      {/* InfoPanel removed - using modal now */}
-                    </>
-                  ) : (
-                    <div className="text-center text-slate-400">
-                      <p>No background image set.</p>
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <p>No background image set.</p>
+                  </div>
+                )}
               </div>
             </div>
             
-            {/* Timeline at bottom - full width */}
+            {/* Mobile timeline / Desktop timeline container */}
+            {/* Desktop: timeline is part of fixed layout, Mobile: flex-shrink-0 */}
             {backgroundImage && (
-              <div className="bg-slate-800 border-t border-slate-700" style={{ position: 'relative', zIndex: Z_INDEX.TIMELINE }}>
+              <div
+                ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
+                className={`${isMobile ? 'flex-shrink-0' : 'bg-slate-800 border-t border-slate-700'}`}
+                style={{ zIndex: Z_INDEX.TIMELINE, position: isMobile ? 'relative' : 'absolute', bottom: isMobile ? undefined : 0, left: isMobile ? undefined : 0, right: isMobile ? undefined : 0 }}
+              >
                 <HorizontalTimeline
                   uniqueSortedSteps={uniqueSortedSteps}
                   currentStep={currentStep}
