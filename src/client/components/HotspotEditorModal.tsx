@@ -37,15 +37,41 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set());
   
   // State for event settings
-  const [zoomLevel, setZoomLevel] = useState(2.5);
+  const [zoomLevel, setZoomLevel] = useState(1.0);
   const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle' | 'oval'>('circle');
   const [dimPercentage, setDimPercentage] = useState(70);
   const [textContent, setTextContent] = useState('');
   const [textPosition, setTextPosition] = useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center');
 
-  // Position states for preview
-  const [spotlightPosition, setSpotlightPosition] = useState({ x: 35, y: 30, width: 120, height: 120 });
-  const [textBoxPosition, setTextBoxPosition] = useState({ x: 50, y: 20, width: 200, height: 60 });
+  // Position states for preview - initialize relative to hotspot position
+  const [spotlightPosition, setSpotlightPosition] = useState(() => ({
+    x: selectedHotspot?.x || 50,
+    y: selectedHotspot?.y || 50,
+    width: 120,
+    height: 120
+  }));
+  const [textBoxPosition, setTextBoxPosition] = useState(() => ({
+    x: selectedHotspot?.x || 50,
+    y: Math.max(10, (selectedHotspot?.y || 50) - 15), // Position text above hotspot
+    width: 200,
+    height: 60
+  }));
+
+  // Update positions when hotspot changes
+  useEffect(() => {
+    if (selectedHotspot) {
+      setSpotlightPosition(prev => ({
+        ...prev,
+        x: selectedHotspot.x,
+        y: selectedHotspot.y
+      }));
+      setTextBoxPosition(prev => ({
+        ...prev,
+        x: selectedHotspot.x,
+        y: Math.max(10, selectedHotspot.y - 15)
+      }));
+    }
+  }, [selectedHotspot?.id, selectedHotspot?.x, selectedHotspot?.y]);
 
   // Initialize state from existing events
   useEffect(() => {
@@ -75,6 +101,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       if (event.type === InteractionType.SHOW_TEXT && event.textContent) {
         setTextContent(event.textContent);
         if (event.textPosition) setTextPosition(event.textPosition);
+        // Load text position data
+        if (event.textX !== undefined && event.textY !== undefined) {
+          setTextBoxPosition({
+            x: event.textX,
+            y: event.textY,
+            width: event.textWidth || 200,
+            height: event.textHeight || 60
+          });
+        }
       }
     });
     
@@ -261,12 +296,25 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  if (selectedHotspot && window.confirm(`Are you sure you want to delete the hotspot "${selectedHotspot.title}"? This action cannot be undone.`)) {
+                    onDeleteHotspot(selectedHotspot.id);
+                    onClose();
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-all duration-200"
+              >
+                Delete Hotspot
+              </button>
+            </div>
             <button 
               onClick={handleSave}
               className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
@@ -287,6 +335,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             dimPercentage={dimPercentage}
             textContent={textContent}
             textPosition={textPosition}
+            spotlightPosition={spotlightPosition}
+            textBoxPosition={textBoxPosition}
             onSpotlightPositionChange={handleSpotlightPositionChange}
             onTextPositionChange={handleTextPositionChange}
             onZoomLevelChange={setZoomLevel}

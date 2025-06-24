@@ -27,6 +27,10 @@ interface EnhancedHotspotPreviewProps {
   textContent: string;
   textPosition: 'top' | 'bottom' | 'left' | 'right' | 'center';
   
+  // Position data
+  spotlightPosition: SpotlightPosition;
+  textBoxPosition: TextPosition;
+  
   // Position callbacks
   onSpotlightPositionChange?: (position: SpotlightPosition) => void;
   onTextPositionChange?: (position: TextPosition) => void;
@@ -69,9 +73,13 @@ const SpotlightHandles: React.FC<{
       const percentDeltaX = (deltaX / containerRect.width) * 100;
       const percentDeltaY = (deltaY / containerRect.height) * 100;
       
-      // Apply position with proper bounds checking
-      const newX = Math.max(2, Math.min(95, position.x + percentDeltaX));
-      const newY = Math.max(2, Math.min(95, position.y + percentDeltaY));
+      // Calculate spotlight boundaries based on its size
+      const spotlightWidthPercent = (position.width / containerRect.width) * 100;
+      const spotlightHeightPercent = (position.height / containerRect.height) * 100;
+      
+      // Apply position with proper bounds checking (keep spotlight center within reasonable bounds)
+      const newX = Math.max(spotlightWidthPercent / 2 + 2, Math.min(100 - spotlightWidthPercent / 2 - 2, position.x + percentDeltaX));
+      const newY = Math.max(spotlightHeightPercent / 2 + 2, Math.min(100 - spotlightHeightPercent / 2 - 2, position.y + percentDeltaY));
       
       onPositionChange({
         ...position,
@@ -513,6 +521,8 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
   dimPercentage,
   textContent,
   textPosition,
+  spotlightPosition,
+  textBoxPosition,
   onSpotlightPositionChange,
   onTextPositionChange,
   onZoomLevelChange
@@ -522,14 +532,6 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
   const [currentAnimationStep, setCurrentAnimationStep] = useState(0);
   const [previewZoom, setPreviewZoom] = useState(1);
   const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 });
-  
-  // Position states
-  const [spotlightPosition, setSpotlightPosition] = useState<SpotlightPosition>({
-    x: 35, y: 30, width: 120, height: 120
-  });
-  const [textBoxPosition, setTextBoxPosition] = useState<TextPosition>({
-    x: 50, y: 20, width: 200, height: 60
-  });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -584,13 +586,11 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
 
   // Spotlight drag handlers
   const handleSpotlightDrag = useCallback((newPosition: SpotlightPosition) => {
-    setSpotlightPosition(newPosition);
     onSpotlightPositionChange?.(newPosition);
   }, [onSpotlightPositionChange]);
 
   // Text box drag handlers  
   const handleTextDrag = useCallback((newPosition: TextPosition) => {
-    setTextBoxPosition(newPosition);
     onTextPositionChange?.(newPosition);
   }, [onTextPositionChange]);
 
