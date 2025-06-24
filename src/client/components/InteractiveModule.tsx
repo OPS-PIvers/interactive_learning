@@ -23,6 +23,11 @@ import { appScriptProxy } from '../../lib/firebaseProxy';
 
 import { Z_INDEX } from './zIndexConstants';
 
+// Helper function to generate unique IDs
+const generateId = () => {
+  return `hotspot_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+};
+
 const editorStyles = `
   .editor-scrollbar::-webkit-scrollbar {
     width: 8px;
@@ -1234,38 +1239,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Auto-save hook for data protection
   useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
-const handleStartLearning = () => {
-    height: 8px;
-  }
-
-  .editor-scrollbar::-webkit-scrollbar-track {
-    background: #1e293b;
-    border-radius: 4px;
-  }
-
-  .editor-scrollbar::-webkit-scrollbar-thumb {
-    background: #475569;
-    border-radius: 4px;
-  }
-
-  .editor-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-  }
-
-  .editor-image-container {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .editor-hotspot-preview {
-    animation: hotspot-preview 2s ease-in-out infinite;
-  }
-
-  @keyframes hotspot-preview {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  }
-`;
-
   const handleStartLearning = () => {
     setModuleState('learning');
     setExploredHotspotId(null);
@@ -1667,17 +1640,25 @@ const handleStartLearning = () => {
     if (scrollableContainerRef.current) {
       const container = scrollableContainerRef.current;
       const rect = container.getBoundingClientRect();
-      const centerX = (e.clientX - rect.left) / rect.width;
-      const centerY = (e.clientY - rect.top) / rect.height;
+      const oldZoom = editingZoom;
 
-      // Adjust scroll position to maintain zoom center
-      const scrollX = centerX * container.scrollWidth - rect.width / 2;
-      const scrollY = centerY * container.scrollHeight - rect.height / 2;
+      if (newZoom === oldZoom) return;
 
-      container.scrollTo({
-        left: scrollX,
-        top: scrollY,
-      behavior: 'auto'
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const mouseOnContentX = container.scrollLeft + mouseX;
+      const mouseOnContentY = container.scrollTop + mouseY;
+
+      const newScrollX = (mouseOnContentX * (newZoom / oldZoom)) - mouseX;
+      const newScrollY = (mouseOnContentY * (newZoom / oldZoom)) - mouseY;
+
+      requestAnimationFrame(() => {
+        container.scrollTo({
+          left: newScrollX,
+          top: newScrollY,
+          behavior: 'auto'
+        });
       });
     }
   }, [isEditing, editingZoom]);
@@ -1717,11 +1698,6 @@ const handleStartLearning = () => {
       setIsHotspotModalOpen(true); // Open new editor modal on desktop
     }
   }, [pendingHotspot, hotspots.length, colorScheme, isMobile, setActiveMobileEditorTab, setIsHotspotModalOpen, setSelectedHotspotForModal, setEditingHotspot]);
-
-  // Helper function to generate unique IDs
-  const generateId = () => {
-    return `hotspot_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-  };
 
   // Enhanced image click handler with better coordinate calculation
   const handleImageClick = useCallback((e: React.MouseEvent) => {
@@ -2070,8 +2046,17 @@ const handleStartLearning = () => {
                     role={backgroundImage ? "button" : undefined}
                     aria-label={backgroundImage ? "Image canvas for adding hotspots" : "Interactive image"}
                   >
-                    {backgroundImage ? (
-                      <>
+                    {backgroundImage && imageNaturalDimensions ? (
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: imageNaturalDimensions.width,
+                          height: imageNaturalDimensions.height,
+                          transform: `scale(${editingZoom})`,
+                          transformOrigin: 'center center',
+                          transition: 'transform 0.2s ease-out',
+                        }}
+                      >
                         {/* Main Background Image */}
                         <img
                           ref={actualImageRef}
@@ -2079,10 +2064,13 @@ const handleStartLearning = () => {
                           alt="Interactive module background"
                           className="max-w-none" // Prevent tailwind from constraining size
                           style={{
-                            transform: `scale(${editingZoom})`,
-                            transformOrigin: 'center center', // Or 'top left' if preferred, adjust logic accordingly
+                            // transform: `scale(${editingZoom})`, // Scale is now on parent
+                            // transformOrigin: 'center center', // Or 'top left' if preferred, adjust logic accordingly
                             imageRendering: editingZoom > 2 ? 'pixelated' : 'auto', // Pixelated for sharp zoom
-                            transition: 'transform 0.2s ease-out' // Smooth zoom transition
+                            // transition: 'transform 0.2s ease-out' // Smooth zoom transition is on parent
+                            display: 'block', // Ensure img behaves as a block for width/height
+                            width: '100%',
+                            height: '100%',
                           }}
                           onLoad={handleImageLoad} // Use existing or new image load handler
                           draggable={false}
@@ -2101,7 +2089,7 @@ const handleStartLearning = () => {
                             // HotspotIndicator needs to correctly position hotspots based on the scaled image
                             // It will receive hotspot data (x,y percentages) and the current editingZoom
                             return (
-                              <HotspotIndicator
+                              <MemoizedHotspotViewer
                                 key={hotspot.id}
                                 hotspot={hotspot}
                                 // Pass imageTransform for HotspotIndicator to calculate its position
@@ -2141,7 +2129,7 @@ const handleStartLearning = () => {
                             <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg opacity-75 animate-pulse" />
                           </div>
                         )}
-                      </>
+                      </div>
                     ) : (
                       /* No Image State - Placeholder */
                       <div className="flex flex-col items-center justify-center text-slate-400 space-y-4 p-8">
