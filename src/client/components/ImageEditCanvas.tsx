@@ -23,11 +23,11 @@ interface ImageEditCanvasProps {
   highlightedHotspotId: string | null;
   getHighlightGradientStyle: () => React.CSSProperties;
 
-  pendingHotspot: { viewXPercent: number; viewYPercent: number; imageXPercent: number; imageYPercent: number } | null;
+  // pendingHotspot: { viewXPercent: number; viewYPercent: number; imageXPercent: number; imageYPercent: number } | null; // Removed
 
   // Event Handlers
   onImageLoad: (event: React.SyntheticEvent<HTMLImageElement>) => void;
-  onImageClick?: (event: React.MouseEvent<HTMLDivElement>) => void; // Optional as mobile might handle clicks on a higher div
+  onImageOrHotspotClick?: (event: React.MouseEvent<HTMLDivElement>, hotspotId?: string) => void; // Updated prop
   onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onTouchMove?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
@@ -59,9 +59,9 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   activeHotspotDisplayIds,
   highlightedHotspotId,
   getHighlightGradientStyle,
-  pendingHotspot,
+  // pendingHotspot, // Removed
   onImageLoad,
-  onImageClick,
+  onImageOrHotspotClick,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
@@ -104,22 +104,21 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b',
       }}
-      // onClick={onImageClick} // Clicks are now handled by parent in mobile, or by this div for desktop
-      // onTouchStart={onTouchStart}
-      // onTouchMove={onTouchMove}
-      // onTouchEnd={onTouchEnd}
+        onClick={isMobile ? undefined : (e) => onImageOrHotspotClick && onImageOrHotspotClick(e)} // Pass event for desktop
+        // onTouchStart, onTouchMove, onTouchEnd are primarily for mobile, handled by InteractiveModule's touchGestureHandlers
+        // If specific touch interactions are needed directly on ImageEditCanvas elements, they can be added.
     >
       <div
-        // This inner div is what was 'imageContainerRef' in desktop,
-        // but for mobile, imageContainerRef is the parent of this component.
-        // For desktop, InteractiveModule will pass its imageContainerRef to this component's scrollableContainerRef's child.
-        // Let's assume the direct parent of the img tag is the one for click if not mobile.
-        className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'}`} // Ensure it fills scrollable
+          className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'}`}
         style={{
-          cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default',
+            cursor: backgroundImage && isEditing ? 'crosshair' : 'default', // Use crosshair in editing mode with an image
           zIndex: Z_INDEX_IMAGE_BASE
         }}
-        onClick={!isMobile ? onImageClick : undefined} // Desktop handles its own click here
+          // For mobile, the click is handled by the parent div in InteractiveModule which then calls onImageOrHotspotClick.
+          // For desktop, the click is handled by the scrollableContainerRef above.
+          // If we need finer-grained click detection within this div (e.g. on the image itself vs. padding),
+          // this onClick could be used, ensuring it calls onImageOrHotspotClick appropriately.
+          // For now, the main click logic is on scrollableContainerRef for desktop.
       >
         {backgroundImage ? (
           <div
@@ -185,11 +184,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           )
         )}
 
-        {/* Visual marker for pending hotspot */}
-        {/* For mobile, viewXPercent/viewYPercent are relative to imageContainerRef (parent of this canvas) */}
-        {/* For desktop, they were relative to the old imageContainerRef (which is now this component's inner div) */}
-        {/* This needs careful handling in InteractiveModule when passing pendingHotspot or this needs its own container ref */}
-        {pendingHotspot && imageContainerRef.current && ( // Use imageContainerRef from props for positioning context
+        {/* Visual marker for pending hotspot - REMOVED */}
+        {/* {pendingHotspot && imageContainerRef.current && (
            <div
             className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
             style={{
@@ -198,7 +194,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             }}
             aria-hidden="true"
           ><PlusIcon className="w-5 h-5 text-white"/></div>
-        )}
+        )} */}
       </div>
     </div>
   );

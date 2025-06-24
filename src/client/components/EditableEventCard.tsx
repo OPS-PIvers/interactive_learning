@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { TimelineEventData, InteractionType } from '../../shared/types';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { EyeIcon } from './icons/EyeIcon';
+import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import DragHandle from './DragHandle';
 import EventTypeSelector from './EventTypeSelector';
 import SliderControl from './SliderControl';
@@ -17,6 +19,9 @@ interface EditableEventCardProps {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, targetEventId: string) => void;
   className?: string;
+  // New props for preview toggling
+  isPreviewing: boolean;
+  onTogglePreview: (eventId: string) => void;
 }
 
 const EditableEventCard: React.FC<EditableEventCardProps> = ({
@@ -29,7 +34,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   onDragStart,
   onDragOver,
   onDrop,
-  className = ''
+  className = '',
+  isPreviewing,
+  onTogglePreview
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -322,6 +329,15 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               title="Edit event"
             >
               <PencilIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onTogglePreview(event.id)}
+              className={`p-1 transition-colors ${
+                isPreviewing ? 'text-blue-400 hover:text-blue-300' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title={isPreviewing ? "Hide Preview" : "Show Preview"}
+            >
+              {isPreviewing ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
             </button>
             <button
               onClick={handleDeleteClick}

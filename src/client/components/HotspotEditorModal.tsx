@@ -34,9 +34,13 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onClose
 }) => {
   // State for selected event types
-  const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set());
+  // const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set()); // Replaced by previewingEventIds
   
-  // State for event settings
+  // State for managing which event previews are visible and which is active
+  const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
+  const [activePreviewEventId, setActivePreviewEventId] = useState<string | null>(null);
+
+  // State for event settings (will be associated with individual events later, for now, global)
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle' | 'oval'>('circle');
   const [dimPercentage, setDimPercentage] = useState(70);
@@ -113,20 +117,44 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }
     });
     
-    setSelectedEventTypes(eventTypes);
+    // setSelectedEventTypes(eventTypes); // This will be handled differently with previewingEventIds
+    // Initialize previewingEventIds based on existing events if needed, or start empty.
+    // For now, starting empty seems fine as user will toggle them.
+    setPreviewingEventIds([]);
+    setActivePreviewEventId(null);
   }, [selectedHotspot, relatedEvents]);
 
-  const handleEventTypeToggle = useCallback((type: InteractionType) => {
-    setSelectedEventTypes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(type)) {
-        newSet.delete(type);
-      } else {
-        newSet.add(type);
+  // Updated handleTogglePreview function
+  const handleTogglePreview = useCallback((eventId: string) => {
+    setPreviewingEventIds(prevIds => {
+      const newIds = prevIds.includes(eventId)
+        ? prevIds.filter(id => id !== eventId)
+        : [...prevIds, eventId];
+
+      if (newIds.includes(eventId)) { // If eventId was added
+        setActivePreviewEventId(eventId);
+      } else { // If eventId was removed
+        if (activePreviewEventId === eventId) { // If the removed event was the active one
+          setActivePreviewEventId(newIds.length > 0 ? newIds[newIds.length - 1] : null);
+        }
       }
-      return newSet;
+      return newIds;
     });
-  }, []);
+  }, [activePreviewEventId]);
+
+
+  // This function will be removed or adapted as event type toggling will now be through adding/removing specific events
+  // const handleEventTypeToggle = useCallback((type: InteractionType) => {
+  //   setSelectedEventTypes(prev => {
+  //     const newSet = new Set(prev);
+  //     if (newSet.has(type)) {
+  //       newSet.delete(type);
+  //     } else {
+  //       newSet.add(type);
+  //     }
+  //     return newSet;
+  //   });
+  // }, []);
 
   const handleSpotlightPositionChange = useCallback((position: typeof spotlightPosition) => {
     setSpotlightPosition(position);
@@ -215,6 +243,12 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   if (!isOpen || !selectedHotspot) return null;
 
+  const localHotspotEvents = relatedEvents.filter(event => event.targetId === selectedHotspot.id);
+
+  const previewingEvents = localHotspotEvents.filter(event => previewingEventIds.includes(event.id));
+  const activePreviewEvent = localHotspotEvents.find(event => event.id === activePreviewEventId) || null;
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out">
       <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] max-h-[95vh] flex overflow-hidden border border-slate-700">
@@ -236,14 +270,22 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </button>
           </header>
 
-          {/* Event Type Selection */}
+          {/* Event Type Selection - This will need to be replaced or updated to list existing events and allow adding new ones */}
+          {/* For now, we'll keep the old EventTypeToggle and assume it drives adding new events,
+              while EditableEventCard (to be added/updated) will list existing events with preview toggles. */}
           <EventTypeToggle 
-            selectedTypes={selectedEventTypes}
-            onToggle={handleEventTypeToggle}
+            selectedTypes={new Set(localHotspotEvents.map(e => e.type))} // Show existing types as selected for now
+            onToggle={(type) => {
+              // This onToggle will need to be adapted to create a new event of this type
+              // or find an existing one to toggle its preview.
+              // For now, let's assume it's for adding new types, which will then appear in relatedEvents.
+              // The actual preview toggling will be handled by EditableEventCard.
+              console.warn("EventTypeToggle onToggle needs to be updated to handle event creation/selection for preview.");
+            }}
           />
 
-          {/* Dynamic Settings Panels */}
-          {selectedEventTypes.has(InteractionType.PAN_ZOOM_TO_HOTSPOT) && (
+          {/* Dynamic Settings Panels - These should be driven by the activePreviewEvent if one is selected */}
+          {activePreviewEvent && activePreviewEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && (
             <PanZoomSettings 
               zoomLevel={zoomLevel}
               onZoomChange={setZoomLevel}
@@ -329,9 +371,11 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           <EnhancedHotspotPreview
             backgroundImage={backgroundImage}
             hotspot={selectedHotspot}
-            selectedEventTypes={selectedEventTypes}
-            zoomLevel={zoomLevel}
-            spotlightShape={spotlightShape}
+            // selectedEventTypes={selectedEventTypes} // Replaced by previewingEvents and activePreviewEvent
+            previewingEvents={previewingEvents}
+            activePreviewEvent={activePreviewEvent}
+            zoomLevel={zoomLevel} // This might become part of activePreviewEvent's data
+            spotlightShape={spotlightShape} // This might become part of activePreviewEvent's data
             dimPercentage={dimPercentage}
             textContent={textContent}
             textPosition={textPosition}

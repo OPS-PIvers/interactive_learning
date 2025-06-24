@@ -18,10 +18,12 @@ interface SpotlightPosition {
 interface EnhancedHotspotPreviewProps {
   backgroundImage: string; // base64 image
   hotspot: HotspotData;
-  selectedEventTypes: Set<InteractionType>;
+  // selectedEventTypes: Set<InteractionType>; // Replaced by previewingEvents and activePreviewEvent
+  previewingEvents: TimelineEventData[];
+  activePreviewEvent: TimelineEventData | null;
   
-  // Event settings
-  zoomLevel: number;
+  // Event settings (these might become part of individual event data if they vary per event)
+  zoomLevel: number; // Example: if global zoom setting is still needed or as a default
   spotlightShape: 'circle' | 'rectangle';
   dimPercentage: number;
   textContent: string;
@@ -515,9 +517,11 @@ const InteractivePanZoomArea: React.FC<{
 const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
   backgroundImage,
   hotspot,
-  selectedEventTypes,
-  zoomLevel,
-  spotlightShape,
+  // selectedEventTypes, // Removed
+  previewingEvents,
+  activePreviewEvent,
+  zoomLevel, // Keep for now, may be derived from activePreviewEvent later
+  spotlightShape, // Keep for now
   dimPercentage,
   textContent,
   textPosition,
@@ -536,32 +540,32 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  // Convert event types to animation sequence
-  const animationSequence = Array.from(selectedEventTypes).map(type => ({
-    type,
-    duration: 3000 // Default duration, could be configurable
-  }));
+  // // Convert event types to animation sequence - This will change based on previewingEvents
+  // const animationSequence = Array.from(selectedEventTypes).map(type => ({
+  //   type,
+  //   duration: 3000 // Default duration, could be configurable
+  // }));
 
-  // Handle preview mode animation
-  useEffect(() => {
-    if (previewMode === 'preview' && animationSequence.length > 0) {
-      setIsAnimating(true);
-      setCurrentAnimationStep(0);
+  // // Handle preview mode animation - This will change
+  // useEffect(() => {
+  //   if (previewMode === 'preview' && animationSequence.length > 0) {
+  //     setIsAnimating(true);
+  //     setCurrentAnimationStep(0);
       
-      const animateSequence = async () => {
-        for (let i = 0; i < animationSequence.length; i++) {
-          setCurrentAnimationStep(i);
-          await new Promise(resolve => setTimeout(resolve, animationSequence[i].duration));
-        }
-        setIsAnimating(false);
-      };
+  //     const animateSequence = async () => {
+  //       for (let i = 0; i < animationSequence.length; i++) {
+  //         setCurrentAnimationStep(i);
+  //         await new Promise(resolve => setTimeout(resolve, animationSequence[i].duration));
+  //       }
+  //       setIsAnimating(false);
+  //     };
       
-      animateSequence();
-    } else {
-      setIsAnimating(false);
-      setCurrentAnimationStep(0);
-    }
-  }, [previewMode, animationSequence.length]);
+  //     animateSequence();
+  //   } else {
+  //     setIsAnimating(false);
+  //     setCurrentAnimationStep(0);
+  //   }
+  // }, [previewMode, animationSequence.length]);
 
   // Native wheel event handler to fix passive event listener warnings
   useEffect(() => {
@@ -594,60 +598,20 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
     onTextPositionChange?.(newPosition);
   }, [onTextPositionChange]);
 
-  // Apply current animation state
-  const getCurrentAnimationState = () => {
-    if (previewMode === 'edit') {
-      return {
-        showSpotlight: selectedEventTypes.has(InteractionType.HIGHLIGHT_HOTSPOT),
-        showText: selectedEventTypes.has(InteractionType.SHOW_TEXT),
-        showZoomRect: selectedEventTypes.has(InteractionType.PAN_ZOOM_TO_HOTSPOT),
-        actualZoom: 1,
-        showPulse: false
-      };
-    } else {
-      // Preview mode - apply current animation step
-      const currentEvent = animationSequence[currentAnimationStep];
-      if (!currentEvent) return { showSpotlight: false, showText: false, showZoomRect: false, actualZoom: 1, showPulse: false };
-      
-      const state = {
-        showSpotlight: false,
-        showText: false, 
-        showZoomRect: false,
-        actualZoom: 1,
-        showPulse: false
-      };
+  // Apply current animation state - This logic will be simplified or removed
+  // as rendering will directly depend on previewingEvents and activePreviewEvent.
+  // const getCurrentAnimationState = () => { ... }
+  // const animationState = getCurrentAnimationState();
 
-      // Apply all events up to current step
-      for (let i = 0; i <= currentAnimationStep; i++) {
-        const event = animationSequence[i];
-        switch (event.type) {
-          case InteractionType.HIGHLIGHT_HOTSPOT:
-            state.showSpotlight = true;
-            break;
-          case InteractionType.SHOW_TEXT:
-            state.showText = true;
-            break;
-          case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-            state.actualZoom = zoomLevel;
-            break;
-          case InteractionType.PULSE_HOTSPOT:
-            state.showPulse = true;
-            break;
-        }
-      }
-      
-      return state;
-    }
-  };
-
-  const animationState = getCurrentAnimationState();
+  // Determine total number of spotlights being previewed for opacity calculation
+  const visibleSpotlightCount = previewingEvents.filter(event => event.type === InteractionType.HIGHLIGHT_HOTSPOT || event.type === InteractionType.SPOTLIGHT).length;
 
   return (
     <div className="mb-4">
-      {/* Toggle Header */}
+      {/* Toggle Header - This might be removed or re-purposed if edit/preview mode is handled differently */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-white">Preview</h3>
-        <div className="flex bg-slate-700 rounded-lg p-1">
+        {/* <div className="flex bg-slate-700 rounded-lg p-1">
           <button
             onClick={() => setPreviewMode('edit')}
             className={`px-3 py-1 text-sm rounded transition-colors ${
@@ -668,7 +632,7 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
           >
             Preview
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Preview Container */}
@@ -705,111 +669,139 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
           style={{ 
             left: `${hotspot.x}%`, 
             top: `${hotspot.y}%`,
-            animation: animationState.showPulse ? 'subtle-pulse-keyframes 2s infinite ease-in-out' : 'none'
+            // animation: animationState.showPulse ? 'subtle-pulse-keyframes 2s infinite ease-in-out' : 'none' // Pulse logic will be event-driven
           }}
         />
 
-        {/* Spotlight Overlay */}
-        {animationState.showSpotlight && (
-          <>
-            {/* Dim overlay */}
-            <div 
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: `rgba(0, 0, 0, ${dimPercentage / 100})` }}
-            />
+        {/* Render all previewing events */}
+        {previewingEvents.map(eventToRender => {
+          const isActive = activePreviewEvent?.id === eventToRender.id;
+          const eventStyle = isActive
+            ? { zIndex: 30, borderColor: 'border-blue-400' }
+            : { zIndex: 20, borderColor: 'border-gray-500' };
+
+          // TODO: Implement specific rendering for each event type (Spotlight, Pan/Zoom, Text)
+          // This will involve using eventToRender data (e.g., eventToRender.spotlightX, eventToRender.zoomLevel)
+          // and applying appropriate styles and handles if isActive.
+
+          switch (eventToRender.type) {
+            case InteractionType.HIGHLIGHT_HOTSPOT:
+            case InteractionType.SPOTLIGHT:
+              const currentDim = eventToRender.dimPercentage !== undefined ? eventToRender.dimPercentage : dimPercentage;
+              const currentShape = eventToRender.highlightShape || spotlightShape;
+              const currentSpotlightPos = {
+                x: eventToRender.spotlightX !== undefined ? eventToRender.spotlightX : spotlightPosition.x,
+                y: eventToRender.spotlightY !== undefined ? eventToRender.spotlightY : spotlightPosition.y,
+                width: eventToRender.spotlightWidth !== undefined ? eventToRender.spotlightWidth : spotlightPosition.width,
+                height: eventToRender.spotlightHeight !== undefined ? eventToRender.spotlightHeight : spotlightPosition.height,
+              };
+              // Adjust opacity if multiple spotlights are visible
+              const finalDimOpacity = visibleSpotlightCount > 0 ? (currentDim / 100) / visibleSpotlightCount : (currentDim / 100);
+
+              return (
+                <React.Fragment key={eventToRender.id}>
+                  {/* Dim overlay - adjust opacity based on count */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: `rgba(0, 0, 0, ${finalDimOpacity})`, zIndex: eventStyle.zIndex - 5 }} // Ensure dim is behind handles
+                  />
+                  {/* Spotlight area */}
+                  <div
+                    className={`absolute pointer-events-none ${eventStyle.borderColor} border-2 ${
+                      currentShape === 'circle' ? 'rounded-full' : ''
+                    } ${isActive ? 'border-blue-400' : 'border-gray-500 opacity-70'}`}
+                    style={{
+                      left: `${currentSpotlightPos.x}%`,
+                      top: `${currentSpotlightPos.y}%`,
+                      width: `${currentSpotlightPos.width}px`,
+                      height: `${currentSpotlightPos.height}px`,
+                      boxShadow: `0 0 0 1000px rgba(0, 0, 0, ${finalDimOpacity})`,
+                      clipPath: currentShape === 'circle'
+                        ? `circle(${Math.min(currentSpotlightPos.width, currentSpotlightPos.height) / 2}px at center)`
+                        : 'none',
+                      zIndex: eventStyle.zIndex
+                    }}
+                  />
+                  {isActive && onSpotlightPositionChange && (
+                    <SpotlightHandles
+                      position={currentSpotlightPos}
+                      onPositionChange={onSpotlightPositionChange} // This needs to update the specific event's data
+                    />
+                  )}
+                </React.Fragment>
+              );
             
-            {/* Spotlight area */}
-            <div 
-              className={`absolute border-2 border-purple-500 pointer-events-none ${
-                spotlightShape === 'circle' ? 'rounded-full' : ''
-              }`}
-              style={{
-                left: `${spotlightPosition.x}%`,
-                top: `${spotlightPosition.y}%`,
-                width: `${spotlightPosition.width}px`,
-                height: `${spotlightPosition.height}px`,
-                boxShadow: `0 0 0 1000px rgba(0, 0, 0, ${dimPercentage / 100})`,
-                clipPath: spotlightShape === 'circle' 
-                  ? `circle(${Math.min(spotlightPosition.width, spotlightPosition.height) / 2}px at center)`
-                  : 'none'
-              }}
-            />
-
-            {/* Spotlight drag handles (Edit mode only) */}
-            {previewMode === 'edit' && (
-              <SpotlightHandles 
-                position={spotlightPosition}
-                onPositionChange={handleSpotlightDrag}
-              />
-            )}
-          </>
-        )}
-
-        {/* Pan & Zoom Rectangle (Edit mode only) */}
-        {previewMode === 'edit' && selectedEventTypes.has(InteractionType.PAN_ZOOM_TO_HOTSPOT) && (
-          <InteractivePanZoomArea
-            hotspotPosition={hotspot}
-            zoomLevel={zoomLevel}
-            onZoomLevelChange={onZoomLevelChange}
-          />
-        )}
-
-        {/* Text Display */}
-        {animationState.showText && textContent && (
-          <div
-            className="absolute bg-slate-800 bg-opacity-90 text-white p-3 rounded-lg border border-slate-600 shadow-lg"
-            style={{
-              left: `${textBoxPosition.x}%`,
-              top: `${textBoxPosition.y}%`,
-              width: `${textBoxPosition.width}px`,
-              minHeight: `${textBoxPosition.height}px`,
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1000 // Above dim layer
-            }}
-          >
-            {textContent}
-            
-            {/* Text drag handles (Edit mode only) */}
-            {previewMode === 'edit' && (
-              <TextHandles 
-                position={textBoxPosition}
-                onPositionChange={handleTextDrag}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Animation Progress Indicator (Preview mode only) */}
-        {previewMode === 'preview' && isAnimating && (
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="bg-slate-800 bg-opacity-90 rounded-lg p-2">
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
-                <span>Animation Progress</span>
-                <span>{currentAnimationStep + 1} / {animationSequence.length}</span>
-              </div>
-              <div className="w-full bg-slate-600 rounded-full h-2">
+            case InteractionType.PAN_ZOOM_TO_HOTSPOT: // Simplified Pan/Zoom preview
+            case InteractionType.PAN_ZOOM:
+              const currentZoom = eventToRender.zoomLevel || zoomLevel;
+              return (
                 <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentAnimationStep + 1) / animationSequence.length) * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+                  key={eventToRender.id}
+                  className={`absolute border-2 rounded-lg p-2 text-xs ${isActive ? 'border-blue-400 bg-blue-500/20' : 'border-gray-500 bg-gray-500/10 opacity-70'}`}
+                  style={{
+                    // Example positioning - this needs to be derived from event data or hotspot
+                    left: `${hotspot.x + 5}%`,
+                    top: `${hotspot.y - 10}%`,
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: eventStyle.zIndex
+                  }}
+                >
+                  Zoom: {currentZoom.toFixed(1)}x
+                  {/* Add handles if isActive and onZoomLevelChange is provided */}
+                </div>
+              );
 
-        {/* Zoom indicator */}
+            case InteractionType.SHOW_TEXT:
+              const currentText = eventToRender.textContent || textContent;
+              const currentTextPos = {
+                x: eventToRender.textX !== undefined ? eventToRender.textX : textBoxPosition.x,
+                y: eventToRender.textY !== undefined ? eventToRender.textY : textBoxPosition.y,
+                width: eventToRender.textWidth !== undefined ? eventToRender.textWidth : textBoxPosition.width,
+                height: eventToRender.textHeight !== undefined ? eventToRender.textHeight : textBoxPosition.height,
+              };
+              return (
+                <div
+                  key={eventToRender.id}
+                  className={`absolute p-2 rounded-lg border ${isActive ? 'border-blue-400 bg-slate-800/90' : 'border-gray-500 bg-slate-800/70 opacity-70'}`}
+                  style={{
+                    left: `${currentTextPos.x}%`,
+                    top: `${currentTextPos.y}%`,
+                    width: `${currentTextPos.width}px`,
+                    minHeight: `${currentTextPos.height}px`,
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: eventStyle.zIndex
+                  }}
+                >
+                  <span className={isActive ? 'text-white' : 'text-slate-300'}>{currentText}</span>
+                  {isActive && onTextPositionChange && (
+                    <TextHandles
+                      position={currentTextPos}
+                      onPositionChange={onTextPositionChange} // Needs to update specific event
+                    />
+                  )}
+                </div>
+              );
+
+            default:
+              return null; // Or a generic placeholder for other event types
+          }
+        })}
+
+        {/* Zoom indicator - This might need to relate to the active Pan/Zoom event if any */}
         <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-          {(animationState.actualZoom * previewZoom).toFixed(1)}x
+          {/* {(animationState.actualZoom * previewZoom).toFixed(1)}x */}
+          {/* TODO: Update zoom display based on active pan/zoom event or overall preview zoom */}
+          {previewZoom.toFixed(1)}x
         </div>
       </div>
 
       {/* Instructions */}
       <div className="mt-4 text-xs text-slate-400">
-        {previewMode === 'edit' ? (
-          <p>Ctrl+scroll to zoom • Drag handles to position elements</p>
-        ) : (
+        {/* {previewMode === 'edit' ? ( */}
+          <p>Ctrl+scroll to zoom preview • Drag handles of active event to position</p>
+        {/* ) : (
           <p>Watching animation sequence • Switch to Edit mode to modify</p>
-        )}
+        )} */}
       </div>
     </div>
   );

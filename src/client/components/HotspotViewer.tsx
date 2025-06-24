@@ -194,6 +194,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         role="button"
         aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}
         tabIndex={0} // Make it focusable
+        data-hotspot-id={hotspot.id} // Add data-hotspot-id attribute
       >
         <span className={dotClasses} aria-hidden="true">
           {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
