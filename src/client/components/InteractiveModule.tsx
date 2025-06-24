@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useTouchGestures } from '../hooks/useTouchGestures';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
@@ -120,7 +121,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [imageLoading, setImageLoading] = useState(false);
   const [positionCalculating, setPositionCalculating] = useState(false);
   const [isModeSwitching, setIsModeSwitching] = useState(false);
-  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
   
   // New state for enhanced features
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
@@ -171,6 +171,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
   const [viewportZoom, setViewportZoom] = useState<number>(1); // Keep for viewer mode
   const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Keep for viewer mode
+  const [isTransforming, setIsTransforming] = useState(false);
   
   // New state for editing mode
   const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
@@ -186,6 +187,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Store original untransformed bounds to prevent feedback loops
   const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
 
+  // Touch gesture handling
+  const touchGestureHandlers = useTouchGestures(
+    isEditing ? imageContainerRef : viewerImageContainerRef,
+    imageTransform,
+    setImageTransform,
+    setIsTransforming,
+    {
+      minScale: 0.5,
+      maxScale: 5.0,
+      doubleTapZoomFactor: 2.0,
+    }
+  );
+
   const batchedSetState = useCallback((updates: Array<() => void>) => {
     ReactDOM.unstable_batchedUpdates(() => {
       updates.forEach(update => update());
@@ -194,9 +208,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Debug mode for development
   const [debugMode] = useState(() => import.meta.env.DEV && localStorage.getItem('debug_positioning') === 'true');
-
-  // Track if transform is transitioning for smooth animations
-  const [isTransforming, setIsTransforming] = useState(false);
 
   const debugLog = useCallback((category: string, message: string, data?: any) => {
     if (!debugMode) return;
@@ -1877,9 +1888,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     pendingHotspot={pendingHotspot} // For the visual marker
                     onImageLoad={handleImageLoad}
                     onImageClick={handleImageClick} // Desktop's main image click handler
-                    onTouchStart={handleTouchStart} // Pass touch handlers
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={() => setTouchStartDistance(null)}
+                    onTouchStart={touchGestureHandlers.handleTouchStart} // Pass touch handlers
+                    onTouchMove={touchGestureHandlers.handleTouchMove}
+                    onTouchEnd={touchGestureHandlers.handleTouchEnd}
                     onFocusHotspot={handleFocusHotspot}
                     onEditHotspotRequest={handleHotspotEditRequest}
                     onHotspotPositionChange={handleHotspotPositionChange}
