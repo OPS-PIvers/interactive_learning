@@ -725,7 +725,11 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
                   {isActive && onSpotlightPositionChange && (
                     <SpotlightHandles
                       position={currentSpotlightPos}
-                      onPositionChange={onSpotlightPositionChange} // This needs to update the specific event's data
+                      onPositionChange={(newPosition) => {
+                        // Update both the global spotlight position and the specific event
+                        onSpotlightPositionChange(newPosition);
+                        // Note: The parent component should handle updating the specific event's data
+                      }}
                     />
                   )}
                 </React.Fragment>
@@ -776,7 +780,11 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
                   {isActive && onTextPositionChange && (
                     <TextHandles
                       position={currentTextPos}
-                      onPositionChange={onTextPositionChange} // Needs to update specific event
+                      onPositionChange={(newPosition) => {
+                        // Update both the global text position and the specific event
+                        onTextPositionChange(newPosition);
+                        // Note: The parent component should handle updating the specific event's data
+                      }}
                     />
                   )}
                 </div>

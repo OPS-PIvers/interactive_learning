@@ -5,8 +5,6 @@ import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import HorizontalTimeline from './HorizontalTimeline';
-// import HotspotEditModal from './HotspotEditModal'; // To be removed
-import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
 import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
@@ -132,7 +130,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [colorScheme, setColorScheme] = useState<string>('Default');
   const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
   // const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false); // Removed: To be consolidated
-  // const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null); // Removed: To be consolidated with selectedHotspotForModal logic
+  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
   // Missing state declaration for imageContainerRect
   const [imageContainerRect, setImageContainerRect] = useState<DOMRect | null>(null);
@@ -1564,7 +1562,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           setExploredHotspotPanZoomActive(false);
       }
     }
-  }, [hotspots, moduleState, isEditing, backgroundImage, setEditingHotspot]);
+  }, [hotspots, moduleState, isEditing, backgroundImage]);
 
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
@@ -1921,7 +1919,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         onUpdate={(updates) => {
                           const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
                           if (hotspotToUpdate) {
-                            handleSaveHotspot({ ...hotspotToUpdate, ...updates });
+                            const updatedHotspot = { ...hotspotToUpdate, ...updates };
+                            setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
                           }
                         }}
                         onDelete={() => {
@@ -2178,12 +2177,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
               className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
-              onClick={!isMobile ? handleImageClick : undefined} // Desktop handles general image click for reset
+              onClick={!isMobile ? (e) => handleImageOrHotspotClick(e) : undefined} // Desktop handles general image click for reset
               {...(isMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
             >
               <div
                 className="w-full h-full flex items-center justify-center"
-                onClick={isMobile ? handleImageClick : undefined} // Mobile handles its own click for reset here
+                onClick={isMobile ? (e) => handleImageOrHotspotClick(e) : undefined} // Mobile handles its own click for reset here
                 role={backgroundImage ? "button" : undefined}
                 aria-label={backgroundImage ? (isMobile ? "Interactive image area" : "Interactive image") : undefined}
               >
@@ -2256,7 +2255,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               isDimmedInEditMode={false} // Not in editing mode here
                               isEditing={false}
                               onFocusRequest={handleFocusHotspot}
-                              onEditRequest={handleHotspotEditRequest} // Should not be called in viewer
+                              onEditRequest={handleOpenHotspotEditor} // Should not be called in viewer
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
                               isMobile={isMobile}
                             />
@@ -2327,16 +2326,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         </div>
       )}
 
-      {/* HotspotEditModal and its related states/handlers are removed. HotspotEditorModal is now the single modal. */}
-      {/* <HotspotEditModal
-        isOpen={showHotspotEditModal}
-        onClose={() => {
-          setShowHotspotEditModal(false);
-          // setEditingHotspot(null); // State removed
-        }}
-        onSave={handleSaveHotspot} // Function removed
-        // hotspot={editingHotspot} // State removed
-      /> */}
 
       {/* Enhanced Hotspot Editor Modal - This is now the single modal for editing */}
       <HotspotEditorModal

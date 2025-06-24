@@ -34,7 +34,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onClose
 }) => {
   // State for selected event types
-  // const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set()); // Replaced by previewingEventIds
+  const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set());
   
   // State for managing which event previews are visible and which is active
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
@@ -117,7 +117,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }
     });
     
-    // setSelectedEventTypes(eventTypes); // This will be handled differently with previewingEventIds
+    setSelectedEventTypes(eventTypes);
     // Initialize previewingEventIds based on existing events if needed, or start empty.
     // For now, starting empty seems fine as user will toggle them.
     setPreviewingEventIds([]);
@@ -143,18 +143,17 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   }, [activePreviewEventId]);
 
 
-  // This function will be removed or adapted as event type toggling will now be through adding/removing specific events
-  // const handleEventTypeToggle = useCallback((type: InteractionType) => {
-  //   setSelectedEventTypes(prev => {
-  //     const newSet = new Set(prev);
-  //     if (newSet.has(type)) {
-  //       newSet.delete(type);
-  //     } else {
-  //       newSet.add(type);
-  //     }
-  //     return newSet;
-  //   });
-  // }, []);
+  const handleEventTypeToggle = useCallback((type: InteractionType) => {
+    setSelectedEventTypes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(type)) {
+        newSet.delete(type);
+      } else {
+        newSet.add(type);
+      }
+      return newSet;
+    });
+  }, []);
 
   const handleSpotlightPositionChange = useCallback((position: typeof spotlightPosition) => {
     setSpotlightPosition(position);
@@ -274,14 +273,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           {/* For now, we'll keep the old EventTypeToggle and assume it drives adding new events,
               while EditableEventCard (to be added/updated) will list existing events with preview toggles. */}
           <EventTypeToggle 
-            selectedTypes={new Set(localHotspotEvents.map(e => e.type))} // Show existing types as selected for now
-            onToggle={(type) => {
-              // This onToggle will need to be adapted to create a new event of this type
-              // or find an existing one to toggle its preview.
-              // For now, let's assume it's for adding new types, which will then appear in relatedEvents.
-              // The actual preview toggling will be handled by EditableEventCard.
-              console.warn("EventTypeToggle onToggle needs to be updated to handle event creation/selection for preview.");
-            }}
+            selectedTypes={selectedEventTypes}
+            onToggle={handleEventTypeToggle}
           />
 
           {/* Dynamic Settings Panels - These should be driven by the activePreviewEvent if one is selected */}
