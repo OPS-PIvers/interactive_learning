@@ -1629,13 +1629,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     const imageBounds = getSafeImageBounds(); // Use safe version
     const containerRect = imageContainerRef.current.getBoundingClientRect();
 
-    let highlightXPercent = hotspotToHighlight.x; // Fallback to original hotspot x percentage
-    let highlightYPercent = hotspotToHighlight.y; // Fallback to original hotspot y percentage
+    // Use custom spotlight position from event data if available, otherwise fall back to hotspot position
+    const spotlightX = eventData?.spotlightX ?? hotspotToHighlight.x;
+    const spotlightY = eventData?.spotlightY ?? hotspotToHighlight.y;
+    
+    let highlightXPercent = spotlightX; // Use spotlight position, not hotspot position
+    let highlightYPercent = spotlightY; // Use spotlight position, not hotspot position
 
     if (imageBounds && containerRect.width > 0 && containerRect.height > 0) {
-      // Calculate the hotspot's center in pixels, relative to the image's content area origin
-      const hotspotPixelX_withinImageContent = (hotspotToHighlight.x / 100) * imageBounds.width;
-      const hotspotPixelY_withinImageContent = (hotspotToHighlight.y / 100) * imageBounds.height;
+      // Calculate the spotlight's center in pixels, relative to the image's content area origin
+      const hotspotPixelX_withinImageContent = (spotlightX / 100) * imageBounds.width;
+      const hotspotPixelY_withinImageContent = (spotlightY / 100) * imageBounds.height;
 
       // Calculate the hotspot's center in pixels, relative to the imageContainerRef's origin.
       // imageBounds.left and imageBounds.top are offsets of the image content area from the container's origin.
@@ -1670,26 +1674,56 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     } else if (shape === 'oval') {
       backgroundStyle = `radial-gradient(ellipse at ${highlightXPercent}% ${highlightYPercent}%, transparent 0%, transparent ${radius}px, rgba(0,0,0,${dimOpacity}) ${radius + 10}px)`;
     } else if (shape === 'rectangle') {
-      // For rectangle, we'll create a mask using linear gradients
-      const halfRadius = radius / 2;
-      backgroundStyle = `linear-gradient(
-        to right,
-        rgba(0,0,0,${dimOpacity}) 0%,
-        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% - ${halfRadius}px),
-        transparent calc(${highlightXPercent}% - ${halfRadius}px),
-        transparent calc(${highlightXPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) 100%
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(0,0,0,${dimOpacity}) 0%,
-        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% - ${halfRadius}px),
-        transparent calc(${highlightYPercent}% - ${halfRadius}px),
-        transparent calc(${highlightYPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% + ${halfRadius}px),
-        rgba(0,0,0,${dimOpacity}) 100%
-      )`;
+      // For rectangle, use spotlight dimensions instead of radius
+      const spotlightWidth = eventData?.spotlightWidth || 120;
+      const spotlightHeight = eventData?.spotlightHeight || 120;
+      
+      // Convert pixel dimensions to percentages relative to container
+      const containerRect = imageContainerRef.current?.getBoundingClientRect();
+      if (containerRect && containerRect.width > 0 && containerRect.height > 0) {
+        const halfWidthPercent = (spotlightWidth / 2 / containerRect.width) * 100;
+        const halfHeightPercent = (spotlightHeight / 2 / containerRect.height) * 100;
+        
+        backgroundStyle = `linear-gradient(
+          to right,
+          rgba(0,0,0,${dimOpacity}) 0%,
+          rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% - ${halfWidthPercent}%),
+          transparent calc(${highlightXPercent}% - ${halfWidthPercent}%),
+          transparent calc(${highlightXPercent}% + ${halfWidthPercent}%),
+          rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% + ${halfWidthPercent}%),
+          rgba(0,0,0,${dimOpacity}) 100%
+        ),
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,${dimOpacity}) 0%,
+          rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% - ${halfHeightPercent}%),
+          transparent calc(${highlightYPercent}% - ${halfHeightPercent}%),
+          transparent calc(${highlightYPercent}% + ${halfHeightPercent}%),
+          rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% + ${halfHeightPercent}%),
+          rgba(0,0,0,${dimOpacity}) 100%
+        )`;
+      } else {
+        // Fallback if container dimensions aren't available
+        const halfRadius = radius / 2;
+        backgroundStyle = `linear-gradient(
+          to right,
+          rgba(0,0,0,${dimOpacity}) 0%,
+          rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% - ${halfRadius}px),
+          transparent calc(${highlightXPercent}% - ${halfRadius}px),
+          transparent calc(${highlightXPercent}% + ${halfRadius}px),
+          rgba(0,0,0,${dimOpacity}) calc(${highlightXPercent}% + ${halfRadius}px),
+          rgba(0,0,0,${dimOpacity}) 100%
+        ),
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,${dimOpacity}) 0%,
+          rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% - ${halfRadius}px),
+          transparent calc(${highlightYPercent}% - ${halfRadius}px),
+          transparent calc(${highlightYPercent}% + ${halfRadius}px),
+          rgba(0,0,0,${dimOpacity}) calc(${highlightYPercent}% + ${halfRadius}px),
+          rgba(0,0,0,${dimOpacity}) 100%
+        )`;
+      }
     }
 
     return {

@@ -52,7 +52,7 @@ export interface TimelineEventData {
   
   // Enhanced spotlight properties
   highlightRadius?: number; // For HIGHLIGHT_HOTSPOT, in pixels on original image for clear area, defaults to 60
-  highlightShape?: 'circle' | 'rectangle'; // Shape of the highlight area, defaults to 'circle'
+  highlightShape?: 'circle' | 'rectangle' | 'oval'; // Shape of the highlight area, defaults to 'circle'
   dimPercentage?: number; // Percentage of dimming for highlight overlay (0-100), defaults to 70
   spotlightX?: number; // Percentage position
   spotlightY?: number; // Percentage position
@@ -62,6 +62,10 @@ export interface TimelineEventData {
   // New properties for enhanced events
   textContent?: string;
   textPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  textX?: number; // Text box X position (percentage)
+  textY?: number; // Text box Y position (percentage)
+  textWidth?: number; // Text box width (pixels)
+  textHeight?: number; // Text box height (pixels)
   quizQuestion?: string;
   quizOptions?: string[];
   quizCorrectAnswer?: number;

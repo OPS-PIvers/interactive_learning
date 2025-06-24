@@ -38,7 +38,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   
   // State for event settings
   const [zoomLevel, setZoomLevel] = useState(2.5);
-  const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle'>('circle');
+  const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle' | 'oval'>('circle');
   const [dimPercentage, setDimPercentage] = useState(70);
   const [textContent, setTextContent] = useState('');
   const [textPosition, setTextPosition] = useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center');
@@ -62,6 +62,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       if (event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
         if (event.highlightShape) setSpotlightShape(event.highlightShape);
         if (event.dimPercentage) setDimPercentage(event.dimPercentage);
+        // Load spotlight position data
+        if (event.spotlightX !== undefined && event.spotlightY !== undefined) {
+          setSpotlightPosition({
+            x: event.spotlightX,
+            y: event.spotlightY,
+            width: event.spotlightWidth || 120,
+            height: event.spotlightHeight || 120
+          });
+        }
       }
       if (event.type === InteractionType.SHOW_TEXT && event.textContent) {
         setTextContent(event.textContent);

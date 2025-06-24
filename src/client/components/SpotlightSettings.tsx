@@ -1,9 +1,9 @@
 import React from 'react';
 
 interface SpotlightSettingsProps {
-  shape: 'circle' | 'rectangle';
+  shape: 'circle' | 'rectangle' | 'oval';
   dimPercentage: number;
-  onShapeChange: (shape: 'circle' | 'rectangle') => void;
+  onShapeChange: (shape: 'circle' | 'rectangle' | 'oval') => void;
   onDimPercentageChange: (percentage: number) => void;
 }
 
@@ -43,6 +43,16 @@ const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
               }`}
             >
               ▢ Rectangle
+            </button>
+            <button
+              onClick={() => onShapeChange('oval')}
+              className={`flex-1 py-2 rounded font-medium transition-colors ${
+                shape === 'oval'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-slate-600 hover:bg-slate-500 text-slate-200'
+              }`}
+            >
+              ⬭ Oval
             </button>
           </div>
         </div>
