@@ -37,6 +37,72 @@ export interface HotspotData {
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
 }
 
+// Base Event interface
+interface BaseEvent {
+  id: string;
+  hotspotId: string;
+  type: 'spotlight' | 'pan-zoom' | 'text' | 'media' | 'goto' | 'question';
+  title?: string;
+}
+
+// Position and Size interfaces
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+// Specific Event types for reference integration
+export interface SpotlightEvent extends BaseEvent {
+  type: 'spotlight';
+  position: Position;
+  size: Size;
+  shape: 'circle' | 'rectangle';
+  opacity?: number;
+}
+
+export interface PanZoomEvent extends BaseEvent {
+  type: 'pan-zoom';
+  targetX: number;
+  targetY: number;
+  zoom: number;
+}
+
+export interface TextEvent extends BaseEvent {
+  type: 'text';
+  content: string;
+  modalPosition: Position | 'center';
+  modalSize?: Size;
+}
+
+export interface MediaEvent extends BaseEvent {
+  type: 'media';
+  url: string;
+  mediaType: 'image' | 'video' | 'youtube';
+  modalPosition: Position | 'center';
+  modalSize?: Size;
+}
+
+export interface GoToEvent extends BaseEvent {
+  type: 'goto';
+  targetHotspotId: string;
+}
+
+export interface QuestionEvent extends BaseEvent {
+  type: 'question';
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  modalPosition: Position | 'center';
+  modalSize?: Size;
+}
+
+export type Event = SpotlightEvent | PanZoomEvent | TextEvent | MediaEvent | GoToEvent | QuestionEvent;
+
 export interface TimelineEventData {
   id: string;
   step: number; // Sequence number, 1-indexed
@@ -91,6 +157,23 @@ export interface TimelineEventData {
   loop?: boolean;
   poster?: string;
   artist?: string;
+  
+  // Reference code integration properties
+  shape?: 'circle' | 'rectangle';
+  opacity?: number;
+  position?: Position;
+  size?: Size;
+  targetX?: number;
+  targetY?: number;
+  zoom?: number;
+  content?: string;
+  modalPosition?: Position | 'center';
+  modalSize?: Size;
+  url?: string;
+  targetHotspotId?: string;
+  question?: string;
+  options?: string[];
+  correctAnswer?: number;
   
   // ADD these new properties for enhanced positioning system
   positioningVersion?: 'enhanced' | 'legacy'; // Track which positioning system was used

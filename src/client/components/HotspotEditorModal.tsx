@@ -1,10 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { SaveIcon } from './icons/SaveIcon';
+import { TrashIcon } from './icons/TrashIcon';
+import { PlusIcon } from './icons/PlusIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EnhancedHotspotPreview from './EnhancedHotspotPreview';
+import EditableEventCard from './EditableEventCard';
 
 interface EnhancedHotspotEditorModalProps {
   isOpen: boolean;
@@ -18,7 +24,73 @@ interface EnhancedHotspotEditorModalProps {
   onUpdateEvent: (event: TimelineEventData) => void;
   onDeleteEvent: (eventId: string) => void;
   onClose: () => void;
+  allHotspots: HotspotData[];
 }
+
+// Event Type Selector Component
+const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
+  const eventTypes: { type: InteractionType; label: string; icon: string }[] = [
+    { type: InteractionType.SPOTLIGHT, label: 'spotlight', icon: '🎯' },
+    { type: InteractionType.PAN_ZOOM, label: 'pan-zoom', icon: '🔍' },
+    { type: InteractionType.SHOW_TEXT, label: 'text', icon: '💬' },
+    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'media', icon: '🖼️' },
+    { type: InteractionType.QUIZ, label: 'question', icon: '❓' },
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {eventTypes.map(({ type, label, icon }) => (
+        <button
+          key={type}
+          onClick={() => onSelectEventType(type)}
+          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1"
+        >
+          <span>{icon}</span>
+          <span>+ {label}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// Hotspot Editor Toolbar Component
+const HotspotEditorToolbar: React.FC<{
+  title: string;
+  onTitleChange: (title: string) => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onClose: () => void;
+}> = ({ title, onTitleChange, onSave, onDelete, onClose }) => (
+  <div className="p-3 bg-gray-900 flex items-center justify-between">
+    <input
+      type="text"
+      value={title}
+      onChange={e => onTitleChange(e.target.value)}
+      className="bg-gray-700 text-xl font-bold p-1 rounded"
+    />
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={onSave}
+        className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 flex items-center gap-1"
+      >
+        <SaveIcon className="w-4 h-4" />
+        Save & Close
+      </button>
+      <button
+        onClick={onDelete}
+        className="p-2 bg-red-600 rounded hover:bg-red-700"
+      >
+        <TrashIcon className="w-4 h-4" />
+      </button>
+      <button
+        onClick={onClose}
+        className="p-2 bg-gray-600 rounded hover:bg-gray-700"
+      >
+        <XMarkIcon className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+);
 
 const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   isOpen,
@@ -31,391 +103,198 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onAddEvent,
   onUpdateEvent,
   onDeleteEvent,
-  onClose
+  onClose,
+  allHotspots
 }) => {
-  // State for selected event types
-  const [selectedEventTypes, setSelectedEventTypes] = useState<Set<InteractionType>>(new Set());
-  
-  // State for managing which event previews are visible and which is active
+  // Local state for the hotspot being edited
+  const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
-  const [activePreviewEventId, setActivePreviewEventId] = useState<string | null>(null);
 
-  // State for event settings (will be associated with individual events later, for now, global)
-  const [zoomLevel, setZoomLevel] = useState(1.0);
-  const [spotlightShape, setSpotlightShape] = useState<'circle' | 'rectangle' | 'oval'>('circle');
-  const [dimPercentage, setDimPercentage] = useState(70);
-  const [textContent, setTextContent] = useState('');
-  const [textPosition, setTextPosition] = useState<'top' | 'bottom' | 'left' | 'right' | 'center'>('center');
+  useEffect(() => { 
+    setLocalHotspot(selectedHotspot); 
+    setPreviewingEventIds([]); 
+  }, [selectedHotspot]);
 
-  // Position states for preview - initialize relative to hotspot position
-  const [spotlightPosition, setSpotlightPosition] = useState(() => ({
-    x: selectedHotspot?.x || 50,
-    y: selectedHotspot?.y || 50,
-    width: 120,
-    height: 120
-  }));
-  const [textBoxPosition, setTextBoxPosition] = useState(() => ({
-    x: selectedHotspot?.x || 50,
-    y: Math.max(10, (selectedHotspot?.y || 50) - 15), // Position text above hotspot
-    width: 200,
-    height: 60
-  }));
-
-  // Update positions when hotspot changes
-  useEffect(() => {
-    if (selectedHotspot) {
-      setSpotlightPosition(prev => ({
-        ...prev,
-        x: selectedHotspot.x,
-        y: selectedHotspot.y
-      }));
-      setTextBoxPosition(prev => ({
-        ...prev,
-        x: selectedHotspot.x,
-        y: Math.max(10, selectedHotspot.y - 15)
-      }));
-    }
-  }, [selectedHotspot?.id, selectedHotspot?.x, selectedHotspot?.y]);
-
-  // Initialize state from existing events
-  useEffect(() => {
-    if (!selectedHotspot) return;
-
-    const eventTypes = new Set<InteractionType>();
-    relatedEvents.forEach(event => {
-      eventTypes.add(event.type);
-      
-      // Load existing settings
-      if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && event.zoomFactor) {
-        setZoomLevel(event.zoomFactor);
-      }
-      if (event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
-        if (event.highlightShape) setSpotlightShape(event.highlightShape);
-        if (event.dimPercentage) setDimPercentage(event.dimPercentage);
-        // Load spotlight position data
-        if (event.spotlightX !== undefined && event.spotlightY !== undefined) {
-          setSpotlightPosition({
-            x: event.spotlightX,
-            y: event.spotlightY,
-            width: event.spotlightWidth || 120,
-            height: event.spotlightHeight || 120
-          });
-        }
-      }
-      if (event.type === InteractionType.SHOW_TEXT && event.textContent) {
-        setTextContent(event.textContent);
-        if (event.textPosition) setTextPosition(event.textPosition);
-        // Load text position data
-        if (event.textX !== undefined && event.textY !== undefined) {
-          setTextBoxPosition({
-            x: event.textX,
-            y: event.textY,
-            width: event.textWidth || 200,
-            height: event.textHeight || 60
-          });
-        }
-      }
-    });
+  const handleAddEvent = (type: InteractionType) => {
+    if (!localHotspot) return;
     
-    setSelectedEventTypes(eventTypes);
-    // Initialize previewingEventIds based on existing events if needed, or start empty.
-    // For now, starting empty seems fine as user will toggle them.
-    setPreviewingEventIds([]);
-    setActivePreviewEventId(null);
-  }, [selectedHotspot, relatedEvents]);
+    const newEvent: TimelineEventData = { 
+      id: `event_${Date.now()}`, 
+      name: `New ${type.toLowerCase().replace('_', ' ')} event`,
+      step: currentStep,
+      type,
+      targetId: localHotspot.id,
+      // Add default properties based on type
+      ...(type === InteractionType.SPOTLIGHT && { 
+        shape: 'circle', 
+        size: { width: 20, height: 20 }, 
+        position: { x: 50, y: 50 }, 
+        opacity: 0.7,
+        highlightShape: 'circle',
+        dimPercentage: 70
+      }),
+      ...(type === InteractionType.PAN_ZOOM && { 
+        zoom: 2, 
+        targetX: 50, 
+        targetY: 50,
+        zoomLevel: 2,
+        zoomFactor: 2
+      }),
+      ...(type === InteractionType.SHOW_TEXT && { 
+        content: 'Some text', 
+        textContent: 'Some text'
+      }),
+      ...(type === InteractionType.SHOW_IMAGE_MODAL && { 
+        url: '', 
+        mediaUrl: '',
+        mediaType: 'image'
+      }),
+      ...(type === InteractionType.QUIZ && { 
+        question: 'Enter question',
+        quizQuestion: 'Enter question',
+        targetHotspotId: '' 
+      }),
+    };
+    onAddEvent(newEvent);
+  };
+  
+  const handleEventUpdate = (updatedEvent: TimelineEventData) => {
+    onUpdateEvent(updatedEvent);
+  };
+  
+  const handleEventDelete = (eventId: string) => {
+    onDeleteEvent(eventId);
+  };
+  
+  const moveEvent = (dragIndex: number, hoverIndex: number) => {
+    // This would need to be implemented based on your event ordering logic
+    // For now, we'll just log the intended move
+    console.log(`Move event from ${dragIndex} to ${hoverIndex}`);
+  };
 
-  // Updated handleTogglePreview function
-  const handleTogglePreview = useCallback((eventId: string) => {
-    setPreviewingEventIds(prevIds => {
-      const newIds = prevIds.includes(eventId)
-        ? prevIds.filter(id => id !== eventId)
-        : [...prevIds, eventId];
+  const handleSave = () => { 
+    if (localHotspot) {
+      onUpdateHotspot(localHotspot); 
+    }
+    onClose(); 
+  };
+  
+  const handleTogglePreview = (eventId: string) => {
+    setPreviewingEventIds(prev => 
+      prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId]
+    );
+  };
 
-      if (newIds.includes(eventId)) { // If eventId was added
-        setActivePreviewEventId(eventId);
-      } else { // If eventId was removed
-        if (activePreviewEventId === eventId) { // If the removed event was the active one
-          setActivePreviewEventId(newIds.length > 0 ? newIds[newIds.length - 1] : null);
-        }
-      }
-      return newIds;
-    });
-  }, [activePreviewEventId]);
+  const handleHotspotUpdate = (updatedHotspot: HotspotData) => {
+    setLocalHotspot(updatedHotspot);
+  };
 
+  if (!isOpen || !localHotspot) return null;
 
-  const handleEventTypeToggle = useCallback((type: InteractionType) => {
-    setSelectedEventTypes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(type)) {
-        newSet.delete(type);
-      } else {
-        newSet.add(type);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const handleSpotlightPositionChange = useCallback((position: typeof spotlightPosition) => {
-    setSpotlightPosition(position);
-  }, []);
-
-  const handleTextPositionChange = useCallback((position: typeof textBoxPosition) => {
-    setTextBoxPosition(position);
-  }, []);
-
-  const handleSave = useCallback(() => {
-    if (!selectedHotspot) return;
-
-    // Delete existing events for this hotspot at current step
-    relatedEvents.forEach(event => {
-      if (event.step === currentStep) {
-        onDeleteEvent(event.id);
-      }
-    });
-
-    // Create new events based on selected types
-    selectedEventTypes.forEach(type => {
-      const baseEvent: TimelineEventData = {
-        id: `event_${type}_${Date.now()}_${Math.random()}`,
-        step: currentStep,
-        name: `${type} ${selectedHotspot.title}`,
-        type,
-        targetId: selectedHotspot.id,
-        message: '' // Explicitly set to empty string to prevent undefined Firebase errors
-      };
-
-      // Add type-specific properties with enhanced positioning
-      switch (type) {
-        case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-          baseEvent.zoomFactor = zoomLevel;
-          // ADD enhanced positioning data
-          baseEvent.zoomLevel = zoomLevel;
-          baseEvent.positioningVersion = 'enhanced';
-          break;
-          
-        case InteractionType.HIGHLIGHT_HOTSPOT:
-          baseEvent.highlightShape = spotlightShape;
-          baseEvent.dimPercentage = dimPercentage;
-          // ADD enhanced spotlight positioning
-          baseEvent.spotlightX = spotlightPosition.x;
-          baseEvent.spotlightY = spotlightPosition.y;
-          baseEvent.spotlightWidth = spotlightPosition.width;
-          baseEvent.spotlightHeight = spotlightPosition.height;
-          baseEvent.positioningVersion = 'enhanced';
-          break;
-          
-        case InteractionType.SHOW_TEXT:
-          baseEvent.textContent = textContent;
-          baseEvent.textPosition = textPosition;
-          // ADD enhanced text positioning
-          baseEvent.textX = textBoxPosition.x;
-          baseEvent.textY = textBoxPosition.y;
-          baseEvent.textWidth = textBoxPosition.width;
-          baseEvent.textHeight = textBoxPosition.height;
-          baseEvent.positioningVersion = 'enhanced';
-          break;
-          
-        default:
-          break;
-      }
-
-      onAddEvent(baseEvent);
-    });
-
-    onClose();
-  }, [
-    selectedHotspot,
-    relatedEvents,
-    currentStep,
-    selectedEventTypes,
-    zoomLevel,
-    spotlightShape,
-    dimPercentage,
-    textContent,
-    textPosition,
-    spotlightPosition,
-    textBoxPosition,
-    onDeleteEvent,
-    onAddEvent,
-    onClose
-  ]);
-
-  if (!isOpen || !selectedHotspot) return null;
-
-  const localHotspotEvents = relatedEvents.filter(event => event.targetId === selectedHotspot.id);
-
+  const localHotspotEvents = relatedEvents.filter(event => event.targetId === localHotspot.id);
   const previewingEvents = localHotspotEvents.filter(event => previewingEventIds.includes(event.id));
-  const activePreviewEvent = localHotspotEvents.find(event => event.id === activePreviewEventId) || null;
+  const activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
+  const activePreviewEvent = localHotspotEvents.find(event => event.id === activePreviewEventId);
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out">
-      <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] max-h-[95vh] flex overflow-hidden border border-slate-700">
-        
-        {/* Left Panel - Event Configuration */}
-        <div className="w-1/2 p-4 sm:p-6 border-r border-slate-700 overflow-y-auto">
-          {/* Header */}
-          <header className="flex justify-between items-center border-b border-slate-700 bg-slate-800/50 pb-4 mb-6">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-white">Edit Hotspot</h2>
-              <p className="text-sm text-slate-400">Configure interactions and behavior</p>
-            </div>
-            <button 
-              onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-700" 
-              aria-label="Close modal"
-            >
-              <XMarkIcon className="w-7 h-7" />
-            </button>
-          </header>
-
-          {/* Event Type Selection - This will need to be replaced or updated to list existing events and allow adding new ones */}
-          {/* For now, we'll keep the old EventTypeToggle and assume it drives adding new events,
-              while EditableEventCard (to be added/updated) will list existing events with preview toggles. */}
-          <EventTypeToggle 
-            selectedTypes={selectedEventTypes}
-            onToggle={handleEventTypeToggle}
+    <DndProvider backend={HTML5Backend}>
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={onClose}>
+        <div className="max-w-7xl w-full h-[90vh] bg-gray-800 text-white flex flex-col" onClick={e => e.stopPropagation()}>
+          <HotspotEditorToolbar 
+            title={localHotspot.title || `Edit Hotspot`} 
+            onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
+            onSave={handleSave} 
+            onDelete={() => {
+              if (window.confirm(`Are you sure you want to delete the hotspot "${localHotspot.title}"?`)) {
+                onDeleteHotspot(localHotspot.id);
+                onClose();
+              }
+            }} 
+            onClose={onClose} 
           />
-
-          {/* Dynamic Settings Panels - These should be driven by the activePreviewEvent if one is selected */}
-          {activePreviewEvent && activePreviewEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && (
-            <PanZoomSettings 
-              zoomLevel={zoomLevel}
-              onZoomChange={setZoomLevel}
-            />
-          )}
-
-          {selectedEventTypes.has(InteractionType.HIGHLIGHT_HOTSPOT) && (
-            <SpotlightSettings
-              shape={spotlightShape}
-              dimPercentage={dimPercentage}
-              onShapeChange={setSpotlightShape}
-              onDimPercentageChange={setDimPercentage}
-            />
-          )}
-
-          {selectedEventTypes.has(InteractionType.SHOW_TEXT) && (
-            <div className="mb-6 bg-slate-700 rounded-lg p-4">
-              <h4 className="text-md font-medium text-white mb-4 flex items-center">
-                <span className="text-xl mr-2">💬</span>
-                Text Settings
-              </h4>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Message</label>
-                  <textarea 
-                    value={textContent}
-                    onChange={(e) => setTextContent(e.target.value)}
-                    className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-white resize-none" 
-                    rows={3} 
-                    placeholder="Enter your message..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Position</label>
-                  <select 
-                    value={textPosition}
-                    onChange={(e) => setTextPosition(e.target.value as any)}
-                    className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-white"
-                  >
-                    <option value="top">Top</option>
-                    <option value="bottom">Bottom</option>
-                    <option value="left">Left</option>
-                    <option value="right">Right</option>
-                    <option value="center">Center</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  if (selectedHotspot && window.confirm(`Are you sure you want to delete the hotspot "${selectedHotspot.title}"? This action cannot be undone.`)) {
-                    onDeleteHotspot(selectedHotspot.id);
-                    onClose();
+          <div className="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+            <div className="md:w-2/3 h-1/2 md:h-full bg-gray-900 rounded-lg overflow-hidden">
+              <EnhancedHotspotPreview 
+                backgroundImage={backgroundImage} 
+                hotspot={localHotspot} 
+                previewingEvents={previewingEvents} 
+                activePreviewEvent={activePreviewEvent}
+                zoomLevel={activePreviewEvent?.zoomLevel || 2}
+                spotlightShape={activePreviewEvent?.highlightShape || "circle"}
+                dimPercentage={activePreviewEvent?.dimPercentage || 70}
+                textContent={activePreviewEvent?.textContent || ""}
+                textPosition={activePreviewEvent?.textPosition || "center"}
+                spotlightPosition={{ 
+                  x: activePreviewEvent?.spotlightX || localHotspot.x, 
+                  y: activePreviewEvent?.spotlightY || localHotspot.y, 
+                  width: activePreviewEvent?.spotlightWidth || 120, 
+                  height: activePreviewEvent?.spotlightHeight || 120 
+                }}
+                textBoxPosition={{ 
+                  x: activePreviewEvent?.textX || localHotspot.x, 
+                  y: activePreviewEvent?.textY || localHotspot.y - 15, 
+                  width: activePreviewEvent?.textWidth || 200, 
+                  height: activePreviewEvent?.textHeight || 60 
+                }}
+                onSpotlightPositionChange={(position) => {
+                  if (activePreviewEvent) {
+                    handleEventUpdate({
+                      ...activePreviewEvent,
+                      spotlightX: position.x,
+                      spotlightY: position.y,
+                      spotlightWidth: position.width,
+                      spotlightHeight: position.height
+                    });
                   }
                 }}
-                className="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-all duration-200"
-              >
-                Delete Hotspot
-              </button>
-            </div>
-            <button 
-              onClick={handleSave}
-              className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
-            >
-              Save Changes
-            </button>
-          </div>
-        </div>
-
-        {/* Right Panel - Enhanced Preview */}
-        <div className="w-1/2 p-4 sm:p-6 bg-slate-800">
-          <EnhancedHotspotPreview
-            backgroundImage={backgroundImage}
-            hotspot={selectedHotspot}
-            // selectedEventTypes={selectedEventTypes} // Replaced by previewingEvents and activePreviewEvent
-            previewingEvents={previewingEvents}
-            activePreviewEvent={activePreviewEvent}
-            zoomLevel={zoomLevel} // This might become part of activePreviewEvent's data
-            spotlightShape={spotlightShape} // This might become part of activePreviewEvent's data
-            dimPercentage={dimPercentage}
-            textContent={textContent}
-            textPosition={textPosition}
-            spotlightPosition={spotlightPosition}
-            textBoxPosition={textBoxPosition}
-            onSpotlightPositionChange={handleSpotlightPositionChange}
-            onTextPositionChange={handleTextPositionChange}
-            onZoomLevelChange={setZoomLevel}
-          />
-          
-          {/* Event Sequence List - Enhanced */}
-          <div className="bg-slate-700 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-slate-300 mb-2">Event Sequence</h4>
-            <div className="space-y-2">
-              {Array.from(selectedEventTypes).map((type, index) => {
-                const getEventDisplay = () => {
-                  switch (type) {
-                    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-                      return `${index + 1}. Pan & Zoom (${zoomLevel.toFixed(1)}x)`;
-                    case InteractionType.HIGHLIGHT_HOTSPOT:
-                      return `${index + 1}. Spotlight (${spotlightShape}, ${dimPercentage}% dim)`;
-                    case InteractionType.SHOW_TEXT:
-                      return `${index + 1}. Show Text: "${textContent.substring(0, 20)}${textContent.length > 20 ? '...' : ''}"`;
-                    case InteractionType.PULSE_HOTSPOT:
-                      return `${index + 1}. Pulse Animation`;
-                    default:
-                      return `${index + 1}. ${type.replace('_', ' ')}`;
+                onTextPositionChange={(position) => {
+                  if (activePreviewEvent) {
+                    handleEventUpdate({
+                      ...activePreviewEvent,
+                      textX: position.x,
+                      textY: position.y,
+                      textWidth: position.width,
+                      textHeight: position.height
+                    });
                   }
-                };
-
-                return (
-                  <div key={type} className="flex items-center space-x-2 text-sm text-slate-300">
-                    <span className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
-                      {index + 1}
-                    </span>
-                    <span>{getEventDisplay()}</span>
-                  </div>
-                );
-              })}
-              {selectedEventTypes.size === 0 && (
-                <p className="text-sm text-slate-400">No events selected</p>
-              )}
+                }}
+                onZoomLevelChange={(level) => {
+                  if (activePreviewEvent) {
+                    handleEventUpdate({
+                      ...activePreviewEvent,
+                      zoomLevel: level,
+                      zoomFactor: level
+                    });
+                  }
+                }}
+              />
+            </div>
+            <div className="md:w-1/3 h-1/2 md:h-full flex flex-col gap-4">
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Events</h3>
+                <EventTypeSelector onSelectEventType={handleAddEvent} />
+              </div>
+              <div className="flex-grow bg-gray-700 p-2 rounded-lg overflow-y-auto">
+                {localHotspotEvents?.map((event, index) => 
+                  <EditableEventCard 
+                    key={event.id} 
+                    index={index} 
+                    event={event} 
+                    onUpdate={handleEventUpdate} 
+                    onDelete={handleEventDelete} 
+                    moveCard={moveEvent} 
+                    onTogglePreview={() => handleTogglePreview(event.id)} 
+                    isPreviewing={previewingEventIds.includes(event.id)} 
+                    allHotspots={allHotspots} 
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </DndProvider>
   );
 };
 

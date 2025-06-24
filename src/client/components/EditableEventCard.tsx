@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { TimelineEventData, InteractionType } from '../../shared/types';
+import { useDrag, useDrop } from 'react-dnd';
+import type { Identifier, XYCoord } from 'dnd-core';
+import { TimelineEventData, InteractionType, HotspotData } from '../../shared/types';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { EyeIcon } from './icons/EyeIcon';
@@ -9,237 +11,219 @@ import EventTypeSelector from './EventTypeSelector';
 import SliderControl from './SliderControl';
 
 interface EditableEventCardProps {
+  index: number;
   event: TimelineEventData;
-  isActive: boolean;
-  isDragging: boolean;
   onUpdate: (event: TimelineEventData) => void;
   onDelete: (eventId: string) => void;
-  onJumpToStep: (step: number) => void;
-  onDragStart: (e: React.DragEvent, eventId: string) => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, targetEventId: string) => void;
-  className?: string;
-  // New props for preview toggling
+  moveCard: (dragIndex: number, hoverIndex: number) => void;
+  onTogglePreview: () => void;
   isPreviewing: boolean;
-  onTogglePreview: (eventId: string) => void;
+  allHotspots: HotspotData[];
+  isActive?: boolean;
+  onJumpToStep?: (step: number) => void;
+  className?: string;
 }
 
+const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
+  const getTypeLabel = () => {
+    switch (type) {
+      case InteractionType.SPOTLIGHT:
+      case InteractionType.HIGHLIGHT_HOTSPOT:
+        return 'spotlight';
+      case InteractionType.PAN_ZOOM:
+      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+        return 'pan-zoom';
+      case InteractionType.SHOW_TEXT:
+        return 'text';
+      case InteractionType.SHOW_IMAGE_MODAL:
+      case InteractionType.SHOW_VIDEO:
+      case InteractionType.SHOW_YOUTUBE:
+        return 'media';
+      case InteractionType.QUIZ:
+        return 'question';
+      default:
+        return type.toLowerCase().replace('_', ' ');
+    }
+  };
+
+  return (
+    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+      {getTypeLabel()}
+    </span>
+  );
+};
+
 const EditableEventCard: React.FC<EditableEventCardProps> = ({
+  index,
   event,
-  isActive,
-  isDragging,
   onUpdate,
   onDelete,
-  onJumpToStep,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  className = '',
+  moveCard,
+  onTogglePreview,
   isPreviewing,
-  onTogglePreview
+  allHotspots,
+  isActive = false,
+  onJumpToStep,
+  className = ''
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedEvent, setEditedEvent] = useState<TimelineEventData>(event);
-  
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState(event.name || '');
+  const ref = useRef<HTMLDivElement>(null);
 
-  const handleTypeChange = (newType: InteractionType) => {
-    const updatedEvent = { ...editedEvent, type: newType };
-    
-    // Reset type-specific properties when changing type
-    if (newType === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
-      updatedEvent.zoomFactor = updatedEvent.zoomFactor || 2.0;
-    } else if (newType === InteractionType.HIGHLIGHT_HOTSPOT) {
-      updatedEvent.highlightRadius = updatedEvent.highlightRadius || 60;
-      updatedEvent.highlightShape = updatedEvent.highlightShape || 'circle';
-      updatedEvent.dimPercentage = updatedEvent.dimPercentage || 70;
-    } else if (newType === InteractionType.SHOW_MESSAGE) {
-      updatedEvent.message = updatedEvent.message || '';
-    } else if (newType === InteractionType.PULSE_HOTSPOT) {
-      updatedEvent.duration = updatedEvent.duration || 2000;
-    }
-    
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+  const [{ handlerId }, drop] = useDrop<
+    { index: number },
+    void,
+    { handlerId: Identifier | null }
+  >({
+    accept: 'card',
+    hover(item, monitor) {
+      if (!ref.current) return;
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      if (dragIndex === hoverIndex) return;
 
-  const handleNameChange = (newName: string) => {
-    const updatedEvent = { ...editedEvent, name: newName };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      if (!hoverBoundingRect) return;
 
-  const handleZoomFactorChange = (zoomFactor: number) => {
-    const updatedEvent = { ...editedEvent, zoomFactor };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      if (!clientOffset) return;
 
-  const handleHighlightRadiusChange = (highlightRadius: number) => {
-    const updatedEvent = { ...editedEvent, highlightRadius };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
 
-  const handleHighlightShapeChange = (highlightShape: 'circle' | 'rectangle' | 'oval') => {
-    const updatedEvent = { ...editedEvent, highlightShape };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+      moveCard(dragIndex, hoverIndex);
+      item.index = hoverIndex;
+    },
+  });
 
-  const handleDimPercentageChange = (dimPercentage: number) => {
-    const updatedEvent = { ...editedEvent, dimPercentage };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+  const [{ isDragging }, drag] = useDrag({
+    type: 'card',
+    item: () => ({ id: event.id, index }),
+    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+  });
 
-  const handleMessageChange = (message: string) => {
-    const updatedEvent = { ...editedEvent, message };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
+  drag(drop(ref));
 
-  const handleDurationChange = (duration: number) => {
-    const updatedEvent = { ...editedEvent, duration };
-    setEditedEvent(updatedEvent);
-    onUpdate(updatedEvent);
-  };
-
-  const handleDeleteClick = () => {
-    if (confirm(`Delete event "${event.name}"?`)) {
-      onDelete(event.id);
-    }
-  };
-
-  const getEventIcon = (type: InteractionType) => {
-    switch (type) {
-      case InteractionType.SHOW_HOTSPOT: return '👁️';
-      case InteractionType.HIDE_HOTSPOT: return '🫥';
-      case InteractionType.PULSE_HOTSPOT: return '💓';
-      case InteractionType.SHOW_MESSAGE: return '💬';
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT: return '🔍';
-      case InteractionType.HIGHLIGHT_HOTSPOT: return '🎯';
-      default: return '❓';
-    }
-  };
-
-  const renderTypeSpecificControls = () => {
-    switch (editedEvent.type) {
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <div className="mt-3 space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Zoom Presets</label>
-              <div className="grid grid-cols-5 gap-2">
-                {[1.0, 1.5, 2.0, 3.0, 5.0].map((preset) => (
-                  <button
-                    key={preset}
-                    onClick={() => handleZoomFactorChange(preset)}
-                    className={`px-3 py-2 text-sm rounded border transition-all ${
-                      Math.abs((editedEvent.zoomFactor || 2.0) - preset) < 0.1
-                        ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                        : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
-                    }`}
-                  >
-                    {preset}x
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <SliderControl
-              label="Custom Zoom Factor"
-              value={editedEvent.zoomFactor || 2.0}
-              min={1.0}
-              max={5.0}
-              step={0.1}
-              unit="x"
-              onChange={handleZoomFactorChange}
-            />
-          </div>
-        );
-        
+  const renderSettings = () => {
+    switch (event.type) {
+      case InteractionType.SPOTLIGHT:
       case InteractionType.HIGHLIGHT_HOTSPOT:
         return (
-          <div className="mt-3 space-y-3">
-            <SliderControl
-              label="Highlight Radius"
-              value={editedEvent.highlightRadius || 60}
-              min={20}
-              max={200}
-              step={5}
-              unit="px"
-              onChange={handleHighlightRadiusChange}
-            />
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Highlight Shape</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: 'circle', label: 'Circle', icon: '●' },
-                  { value: 'rectangle', label: 'Rectangle', icon: '■' },
-                  { value: 'oval', label: 'Oval', icon: '⬭' }
-                ].map((shape) => (
-                  <button
-                    key={shape.value}
-                    onClick={() => handleHighlightShapeChange(shape.value as 'circle' | 'rectangle' | 'oval')}
-                    className={`p-2 text-sm rounded border transition-all ${
-                      (editedEvent.highlightShape || 'circle') === shape.value
-                        ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                        : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg mb-1">{shape.icon}</div>
-                      <div className="text-xs">{shape.label}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-2 mt-2">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm">Shape:</label>
+              <select
+                value={event.highlightShape || event.shape || 'circle'}
+                onChange={(e) => onUpdate({ 
+                  ...event, 
+                  highlightShape: e.target.value as 'circle' | 'rectangle',
+                  shape: e.target.value as 'circle' | 'rectangle'
+                })}
+                className="bg-gray-800 text-white p-1 rounded"
+              >
+                <option value="circle">Circle</option>
+                <option value="rectangle">Rectangle</option>
+              </select>
             </div>
-            
             <SliderControl
-              label="Dim Percentage"
-              value={editedEvent.dimPercentage || 70}
+              label="Opacity"
+              value={event.opacity || event.dimPercentage ? (event.dimPercentage || 70) / 100 : 0.7}
               min={0}
-              max={100}
-              step={5}
-              unit="%"
-              onChange={handleDimPercentageChange}
+              max={1}
+              step={0.01}
+              unit=""
+              onChange={(val) => onUpdate({ 
+                ...event, 
+                opacity: val,
+                dimPercentage: val * 100
+              })}
             />
           </div>
         );
-        
-      case InteractionType.SHOW_MESSAGE:
+
+      case InteractionType.PAN_ZOOM:
+      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
         return (
-          <div className="mt-3">
-            <label className="block text-sm font-medium text-slate-300 mb-2">Message</label>
-            <textarea
-              value={editedEvent.message || ''}
-              onChange={(e) => handleMessageChange(e.target.value)}
-              placeholder="Enter message to display..."
-              className="w-full bg-slate-700 text-slate-100 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-              rows={3}
-            />
-          </div>
-        );
-        
-      case InteractionType.PULSE_HOTSPOT:
-        return (
-          <div className="mt-3">
+          <div className="space-y-2 mt-2">
             <SliderControl
-              label="Pulse Duration"
-              value={editedEvent.duration || 2000}
-              min={500}
-              max={5000}
-              step={100}
-              unit="ms"
-              onChange={handleDurationChange}
+              label="Zoom"
+              value={event.zoom || event.zoomLevel || event.zoomFactor || 2}
+              min={1}
+              max={10}
+              step={0.1}
+              unit="x"
+              onChange={(val) => onUpdate({ 
+                ...event, 
+                zoom: val,
+                zoomLevel: val,
+                zoomFactor: val
+              })}
             />
           </div>
         );
-        
+
+      case InteractionType.SHOW_TEXT:
+        return (
+          <textarea
+            value={event.content || event.textContent || ''}
+            onChange={(e) => onUpdate({ 
+              ...event, 
+              content: e.target.value,
+              textContent: e.target.value
+            })}
+            className="w-full bg-gray-800 text-white p-1 rounded"
+            placeholder="Enter text content..."
+          />
+        );
+
+      case InteractionType.SHOW_IMAGE_MODAL:
+      case InteractionType.SHOW_VIDEO:
+      case InteractionType.SHOW_YOUTUBE:
+        return (
+          <input
+            type="text"
+            value={event.url || event.mediaUrl || event.imageUrl || event.videoUrl || ''}
+            onChange={(e) => onUpdate({ 
+              ...event, 
+              url: e.target.value,
+              mediaUrl: e.target.value,
+              imageUrl: e.target.value,
+              videoUrl: e.target.value
+            })}
+            className="w-full bg-gray-800 text-white p-1 rounded"
+            placeholder="Enter media URL"
+          />
+        );
+
+      case InteractionType.QUIZ:
+        return (
+          <div className="space-y-2 mt-2">
+            <input
+              type="text"
+              value={event.question || event.quizQuestion || ''}
+              onChange={(e) => onUpdate({ 
+                ...event, 
+                question: e.target.value,
+                quizQuestion: e.target.value
+              })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Enter question..."
+            />
+            <select
+              value={event.targetHotspotId || ''}
+              onChange={(e) => onUpdate({ ...event, targetHotspotId: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+            >
+              <option value="">Select Target Hotspot</option>
+              {allHotspots.filter(h => h.id !== event.targetId).map(h => (
+                <option key={h.id} value={h.id}>{h.title || h.id}</option>
+              ))}
+            </select>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -247,125 +231,55 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
 
   return (
     <div
-      ref={cardRef}
-      draggable
-      onDragStart={(e) => onDragStart(e, event.id)}
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, event.id)}
-      className={`border rounded-lg transition-all duration-200 ${
-        isDragging 
-          ? 'opacity-50 scale-95 border-purple-500' 
-          : isActive
-            ? 'bg-purple-600/20 border-purple-500'
-            : 'bg-slate-700/50 border-slate-600 hover:bg-slate-700 hover:border-slate-500'
-      } ${className}`}
+      ref={ref}
+      style={{ opacity: isDragging ? 0.2 : 1 }}
+      data-handler-id={handlerId}
+      className="p-3 mb-2 bg-gray-600 rounded-lg shadow cursor-move"
     >
-      {/* Header */}
-      <div className="p-3">
-        <div className="flex items-center gap-3">
-          {/* Drag Handle */}
-          <DragHandle isDragging={isDragging} className="flex-shrink-0" />
-          
-          {/* Event Info */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs bg-slate-600 text-slate-300 px-2 py-1 rounded">
-                Step {event.step}
-              </span>
-              {isActive && (
-                <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
-                  Active
-                </span>
-              )}
-            </div>
-            
-            {/* Event Name */}
-            {isEditing ? (
-              <input
-                type="text"
-                value={editedEvent.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                onBlur={() => setIsEditing(false)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') setIsEditing(false);
-                  if (e.key === 'Escape') {
-                    setEditedEvent(event);
-                    setIsEditing(false);
-                  }
-                }}
-                className="bg-slate-700 text-slate-100 border border-slate-600 rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
-                autoFocus
-              />
-            ) : (
-              <h5 
-                className="font-medium text-slate-100 text-sm cursor-pointer hover:text-purple-300"
-                onClick={() => setIsEditing(true)}
-              >
-                {event.name}
-              </h5>
-            )}
-            
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-slate-400">
-                {getEventIcon(event.type)} {event.type.replace(/_/g, ' ')}
-              </span>
-            </div>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => onJumpToStep(event.step)}
-              className="p-1 text-slate-400 hover:text-purple-400 transition-colors"
-              title="Jump to this step"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
-              title="Edit event"
-            >
-              <PencilIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onTogglePreview(event.id)}
-              className={`p-1 transition-colors ${
-                isPreviewing ? 'text-blue-400 hover:text-blue-300' : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title={isPreviewing ? "Hide Preview" : "Show Preview"}
-            >
-              {isPreviewing ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              className="p-1 text-slate-400 hover:text-red-400 transition-colors"
-              title="Delete event"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
-          </div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          <EventTypeToggle type={event.type} />
+          {isEditingTitle ? (
+            <input
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              onBlur={() => {
+                setIsEditingTitle(false);
+                onUpdate({ ...event, name: title });
+              }}
+              autoFocus
+              className="bg-gray-800 text-white p-1 rounded ml-2"
+            />
+          ) : (
+            <span className="font-bold text-sm ml-2">{event.name}</span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onTogglePreview}
+            className="text-gray-400 hover:text-white"
+            aria-label="Toggle Preview"
+          >
+            <EyeIcon className={`w-5 h-5 ${isPreviewing ? 'text-blue-400' : ''}`} />
+          </button>
+          <button
+            onClick={() => setIsEditingTitle(!isEditingTitle)}
+            className="text-gray-400 hover:text-white"
+            aria-label="Edit Title"
+          >
+            <PencilIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(event.id)}
+            className="text-gray-400 hover:text-red-500"
+            aria-label="Delete Event"
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
         </div>
       </div>
-
-      {/* Expanded Controls */}
-      {isExpanded && (
-        <div className="border-t border-slate-600 p-3 space-y-3">
-          {/* Event Type Selector */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Event Type</label>
-            <EventTypeSelector
-              value={editedEvent.type}
-              onChange={handleTypeChange}
-            />
-          </div>
-          
-          {/* Type-specific Controls */}
-          {renderTypeSpecificControls()}
-        </div>
-      )}
+      {renderSettings()}
     </div>
   );
 };
