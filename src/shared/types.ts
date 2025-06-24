@@ -91,6 +91,10 @@ export interface TimelineEventData {
   loop?: boolean;
   poster?: string;
   artist?: string;
+  
+  // ADD these new properties for enhanced positioning system
+  positioningVersion?: 'enhanced' | 'legacy'; // Track which positioning system was used
+  constraintsApplied?: boolean; // Whether positioning constraints were applied
 }
 
 // New interface for managing multiple simultaneous events

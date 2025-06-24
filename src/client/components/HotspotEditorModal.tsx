@@ -93,6 +93,14 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     });
   }, []);
 
+  const handleSpotlightPositionChange = useCallback((position: typeof spotlightPosition) => {
+    setSpotlightPosition(position);
+  }, []);
+
+  const handleTextPositionChange = useCallback((position: typeof textBoxPosition) => {
+    setTextBoxPosition(position);
+  }, []);
+
   const handleSave = useCallback(() => {
     if (!selectedHotspot) return;
 
@@ -114,29 +122,38 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         message: '' // Explicitly set to empty string to prevent undefined Firebase errors
       };
 
-      // Add type-specific properties with positioning
+      // Add type-specific properties with enhanced positioning
       switch (type) {
         case InteractionType.PAN_ZOOM_TO_HOTSPOT:
           baseEvent.zoomFactor = zoomLevel;
+          // ADD enhanced positioning data
+          baseEvent.zoomLevel = zoomLevel;
+          baseEvent.positioningVersion = 'enhanced';
           break;
+          
         case InteractionType.HIGHLIGHT_HOTSPOT:
           baseEvent.highlightShape = spotlightShape;
           baseEvent.dimPercentage = dimPercentage;
+          // ADD enhanced spotlight positioning
           baseEvent.spotlightX = spotlightPosition.x;
           baseEvent.spotlightY = spotlightPosition.y;
           baseEvent.spotlightWidth = spotlightPosition.width;
           baseEvent.spotlightHeight = spotlightPosition.height;
+          baseEvent.positioningVersion = 'enhanced';
           break;
+          
         case InteractionType.SHOW_TEXT:
           baseEvent.textContent = textContent;
           baseEvent.textPosition = textPosition;
+          // ADD enhanced text positioning
           baseEvent.textX = textBoxPosition.x;
           baseEvent.textY = textBoxPosition.y;
           baseEvent.textWidth = textBoxPosition.width;
           baseEvent.textHeight = textBoxPosition.height;
+          baseEvent.positioningVersion = 'enhanced';
           break;
-        case InteractionType.PULSE_HOTSPOT:
-          baseEvent.duration = 3000; // Default duration
+          
+        default:
           break;
       }
 
@@ -270,8 +287,9 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             dimPercentage={dimPercentage}
             textContent={textContent}
             textPosition={textPosition}
-            onSpotlightPositionChange={setSpotlightPosition}
-            onTextPositionChange={setTextBoxPosition}
+            onSpotlightPositionChange={handleSpotlightPositionChange}
+            onTextPositionChange={handleTextPositionChange}
+            onZoomLevelChange={setZoomLevel}
           />
           
           {/* Event Sequence List - Enhanced */}

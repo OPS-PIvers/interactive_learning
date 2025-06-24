@@ -30,6 +30,7 @@ interface EnhancedHotspotPreviewProps {
   // Position callbacks
   onSpotlightPositionChange?: (position: SpotlightPosition) => void;
   onTextPositionChange?: (position: TextPosition) => void;
+  onZoomLevelChange?: (level: number) => void;
 }
 
 // Spotlight drag handles component
@@ -40,31 +41,52 @@ const SpotlightHandles: React.FC<{
   const [isDragging, setIsDragging] = useState(false);
   const [dragType, setDragType] = useState<'move' | 'resize'>('move');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, type: 'move' | 'resize') => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setDragType(type);
     setDragStart({ x: e.clientX, y: e.clientY });
+
+    // Get container element from parent preview container
+    const container = e.currentTarget.closest('.relative.bg-slate-700');
+    if (container) {
+      containerRef.current = container as HTMLDivElement;
+    }
   }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !containerRef.current) return;
     
+    const containerRect = containerRef.current.getBoundingClientRect();
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
     
     if (dragType === 'move') {
+      // Convert pixel movement to percentage movement based on container size
+      const percentDeltaX = (deltaX / containerRect.width) * 100;
+      const percentDeltaY = (deltaY / containerRect.height) * 100;
+      
+      // Apply position with proper bounds checking
+      const newX = Math.max(2, Math.min(95, position.x + percentDeltaX));
+      const newY = Math.max(2, Math.min(95, position.y + percentDeltaY));
+      
       onPositionChange({
         ...position,
-        x: Math.max(0, Math.min(100, position.x + (deltaX / 8))), // Scale to percentage
-        y: Math.max(0, Math.min(100, position.y + (deltaY / 8)))
+        x: newX,
+        y: newY
       });
     } else {
+      // Resize: maintain minimum sizes and reasonable maximums
+      const newWidth = Math.max(30, Math.min(300, position.width + deltaX));
+      const newHeight = Math.max(30, Math.min(300, position.height + deltaY));
+      
       onPositionChange({
         ...position,
-        width: Math.max(20, position.width + deltaX),
-        height: Math.max(20, position.height + deltaY)
+        width: newWidth,
+        height: newHeight
       });
     }
     
@@ -88,27 +110,49 @@ const SpotlightHandles: React.FC<{
   
   return (
     <>
-      {/* Move handle */}
+      {/* Move handle - Center of spotlight */}
       <div 
-        className="absolute w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-move transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-10"
+        className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full cursor-move transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-20 shadow-lg"
         style={{ 
           left: `${position.x}%`, 
           top: `${position.y}%` 
         }}
         title="Drag to move spotlight"
         onMouseDown={(e) => handleMouseDown(e, 'move')}
-      />
+      >
+        {/* Inner dot for better visibility */}
+        <div className="absolute inset-1 bg-white rounded-full opacity-80" />
+      </div>
       
-      {/* Resize handle */}
+      {/* Resize handle - Corner positioned relative to spotlight size */}
       <div 
-        className="absolute w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-10"
+        className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-20 shadow-lg"
         style={{ 
-          left: `calc(${position.x}% + ${position.width / 8}px)`, 
-          top: `calc(${position.y}% + ${position.height / 8}px)` 
+          left: `calc(${position.x}% + ${(position.width * 0.35)}px)`, 
+          top: `calc(${position.y}% + ${(position.height * 0.35)}px)` 
         }}
-        title="Drag to resize"
+        title="Drag to resize spotlight"
         onMouseDown={(e) => handleMouseDown(e, 'resize')}
-      />
+      >
+        {/* Resize icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 border-r border-b border-white transform rotate-45" />
+        </div>
+      </div>
+
+      {/* Visual feedback while dragging */}
+      {isDragging && (
+        <div
+          className="absolute border border-dashed border-purple-300 pointer-events-none z-10 rounded"
+          style={{
+            left: `${position.x}%`,
+            top: `${position.y}%`,
+            width: `${position.width}px`,
+            height: `${position.height}px`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        />
+      )}
     </>
   );
 };
@@ -121,6 +165,7 @@ const TextHandles: React.FC<{
   const [isDragging, setIsDragging] = useState(false);
   const [dragType, setDragType] = useState<'move' | 'resize'>('move');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, type: 'move' | 'resize') => {
     e.preventDefault();
@@ -128,25 +173,48 @@ const TextHandles: React.FC<{
     setIsDragging(true);
     setDragType(type);
     setDragStart({ x: e.clientX, y: e.clientY });
+
+    // Get container element from parent preview container
+    const container = e.currentTarget.closest('.relative.bg-slate-700');
+    if (container) {
+      containerRef.current = container as HTMLDivElement;
+    }
   }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !containerRef.current) return;
     
+    const containerRect = containerRef.current.getBoundingClientRect();
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
     
     if (dragType === 'move') {
+      // Convert pixel movement to percentage movement based on container size
+      const percentDeltaX = (deltaX / containerRect.width) * 100;
+      const percentDeltaY = (deltaY / containerRect.height) * 100;
+      
+      // Calculate text box boundaries based on its size
+      const textWidthPercent = (position.width / containerRect.width) * 100;
+      const textHeightPercent = (position.height / containerRect.height) * 100;
+      
+      // Apply position with proper bounds checking (keep text completely within container)
+      const newX = Math.max(textWidthPercent / 2 + 2, Math.min(100 - textWidthPercent / 2 - 2, position.x + percentDeltaX));
+      const newY = Math.max(textHeightPercent / 2 + 2, Math.min(100 - textHeightPercent / 2 - 2, position.y + percentDeltaY));
+      
       onPositionChange({
         ...position,
-        x: Math.max(0, Math.min(100, position.x + (deltaX / 8))),
-        y: Math.max(0, Math.min(100, position.y + (deltaY / 8)))
+        x: newX,
+        y: newY
       });
     } else {
+      // Resize: maintain minimum sizes and reasonable maximums
+      const newWidth = Math.max(100, Math.min(400, position.width + deltaX));
+      const newHeight = Math.max(40, Math.min(200, position.height + deltaY));
+      
       onPositionChange({
         ...position,
-        width: Math.max(100, position.width + deltaX),
-        height: Math.max(40, position.height + deltaY)
+        width: newWidth,
+        height: newHeight
       });
     }
     
@@ -170,20 +238,269 @@ const TextHandles: React.FC<{
   
   return (
     <>
-      {/* Move handle */}
+      {/* Move handle - Top-left corner */}
       <div 
-        className="absolute -top-2 -left-2 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-move hover:bg-blue-400 transition-colors z-20"
-        title="Drag to move text"
+        className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-move hover:bg-blue-400 transition-colors z-30 shadow-lg"
+        title="Drag to move text box"
         onMouseDown={(e) => handleMouseDown(e, 'move')}
-      />
+      >
+        {/* Move icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full opacity-80" />
+        </div>
+      </div>
       
-      {/* Resize handle */}
+      {/* Resize handle - Bottom-right corner */}
       <div 
-        className="absolute -bottom-2 -right-2 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-400 transition-colors z-20"
+        className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-400 transition-colors z-30 shadow-lg"
         title="Drag to resize text box"
         onMouseDown={(e) => handleMouseDown(e, 'resize')}
-      />
+      >
+        {/* Resize icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 border-r border-b border-white transform rotate-45" />
+        </div>
+      </div>
+
+      {/* Visual feedback while dragging */}
+      {isDragging && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-300 pointer-events-none rounded z-20 bg-blue-500 bg-opacity-5" />
+      )}
     </>
+  );
+};
+
+interface PanZoomPosition {
+  x: number; // percentage
+  y: number; // percentage
+  width: number; // percentage
+  height: number; // percentage
+}
+
+const InteractivePanZoomArea: React.FC<{
+  hotspotPosition: { x: number; y: number };
+  zoomLevel: number;
+  onZoomLevelChange?: (level: number) => void;
+}> = ({ hotspotPosition, zoomLevel, onZoomLevelChange }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragType, setDragType] = useState<'move' | 'resize'>('move');
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize pan/zoom area around hotspot
+  const [panZoomArea, setPanZoomArea] = useState<PanZoomPosition>({
+    x: Math.max(5, Math.min(70, hotspotPosition.x - 15)),
+    y: Math.max(5, Math.min(70, hotspotPosition.y - 15)),
+    width: 25, // percentage
+    height: 25  // percentage
+  });
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, type: 'move' | 'resize') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragType(type);
+    setDragStart({ x: e.clientX, y: e.clientY });
+
+    // Get container element
+    const container = e.currentTarget.closest('.relative.bg-slate-700');
+    if (container) {
+      containerRef.current = container as HTMLDivElement;
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    if (dragType === 'move') {
+      // Convert pixel movement to percentage movement
+      const percentDeltaX = (deltaX / containerRect.width) * 100;
+      const percentDeltaY = (deltaY / containerRect.height) * 100;
+      
+      // Apply position with bounds checking
+      const newX = Math.max(2, Math.min(98 - panZoomArea.width, panZoomArea.x + percentDeltaX));
+      const newY = Math.max(2, Math.min(98 - panZoomArea.height, panZoomArea.y + percentDeltaY));
+      
+      setPanZoomArea(prev => ({
+        ...prev,
+        x: newX,
+        y: newY
+      }));
+    } else {
+      // Resize: convert pixel delta to percentage delta
+      const percentDeltaX = (deltaX / containerRect.width) * 100;
+      const percentDeltaY = (deltaY / containerRect.height) * 100;
+      
+      const newWidth = Math.max(10, Math.min(50, panZoomArea.width + percentDeltaX));
+      const newHeight = Math.max(10, Math.min(50, panZoomArea.height + percentDeltaY));
+      
+      setPanZoomArea(prev => ({
+        ...prev,
+        width: newWidth,
+        height: newHeight
+      }));
+    }
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isDragging, dragType, dragStart, panZoomArea]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleZoomChange = useCallback((delta: number) => {
+    const newLevel = Math.max(1.1, Math.min(5, zoomLevel + delta));
+    onZoomLevelChange?.(newLevel);
+  }, [zoomLevel, onZoomLevelChange]);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  return (
+    <div
+      className="absolute group"
+      style={{
+        left: `${panZoomArea.x}%`,
+        top: `${panZoomArea.y}%`,
+        width: `${panZoomArea.width}%`,
+        height: `${panZoomArea.height}%`
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Main zoom area rectangle */}
+      <div
+        className={`absolute inset-0 border-2 border-blue-500 bg-blue-500 rounded-lg transition-all duration-200 ${
+          isHovered || isDragging ? 'bg-opacity-25 border-blue-400' : 'bg-opacity-15'
+        }`}
+      >
+        {/* Zoom level indicator */}
+        <div className="absolute -top-8 left-0 bg-slate-800 text-blue-400 px-2 py-1 rounded text-xs font-medium shadow-lg border border-slate-600">
+          {zoomLevel.toFixed(1)}x Zoom
+        </div>
+
+        {/* Center crosshair */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute w-4 h-px bg-blue-400 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute w-px h-4 bg-blue-400 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </div>
+
+        {/* Grid overlay */}
+        <div className="absolute inset-2 border border-dashed border-blue-300 opacity-30 rounded">
+          <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-px">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="border border-dotted border-blue-300 opacity-20" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Move Handle - Center */}
+      <div
+        className="absolute top-1/2 left-1/2 w-5 h-5 bg-blue-500 border-2 border-white rounded-full cursor-move transform -translate-x-1/2 -translate-y-1/2 hover:bg-blue-400 transition-colors z-20 shadow-lg"
+        title="Drag to move zoom area"
+        onMouseDown={(e) => handleMouseDown(e, 'move')}
+      >
+        {/* Move icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2">
+            <div className="absolute w-full h-px bg-white top-1/2 transform -translate-y-1/2" />
+            <div className="absolute w-px h-full bg-white left-1/2 transform -translate-x-1/2" />
+          </div>
+        </div>
+      </div>
+
+      {/* Resize Handle - Bottom-right corner */}
+      <div
+        className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize transform translate-x-1/2 translate-y-1/2 hover:bg-blue-400 transition-colors z-20 shadow-lg"
+        title="Drag to resize zoom area"
+        onMouseDown={(e) => handleMouseDown(e, 'resize')}
+      >
+        {/* Resize icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2 border-r border-b border-white transform rotate-45" />
+        </div>
+      </div>
+
+      {/* Zoom level controls */}
+      <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          className="w-7 h-7 bg-blue-500 hover:bg-blue-400 text-white rounded border border-white shadow-lg transition-colors text-sm font-bold"
+          title="Increase zoom"
+          onClick={() => handleZoomChange(0.2)}
+        >
+          +
+        </button>
+        <button
+          className="w-7 h-7 bg-blue-500 hover:bg-blue-400 text-white rounded border border-white shadow-lg transition-colors text-sm font-bold"
+          title="Decrease zoom"
+          onClick={() => handleZoomChange(-0.2)}
+        >
+          −
+        </button>
+      </div>
+
+      {/* Connection line to hotspot */}
+      <svg
+        className="absolute pointer-events-none z-0"
+        style={{
+          left: '50%',
+          top: '50%',
+          width: '100px',
+          height: '100px',
+          transform: 'translate(-50%, -50%)',
+          overflow: 'visible'
+        }}
+      >
+        <defs>
+          <marker
+            id="arrowhead-panzoom"
+            markerWidth="8"
+            markerHeight="6"
+            refX="7"
+            refY="3"
+            orient="auto"
+          >
+            <polygon
+              points="0 0, 8 3, 0 6"
+              fill="#3b82f6"
+              opacity="0.6"
+            />
+          </marker>
+        </defs>
+        <line
+          x1="50"
+          y1="50"
+          x2={50 + (hotspotPosition.x - (panZoomArea.x + panZoomArea.width/2)) * 0.5}
+          y2={50 + (hotspotPosition.y - (panZoomArea.y + panZoomArea.height/2)) * 0.5}
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeDasharray="3,3"
+          opacity="0.6"
+          markerEnd="url(#arrowhead-panzoom)"
+        />
+      </svg>
+
+      {/* Visual feedback while dragging */}
+      {isDragging && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-300 pointer-events-none rounded z-10 bg-blue-500 bg-opacity-10" />
+      )}
+    </div>
   );
 };
 
@@ -197,7 +514,8 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
   textContent,
   textPosition,
   onSpotlightPositionChange,
-  onTextPositionChange
+  onTextPositionChange,
+  onZoomLevelChange
 }) => {
   const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
   const [isAnimating, setIsAnimating] = useState(false);
@@ -429,19 +747,11 @@ const EnhancedHotspotPreview: React.FC<EnhancedHotspotPreviewProps> = ({
 
         {/* Pan & Zoom Rectangle (Edit mode only) */}
         {previewMode === 'edit' && selectedEventTypes.has(InteractionType.PAN_ZOOM_TO_HOTSPOT) && (
-          <div 
-            className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 pointer-events-none"
-            style={{
-              left: `${hotspot.x - 10}%`,
-              top: `${hotspot.y - 10}%`, 
-              width: '20%',
-              height: '20%'
-            }}
-          >
-            <div className="absolute -top-6 left-0 text-xs text-blue-400 bg-slate-800 px-2 py-1 rounded">
-              Zoom {zoomLevel}x
-            </div>
-          </div>
+          <InteractivePanZoomArea
+            hotspotPosition={hotspot}
+            zoomLevel={zoomLevel}
+            onZoomLevelChange={onZoomLevelChange}
+          />
         )}
 
         {/* Text Display */}
