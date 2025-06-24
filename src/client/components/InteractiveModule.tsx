@@ -5,9 +5,9 @@ import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import HorizontalTimeline from './HorizontalTimeline';
-import HotspotEditModal from './HotspotEditModal';
+// import HotspotEditModal from './HotspotEditModal'; // To be removed
 import StreamlinedHotspotEditor from './StreamlinedHotspotEditor';
-import HotspotEditorModal from './HotspotEditorModal';
+import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon'; // Already imported
@@ -131,8 +131,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
   const [colorScheme, setColorScheme] = useState<string>('Default');
   const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
-  const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false); // This is for the old modal, potentially remove if fully replaced
-  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null); // This will be used for the new HotspotEditorModal
+  // const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false); // Removed: To be consolidated
+  // const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null); // Removed: To be consolidated with selectedHotspotForModal logic
   
   // Missing state declaration for imageContainerRect
   const [imageContainerRect, setImageContainerRect] = useState<DOMRect | null>(null);
@@ -144,7 +144,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const isMobile = useIsMobile();
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
-  const [showPlacementHint, setShowPlacementHint] = useState<boolean>(false);
+  // const [showPlacementHint, setShowPlacementHint] = useState<boolean>(false); // Removed, was tied to pendingHotspot
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
@@ -1487,7 +1487,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     };
 
     setHotspots(prevHotspots => [...prevHotspots, newHotspotData]);
-    setEditingHotspot(newHotspotData); // This will trigger the HotspotEditorModal to open for the new hotspot
+    // setEditingHotspot(newHotspotData); // Removed: control HotspotEditorModal via isHotspotModalOpen & selectedHotspotForModal
+    setSelectedHotspotForModal(newHotspotData.id); // Set the ID of the new hotspot
+    setIsHotspotModalOpen(true); // Open the HotspotEditorModal
 
     // Optional: Create a default "SHOW_HOTSPOT" timeline event for the new hotspot
     const newEventStep = timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) + 1 : 1;
@@ -1504,28 +1506,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (isEditing) {
       setCurrentStep(newEventStep); // Optionally focus the timeline on this new event's step
     }
-  }, [hotspots, timelineEvents, colorScheme, isEditing, setHotspots, setEditingHotspot, setTimelineEvents, setCurrentStep]);
+  }, [hotspots, timelineEvents, colorScheme, isEditing, setHotspots, setSelectedHotspotForModal, setIsHotspotModalOpen, setCurrentStep]); // Updated dependencies
 
-  const handleEditHotspotRequest = useCallback((hotspotId: string) => {
-    const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
-    if (!hotspotToEdit) return;
-    setEditingHotspot(hotspotToEdit);
-    setShowHotspotEditModal(true);
-  }, [hotspots]);
+  // Removed the first handleEditHotspotRequest (was for HotspotEditModal)
 
-  // New handler for enhanced hotspot editor modal
-  const handleHotspotEditRequest = useCallback((hotspotId: string) => {
+  // Unified handler for opening the HotspotEditorModal for an existing hotspot
+  const handleOpenHotspotEditor = useCallback((hotspotId: string) => {
     setSelectedHotspotForModal(hotspotId);
     setIsHotspotModalOpen(true);
-  }, []);
+  }, [setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
-  const handleSaveHotspot = useCallback((updatedHotspot: HotspotData) => {
-    setHotspots(prevHotspots => 
-      prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h)
-    );
-    setShowHotspotEditModal(false);
-    setEditingHotspot(null);
-  }, []);
+  // Removed handleSaveHotspot (was for HotspotEditModal)
 
   const handleHotspotPositionChange = useCallback((hotspotId: string, x: number, y: number) => {
     setHotspots(prevHotspots => 
@@ -1870,7 +1861,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
                 // onClick={handleImageClick} // Replaced by onImageOrHotspotClick from ImageEditCanvas
                 {...(isMobile && isEditing ? touchGestureHandlers : {})} // Apply gesture handlers
-                // style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default'}} // Removed pendingHotspot style
+                // style={{ cursor: backgroundImage ? 'crosshair' : 'default'}} // Cursor managed by ImageEditCanvas
               >
                 <ImageEditCanvas
                   backgroundImage={backgroundImage}
@@ -1896,7 +1887,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   onFocusHotspot={handleFocusHotspot}
                   // onEditHotspotRequest is kept for alternative ways to trigger editing,
                   // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
-                  onEditHotspotRequest={handleHotspotEditRequest}
+                  onEditHotspotRequest={handleOpenHotspotEditor} // Renamed from handleHotspotEditRequest
                   onHotspotPositionChange={handleHotspotPositionChange}
                   isEditing={isEditing}
                   isMobile={true}
@@ -1995,32 +1986,33 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         //     imageXPercent: initialImageX,
                         //     imageYPercent: initialImageY,
                         // });
-                        // setShowPlacementHint(true); // Placement hint might be removed or re-thought
+                        // setShowPlacementHint(true); // Placement hint logic removed
                         // setTimeout(() => setShowPlacementHint(false), 3500);
                         handleAddHotspot(); // Directly call handleAddHotspot
                       }
                     } else {
                       // alert("Please upload an image first to add hotspots.");
                       // Optionally, show a different hint if image not present, or disable FAB
-                      setShowPlacementHint(true); // Example: show a generic hint to upload image
-                      setTimeout(() => setShowPlacementHint(false), 3500);
+                      // setShowPlacementHint(true); // Placement hint logic removed
+                      // setTimeout(() => setShowPlacementHint(false), 3500);
+                       alert("Please upload an image first to add hotspots."); // Simple alert for now
                     }
                   }}
                   className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center text-white shadow-lg"
                   aria-label="Add hotspot"
+                  disabled={!backgroundImage} // Disable if no image
                 >
                   <PlusIcon className="w-7 h-7" />
                 </button>
               </div>
-              {/* Placement Hint Message */}
-              {showPlacementHint && isMobile && (
+              {/* Placement Hint Message - Removed */}
+              {/* {showPlacementHint && isMobile && (
                 <div
                   className="absolute bottom-36 right-4 bg-black bg-opacity-70 text-white text-xs px-3 py-1.5 rounded-md shadow-lg z-40"
-                  // style={{ transform: 'translateX(-50%)' }} // To center if it was bottom-center
                 >
                   {backgroundImage ? "Tap on the image to place hotspot." : "Please upload an image first."}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         ) : (
@@ -2132,7 +2124,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     onFocusHotspot={handleFocusHotspot}
                     // onEditHotspotRequest is kept for alternative ways to trigger editing,
                     // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
-                    onEditHotspotRequest={handleHotspotEditRequest}
+                    onEditHotspotRequest={handleOpenHotspotEditor} // Renamed from handleHotspotEditRequest
                     onHotspotPositionChange={handleHotspotPositionChange}
                     isEditing={isEditing}
                     isMobile={false} // Explicitly false
@@ -2348,18 +2340,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         </div>
       )}
 
-      {/* Hotspot Edit Modal */}
-      <HotspotEditModal
+      {/* HotspotEditModal and its related states/handlers are removed. HotspotEditorModal is now the single modal. */}
+      {/* <HotspotEditModal
         isOpen={showHotspotEditModal}
         onClose={() => {
           setShowHotspotEditModal(false);
-          setEditingHotspot(null);
+          // setEditingHotspot(null); // State removed
         }}
-        onSave={handleSaveHotspot}
-        hotspot={editingHotspot}
-      />
+        onSave={handleSaveHotspot} // Function removed
+        // hotspot={editingHotspot} // State removed
+      /> */}
 
-      {/* Enhanced Hotspot Editor Modal */}
+      {/* Enhanced Hotspot Editor Modal - This is now the single modal for editing */}
       <HotspotEditorModal
         isOpen={isHotspotModalOpen}
         selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}

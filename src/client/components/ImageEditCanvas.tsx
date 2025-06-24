@@ -23,7 +23,7 @@ interface ImageEditCanvasProps {
   highlightedHotspotId: string | null;
   getHighlightGradientStyle: () => React.CSSProperties;
 
-  pendingHotspot: { viewXPercent: number; viewYPercent: number; imageXPercent: number; imageYPercent: number } | null;
+  // pendingHotspot: { viewXPercent: number; viewYPercent: number; imageXPercent: number; imageYPercent: number } | null; // Removed
 
   // Event Handlers
   onImageLoad: (event: React.SyntheticEvent<HTMLImageElement>) => void;
@@ -59,7 +59,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   activeHotspotDisplayIds,
   highlightedHotspotId,
   getHighlightGradientStyle,
-  pendingHotspot,
+  // pendingHotspot, // Removed
   onImageLoad,
   onImageOrHotspotClick,
   onTouchStart,
@@ -184,11 +184,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           )
         )}
 
-        {/* Visual marker for pending hotspot */}
-        {/* For mobile, viewXPercent/viewYPercent are relative to imageContainerRef (parent of this canvas) */}
-        {/* For desktop, they were relative to the old imageContainerRef (which is now this component's inner div) */}
-        {/* This needs careful handling in InteractiveModule when passing pendingHotspot or this needs its own container ref */}
-        {pendingHotspot && imageContainerRef.current && ( // Use imageContainerRef from props for positioning context
+        {/* Visual marker for pending hotspot - REMOVED */}
+        {/* {pendingHotspot && imageContainerRef.current && (
            <div
             className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
             style={{
@@ -197,7 +194,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             }}
             aria-hidden="true"
           ><PlusIcon className="w-5 h-5 text-white"/></div>
-        )}
+        )} */}
       </div>
     </div>
   );
