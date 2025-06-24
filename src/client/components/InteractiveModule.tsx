@@ -1601,9 +1601,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
       {isEditing ? (
         isMobile ? (
-          //**************************************************//
-          //*********** MOBILE EDITOR LAYOUT START ***********//
-          //**************************************************//
           <div className="flex flex-col min-h-screen bg-slate-900 pt-14"> {/* pt-14 for toolbar height */}
             {/* Mobile EditorToolbar */}
             <div className="flex-shrink-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: Z_INDEX.TOOLBAR }}>
@@ -1783,13 +1780,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               )}
             </div>
           </div>
-          //**************************************************//
-          //************* MOBILE EDITOR LAYOUT END ***********//
-          //**************************************************//
         ) : (
-          //**************************************************//
-          //********** DESKTOP EDITOR LAYOUT START ***********//
-          //**************************************************//
           <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
             {/* Add Toolbar */}
             <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
@@ -1822,50 +1813,53 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               {/* Full-screen image container with zoom */}
               <div className="absolute inset-0">
                 <TransformIndicator />
-              {/* Viewport Container - scales with manual zoom */}
-            {debugMode && (
-              <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
-                <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
-                <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
-                <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
-                <div>Image Fit: {imageFitMode}</div>
-                {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
-              </div>
-            )}
+                
+                {/* Viewport Container - scales with manual zoom */}
+                <div className="viewport-container">
+                  {debugMode && (
+                    <div className="absolute top-20 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG }}>
+                      <div>Mode: {isEditing ? 'Editor' : 'Viewer'}</div>
+                      <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
+                      <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
+                      <div>Viewport Center: {JSON.stringify(getSafeViewportCenter())}</div>
+                      <div>Image Fit: {imageFitMode}</div>
+                      {imageNaturalDimensions && <div>Natural: {imageNaturalDimensions.width}x{imageNaturalDimensions.height}</div>}
+                    </div>
+                  )}
 
-            {/* Hotspot Debug Info */}
-            {debugMode && (
-              <div className="absolute bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg text-xs max-w-md" style={{ zIndex: Z_INDEX.DEBUG }}>
-                <h3 className="font-bold mb-2">Hotspot Debug Info</h3>
-                <div>Hotspots Count: {hotspots.length}</div>
-                <div>Timeline Events Count: {timelineEvents.length}</div>
-                <div className="mt-2">
-                  <strong>Hotspot IDs:</strong>
-                  {hotspots.map(h => (
-                    <div key={h.id} className="ml-2">{h.id}: "{h.title}"</div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <strong>Show Events:</strong>
-                  {timelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT).map(e => (
-                    <div key={e.id} className="ml-2">Step {e.step}: {e.targetId}</div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <strong>Current Step:</strong> {currentStep}
-                </div>
-                <div>
-                  <strong>Visible Hotspots:</strong> {hotspots.filter(h => 
-                    timelineEvents.some(e => 
-                      e.type === InteractionType.SHOW_HOTSPOT && 
-                      e.targetId === h.id && 
-                      e.step <= currentStep
-                    )
-                  ).length}
-                </div>
-              </div>
-            )}
+                  {/* Hotspot Debug Info */}
+                  {debugMode && (
+                    <div className="absolute bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg text-xs max-w-md" style={{ zIndex: Z_INDEX.DEBUG }}>
+                      <h3 className="font-bold mb-2">Hotspot Debug Info</h3>
+                      <div>Hotspots Count: {hotspots.length}</div>
+                      <div>Timeline Events Count: {timelineEvents.length}</div>
+                      <div className="mt-2">
+                        <strong>Hotspot IDs:</strong>
+                        {hotspots.map(h => (
+                          <div key={h.id} className="ml-2">{h.id}: "{h.title}"</div>
+                        ))}
+                      </div>
+                      <div className="mt-2">
+                        <strong>Show Events:</strong>
+                        {timelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT).map(e => (
+                          <div key={e.id} className="ml-2">Step {e.step}: {e.targetId}</div>
+                        ))}
+                      </div>
+                      <div className="mt-2">
+                        <strong>Current Step:</strong> {currentStep}
+                      </div>
+                      <div>
+                        <strong>Visible Hotspots:</strong> {hotspots.filter(h => 
+                          timelineEvents.some(e => 
+                            e.type === InteractionType.SHOW_HOTSPOT && 
+                            e.targetId === h.id && 
+                            e.step <= currentStep
+                          )
+                        ).length}
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Refactored Image Edit Canvas for Desktop */}
                   <ImageEditCanvas
                     backgroundImage={backgroundImage}
@@ -1911,43 +1905,43 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               </div>
             </div>
           </div>
-          {/* Fixed Bottom Timeline */}
-<div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
-  {backgroundImage && (
-    <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-      <HorizontalTimeline
-        uniqueSortedSteps={uniqueSortedSteps}
-        currentStep={currentStep}
-        onStepSelect={handleTimelineDotClick}
-        isEditing={isEditing}
-        timelineEvents={timelineEvents}
-        hotspots={hotspots}
-        isMobile={isMobile}
-      />
-    </div>
-  )}
-</div>
-        </div>
-        </div>
-      ) : (
-        /* VIEWER LAYOUT (Desktop and Mobile) */
-        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
-          {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
-          <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
-            <ViewerToolbar
-              projectName={projectName}
-              onBack={handleAttemptClose}
-              moduleState={moduleState}
-              onStartLearning={handleStartLearning}
-              onStartExploring={handleStartExploring}
-              hasContent={!!backgroundImage}
-              isMobile={isMobile}
-            />
-          </div>
           
-          {/* Main content area (Image + Timeline for Mobile) */}
-          {/* Desktop: This div is part of the fixed layout, for Mobile: it's the flex-1 content area */}
-          <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
+          {/* Fixed Bottom Timeline */}
+          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
+            {backgroundImage && (
+              <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
+                <HorizontalTimeline
+                  uniqueSortedSteps={uniqueSortedSteps}
+                  currentStep={currentStep}
+                  onStepSelect={handleTimelineDotClick}
+                  isEditing={isEditing}
+                  timelineEvents={timelineEvents}
+                  hotspots={hotspots}
+                  isMobile={isMobile}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        )
+      ) : (
+        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+            {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
+            <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
+              <ViewerToolbar
+                projectName={projectName}
+                onBack={handleAttemptClose}
+                moduleState={moduleState}
+                onStartLearning={handleStartLearning}
+                onStartExploring={handleStartExploring}
+                hasContent={!!backgroundImage}
+                isMobile={isMobile}
+              />
+            </div>
+            
+            {/* Main content area (Image + Timeline for Mobile) */}
+            {/* Desktop: This div is part of the fixed layout, for Mobile: it's the flex-1 content area */}
+            <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
             {/* Image container with mobile-safe sizing */}
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
             <div

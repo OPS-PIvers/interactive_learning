@@ -205,3 +205,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 };
 
 export default HotspotViewer;
+
+// Memoized version for performance optimization
+export const MemoizedHotspotViewer = React.memo(HotspotViewer);

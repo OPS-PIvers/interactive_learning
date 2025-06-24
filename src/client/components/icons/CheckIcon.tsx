@@ -13,3 +13,4 @@ const CheckIcon: React.FC<CheckIconProps> = ({ className = "w-5 h-5" }) => {
 };
 
 export default CheckIcon;
+export { CheckIcon };

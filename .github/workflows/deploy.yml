@@ -42,9 +42,7 @@ jobs:
           EOF
 
       - name: Build application
-        run: NODE_ENV=production npm run build
-        env:
-          NODE_ENV: production
+        run: npm run firebase:build
 
       - name: Deploy to Firebase Hosting (Preview)
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -88,9 +86,7 @@ jobs:
           EOF
 
       - name: Build application
-        run: NODE_ENV=production npm run build
-        env:
-          NODE_ENV: production
+        run: npm run firebase:build
 
       - name: Deploy to Firebase Hosting (Live)
         uses: FirebaseExtended/action-hosting-deploy@v0
