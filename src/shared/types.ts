@@ -8,10 +8,20 @@ export enum InteractionType {
   PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
   HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT',
   
-  // New types
+  // Enhanced types
   SHOW_TEXT = 'SHOW_TEXT',
+  SHOW_IMAGE = 'SHOW_IMAGE',
+  PAN_ZOOM = 'PAN_ZOOM',
+  SPOTLIGHT = 'SPOTLIGHT',
   QUIZ = 'QUIZ',
-  MEDIA = 'MEDIA'
+  PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT',
+  PLAY_AUDIO = 'PLAY_AUDIO',
+  
+  // Media interaction types
+  SHOW_VIDEO = 'SHOW_VIDEO',
+  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
+  SHOW_IMAGE_MODAL = 'SHOW_IMAGE_MODAL',
+  SHOW_YOUTUBE = 'SHOW_YOUTUBE'
 }
 
 
@@ -57,6 +67,26 @@ export interface TimelineEventData {
   quizCorrectAnswer?: number;
   mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
   mediaUrl?: string;
+  
+  // Additional properties for new interaction types
+  imageUrl?: string;
+  caption?: string;
+  zoomLevel?: number;
+  smooth?: boolean;
+  radius?: number;
+  intensity?: number;
+  audioUrl?: string;
+  volume?: number;
+  
+  // Media modal properties
+  videoUrl?: string;
+  youtubeVideoId?: string;
+  youtubeStartTime?: number;
+  youtubeEndTime?: number;
+  autoplay?: boolean;
+  loop?: boolean;
+  poster?: string;
+  artist?: string;
 }
 
 // New interface for managing multiple simultaneous events

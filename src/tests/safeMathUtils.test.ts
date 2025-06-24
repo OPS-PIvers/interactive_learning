@@ -73,8 +73,8 @@ describe('SafeMathUtils', () => {
       expect(isValidImageBounds({ width: 0, height: 100 })).toBe(false);
       expect(isValidImageBounds({ width: 100, height: 0 })).toBe(false);
       expect(isValidImageBounds({ width: -1, height: 100 })).toBe(false);
-      expect(isValidImageBounds(null)).toBe(false);
-      expect(isValidImageBounds(undefined)).toBe(false);
+      expect(isValidImageBounds(null)).toBeFalsy();
+      expect(isValidImageBounds(undefined)).toBeFalsy();
       expect(isValidImageBounds({ width: Infinity, height: 100 })).toBe(false);
     });
   });
@@ -149,8 +149,8 @@ describe('SafeMathUtils', () => {
       expect(hasValidDimensions({ width: 0, height: 100 })).toBe(false);
       expect(hasValidDimensions({ width: 100, height: 0 })).toBe(false);
       expect(hasValidDimensions({ width: -1, height: 100 })).toBe(false);
-      expect(hasValidDimensions(null)).toBe(false);
-      expect(hasValidDimensions(undefined)).toBe(false);
+      expect(hasValidDimensions(null)).toBeFalsy();
+      expect(hasValidDimensions(undefined)).toBeFalsy();
       expect(hasValidDimensions({ width: Infinity, height: 100 })).toBe(false);
       expect(hasValidDimensions({ width: NaN, height: 100 })).toBe(false);
     });

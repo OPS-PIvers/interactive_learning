@@ -103,5 +103,35 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     color: 'bg-indigo-500',
     settings: ['audioUrl', 'volume'],
     description: 'Play audio narration'
+  },
+  
+  // Media modal interaction types
+  [InteractionType.SHOW_VIDEO]: {
+    icon: '📹',
+    name: 'Show Video',
+    color: 'bg-red-600',
+    settings: ['videoUrl', 'poster', 'autoplay', 'loop'],
+    description: 'Display video in modal with controls'
+  },
+  [InteractionType.SHOW_AUDIO_MODAL]: {
+    icon: '🎵',
+    name: 'Show Audio Player',
+    color: 'bg-green-600',
+    settings: ['audioUrl', 'title', 'artist', 'autoplay'],
+    description: 'Display audio player in modal'
+  },
+  [InteractionType.SHOW_IMAGE_MODAL]: {
+    icon: '🖼️',
+    name: 'Show Image Modal',
+    color: 'bg-cyan-600',
+    settings: ['imageUrl', 'title', 'caption'],
+    description: 'Display image in zoomable modal'
+  },
+  [InteractionType.SHOW_YOUTUBE]: {
+    icon: '📺',
+    name: 'Show YouTube Video',
+    color: 'bg-red-500',
+    settings: ['youtubeVideoId', 'youtubeStartTime', 'youtubeEndTime', 'autoplay'],
+    description: 'Display YouTube video in modal'
   }
 };

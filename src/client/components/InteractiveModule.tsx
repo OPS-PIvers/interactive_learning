@@ -21,6 +21,11 @@ import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
+import MediaModal from './MediaModal';
+import VideoPlayer from './VideoPlayer';
+import AudioPlayer from './AudioPlayer';
+import ImageViewer from './ImageViewer';
+import YouTubePlayer from './YouTubePlayer';
 
 const MemoizedHotspotViewer = React.memo(HotspotViewer);
 
@@ -153,6 +158,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
   const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
+
+  // Media modal states
+  const [mediaModal, setMediaModal] = useState<{
+    isOpen: boolean;
+    type: 'video' | 'audio' | 'image' | 'youtube' | null;
+    title: string;
+    data: any;
+  }>({
+    isOpen: false,
+    type: null,
+    title: '',
+    data: null
+  });
 
   const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
@@ -368,6 +386,29 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Helper to clear cached bounds when needed
   const clearImageBoundsCache = useCallback(() => {
     originalImageBoundsRef.current = null;
+  }, []);
+
+  // Helper to show media modals
+  const showMediaModal = useCallback((
+    type: 'video' | 'audio' | 'image' | 'youtube',
+    title: string,
+    data: any
+  ) => {
+    setMediaModal({
+      isOpen: true,
+      type,
+      title,
+      data
+    });
+  }, []);
+
+  const closeMediaModal = useCallback(() => {
+    setMediaModal({
+      isOpen: false,
+      type: null,
+      title: '',
+      data: null
+    });
   }, []);
 
   // Helper to get viewport center for centering operations
@@ -1012,6 +1053,127 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             break;
           case InteractionType.HIGHLIGHT_HOTSPOT:
             if (event.targetId) { newHighlightedHotspotId = event.targetId; }
+            break;
+          case InteractionType.SHOW_TEXT:
+            if (event.textContent) {
+              newMessage = event.textContent;
+            }
+            break;
+          case InteractionType.SHOW_IMAGE:
+            if (event.imageUrl) {
+              // For now, show image URL as message - could be enhanced with modal
+              newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
+            }
+            break;
+          case InteractionType.PAN_ZOOM:
+            if (event.targetId) {
+              stepHasPanZoomEvent = true;
+              const targetHotspot = hotspots.find(h => h.id === event.targetId);
+              const imageBounds = getSafeImageBounds();
+              const viewportCenter = getSafeViewportCenter();
+
+              if (targetHotspot && imageBounds && viewportCenter) {
+                const scale = event.zoomLevel || 2;
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+                
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+                
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+                
+                let newTransform = {
+                  scale,
+                  translateX,
+                  translateY,
+                  targetHotspotId: event.targetId
+                };
+
+                newTransform = constrainTransform(newTransform);
+                newImageTransform = newTransform;
+              }
+            }
+            break;
+          case InteractionType.SPOTLIGHT:
+            if (event.targetId) { 
+              newHighlightedHotspotId = event.targetId; 
+              // Could be enhanced with intensity and radius parameters
+            }
+            break;
+          case InteractionType.QUIZ:
+            if (event.quizQuestion) {
+              newMessage = `Quiz: ${event.quizQuestion}`;
+              // Could be enhanced with modal for quiz interaction
+            }
+            break;
+          case InteractionType.PULSE_HIGHLIGHT:
+            if (event.targetId) {
+              newPulsingHotspotId = event.targetId;
+              newHighlightedHotspotId = event.targetId;
+              if (event.duration) {
+                pulseTimeoutRef.current = window.setTimeout(() => {
+                  setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId);
+                  setHighlightedHotspotId(prevId => prevId === event.targetId ? null : prevId);
+                }, event.duration);
+              }
+            }
+            break;
+          case InteractionType.PLAY_AUDIO:
+            if (event.audioUrl) {
+              // Basic audio playback - could be enhanced with volume control
+              const audio = new Audio(event.audioUrl);
+              if (event.volume !== undefined) {
+                audio.volume = Math.max(0, Math.min(1, event.volume / 100));
+              }
+              audio.play().catch(error => console.warn('Audio playback failed:', error));
+            }
+            break;
+          case InteractionType.SHOW_VIDEO:
+            if (event.videoUrl) {
+              showMediaModal('video', event.name || 'Video', {
+                src: event.videoUrl,
+                poster: event.poster,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
+            break;
+          case InteractionType.SHOW_AUDIO_MODAL:
+            if (event.audioUrl) {
+              showMediaModal('audio', event.name || 'Audio', {
+                src: event.audioUrl,
+                title: event.textContent,
+                artist: event.artist,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
+            break;
+          case InteractionType.SHOW_IMAGE_MODAL:
+            if (event.imageUrl) {
+              showMediaModal('image', event.name || 'Image', {
+                src: event.imageUrl,
+                alt: event.caption || '',
+                title: event.textContent,
+                caption: event.caption
+              });
+            }
+            break;
+          case InteractionType.SHOW_YOUTUBE:
+            if (event.youtubeVideoId) {
+              showMediaModal('youtube', event.name || 'YouTube Video', {
+                videoId: event.youtubeVideoId,
+                startTime: event.youtubeStartTime,
+                endTime: event.youtubeEndTime,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
             break;
         }
       });
@@ -2145,6 +2307,64 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           setSelectedHotspotForModal(null);
         }}
       />
+
+      {/* Media Modal */}
+      {mediaModal.isOpen && (
+        <MediaModal
+          isOpen={mediaModal.isOpen}
+          onClose={closeMediaModal}
+          title={mediaModal.title}
+          size="large"
+        >
+          {mediaModal.type === 'video' && mediaModal.data && (
+            <VideoPlayer
+              src={mediaModal.data.src}
+              title={mediaModal.title}
+              poster={mediaModal.data.poster}
+              autoplay={mediaModal.data.autoplay}
+              loop={mediaModal.data.loop}
+              className="w-full h-full"
+            />
+          )}
+          
+          {mediaModal.type === 'audio' && mediaModal.data && (
+            <div className="p-4 flex items-center justify-center min-h-[400px]">
+              <AudioPlayer
+                src={mediaModal.data.src}
+                title={mediaModal.data.title}
+                artist={mediaModal.data.artist}
+                autoplay={mediaModal.data.autoplay}
+                loop={mediaModal.data.loop}
+                className="w-full max-w-lg"
+              />
+            </div>
+          )}
+          
+          {mediaModal.type === 'image' && mediaModal.data && (
+            <ImageViewer
+              src={mediaModal.data.src}
+              alt={mediaModal.data.alt}
+              title={mediaModal.data.title}
+              caption={mediaModal.data.caption}
+              className="w-full h-full min-h-[500px]"
+            />
+          )}
+          
+          {mediaModal.type === 'youtube' && mediaModal.data && (
+            <div className="p-4">
+              <YouTubePlayer
+                videoId={mediaModal.data.videoId}
+                title={mediaModal.title}
+                startTime={mediaModal.data.startTime}
+                endTime={mediaModal.data.endTime}
+                autoplay={mediaModal.data.autoplay}
+                loop={mediaModal.data.loop}
+                className="w-full"
+              />
+            </div>
+          )}
+        </MediaModal>
+      )}
     </div>
   );
 };
