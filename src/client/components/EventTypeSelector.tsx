@@ -50,6 +50,30 @@ const eventTypeOptions: EventTypeOption[] = [
     label: 'Highlight',
     icon: '🎯',
     description: 'Highlight the hotspot while dimming the rest'
+  },
+  {
+    value: InteractionType.SHOW_VIDEO,
+    label: 'Video',
+    icon: '🎥',
+    description: 'Play a video file in a modal'
+  },
+  {
+    value: InteractionType.SHOW_AUDIO_MODAL,
+    label: 'Audio',
+    icon: '🎵',
+    description: 'Play an audio file in a modal'
+  },
+  {
+    value: InteractionType.SHOW_IMAGE_MODAL,
+    label: 'Image',
+    icon: '🖼️',
+    description: 'Show an image in a modal'
+  },
+  {
+    value: InteractionType.SHOW_YOUTUBE,
+    label: 'YouTube',
+    icon: '📺',
+    description: 'Play a YouTube video in a modal'
   }
 ];
 

@@ -54,13 +54,40 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     textColor: 'text-red-200'
   },
   {
-    type: InteractionType.MEDIA,
-    icon: '🎬',
-    label: 'Media',
-    description: 'Image/Video/Audio',
+    type: InteractionType.SHOW_VIDEO,
+    icon: '🎥',
+    label: 'Video',
+    description: 'Play video file',
     color: 'bg-green-600',
     hoverColor: 'hover:bg-green-700',
     textColor: 'text-green-200'
+  },
+  {
+    type: InteractionType.SHOW_AUDIO_MODAL,
+    icon: '🎵',
+    label: 'Audio',
+    description: 'Play audio file',
+    color: 'bg-blue-600',
+    hoverColor: 'hover:bg-blue-700',
+    textColor: 'text-blue-200'
+  },
+  {
+    type: InteractionType.SHOW_IMAGE_MODAL,
+    icon: '🖼️',
+    label: 'Image',
+    description: 'Show image modal',
+    color: 'bg-purple-600',
+    hoverColor: 'hover:bg-purple-700',
+    textColor: 'text-purple-200'
+  },
+  {
+    type: InteractionType.SHOW_YOUTUBE,
+    icon: '📺',
+    label: 'YouTube',
+    description: 'Play YouTube video',
+    color: 'bg-red-600',
+    hoverColor: 'hover:bg-red-700',
+    textColor: 'text-red-200'
   },
   {
     type: InteractionType.PULSE_HOTSPOT,
