@@ -1834,6 +1834,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 projectName={projectName}
                 onBack={handleAttemptClose}
                 onReplaceImage={handleImageUpload}
+                onAddHotspot={handleAddHotspot} // Pass the consolidated handler
                 isAutoProgression={isTimedMode}
                 onToggleAutoProgression={setIsTimedMode}
                 autoProgressionDuration={autoProgressionDuration}
@@ -1985,17 +1986,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         //     viewYPercent: defaultYPercent,
                         //     imageXPercent: initialImageX,
                         //     imageYPercent: initialImageY,
-                        // });
-                        // setShowPlacementHint(true); // Placement hint logic removed
-                        // setTimeout(() => setShowPlacementHint(false), 3500);
                         handleAddHotspot(); // Directly call handleAddHotspot
                       }
                     } else {
-                      // alert("Please upload an image first to add hotspots.");
-                      // Optionally, show a different hint if image not present, or disable FAB
-                      // setShowPlacementHint(true); // Placement hint logic removed
-                      // setTimeout(() => setShowPlacementHint(false), 3500);
-                       alert("Please upload an image first to add hotspots."); // Simple alert for now
+                       alert("Please upload an image first to add hotspots.");
                     }
                   }}
                   className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center text-white shadow-lg"
@@ -2005,14 +1999,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   <PlusIcon className="w-7 h-7" />
                 </button>
               </div>
-              {/* Placement Hint Message - Removed */}
-              {/* {showPlacementHint && isMobile && (
-                <div
-                  className="absolute bottom-36 right-4 bg-black bg-opacity-70 text-white text-xs px-3 py-1.5 rounded-md shadow-lg z-40"
-                >
-                  {backgroundImage ? "Tap on the image to place hotspot." : "Please upload an image first."}
-                </div>
-              )} */}
             </div>
           </div>
         ) : (
@@ -2023,6 +2009,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               projectName={projectName}
               onBack={handleAttemptClose}
               onReplaceImage={handleImageUpload}
+              onAddHotspot={handleAddHotspot} // Pass the consolidated handler for desktop
               isAutoProgression={isTimedMode}
               onToggleAutoProgression={setIsTimedMode}
               autoProgressionDuration={autoProgressionDuration}
