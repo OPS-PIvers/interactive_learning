@@ -23,6 +23,40 @@ import { appScriptProxy } from '../../lib/firebaseProxy';
 
 import { Z_INDEX } from './zIndexConstants';
 
+const editorStyles = `
+  .editor-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .editor-scrollbar::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 4px;
+  }
+
+  .editor-scrollbar::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+  }
+
+  .editor-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+
+  .editor-image-container {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .editor-hotspot-preview {
+    animation: hotspot-preview 2s ease-in-out infinite;
+  }
+
+  @keyframes hotspot-preview {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+`;
+
 const MemoizedHotspotViewer = React.memo(HotspotViewer);
 
 // Error boundary for positioning failures
@@ -1200,9 +1234,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Auto-save hook for data protection
   useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
-  const editorStyles = `
-  .editor-scrollbar::-webkit-scrollbar {
-    width: 8px;
+const handleStartLearning = () => {
     height: 8px;
   }
 
@@ -1645,7 +1677,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       container.scrollTo({
         left: scrollX,
         top: scrollY,
-        behavior: 'smooth'
+      behavior: 'auto'
       });
     }
   }, [isEditing, editingZoom]);
@@ -1688,7 +1720,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Helper function to generate unique IDs
   const generateId = () => {
-    return `hotspot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `hotspot_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
   };
 
   // Enhanced image click handler with better coordinate calculation
@@ -1743,51 +1775,30 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     const clampedX = Math.max(0, Math.min(100, percentX));
     const clampedY = Math.max(0, Math.min(100, percentY));
 
-    if (isEditing) { // This check is somewhat redundant due to the initial guard but good for clarity
+    if (isEditing) {
+      const scrollableContainer = scrollableContainerRef.current;
+      let viewX = 50, viewY = 50;
+
+      if (scrollableContainer) {
+        const scrollableRect = scrollableContainer.getBoundingClientRect();
+        viewX = ((e.clientX - scrollableRect.left) / scrollableRect.width) * 100;
+        viewY = ((e.clientY - scrollableRect.top) / scrollableRect.height) * 100;
+      }
+
+      const newPosition = {
+        viewXPercent: viewX,
+        viewYPercent: viewY,
+        imageXPercent: clampedX,
+        imageYPercent: clampedY
+      };
+
       if (!pendingHotspot) {
-        // Create pending hotspot
-        // For viewXPercent/viewYPercent, calculate relative to the scrollable container for visual marker placement
-        const scrollableContainer = scrollableContainerRef.current;
-        if (scrollableContainer) {
-          const scrollableRect = scrollableContainer.getBoundingClientRect();
-          const viewX = ((e.clientX - scrollableRect.left) / scrollableRect.width) * 100;
-          const viewY = ((e.clientY - scrollableRect.top) / scrollableRect.height) * 100;
-          setPendingHotspot({
-            viewXPercent: viewX,
-            viewYPercent: viewY,
-            imageXPercent: clampedX,
-            imageYPercent: clampedY
-          });
-        } else {
-           // Fallback if scrollable container isn't available (should not happen)
-           setPendingHotspot({
-            viewXPercent: 50, // Default to center
-            viewYPercent: 50,
-            imageXPercent: clampedX,
-            imageYPercent: clampedY
-          });
-        }
+        setPendingHotspot(newPosition);
       } else {
-        // If a pending hotspot already exists, clicking the image again updates its position
-        const scrollableContainer = scrollableContainerRef.current;
-         if (scrollableContainer) {
-          const scrollableRect = scrollableContainer.getBoundingClientRect();
-          const viewX = ((e.clientX - scrollableRect.left) / scrollableRect.width) * 100;
-          const viewY = ((e.clientY - scrollableRect.top) / scrollableRect.height) * 100;
-          setPendingHotspot({
-            ...pendingHotspot, // Keep existing view coords if not recalculating, or update them
-            viewXPercent: viewX,
-            viewYPercent: viewY,
-            imageXPercent: clampedX,
-            imageYPercent: clampedY
-          });
-        } else {
-           setPendingHotspot({
-            ...pendingHotspot,
-            imageXPercent: clampedX,
-            imageYPercent: clampedY
-          });
-        }
+        setPendingHotspot({
+          ...pendingHotspot,
+          ...newPosition
+        });
       }
     }
   }, [backgroundImage, isEditing, pendingHotspot, actualImageRef, imageContainerRef, scrollableContainerRef, moduleState, imageTransform, setExploredHotspotId, setExploredHotspotPanZoomActive, setImageTransform]);
@@ -2103,7 +2114,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                                 isPulsing={isPulsing}
                                 isHighlighted={isHighlighted}
                                 onClick={() => handleFocusHotspot(hotspot.id)} // Or specific edit/info action
-                                onInfoRequest={() => { /* TODO: Implement info request if needed */}}
                                 onEditRequest={() => handleHotspotEditRequest(hotspot.id)}
                                 onRemoveRequest={() => handleRemoveHotspot(hotspot.id)}
                                 isContinuouslyPulsing={false} // Or based on some other logic
@@ -2124,7 +2134,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               left: `${pendingHotspot.imageXPercent}%`,
                               top: `${pendingHotspot.imageYPercent}%`,
                               transform: 'translate(-50%, -50%)', // Center the marker
-                              zIndex: Z_INDEX.HOTSPOT + 1 // Above other hotspots
+                              zIndex: Z_INDEX.HOTSPOT_PREVIEW // Above other hotspots
                             }}
                           >
                             {/* Simple visual representation of the pending hotspot */}

@@ -2,34 +2,37 @@
 
 export const Z_INDEX = {
   // Base layer for the main image
-  IMAGE_BASE: 1,
+  IMAGE_BASE: 10,
 
   // Transform indicator (zoom info, etc.)
-  TRANSFORM_INDICATOR: 10,
+  TRANSFORM_INDICATOR: 20,
 
   // Hotspots on the image
-  HOTSPOT: 20,
+  HOTSPOT: 30,
+
+  // Preview of a hotspot being placed
+  HOTSPOT_PREVIEW: 35,
 
   // Hotspot info panels and tooltips
-  INFO_PANEL: 30,
+  INFO_PANEL: 40,
 
   // Timeline at bottom of screen
-  TIMELINE: 40,
+  TIMELINE: 50,
 
   // Toolbar at top of screen
-  TOOLBAR: 50,
+  TOOLBAR: 60,
 
   // Modal dialogs and overlays
-  MODAL: 60,
+  MODAL: 70,
 
   // Debug information panel
-  DEBUG: 70,
+  DEBUG: 80,
 
   // Toast notifications and alerts
-  TOAST: 80,
+  TOAST: 90,
 
   // Critical system dialogs
-  CRITICAL: 90
+  CRITICAL: 100
 } as const;
 
 // Usage example in your component:
