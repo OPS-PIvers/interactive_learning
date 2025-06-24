@@ -6,6 +6,7 @@ import { ZoomInIcon } from './icons/ZoomInIcon';
 import { ZoomOutIcon } from './icons/ZoomOutIcon';
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
 import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
+import { PlusCircleIcon } from './icons/PlusCircleIcon'; // Import for Add Hotspot button
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 
 interface EditorToolbarProps {
@@ -35,6 +36,7 @@ interface EditorToolbarProps {
   isSaving: boolean;
   showSuccessMessage: boolean;
   isMobile?: boolean; // Already present as per instructions
+  onAddHotspot: () => void; // Prop for adding a hotspot
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
@@ -140,6 +142,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             <h1 className="text-lg font-semibold text-white truncate max-w-48">
               {props.projectName}
             </h1>
+
+            <button
+              onClick={props.onAddHotspot}
+              className="flex items-center gap-2 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-md transition-colors"
+              title="Add Hotspot"
+            >
+              <PlusCircleIcon className="w-5 h-5" />
+              <span>Add Hotspot</span>
+            </button>
           </div>
 
           {/* Right Section */}

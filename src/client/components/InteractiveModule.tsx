@@ -16,7 +16,7 @@ import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import ImageEditCanvas from './ImageEditCanvas';
-import PendingHotspotConfirmation from './PendingHotspotConfirmation';
+// import PendingHotspotConfirmation from './PendingHotspotConfirmation'; // Removed as per plan
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import ReactDOM from 'react-dom';
@@ -131,8 +131,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
   const [colorScheme, setColorScheme] = useState<string>('Default');
   const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
-  const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false);
-  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
+  const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false); // This is for the old modal, potentially remove if fully replaced
+  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null); // This will be used for the new HotspotEditorModal
   
   // Missing state declaration for imageContainerRect
   const [imageContainerRect, setImageContainerRect] = useState<DOMRect | null>(null);
@@ -172,7 +172,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     data: null
   });
 
-  const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null);
+  // const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null); // Removed as per plan
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
   const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
@@ -882,13 +882,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     } else if (isHotspotModalOpen) {
       setIsHotspotModalOpen(false);
       setSelectedHotspotForModal(null);
+      // setEditingHotspot(null); // Also clear editingHotspot if escape closes the new modal
       return true;
-    } else if (pendingHotspot) {
-      setPendingHotspot(null);
-      return true;
+    // } else if (pendingHotspot) { // Removed pendingHotspot logic
+    //   setPendingHotspot(null);
+    //   return true;
     }
     return false;
-  }, [imageTransform, isHotspotModalOpen, pendingHotspot]);
+  }, [imageTransform, isHotspotModalOpen]);
 
   const handlePlusKey = useCallback((e: KeyboardEvent): boolean => {
     if (isEditing && (e.ctrlKey || e.metaKey)) {
@@ -1464,59 +1465,40 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setImageFitMode(fitMode);
   }, []);
 
-  const handleAddHotspot = useCallback((imageXPercent: number, imageYPercent: number) => {
-    const title = prompt("Enter hotspot title:", "New Hotspot");
-    if (!title) { 
-      setPendingHotspot(null);
-      setShowPlacementHint(false);
-      return; 
-    }
-    const description = prompt("Enter hotspot description:", "");
-    
-    // Get current color scheme
+  // New handleAddHotspot function as per plan
+  const handleAddHotspot = useCallback(() => {
     const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
-    
-    const newHotspot: HotspotData = {
-      id: `h${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // More unique ID
-      x: imageXPercent, 
-      y: imageYPercent, 
-      title,
-      description: description || "Default description",
-      color: currentScheme.colors[hotspots.length % currentScheme.colors.length],
-      size: 'medium'
+    const defaultColor = currentScheme.colors[hotspots.length % currentScheme.colors.length];
+
+    const newHotspotData: HotspotData = {
+      id: `h${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      x: 50, // Default center position
+      y: 50, // Default center position
+      title: "New Hotspot",
+      description: "Default description",
+      color: defaultColor,
+      size: 'medium',
     };
-    
-    const newEventStep = Math.max(...timelineEvents.map(e => e.step), 0) + 1; 
-    const newEvent: TimelineEventData = {
-      id: `te_show_${newHotspot.id}_${Date.now()}`, 
-      step: newEventStep, 
-      name: `Show ${title}`,
-      type: InteractionType.SHOW_HOTSPOT, 
-      targetId: newHotspot.id,
-      message: '' // Explicitly set to empty string to prevent undefined Firebase errors
+
+    setHotspots(prevHotspots => [...prevHotspots, newHotspotData]);
+    setEditingHotspot(newHotspotData); // This will trigger the HotspotEditorModal to open for the new hotspot
+
+    // Optional: Create a default "SHOW_HOTSPOT" timeline event for the new hotspot
+    const newEventStep = timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) + 1 : 1;
+    const newShowEvent: TimelineEventData = {
+      id: `te_show_${newHotspotData.id}_${Date.now()}`,
+      step: newEventStep,
+      name: `Show ${newHotspotData.title}`,
+      type: InteractionType.SHOW_HOTSPOT,
+      targetId: newHotspotData.id,
+      message: ''
     };
-    
-    // Use functional updates to ensure we're working with latest state
-    setHotspots(prevHotspots => {
-      const updated = [...prevHotspots, newHotspot];
-      console.log('Adding hotspot. Total hotspots:', updated.length, 'New hotspot ID:', newHotspot.id);
-      return updated;
-    });
-    
-    setTimelineEvents(prevEvents => {
-      const updated = [...prevEvents, newEvent].sort((a,b) => a.step - b.step);
-      console.log('Adding timeline event. Total events:', updated.length);
-      return updated;
-    });
-    
-    setPendingHotspot(null);
+    setTimelineEvents(prevEvents => [...prevEvents, newShowEvent].sort((a,b) => a.step - b.step));
     
     if (isEditing) {
-      setCurrentStep(newEventStep); 
-      setSelectedHotspotForModal(newHotspot.id);
-      setIsHotspotModalOpen(true);
+      setCurrentStep(newEventStep); // Optionally focus the timeline on this new event's step
     }
-  }, [hotspots, colorScheme, timelineEvents, isEditing]);
+  }, [hotspots, timelineEvents, colorScheme, isEditing, setHotspots, setEditingHotspot, setTimelineEvents, setCurrentStep]);
 
   const handleEditHotspotRequest = useCallback((hotspotId: string) => {
     const hotspotToEdit = hotspots.find(h => h.id === hotspotId);
@@ -1546,68 +1528,41 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
 
-  const handleImageClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (pendingHotspot) { // If confirming a pending hotspot, don't place another
-        const target = event.target as HTMLElement;
-        if(target.closest('.hotspot-confirmation-dialog')) return; // Click was on confirmation
-    }
-    if (isEditing && backgroundImage && actualImageRef.current) {
-        const target = event.target as HTMLElement;
-        
-        // Check if click is on UI elements
-        if (target.closest('.hotspot-info-panel') || 
-            target.closest('[role="button"][aria-label^="Hotspot:"]') || 
-            target.closest('.image-navigation-controls') || 
-            target.closest('.initial-view-buttons') || 
-            target.closest('[aria-label="Module Timeline"]') || 
-            target.closest('.timeline-controls-container')) {
-          return;
-        }
-        
-        const imgElement = actualImageRef.current;
-        const imgRect = imgElement.getBoundingClientRect();
-        
-        // Check if click is within the image bounds
-        if (event.clientX < imgRect.left || event.clientX > imgRect.right ||
-            event.clientY < imgRect.top || event.clientY > imgRect.bottom) {
-          setPendingHotspot(null);
-          return;
-        }
-        
-        // Calculate click position relative to the image
-        const clickX = event.clientX - imgRect.left;
-        const clickY = event.clientY - imgRect.top;
-        
-        // Convert to percentage of actual image dimensions
-        const imageXPercent = (clickX / imgRect.width) * 100;
-        const imageYPercent = (clickY / imgRect.height) * 100;
-        
-        // For visual pending marker (relative to the container)
-        const container = imageContainerRef.current;
-        if (container) {
-          const containerRect = container.getBoundingClientRect();
-          const viewXPercent = ((event.clientX - containerRect.left) / containerRect.width) * 100;
-          const viewYPercent = ((event.clientY - containerRect.top) / containerRect.height) * 100;
-          
-          setPendingHotspot({ viewXPercent, viewYPercent, imageXPercent, imageYPercent });
-        }
+  // Updated handleImageOrHotspotClick function
+  // This function is now intended to be called by ImageEditCanvas with event and potential hotspotId
+  const handleImageOrHotspotClick = useCallback((event: React.MouseEvent<HTMLElement>, hotspotIdFromCanvas?: string) => {
+    // Check if the click target or its parent has the data-hotspot-id attribute
+    let targetElement = event.target as HTMLElement;
+    let foundHotspotId: string | undefined = hotspotIdFromCanvas; // Use if provided directly by canvas logic
 
-    } else if (moduleState === 'idle' && !isEditing && backgroundImage) {
-        const target = event.target as HTMLElement;
-        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]')) {
-          return; 
+    if (!foundHotspotId) { // If not directly provided, check data attributes
+      while (targetElement && targetElement !== event.currentTarget) {
+        const hsId = targetElement.dataset.hotspotId;
+        if (hsId) {
+          foundHotspotId = hsId;
+          break;
         }
-        setExploredHotspotId(null);
-        setExploredHotspotPanZoomActive(false);
-    } else if (isEditing && backgroundImage && !pendingHotspot) {
-        // In editing mode, clicking empty space deselects hotspot
-        const target = event.target as HTMLElement;
-        if (target.closest('.hotspot-info-panel') || target.closest('[role="button"][aria-label^="Hotspot:"]') || target.closest('.image-navigation-controls') || target.closest('.initial-view-buttons') || target.closest('[aria-label="Module Timeline"]') || target.closest('.timeline-controls-container')) {
-            return;
-        }
-        // Removed setActiveHotspotInfoId - using modal now
+        targetElement = targetElement.parentElement as HTMLElement;
+      }
     }
-  }, [isEditing, backgroundImage, imageTransform, moduleState, pendingHotspot, viewportZoom]);
+
+    if (foundHotspotId) {
+      const clickedHotspot = hotspots.find(h => h.id === foundHotspotId);
+      if (clickedHotspot) {
+        setEditingHotspot(clickedHotspot);
+      }
+    } else {
+      // Clicked on background or an unidentifiable part of the canvas
+      setEditingHotspot(null); // Close any open editor modal
+
+      // Existing logic for idle mode background click (if applicable when clicking canvas background)
+      if (moduleState === 'idle' && !isEditing && backgroundImage) {
+          setExploredHotspotId(null);
+          setExploredHotspotPanZoomActive(false);
+      }
+    }
+  }, [hotspots, moduleState, isEditing, backgroundImage, setEditingHotspot]);
+
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
@@ -1901,9 +1856,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               <div
                 ref={imageContainerRef}
                 className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
-                onClick={handleImageClick} // Main click handler for placing pending hotspot
+                // onClick={handleImageClick} // Replaced by onImageOrHotspotClick from ImageEditCanvas
                 {...(isMobile && isEditing ? touchGestureHandlers : {})} // Apply gesture handlers
-                style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default'}}
+                // style={{ cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default'}} // Removed pendingHotspot style
               >
                 <ImageEditCanvas
                   backgroundImage={backgroundImage}
@@ -1917,12 +1872,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   activeHotspotDisplayIds={activeHotspotDisplayIds}
                   highlightedHotspotId={highlightedHotspotId}
                   getHighlightGradientStyle={getHighlightGradientStyle}
-                  pendingHotspot={pendingHotspot} // Pass pendingHotspot for the visual marker
+                  // pendingHotspot={pendingHotspot} // Removed pendingHotspot
                   onImageLoad={handleImageLoad}
-                  // onImageClick is handled by the parent div for mobile
+                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)} // Pass new handler for mobile
                   // Touch handlers are also on parent for mobile canvas area
-                  onFocusHotspot={handleFocusHotspot}
-                  onEditHotspotRequest={handleHotspotEditRequest}
+                  onFocusHotspot={handleFocusHotspot} // Keep for accessibility/alternative interaction
+                  onEditHotspotRequest={handleHotspotEditRequest} // Keep for editing existing
                   onHotspotPositionChange={handleHotspotPositionChange}
                   isEditing={isEditing}
                   isMobile={true}
@@ -1930,16 +1885,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   timelineEvents={timelineEvents}
                   onImageUpload={handleImageUpload}
                 />
-                {pendingHotspot && (
+                {/* {pendingHotspot && ( // Removed PendingHotspotConfirmation
                   <PendingHotspotConfirmation
                     pendingHotspot={pendingHotspot}
-                    onConfirm={handleAddHotspot} // handleAddHotspot already sets pendingHotspot to null and showPlacementHint to false
+                    onConfirm={handleAddHotspot}
                     onCancel={() => {
-                      setPendingHotspot(null);
+                      // setPendingHotspot(null); // Removed
                       setShowPlacementHint(false);
                     }}
                   />
-                )}
+                )} */}
               </div>
 
               {/* Mobile editor controls panel */}
@@ -2006,26 +1961,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         let initialImageX = defaultXPercent;
                         let initialImageY = defaultYPercent;
 
-                        if (actualImageRef.current && actualImageRef.current.offsetParent) {
-                            // This logic assumes the image is somewhat centered or visible
-                            // A more robust solution might involve calculating the visible center of the image
-                            initialImageX = (container.clientWidth / 2 / (actualImageRef.current.width * editingZoom)) * 100;
-                            initialImageY = (container.clientHeight / 2 / (actualImageRef.current.height * editingZoom)) * 100;
-                            initialImageX = Math.max(0, Math.min(100, initialImageX));
-                            initialImageY = Math.max(0, Math.min(100, initialImageY));
-                        }
+                        // if (actualImageRef.current && actualImageRef.current.offsetParent) {
+                        //     // This logic assumes the image is somewhat centered or visible
+                        //     // A more robust solution might involve calculating the visible center of the image
+                        //     initialImageX = (container.clientWidth / 2 / (actualImageRef.current.width * editingZoom)) * 100;
+                        //     initialImageY = (container.clientHeight / 2 / (actualImageRef.current.height * editingZoom)) * 100;
+                        //     initialImageX = Math.max(0, Math.min(100, initialImageX));
+                        //     initialImageY = Math.max(0, Math.min(100, initialImageY));
+                        // }
 
-                        setPendingHotspot({
-                            viewXPercent: defaultXPercent, // Visual marker in center of viewport
-                            viewYPercent: defaultYPercent,
-                            imageXPercent: initialImageX, // Actual data coords
-                            imageYPercent: initialImageY,
-                        });
-                        setShowPlacementHint(true);
-                        setTimeout(() => setShowPlacementHint(false), 3500); // Auto-hide after 3.5s
+                        // setPendingHotspot({ // Removed pendingHotspot
+                        //     viewXPercent: defaultXPercent,
+                        //     viewYPercent: defaultYPercent,
+                        //     imageXPercent: initialImageX,
+                        //     imageYPercent: initialImageY,
+                        // });
+                        // setShowPlacementHint(true); // Placement hint might be removed or re-thought
+                        // setTimeout(() => setShowPlacementHint(false), 3500);
+                        handleAddHotspot(); // Directly call handleAddHotspot
                       }
                     } else {
-                      // alert("Please upload an image first to add hotspots."); // Replaced by hint logic or disabled button
+                      // alert("Please upload an image first to add hotspots.");
                       // Optionally, show a different hint if image not present, or disable FAB
                       setShowPlacementHint(true); // Example: show a generic hint to upload image
                       setTimeout(() => setShowPlacementHint(false), 3500);
@@ -2143,10 +2099,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     activeHotspotDisplayIds={activeHotspotDisplayIds}
                     highlightedHotspotId={highlightedHotspotId}
                     getHighlightGradientStyle={getHighlightGradientStyle}
-                    pendingHotspot={pendingHotspot} // For the visual marker
+                  // pendingHotspot={pendingHotspot} // Removed pendingHotspot
                     onImageLoad={handleImageLoad}
-                    onImageClick={handleImageClick} // Desktop's main image click handler
-                    onTouchStart={touchGestureHandlers.handleTouchStart} // Pass touch handlers
+                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)} // Use new handler for desktop too
+                  onTouchStart={touchGestureHandlers.handleTouchStart}
                     onTouchMove={touchGestureHandlers.handleTouchMove}
                     onTouchEnd={touchGestureHandlers.handleTouchEnd}
                     onFocusHotspot={handleFocusHotspot}
@@ -2160,17 +2116,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   />
                 </div>
 
-                {/* Pending Hotspot Confirmation Overlay for Desktop */}
-                {pendingHotspot && (
+                {/* Pending Hotspot Confirmation Overlay for Desktop - REMOVED */}
+                {/* {pendingHotspot && (
                   <PendingHotspotConfirmation
                     pendingHotspot={pendingHotspot}
-                    onConfirm={handleAddHotspot} // handleAddHotspot already sets pendingHotspot to null and showPlacementHint to false
+                    onConfirm={handleAddHotspot}
                     onCancel={() => {
-                      setPendingHotspot(null);
+                      // setPendingHotspot(null); // Removed
                       setShowPlacementHint(false);
                     }}
                   />
-                )}
+                )} */}
               </div>
             </div>
           </div>
