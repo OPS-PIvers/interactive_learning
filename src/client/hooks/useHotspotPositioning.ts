@@ -16,93 +16,49 @@ export interface HotspotPositioningUtils {
 }
 
 export const useHotspotPositioning = (
-  isMobile: boolean, // May influence logic in the future, currently not directly used in getPixelPosition
-  // imageElement and containerElement from the spec might be better passed directly to functions if they change
-  // or use refs if they are stable. For getPixelPosition, we need specific data like natural/rendered dimensions.
+  isMobile: boolean
 ) => {
   const getPixelPosition = useCallback(
     (
       hotspot: HotspotData,
       currentImageTransform: ImageTransformState,
-      imageNaturalDimensions: { width: number; height: number } | null,
-      renderedImageRect: DOMRect | null // The getBoundingClientRect() of the actual image display area
+      imageBounds: { width: number; height: number; left: number; top: number } | null,
+      containerDimensions?: { width: number; height: number } // For transform calculations
     ): { x: number; y: number } | null => {
-      if (!imageNaturalDimensions || !renderedImageRect) {
-        // Not enough information to calculate pixel position accurately
-        // Return null or a default? Null seems safer to indicate unavailability.
+      if (!imageBounds) {
         return null;
       }
 
-      // 1. Calculate base pixel position on the *natural* (unscaled, untransformed) image
-      // Hotspot x, y are percentages of the natural image dimensions.
-      const basePixelX = (hotspot.x / 100) * imageNaturalDimensions.width;
-      const basePixelY = (hotspot.y / 100) * imageNaturalDimensions.height;
+      // 1. Calculate base pixel position on the rendered image content area
+      // Hotspot percentages are relative to the image content, not the container
+      const basePixelX = (hotspot.x / 100) * imageBounds.width;
+      const basePixelY = (hotspot.y / 100) * imageBounds.height;
 
-      // 2. Account for how the natural image is fitted into the rendered image area
-      // This depends on the equivalent of 'background-size' (e.g., contain, cover)
-      // and the aspect ratios.
-      // For simplicity, assuming the renderedImageRect *is* the scaled natural image content area.
-      // If using `object-fit` or `background-size`, this part would be more complex.
-      // Let's assume renderedImageRect.width and renderedImageRect.height are the
-      // dimensions of the image content itself, after aspect ratio adjustments.
+      // 2. Position relative to the image bounds origin
+      let positionX = imageBounds.left + basePixelX;
+      let positionY = imageBounds.top + basePixelY;
 
-      const naturalAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-      const renderedAspect = renderedImageRect.width / renderedImageRect.height;
+      // 3. Apply dynamic transform if scale > 1 (zoomed) or translate is active
+      if (currentImageTransform.scale !== 1 || currentImageTransform.translateX !== 0 || currentImageTransform.translateY !== 0) {
+        // Use container dimensions for transform origin calculations
+        // If not provided, use image bounds as fallback
+        const transformContainerWidth = containerDimensions?.width || imageBounds.width;
+        const transformContainerHeight = containerDimensions?.height || imageBounds.height;
+        
+        const centerX = transformContainerWidth / 2;
+        const centerY = transformContainerHeight / 2;
 
-      let contentRenderedWidth = renderedImageRect.width;
-      let contentRenderedHeight = renderedImageRect.height;
-      let contentOffsetX = 0; // Offset of the image content within the renderedImageRect (e.g., if letterboxed)
-      let contentOffsetY = 0;
-
-      // This logic assumes 'contain' like behavior.
-      // If image is displayed with object-fit: contain or background-size: contain
-      if (naturalAspect > renderedAspect) { // Image is wider than container, so it's constrained by width
-        contentRenderedHeight = renderedImageRect.width / naturalAspect;
-        contentOffsetY = (renderedImageRect.height - contentRenderedHeight) / 2;
-      } else { // Image is taller or same aspect, constrained by height
-        contentRenderedWidth = renderedImageRect.height * naturalAspect;
-        contentOffsetX = (renderedImageRect.width - contentRenderedWidth) / 2;
+        // Apply center-origin scale transform
+        positionX = (positionX - centerX) * currentImageTransform.scale + centerX + currentImageTransform.translateX;
+        positionY = (positionY - centerY) * currentImageTransform.scale + centerY + currentImageTransform.translateY;
       }
 
-      // Scale factor of the natural image to its rendered size (within the container)
-      const renderScaleX = contentRenderedWidth / imageNaturalDimensions.width;
-      const renderScaleY = contentRenderedHeight / imageNaturalDimensions.height;
-
-      // Position of the hotspot on the visibly rendered (but not yet transformed by ImageTransformState) image
-      let visiblePixelX = basePixelX * renderScaleX + contentOffsetX;
-      let visiblePixelY = basePixelY * renderScaleY + contentOffsetY;
-
-      // 3. Apply the dynamic imageTransform (pan/zoom)
-      // The `currentImageTransform.translateX/Y` are usually applied to the container
-      // that holds the image, and `scale` is applied with `transform-origin: center` (typically).
-
-      // If transform-origin is top-left of the renderedImageRect for the scale:
-      // let transformedX = visiblePixelX * currentImageTransform.scale + currentImageTransform.translateX;
-      // let transformedY = visiblePixelY * currentImageTransform.scale + currentImageTransform.translateY;
-
-      // If transform-origin is center of the renderedImageRect for the scale:
-      const centerX = renderedImageRect.width / 2;
-      const centerY = renderedImageRect.height / 2;
-
-      let transformedX =
-        (visiblePixelX - centerX) * currentImageTransform.scale +
-        centerX +
-        currentImageTransform.translateX;
-      let transformedY =
-        (visiblePixelY - centerY) * currentImageTransform.scale +
-        centerY +
-        currentImageTransform.translateY;
-
-      // The result should be pixel coordinates relative to the top-left of the `renderedImageRect`'s parent
-      // or whatever element the hotspots are absolutely positioned within.
-      // If hotspots are children of the element whose rect is `renderedImageRect`, then this is correct.
-
       return {
-        x: transformedX,
-        y: transformedY,
+        x: positionX,
+        y: positionY,
       };
     },
-    [] // isMobile could be a dependency if it changes logic, but currently it doesn't.
+    []
   );
 
   // Placeholder for other utilities if they become complex enough
