@@ -111,8 +111,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
       <div
           className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'}`}
         style={{
-            // cursor: backgroundImage && !pendingHotspot ? 'crosshair' : 'default', // Removed pendingHotspot logic
-            cursor: backgroundImage ? 'default' : 'default', // Default cursor, can be overridden by hotspot hover
+            cursor: backgroundImage && isEditing ? 'crosshair' : 'default', // Use crosshair in editing mode with an image
           zIndex: Z_INDEX_IMAGE_BASE
         }}
           // For mobile, the click is handled by the parent div in InteractiveModule which then calls onImageOrHotspotClick.

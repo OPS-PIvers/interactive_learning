@@ -880,9 +880,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
       return true;
     } else if (isHotspotModalOpen) {
-      setIsHotspotModalOpen(false);
-      setSelectedHotspotForModal(null);
-      // setEditingHotspot(null); // Also clear editingHotspot if escape closes the new modal
+      setIsHotspotModalOpen(false); // Close the main editor modal
+      setSelectedHotspotForModal(null); // Clear selection for the main editor modal
+      // It's generally good practice to also ensure editingHotspot is cleared if this modal was tied to it,
+      // though current logic might primarily use selectedHotspotForModal for this specific modal instance.
+      // If editingHotspot directly controls this modal's visibility/content, uncommenting the line below would be safer.
+      // setEditingHotspot(null);
       return true;
     // } else if (pendingHotspot) { // Removed pendingHotspot logic
     //   setPendingHotspot(null);
@@ -1466,6 +1469,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, []);
 
   // New handleAddHotspot function as per plan
+  // Note: Direct state setters (setHotspots, setEditingHotspot, setTimelineEvents, setCurrentStep) are used here
+  // for simplicity and because the individual state updates are relatively independent and don't require
+  // the more complex batching provided by `batchedSetState` which is used in `handleAttemptClose` for resetting multiple states.
   const handleAddHotspot = useCallback(() => {
     const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
     const defaultColor = currentScheme.colors[hotspots.length % currentScheme.colors.length];
@@ -1549,11 +1555,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (foundHotspotId) {
       const clickedHotspot = hotspots.find(h => h.id === foundHotspotId);
       if (clickedHotspot) {
-        setEditingHotspot(clickedHotspot);
+        // Only update if the clicked hotspot is different from the currently editing one
+        if (editingHotspot?.id !== clickedHotspot.id) {
+          setEditingHotspot(clickedHotspot);
+        }
       }
     } else {
       // Clicked on background or an unidentifiable part of the canvas
-      setEditingHotspot(null); // Close any open editor modal
+      // Only update if there was a hotspot being edited
+      if (editingHotspot !== null) {
+        setEditingHotspot(null); // Close any open editor modal
+      }
 
       // Existing logic for idle mode background click (if applicable when clicking canvas background)
       if (moduleState === 'idle' && !isEditing && backgroundImage) {
@@ -1874,10 +1886,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   getHighlightGradientStyle={getHighlightGradientStyle}
                   // pendingHotspot={pendingHotspot} // Removed pendingHotspot
                   onImageLoad={handleImageLoad}
-                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)} // Pass new handler for mobile
-                  // Touch handlers are also on parent for mobile canvas area
-                  onFocusHotspot={handleFocusHotspot} // Keep for accessibility/alternative interaction
-                  onEditHotspotRequest={handleHotspotEditRequest} // Keep for editing existing
+                  // Pass the unified click handler to ImageEditCanvas.
+                  // This allows ImageEditCanvas to report clicks, which InteractiveModule then uses
+                  // to determine if a hotspot or the background was clicked.
+                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)}
+                  // Touch handlers are managed by useTouchGestures hook applied to the parent container for mobile.
+                  // onFocusHotspot is kept for potential keyboard navigation or other accessibility features
+                  // that might directly trigger focus on a hotspot.
+                  onFocusHotspot={handleFocusHotspot}
+                  // onEditHotspotRequest is kept for alternative ways to trigger editing,
+                  // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
+                  onEditHotspotRequest={handleHotspotEditRequest}
                   onHotspotPositionChange={handleHotspotPositionChange}
                   isEditing={isEditing}
                   isMobile={true}
@@ -2101,11 +2120,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     getHighlightGradientStyle={getHighlightGradientStyle}
                   // pendingHotspot={pendingHotspot} // Removed pendingHotspot
                     onImageLoad={handleImageLoad}
-                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)} // Use new handler for desktop too
+                  // Pass the unified click handler to ImageEditCanvas.
+                  // This allows ImageEditCanvas to report clicks, which InteractiveModule then uses
+                  // to determine if a hotspot or the background was clicked.
+                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)}
                   onTouchStart={touchGestureHandlers.handleTouchStart}
                     onTouchMove={touchGestureHandlers.handleTouchMove}
                     onTouchEnd={touchGestureHandlers.handleTouchEnd}
+                    // onFocusHotspot is kept for potential keyboard navigation or other accessibility features
+                    // that might directly trigger focus on a hotspot.
                     onFocusHotspot={handleFocusHotspot}
+                    // onEditHotspotRequest is kept for alternative ways to trigger editing,
+                    // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
                     onEditHotspotRequest={handleHotspotEditRequest}
                     onHotspotPositionChange={handleHotspotPositionChange}
                     isEditing={isEditing}
