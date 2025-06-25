@@ -34,6 +34,28 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Fix for mobile viewport height
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // Set initial value
+    setVH();
+
+    // Update on resize and orientation change
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(setVH, 100); // Delay for orientation change
+    });
+
+    return () => {
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
+    };
+  }, []);
+
+  useEffect(() => {
     loadProjects();
   }, [loadProjects]);
 

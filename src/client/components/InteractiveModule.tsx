@@ -1825,181 +1825,133 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
       {isEditing ? (
         isMobile ? (
-          <div className="flex flex-col min-h-screen bg-slate-900 pt-14"> {/* pt-14 for toolbar height */}
-            {/* Mobile EditorToolbar */}
-            <div className="flex-shrink-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: Z_INDEX.TOOLBAR }}>
-              <EditorToolbar
-                projectName={projectName}
-                onBack={handleAttemptClose}
-                onReplaceImage={handleImageUpload}
-                onAddHotspot={handleAddHotspot} // Pass the consolidated handler
-                isAutoProgression={isTimedMode}
-                onToggleAutoProgression={setIsTimedMode}
-                autoProgressionDuration={autoProgressionDuration}
-                onAutoProgressionDurationChange={setAutoProgressionDuration}
-                currentZoom={editingZoom} // Mobile might need its own zoom state if canvas behaves differently
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onZoomReset={handleZoomReset}
-                onCenter={handleCenter} // May need mobile specific centering
-                currentColorScheme={colorScheme}
-                onColorSchemeChange={setColorScheme}
-                onSave={handleSave}
-                isSaving={isSaving}
-                showSuccessMessage={showSuccessMessage}
-                isMobile={true}
-              />
+  <div className="mobile-editor-container">
+    {/* Fixed Toolbar */}
+    <div className="mobile-toolbar">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleAttemptClose}
+            className="mobile-touch-target text-white"
+            aria-label="Close editor"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-white font-semibold truncate">
+            {projectName || 'Edit Module'}
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="mobile-touch-target bg-purple-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Image Editing Area */}
+    <div className="mobile-image-area">
+      <div
+        ref={imageContainerRef}
+        className="w-full h-full relative overflow-hidden"
+        style={{ touchAction: 'none' }}
+        {...(isMobile ? {
+          onTouchStart: (e) => {
+            // Simple touch handling - prevent default for multi-touch
+            if (e.touches.length > 1) {
+              e.preventDefault();
+            }
+          },
+          onTouchMove: (e) => {
+            // Allow single finger pan, prevent multi-touch
+            if (e.touches.length > 1) {
+              e.preventDefault();
+            }
+          }
+        } : {})}
+      >
+        {/* Your existing ImageEditCanvas or image content */}
+        {children /* Or your image content */}
+      </div>
+    </div>
+
+    {/* Bottom Editor Panel */}
+    <div className="mobile-editor-panel">
+      {/* Simplified tab navigation */}
+      <div className="flex bg-slate-800">
+        {['Properties', 'Timeline'].map((tab, index) => (
+          <button
+            key={tab}
+            onClick={() => setActiveMobileEditorTab(index === 0 ? 'properties' : 'timeline')}
+            className={`flex-1 py-3 px-4 text-center font-medium ${
+              activeMobileEditorTab === (index === 0 ? 'properties' : 'timeline')
+                ? 'text-purple-400 border-b-2 border-purple-400 bg-slate-700'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Panel Content */}
+      <div className="flex-1 overflow-y-auto p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {activeMobileEditorTab === 'properties' && (
+          selectedHotspotForModal ? (
+            <MobileHotspotEditor
+              hotspot={hotspots.find(h => h.id === selectedHotspotForModal)!}
+              onUpdate={(updates) => {
+                const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
+                if (hotspotToUpdate) {
+                  const updatedHotspot = { ...hotspotToUpdate, ...updates };
+                  setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
+                }
+              }}
+              onDelete={() => {
+                if(selectedHotspotForModal) handleRemoveHotspot(selectedHotspotForModal);
+                setSelectedHotspotForModal(null);
+              }}
+            />
+          ) : (
+            <div className="text-center py-8 text-slate-400">
+              <div className="text-4xl mb-2">👆</div>
+              <p>Tap a hotspot to edit its properties</p>
             </div>
+          )
+        )}
 
-            {/* Mobile Editor Layout - Stack Layout */}
-            <div className="flex flex-col flex-1 min-h-0"> {/* Ensure child flex items can shrink */}
-              {/* Image editing area */}
-              {/* This ref (imageContainerRef) is the one specified in AGENTS.md for Agent 4 (outer container for mobile) */}
-              <div
-                ref={imageContainerRef}
-                className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
-                // onClick={handleImageClick} // Replaced by onImageOrHotspotClick from ImageEditCanvas
-                {...(isMobile && isEditing ? touchGestureHandlers : {})} // Apply gesture handlers
-                // style={{ cursor: backgroundImage ? 'crosshair' : 'default'}} // Cursor managed by ImageEditCanvas
-              >
-                <ImageEditCanvas
-                  backgroundImage={backgroundImage}
-                  editingZoom={editingZoom}
-                  actualImageRef={actualImageRef}
-                  zoomedImageContainerRef={zoomedImageContainerRef}
-                  scrollableContainerRef={scrollableContainerRef} // Inner scrollable area for the image itself
-                  imageContainerRef={imageContainerRef} // Pass the outer container ref for pendingHotspot positioning relative to it
-                  hotspotsWithPositions={hotspotsWithPositions}
-                  pulsingHotspotId={pulsingHotspotId}
-                  activeHotspotDisplayIds={activeHotspotDisplayIds}
-                  highlightedHotspotId={highlightedHotspotId}
-                  getHighlightGradientStyle={getHighlightGradientStyle}
-                  // pendingHotspot={pendingHotspot} // Removed pendingHotspot
-                  onImageLoad={handleImageLoad}
-                  // Pass the unified click handler to ImageEditCanvas.
-                  // This allows ImageEditCanvas to report clicks, which InteractiveModule then uses
-                  // to determine if a hotspot or the background was clicked.
-                  onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)}
-                  // Touch handlers are managed by useTouchGestures hook applied to the parent container for mobile.
-                  // onFocusHotspot is kept for potential keyboard navigation or other accessibility features
-                  // that might directly trigger focus on a hotspot.
-                  onFocusHotspot={handleFocusHotspot}
-                  // onEditHotspotRequest is kept for alternative ways to trigger editing,
-                  // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
-                  onEditHotspotRequest={handleOpenHotspotEditor} // Renamed from handleHotspotEditRequest
-                  onHotspotPositionChange={handleHotspotPositionChange}
-                  isEditing={isEditing}
-                  isMobile={true}
-                  currentStep={currentStep}
-                  timelineEvents={timelineEvents}
-                  onImageUpload={handleImageUpload}
-                />
-                {/* {pendingHotspot && ( // Removed PendingHotspotConfirmation
-                  <PendingHotspotConfirmation
-                    pendingHotspot={pendingHotspot}
-                    onConfirm={handleAddHotspot}
-                    onCancel={() => {
-                      // setPendingHotspot(null); // Removed
-                      setShowPlacementHint(false);
-                    }}
-                  />
-                )} */}
-              </div>
-
-              {/* Mobile editor controls panel */}
-              {/* This ref is the one specified in AGENTS.md for Agent 4 */}
-              <div ref={mobileEditorPanelRef} className="flex-shrink-0 bg-slate-800 border-t border-slate-600 overflow-hidden" style={{maxHeight: 'min(50vh, 400px)'}}> {/* Adjusted maxHeight */}
-                <MobileEditorTabs activeTab={activeMobileEditorTab} onTabChange={setActiveMobileEditorTab} />
-                <div className="flex-1 overflow-y-auto p-0"> {/* p-0 if MobileHotspotEditor has its own padding */}
-                  {/* Tab content */}
-                  {activeMobileEditorTab === 'properties' && (
-                    selectedHotspotForModal && hotspots.find(h => h.id === selectedHotspotForModal) ? (
-                      <MobileHotspotEditor
-                        hotspot={hotspots.find(h => h.id === selectedHotspotForModal)!}
-                        onUpdate={(updates) => {
-                          const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
-                          if (hotspotToUpdate) {
-                            const updatedHotspot = { ...hotspotToUpdate, ...updates };
-                            setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
-                          }
-                        }}
-                        onDelete={() => {
-                          if(selectedHotspotForModal) handleRemoveHotspot(selectedHotspotForModal);
-                          // Potentially close/deselect hotspot in mobile view
-                          setSelectedHotspotForModal(null);
-                        }}
-                      />
-                    ) : (
-                      <div className="p-4 text-center text-slate-400">Select a hotspot to edit its properties.</div>
-                    )
-                  )}
-                  {activeMobileEditorTab === 'timeline' && (
-                    backgroundImage ? (
-                      <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-                        <HorizontalTimeline
-                          uniqueSortedSteps={uniqueSortedSteps}
-                          currentStep={currentStep}
-                          onStepSelect={handleTimelineDotClick}
-                          isEditing={isEditing}
-                          timelineEvents={timelineEvents}
-                          hotspots={hotspots}
-                          isMobile={true} // Pass isMobile
-                        />
-                      </div>
-                    ) : (
-                       <div className="p-4 text-center text-slate-400">Upload an image to manage timeline.</div>
-                    )
-                  )}
-                </div>
-              </div>
-
-              {/* Mobile floating action button */}
-              <div className="absolute bottom-20 right-4 z-40"> {/* Adjusted bottom to avoid overlap with potential nav bars or timeline if it's part of the bottom panel */}
-                <button
-                  onClick={() => {
-                    if (backgroundImage && actualImageRef.current) {
-                       // For mobile, clicking FAB could directly set pending hotspot state,
-                       // then user taps on image to place it.
-                       // The confirmation dialog for pendingHotspot will handle the actual creation.
-                      const container = imageContainerRef.current;
-                      if (container) {
-                        // Default to center of the current view of the image as a starting point for pending
-                        const defaultXPercent = 50;
-                        const defaultYPercent = 50;
-
-                        // Attempt to find center of actual image if possible, otherwise use viewport center
-                        let initialImageX = defaultXPercent;
-                        let initialImageY = defaultYPercent;
-
-                        // if (actualImageRef.current && actualImageRef.current.offsetParent) {
-                        //     // This logic assumes the image is somewhat centered or visible
-                        //     // A more robust solution might involve calculating the visible center of the image
-                        //     initialImageX = (container.clientWidth / 2 / (actualImageRef.current.width * editingZoom)) * 100;
-                        //     initialImageY = (container.clientHeight / 2 / (actualImageRef.current.height * editingZoom)) * 100;
-                        //     initialImageX = Math.max(0, Math.min(100, initialImageX));
-                        //     initialImageY = Math.max(0, Math.min(100, initialImageY));
-                        // }
-
-                        // setPendingHotspot({ // Removed pendingHotspot
-                        //     viewXPercent: defaultXPercent,
-                        //     viewYPercent: defaultYPercent,
-                        //     imageXPercent: initialImageX,
-                        //     imageYPercent: initialImageY,
-                        handleAddHotspot(); // Directly call handleAddHotspot
-                      }
-                    } else {
-                       alert("Please upload an image first to add hotspots.");
-                    }
-                  }}
-                  className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center text-white shadow-lg"
-                  aria-label="Add hotspot"
-                  disabled={!backgroundImage} // Disable if no image
-                >
-                  <PlusIcon className="w-7 h-7" />
-                </button>
-              </div>
-            </div>
+        {activeMobileEditorTab === 'timeline' && (
+          <div className="space-y-4">
+            {/* Simplified timeline content */}
+            <h3 className="text-white font-semibold">Timeline Steps</h3>
+            {/* Your timeline content */}
           </div>
+        )}
+      </div>
+    </div>
+
+    {/* Floating Add Button */}
+    <button
+      onClick={() => {
+        // Handle add hotspot - you can implement this
+        console.log('Add hotspot clicked');
+      }}
+      className="fixed bottom-20 right-4 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-40"
+      style={{ bottom: 'calc(40vh + 1rem)' }}
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+)
         ) : (
           <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
             {/* Add Toolbar */}

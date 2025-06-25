@@ -1,153 +1,136 @@
-/* Mobile viewport fixes */
+/* CRITICAL: Fix viewport issues immediately */
 @media screen and (max-width: 768px) {
+  :root {
+    --vh: 1vh;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
     overscroll-behavior: none;
     min-height: 100vh;
     min-height: -webkit-fill-available;
+    position: relative;
   }
 
-  .mobile-viewport-fix {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-}
-
-/* Touch manipulation */
-.touch-manipulation {
-  touch-action: manipulation;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Mobile-optimized hotspot styling */
-@media screen and (max-width: 768px) {
-  .hotspot-dot {
-    min-width: 44px;
-    min-height: 44px;
-    transform-origin: center;
+  /* CRITICAL: Fix mobile editor layout */
+  .mobile-editor-container {
+    height: 100vh;
+    height: -webkit-fill-available;
+    height: calc(var(--vh, 1vh) * 100);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
   }
 
-  .hotspot-dot:active {
-    transform: scale(0.95);
-  }
-
-  .hotspot-dragging {
-    transform: scale(1.2);
-    z-index: 1000;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-  }
-}
-
-/* Mobile toolbar styling */
-@media screen and (max-width: 768px) {
+  /* CRITICAL: Fix toolbar positioning */
   .mobile-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding-top: env(safe-area-inset-top);
+    position: relative; /* Changed from fixed */
+    flex-shrink: 0;
+    z-index: 100;
+    background: #1e293b;
+    border-bottom: 1px solid #475569;
+    padding-top: var(--safe-area-inset-top);
   }
 
-  .mobile-toolbar-menu {
-    background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(8px);
-    border-radius: 0 0 12px 12px;
-  }
-}
-
-/* Mobile timeline styles */
-@media screen and (max-width: 768px) {
-  .mobile-timeline {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  /* CRITICAL: Fix image editing area */
+  .mobile-image-area {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    background: #0f172a;
+    touch-action: none;
   }
 
-  .mobile-timeline::-webkit-scrollbar {
-    display: none;
+  /* CRITICAL: Fix bottom panel */
+  .mobile-editor-panel {
+    flex-shrink: 0;
+    max-height: 40vh;
+    overflow: hidden;
+    background: #1e293b;
+    border-top: 1px solid #475569;
+    display: flex;
+    flex-direction: column;
   }
 
-  .mobile-timeline-step {
-    min-width: 44px;
+  /* CRITICAL: Improve touch targets */
+  .mobile-touch-target {
     min-height: 44px;
+    min-width: 44px;
+    padding: 8px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* CRITICAL: Fix hotspot interactions */
+  .mobile-hotspot {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    cursor: pointer;
+    touch-action: none;
+    transition: transform 0.2s ease;
+    transform-origin: center;
+    position: absolute;
+    z-index: 10;
+  }
+
+  .mobile-hotspot:active {
+    transform: scale(0.9);
+  }
+
+  .mobile-hotspot.dragging {
+    transform: scale(1.1);
+    z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  /* CRITICAL: Fix input fields */
+  .mobile-input {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #374151;
+    border: 2px solid transparent;
+    color: white;
+  }
+
+  .mobile-input:focus {
+    border-color: #8b5cf6;
+    outline: none;
+  }
+
+  /* CRITICAL: Fix modal positioning */
+  .mobile-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* CRITICAL: Fix keyboard handling */
+  .mobile-keyboard-spacer {
+    height: env(keyboard-inset-height, 0px);
     flex-shrink: 0;
   }
 }
 
-/* Mobile editor panel styling */
-@media screen and (max-width: 768px) {
-  .mobile-editor-panel {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: env(keyboard-inset-height, 0);
-  }
-
-  .mobile-tabs {
-    display: flex;
-    background: #334155;
-    border-radius: 8px;
-    padding: 4px;
-  }
-
-  .mobile-tab {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    border-radius: 6px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    font-weight: 500;
-  }
-
-  .mobile-tab.active {
-    background: #475569;
-    color: white;
-  }
-
-  .mobile-tab:not(.active) {
-    color: #94a3b8;
-  }
-}
-
-/* Mobile color picker styling */
-@media screen and (max-width: 768px) {
-  .mobile-color-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    padding: 16px;
-  }
-
-  .mobile-color-option {
-    aspect-ratio: 1;
-    border-radius: 8px;
-    border: 2px solid transparent;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-    position: relative;
-  }
-
-  .mobile-color-option.selected {
-    border-color: white;
-    transform: scale(1.05);
-  }
-
-  .mobile-color-option:active {
-    transform: scale(0.95);
-  }
-}
-
-/* Fix for iOS Safari viewport */
-@supports (-webkit-touch-callout: none) {
-  .ios-viewport-fix {
-    height: -webkit-fill-available;
-  }
-
-  /* Fix iOS Safari bottom bar issues */
-  .ios-safe-area {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+/* CRITICAL: Disable zoom on double tap for editor */
+.mobile-editor-canvas {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
