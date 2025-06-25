@@ -1,6 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
@@ -198,11 +196,10 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={onClose}>
-        <div className="max-w-7xl w-full h-[90vh] bg-gray-800 text-white flex flex-col" onClick={e => e.stopPropagation()}>
-          <HotspotEditorToolbar 
-            title={localHotspot.title || `Edit Hotspot`} 
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={onClose}>
+      <div className="max-w-7xl w-full h-[90vh] bg-gray-800 text-white flex flex-col" onClick={e => e.stopPropagation()}>
+        <HotspotEditorToolbar
+          title={localHotspot.title || `Edit Hotspot`}
             onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
             onSave={handleSave} 
             onDelete={() => {
@@ -294,7 +291,6 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           </div>
         </div>
       </div>
-    </DndProvider>
   );
 };
 
