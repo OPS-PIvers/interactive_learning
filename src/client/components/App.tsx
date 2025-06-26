@@ -45,13 +45,14 @@ const App: React.FC = () => {
 
     // Update on resize and orientation change
     window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', () => {
+    const orientationHandler = () => {
       setTimeout(setVH, 100); // Delay for orientation change
-    });
+    };
+    window.addEventListener('orientationchange', orientationHandler);
 
     return () => {
       window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', setVH);
+      window.removeEventListener('orientationchange', orientationHandler);
     };
   }, []);
 

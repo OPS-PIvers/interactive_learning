@@ -1878,7 +1878,29 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         } : {})}
       >
         {/* Your existing ImageEditCanvas or image content */}
-        {children /* Or your image content */}
+        <ImageEditCanvas
+          backgroundImage={backgroundImage}
+          editingZoom={editingZoom}
+          actualImageRef={actualImageRef}
+          zoomedImageContainerRef={zoomedImageContainerRef}
+          scrollableContainerRef={scrollableContainerRef}
+          imageContainerRef={imageContainerRef}
+          hotspotsWithPositions={hotspotsWithPositions}
+          pulsingHotspotId={pulsingHotspotId}
+          activeHotspotDisplayIds={activeHotspotDisplayIds}
+          highlightedHotspotId={highlightedHotspotId}
+          getHighlightGradientStyle={getHighlightGradientStyle}
+          onImageLoad={handleImageLoad}
+          onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)}
+          onFocusHotspot={handleFocusHotspot}
+          onEditHotspotRequest={handleOpenHotspotEditor}
+          onHotspotPositionChange={handleHotspotPositionChange}
+          isEditing={isEditing}
+          isMobile={true}
+          currentStep={currentStep}
+          timelineEvents={timelineEvents}
+          onImageUpload={handleImageUpload}
+        />
       </div>
     </div>
 
@@ -1939,11 +1961,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
     {/* Floating Add Button */}
     <button
-      onClick={() => {
-        // Handle add hotspot - you can implement this
-        console.log('Add hotspot clicked');
-      }}
-      className="fixed bottom-20 right-4 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-40"
+      onClick={handleAddHotspot}
+      disabled={!backgroundImage}
+      className="fixed bottom-20 right-4 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 disabled:opacity-50 disabled:cursor-not-allowed"
       style={{ bottom: 'calc(40vh + 1rem)' }}
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

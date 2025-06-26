@@ -72,9 +72,9 @@
   }
 
   /* CRITICAL: Fix hotspot interactions */
-  .mobile-hotspot {
-    min-width: 44px !important;
-    min-height: 44px !important;
+  .mobile-editor-container .mobile-hotspot {
+    min-width: 44px;
+    min-height: 44px;
     border: 3px solid rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     cursor: pointer;
