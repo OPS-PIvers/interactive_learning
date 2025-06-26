@@ -33,7 +33,10 @@
 
   /* CRITICAL: Fix toolbar positioning */
   .mobile-toolbar {
-    position: relative; /* Changed from fixed */
+    position: fixed; /* Changed from relative */
+    left: 0;
+    right: 0;
+    top: 0;
     flex-shrink: 0;
     z-index: 100;
     background: #1e293b;

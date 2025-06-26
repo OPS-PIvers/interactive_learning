@@ -32,10 +32,11 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
   const renderBasicTab = () => (
     <div className="space-y-4 p-4">
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label htmlFor="hotspotTitle" className="block text-sm font-medium text-slate-300 mb-2">
           Title
         </label>
         <input
+          id="hotspotTitle"
           type="text"
           value={hotspot.title || ''}
           onChange={(e) => onUpdate({ title: e.target.value })}
@@ -45,10 +46,11 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label htmlFor="hotspotDescription" className="block text-sm font-medium text-slate-300 mb-2">
           Description
         </label>
         <textarea
+          id="hotspotDescription"
           value={hotspot.description || ''}
           onChange={(e) => onUpdate({ description: e.target.value })}
           className="mobile-input w-full min-h-24 resize-none"
