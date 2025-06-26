@@ -46,7 +46,7 @@ const App: React.FC = () => {
     // Update on resize and orientation change
     window.addEventListener('resize', setVH);
     const orientationHandler = () => {
-      setTimeout(setVH, 100); // Delay for orientation change
+      requestAnimationFrame(setVH); // Use requestAnimationFrame for orientation change
     };
     window.addEventListener('orientationchange', orientationHandler);
 

@@ -838,6 +838,35 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [initialData, isEditing, clearImageBoundsCache]);
 
+  // Effect for mobile touch handling on imageContainerRef
+  useEffect(() => {
+    const imageElement = imageContainerRef.current;
+
+    if (isMobile && isEditing && imageElement) {
+      const handleTouchStart = (e: TouchEvent) => {
+        // Simple touch handling - prevent default for multi-touch
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        // Allow single finger pan, prevent multi-touch
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      };
+
+      imageElement.addEventListener('touchstart', handleTouchStart);
+      imageElement.addEventListener('touchmove', handleTouchMove);
+
+      return () => {
+        imageElement.removeEventListener('touchstart', handleTouchStart);
+        imageElement.removeEventListener('touchmove', handleTouchMove);
+      };
+    }
+  }, [isMobile, isEditing, imageContainerRef]);
+
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
       const currentIndex = uniqueSortedSteps.indexOf(currentStep);
@@ -1862,20 +1891,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         ref={imageContainerRef}
         className="w-full h-full relative overflow-hidden"
         style={{ touchAction: 'none' }}
-        {...(isMobile ? {
-          onTouchStart: (e) => {
-            // Simple touch handling - prevent default for multi-touch
-            if (e.touches.length > 1) {
-              e.preventDefault();
-            }
-          },
-          onTouchMove: (e) => {
-            // Allow single finger pan, prevent multi-touch
-            if (e.touches.length > 1) {
-              e.preventDefault();
-            }
-          }
-        } : {})}
+        // Event listeners are now added via useEffect
       >
         {/* Your existing ImageEditCanvas or image content */}
         <ImageEditCanvas
