@@ -41,7 +41,6 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
           onChange={(e) => onUpdate({ title: e.target.value })}
           className="mobile-input w-full"
           placeholder="Enter hotspot title"
-          style={{ fontSize: '16px' }} // CRITICAL: Prevent iOS zoom
         />
       </div>
 
@@ -54,7 +53,6 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
           onChange={(e) => onUpdate({ description: e.target.value })}
           className="mobile-input w-full min-h-24 resize-none"
           placeholder="Enter description"
-          style={{ fontSize: '16px' }} // CRITICAL: Prevent iOS zoom
           rows={3}
         />
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useTouchGestures } from '../hooks/useTouchGestures';
+import { useSimplifiedTouch } from '../hooks/useSimplifiedTouch';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
@@ -188,6 +189,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [viewportZoom, setViewportZoom] = useState<number>(1); // Keep for viewer mode
   const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Keep for viewer mode
   const [isTransforming, setIsTransforming] = useState(false);
+
+  // Simplified touch handlers for mobile editor image area
+  const simplifiedTouchHandlers = useSimplifiedTouch(
+    undefined, // No specific onTap needed for the container itself
+    (delta, point) => {
+      // This onDrag could be used for custom single-finger panning on the image if needed in mobile edit mode
+      // For now, the main concern is preventing default multi-touch actions, which useSimplifiedTouch handles
+    },
+    undefined // No specific onDragEnd needed for the container
+  );
   
   // New state for editing mode
   const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
@@ -837,35 +848,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       pulseTimeoutRef.current = null;
     }
   }, [initialData, isEditing, clearImageBoundsCache]);
-
-  // Effect for mobile touch handling on imageContainerRef
-  useEffect(() => {
-    const imageElement = imageContainerRef.current;
-
-    if (isMobile && isEditing && imageElement) {
-      const handleTouchStart = (e: TouchEvent) => {
-        // Simple touch handling - prevent default for multi-touch
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      };
-
-      const handleTouchMove = (e: TouchEvent) => {
-        // Allow single finger pan, prevent multi-touch
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      };
-
-      imageElement.addEventListener('touchstart', handleTouchStart);
-      imageElement.addEventListener('touchmove', handleTouchMove);
-
-      return () => {
-        imageElement.removeEventListener('touchstart', handleTouchStart);
-        imageElement.removeEventListener('touchmove', handleTouchMove);
-      };
-    }
-  }, [isMobile, isEditing, imageContainerRef]);
 
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
@@ -1891,7 +1873,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         ref={imageContainerRef}
         className="w-full h-full relative overflow-hidden"
         style={{ touchAction: 'none' }}
-        // Event listeners are now added via useEffect
+        {...(isMobile && isEditing ? simplifiedTouchHandlers : {})}
       >
         {/* Your existing ImageEditCanvas or image content */}
         <ImageEditCanvas
@@ -1979,8 +1961,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     <button
       onClick={handleAddHotspot}
       disabled={!backgroundImage}
-      className="fixed bottom-20 right-4 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{ bottom: 'calc(40vh + 1rem)' }}
+      className="fixed right-4 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 disabled:opacity-50 disabled:cursor-not-allowed mobile-fab-bottom"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

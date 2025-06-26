@@ -126,6 +126,10 @@
     height: env(keyboard-inset-height, 0px);
     flex-shrink: 0;
   }
+
+  .mobile-fab-bottom {
+    bottom: calc(40vh + 1rem);
+  }
 }
 
 /* CRITICAL: Disable zoom on double tap for editor */
