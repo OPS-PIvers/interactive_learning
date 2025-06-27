@@ -1936,11 +1936,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       {/* Panel Content */}
       <div className="flex-1 overflow-y-auto p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
         {activeMobileEditorTab === 'properties' && (() => {
-          const selectedHotspot = useMemo(() => {
-            return selectedHotspotForModal
-              ? hotspots.find(h => h.id === selectedHotspotForModal)
-              : undefined;
-          }, [hotspots, selectedHotspotForModal]);
+          const selectedHotspot = selectedHotspotForModal
+            ? hotspots.find(h => h.id === selectedHotspotForModal)
+            : undefined;
 
           if (!selectedHotspot) {
             return (
