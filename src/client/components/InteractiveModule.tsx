@@ -6,6 +6,7 @@ import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
 import HorizontalTimeline from './HorizontalTimeline';
 import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
+import MobileEditorModal from './MobileEditorModal';
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon'; // Already imported
@@ -2196,33 +2197,66 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       )}
 
 
-      {/* Enhanced Hotspot Editor Modal - This is now the single modal for editing */}
-      <HotspotEditorModal
-        isOpen={isHotspotModalOpen}
-        selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
-        relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
-        currentStep={currentStep}
-        backgroundImage={backgroundImage || ''}
-        onUpdateHotspot={(updatedHotspot) => {
-          setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
-        }}
-        onDeleteHotspot={(hotspotId) => {
-          handleRemoveHotspot(hotspotId);
-          setIsHotspotModalOpen(false);
-          setSelectedHotspotForModal(null);
-        }}
-        onAddEvent={handleAddTimelineEvent}
-        onUpdateEvent={(updatedEvent) => {
-          setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
-        }}
-        onDeleteEvent={(eventId) => {
-          setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
-        }}
-        onClose={() => {
-          setIsHotspotModalOpen(false);
-          setSelectedHotspotForModal(null);
-        }}
-      />
+      {/* Enhanced Hotspot Editor Modal - Conditional rendering for mobile vs desktop */}
+      {isMobile ? (
+        <MobileEditorModal
+          isOpen={isHotspotModalOpen}
+          hotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
+          timelineEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
+          currentStep={currentStep}
+          onUpdateHotspot={(updates) => {
+            if (selectedHotspotForModal) {
+              setHotspots(prev => prev.map(h => h.id === selectedHotspotForModal ? { ...h, ...updates } : h));
+            }
+          }}
+          onDeleteHotspot={() => {
+            if (selectedHotspotForModal) {
+              handleRemoveHotspot(selectedHotspotForModal);
+              setIsHotspotModalOpen(false);
+              setSelectedHotspotForModal(null);
+            }
+          }}
+          onAddTimelineEvent={handleAddTimelineEvent}
+          onUpdateTimelineEvent={(updatedEvent) => {
+            setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+          }}
+          onDeleteTimelineEvent={(eventId) => {
+            setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
+          }}
+          onClose={() => {
+            setIsHotspotModalOpen(false);
+            setSelectedHotspotForModal(null);
+          }}
+        />
+      ) : (
+        <HotspotEditorModal
+          isOpen={isHotspotModalOpen}
+          selectedHotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
+          relatedEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
+          currentStep={currentStep}
+          backgroundImage={backgroundImage || ''}
+          onUpdateHotspot={(updatedHotspot) => {
+            setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
+          }}
+          onDeleteHotspot={(hotspotId) => {
+            handleRemoveHotspot(hotspotId);
+            setIsHotspotModalOpen(false);
+            setSelectedHotspotForModal(null);
+          }}
+          onAddEvent={handleAddTimelineEvent}
+          onUpdateEvent={(updatedEvent) => {
+            setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+          }}
+          onDeleteEvent={(eventId) => {
+            setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
+          }}
+          onClose={() => {
+            setIsHotspotModalOpen(false);
+            setSelectedHotspotForModal(null);
+          }}
+          allHotspots={hotspots}
+        />
+      )}
 
       {/* Media Modal */}
       {mediaModal.isOpen && (
