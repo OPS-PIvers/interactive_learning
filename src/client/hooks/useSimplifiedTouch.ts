@@ -8,11 +8,29 @@ interface TouchState {
   startTime: number;
 }
 
+interface SimplifiedTouchOptions {
+  dragThreshold?: number;
+  tapDurationThreshold?: number;
+  tapDistanceThreshold?: number;
+}
+
+const defaultOptions: Required<SimplifiedTouchOptions> = {
+  dragThreshold: 5, // px
+  tapDurationThreshold: 300, // ms
+  tapDistanceThreshold: 10, // px
+};
+
 export const useSimplifiedTouch = (
-  onTap?: (point: { x: number; y: number }) => void,
-  onDrag?: (delta: { x: number; y: number }, point: { x: number; y: number }) => void,
-  onDragEnd?: () => void
+  handlers: {
+    onTap?: (point: { x: number; y: number }) => void;
+    onDrag?: (delta: { x: number; y: number }, point: { x: number; y: number }) => void;
+    onDragEnd?: () => void;
+  },
+  options?: SimplifiedTouchOptions
 ) => {
+  const mergedOptions = { ...defaultOptions, ...options };
+  const { onTap, onDrag, onDragEnd } = handlers;
+
   const touchState = useRef<TouchState>({
     isActive: false,
     startPoint: null,
@@ -47,9 +65,9 @@ export const useSimplifiedTouch = (
         y: point.y - lastPoint.y
       };
 
-      // Only call onDrag if we've moved more than 5px from start
+      // Only call onDrag if we've moved more than dragThreshold from start
       const totalDistance = Math.hypot(point.x - startPoint.x, point.y - startPoint.y);
-      if (totalDistance > 5) {
+      if (totalDistance > mergedOptions.dragThreshold) {
         e.preventDefault(); // Prevent scroll
         onDrag(delta, point);
       }
@@ -64,13 +82,13 @@ export const useSimplifiedTouch = (
     const { startPoint, startTime } = touchState.current;
     const duration = Date.now() - startTime;
 
-    // If it was a quick tap (less than 300ms and small movement), call onTap
-    if (startPoint && duration < 300) {
+    // If it was a quick tap (less than tapDurationThreshold and small movement), call onTap
+    if (startPoint && duration < mergedOptions.tapDurationThreshold) {
       const changedTouch = e.changedTouches[0];
       const endPoint = { x: changedTouch.clientX, y: changedTouch.clientY };
       const distance = Math.hypot(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 
-      if (distance < 10 && onTap) {
+      if (distance < mergedOptions.tapDistanceThreshold && onTap) {
         onTap(endPoint);
       }
     }

@@ -192,14 +192,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Simplified touch handlers for mobile editor image area
   const simplifiedTouchHandlers = useSimplifiedTouch(
-    undefined, // onTap: Not needed here as clicks on hotspots are handled by ImageEditCanvas, and background clicks don't trigger actions on this specific container.
-    (delta, point) => {
-      // onDrag: This could be used for custom single-finger panning on the image container itself
-      // if that behavior was desired in mobile edit mode (distinct from ImageEditCanvas's internal panning/zooming).
-      // Currently, the primary benefit of useSimplifiedTouch here is its built-in prevention of default browser actions
-      // (like page scroll/zoom) during multi-touch gestures that are interpreted as drags by the hook.
-    },
-    undefined // onDragEnd: No specific actions needed when a drag ends on this container.
+    {
+      onTap: undefined, // onTap: Not needed here as clicks on hotspots are handled by ImageEditCanvas, and background clicks don't trigger actions on this specific container.
+      onDrag: (delta, point) => {
+        // onDrag: This could be used for custom single-finger panning on the image container itself
+        // if that behavior was desired in mobile edit mode (distinct from ImageEditCanvas's internal panning/zooming).
+        // Currently, the primary benefit of useSimplifiedTouch here is its built-in prevention of default browser actions
+        // (like page scroll/zoom) during multi-touch gestures that are interpreted as drags by the hook.
+      },
+      onDragEnd: undefined // onDragEnd: No specific actions needed when a drag ends on this container.
+    }
+    // Using default options from the hook itself, can pass custom options here if needed
   );
   
   // New state for editing mode
@@ -1908,17 +1911,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     <div className="mobile-editor-panel">
       {/* Simplified tab navigation */}
       <div className="flex bg-slate-800">
-        {['Properties', 'Timeline'].map((tab, index) => (
+        {[{
+          id: 'properties' as const,
+          name: 'Properties'
+        }, {
+          id: 'timeline' as const,
+          name: 'Timeline'
+        }].map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveMobileEditorTab(index === 0 ? 'properties' : 'timeline')}
+            key={tab.id}
+            onClick={() => setActiveMobileEditorTab(tab.id)}
             className={`flex-1 py-3 px-4 text-center font-medium ${
-              activeMobileEditorTab === (index === 0 ? 'properties' : 'timeline')
+              activeMobileEditorTab === tab.id
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-slate-700'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            {tab}
+            {tab.name}
           </button>
         ))}
       </div>
@@ -1943,11 +1952,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             <MobileHotspotEditor
               hotspot={selectedHotspot}
               onUpdate={(updates) => {
-                const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
-                if (hotspotToUpdate) {
-                  const updatedHotspot = { ...hotspotToUpdate, ...updates };
-                  setHotspots(prev => prev.map(h => h.id === updatedHotspot.id ? updatedHotspot : h));
-                }
+                setHotspots(prevHotspots => {
+                  const hotspotToUpdate = prevHotspots.find(h => h.id === selectedHotspotForModal);
+                  if (hotspotToUpdate) {
+                    const updatedHotspot = { ...hotspotToUpdate, ...updates };
+                    return prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h);
+                  }
+                  return prevHotspots;
+                });
               }}
               onDelete={() => {
                 if(selectedHotspotForModal) handleRemoveHotspot(selectedHotspotForModal);
