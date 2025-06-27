@@ -1,5 +1,5 @@
 // Create: src/client/hooks/useSimplifiedTouch.ts
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 
 interface TouchState {
   isActive: boolean;
@@ -28,7 +28,7 @@ export const useSimplifiedTouch = (
   },
   options?: SimplifiedTouchOptions
 ) => {
-  const mergedOptions = { ...defaultOptions, ...options };
+  const mergedOptions = useMemo(() => ({ ...defaultOptions, ...options }), [options]);
   const { onTap, onDrag, onDragEnd } = handlers;
 
   const touchState = useRef<TouchState>({
@@ -74,7 +74,7 @@ export const useSimplifiedTouch = (
     }
 
     touchState.current.lastPoint = point;
-  }, [onDrag]);
+  }, [onDrag, mergedOptions]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!touchState.current.isActive) return;
@@ -103,7 +103,7 @@ export const useSimplifiedTouch = (
       lastPoint: null,
       startTime: 0
     };
-  }, [onTap, onDragEnd]);
+  }, [onTap, onDragEnd, mergedOptions]);
 
   return {
     onTouchStart: handleTouchStart,

@@ -196,9 +196,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       onTap: undefined, // onTap: Not needed here as clicks on hotspots are handled by ImageEditCanvas, and background clicks don't trigger actions on this specific container.
       onDrag: (delta, point) => {
         // onDrag: This could be used for custom single-finger panning on the image container itself
-        // if that behavior was desired in mobile edit mode (distinct from ImageEditCanvas's internal panning/zooming).
-        // Currently, the primary benefit of useSimplifiedTouch here is its built-in prevention of default browser actions
-        // (like page scroll/zoom) during multi-touch gestures that are interpreted as drags by the hook.
+        // if that behavior was desired in mobile edit mode. The hook's e.preventDefault() for single-finger drags
+        // helps prevent page scroll during such an interaction.
+        // Note: Prevention of multi-touch browser gestures (like pinch-to-zoom of the page) is primarily handled by
+        // the `touch-action: none;` style on the container, as this hook only processes single touch events.
       },
       onDragEnd: undefined // onDragEnd: No specific actions needed when a drag ends on this container.
     }
