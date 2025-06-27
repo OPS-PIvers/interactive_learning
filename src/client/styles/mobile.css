@@ -1,9 +1,10 @@
-/* CRITICAL: Fix viewport issues immediately */
+/* Fix viewport issues immediately */
 @media screen and (max-width: 768px) {
   :root {
     --vh: 1vh;
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-panel-height: 40vh;
   }
 
   html {
@@ -18,7 +19,7 @@
     position: relative;
   }
 
-  /* CRITICAL: Fix mobile editor layout */
+  /* Fix mobile editor layout */
   /* Main container for the entire mobile editor interface */
   .mobile-editor-container {
     height: 100vh;
@@ -32,7 +33,7 @@
     z-index: 50;
   }
 
-  /* CRITICAL: Fix toolbar positioning */
+  /* Fix toolbar positioning */
   /* Toolbar fixed at the top of the mobile editor */
   .mobile-toolbar {
     position: fixed; /* Changed from relative */
@@ -46,7 +47,7 @@
     padding-top: var(--safe-area-inset-top);
   }
 
-  /* CRITICAL: Fix image editing area */
+  /* Fix image editing area */
   /* Flexible area for displaying and interacting with the image being edited */
   .mobile-image-area {
     flex: 1;
@@ -57,11 +58,11 @@
     touch-action: none;
   }
 
-  /* CRITICAL: Fix bottom panel */
+  /* Fix bottom panel */
   /* Panel at the bottom for editor controls like properties and timeline */
   .mobile-editor-panel {
     flex-shrink: 0;
-    max-height: 40vh;
+    max-height: var(--mobile-panel-height);
     overflow: hidden;
     background: #1e293b;
     border-top: 1px solid #475569;
@@ -69,7 +70,7 @@
     flex-direction: column;
   }
 
-  /* CRITICAL: Improve touch targets */
+  /* Improve touch targets */
   .mobile-touch-target {
     min-height: 44px;
     min-width: 44px;
@@ -78,7 +79,7 @@
     touch-action: manipulation;
   }
 
-  /* CRITICAL: Fix hotspot interactions */
+  /* Fix hotspot interactions */
   .mobile-editor-container .mobile-hotspot {
     min-width: 44px;
     min-height: 44px;
@@ -102,7 +103,7 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   }
 
-  /* CRITICAL: Fix input fields */
+  /* Fix input fields */
   .mobile-input {
     font-size: 16px !important; /* Prevent zoom on iOS. !important is used to ensure this overrides any conflicting global styles. */
     padding: 12px 16px;
@@ -117,7 +118,7 @@
     outline: none;
   }
 
-  /* CRITICAL: Fix modal positioning */
+  /* Fix modal positioning */
   .mobile-modal {
     position: fixed;
     inset: 0;
@@ -128,18 +129,18 @@
     overflow: hidden;
   }
 
-  /* CRITICAL: Fix keyboard handling */
+  /* Fix keyboard handling */
   .mobile-keyboard-spacer {
     height: env(keyboard-inset-height, 0px);
     flex-shrink: 0;
   }
 
   .mobile-fab-bottom {
-    bottom: calc(40vh + 1rem);
+    bottom: calc(var(--mobile-panel-height) + 1rem);
   }
 }
 
-/* CRITICAL: Disable zoom on double tap for editor */
+/* Disable zoom on double tap for editor */
 .mobile-editor-canvas {
   touch-action: manipulation;
   -webkit-user-select: none;

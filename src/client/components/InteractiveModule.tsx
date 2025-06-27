@@ -1925,10 +1925,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
       {/* Panel Content */}
       <div className="flex-1 overflow-y-auto p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-        {activeMobileEditorTab === 'properties' && (
-          selectedHotspotForModal ? (
+        {activeMobileEditorTab === 'properties' && (() => {
+          const selectedHotspot = selectedHotspotForModal
+            ? hotspots.find(h => h.id === selectedHotspotForModal)
+            : undefined;
+
+          if (!selectedHotspot) {
+            return (
+              <div className="text-center py-8 text-slate-400">
+                <div className="text-4xl mb-2">👆</div>
+                <p>Tap a hotspot to edit its properties</p>
+              </div>
+            );
+          }
+
+          return (
             <MobileHotspotEditor
-              hotspot={hotspots.find(h => h.id === selectedHotspotForModal)!}
+              hotspot={selectedHotspot}
               onUpdate={(updates) => {
                 const hotspotToUpdate = hotspots.find(h => h.id === selectedHotspotForModal);
                 if (hotspotToUpdate) {
@@ -1941,13 +1954,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 setSelectedHotspotForModal(null);
               }}
             />
-          ) : (
-            <div className="text-center py-8 text-slate-400">
-              <div className="text-4xl mb-2">👆</div>
-              <p>Tap a hotspot to edit its properties</p>
-            </div>
-          )
-        )}
+          );
+        })()}
 
         {activeMobileEditorTab === 'timeline' && (
           <div className="space-y-4">

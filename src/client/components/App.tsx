@@ -44,15 +44,14 @@ const App: React.FC = () => {
     setVH();
 
     // Update on resize and orientation change
-    window.addEventListener('resize', setVH);
-    const orientationHandler = () => {
-      requestAnimationFrame(setVH); // Use requestAnimationFrame for orientation change
-    };
-    window.addEventListener('orientationchange', orientationHandler);
+    const handler = () => requestAnimationFrame(setVH);
+
+    window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
 
     return () => {
-      window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', orientationHandler);
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
     };
   }, []);
 

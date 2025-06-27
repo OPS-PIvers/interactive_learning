@@ -24,8 +24,6 @@ const HOTSPOT_SIZES = [
   { value: 'large', label: 'L', previewClass: 'w-8 h-8' },
 ];
 
-// Update your MobileHotspotEditor.tsx with these critical fixes:
-
 const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUpdate, onDelete }) => {
   const [activeTab, setActiveTab] = useState<'basic' | 'style'>('basic');
 
