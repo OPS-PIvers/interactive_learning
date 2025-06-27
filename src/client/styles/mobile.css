@@ -19,6 +19,7 @@
   }
 
   /* CRITICAL: Fix mobile editor layout */
+  /* Main container for the entire mobile editor interface */
   .mobile-editor-container {
     height: 100vh;
     height: -webkit-fill-available;
@@ -32,6 +33,7 @@
   }
 
   /* CRITICAL: Fix toolbar positioning */
+  /* Toolbar fixed at the top of the mobile editor */
   .mobile-toolbar {
     position: fixed; /* Changed from relative */
     left: 0;
@@ -45,6 +47,7 @@
   }
 
   /* CRITICAL: Fix image editing area */
+  /* Flexible area for displaying and interacting with the image being edited */
   .mobile-image-area {
     flex: 1;
     min-height: 0;
@@ -55,6 +58,7 @@
   }
 
   /* CRITICAL: Fix bottom panel */
+  /* Panel at the bottom for editor controls like properties and timeline */
   .mobile-editor-panel {
     flex-shrink: 0;
     max-height: 40vh;
@@ -100,7 +104,7 @@
 
   /* CRITICAL: Fix input fields */
   .mobile-input {
-    font-size: 16px !important; /* Prevent zoom on iOS */
+    font-size: 16px !important; /* Prevent zoom on iOS. !important is used to ensure this overrides any conflicting global styles. */
     padding: 12px 16px;
     border-radius: 8px;
     background: #374151;
