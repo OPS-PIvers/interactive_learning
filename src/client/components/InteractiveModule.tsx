@@ -1936,9 +1936,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       {/* Panel Content */}
       <div className="flex-1 overflow-y-auto p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
         {activeMobileEditorTab === 'properties' && (() => {
-          const selectedHotspot = selectedHotspotForModal
-            ? hotspots.find(h => h.id === selectedHotspotForModal)
-            : undefined;
+          const selectedHotspot = useMemo(() => {
+            return selectedHotspotForModal
+              ? hotspots.find(h => h.id === selectedHotspotForModal)
+              : undefined;
+          }, [hotspots, selectedHotspotForModal]);
 
           if (!selectedHotspot) {
             return (
@@ -1953,14 +1955,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             <MobileHotspotEditor
               hotspot={selectedHotspot}
               onUpdate={(updates) => {
-                setHotspots(prevHotspots => {
-                  const hotspotToUpdate = prevHotspots.find(h => h.id === selectedHotspotForModal);
-                  if (hotspotToUpdate) {
-                    const updatedHotspot = { ...hotspotToUpdate, ...updates };
-                    return prevHotspots.map(h => h.id === updatedHotspot.id ? updatedHotspot : h);
-                  }
-                  return prevHotspots;
-                });
+                setHotspots(prevHotspots =>
+                  prevHotspots.map(h =>
+                    h.id === selectedHotspotForModal ? { ...h, ...updates } : h
+                  )
+                );
               }}
               onDelete={() => {
                 if(selectedHotspotForModal) handleRemoveHotspot(selectedHotspotForModal);

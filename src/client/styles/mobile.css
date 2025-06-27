@@ -104,8 +104,8 @@
   }
 
   /* Fix input fields */
-  .mobile-input {
-    font-size: 16px !important; /* Prevent zoom on iOS. !important is used to ensure this overrides any conflicting global styles. */
+  .mobile-editor-container .mobile-input {
+    font-size: 16px; /* Prevent zoom on iOS. Increased specificity to override conflicting global styles. */
     padding: 12px 16px;
     border-radius: 8px;
     background: #374151;
