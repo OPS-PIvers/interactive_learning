@@ -28,7 +28,7 @@ const PendingHotspotConfirmation: React.FC<PendingHotspotConfirmationProps> = ({
     // Or, provide basic absolute positioning that can be overridden.
     <div className="absolute top-4 right-4 z-50"> {/* Default positioning, can be overridden by parent if needed */}
       <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 border border-slate-600">
-        <h4 className="text-md font-semibold mb-2 text-slate-200">🎯 Confirm New Hotspot</h4>
+        <h4 className="text-md font-semibold mb-2 text-slate-200">Confirm New Hotspot</h4>
         <p className="text-sm text-slate-300 mb-3">
           Position: {pendingHotspot.imageXPercent.toFixed(1)}%, {pendingHotspot.imageYPercent.toFixed(1)}%
         </p>

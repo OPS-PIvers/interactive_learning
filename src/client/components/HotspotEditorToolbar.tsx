@@ -240,7 +240,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
           </div>
         </div>
         <p className="text-xs text-slate-400 mt-2">
-          💡 Drag the hotspot on the image to reposition
+          Drag the hotspot on the image to reposition
         </p>
       </div>
 
@@ -259,7 +259,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
             </label>
           </div>
           <div className="text-xs text-slate-400">
-            <p>💡 Control when the hotspot info panel appears by adding a "Show Message" event to the timeline</p>
+            <p>Control when the hotspot info panel appears by adding a "Show Message" event to the timeline</p>
             <p className="mt-1">The panel will display when that event is triggered instead of immediately on click</p>
           </div>
         </div>
@@ -292,7 +292,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
               <h4 className="font-medium text-slate-200">Timeline Events</h4>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-400">{relatedEvents.length} events</span>
-                <span className="text-xs text-slate-500">💡 Drag to reorder</span>
+                <span className="text-xs text-slate-500">Drag to reorder</span>
               </div>
             </div>
             

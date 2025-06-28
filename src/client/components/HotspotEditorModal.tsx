@@ -29,23 +29,22 @@ interface EnhancedHotspotEditorModalProps {
 
 // Event Type Selector Component
 const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
-  const eventTypes: { type: InteractionType; label: string; icon: string }[] = [
-    { type: InteractionType.SPOTLIGHT, label: 'spotlight', icon: '🎯' },
-    { type: InteractionType.PAN_ZOOM, label: 'pan-zoom', icon: '🔍' },
-    { type: InteractionType.SHOW_TEXT, label: 'text', icon: '💬' },
-    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'media', icon: '🖼️' },
-    { type: InteractionType.QUIZ, label: 'question', icon: '❓' },
+  const eventTypes: { type: InteractionType; label: string }[] = [
+    { type: InteractionType.SPOTLIGHT, label: 'spotlight' },
+    { type: InteractionType.PAN_ZOOM, label: 'pan-zoom' },
+    { type: InteractionType.SHOW_TEXT, label: 'text' },
+    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'media' },
+    { type: InteractionType.QUIZ, label: 'question' },
   ];
 
   return (
     <div className="flex flex-wrap gap-2">
-      {eventTypes.map(({ type, label, icon }) => (
+      {eventTypes.map(({ type, label }) => (
         <button
           key={type}
           onClick={() => onSelectEventType(type)}
           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1"
         >
-          <span>{icon}</span>
           <span>+ {label}</span>
         </button>
       ))}

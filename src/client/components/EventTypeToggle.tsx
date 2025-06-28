@@ -3,7 +3,6 @@ import { InteractionType } from '../../shared/types';
 
 interface EventTypeOption {
   type: InteractionType;
-  icon: string;
   label: string;
   description: string;
   color: string;
@@ -19,7 +18,6 @@ interface EventTypeToggleProps {
 const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   {
     type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
-    icon: '🔍',
     label: 'Pan & Zoom',
     description: 'Focus view',
     color: 'bg-blue-600',
@@ -28,7 +26,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.HIGHLIGHT_HOTSPOT,
-    icon: '💡',
     label: 'Spotlight',
     description: 'Highlight area',
     color: 'bg-yellow-600',
@@ -37,7 +34,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.SHOW_TEXT,
-    icon: '💬',
     label: 'Show Text',
     description: 'Display message',
     color: 'bg-purple-600',
@@ -46,7 +42,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.QUIZ,
-    icon: '❓',
     label: 'Quiz',
     description: 'Ask question',
     color: 'bg-red-600',
@@ -55,7 +50,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.SHOW_VIDEO,
-    icon: '🎥',
     label: 'Video',
     description: 'Play video file',
     color: 'bg-green-600',
@@ -64,7 +58,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.SHOW_AUDIO_MODAL,
-    icon: '🎵',
     label: 'Audio',
     description: 'Play audio file',
     color: 'bg-blue-600',
@@ -73,7 +66,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.SHOW_IMAGE_MODAL,
-    icon: '🖼️',
     label: 'Image',
     description: 'Show image modal',
     color: 'bg-purple-600',
@@ -82,7 +74,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.SHOW_YOUTUBE,
-    icon: '📺',
     label: 'YouTube',
     description: 'Play YouTube video',
     color: 'bg-red-600',
@@ -91,7 +82,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   },
   {
     type: InteractionType.PULSE_HOTSPOT,
-    icon: '💓',
     label: 'Pulse',
     description: 'Animate hotspot',
     color: 'bg-pink-600',
@@ -120,8 +110,7 @@ const EventTypeToggle: React.FC<EventTypeToggleProps> = ({ selectedTypes, onTogg
                 ${isSelected ? option.hoverColor : ''}
               `}
             >
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">{option.icon}</span>
+              <div>
                 <div>
                   <div className={`font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>
                     {option.label}
@@ -130,7 +119,6 @@ const EventTypeToggle: React.FC<EventTypeToggleProps> = ({ selectedTypes, onTogg
                     {option.description}
                   </div>
                 </div>
-              </div>
             </button>
           );
         })}

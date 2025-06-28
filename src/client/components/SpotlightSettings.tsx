@@ -16,7 +16,6 @@ const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
   return (
     <div className="mb-6 bg-slate-700 rounded-lg p-4">
       <h4 className="text-md font-medium text-white mb-4 flex items-center">
-        <span className="text-xl mr-2">💡</span>
         Spotlight Settings
       </h4>
       <div className="space-y-4">

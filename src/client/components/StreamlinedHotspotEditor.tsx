@@ -139,14 +139,14 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
 
   const getEventIcon = (type: InteractionType) => {
     const icons: Record<InteractionType, string> = {
-      [InteractionType.SHOW_HOTSPOT]: '👁️',
-      [InteractionType.HIDE_HOTSPOT]: '🫥',
-      [InteractionType.PULSE_HOTSPOT]: '💓',
-      [InteractionType.SHOW_MESSAGE]: '💬',
-      [InteractionType.PAN_ZOOM_TO_HOTSPOT]: '🔍',
-      [InteractionType.HIGHLIGHT_HOTSPOT]: '🎯'
+      [InteractionType.SHOW_HOTSPOT]: 'Show',
+      [InteractionType.HIDE_HOTSPOT]: 'Hide',
+      [InteractionType.PULSE_HOTSPOT]: 'Pulse',
+      [InteractionType.SHOW_MESSAGE]: 'Text',
+      [InteractionType.PAN_ZOOM_TO_HOTSPOT]: 'Zoom',
+      [InteractionType.HIGHLIGHT_HOTSPOT]: 'Spotlight'
     };
-    return icons[type] || '❓';
+    return icons[type] || 'Event';
   };
 
   const sortedEvents = relatedEvents.sort((a, b) => a.step - b.step);

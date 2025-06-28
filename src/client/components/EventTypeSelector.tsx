@@ -4,7 +4,6 @@ import { InteractionType } from '../../shared/types';
 interface EventTypeOption {
   value: InteractionType;
   label: string;
-  icon: string;
   description: string;
 }
 
@@ -18,61 +17,51 @@ const eventTypeOptions: EventTypeOption[] = [
   {
     value: InteractionType.SHOW_HOTSPOT,
     label: 'Show Hotspot',
-    icon: '👁️',
     description: 'Make the hotspot visible'
   },
   {
     value: InteractionType.HIDE_HOTSPOT,
     label: 'Hide Hotspot',
-    icon: '🫥',
     description: 'Hide the hotspot from view'
   },
   {
     value: InteractionType.PULSE_HOTSPOT,
     label: 'Pulse Hotspot',
-    icon: '💓',
     description: 'Make the hotspot pulse to attract attention'
   },
   {
     value: InteractionType.SHOW_MESSAGE,
     label: 'Show Message',
-    icon: '💬',
     description: 'Display a text message'
   },
   {
     value: InteractionType.PAN_ZOOM_TO_HOTSPOT,
     label: 'Pan & Zoom',
-    icon: '🔍',
     description: 'Pan and zoom the image to focus on the hotspot'
   },
   {
     value: InteractionType.HIGHLIGHT_HOTSPOT,
     label: 'Highlight',
-    icon: '🎯',
     description: 'Highlight the hotspot while dimming the rest'
   },
   {
     value: InteractionType.SHOW_VIDEO,
     label: 'Video',
-    icon: '🎥',
     description: 'Play a video file in a modal'
   },
   {
     value: InteractionType.SHOW_AUDIO_MODAL,
     label: 'Audio',
-    icon: '🎵',
     description: 'Play an audio file in a modal'
   },
   {
     value: InteractionType.SHOW_IMAGE_MODAL,
     label: 'Image',
-    icon: '🖼️',
     description: 'Show an image in a modal'
   },
   {
     value: InteractionType.SHOW_YOUTUBE,
     label: 'YouTube',
-    icon: '📺',
     description: 'Play a YouTube video in a modal'
   }
 ];
@@ -93,7 +82,7 @@ const EventTypeSelector: React.FC<EventTypeSelectorProps> = ({
       >
         {eventTypeOptions.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.icon} {option.label}
+            {option.label}
           </option>
         ))}
       </select>

@@ -38,13 +38,13 @@ const MOBILE_COLORS = [
 ];
 
 const INTERACTION_TYPES = [
-  { value: InteractionType.SHOW_HOTSPOT, label: 'Show Hotspot', icon: '👁️' },
-  { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot', icon: '💓' },
-  { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area', icon: '🔍' },
-  { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot', icon: '🔍' },
-  { value: InteractionType.SHOW_TEXT, label: 'Show Text', icon: '📝' },
-  { value: InteractionType.PLAY_VIDEO, label: 'Play Video', icon: '🎥' },
-  { value: InteractionType.PLAY_AUDIO, label: 'Play Audio', icon: '🔊' },
+  { value: InteractionType.SHOW_HOTSPOT, label: 'Show Hotspot' },
+  { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
+  { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' },
+  { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' },
+  { value: InteractionType.SHOW_TEXT, label: 'Show Text' },
+  { value: InteractionType.PLAY_VIDEO, label: 'Play Video' },
+  { value: InteractionType.PLAY_AUDIO, label: 'Play Audio' },
 ];
 
 const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
@@ -327,9 +327,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-2xl">
-                    {INTERACTION_TYPES.find(t => t.value === event.type)?.icon || '⚡'}
-                  </span>
                   <span className="text-white font-medium">
                     {INTERACTION_TYPES.find(t => t.value === event.type)?.label || 'Unknown'}
                   </span>
@@ -351,7 +348,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
 
           {hotspotEvents.length === 0 && (
             <div className="text-center py-8 text-gray-400">
-              <div className="text-4xl mb-2">📅</div>
               <p>No timeline events yet</p>
               <p className="text-sm">Add events to make this hotspot interactive</p>
             </div>
@@ -412,9 +408,9 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700">
             <div className="flex">
               {[
-                { id: 'basic', label: 'Basic', icon: '📝' },
-                { id: 'style', label: 'Style', icon: '🎨' },
-                { id: 'timeline', label: 'Timeline', icon: '📅' }
+                { id: 'basic', label: 'Basic' },
+                { id: 'style', label: 'Style' },
+                { id: 'timeline', label: 'Timeline' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -425,10 +421,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
                       : 'text-gray-400 hover:text-gray-200'
                   }`}
                 >
-                  <div className="flex flex-col items-center space-y-1">
-                    <span className="text-lg">{tab.icon}</span>
-                    <span className="text-sm font-medium">{tab.label}</span>
-                  </div>
+                  <span className="text-sm font-medium">{tab.label}</span>
                 </button>
               ))}
             </div>

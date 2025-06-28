@@ -175,9 +175,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         <div className="flex-shrink-0 bg-slate-900 border-t border-slate-700">
           <div className="flex">
             {[
-              { id: 'image', label: 'Image', icon: '🖼️' },
-              { id: 'properties', label: 'Properties', icon: '⚙️' },
-              { id: 'timeline', label: 'Timeline', icon: '📅' }
+              { id: 'image', label: 'Image' },
+              { id: 'properties', label: 'Properties' },
+              { id: 'timeline', label: 'Timeline' }
             ].map((panel) => (
               <button
                 key={panel.id}
@@ -188,10 +188,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-lg">{panel.icon}</span>
-                  <span>{panel.label}</span>
-                </div>
+                <span>{panel.label}</span>
               </button>
             ))}
           </div>
