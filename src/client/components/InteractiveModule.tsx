@@ -16,7 +16,6 @@ import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileEditorLayout from './MobileEditorLayout';
 import ImageEditCanvas from './ImageEditCanvas';
-// import PendingHotspotConfirmation from './PendingHotspotConfirmation'; // Removed as per plan
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import ReactDOM from 'react-dom';
@@ -108,13 +107,6 @@ interface ImageTransformState {
   targetHotspotId?: string; 
 }
 
-interface PendingHotspotInfo {
-  viewXPercent: number; 
-  viewYPercent: number; 
-  imageXPercent: number; 
-  imageYPercent: number; 
-}
-
 
 const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEditing, onSave, onClose, projectName, projectId }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
@@ -144,7 +136,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const isMobile = useIsMobile();
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
-  // const [showPlacementHint, setShowPlacementHint] = useState<boolean>(false); // Removed, was tied to pendingHotspot
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
@@ -152,6 +143,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
+  
+  // Track when any hotspot is being dragged
+  const [isHotspotDragging, setIsHotspotDragging] = useState<boolean>(false);
   
   // Removed old InfoPanel state - using modal now
   
@@ -172,7 +166,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     data: null
   });
 
-  // const [pendingHotspot, setPendingHotspot] = useState<PendingHotspotInfo | null>(null); // Removed as per plan
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
   const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
@@ -215,6 +208,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       minScale: 0.5,
       maxScale: 5.0,
       doubleTapZoomFactor: 2.0,
+      isDragging: isHotspotDragging,
+      isEditing: isEditing,
     }
   );
 
@@ -247,16 +242,34 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Helper to get the actual div dimensions (viewer mode only)
   const getScaledImageDivDimensions = useCallback(() => {
-    const divWidth = 80 * window.innerWidth / 100; // 80vw
-    const divHeight = 80 * window.innerHeight / 100; // 80vh
-    const maxWidth = 1200;
-    const maxHeight = 800;
-    
-    return {
-      width: Math.min(divWidth, maxWidth),
-      height: Math.min(divHeight, maxHeight)
-    };
-  }, []);
+    if (isMobile) {
+      // Mobile: Use actual container dimensions since it's 100% width/height
+      const container = viewerImageContainerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        return {
+          width: rect.width,
+          height: rect.height
+        };
+      }
+      // Fallback to viewport dimensions for mobile
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+    } else {
+      // Desktop: Use configured 80vw/80vh with max constraints
+      const divWidth = 80 * window.innerWidth / 100; // 80vw
+      const divHeight = 80 * window.innerHeight / 100; // 80vh
+      const maxWidth = 1200;
+      const maxHeight = 800;
+      
+      return {
+        width: Math.min(divWidth, maxWidth),
+        height: Math.min(divHeight, maxHeight)
+      };
+    }
+  }, [isMobile]);
 
   const throttledRecalculatePositions = useMemo(
     () => throttle(() => {
@@ -804,6 +817,32 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, [handleWheelZoom, isEditing]);
 
 
+  // Effect to handle viewer mode initialization and ensure proper image display
+  useEffect(() => {
+    if (!isEditing && backgroundImage && moduleState !== 'idle') {
+      // When transitioning to viewer mode, ensure proper container setup
+      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
+      if (container) {
+        // Force a reflow to ensure container has proper dimensions
+        container.offsetHeight;
+        // Recalculate positions after container is ready
+        setTimeout(() => {
+          throttledRecalculatePositions();
+        }, 50);
+      }
+    }
+  }, [isEditing, backgroundImage, moduleState, isMobile, throttledRecalculatePositions]);
+
+  // Effect to recalculate positions when image natural dimensions are loaded
+  useEffect(() => {
+    if (!isEditing && imageNaturalDimensions && backgroundImage) {
+      // Image has loaded and we have dimensions, recalculate positions
+      setTimeout(() => {
+        throttledRecalculatePositions();
+      }, 100);
+    }
+  }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions]);
+
   useEffect(() => {
     setBackgroundImage(initialData.backgroundImage);
     setHotspots(initialData.hotspots);
@@ -832,6 +871,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
     // Clear cached bounds when data changes
     clearImageBoundsCache();
+    originalImageBoundsRef.current = null;
     lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
 
     if (pulseTimeoutRef.current) {
@@ -887,9 +927,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       // If editingHotspot directly controls this modal's visibility/content, uncommenting the line below would be safer.
       // setEditingHotspot(null);
       return true;
-    // } else if (pendingHotspot) { // Removed pendingHotspot logic
-    //   setPendingHotspot(null);
-    //   return true;
     }
     return false;
   }, [imageTransform, isHotspotModalOpen]);
@@ -1423,14 +1460,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setModuleState('learning');
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false); 
-    setCurrentStep(uniqueSortedSteps[0] || 1); 
+    setCurrentStep(uniqueSortedSteps[0] || 1);
+    // Clear bounds cache for fresh calculation in new mode
+    originalImageBoundsRef.current = null;
+    // Force image bounds recalculation after state change
+    setTimeout(() => {
+      throttledRecalculatePositions();
+    }, 100);
   };
 
   const handleStartExploring = useCallback(() => {
     setModuleState('idle');
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
-  }, []);
+    // Clear bounds cache for fresh calculation in new mode
+    originalImageBoundsRef.current = null;
+    // Force image bounds recalculation after state change
+    setTimeout(() => {
+      throttledRecalculatePositions();
+    }, 100);
+  }, [throttledRecalculatePositions]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
     if (moduleState === 'idle' && !isEditing) {
@@ -1889,6 +1938,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 onFocusHotspot={handleFocusHotspot}
                 onEditHotspotRequest={handleOpenHotspotEditor}
                 onHotspotPositionChange={handleHotspotPositionChange}
+                onDragStateChange={setIsHotspotDragging}
                 isEditing={isEditing}
                 isMobile={true}
                 currentStep={currentStep}
@@ -1993,7 +2043,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     activeHotspotDisplayIds={activeHotspotDisplayIds}
                     highlightedHotspotId={highlightedHotspotId}
                     getHighlightGradientStyle={getHighlightGradientStyle}
-                  // pendingHotspot={pendingHotspot} // Removed pendingHotspot
                     onImageLoad={handleImageLoad}
                   // Pass the unified click handler to ImageEditCanvas.
                   // This allows ImageEditCanvas to report clicks, which InteractiveModule then uses
@@ -2009,6 +2058,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
                     onEditHotspotRequest={handleOpenHotspotEditor} // Renamed from handleHotspotEditRequest
                     onHotspotPositionChange={handleHotspotPositionChange}
+                    onDragStateChange={setIsHotspotDragging}
                     isEditing={isEditing}
                     isMobile={false} // Explicitly false
                     currentStep={currentStep}
@@ -2017,17 +2067,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                   />
                 </div>
 
-                {/* Pending Hotspot Confirmation Overlay for Desktop - REMOVED */}
-                {/* {pendingHotspot && (
-                  <PendingHotspotConfirmation
-                    pendingHotspot={pendingHotspot}
-                    onConfirm={handleAddHotspot}
-                    onCancel={() => {
-                      // setPendingHotspot(null); // Removed
-                      setShowPlacementHint(false);
-                    }}
-                  />
-                )} */}
               </div>
             </div>
           </div>
@@ -2074,12 +2113,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
               className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
-              onClick={!isMobile ? (e) => handleImageOrHotspotClick(e) : undefined} // Desktop handles general image click for reset
+              onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
               {...(isMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
             >
               <div
                 className="w-full h-full flex items-center justify-center"
-                onClick={isMobile ? (e) => handleImageOrHotspotClick(e) : undefined} // Mobile handles its own click for reset here
                 role={backgroundImage ? "button" : undefined}
                 aria-label={backgroundImage ? (isMobile ? "Interactive image area" : "Interactive image") : undefined}
               >
@@ -2102,11 +2140,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     {/* Hidden image for natural dimensions, used by both desktop and mobile */}
                     {!isEditing && (
                       <img
+                        key={backgroundImage}
                         src={backgroundImage}
                         onLoad={(e) => setImageNaturalDimensions({
                           width: e.currentTarget.naturalWidth,
                           height: e.currentTarget.naturalHeight
                         })}
+                        onError={() => {
+                          console.error('Failed to load background image:', backgroundImage);
+                          setImageNaturalDimensions(null);
+                        }}
                         style={{ display: 'none' }}
                         alt=""
                         aria-hidden="true"
@@ -2155,6 +2198,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                               onEditRequest={handleOpenHotspotEditor} // Should not be called in viewer
                               isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
                               isMobile={isMobile}
+                              onDragStateChange={() => {}} // No-op since this is viewing mode
                             />
                           );
                         })}
@@ -2305,7 +2349,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           )}
           
           {mediaModal.type === 'audio' && mediaModal.data && (
-            <div className="p-4 flex items-center justify-center min-h-[400px]">
+            <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
+              minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
+            }}>
               <AudioPlayer
                 src={mediaModal.data.src}
                 title={mediaModal.data.title}

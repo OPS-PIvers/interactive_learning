@@ -40,6 +40,7 @@ interface EnhancedModalEditorToolbarProps {
   onSave: () => void;
   isSaving: boolean;
   showSuccessMessage: boolean;
+  isMobile?: boolean;
 }
 
 const COLOR_SCHEMES: ColorScheme[] = [
@@ -99,7 +100,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
   onColorSchemeChange,
   onSave,
   isSaving,
-  showSuccessMessage
+  showSuccessMessage,
+  isMobile = false
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [selectedColorPreset, setSelectedColorPreset] = useState('#ef4444');
@@ -121,7 +123,14 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
       >
         {/* Modal Content */}
         <div 
-          className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+          className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden ${
+            isMobile 
+              ? 'h-full max-h-none flex flex-col' 
+              : 'max-h-[90vh]'
+          }`}
+          style={isMobile ? {
+            maxHeight: 'calc(100vh - env(keyboard-inset-height, 0px) - 2rem)'
+          } : {}}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
@@ -162,7 +171,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
               {[
                 { id: 'general', name: 'General' },
                 { id: 'appearance', name: 'Appearance' },
-                { id: 'controls', name: 'Controls', icon: '🎮' },
+                { id: 'controls', name: 'Controls' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -173,15 +182,53 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                   }`}
                 >
-                  <span>{tab.icon}</span>
+                  {tab.icon && <span>{tab.icon}</span>}
                   <span>{tab.name}</span>
                 </button>
               ))}
             </nav>
           </div>
 
+          {/* Mobile Zoom Controls Bar */}
+          {isMobile && (
+            <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Zoom: {Math.round(currentZoom * 100)}%
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={onZoomOut}
+                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+                  >
+                    −
+                  </button>
+                  <button
+                    onClick={onZoomReset}
+                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={onZoomIn}
+                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tab Content */}
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className={`p-6 overflow-y-auto ${
+            isMobile 
+              ? 'flex-1 min-h-0' 
+              : 'max-h-[60vh]'
+          }`}
+          style={isMobile ? {
+            maxHeight: 'calc(100vh - env(keyboard-inset-height, 0px) - 20rem)'
+          } : {}}>
             {/* General Tab */}
             {activeTab === 'general' && (
               <div className="space-y-6">

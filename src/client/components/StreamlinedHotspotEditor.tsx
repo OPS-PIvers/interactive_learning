@@ -516,12 +516,12 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
             onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as InteractionType }))}
             className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value={InteractionType.SHOW_HOTSPOT}>👁️ Show Hotspot</option>
-            <option value={InteractionType.HIDE_HOTSPOT}>🫥 Hide Hotspot</option>
-            <option value={InteractionType.PULSE_HOTSPOT}>💓 Pulse Hotspot</option>
-            <option value={InteractionType.SHOW_MESSAGE}>💬 Show Message</option>
-            <option value={InteractionType.PAN_ZOOM_TO_HOTSPOT}>🔍 Pan & Zoom</option>
-            <option value={InteractionType.HIGHLIGHT_HOTSPOT}>🎯 Highlight</option>
+            <option value={InteractionType.SHOW_HOTSPOT}>Show Hotspot</option>
+            <option value={InteractionType.HIDE_HOTSPOT}>Hide Hotspot</option>
+            <option value={InteractionType.PULSE_HOTSPOT}>Pulse Hotspot</option>
+            <option value={InteractionType.SHOW_MESSAGE}>Show Message</option>
+            <option value={InteractionType.PAN_ZOOM_TO_HOTSPOT}>Pan & Zoom</option>
+            <option value={InteractionType.HIGHLIGHT_HOTSPOT}>Highlight</option>
           </select>
         </div>
 

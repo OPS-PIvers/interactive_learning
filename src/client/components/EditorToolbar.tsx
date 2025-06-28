@@ -68,20 +68,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             </h1>
           </div>
 
-          {/* Center: Essential Zoom Controls */}
+          {/* Center: Add Hotspot Button */}
           <div className="flex items-center gap-1">
             <button
-              onClick={props.onZoomOut}
-              className="p-2 text-slate-300 hover:text-white transition-colors"
+              onClick={props.onAddHotspot}
+              className="flex items-center gap-1 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded transition-colors"
+              title="Add Hotspot"
             >
-              <ZoomOutIcon className="w-6 h-6" />
-            </button>
-            <span className="text-sm text-slate-400 w-10 text-center">{Math.round(props.currentZoom * 100)}%</span>
-            <button
-              onClick={props.onZoomIn}
-              className="p-2 text-slate-300 hover:text-white transition-colors"
-            >
-              <ZoomInIcon className="w-6 h-6" />
+              <PlusCircleIcon className="w-5 h-5" />
+              <span className="text-sm">Add</span>
             </button>
           </div>
 

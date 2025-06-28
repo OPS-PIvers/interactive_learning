@@ -30,12 +30,16 @@ export const useTouchGestures = (
     minScale?: number;
     maxScale?: number;
     doubleTapZoomFactor?: number;
+    isDragging?: boolean; // Add isDragging awareness
+    isEditing?: boolean; // Add editing mode awareness
   }
 ) => {
   const {
     minScale = 0.5,
     maxScale = 5,
     doubleTapZoomFactor = 2,
+    isDragging = false,
+    isEditing = false,
   } = options || {};
 
   const gestureStateRef = useRef<TouchGestureState>({
@@ -48,6 +52,11 @@ export const useTouchGestures = (
   });
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Disable container gestures when hotspot is being dragged or in modal editing
+    if (isDragging || isEditing) {
+      return;
+    }
+    
     const touches = e.touches;
     const now = Date.now();
     const gestureState = gestureStateRef.current;
@@ -111,9 +120,14 @@ export const useTouchGestures = (
       gestureState.startTransform = { ...imageTransform };
       gestureState.isPanning = false; // Stop panning if it was active
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef]);
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Disable container gestures when hotspot is being dragged or in modal editing
+    if (isDragging || isEditing) {
+      return;
+    }
+    
     const touches = e.touches;
     const gestureState = gestureStateRef.current;
 
@@ -175,9 +189,14 @@ export const useTouchGestures = (
         }, { minScale, maxScale })
       );
     }
-  }, [setImageTransform, setIsTransforming, minScale, maxScale, imageContainerRef]);
+  }, [setImageTransform, setIsTransforming, minScale, maxScale, imageContainerRef, isDragging, isEditing]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Disable container gestures when hotspot is being dragged or in modal editing
+    if (isDragging || isEditing) {
+      return;
+    }
+    
     const gestureState = gestureStateRef.current;
     // Prevent click if it was a pan
     if (gestureState.isPanning && shouldPreventDefault(e.nativeEvent, 'pan')) {
@@ -201,7 +220,7 @@ export const useTouchGestures = (
     }
     // Double tap transforming is handled in touchStart
 
-  }, [setIsTransforming]);
+  }, [setIsTransforming, isDragging, isEditing]);
 
   return {
     handleTouchStart,

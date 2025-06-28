@@ -16,10 +16,11 @@ interface HotspotViewerProps {
   usePixelPositioning?: boolean;
   onEditRequest?: (id: string) => void; // Add edit callback
   isMobile?: boolean;
+  onDragStateChange?: (isDragging: boolean) => void; // Callback for drag state changes
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest, isMobile
+  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest, isMobile, onDragStateChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
@@ -98,6 +99,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         
         if (!isDragging && onPositionChange) {
           setIsDragging(true);
+          onDragStateChange?.(true);
           setIsHolding(false);
           
           // Start drag logic
@@ -124,6 +126,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
           document.addEventListener('pointermove', continueDrag);
           document.addEventListener('pointerup', () => {
             setIsDragging(false);
+            onDragStateChange?.(false);
             document.removeEventListener('pointermove', continueDrag);
           }, { once: true });
         }
@@ -147,7 +150,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
     document.addEventListener('pointermove', handlePointerMove);
     document.addEventListener('pointerup', handlePointerUp);
-  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement]);
+  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange]);
   
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
@@ -190,6 +193,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       <div
         className={centeringWrapperClasses}
         onPointerDown={handlePointerDown}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
         role="button"
         aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}

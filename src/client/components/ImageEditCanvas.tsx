@@ -15,7 +15,7 @@ interface ImageEditCanvasProps {
   actualImageRef: React.RefObject<HTMLImageElement>;
   zoomedImageContainerRef: React.RefObject<HTMLDivElement>;
   scrollableContainerRef: React.RefObject<HTMLDivElement>; // For scrollable area around zoomed image
-  imageContainerRef: React.RefObject<HTMLDivElement>; // For overall image editing area, used for pending hotspot coords
+  imageContainerRef: React.RefObject<HTMLDivElement>; // For overall image editing area
 
   hotspotsWithPositions: Array<HotspotData & { pixelPosition: { x: number; y: number; baseX?: number; baseY?: number } | null }>;
   pulsingHotspotId: string | null;
@@ -23,7 +23,6 @@ interface ImageEditCanvasProps {
   highlightedHotspotId: string | null;
   getHighlightGradientStyle: () => React.CSSProperties;
 
-  // pendingHotspot: { viewXPercent: number; viewYPercent: number; imageXPercent: number; imageYPercent: number } | null; // Removed
 
   // Event Handlers
   onImageLoad: (event: React.SyntheticEvent<HTMLImageElement>) => void;
@@ -36,6 +35,7 @@ interface ImageEditCanvasProps {
   onFocusHotspot: (hotspotId: string) => void;
   onEditHotspotRequest: (hotspotId: string) => void;
   onHotspotPositionChange: (hotspotId: string, x: number, y: number) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
 
   // Props for MemoizedHotspotViewer that were sourced from InteractiveModule's state/props
   isEditing: boolean;
@@ -53,13 +53,12 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   actualImageRef,
   zoomedImageContainerRef,
   scrollableContainerRef,
-  imageContainerRef, // Used for pending hotspot in mobile view
+  imageContainerRef,
   hotspotsWithPositions,
   pulsingHotspotId,
   activeHotspotDisplayIds,
   highlightedHotspotId,
   getHighlightGradientStyle,
-  // pendingHotspot, // Removed
   onImageLoad,
   onImageOrHotspotClick,
   onTouchStart,
@@ -68,6 +67,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   onFocusHotspot,
   onEditHotspotRequest,
   onHotspotPositionChange,
+  onDragStateChange,
   isEditing,
   isMobile,
   currentStep,
@@ -104,7 +104,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b',
       }}
-        onClick={isMobile ? undefined : (e) => onImageOrHotspotClick && onImageOrHotspotClick(e)} // Pass event for desktop
+        onClick={(e) => onImageOrHotspotClick && onImageOrHotspotClick(e)} // Unified click handling for all devices
         // onTouchStart, onTouchMove, onTouchEnd are primarily for mobile, handled by InteractiveModule's touchGestureHandlers
         // If specific touch interactions are needed directly on ImageEditCanvas elements, they can be added.
     >
@@ -168,6 +168,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 onFocusRequest={onFocusHotspot}
                 onEditRequest={onEditHotspotRequest}
                 onPositionChange={onHotspotPositionChange}
+                onDragStateChange={onDragStateChange}
                 isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
                 isMobile={isMobile}
               />
@@ -184,17 +185,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           )
         )}
 
-        {/* Visual marker for pending hotspot - REMOVED */}
-        {/* {pendingHotspot && imageContainerRef.current && (
-           <div
-            className="absolute w-8 h-8 bg-green-500 opacity-70 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-pulse flex items-center justify-center"
-            style={{
-              left: `${pendingHotspot.viewXPercent}%`,
-              top: `${pendingHotspot.viewYPercent}%`
-            }}
-            aria-hidden="true"
-          ><PlusIcon className="w-5 h-5 text-white"/></div>
-        )} */}
       </div>
     </div>
   );
