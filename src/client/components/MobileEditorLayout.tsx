@@ -230,18 +230,72 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         ) : (
           /* Timeline Panel */
           <div className="flex-1 bg-slate-800 overflow-y-auto">
-            <div className="p-6 text-center text-slate-400">
+            <div className="p-4">
               <div className="mb-4">
-                <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <h3 className="text-lg font-semibold text-white mb-2">Timeline Events</h3>
+                <p className="text-sm text-slate-400">Current Step: {currentStep}</p>
               </div>
-              <p className="text-lg font-medium mb-2">Timeline Controls</p>
-              <p className="text-sm">Timeline editing is handled by the main timeline component</p>
-              <div className="mt-4 text-left bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-medium mb-2">Current Timeline:</p>
-                <p className="text-xs text-slate-300">Step: {currentStep}</p>
-                <p className="text-xs text-slate-300">Events: {timelineEvents.length}</p>
+
+              {/* Timeline Events List */}
+              <div className="space-y-3 mb-6">
+                {timelineEvents.length > 0 ? (
+                  timelineEvents
+                    .sort((a, b) => a.step - b.step)
+                    .map((event) => (
+                      <div 
+                        key={event.id}
+                        className="bg-slate-700 rounded-lg p-3 border border-slate-600"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-purple-400">
+                            Step {event.step}
+                          </span>
+                          <span className="text-xs text-slate-400 bg-slate-600 px-2 py-1 rounded">
+                            {event.type.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-white font-medium">{event.name}</p>
+                        {event.message && (
+                          <p className="text-xs text-slate-300 mt-1">{event.message}</p>
+                        )}
+                        {event.targetId && hotspots.find(h => h.id === event.targetId) && (
+                          <p className="text-xs text-blue-400 mt-1">
+                            Target: {hotspots.find(h => h.id === event.targetId)?.title}
+                          </p>
+                        )}
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-8 text-slate-400">
+                    <svg className="w-10 h-10 mx-auto mb-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm">No timeline events yet</p>
+                    <p className="text-xs mt-1">Timeline events are automatically created when you add hotspots</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="border-t border-slate-700 pt-4">
+                <h4 className="text-sm font-medium text-slate-300 mb-3">Quick Actions</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    className="text-xs text-center py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
+                    disabled
+                  >
+                    Add Event
+                  </button>
+                  <button 
+                    className="text-xs text-center py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
+                    disabled
+                  >
+                    Edit Events
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  Full timeline editing available on desktop
+                </p>
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import InteractiveModule from './InteractiveModule';
 import AdminToggle from './AdminToggle';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -16,6 +17,7 @@ const App: React.FC = () => {
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -210,19 +212,35 @@ const App: React.FC = () => {
       {selectedProject && (
         <>
           {isEditingMode ? (
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
-              <InteractiveModule
-                key={`${selectedProject.id}-${isEditingMode}`} 
-                initialData={selectedProject.interactiveData}
-                isEditing={isEditingMode}
-                onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                onClose={handleCloseModal}
-                projectName={selectedProject.title}
-                projectId={selectedProject.id}
-              />
-            </Modal>
+            isMobile ? (
+              // Mobile editing mode - full screen without modal wrapper
+              <div className="fixed inset-0 z-50 bg-slate-900">
+                <InteractiveModule
+                  key={`${selectedProject.id}-${isEditingMode}`} 
+                  initialData={selectedProject.interactiveData}
+                  isEditing={isEditingMode}
+                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                  onClose={handleCloseModal}
+                  projectName={selectedProject.title}
+                  projectId={selectedProject.id}
+                />
+              </div>
+            ) : (
+              // Desktop editing mode - wrapped in modal
+              <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
+                <InteractiveModule
+                  key={`${selectedProject.id}-${isEditingMode}`} 
+                  initialData={selectedProject.interactiveData}
+                  isEditing={isEditingMode}
+                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                  onClose={handleCloseModal}
+                  projectName={selectedProject.title}
+                  projectId={selectedProject.id}
+                />
+              </Modal>
+            )
           ) : (
-            // Full-screen viewer mode
+            // Full-screen viewer mode (both mobile and desktop)
             <div className="fixed inset-0 z-50 bg-slate-900">
               <InteractiveModule
                 key={`${selectedProject.id}-${isEditingMode}`} 

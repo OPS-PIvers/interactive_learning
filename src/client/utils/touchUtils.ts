@@ -30,19 +30,27 @@ export const shouldPreventDefault = (
   e: TouchEvent,
   gestureType: 'pan' | 'zoom' | 'tap'
 ): boolean => {
-  // Example logic:
-  // Prevent default for zoom and pan to avoid page scroll/zoom.
-  // Allow default for tap if it's not a double tap, to let normal click events proceed.
+  // Check if the touch target is a hotspot or hotspot-related element
+  const target = e.target as HTMLElement;
+  const isHotspotElement = target?.closest('[data-hotspot-id]') || 
+                          target?.hasAttribute('data-hotspot-id') ||
+                          target?.closest('.hotspot-element') ||
+                          target?.classList.contains('hotspot-element');
+
+  // If touching a hotspot, don't prevent default to allow pointer events for dragging
+  if (isHotspotElement) {
+    return false;
+  }
+
+  // Prevent default for zoom and pan on non-hotspot areas to avoid page scroll/zoom
   if (gestureType === 'zoom' || gestureType === 'pan') {
     return true;
   }
-  // For tap, you might have more complex logic, e.g., if it's part of a double tap sequence.
-  // If it's a single tap that should behave like a click, you might not want to preventDefault.
-  // This is a placeholder; specific logic will depend on how taps are handled.
+
+  // For tap gestures, allow default for single taps on non-hotspot areas
   if (gestureType === 'tap' && e.touches.length === 1) {
-    // Potentially allow default for single taps if they are not part of a specific gesture
-    // being handled (like double-tap to zoom).
-    return false; // Example: allow default for simple taps
+    return false; // Allow default for simple taps
   }
+  
   return false;
 };
