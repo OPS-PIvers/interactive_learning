@@ -1,6 +1,7 @@
 // src/client/components/MobileEditorLayout.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HotspotData, TimelineEventData } from '../../shared/types';
+import MobileHotspotEditor from './MobileHotspotEditor';
 
 interface MobileEditorLayoutProps {
   projectName: string;
@@ -14,6 +15,12 @@ interface MobileEditorLayoutProps {
   onSave: () => void;
   isSaving: boolean;
   showSuccessMessage: boolean;
+  onAddHotspot?: () => void;
+  selectedHotspot?: HotspotData | null;
+  onUpdateHotspot?: (updates: Partial<HotspotData>) => void;
+  onDeleteHotspot?: () => void;
+  activePanelOverride?: 'image' | 'properties' | 'timeline';
+  onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline') => void;
 }
 
 interface ViewportState {
@@ -38,7 +45,13 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   onBack,
   onSave,
   isSaving,
-  showSuccessMessage
+  showSuccessMessage,
+  onAddHotspot,
+  selectedHotspot,
+  onUpdateHotspot,
+  onDeleteHotspot,
+  activePanelOverride,
+  onActivePanelChange
 }) => {
   const [viewport, setViewport] = useState<ViewportState>({
     height: window.innerHeight,
@@ -52,7 +65,14 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   });
 
   const [editorMode, setEditorMode] = useState<'compact' | 'fullscreen' | 'modal'>('compact');
-  const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline'>('image');
+  const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline'>(activePanelOverride || 'image');
+
+  // Sync with override prop
+  useEffect(() => {
+    if (activePanelOverride) {
+      setActivePanel(activePanelOverride);
+    }
+  }, [activePanelOverride]);
   
   const layoutRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -143,33 +163,89 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-white truncate max-w-48">
+            <h1 className="text-lg font-semibold text-white truncate max-w-32">
               {projectName}
             </h1>
           </div>
-          
-          <button
-            onClick={onSave}
-            disabled={isSaving}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              isSaving
-                ? 'text-slate-400 cursor-not-allowed'
-                : showSuccessMessage
-                ? 'text-green-400'
-                : 'text-purple-400 hover:text-purple-300'
-            }`}
-          >
-            {isSaving ? 'Saving...' : showSuccessMessage ? 'Saved!' : 'Save'}
-          </button>
+
+          <div className="flex items-center gap-2">
+            {onAddHotspot && (
+              <button
+                onClick={onAddHotspot}
+                className="p-2 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-md transition-colors"
+                aria-label="Add Hotspot"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            )}
+            
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isSaving
+                  ? 'text-slate-400 cursor-not-allowed'
+                  : showSuccessMessage
+                  ? 'text-green-400'
+                  : 'text-purple-400 hover:text-purple-300'
+              }`}
+            >
+              {isSaving ? 'Saving...' : showSuccessMessage ? 'Saved!' : 'Save'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Image Editing Area */}
-        <div className="flex-1 relative bg-slate-800 min-h-0">
-          {children}
-        </div>
+        {/* Conditional Content Based on Active Panel */}
+        {activePanel === 'image' ? (
+          /* Image Editing Area */
+          <div className="flex-1 relative bg-slate-800 min-h-0">
+            {children}
+          </div>
+        ) : activePanel === 'properties' ? (
+          /* Properties Panel */
+          <div className="flex-1 bg-slate-800 overflow-y-auto">
+            {selectedHotspot && onUpdateHotspot && onDeleteHotspot ? (
+              <MobileHotspotEditor
+                hotspot={selectedHotspot}
+                onUpdate={onUpdateHotspot}
+                onDelete={onDeleteHotspot}
+              />
+            ) : (
+              <div className="p-6 text-center text-slate-400">
+                <div className="mb-4">
+                  <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-lg font-medium mb-2">No Hotspot Selected</p>
+                <p className="text-sm">Tap on a hotspot in the image to edit its properties</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Timeline Panel */
+          <div className="flex-1 bg-slate-800 overflow-y-auto">
+            <div className="p-6 text-center text-slate-400">
+              <div className="mb-4">
+                <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium mb-2">Timeline Controls</p>
+              <p className="text-sm">Timeline editing is handled by the main timeline component</p>
+              <div className="mt-4 text-left bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-medium mb-2">Current Timeline:</p>
+                <p className="text-xs text-slate-300">Step: {currentStep}</p>
+                <p className="text-xs text-slate-300">Events: {timelineEvents.length}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Bottom Panel Navigation */}
         <div className="flex-shrink-0 bg-slate-900 border-t border-slate-700">
@@ -181,7 +257,11 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
             ].map((panel) => (
               <button
                 key={panel.id}
-                onClick={() => setActivePanel(panel.id as any)}
+                onClick={() => {
+                  const newPanel = panel.id as 'image' | 'properties' | 'timeline';
+                  setActivePanel(newPanel);
+                  onActivePanelChange?.(newPanel);
+                }}
                 className={`flex-1 py-3 px-2 text-center text-sm font-medium transition-colors ${
                   activePanel === panel.id
                     ? 'text-purple-400 bg-slate-800'

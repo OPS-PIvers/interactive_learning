@@ -1336,8 +1336,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     if (isEditing) {
       setSelectedHotspotForModal(hotspotId);
       if (isMobile) {
-        // On mobile, focusing a hotspot should also switch to the properties tab
+        // On mobile, focusing a hotspot should also switch to the properties tab and set editingHotspot
         setActiveMobileEditorTab('properties');
+        const hotspot = hotspots.find(h => h.id === hotspotId);
+        if (hotspot) {
+          setEditingHotspot(hotspot);
+        }
       } else {
         // On desktop, open the modal for editing
         setIsHotspotModalOpen(true);
@@ -1350,7 +1354,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM_TO_HOTSPOT));
     }
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-  }, [isEditing, moduleState, timelineEvents, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
+  }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // Move handleSave before useAutoSave to fix temporal dead zone
   const handleSave = useCallback(async () => {
@@ -1838,6 +1842,29 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             onSave={handleSave}
             isSaving={isSaving}
             showSuccessMessage={showSuccessMessage}
+            onAddHotspot={handleAddHotspot}
+            selectedHotspot={editingHotspot}
+            onUpdateHotspot={(updates) => {
+              if (editingHotspot) {
+                const updatedHotspot = { ...editingHotspot, ...updates };
+                setHotspots(prev => prev.map(h => h.id === editingHotspot.id ? updatedHotspot : h));
+                setEditingHotspot(updatedHotspot);
+              }
+            }}
+            onDeleteHotspot={() => {
+              if (editingHotspot) {
+                handleRemoveHotspot(editingHotspot.id);
+                setEditingHotspot(null);
+              }
+            }}
+            activePanelOverride={activeMobileEditorTab === 'properties' ? 'properties' : activeMobileEditorTab === 'timeline' ? 'timeline' : 'image'}
+            onActivePanelChange={(panel) => {
+              if (panel === 'properties') {
+                setActiveMobileEditorTab('properties');
+              } else if (panel === 'timeline') {
+                setActiveMobileEditorTab('timeline');
+              }
+            }}
           >
             {/* Pass the existing ImageEditCanvas as children */}
             <div
