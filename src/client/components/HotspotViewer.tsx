@@ -317,7 +317,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
-  }, [isEditing, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers, gestureCoordination, announceDragState, announceDragPosition, announceFocus]);
+  }, [isEditing, onPositionChange, hotspot.id, imageElement, onDragStateChange, isMobile]);
   
 
   useEffect(() => {
@@ -410,7 +410,37 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   );
 };
 
-export default HotspotViewer;
+// Memoized version for performance optimization with custom comparison
+const MemoizedHotspotViewer = React.memo(HotspotViewer, (prevProps, nextProps) => {
+  // During drag operations, only re-render if the specific hotspot being dragged has changed position
+  // or if critical props like isEditing have changed
+  
+  // Always re-render if these critical props change
+  if (
+    prevProps.isEditing !== nextProps.isEditing ||
+    prevProps.isPulsing !== nextProps.isPulsing ||
+    prevProps.isContinuouslyPulsing !== nextProps.isContinuouslyPulsing ||
+    prevProps.isDimmedInEditMode !== nextProps.isDimmedInEditMode ||
+    prevProps.hotspot.id !== nextProps.hotspot.id ||
+    prevProps.hotspot.title !== nextProps.hotspot.title ||
+    prevProps.hotspot.color !== nextProps.hotspot.color ||
+    prevProps.hotspot.size !== nextProps.hotspot.size
+  ) {
+    return false; // Re-render
+  }
+  
+  // For position changes, only re-render if position actually changed significantly
+  const positionThreshold = 0.1; // 0.1%
+  const xChanged = Math.abs(prevProps.hotspot.x - nextProps.hotspot.x) > positionThreshold;
+  const yChanged = Math.abs(prevProps.hotspot.y - nextProps.hotspot.y) > positionThreshold;
+  
+  if (xChanged || yChanged) {
+    return false; // Re-render
+  }
+  
+  // Props are effectively the same, skip re-render
+  return true;
+});
 
-// Memoized version for performance optimization
-export const MemoizedHotspotViewer = React.memo(HotspotViewer);
+export default MemoizedHotspotViewer;
+export { MemoizedHotspotViewer };
