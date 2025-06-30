@@ -108,6 +108,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onClick={() => document.getElementById('file-upload-input')?.click()}
+      aria-label={label || `File upload for ${getTypeLabel()}`}
     >
       <input
         id="file-upload-input"
@@ -115,8 +116,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
         accept={getAcceptString()}
         onChange={handleFileChange}
         className="hidden"
+        aria-label={label || `File upload for ${getTypeLabel()}`}
+        aria-describedby="file-upload-instructions"
       />
-      <p className="text-slate-400">
+      <p id="file-upload-instructions" className="text-slate-400">
         {dragOver 
           ? `Drop ${getTypeLabel()} here!` 
           : `Drag & drop ${getTypeLabel()} here, or click to select.`

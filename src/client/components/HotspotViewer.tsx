@@ -189,6 +189,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
           ? `${pixelPosition.y}px`
           : `${hotspot.y}%`,
       }}
+      aria-live="polite" // Announce changes when hotspot is focused or interacted with
     >
       <div
         className={centeringWrapperClasses}
@@ -199,6 +200,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         onKeyPress={handleKeyPress}
         role="button"
         aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}
+        aria-pressed={isHolding} // Indicate if the hotspot is currently pressed
         tabIndex={0} // Make it focusable
         data-hotspot-id={hotspot.id} // Add data-hotspot-id attribute
       >
