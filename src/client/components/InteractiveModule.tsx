@@ -825,10 +825,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       if (container) {
         // Force a reflow to ensure container has proper dimensions
         container.offsetHeight;
-        // Recalculate positions after container is ready
+        
+        // Clear any cached bounds to force fresh calculation
+        originalImageBoundsRef.current = null;
+        
+        // Recalculate positions after container is ready - staggered for reliability
         setTimeout(() => {
           throttledRecalculatePositions();
         }, 50);
+        
+        // Additional recalculation for mobile devices with dynamic viewports
+        if (isMobile) {
+          setTimeout(() => {
+            throttledRecalculatePositions();
+          }, 150);
+        }
       }
     }
   }, [isEditing, backgroundImage, moduleState, isMobile, throttledRecalculatePositions]);
@@ -837,11 +848,25 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   useEffect(() => {
     if (!isEditing && imageNaturalDimensions && backgroundImage) {
       // Image has loaded and we have dimensions, recalculate positions
+      // Clear bounds cache to ensure fresh calculation with new dimensions
+      originalImageBoundsRef.current = null;
+      
       setTimeout(() => {
         throttledRecalculatePositions();
       }, 100);
+      
+      // Additional check for mobile viewport stability
+      if (isMobile) {
+        setTimeout(() => {
+          // Verify container dimensions are stable before final recalculation
+          const container = viewerImageContainerRef.current;
+          if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+            throttledRecalculatePositions();
+          }
+        }, 250);
+      }
     }
-  }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions]);
+  }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions, isMobile]);
 
   useEffect(() => {
     setBackgroundImage(initialData.backgroundImage);
