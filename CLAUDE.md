@@ -95,9 +95,15 @@ After thorough analysis of the codebase, **67 specific bugs** have been identifi
 - Type mismatches in ImageTransformState with undefined handling
 
 **Implementation**:
-1. Create missing EyeSlashIcon component or fix import path
-2. Fix read-only ref mutations with proper assignment patterns
-3. Add null checks for optional properties in interfaces
+1. **Missing Icon Module:** Created `src/client/components/icons/EyeSlashIcon.tsx` based on `EyeIcon.tsx` to resolve the missing import in `EditableEventCard.tsx`.
+2. **Read-only Ref Mutations:** Refactored `SpotlightHandles`, `TextHandles`, and `InteractivePanZoomArea` components within `EnhancedHotspotPreview.tsx`. Changed the pattern of assigning to `containerRef.current` directly after finding the container via `closest()`. The new approach involves:
+    - Storing the `React.MouseEvent` from `onMouseDown` in a ref (`initialMouseDownEventRef`).
+    - In the `useEffect` hook that sets up global `mousemove` and `mouseup` listeners (when `isDragging` is true):
+        - Retrieving the draggable container element using `initialMouseDownEventRef.current.currentTarget.closest('.relative.bg-slate-700')`.
+        - Storing this container element in a variable (`currentDragContainer`) local to the `useEffect`'s scope.
+        - The `handleMouseMove` and `handleMouseUp` functions (defined within the same `useEffect`) now close over `currentDragContainer` to perform their calculations.
+    - This avoids direct reassignment of a `useRef`'s `.current` property post-initialization for dynamic DOM elements, addressing the "read-only property mutation" concern.
+3. **ImageTransformState Undefined Handling:** Reviewed usages of `ImageTransformState`, particularly its optional `targetHotspotId` property, in `InteractiveModule.tsx`. Found that the existing code correctly handles the optional nature of `targetHotspotId` with appropriate checks (e.g., `if (imageTransform.targetHotspotId)`) or by using it in contexts where `undefined` is permissible (e.g., `hotspots.find(h => h.id === imageTransform.targetHotspotId)`). No specific code changes were required for this sub-point as current implementations are type-safe.
 
 ### Issue 3: Missing ARIA Accessibility Support
 **Priority**: CRITICAL - Legal compliance and usability
