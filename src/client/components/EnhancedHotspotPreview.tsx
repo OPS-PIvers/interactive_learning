@@ -126,37 +126,43 @@ const SpotlightHandles: React.FC<{
         setIsDragging(false);
         initialMouseDownEventRef.current = null;
       }
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        currentDragContainer = null;
-      };
     }
+
+    // Always return cleanup function
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      currentDragContainer = null;
+    };
   }, [isDragging, onPositionChange, setIsDragging, setDragStart]); // Removed dragStart, dragType, position from dependencies
   
   return (
     <>
-      {/* Move handle - Center of spotlight */}
+      {/* Move handle - Outside top-left of spotlight */}
       <div 
-        className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full cursor-move transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-20 shadow-lg"
+        className="absolute w-5 h-5 bg-purple-500 border-2 border-white rounded-full cursor-move transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-30 shadow-lg"
         style={{ 
-          left: `${position.x}%`, 
-          top: `${position.y}%` 
+          left: `calc(${position.x}% - ${(position.width * 0.6)}px)`, 
+          top: `calc(${position.y}% - ${(position.height * 0.6)}px)` 
         }}
         title="Drag to move spotlight"
         onMouseDown={(e) => handleMouseDown(e, 'move')}
       >
-        {/* Inner dot for better visibility */}
-        <div className="absolute inset-1 bg-white rounded-full opacity-80" />
+        {/* Move icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-2 h-2">
+            <div className="absolute w-full h-px bg-white top-1/2 transform -translate-y-1/2" />
+            <div className="absolute w-px h-full bg-white left-1/2 transform -translate-x-1/2" />
+          </div>
+        </div>
       </div>
       
-      {/* Resize handle - Corner positioned relative to spotlight size */}
+      {/* Resize handle - Outside bottom-right of spotlight */}
       <div 
-        className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-20 shadow-lg"
+        className="absolute w-5 h-5 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize transform -translate-x-1/2 -translate-y-1/2 hover:bg-purple-400 transition-colors z-30 shadow-lg"
         style={{ 
-          left: `calc(${position.x}% + ${(position.width * 0.35)}px)`, 
-          top: `calc(${position.y}% + ${(position.height * 0.35)}px)` 
+          left: `calc(${position.x}% + ${(position.width * 0.6)}px)`, 
+          top: `calc(${position.y}% + ${(position.height * 0.6)}px)` 
         }}
         title="Drag to resize spotlight"
         onMouseDown={(e) => handleMouseDown(e, 'resize')}
@@ -269,12 +275,14 @@ const TextHandles: React.FC<{
         initialMouseDownEventRef.current = null;
       }
 
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        currentDragContainer = null;
-      };
     }
+
+    // Always return cleanup function
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      currentDragContainer = null;
+    };
   }, [isDragging, onPositionChange, setIsDragging, setDragStart]); // Removed dragStart, dragType, position from dependencies
   
   return (
@@ -330,13 +338,30 @@ const InteractivePanZoomArea: React.FC<{
   // const containerRef = useRef<HTMLDivElement>(null); // No longer directly assigning
   const initialMouseDownEventRef = useRef<React.MouseEvent | null>(null);
   
-  // Initialize pan/zoom area around hotspot
+  // Initialize pan/zoom area around hotspot with reactive sizing
+  const getZoomAreaSize = useCallback(() => {
+    // Base size inversely proportional to zoom level
+    // Higher zoom = smaller area (more focused)
+    const baseSize = Math.max(15, Math.min(40, 50 / zoomLevel));
+    return baseSize;
+  }, [zoomLevel]);
+
   const [panZoomArea, setPanZoomArea] = useState<PanZoomPosition>({
     x: Math.max(5, Math.min(70, hotspotPosition.x - 15)),
     y: Math.max(5, Math.min(70, hotspotPosition.y - 15)),
-    width: 25, // percentage
-    height: 25  // percentage
+    width: getZoomAreaSize(),
+    height: getZoomAreaSize()
   });
+
+  // Update area size when zoom level changes
+  useEffect(() => {
+    const newSize = getZoomAreaSize();
+    setPanZoomArea(prev => ({
+      ...prev,
+      width: newSize,
+      height: newSize
+    }));
+  }, [zoomLevel, getZoomAreaSize]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, type: 'move' | 'resize') => {
     e.preventDefault();
@@ -410,12 +435,14 @@ const InteractivePanZoomArea: React.FC<{
         initialMouseDownEventRef.current = null;
       }
 
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        currentDragContainer = null;
-      };
     }
+
+    // Always return cleanup function
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      currentDragContainer = null;
+    };
   }, [isDragging, setPanZoomArea, setIsDragging, setDragStart]); // Removed dragStart, dragType from dependencies
 
   return (

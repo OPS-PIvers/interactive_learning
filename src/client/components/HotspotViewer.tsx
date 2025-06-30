@@ -163,8 +163,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       }
       if (continueDragHandlerRef.current) {
         document.removeEventListener('pointermove', continueDragHandlerRef.current);
-        // No need to remove the specific pointerup for continueDrag if it was {once: true}
-        // and we handle general cleanup in pointerUpHandlerRef.current and useEffect
         continueDragHandlerRef.current = null;
       }
     };
@@ -194,8 +192,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       }
       if (continueDragHandlerRef.current) {
         document.removeEventListener('pointermove', continueDragHandlerRef.current);
-        // If there was a specific pointerup for continueDrag, it should also be removed here
-        // However, the {once: true} strategy or general pointerUpHandlerRef should cover it.
+        continueDragHandlerRef.current = null;
       }
     };
   }, []); // Empty dependency array ensures this runs on mount and unmount

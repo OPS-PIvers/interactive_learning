@@ -123,25 +123,36 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       step: currentStep,
       type,
       targetId: localHotspot.id,
-      // Add default properties based on type
+      // Add default properties based on type with smart positioning
       ...(type === InteractionType.SPOTLIGHT && { 
         shape: 'circle', 
         size: { width: 20, height: 20 }, 
         position: { x: 50, y: 50 }, 
         opacity: 0.7,
         highlightShape: 'circle',
-        dimPercentage: 70
+        dimPercentage: 70,
+        // Position spotlight to the right of hotspot
+        spotlightX: Math.min(85, localHotspot.x + 15),
+        spotlightY: localHotspot.y,
+        spotlightWidth: 120,
+        spotlightHeight: 120
       }),
       ...(type === InteractionType.PAN_ZOOM && { 
         zoom: 2, 
-        targetX: 50, 
-        targetY: 50,
+        // Position pan-zoom area to the right of hotspot
+        targetX: Math.min(85, localHotspot.x + 20),
+        targetY: localHotspot.y,
         zoomLevel: 2,
         zoomFactor: 2
       }),
       ...(type === InteractionType.SHOW_TEXT && { 
         content: 'Some text', 
-        textContent: 'Some text'
+        textContent: 'Some text',
+        // Position text box to the right of hotspot
+        textX: Math.min(80, localHotspot.x + 15),
+        textY: localHotspot.y,
+        textWidth: 200,
+        textHeight: 60
       }),
       ...(type === InteractionType.SHOW_IMAGE_MODAL && { 
         url: '', 
@@ -198,8 +209,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={onClose}>
-        <div className="max-w-7xl w-full h-[90vh] bg-gray-800 text-white flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="fixed inset-0 z-50 flex justify-end pointer-events-none" onClick={onClose}>
+        <div className="w-full max-w-4xl h-full bg-gray-800 text-white flex flex-col pointer-events-auto shadow-2xl border-l border-gray-700" onClick={e => e.stopPropagation()}>
           <HotspotEditorToolbar 
             title={localHotspot.title || `Edit Hotspot`} 
             onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
