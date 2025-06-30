@@ -46,6 +46,14 @@ export const useGestureCoordination = () => {
       return true;
     }
 
+    // SPECIAL CASE: Allow drag to always interrupt tap/touch immediately (hotspot dragging priority)
+    if (gestureType === 'drag' && (state.activeGesture === 'tap' || state.activeGesture === 'touch')) {
+      console.log(`[GestureCoordination] Drag gesture immediately interrupting ${state.activeGesture} (hotspot drag priority)`);
+      state.activeGesture = gestureType;
+      state.gestureStartTime = now;
+      return true;
+    }
+
     // Check priority - higher priority can interrupt lower priority
     const currentPriority = state.priority[state.activeGesture];
     const newPriority = state.priority[gestureType];

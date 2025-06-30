@@ -63,6 +63,18 @@ export const useTouchGestures = (
   const touchEndTimeoutRef = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Check if touch is on a hotspot element - if so, don't interfere
+    const target = e.target as HTMLElement;
+    const isHotspotElement = target?.closest('[data-hotspot-id]') || 
+                            target?.hasAttribute('data-hotspot-id') ||
+                            target?.closest('.hotspot-element') ||
+                            target?.classList.contains('hotspot-element');
+    
+    if (isHotspotElement) {
+      console.log('Debug [useTouchGestures]: Touch on hotspot element - skipping container gestures');
+      return;
+    }
+
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragging || isEditing || isDragActive) {
       console.log('Debug [useTouchGestures]: Touch start blocked', {
@@ -189,6 +201,17 @@ export const useTouchGestures = (
   }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, gestureCoordination]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Check if touch is on a hotspot element - if so, don't interfere
+    const target = e.target as HTMLElement;
+    const isHotspotElement = target?.closest('[data-hotspot-id]') || 
+                            target?.hasAttribute('data-hotspot-id') ||
+                            target?.closest('.hotspot-element') ||
+                            target?.classList.contains('hotspot-element');
+    
+    if (isHotspotElement) {
+      return;
+    }
+
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragging || isEditing || isDragActive) {
       console.log('Debug [useTouchGestures]: Touch move blocked', {
@@ -284,6 +307,17 @@ export const useTouchGestures = (
   }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, gestureCoordination]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Check if touch is on a hotspot element - if so, don't interfere
+    const target = e.target as HTMLElement;
+    const isHotspotElement = target?.closest('[data-hotspot-id]') || 
+                            target?.hasAttribute('data-hotspot-id') ||
+                            target?.closest('.hotspot-element') ||
+                            target?.classList.contains('hotspot-element');
+    
+    if (isHotspotElement) {
+      return;
+    }
+
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragActive || isDragging || isEditing) {
       console.log('Debug [useTouchGestures]: Touch end blocked', {

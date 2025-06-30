@@ -38,6 +38,19 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     startTime: number;
   } | null>(null);
   
+  // Use refs for state values to prevent callback recreation
+  const isDraggingRef = useRef(isDragging);
+  const isHoldingRef = useRef(isHolding);
+  
+  // Update refs when state changes
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+  
+  useEffect(() => {
+    isHoldingRef.current = isHolding;
+  }, [isHolding]);
+  
   // Add gesture coordination
   const gestureCoordination = useGestureCoordination();
   
@@ -89,10 +102,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   
   // Optimized pointer handler with proper cleanup and debug logging
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    console.log('Debug [HotspotViewer]: Pointer down', {
+    console.log('🎯 [HotspotViewer] Pointer down STARTED', {
       hotspotId: hotspot.id,
       isEditing,
       currentPosition: { x: hotspot.x, y: hotspot.y },
+      pointerType: e.pointerType,
+      isPrimary: e.isPrimary,
       timestamp: Date.now()
     });
 
@@ -105,10 +120,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     }
 
     // Try to claim drag gesture before proceeding
+    console.log('🤝 [HotspotViewer] Attempting to claim drag gesture...');
     if (!gestureCoordination.claimGesture('drag')) {
-      console.log('Debug [HotspotViewer]: Drag gesture blocked by coordination system');
+      console.log('❌ [HotspotViewer]: Drag gesture BLOCKED by coordination system');
       return;
     }
+    console.log('✅ [HotspotViewer] Drag gesture CLAIMED successfully');
 
     e.preventDefault();
     e.stopPropagation();
@@ -140,7 +157,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       });
       
       // Only open editor if we're still holding and haven't started dragging
-      if (isHolding && !dragThresholdRef.current && !isDragging && onEditRequest) {
+      if (isHoldingRef.current && !dragThresholdRef.current && !isDraggingRef.current && onEditRequest) {
         setIsHolding(false);
         onEditRequest(hotspot.id);
         cleanupEventHandlers();
@@ -159,11 +176,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       
       // If moved more than threshold, start dragging
       if ((deltaX > dragThreshold || deltaY > dragThreshold) && !dragThresholdRef.current) {
-        console.log('Debug [HotspotViewer]: Drag threshold reached', {
+        console.log('🏃 [HotspotViewer]: Drag threshold REACHED - Starting drag', {
           hotspotId: hotspot.id,
           deltaX,
           deltaY,
-          threshold: dragThreshold
+          threshold: dragThreshold,
+          exceeded: { x: deltaX > dragThreshold, y: deltaY > dragThreshold }
         });
         
         dragThresholdRef.current = true;
@@ -175,7 +193,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         }
         
         // Start dragging
-        if (!isDragging && onPositionChange) {
+        if (!isDraggingRef.current && onPositionChange) {
           setIsDragging(true);
           setIsHolding(false);
           // Signal drag state to prevent touch gesture conflicts
@@ -205,11 +223,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         const newX = clamp(startHotspotX + percentDeltaX, 0, 100);
         const newY = clamp(startHotspotY + percentDeltaY, 0, 100);
         
-        console.log('Debug [HotspotViewer]: Position update', {
+        console.log('📍 [HotspotViewer]: Position UPDATE', {
           hotspotId: hotspot.id,
           oldPosition: { x: startHotspotX, y: startHotspotY },
           newPosition: { x: newX, y: newY },
-          deltas: { x: percentDeltaX, y: percentDeltaY }
+          deltas: { x: percentDeltaX, y: percentDeltaY },
+          pixelDeltas: { x: totalDeltaX, y: totalDeltaY },
+          containerSize: { width: referenceRect.width, height: referenceRect.height }
         });
         
         onPositionChange(hotspot.id, newX, newY);
@@ -271,7 +291,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
-  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers, gestureCoordination, announceDragState, announceDragPosition, announceFocus]);
+  }, [isEditing, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers, gestureCoordination, announceDragState, announceDragPosition, announceFocus]);
   
 
   useEffect(() => {
@@ -342,9 +362,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       <div
         className={centeringWrapperClasses}
         onPointerDown={handlePointerDown}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
         role="button"
         aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}
@@ -353,6 +370,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         aria-dropeffect={isEditing && onPositionChange ? "move" : "none"} // Indicate drop effect when draggable
         tabIndex={0} // Make it focusable
         data-hotspot-id={hotspot.id} // Add data-hotspot-id attribute
+        style={{
+          // Add CSS touch-action to prevent browser gesture handling
+          touchAction: isEditing && onPositionChange ? 'none' : 'auto',
+        }}
       >
         <span className={dotClasses} aria-hidden="true">
           {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
