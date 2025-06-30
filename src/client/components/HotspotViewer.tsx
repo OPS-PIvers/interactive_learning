@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
 
@@ -24,8 +24,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
-  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
   const dragThresholdRef = useRef(false);
+  const pointerMoveHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
+  const pointerUpHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
+  const continueDragHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
   
   // Get size classes based on hotspot size
   const getSizeClasses = (size: HotspotSize = 'medium') => {
@@ -77,15 +80,16 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     dragThresholdRef.current = false;
 
     // Start hold timer for edit
+    if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
     holdTimeoutRef.current = setTimeout(() => {
       if (isHolding && !dragThresholdRef.current && onEditRequest) {
         setIsHolding(false);
         onEditRequest(hotspot.id);
-        return;
+        // No return here, allow subsequent cleanup
       }
     }, isMobile ? 400 : 600); // Hold time: 400ms for mobile, 600ms for desktop
 
-    const handlePointerMove = (moveEvent: PointerEvent) => {
+    pointerMoveHandlerRef.current = (moveEvent: PointerEvent) => {
       const deltaX = Math.abs(moveEvent.clientX - startX);
       const deltaY = Math.abs(moveEvent.clientY - startY);
       
@@ -106,7 +110,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
           const startHotspotX = hotspot.x;
           const startHotspotY = hotspot.y;
           
-          const continueDrag = (dragEvent: PointerEvent) => {
+          continueDragHandlerRef.current = (dragEvent: PointerEvent) => {
             const totalDeltaX = dragEvent.clientX - startX;
             const totalDeltaY = dragEvent.clientY - startY;
             
@@ -123,35 +127,79 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
             onPositionChange(hotspot.id, newX, newY);
           };
 
-          document.addEventListener('pointermove', continueDrag);
-          document.addEventListener('pointerup', () => {
-            setIsDragging(false);
-            onDragStateChange?.(false);
-            document.removeEventListener('pointermove', continueDrag);
-          }, { once: true });
+          if (continueDragHandlerRef.current) {
+            document.addEventListener('pointermove', continueDragHandlerRef.current);
+          }
+          // This specific pointerup for continueDrag is tricky with refs for removal in useEffect
+          // The {once: true} helps, but for robustness, we'll manage it via pointerUpHandlerRef
         }
       }
     };
 
-    const handlePointerUp = () => {
+    pointerUpHandlerRef.current = () => {
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
+        holdTimeoutRef.current = undefined;
       }
       setIsHolding(false);
       
+      if (isDragging) { // If it was a drag, setIsDragging and onDragStateChange handled by continueDrag's pointerup
+        setIsDragging(false); // Ensure this is set if drag didn't start but pointerup occurs
+        onDragStateChange?.(false);
+      }
+
       // If it was a quick tap without drag, show info
       if (!dragThresholdRef.current && Date.now() - startTime < 300) {
         onFocusRequest(hotspot.id);
       }
       
-      document.removeEventListener('pointermove', handlePointerMove);
-      document.removeEventListener('pointerup', handlePointerUp);
+      if (pointerMoveHandlerRef.current) {
+        document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
+        pointerMoveHandlerRef.current = null;
+      }
+      if (pointerUpHandlerRef.current) { // Remove itself
+        document.removeEventListener('pointerup', pointerUpHandlerRef.current);
+        pointerUpHandlerRef.current = null;
+      }
+      if (continueDragHandlerRef.current) {
+        document.removeEventListener('pointermove', continueDragHandlerRef.current);
+        // No need to remove the specific pointerup for continueDrag if it was {once: true}
+        // and we handle general cleanup in pointerUpHandlerRef.current and useEffect
+        continueDragHandlerRef.current = null;
+      }
     };
 
-    document.addEventListener('pointermove', handlePointerMove);
-    document.addEventListener('pointerup', handlePointerUp);
-  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange]);
+    if (pointerMoveHandlerRef.current) {
+      document.addEventListener('pointermove', pointerMoveHandlerRef.current);
+    }
+    if (pointerUpHandlerRef.current) {
+      document.addEventListener('pointerup', pointerUpHandlerRef.current);
+    }
+
+  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile]);
   
+  useEffect(() => {
+    // Cleanup function for the component unmounting
+    return () => {
+      if (holdTimeoutRef.current) {
+        clearTimeout(holdTimeoutRef.current);
+        holdTimeoutRef.current = undefined;
+      }
+      // Remove document event listeners if they are still active
+      if (pointerMoveHandlerRef.current) {
+        document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
+      }
+      if (pointerUpHandlerRef.current) {
+        document.removeEventListener('pointerup', pointerUpHandlerRef.current);
+      }
+      if (continueDragHandlerRef.current) {
+        document.removeEventListener('pointermove', continueDragHandlerRef.current);
+        // If there was a specific pointerup for continueDrag, it should also be removed here
+        // However, the {once: true} strategy or general pointerUpHandlerRef should cover it.
+      }
+    };
+  }, []); // Empty dependency array ensures this runs on mount and unmount
+
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
 

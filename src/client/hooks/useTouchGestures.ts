@@ -50,6 +50,8 @@ export const useTouchGestures = (
     isPanning: false,
     panStartCoords: null,
   });
+  const doubleTapTimeoutRef = useRef<number | null>(null);
+  const touchEndTimeoutRef = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
@@ -114,7 +116,10 @@ export const useTouchGestures = (
         });
 
         gestureState.lastTap = 0; // Reset to prevent triple tap
-        setTimeout(() => setIsTransforming(false), 300); // Animation duration
+        if (doubleTapTimeoutRef.current) {
+          clearTimeout(doubleTapTimeoutRef.current);
+        }
+        doubleTapTimeoutRef.current = window.setTimeout(() => setIsTransforming(false), 300); // Animation duration
         return;
       }
       gestureState.lastTap = now;
@@ -237,16 +242,31 @@ export const useTouchGestures = (
 
     // Optimize transform state updates - only call setIsTransforming if needed
     const remainingTouches = e.touches.length;
+    if (touchEndTimeoutRef.current) {
+      clearTimeout(touchEndTimeoutRef.current);
+    }
     if (wasZooming && remainingTouches < 2) {
         // Was zooming and now fewer than 2 touches
-        setTimeout(() => setIsTransforming(false), 50);
+        touchEndTimeoutRef.current = window.setTimeout(() => setIsTransforming(false), 50);
     } else if (wasPanning && remainingTouches < 1) {
         // Was panning and now no touches
-        setTimeout(() => setIsTransforming(false), 50);
+        touchEndTimeoutRef.current = window.setTimeout(() => setIsTransforming(false), 50);
     }
     // Double tap transforming is handled in touchStart with its own timeout
 
   }, [setIsTransforming, isDragging, isEditing]);
+
+  // Effect to clear timeouts when the hook unmounts or dependencies change significantly
+  useEffect(() => {
+    return () => {
+      if (doubleTapTimeoutRef.current) {
+        clearTimeout(doubleTapTimeoutRef.current);
+      }
+      if (touchEndTimeoutRef.current) {
+        clearTimeout(touchEndTimeoutRef.current);
+      }
+    };
+  }, []); // Empty dependency array means this runs on mount and cleans up on unmount
 
   return {
     handleTouchStart,

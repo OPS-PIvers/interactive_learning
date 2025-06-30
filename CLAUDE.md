@@ -63,6 +63,25 @@ After thorough analysis of the codebase, **67 specific bugs** have been identifi
 2. Use useRef for timeout IDs and clear in cleanup
 3. Ensure event listener removal in all code paths
 
+**Fixes Applied**:
+- **`src/client/components/InteractiveModule.tsx`**:
+    - Ensured `successMessageTimeoutRef` (for save success message) is cleared in `handleSave` and in `useEffect` cleanup (related to `initialData` changes).
+    - Ensured `applyTransformTimeoutRef` (for `applyTransform` function) is cleared in `applyTransform` and in `useEffect` cleanup (related to `initialData` changes).
+    - Ensured `debouncedApplyTransformTimeoutRef` (for `debouncedApplyTransform`) is cleared in `debouncedApplyTransform` and in a dedicated `useEffect` cleanup.
+    - Verified that the global keydown listener (`handleKeyDown`) was already correctly removed in `useEffect` cleanup.
+    - Verified that `pulseTimeoutRef` (for timeline event `PULSE_HOTSPOT`) was already correctly cleared in `useEffect` cleanup.
+    - Verified that `ResizeObserver` was already correctly disconnected in `useEffect` cleanup.
+    - Verified that `useAutoSave` hook's internal timer was already correctly cleared.
+- **`src/client/hooks/useTouchGestures.ts`**:
+    - `doubleTapTimeoutRef`: Added ref for the `setTimeout` in `handleTouchStart` (for double-tap zoom animation). Timeout is cleared if a new double-tap starts or in a `useEffect` cleanup on unmount.
+    - `touchEndTimeoutRef`: Added ref for the `setTimeout` in `handleTouchEnd` (for resetting transform state). Timeout is cleared if a new touch end starts or in a `useEffect` cleanup on unmount.
+- **`src/client/components/HotspotViewer.tsx`**:
+    - `holdTimeoutRef`: Ensured the `setTimeout` for hold-to-edit is cleared in `handlePointerUp`, if a drag starts, and in a `useEffect` cleanup on unmount.
+    - Document Event Listeners (`pointermove`, `pointerup`):
+        - Refactored `handlePointerDown` to use `useRef` for storing `pointerMove`, `pointerUp`, and `continueDrag` handler functions.
+        - Ensured these listeners are explicitly removed in the main `pointerUp` handler.
+        - Added a `useEffect` hook with an empty dependency array to remove any lingering document event listeners and clear `holdTimeoutRef` when the `HotspotViewer` component unmounts. This covers cases where the component might unmount mid-interaction.
+
 ### Issue 2: TypeScript Type Safety Violations
 **Priority**: CRITICAL - Runtime errors and type system bypass
 **Files**:
