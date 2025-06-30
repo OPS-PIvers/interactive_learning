@@ -116,7 +116,7 @@ const SpotlightHandles: React.FC<{
     };
 
     if (isDragging && initialMouseDownEventRef.current) {
-      const container = initialMouseDownEventRef.current.currentTarget.closest('.relative.bg-slate-700');
+      const container = initialMouseDownEventRef.current.currentTarget?.closest('.relative.bg-slate-700');
       if (container) {
         currentDragContainer = container as HTMLDivElement;
         document.addEventListener('mousemove', handleMouseMove);
@@ -259,7 +259,7 @@ const TextHandles: React.FC<{
     };
 
     if (isDragging && initialMouseDownEventRef.current) {
-      const container = initialMouseDownEventRef.current.currentTarget.closest('.relative.bg-slate-700');
+      const container = initialMouseDownEventRef.current.currentTarget?.closest('.relative.bg-slate-700');
       if (container) {
         currentDragContainer = container as HTMLDivElement;
         document.addEventListener('mousemove', handleMouseMove);
@@ -400,7 +400,7 @@ const InteractivePanZoomArea: React.FC<{
     };
 
     if (isDragging && initialMouseDownEventRef.current) {
-      const container = initialMouseDownEventRef.current.currentTarget.closest('.relative.bg-slate-700');
+      const container = initialMouseDownEventRef.current.currentTarget?.closest('.relative.bg-slate-700');
       if (container) {
         currentDragContainer = container as HTMLDivElement;
         document.addEventListener('mousemove', handleMouseMove);
