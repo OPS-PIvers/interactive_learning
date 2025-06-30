@@ -67,6 +67,18 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const baseColor = hotspot.color || 'bg-sky-500';
   const hoverColor = hotspot.color ? hotspot.color.replace('500', '400').replace('600','500') : 'bg-sky-400'; // ensure hover works for darker colors too
   
+  // Helper function to clean up event handlers
+  const cleanupEventHandlers = useCallback(() => {
+    if (pointerMoveHandlerRef.current) {
+      document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
+      pointerMoveHandlerRef.current = null;
+    }
+    if (pointerUpHandlerRef.current) {
+      document.removeEventListener('pointerup', pointerUpHandlerRef.current);
+      pointerUpHandlerRef.current = null;
+    }
+  }, []);
+  
   // Optimized pointer handler with proper cleanup and debug logging
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     console.log('Debug [HotspotViewer]: Pointer down', {
@@ -220,17 +232,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       cleanupEventHandlers();
     };
 
-    // Helper function to clean up event handlers
-    const cleanupEventHandlers = () => {
-      if (pointerMoveHandlerRef.current) {
-        document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
-        pointerMoveHandlerRef.current = null;
-      }
-      if (pointerUpHandlerRef.current) {
-        document.removeEventListener('pointerup', pointerUpHandlerRef.current);
-        pointerUpHandlerRef.current = null;
-      }
-    };
 
     // Store handlers in refs for cleanup
     pointerMoveHandlerRef.current = handlePointerMove;
@@ -240,19 +241,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
-  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile]);
+  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers]);
   
-  // Helper function to clean up event handlers (moved outside useCallback for reuse)
-  const cleanupEventHandlers = useCallback(() => {
-    if (pointerMoveHandlerRef.current) {
-      document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
-      pointerMoveHandlerRef.current = null;
-    }
-    if (pointerUpHandlerRef.current) {
-      document.removeEventListener('pointerup', pointerUpHandlerRef.current);
-      pointerUpHandlerRef.current = null;
-    }
-  }, []);
 
   useEffect(() => {
     // Cleanup function for the component unmounting
