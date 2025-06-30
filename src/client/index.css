@@ -137,6 +137,54 @@
   background: #555;
 }
 
+/* Hotspot drag and drop feedback styles */
+.hotspot-dragging {
+  transform: scale(1.15) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  z-index: 999 !important;
+  cursor: grabbing !important;
+  transition: all 0.2s ease-out !important;
+}
+
+.hotspot-holding {
+  transform: scale(1.10) !important;
+  animation: pulse 1s ease-in-out infinite !important;
+  cursor: grab !important;
+  transition: all 0.2s ease-out !important;
+}
+
+/* Prevent text selection during drag */
+.hotspot-dragging *,
+.hotspot-holding * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Touch action for better mobile drag performance */
+.hotspot-viewer {
+  touch-action: none;
+}
+
+/* Drag mode cursor states */
+.drag-mode-active {
+  cursor: grabbing !important;
+}
+
+.drag-mode-active * {
+  cursor: grabbing !important;
+}
+
+/* Editing mode cursor states */
+.editing-mode-crosshair {
+  cursor: crosshair !important;
+}
+
+.editing-mode-crosshair .hotspot-viewer {
+  cursor: move !important;
+}
+
 /* Subtle pulse animation for hotspots in idle mode */
 .subtle-pulse-animation {
   animation: subtle-pulse-keyframes 2s infinite ease-in-out;

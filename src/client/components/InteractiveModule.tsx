@@ -145,8 +145,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
-  // Track when any hotspot is being dragged
-  const [isHotspotDragging, setIsHotspotDragging] = useState<boolean>(false);
+  // Track when any hotspot is being dragged - using isDragModeActive instead
+  // const [isHotspotDragging, setIsHotspotDragging] = useState<boolean>(false);
   
   // Removed old InfoPanel state - using modal now
   
@@ -210,7 +210,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       minScale: 0.5,
       maxScale: 5.0,
       doubleTapZoomFactor: 2.0,
-      isDragging: isHotspotDragging,
+      isDragging: isDragModeActive,
       isEditing: isEditing,
     }
   );
@@ -1669,7 +1669,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
           setExploredHotspotPanZoomActive(false);
       }
     }
-  }, [hotspots, moduleState, isEditing, backgroundImage]);
+  }, [hotspots, moduleState, isEditing, backgroundImage, isDragModeActive]);
 
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
@@ -1990,7 +1990,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 onFocusHotspot={handleFocusHotspot}
                 onEditHotspotRequest={handleOpenHotspotEditor}
                 onHotspotPositionChange={handleHotspotPositionChange}
-                onDragStateChange={setIsHotspotDragging}
+                onDragStateChange={handleDragStateChange}
+                isDragModeActive={isDragModeActive}
                 isEditing={isEditing}
                 isMobile={true}
                 currentStep={currentStep}
@@ -2110,7 +2111,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     // e.g., a context menu or a dedicated edit button on a hotspot (if implemented).
                     onEditHotspotRequest={handleOpenHotspotEditor} // Renamed from handleHotspotEditRequest
                     onHotspotPositionChange={handleHotspotPositionChange}
-                    onDragStateChange={setIsHotspotDragging}
+                    onDragStateChange={handleDragStateChange}
+                    isDragModeActive={isDragModeActive}
                     isEditing={isEditing}
                     isMobile={false} // Explicitly false
                     currentStep={currentStep}

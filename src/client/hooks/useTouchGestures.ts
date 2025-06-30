@@ -32,6 +32,7 @@ export const useTouchGestures = (
     doubleTapZoomFactor?: number;
     isDragging?: boolean; // Add isDragging awareness
     isEditing?: boolean; // Add editing mode awareness
+    isDragActive?: boolean; // Add drag mode awareness for hotspot dragging
   }
 ) => {
   const {
@@ -40,6 +41,7 @@ export const useTouchGestures = (
     doubleTapZoomFactor = 2,
     isDragging = false,
     isEditing = false,
+    isDragActive = false,
   } = options || {};
 
   const gestureStateRef = useRef<TouchGestureState>({
@@ -55,7 +57,13 @@ export const useTouchGestures = (
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
-    if (isDragging || isEditing) {
+    if (isDragging || isEditing || isDragActive) {
+      console.log('Debug [useTouchGestures]: Touch start blocked', {
+        isDragging,
+        isEditing,
+        isDragActive,
+        timestamp: Date.now()
+      });
       return;
     }
     
@@ -138,11 +146,17 @@ export const useTouchGestures = (
       gestureState.startTransform = { ...imageTransform };
       gestureState.isPanning = false; // Stop panning if it was active
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing]);
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
-    if (isDragging || isEditing) {
+    if (isDragging || isEditing || isDragActive) {
+      console.log('Debug [useTouchGestures]: Touch move blocked', {
+        isDragging,
+        isEditing,
+        isDragActive,
+        timestamp: Date.now()
+      });
       return;
     }
     
@@ -216,11 +230,17 @@ export const useTouchGestures = (
         }, { minScale, maxScale })
       );
     }
-  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing]);
+  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
-    if (isDragging || isEditing) {
+    if (isDragActive || isDragging || isEditing) {
+      console.log('Debug [useTouchGestures]: Touch end blocked', {
+        isDragging,
+        isEditing,
+        isDragActive,
+        timestamp: Date.now()
+      });
       return;
     }
     
@@ -254,7 +274,7 @@ export const useTouchGestures = (
     }
     // Double tap transforming is handled in touchStart with its own timeout
 
-  }, [setIsTransforming, isDragging, isEditing]);
+  }, [setIsTransforming, isDragging, isEditing, isDragActive]);
 
   // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {

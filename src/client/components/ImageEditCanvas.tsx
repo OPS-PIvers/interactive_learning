@@ -45,6 +45,9 @@ interface ImageEditCanvasProps {
 
   // Fallback for no image
   onImageUpload?: (file: File) => void;
+  
+  // Drag state management
+  isDragModeActive?: boolean;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -73,6 +76,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   currentStep,
   timelineEvents,
   onImageUpload,
+  isDragModeActive = false,
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
@@ -98,7 +102,11 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   return (
     <div
       ref={scrollableContainerRef}
-      className="w-full h-full overflow-auto bg-slate-900 flex items-center justify-center" // Added flex items-center justify-center for mobile
+      className={`w-full h-full overflow-auto bg-slate-900 flex items-center justify-center ${
+        isDragModeActive ? 'drag-mode-active' : ''
+      } ${
+        isEditing && backgroundImage ? 'editing-mode-crosshair' : ''
+      }`} // Added flex items-center justify-center for mobile
       style={{ // Styles from desktop version
         scrollBehavior: 'smooth',
         scrollbarWidth: 'thin',
@@ -109,9 +117,11 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         // If specific touch interactions are needed directly on ImageEditCanvas elements, they can be added.
     >
       <div
-          className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'}`}
+          className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'} ${
+            isDragModeActive ? 'drag-mode-active' : ''
+          }`}
         style={{
-            cursor: backgroundImage && isEditing ? 'crosshair' : 'default', // Use crosshair in editing mode with an image
+          cursor: isDragModeActive ? 'grabbing' : (backgroundImage && isEditing ? 'crosshair' : 'default'),
           zIndex: Z_INDEX_IMAGE_BASE
         }}
           // For mobile, the click is handled by the parent div in InteractiveModule which then calls onImageOrHotspotClick.
@@ -156,22 +166,29 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
 
             {/* Hotspots */}
             {hotspotsWithPositions.map(hotspot => (
-              <MemoizedHotspotViewer
+              <div
                 key={hotspot.id}
-                hotspot={hotspot}
-                pixelPosition={hotspot.pixelPosition}
-                usePixelPositioning={true}
-                imageElement={actualImageRef.current}
-                isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                isDimmedInEditMode={getIsHotspotDimmed(hotspot.id)}
-                isEditing={isEditing}
-                onFocusRequest={onFocusHotspot}
-                onEditRequest={onEditHotspotRequest}
-                onPositionChange={onHotspotPositionChange}
-                onDragStateChange={onDragStateChange}
-                isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
-                isMobile={isMobile}
-              />
+                className="hotspot-viewer"
+                style={{
+                  touchAction: isMobile ? 'none' : 'auto' // Better mobile drag performance
+                }}
+              >
+                <MemoizedHotspotViewer
+                  hotspot={hotspot}
+                  pixelPosition={hotspot.pixelPosition}
+                  usePixelPositioning={true}
+                  imageElement={actualImageRef.current}
+                  isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
+                  isDimmedInEditMode={getIsHotspotDimmed(hotspot.id)}
+                  isEditing={isEditing}
+                  onFocusRequest={onFocusHotspot}
+                  onEditRequest={onEditHotspotRequest}
+                  onPositionChange={onHotspotPositionChange}
+                  onDragStateChange={onDragStateChange}
+                  isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
+                  isMobile={isMobile}
+                />
+              </div>
             ))}
           </div>
         ) : (

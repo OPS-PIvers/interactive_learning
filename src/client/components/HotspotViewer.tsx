@@ -28,6 +28,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const dragThresholdRef = useRef(false);
   const pointerMoveHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
   const pointerUpHandlerRef = useRef<((event: PointerEvent) => void) | null>(null);
+  const dragStartDataRef = useRef<{
+    startX: number;
+    startY: number;
+    startHotspotX: number;
+    startHotspotY: number;
+    startTime: number;
+  } | null>(null);
   
   // Get size classes based on hotspot size
   const getSizeClasses = (size: HotspotSize = 'medium') => {
@@ -60,8 +67,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   const baseColor = hotspot.color || 'bg-sky-500';
   const hoverColor = hotspot.color ? hotspot.color.replace('500', '400').replace('600','500') : 'bg-sky-400'; // ensure hover works for darker colors too
   
-  // Unified pointer handler for hold-to-edit and drag - Fixed version
+  // Optimized pointer handler with proper cleanup and debug logging
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    console.log('Debug [HotspotViewer]: Pointer down', {
+      hotspotId: hotspot.id,
+      isEditing,
+      currentPosition: { x: hotspot.x, y: hotspot.y },
+      timestamp: Date.now()
+    });
+
     if (!isEditing) {
       // In viewing mode, single tap for focus
       onFocusRequest(hotspot.id);
@@ -71,35 +85,59 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startTime = Date.now();
-    const startHotspotX = hotspot.x;
-    const startHotspotY = hotspot.y;
+    // Capture drag start data
+    const startData = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startHotspotX: hotspot.x,
+      startHotspotY: hotspot.y,
+      startTime: Date.now()
+    };
+    dragStartDataRef.current = startData;
     
     setIsHolding(true);
     dragThresholdRef.current = false;
 
+    // Clean up any existing event handlers first
+    cleanupEventHandlers();
+
     // Start hold timer for edit (only if we haven't started dragging)
     if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
     holdTimeoutRef.current = setTimeout(() => {
+      console.log('Debug [HotspotViewer]: Hold timer fired', {
+        hotspotId: hotspot.id,
+        isHolding,
+        dragThreshold: dragThresholdRef.current,
+        isDragging
+      });
+      
       // Only open editor if we're still holding and haven't started dragging
       if (isHolding && !dragThresholdRef.current && !isDragging && onEditRequest) {
         setIsHolding(false);
         onEditRequest(hotspot.id);
         cleanupEventHandlers();
       }
-    }, isMobile ? 600 : 800); // Increased hold time to give more time for drag detection
+    }, isMobile ? 600 : 800);
 
-    // Single unified move handler that handles both drag detection and dragging
+    // Create move handler that captures startData values
     const handlePointerMove = (moveEvent: PointerEvent) => {
+      if (!dragStartDataRef.current) return;
+      
+      const { startX, startY, startHotspotX, startHotspotY } = dragStartDataRef.current;
       const deltaX = Math.abs(moveEvent.clientX - startX);
       const deltaY = Math.abs(moveEvent.clientY - startY);
       
-      const dragThreshold = isMobile ? 12 : 8; // Reduced threshold for more responsive drag
+      const dragThreshold = isMobile ? 12 : 8;
       
       // If moved more than threshold, start dragging
       if ((deltaX > dragThreshold || deltaY > dragThreshold) && !dragThresholdRef.current) {
+        console.log('Debug [HotspotViewer]: Drag threshold reached', {
+          hotspotId: hotspot.id,
+          deltaX,
+          deltaY,
+          threshold: dragThreshold
+        });
+        
         dragThresholdRef.current = true;
         
         // Clear hold timer since we're now dragging
@@ -112,7 +150,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         if (!isDragging && onPositionChange) {
           setIsDragging(true);
           setIsHolding(false);
-          // Signal drag state to prevent touch gesture conflicts - only when actually dragging
+          // Signal drag state to prevent touch gesture conflicts
           onDragStateChange?.(true);
         }
       }
@@ -122,21 +160,39 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         const totalDeltaX = moveEvent.clientX - startX;
         const totalDeltaY = moveEvent.clientY - startY;
         
-        const referenceElement = imageElement || (e.currentTarget as HTMLElement).parentElement;
-        if (!referenceElement) return;
+        // Get reference element for coordinate calculation
+        const referenceElement = imageElement || (e.currentTarget as HTMLElement).closest('.relative');
+        if (!referenceElement) {
+          console.error('Debug [HotspotViewer]: No reference element found for drag calculation');
+          return;
+        }
 
         const referenceRect = referenceElement.getBoundingClientRect();
         
+        // Calculate percentage deltas
         const percentDeltaX = safePercentageDelta(totalDeltaX, referenceRect, 'x');
         const percentDeltaY = safePercentageDelta(totalDeltaY, referenceRect, 'y');
         const newX = clamp(startHotspotX + percentDeltaX, 0, 100);
         const newY = clamp(startHotspotY + percentDeltaY, 0, 100);
+        
+        console.log('Debug [HotspotViewer]: Position update', {
+          hotspotId: hotspot.id,
+          oldPosition: { x: startHotspotX, y: startHotspotY },
+          newPosition: { x: newX, y: newY },
+          deltas: { x: percentDeltaX, y: percentDeltaY }
+        });
         
         onPositionChange(hotspot.id, newX, newY);
       }
     };
 
     const handlePointerUp = () => {
+      console.log('Debug [HotspotViewer]: Pointer up', {
+        hotspotId: hotspot.id,
+        wasDragging: isDragging,
+        dragThreshold: dragThresholdRef.current
+      });
+      
       // Clean up hold timer
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
@@ -154,11 +210,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       onDragStateChange?.(false);
 
       // If it was a quick tap without drag, show info
-      if (!dragThresholdRef.current && Date.now() - startTime < 300) {
+      if (!dragThresholdRef.current && dragStartDataRef.current && 
+          Date.now() - dragStartDataRef.current.startTime < 300) {
         onFocusRequest(hotspot.id);
       }
       
-      // Clean up event handlers
+      // Clean up
+      dragStartDataRef.current = null;
       cleanupEventHandlers();
     };
 
@@ -179,33 +237,48 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     pointerUpHandlerRef.current = handlePointerUp;
 
     // Add event listeners
-    document.addEventListener('pointermove', handlePointerMove);
-    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener('pointermove', handlePointerMove, { passive: false });
+    document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
   }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile]);
   
+  // Helper function to clean up event handlers (moved outside useCallback for reuse)
+  const cleanupEventHandlers = useCallback(() => {
+    if (pointerMoveHandlerRef.current) {
+      document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
+      pointerMoveHandlerRef.current = null;
+    }
+    if (pointerUpHandlerRef.current) {
+      document.removeEventListener('pointerup', pointerUpHandlerRef.current);
+      pointerUpHandlerRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     // Cleanup function for the component unmounting
     return () => {
+      console.log('Debug [HotspotViewer]: Component unmounting, cleaning up', {
+        hotspotId: hotspot.id,
+        isDragging
+      });
+      
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
         holdTimeoutRef.current = undefined;
       }
-      // Remove document event listeners if they are still active
-      if (pointerMoveHandlerRef.current) {
-        document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
-        pointerMoveHandlerRef.current = null;
-      }
-      if (pointerUpHandlerRef.current) {
-        document.removeEventListener('pointerup', pointerUpHandlerRef.current);
-        pointerUpHandlerRef.current = null;
-      }
+      
+      // Clean up event handlers
+      cleanupEventHandlers();
+      
+      // Reset drag start data
+      dragStartDataRef.current = null;
+      
       // Ensure drag state is reset if component unmounts during drag
       if (isDragging) {
         onDragStateChange?.(false);
       }
     };
-  }, [isDragging, onDragStateChange]); // Include dependencies for proper cleanup
+  }, [isDragging, onDragStateChange, hotspot.id, cleanupEventHandlers]);
 
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
