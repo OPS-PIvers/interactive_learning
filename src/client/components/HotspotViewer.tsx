@@ -90,6 +90,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   
   // Helper function to clean up event handlers
   const cleanupEventHandlers = useCallback(() => {
+    console.log('🧹 [HotspotViewer] CLEANING UP event listeners', {
+      hotspotId: hotspot.id,
+      hadMoveHandler: !!pointerMoveHandlerRef.current,
+      hadUpHandler: !!pointerUpHandlerRef.current,
+      timestamp: Date.now()
+    });
+    
     if (pointerMoveHandlerRef.current) {
       document.removeEventListener('pointermove', pointerMoveHandlerRef.current);
       pointerMoveHandlerRef.current = null;
@@ -98,7 +105,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       document.removeEventListener('pointerup', pointerUpHandlerRef.current);
       pointerUpHandlerRef.current = null;
     }
-  }, []);
+  }, [hotspot.id]);
   
   // Optimized pointer handler with proper cleanup and debug logging
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -166,6 +173,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
     // Create move handler that captures startData values
     const handlePointerMove = (moveEvent: PointerEvent) => {
+      console.log('👆 [HotspotViewer] Pointer MOVE detected', {
+        hotspotId: hotspot.id,
+        clientX: moveEvent.clientX,
+        clientY: moveEvent.clientY,
+        hasStartData: !!dragStartDataRef.current
+      });
+      
       if (!dragStartDataRef.current) return;
       
       const { startX, startY, startHotspotX, startHotspotY } = dragStartDataRef.current;
@@ -173,6 +187,14 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       const deltaY = Math.abs(moveEvent.clientY - startY);
       
       const dragThreshold = isMobile ? 12 : 8;
+      
+      console.log('📏 [HotspotViewer] Movement measurement', {
+        hotspotId: hotspot.id,
+        deltaX,
+        deltaY,
+        threshold: dragThreshold,
+        willTriggerDrag: (deltaX > dragThreshold || deltaY > dragThreshold) && !dragThresholdRef.current
+      });
       
       // If moved more than threshold, start dragging
       if ((deltaX > dragThreshold || deltaY > dragThreshold) && !dragThresholdRef.current) {
@@ -288,6 +310,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     pointerUpHandlerRef.current = handlePointerUp;
 
     // Add event listeners
+    console.log('🎧 [HotspotViewer] Adding document event listeners', {
+      hotspotId: hotspot.id,
+      timestamp: Date.now()
+    });
     document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
