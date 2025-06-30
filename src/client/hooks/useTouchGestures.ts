@@ -51,6 +51,9 @@ export const useTouchGestures = (
     panStartCoords: null,
   });
 
+  // Ref to store the timeout ID for setIsTransforming(false)
+  const transformTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragging || isEditing) {
@@ -114,7 +117,10 @@ export const useTouchGestures = (
         });
 
         gestureState.lastTap = 0; // Reset to prevent triple tap
-        setTimeout(() => setIsTransforming(false), 300); // Animation duration
+        if (transformTimeoutIdRef.current) {
+          clearTimeout(transformTimeoutIdRef.current);
+        }
+        transformTimeoutIdRef.current = setTimeout(() => setIsTransforming(false), 300); // Animation duration
         return;
       }
       gestureState.lastTap = now;
@@ -237,12 +243,16 @@ export const useTouchGestures = (
 
     // Optimize transform state updates - only call setIsTransforming if needed
     const remainingTouches = e.touches.length;
+    if (transformTimeoutIdRef.current) {
+      clearTimeout(transformTimeoutIdRef.current);
+    }
+
     if (wasZooming && remainingTouches < 2) {
         // Was zooming and now fewer than 2 touches
-        setTimeout(() => setIsTransforming(false), 50);
+        transformTimeoutIdRef.current = setTimeout(() => setIsTransforming(false), 50);
     } else if (wasPanning && remainingTouches < 1) {
         // Was panning and now no touches
-        setTimeout(() => setIsTransforming(false), 50);
+        transformTimeoutIdRef.current = setTimeout(() => setIsTransforming(false), 50);
     }
     // Double tap transforming is handled in touchStart with its own timeout
 

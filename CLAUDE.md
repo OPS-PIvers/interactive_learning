@@ -113,6 +113,13 @@ After thorough analysis of the codebase, **67 specific bugs** have been identifi
 2. Add gesture state coordination to prevent conflicts
 3. Fix useCallback dependencies to prevent stale closures
 
+**Fix Details**:
+- Implemented robust timeout management in `useTouchGestures.ts` by:
+    - Introducing a `transformTimeoutIdRef` to keep track of active `setIsTransforming(false)` timeouts.
+    - Clearing any pending timeouts via `clearTimeout(transformTimeoutIdRef.current)` before setting new ones in `handleTouchStart` (for double-tap zoom) and `handleTouchEnd` (for pan/zoom end). This crucial step prevents multiple `setIsTransforming(false)` calls from executing erratically or based on stale states, which could lead to UI inconsistencies or unexpected behavior.
+- Reviewed and confirmed `useCallback` dependencies in `useTouchGestures.ts` for `handleTouchStart`, `handleTouchMove`, and `handleTouchEnd`. Ensured that props like `isDragging`, `isEditing`, and relevant state setters/values are correctly listed, preventing stale closures that might otherwise capture outdated values.
+- Verified that `HotspotViewer.tsx` already manages its internal `holdTimeoutRef` correctly, clearing timeouts appropriately in `handlePointerMove` and `handlePointerUp` during drag or hold-to-edit gestures. No changes were needed in this file for this specific issue.
+
 ## 🟡 PHASE 2: HIGH PRIORITY FIXES (Performance & UX)
 
 ### Issue 5: Performance Optimization
