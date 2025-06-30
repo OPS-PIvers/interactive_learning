@@ -132,6 +132,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Save state management
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+  const successMessageTimeoutRef = useRef<number | null>(null);
 
   const isMobile = useIsMobile();
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
@@ -194,6 +195,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // Refs to break dependency loops
   const isApplyingTransformRef = useRef(false);
   const lastAppliedTransformRef = useRef<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+  const applyTransformTimeoutRef = useRef<number | null>(null);
   
   // Store original untransformed bounds to prevent feedback loops
   const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
@@ -573,27 +575,39 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setImageTransform(newTransform);
 
     // Reset flags after animation completes
-    setTimeout(() => {
+    if (applyTransformTimeoutRef.current) {
+      clearTimeout(applyTransformTimeoutRef.current);
+    }
+    applyTransformTimeoutRef.current = window.setTimeout(() => {
       setIsTransforming(false);
       isApplyingTransformRef.current = false;
     }, 500);
   }, [debugLog]);
 
   // Debounced transform to prevent rapid successive applications
+  const debouncedApplyTransformTimeoutRef = useRef<number | null>(null);
   const debouncedApplyTransform = useMemo(
     () => {
-      let timeoutId: number | null = null;
       return (newTransform: ImageTransformState) => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
+        if (debouncedApplyTransformTimeoutRef.current) {
+          clearTimeout(debouncedApplyTransformTimeoutRef.current);
         }
-        timeoutId = window.setTimeout(() => {
+        debouncedApplyTransformTimeoutRef.current = window.setTimeout(() => {
           applyTransform(newTransform);
         }, 16); // ~60fps
       };
     },
     [applyTransform]
   );
+
+  useEffect(() => {
+    // Cleanup for debouncedApplyTransform timeout
+    return () => {
+      if (debouncedApplyTransformTimeoutRef.current) {
+        clearTimeout(debouncedApplyTransformTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Memoized hotspot positions that update with explicit transform changes
   const hotspotsWithPositions = useMemo(() => {
@@ -903,6 +917,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       clearTimeout(pulseTimeoutRef.current);
       pulseTimeoutRef.current = null;
     }
+    // Clear success message timeout on component unmount or when initialData changes
+    return () => {
+      if (successMessageTimeoutRef.current) {
+        clearTimeout(successMessageTimeoutRef.current);
+      }
+      if (applyTransformTimeoutRef.current) {
+        clearTimeout(applyTransformTimeoutRef.current);
+      }
+    };
   }, [initialData, isEditing, clearImageBoundsCache]);
 
   const handlePrevStep = useCallback(() => {
@@ -1026,6 +1049,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     handleMinusKey,
     handleZeroKey
   ]);
+
+// Removed InfoPanel positioning - using modal now
 
 // Removed InfoPanel positioning - using modal now
 
@@ -1467,8 +1492,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       console.log('Save completed successfully');
       setShowSuccessMessage(true);
       // Use ref to track timeout and clear on unmount
-      const timeoutId = setTimeout(() => setShowSuccessMessage(false), 3000);
-      return () => clearTimeout(timeoutId);
+      if (successMessageTimeoutRef.current) {
+        clearTimeout(successMessageTimeoutRef.current);
+      }
+      successMessageTimeoutRef.current = window.setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
       console.error('Save failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
