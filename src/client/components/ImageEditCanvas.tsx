@@ -1,6 +1,6 @@
 import React from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
-import { MemoizedHotspotViewer } from './HotspotViewer'; // Assuming MemoizedHotspotViewer is exported from HotspotViewer
+import HotspotViewer from './HotspotViewer';
 import FileUpload from './FileUpload';
 import { PlusIcon } from './icons/PlusIcon';
 
@@ -173,7 +173,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   touchAction: isMobile ? 'none' : 'auto' // Better mobile drag performance
                 }}
               >
-                <MemoizedHotspotViewer
+                <HotspotViewer
                   hotspot={hotspot}
                   pixelPosition={hotspot.pixelPosition}
                   usePixelPositioning={true}

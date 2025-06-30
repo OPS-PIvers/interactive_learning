@@ -9,7 +9,6 @@ import { PlusIcon } from './icons/PlusIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
-import EnhancedHotspotPreview from './EnhancedHotspotPreview';
 import EditableEventCard from './EditableEventCard';
 
 interface EnhancedHotspotEditorModalProps {
@@ -25,6 +24,7 @@ interface EnhancedHotspotEditorModalProps {
   onDeleteEvent: (eventId: string) => void;
   onClose: () => void;
   allHotspots: HotspotData[];
+  onPreviewEvent?: (eventId: string) => void; // New callback for previewing on main image
 }
 
 // Event Type Selector Component
@@ -103,7 +103,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onUpdateEvent,
   onDeleteEvent,
   onClose,
-  allHotspots
+  allHotspots,
+  onPreviewEvent
 }) => {
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
@@ -190,9 +191,17 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   };
   
   const handleTogglePreview = (eventId: string) => {
-    setPreviewingEventIds(prev => 
-      prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId]
-    );
+    const isCurrentlyPreviewing = previewingEventIds.includes(eventId);
+    
+    if (isCurrentlyPreviewing) {
+      // Remove from preview
+      setPreviewingEventIds(prev => prev.filter(id => id !== eventId));
+    } else {
+      // Add to preview
+      setPreviewingEventIds(prev => [...prev, eventId]);
+      // Notify parent to preview on main image
+      onPreviewEvent?.(eventId);
+    }
   };
 
   const handleHotspotUpdate = (updatedHotspot: HotspotData) => {
@@ -223,64 +232,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             }} 
             onClose={onClose} 
           />
-          <div className="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
-            <div className="md:w-2/3 h-1/2 md:h-full bg-gray-900 rounded-lg overflow-hidden">
-              <EnhancedHotspotPreview 
-                backgroundImage={backgroundImage} 
-                hotspot={localHotspot} 
-                previewingEvents={previewingEvents} 
-                activePreviewEvent={activePreviewEvent}
-                zoomLevel={activePreviewEvent?.zoomLevel || 2}
-                spotlightShape={activePreviewEvent?.highlightShape || "circle"}
-                dimPercentage={activePreviewEvent?.dimPercentage || 70}
-                textContent={activePreviewEvent?.textContent || ""}
-                textPosition={activePreviewEvent?.textPosition || "center"}
-                spotlightPosition={{ 
-                  x: activePreviewEvent?.spotlightX || localHotspot.x, 
-                  y: activePreviewEvent?.spotlightY || localHotspot.y, 
-                  width: activePreviewEvent?.spotlightWidth || 120, 
-                  height: activePreviewEvent?.spotlightHeight || 120 
-                }}
-                textBoxPosition={{ 
-                  x: activePreviewEvent?.textX || localHotspot.x, 
-                  y: activePreviewEvent?.textY || localHotspot.y - 15, 
-                  width: activePreviewEvent?.textWidth || 200, 
-                  height: activePreviewEvent?.textHeight || 60 
-                }}
-                onSpotlightPositionChange={(position) => {
-                  if (activePreviewEvent) {
-                    handleEventUpdate({
-                      ...activePreviewEvent,
-                      spotlightX: position.x,
-                      spotlightY: position.y,
-                      spotlightWidth: position.width,
-                      spotlightHeight: position.height
-                    });
-                  }
-                }}
-                onTextPositionChange={(position) => {
-                  if (activePreviewEvent) {
-                    handleEventUpdate({
-                      ...activePreviewEvent,
-                      textX: position.x,
-                      textY: position.y,
-                      textWidth: position.width,
-                      textHeight: position.height
-                    });
-                  }
-                }}
-                onZoomLevelChange={(level) => {
-                  if (activePreviewEvent) {
-                    handleEventUpdate({
-                      ...activePreviewEvent,
-                      zoomLevel: level,
-                      zoomFactor: level
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="md:w-1/3 h-1/2 md:h-full flex flex-col gap-4">
+          <div className="flex-grow flex flex-col p-4 gap-4 overflow-hidden">
+            <div className="flex flex-col gap-4">
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-2">Events</h3>
                 <EventTypeSelector onSelectEventType={handleAddEvent} />

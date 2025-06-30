@@ -26,7 +26,7 @@ import AudioPlayer from './AudioPlayer';
 import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
 
-const MemoizedHotspotViewer = React.memo(HotspotViewer);
+// Using default memo export from HotspotViewer
 
 // Z-index layer management
 const Z_INDEX = {
@@ -123,7 +123,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
   const [colorScheme, setColorScheme] = useState<string>('Default');
   const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
-  // const [showHotspotEditModal, setShowHotspotEditModal] = useState<boolean>(false); // Removed: To be consolidated
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
   // Missing state declaration for imageContainerRect
@@ -146,10 +145,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
   // Track when any hotspot is being dragged - using isDragModeActive instead
-  // const [isHotspotDragging, setIsHotspotDragging] = useState<boolean>(false);
   const [isDragModeActive, setIsDragModeActive] = useState(false);
   
-  // Removed old InfoPanel state - using modal now
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
@@ -169,7 +166,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
-  const viewportContainerRef = useRef<HTMLDivElement>(null); // Ref for the viewport that scales with manual zoom
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
   const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image (viewer)
   
@@ -182,8 +178,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const actualImageRef = useRef<HTMLImageElement>(null);
 
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-  const [viewportZoom, setViewportZoom] = useState<number>(1); // Keep for viewer mode
-  const [zoomOrigin, setZoomOrigin] = useState<{x: number, y: number}>({x: 50, y: 50}); // Keep for viewer mode
   const [isTransforming, setIsTransforming] = useState(false);
   
   // New state for editing mode
@@ -515,12 +509,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     };
   }, [getSafeImageBounds, getScaledImageDivDimensions, isEditing]);
 
-  const getSafeHotspotPixelPosition = useCallback((hotspot: HotspotData) => {
-    return safeGetPosition(
-      () => getHotspotPixelPosition(hotspot),
-      { x: 0, y: 0, baseX: 0, baseY: 0 } // Fallback to a default position object
-    );
-  }, [getHotspotPixelPosition]);
 
   // Helper to constrain transforms and prevent UI overlap
   const constrainTransform = useCallback((transform: ImageTransformState): ImageTransformState => {
@@ -586,30 +574,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }, 500);
   }, [debugLog]);
 
-  // Debounced transform to prevent rapid successive applications
-  const debouncedApplyTransformTimeoutRef = useRef<number | null>(null);
-  const debouncedApplyTransform = useMemo(
-    () => {
-      return (newTransform: ImageTransformState) => {
-        if (debouncedApplyTransformTimeoutRef.current) {
-          clearTimeout(debouncedApplyTransformTimeoutRef.current);
-        }
-        debouncedApplyTransformTimeoutRef.current = window.setTimeout(() => {
-          applyTransform(newTransform);
-        }, 16); // ~60fps
-      };
-    },
-    [applyTransform]
-  );
-
-  useEffect(() => {
-    // Cleanup for debouncedApplyTransform timeout
-    return () => {
-      if (debouncedApplyTransformTimeoutRef.current) {
-        clearTimeout(debouncedApplyTransformTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Memoized hotspot positions that update with explicit transform changes
   const hotspotsWithPositions = useMemo(() => {
@@ -662,14 +626,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
   
   // Interaction parameter states
-  const [interactionParams, setInteractionParams] = useState({
-    zoomFactor: 2.0,
-    highlightRadius: 60,
-    pulseDuration: 2000,
-    showingZoomSlider: false,
-    showingHighlightSlider: false,
-    showingPulseSlider: false
-  });
 
   useEffect(() => {
     if (!imageContainerRef.current) return;
@@ -1052,9 +1008,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     handleZeroKey
   ]);
 
-// Removed InfoPanel positioning - using modal now
-
-// Removed InfoPanel positioning - using modal now
 
 
   useEffect(() => {
@@ -1156,7 +1109,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
                 const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
                 
-                let newTransform = {
+                let newTransform: ImageTransformState = {
                   scale,
                   translateX,
                   translateY,
@@ -1208,7 +1161,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
                 const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
                 
-                let newTransform = {
+                let newTransform: ImageTransformState = {
                   scale,
                   translateX,
                   translateY,
@@ -1571,9 +1524,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [backgroundImage, hotspots.length, debugLog, projectId]);
 
-  const handleImageFitChange = useCallback((fitMode: 'cover' | 'contain' | 'fill') => {
-    setImageFitMode(fitMode);
-  }, []);
 
   // New handleAddHotspot function as per plan
   // Note: Direct state setters (setHotspots, setEditingHotspot, setTimelineEvents, setCurrentStep) are used here
@@ -1749,10 +1699,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
   }, [exploredHotspotId]);
 
-  const handleRemoveTimelineEvent = useCallback((eventId: string) => {
-    if (!confirm(`Are you sure you want to remove timeline event ${eventId}?`)) return;
-    setTimelineEvents(prev => prev.filter(event => event.id !== eventId));
-  }, []);
 
   const getHighlightGradientStyle = () => {
     if (!highlightedHotspotId || !backgroundImage || !imageContainerRef.current) return {};
@@ -2289,11 +2235,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                           const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
                           if (!shouldShow) return null;
                           return (
-                            <MemoizedHotspotViewer
+                            <HotspotViewer
                               key={hotspot.id}
                               hotspot={hotspot}
-                              pixelPosition={hotspot.pixelPosition}
-                              usePixelPositioning={true}
                               isPulsing={(moduleState === 'learning') && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
                               isDimmedInEditMode={false} // Not in editing mode here
                               isEditing={false}
@@ -2429,6 +2373,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             setSelectedHotspotForModal(null);
           }}
           allHotspots={hotspots}
+          onPreviewEvent={(eventId) => {
+            // Find the event and execute it for preview on main image
+            const event = timelineEvents.find(e => e.id === eventId);
+            if (event) {
+              handleTimelineEvent(event);
+            }
+          }}
         />
       )}
 
