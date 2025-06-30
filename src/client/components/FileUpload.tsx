@@ -100,6 +100,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setDragOver(false);
   }, []);
 
+  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      document.getElementById('file-upload-input')?.click();
+    }
+  }, []);
+
   return (
     <div 
       className={`mb-4 p-6 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors duration-200
@@ -108,7 +115,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onClick={() => document.getElementById('file-upload-input')?.click()}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label={label || `File upload for ${getTypeLabel()}`}
+      aria-describedby="file-upload-instructions"
     >
       <input
         id="file-upload-input"
@@ -116,8 +127,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         accept={getAcceptString()}
         onChange={handleFileChange}
         className="hidden"
-        aria-label={label || `File upload for ${getTypeLabel()}`}
-        aria-describedby="file-upload-instructions"
+        aria-describedby="file-upload-instructions" // Keep describedby for context if input is somehow focused
       />
       <p id="file-upload-instructions" className="text-slate-400">
         {dragOver 

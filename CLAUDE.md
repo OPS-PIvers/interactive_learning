@@ -94,12 +94,14 @@ After thorough analysis of the codebase, **67 specific bugs** have been identifi
 
 **Implementation**:
 1. Add `aria-live="polite"` regions for timeline and hotspot changes
-    - Added `aria-live="polite"` to the main container div in `src/client/components/HotspotViewer.tsx` to announce changes when a hotspot is focused or interacted with.
+    - Initially, `aria-live="polite"` was added to the main container div in `src/client/components/HotspotViewer.tsx`. This was later removed as the div doesn't have direct text content that changes for screen readers.
 2. Add comprehensive `aria-label` and `aria-describedby` attributes
     - In `src/client/components/FileUpload.tsx`:
-        - Added `aria-label` to the file input element.
-        - Added `aria-describedby` to the file input element, referencing the paragraph element that contains the drag and drop instructions.
-        - Added an `id` to the paragraph element to be referenced by `aria-describedby`.
+        - The main clickable `div` now has an `aria-label` and `aria-describedby` (referencing the instruction paragraph).
+        - The `div` also has `role="button"` and `tabIndex={0}` for keyboard accessibility.
+        - An `onKeyDown` handler was added to the `div` to trigger the file input on 'Enter' or 'Space' key press.
+        - The hidden `input` element no longer has a redundant `aria-label`.
+        - An `id` was added to the instruction paragraph to be referenced by `aria-describedby`.
 3. Include `aria-expanded`, `aria-selected` states for interactive elements
     - Added `aria-pressed` to the hotspot button in `src/client/components/HotspotViewer.tsx`, indicating whether it is currently pressed or not (based on the `isHolding` state).
 

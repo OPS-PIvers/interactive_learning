@@ -189,7 +189,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
           ? `${pixelPosition.y}px`
           : `${hotspot.y}%`,
       }}
-      aria-live="polite" // Announce changes when hotspot is focused or interacted with
     >
       <div
         className={centeringWrapperClasses}
