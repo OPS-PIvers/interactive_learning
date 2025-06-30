@@ -1,28 +1,3 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { HotspotData, HotspotSize } from '../../shared/types';
-import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
-
-interface HotspotViewerProps {
-  hotspot: HotspotData;
-  isPulsing: boolean; // Timeline event driven pulse
-  isEditing: boolean;
-  onFocusRequest: (id: string) => void; // Callback to request focus/info display for this hotspot
-  onPositionChange?: (id: string, x: number, y: number) => void; // Callback for drag updates
-  isDimmedInEditMode?: boolean;
-  isContinuouslyPulsing?: boolean; // For idle mode gentle pulse
-  imageElement?: HTMLImageElement | null; // NEW PROP for editing mode
-  // NEW PROPS:
-  pixelPosition?: { x: number; y: number } | null;
-  usePixelPositioning?: boolean;
-  onEditRequest?: (id: string) => void; // Add edit callback
-  isMobile?: boolean;
-  onDragStateChange?: (isDragging: boolean) => void; // Callback for drag state changes
-}
-
-const HotspotViewer: React.FC<HotspotViewerProps> = ({
-  hotspot, isPulsing, isEditing, onFocusRequest, onPositionChange, isDimmedInEditMode, isContinuouslyPulsing, imageElement, pixelPosition, usePixelPositioning, onEditRequest, isMobile, onDragStateChange
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
