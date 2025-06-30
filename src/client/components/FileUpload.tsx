@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 
 interface FileUploadProps {
   onFileUpload: (file: File) => void;
@@ -13,6 +13,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   label 
 }) => {
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getAcceptString = (): string => {
     switch (acceptedTypes) {
@@ -100,6 +101,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setDragOver(false);
   }, []);
 
+  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      fileInputRef.current?.click();
+    }
+  }, []);
+
   return (
     <div 
       className={`mb-4 p-6 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors duration-200
@@ -107,16 +115,21 @@ const FileUpload: React.FC<FileUploadProps> = ({
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onClick={() => document.getElementById('file-upload-input')?.click()}
+      onClick={() => fileInputRef.current?.click()}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={label || `File upload for ${getTypeLabel()}`}
+      aria-describedby="file-upload-instructions"
     >
       <input
-        id="file-upload-input"
+        ref={fileInputRef}
         type="file"
         accept={getAcceptString()}
         onChange={handleFileChange}
         className="hidden"
       />
-      <p className="text-slate-400">
+      <p id="file-upload-instructions" className="text-slate-400">
         {dragOver 
           ? `Drop ${getTypeLabel()} here!` 
           : `Drag & drop ${getTypeLabel()} here, or click to select.`
