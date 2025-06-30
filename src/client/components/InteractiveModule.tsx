@@ -147,6 +147,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   
   // Track when any hotspot is being dragged - using isDragModeActive instead
   // const [isHotspotDragging, setIsHotspotDragging] = useState<boolean>(false);
+  const [isDragModeActive, setIsDragModeActive] = useState(false);
   
   // Removed old InfoPanel state - using modal now
   
@@ -1623,11 +1624,59 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Removed handleSaveHotspot (was for HotspotEditModal)
 
+  // Enhanced position handler with validation and debug logging
   const handleHotspotPositionChange = useCallback((hotspotId: string, x: number, y: number) => {
-    setHotspots(prevHotspots => 
-      prevHotspots.map(h => h.id === hotspotId ? { ...h, x, y } : h)
-    );
+    // Input validation
+    if (!hotspotId || typeof x !== 'number' || typeof y !== 'number') {
+      console.error('Debug [InteractiveModule]: Invalid position change parameters', {
+        hotspotId,
+        x,
+        y,
+        timestamp: Date.now()
+      });
+      return;
+    }
+    
+    // Clamp coordinates to valid range (0-100)
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+    
+    console.log('Debug [InteractiveModule]: Position change received', {
+      hotspotId,
+      originalPosition: { x, y },
+      clampedPosition: { x: clampedX, y: clampedY },
+      wasClamped: x !== clampedX || y !== clampedY,
+      timestamp: Date.now()
+    });
+    
+    setHotspots(prevHotspots => {
+      const updatedHotspots = prevHotspots.map(h => 
+        h.id === hotspotId ? { ...h, x: clampedX, y: clampedY } : h
+      );
+      
+      // Verify the update was applied
+      const updatedHotspot = updatedHotspots.find(h => h.id === hotspotId);
+      console.log('Debug [InteractiveModule]: Position update applied', {
+        hotspotId,
+        newPosition: updatedHotspot ? { x: updatedHotspot.x, y: updatedHotspot.y } : null,
+        success: !!updatedHotspot,
+        timestamp: Date.now()
+      });
+      
+      return updatedHotspots;
+    });
   }, []);
+  
+  // Drag state change handler
+  const handleDragStateChange = useCallback((isDragging: boolean) => {
+    console.log('Debug [InteractiveModule]: Drag state changed', {
+      isDragging,
+      previousState: isDragModeActive,
+      timestamp: Date.now()
+    });
+    
+    setIsDragModeActive(isDragging);
+  }, [isDragModeActive]);
 
 
   // Updated handleImageOrHotspotClick function
