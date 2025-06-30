@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import { safePercentageDelta, clamp } from '../../lib/safeMathUtils';
+import { useGestureCoordination } from '../hooks/useGestureCoordination';
+import { useScreenReaderAnnouncements } from '../hooks/useScreenReaderAnnouncements';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -35,6 +37,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     startHotspotY: number;
     startTime: number;
   } | null>(null);
+  
+  // Add gesture coordination
+  const gestureCoordination = useGestureCoordination();
+  
+  // Add screen reader announcements
+  const { announceDragState, announceDragPosition, announceFocus, announceEditMode } = useScreenReaderAnnouncements();
   
   // Get size classes based on hotspot size
   const getSizeClasses = (size: HotspotSize = 'medium') => {
@@ -91,6 +99,14 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     if (!isEditing) {
       // In viewing mode, single tap for focus
       onFocusRequest(hotspot.id);
+      // Announce focus to screen readers
+      announceFocus(hotspot.title);
+      return;
+    }
+
+    // Try to claim drag gesture before proceeding
+    if (!gestureCoordination.claimGesture('drag')) {
+      console.log('Debug [HotspotViewer]: Drag gesture blocked by coordination system');
       return;
     }
 
@@ -164,6 +180,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
           setIsHolding(false);
           // Signal drag state to prevent touch gesture conflicts
           onDragStateChange?.(true);
+          // Announce drag start to screen readers
+          announceDragState(hotspot.title, true);
         }
       }
       
@@ -195,6 +213,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         });
         
         onPositionChange(hotspot.id, newX, newY);
+        
+        // Announce position change to screen readers (throttled)
+        if (Date.now() - (dragStartDataRef.current?.startTime || 0) > 500) {
+          announceDragPosition(hotspot.title, newX, newY);
+        }
       }
     };
 
@@ -216,15 +239,22 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       // Reset drag state
       if (isDragging) {
         setIsDragging(false);
+        // Announce drag end to screen readers
+        announceDragState(hotspot.title, false);
       }
       
       // Signal end of drag interaction
       onDragStateChange?.(false);
+      
+      // Release drag gesture
+      gestureCoordination.releaseGesture('drag');
 
       // If it was a quick tap without drag, show info
       if (!dragThresholdRef.current && dragStartDataRef.current && 
           Date.now() - dragStartDataRef.current.startTime < 300) {
         onFocusRequest(hotspot.id);
+        // Announce focus to screen readers
+        announceFocus(hotspot.title);
       }
       
       // Clean up
@@ -241,7 +271,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp, { passive: false });
 
-  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers]);
+  }, [isEditing, isDragging, isHolding, onFocusRequest, onEditRequest, onPositionChange, hotspot, imageElement, onDragStateChange, isMobile, cleanupEventHandlers, gestureCoordination, announceDragState, announceDragPosition, announceFocus]);
   
 
   useEffect(() => {
@@ -266,9 +296,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
       // Ensure drag state is reset if component unmounts during drag
       if (isDragging) {
         onDragStateChange?.(false);
+        gestureCoordination.releaseGesture('drag');
       }
     };
-  }, [isDragging, onDragStateChange, hotspot.id, cleanupEventHandlers]);
+  }, [isDragging, onDragStateChange, hotspot.id, cleanupEventHandlers, gestureCoordination, announceDragState]);
 
   const timelinePulseClasses = isPulsing ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` : '';
   const continuousPulseDotClasses = isContinuouslyPulsing ? 'subtle-pulse-animation' : '';
@@ -318,6 +349,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
         role="button"
         aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (hold to edit, drag to move)' : ''}`}
         aria-pressed={isHolding} // Indicate if the hotspot is currently pressed
+        aria-grabbed={isDragging} // Indicate if the hotspot is being dragged
+        aria-dropeffect={isEditing && onPositionChange ? "move" : "none"} // Indicate drop effect when draggable
         tabIndex={0} // Make it focusable
         data-hotspot-id={hotspot.id} // Add data-hotspot-id attribute
       >

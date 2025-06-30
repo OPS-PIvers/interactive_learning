@@ -213,6 +213,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       doubleTapZoomFactor: 2.0,
       isDragging: isDragModeActive,
       isEditing: isEditing,
+      isDragActive: isDragModeActive, // Add missing isDragActive parameter
     }
   );
 
@@ -1671,12 +1672,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const handleDragStateChange = useCallback((isDragging: boolean) => {
     console.log('Debug [InteractiveModule]: Drag state changed', {
       isDragging,
-      previousState: isDragModeActive,
       timestamp: Date.now()
     });
     
     setIsDragModeActive(isDragging);
-  }, [isDragModeActive]);
+  }, []); // Remove isDragModeActive dependency to prevent stale closures
 
 
   // Updated handleImageOrHotspotClick function

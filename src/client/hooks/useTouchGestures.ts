@@ -1,6 +1,7 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { ImageTransformState } from '../../shared/types';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
+import { useGestureCoordination } from './useGestureCoordination';
 
 const DOUBLE_TAP_THRESHOLD = 300; // ms
 const PAN_THRESHOLD_PIXELS = 5; // For distinguishing tap from pan
@@ -12,12 +13,14 @@ interface TouchGestureState {
   lastTap: number; // Timestamp of the last tap
   isPanning: boolean;
   panStartCoords: { x: number; y: number } | null;
+  isActive: boolean; // Track if any gesture is currently active
 }
 
 export interface TouchGestureHandlers {
   handleTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
   handleTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
   handleTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void;
+  isGestureActive: () => boolean; // Add method to check if gesture is active
   // handleDoubleTap is implicitly handled by touchEnd/touchStart logic
 }
 
@@ -44,6 +47,9 @@ export const useTouchGestures = (
     isDragActive = false,
   } = options || {};
 
+  // Add gesture coordination
+  const gestureCoordination = useGestureCoordination();
+
   const gestureStateRef = useRef<TouchGestureState>({
     startDistance: null,
     startCenter: null,
@@ -51,6 +57,7 @@ export const useTouchGestures = (
     lastTap: 0,
     isPanning: false,
     panStartCoords: null,
+    isActive: false,
   });
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
@@ -67,21 +74,32 @@ export const useTouchGestures = (
       return;
     }
     
+    const gestureState = gestureStateRef.current;
+    // Prevent race conditions by checking if another gesture is already active
+    if (gestureState.isActive) {
+      console.log('Debug [useTouchGestures]: Touch start blocked - gesture already active');
+      return;
+    }
+    
     const touches = e.touches;
     const touchCount = touches.length;
     const now = Date.now();
-    const gestureState = gestureStateRef.current;
 
     if (touchCount === 1) {
       const touch = touches[0];
-      // Potential single tap or start of a pan
-      gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
-      gestureState.startTransform = { ...imageTransform }; // Capture transform at pan start
-
+      
       // Double tap detection - optimize with early return
       const timeSinceLastTap = now - gestureState.lastTap;
       if (timeSinceLastTap < DOUBLE_TAP_THRESHOLD) {
-        // This is a double tap - handle immediately
+        // This is a double tap - try to claim zoom gesture
+        if (!gestureCoordination.claimGesture('zoom')) {
+          console.log('Debug [useTouchGestures]: Double tap zoom blocked by gesture coordination');
+          return;
+        }
+        
+        // Mark gesture as active
+        gestureState.isActive = true;
+        
         if (shouldPreventDefault(e.nativeEvent, 'tap')) {
           e.preventDefault();
         }
@@ -127,17 +145,39 @@ export const useTouchGestures = (
         if (doubleTapTimeoutRef.current) {
           clearTimeout(doubleTapTimeoutRef.current);
         }
-        doubleTapTimeoutRef.current = window.setTimeout(() => setIsTransforming(false), 300); // Animation duration
+        doubleTapTimeoutRef.current = window.setTimeout(() => {
+          setIsTransforming(false);
+          gestureCoordination.releaseGesture('zoom');
+        }, 300); // Animation duration
         return;
       }
+      
+      // Single tap - try to claim tap gesture
+      if (!gestureCoordination.claimGesture('tap')) {
+        console.log('Debug [useTouchGestures]: Single tap blocked by gesture coordination');
+        return;
+      }
+      
+      // Mark gesture as potentially active
+      gestureState.isActive = true;
+      // Potential single tap or start of a pan
+      gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
+      gestureState.startTransform = { ...imageTransform }; // Capture transform at pan start
       gestureState.lastTap = now;
     } else if (touchCount === 2) {
-      // Pinch-to-zoom initialization
+      // Pinch-to-zoom initialization - try to claim zoom gesture
+      if (!gestureCoordination.claimGesture('zoom')) {
+        console.log('Debug [useTouchGestures]: Pinch zoom blocked by gesture coordination');
+        return;
+      }
+      
       if (shouldPreventDefault(e.nativeEvent, 'zoom')) {
         e.preventDefault();
       }
       setIsTransforming(true);
       
+      // Mark gesture as active
+      gestureState.isActive = true;
       // Cache values for performance
       const touch1 = touches[0];
       const touch2 = touches[1];
@@ -146,7 +186,7 @@ export const useTouchGestures = (
       gestureState.startTransform = { ...imageTransform };
       gestureState.isPanning = false; // Stop panning if it was active
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive]);
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, gestureCoordination]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
@@ -160,9 +200,14 @@ export const useTouchGestures = (
       return;
     }
     
+    const gestureState = gestureStateRef.current;
+    // Only proceed if this gesture is active
+    if (!gestureState.isActive) {
+      return;
+    }
+    
     const touches = e.touches;
     const touchCount = touches.length;
-    const gestureState = gestureStateRef.current;
 
     if (touchCount === 1 && gestureState.panStartCoords && gestureState.startTransform) {
       // Single-finger pan - optimize coordinate access
@@ -175,6 +220,12 @@ export const useTouchGestures = (
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
         if (absDeltaX > PAN_THRESHOLD_PIXELS || absDeltaY > PAN_THRESHOLD_PIXELS) {
+          // Try to upgrade from tap to pan gesture
+          if (!gestureCoordination.claimGesture('pan')) {
+            console.log('Debug [useTouchGestures]: Pan blocked by gesture coordination');
+            return;
+          }
+          
           gestureState.isPanning = true;
           if (shouldPreventDefault(e.nativeEvent, 'pan')) {
             e.preventDefault(); // Start preventing default once panning is confirmed
@@ -230,7 +281,7 @@ export const useTouchGestures = (
         }, { minScale, maxScale })
       );
     }
-  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive]);
+  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, gestureCoordination]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
@@ -253,12 +304,22 @@ export const useTouchGestures = (
        e.preventDefault();
     }
 
+    // Release appropriate gestures based on what was active
+    if (wasZooming) {
+      gestureCoordination.releaseGesture('zoom');
+    } else if (wasPanning) {
+      gestureCoordination.releaseGesture('pan');
+    } else {
+      gestureCoordination.releaseGesture('tap');
+    }
+
     // Reset gesture state efficiently - batch updates
     gestureState.startDistance = null;
     gestureState.startCenter = null;
     gestureState.startTransform = null;
     gestureState.isPanning = false;
     gestureState.panStartCoords = null;
+    gestureState.isActive = false; // Mark gesture as inactive
 
     // Optimize transform state updates - only call setIsTransforming if needed
     const remainingTouches = e.touches.length;
@@ -274,7 +335,7 @@ export const useTouchGestures = (
     }
     // Double tap transforming is handled in touchStart with its own timeout
 
-  }, [setIsTransforming, isDragging, isEditing, isDragActive]);
+  }, [setIsTransforming, isDragging, isEditing, isDragActive, gestureCoordination]);
 
   // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {
@@ -288,10 +349,16 @@ export const useTouchGestures = (
     };
   }, []); // Empty dependency array means this runs on mount and cleans up on unmount
 
+  // Add method to check if gesture is currently active
+  const isGestureActive = useCallback(() => {
+    return gestureStateRef.current.isActive || isDragging || isEditing || isDragActive;
+  }, [isDragging, isEditing, isDragActive]);
+
   return {
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
+    isGestureActive,
     // touchState can be exposed if needed by the component, though internal ref is often enough
     // touchState: gestureStateRef.current
   };
