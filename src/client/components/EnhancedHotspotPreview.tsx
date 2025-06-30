@@ -61,48 +61,56 @@ const SpotlightHandles: React.FC<{
     setDragStart({ x: e.clientX, y: e.clientY });
   }, []);
 
+  // Use refs to avoid re-attaching event listeners on every mouse movement
+  const dragStartRef = useRef(dragStart);
+  const dragTypeRef = useRef(dragType);
+  const positionRef = useRef(position);
+  
+  // Update refs when values change
+  dragStartRef.current = dragStart;
+  dragTypeRef.current = dragType;
+  positionRef.current = position;
+
   useEffect(() => {
     let currentDragContainer: HTMLDivElement | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Check isDragging state via a ref or ensure it's stable if passed in dependency array
-      // For this case, isDragging is component state, so it's fine.
-      if (!isDragging || !currentDragContainer) return;
+      if (!currentDragContainer) return;
     
       const containerRect = currentDragContainer.getBoundingClientRect();
-      const deltaX = e.clientX - dragStart.x; // dragStart is component state
-      const deltaY = e.clientY - dragStart.y;
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
     
-      if (dragType === 'move') { // dragType is component state
+      if (dragTypeRef.current === 'move') {
         const percentDeltaX = (deltaX / containerRect.width) * 100;
         const percentDeltaY = (deltaY / containerRect.height) * 100;
 
-        const spotlightWidthPercent = (position.width / containerRect.width) * 100; // position is a prop
-        const spotlightHeightPercent = (position.height / containerRect.height) * 100;
+        const spotlightWidthPercent = (positionRef.current.width / containerRect.width) * 100;
+        const spotlightHeightPercent = (positionRef.current.height / containerRect.height) * 100;
 
-        const newX = Math.max(spotlightWidthPercent / 2 + 2, Math.min(100 - spotlightWidthPercent / 2 - 2, position.x + percentDeltaX));
-        const newY = Math.max(spotlightHeightPercent / 2 + 2, Math.min(100 - spotlightHeightPercent / 2 - 2, position.y + percentDeltaY));
+        const newX = Math.max(spotlightWidthPercent / 2 + 2, Math.min(100 - spotlightWidthPercent / 2 - 2, positionRef.current.x + percentDeltaX));
+        const newY = Math.max(spotlightHeightPercent / 2 + 2, Math.min(100 - spotlightHeightPercent / 2 - 2, positionRef.current.y + percentDeltaY));
 
-        onPositionChange({ // onPositionChange is a prop
-          ...position,
+        onPositionChange({
+          ...positionRef.current,
           x: newX,
           y: newY
         });
       } else {
-        const newWidth = Math.max(30, Math.min(300, position.width + deltaX));
-        const newHeight = Math.max(30, Math.min(300, position.height + deltaY));
+        const newWidth = Math.max(30, Math.min(300, positionRef.current.width + deltaX));
+        const newHeight = Math.max(30, Math.min(300, positionRef.current.height + deltaY));
 
         onPositionChange({
-          ...position,
+          ...positionRef.current,
           width: newWidth,
           height: newHeight
         });
       }
-      setDragStart({ x: e.clientX, y: e.clientY }); // Update dragStart state
+      setDragStart({ x: e.clientX, y: e.clientY });
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false); // Update isDragging state
+      setIsDragging(false);
       initialMouseDownEventRef.current = null;
       currentDragContainer = null;
     };
@@ -122,10 +130,10 @@ const SpotlightHandles: React.FC<{
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        currentDragContainer = null; // Clean up
+        currentDragContainer = null;
       };
     }
-  }, [isDragging, dragType, dragStart, position, onPositionChange, setIsDragging, setDragStart]); // Added setIsDragging, setDragStart to dependencies
+  }, [isDragging, onPositionChange, setIsDragging, setDragStart]); // Removed dragStart, dragType, position from dependencies
   
   return (
     <>
@@ -196,37 +204,47 @@ const TextHandles: React.FC<{
     setDragStart({ x: e.clientX, y: e.clientY });
   }, []);
 
+  // Use refs to avoid re-attaching event listeners on every mouse movement
+  const dragStartRef = useRef(dragStart);
+  const dragTypeRef = useRef(dragType);
+  const positionRef = useRef(position);
+  
+  // Update refs when values change
+  dragStartRef.current = dragStart;
+  dragTypeRef.current = dragType;
+  positionRef.current = position;
+
   useEffect(() => {
     let currentDragContainer: HTMLDivElement | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !currentDragContainer) return;
+      if (!currentDragContainer) return;
     
       const containerRect = currentDragContainer.getBoundingClientRect();
-      const deltaX = e.clientX - dragStart.x;
-      const deltaY = e.clientY - dragStart.y;
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
     
-      if (dragType === 'move') {
+      if (dragTypeRef.current === 'move') {
         const percentDeltaX = (deltaX / containerRect.width) * 100;
         const percentDeltaY = (deltaY / containerRect.height) * 100;
 
-        const textWidthPercent = (position.width / containerRect.width) * 100;
-        const textHeightPercent = (position.height / containerRect.height) * 100;
+        const textWidthPercent = (positionRef.current.width / containerRect.width) * 100;
+        const textHeightPercent = (positionRef.current.height / containerRect.height) * 100;
 
-        const newX = Math.max(textWidthPercent / 2 + 2, Math.min(100 - textWidthPercent / 2 - 2, position.x + percentDeltaX));
-        const newY = Math.max(textHeightPercent / 2 + 2, Math.min(100 - textHeightPercent / 2 - 2, position.y + percentDeltaY));
+        const newX = Math.max(textWidthPercent / 2 + 2, Math.min(100 - textWidthPercent / 2 - 2, positionRef.current.x + percentDeltaX));
+        const newY = Math.max(textHeightPercent / 2 + 2, Math.min(100 - textHeightPercent / 2 - 2, positionRef.current.y + percentDeltaY));
 
         onPositionChange({
-          ...position,
+          ...positionRef.current,
           x: newX,
           y: newY
         });
       } else {
-        const newWidth = Math.max(100, Math.min(400, position.width + deltaX));
-        const newHeight = Math.max(40, Math.min(200, position.height + deltaY));
+        const newWidth = Math.max(100, Math.min(400, positionRef.current.width + deltaX));
+        const newHeight = Math.max(40, Math.min(200, positionRef.current.height + deltaY));
 
         onPositionChange({
-          ...position,
+          ...positionRef.current,
           width: newWidth,
           height: newHeight
         });
@@ -257,7 +275,7 @@ const TextHandles: React.FC<{
         currentDragContainer = null;
       };
     }
-  }, [isDragging, dragType, dragStart, position, onPositionChange, setIsDragging, setDragStart]);
+  }, [isDragging, onPositionChange, setIsDragging, setDragStart]); // Removed dragStart, dragType, position from dependencies
   
   return (
     <>
@@ -334,17 +352,25 @@ const InteractivePanZoomArea: React.FC<{
     onZoomLevelChange?.(newLevel);
   }, [zoomLevel, onZoomLevelChange]);
 
+  // Use refs to avoid re-attaching event listeners on every mouse movement
+  const dragStartRef = useRef(dragStart);
+  const dragTypeRef = useRef(dragType);
+  
+  // Update refs when values change
+  dragStartRef.current = dragStart;
+  dragTypeRef.current = dragType;
+
   useEffect(() => {
     let currentDragContainer: HTMLDivElement | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !currentDragContainer) return;
+      if (!currentDragContainer) return;
 
       const containerRect = currentDragContainer.getBoundingClientRect();
-      const deltaX = e.clientX - dragStart.x;
-      const deltaY = e.clientY - dragStart.y;
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
 
-      if (dragType === 'move') {
+      if (dragTypeRef.current === 'move') {
         const percentDeltaX = (deltaX / containerRect.width) * 100;
         const percentDeltaY = (deltaY / containerRect.height) * 100;
 
@@ -390,7 +416,7 @@ const InteractivePanZoomArea: React.FC<{
         currentDragContainer = null;
       };
     }
-  }, [isDragging, dragType, dragStart, setPanZoomArea, setIsDragging, setDragStart]); // panZoomArea removed from deps, setPanZoomArea added
+  }, [isDragging, setPanZoomArea, setIsDragging, setDragStart]); // Removed dragStart, dragType from dependencies
 
   return (
     <div
