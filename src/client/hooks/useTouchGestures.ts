@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useRef, useState } from 'react';
+import { RefObject, useCallback, useRef, useState, useEffect } from 'react';
 import { ImageTransformState } from '../../shared/types';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
 
@@ -257,6 +257,16 @@ export const useTouchGestures = (
     // Double tap transforming is handled in touchStart with its own timeout
 
   }, [setIsTransforming, isDragging, isEditing]);
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (transformTimeoutIdRef.current) {
+        clearTimeout(transformTimeoutIdRef.current);
+        transformTimeoutIdRef.current = undefined;
+      }
+    };
+  }, []);
 
   return {
     handleTouchStart,
