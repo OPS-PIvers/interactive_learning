@@ -119,6 +119,7 @@ const EventTypeToggle: React.FC<EventTypeToggleProps> = ({ selectedTypes, onTogg
                     {option.description}
                   </div>
                 </div>
+              </div>
             </button>
           );
         })}
