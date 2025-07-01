@@ -55,6 +55,10 @@ interface ImageEditCanvasProps {
   // Preview overlay support
   previewOverlayEvent?: TimelineEventData | null;
   onPreviewOverlayUpdate?: (event: TimelineEventData) => void;
+  
+  // Standardized positioning functions
+  getImageBounds?: () => { width: number; height: number; left: number; top: number } | null;
+  imageNaturalDimensions?: { width: number; height: number } | null;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -86,6 +90,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   isDragModeActive = false,
   previewOverlayEvent,
   onPreviewOverlayUpdate,
+  getImageBounds,
+  imageNaturalDimensions,
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
@@ -203,18 +209,37 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             {/* Preview Overlays - Only show when preview is active and in editing mode */}
             {isEditing && previewOverlayEvent && onPreviewOverlayUpdate && (
               <>
-                {/* Calculate container bounds for overlays */}
+                {/* Calculate container bounds for overlays using standardized bounds */}
                 {(() => {
-                  const imgElement = actualImageRef.current;
-                  if (!imgElement) return null;
+                  // Use standardized bounds if available, fallback to current method
+                  let containerBounds = null;
                   
-                  const imgRect = imgElement.getBoundingClientRect();
-                  const containerBounds = {
-                    width: imgRect.width,
-                    height: imgRect.height,
-                    left: 0, // Relative to the image
-                    top: 0
-                  };
+                  if (getImageBounds && imageNaturalDimensions) {
+                    // Use the same bounds calculation as view mode
+                    const imageBounds = getImageBounds();
+                    if (imageBounds) {
+                      containerBounds = {
+                        width: imageBounds.width,
+                        height: imageBounds.height,
+                        left: 0, // Relative to the image content area
+                        top: 0
+                      };
+                    }
+                  }
+                  
+                  // Fallback to original method if standardized bounds not available
+                  if (!containerBounds) {
+                    const imgElement = actualImageRef.current;
+                    if (!imgElement) return null;
+                    
+                    const imgRect = imgElement.getBoundingClientRect();
+                    containerBounds = {
+                      width: imgRect.width,
+                      height: imgRect.height,
+                      left: 0, // Relative to the image
+                      top: 0
+                    };
+                  }
 
                   // Render the appropriate overlay based on event type
                   if (previewOverlayEvent.type === InteractionType.PAN_ZOOM || 

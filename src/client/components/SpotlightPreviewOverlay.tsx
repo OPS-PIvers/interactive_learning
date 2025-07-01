@@ -51,8 +51,14 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
       const percentX = (deltaX / containerBounds.width) * 100;
       const percentY = (deltaY / containerBounds.height) * 100;
       
-      const newX = Math.max(0, Math.min(100, spotlight.x + percentX));
-      const newY = Math.max(0, Math.min(100, spotlight.y + percentY));
+      // Account for spotlight size to prevent going outside bounds
+      const spotlightWidthPercent = (spotlight.width / containerBounds.width) * 100;
+      const spotlightHeightPercent = (spotlight.height / containerBounds.height) * 100;
+      const maxX = Math.max(spotlightWidthPercent / 2, 100 - spotlightWidthPercent / 2);
+      const maxY = Math.max(spotlightHeightPercent / 2, 100 - spotlightHeightPercent / 2);
+      
+      const newX = Math.max(spotlightWidthPercent / 2, Math.min(maxX, spotlight.x + percentX));
+      const newY = Math.max(spotlightHeightPercent / 2, Math.min(maxY, spotlight.y + percentY));
 
       // Update drag start position for incremental movement
       setDragStart({ x: e.clientX, y: e.clientY });
@@ -63,22 +69,33 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
         spotlightY: newY
       });
     } else if (isResizing) {
-      // Resize the spotlight area
-      let newWidth = Math.max(50, spotlight.width + deltaX);
-      let newHeight = Math.max(50, spotlight.height + deltaY);
+      // Resize the spotlight area with container-based constraints
+      const minSize = Math.min(containerBounds.width, containerBounds.height) * 0.1; // 10% of smallest dimension
+      const maxSize = Math.min(containerBounds.width, containerBounds.height) * 0.8; // 80% of smallest dimension
+      
+      let newWidth = Math.max(minSize, Math.min(maxSize, spotlight.width + deltaX));
+      let newHeight = Math.max(minSize, Math.min(maxSize, spotlight.height + deltaY));
       
       // For circles, maintain aspect ratio
       if (spotlight.shape === 'circle') {
         const avgSize = (newWidth + newHeight) / 2;
-        newWidth = avgSize;
-        newHeight = avgSize;
+        newWidth = Math.max(minSize, Math.min(maxSize, avgSize));
+        newHeight = newWidth;
       }
+
+      // Ensure spotlight stays within container bounds
+      const spotlightWidthPercent = (newWidth / containerBounds.width) * 100;
+      const spotlightHeightPercent = (newHeight / containerBounds.height) * 100;
+      const adjustedX = Math.max(spotlightWidthPercent / 2, Math.min(100 - spotlightWidthPercent / 2, spotlight.x));
+      const adjustedY = Math.max(spotlightHeightPercent / 2, Math.min(100 - spotlightHeightPercent / 2, spotlight.y));
 
       // Update drag start position for incremental resizing
       setDragStart({ x: e.clientX, y: e.clientY });
 
       onUpdate({
         ...event,
+        spotlightX: adjustedX,
+        spotlightY: adjustedY,
         spotlightWidth: newWidth,
         spotlightHeight: newHeight
       });
@@ -104,9 +121,17 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
 
   if (!containerBounds) return null;
 
-  // Calculate position in pixels
-  const leftPx = (spotlight.x / 100) * containerBounds.width - spotlight.width / 2;
-  const topPx = (spotlight.y / 100) * containerBounds.height - spotlight.height / 2;
+  // Calculate position in pixels with bounds validation
+  const centerX = (spotlight.x / 100) * containerBounds.width;
+  const centerY = (spotlight.y / 100) * containerBounds.height;
+  const leftPx = Math.max(0, Math.min(
+    containerBounds.width - spotlight.width, 
+    centerX - spotlight.width / 2
+  ));
+  const topPx = Math.max(0, Math.min(
+    containerBounds.height - spotlight.height, 
+    centerY - spotlight.height / 2
+  ));
 
   return (
     <>

@@ -53,12 +53,15 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
     const deltaY = e.clientY - dragStart.y;
 
     if (isDragging) {
-      // Convert pixel movement to percentage
+      // Convert pixel movement to percentage with more precision
       const percentX = (deltaX / containerBounds.width) * 100;
       const percentY = (deltaY / containerBounds.height) * 100;
       
-      const maxX = 100 - (textBox.width / containerBounds.width) * 100;
-      const maxY = 100 - (textBox.height / containerBounds.height) * 100;
+      // Calculate max positions accounting for text box size as percentage
+      const textWidthPercent = (textBox.width / containerBounds.width) * 100;
+      const textHeightPercent = (textBox.height / containerBounds.height) * 100;
+      const maxX = Math.max(0, 100 - textWidthPercent);
+      const maxY = Math.max(0, 100 - textHeightPercent);
       
       const newX = Math.max(0, Math.min(maxX, textBox.x + percentX));
       const newY = Math.max(0, Math.min(maxY, textBox.y + percentY));
@@ -72,15 +75,28 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
         textY: newY
       });
     } else if (isResizing) {
-      // Resize the text box
-      const newWidth = Math.max(100, Math.min(containerBounds.width * 0.8, textBox.width + deltaX));
-      const newHeight = Math.max(40, Math.min(containerBounds.height * 0.6, textBox.height + deltaY));
+      // Resize the text box with constraints based on container bounds
+      const minWidth = Math.max(100, containerBounds.width * 0.1); // 10% min width
+      const maxWidth = containerBounds.width * 0.8; // 80% max width
+      const minHeight = Math.max(40, containerBounds.height * 0.05); // 5% min height
+      const maxHeight = containerBounds.height * 0.6; // 60% max height
+      
+      const newWidth = Math.max(minWidth, Math.min(maxWidth, textBox.width + deltaX));
+      const newHeight = Math.max(minHeight, Math.min(maxHeight, textBox.height + deltaY));
+
+      // Ensure the text box doesn't go outside bounds when resizing
+      const textWidthPercent = (newWidth / containerBounds.width) * 100;
+      const textHeightPercent = (newHeight / containerBounds.height) * 100;
+      const adjustedX = Math.min(textBox.x, 100 - textWidthPercent);
+      const adjustedY = Math.min(textBox.y, 100 - textHeightPercent);
 
       // Update drag start position for incremental resizing
       setDragStart({ x: e.clientX, y: e.clientY });
 
       onUpdate({
         ...event,
+        textX: adjustedX,
+        textY: adjustedY,
         textWidth: newWidth,
         textHeight: newHeight
       });
@@ -138,9 +154,15 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
 
   if (!containerBounds) return null;
 
-  // Calculate position in pixels
-  const leftPx = (textBox.x / 100) * containerBounds.width;
-  const topPx = (textBox.y / 100) * containerBounds.height;
+  // Calculate position in pixels with bounds validation
+  const leftPx = Math.max(0, Math.min(
+    containerBounds.width - textBox.width, 
+    (textBox.x / 100) * containerBounds.width
+  ));
+  const topPx = Math.max(0, Math.min(
+    containerBounds.height - textBox.height, 
+    (textBox.y / 100) * containerBounds.height
+  ));
 
   return (
     <div

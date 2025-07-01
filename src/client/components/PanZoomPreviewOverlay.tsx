@@ -66,12 +66,15 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
     const deltaY = e.clientY - dragStart.y;
 
     if (isDragging) {
-      // Convert pixel movement to percentage - use smaller movement for better control
+      // Convert pixel movement to percentage with precise bounds checking
       const percentX = (deltaX / containerBounds.width) * 100;
       const percentY = (deltaY / containerBounds.height) * 100;
       
-      const maxX = Math.max(0, 100 - (zoomArea.width / containerBounds.width) * 100);
-      const maxY = Math.max(0, 100 - (zoomArea.height / containerBounds.height) * 100);
+      // Calculate max positions accounting for zoom area size as percentage
+      const zoomWidthPercent = (zoomArea.width / containerBounds.width) * 100;
+      const zoomHeightPercent = (zoomArea.height / containerBounds.height) * 100;
+      const maxX = Math.max(0, 100 - zoomWidthPercent);
+      const maxY = Math.max(0, 100 - zoomHeightPercent);
       
       const newX = Math.max(0, Math.min(maxX, zoomArea.x + percentX));
       const newY = Math.max(0, Math.min(maxY, zoomArea.y + percentY));
@@ -85,30 +88,51 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
         targetY: newY
       });
     } else if (isResizing) {
-      // For pan/zoom, resizing changes the zoom level dynamically
-      // Calculate new zoom based on rectangle size change
+      // For pan/zoom, resizing changes the zoom level with better constraints
       const currentWidth = zoomArea.width;
       const currentHeight = zoomArea.height;
       
-      // Use the diagonal distance for more intuitive resizing
-      const currentSize = Math.sqrt(currentWidth * currentWidth + currentHeight * currentHeight);
-      const deltaSize = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
-      // Determine if we're making it bigger or smaller
+      // Use the average of width and height changes for more stable resizing
+      const avgDelta = (Math.abs(deltaX) + Math.abs(deltaY)) / 2;
       const isIncreasing = deltaX > 0 || deltaY > 0;
-      const sizeChange = isIncreasing ? deltaSize : -deltaSize;
       
-      // Calculate new zoom level based on size change
-      // Smaller rectangle = higher zoom, larger rectangle = lower zoom
-      const sizeFactor = 1 - (sizeChange / currentSize) * 0.5;
-      const newZoom = Math.max(0.5, Math.min(10, zoomArea.zoom / sizeFactor));
+      // Calculate zoom change based on container size
+      const containerSize = Math.min(containerBounds.width, containerBounds.height);
+      const sizeChangeFactor = (avgDelta / containerSize) * 2; // Scale factor for sensitivity
+      
+      let newZoom;
+      if (isIncreasing) {
+        // Making rectangle bigger = lower zoom (zoom out)
+        newZoom = Math.max(0.5, zoomArea.zoom - sizeChangeFactor);
+      } else {
+        // Making rectangle smaller = higher zoom (zoom in)
+        newZoom = Math.min(10, zoomArea.zoom + sizeChangeFactor);
+      }
+
+      // Ensure zoom area doesn't exceed container bounds
+      const newWidth = calculateViewableSize(containerBounds.width, newZoom);
+      const newHeight = calculateViewableSize(containerBounds.height, newZoom);
+      const newWidthPercent = (newWidth / containerBounds.width) * 100;
+      const newHeightPercent = (newHeight / containerBounds.height) * 100;
+      
+      // Adjust position if the new zoom area would exceed bounds
+      const adjustedX = Math.min(zoomArea.x, 100 - newWidthPercent);
+      const adjustedY = Math.min(zoomArea.y, 100 - newHeightPercent);
 
       // Update drag start position for incremental resizing
       setDragStart({ x: e.clientX, y: e.clientY });
 
-      handleZoomChange(newZoom);
+      // Update both zoom and position if needed
+      onUpdate({
+        ...event,
+        targetX: adjustedX,
+        targetY: adjustedY,
+        zoomLevel: newZoom,
+        zoomFactor: newZoom,
+        zoom: newZoom
+      });
     }
-  }, [isDragging, isResizing, dragStart, zoomArea, containerBounds, event, onUpdate]);
+  }, [isDragging, isResizing, dragStart, zoomArea, containerBounds, event, onUpdate, calculateViewableSize]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -150,14 +174,24 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
       }
     `;
     document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
   }, []);
 
   if (!containerBounds) return null;
 
-  // Calculate position in pixels
-  const leftPx = (zoomArea.x / 100) * containerBounds.width;
-  const topPx = (zoomArea.y / 100) * containerBounds.height;
+  // Calculate position in pixels with bounds validation
+  const leftPx = Math.max(0, Math.min(
+    containerBounds.width - zoomArea.width, 
+    (zoomArea.x / 100) * containerBounds.width
+  ));
+  const topPx = Math.max(0, Math.min(
+    containerBounds.height - zoomArea.height, 
+    (zoomArea.y / 100) * containerBounds.height
+  ));
 
   return (
     <div
@@ -173,7 +207,7 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
       }}
       onMouseDown={(e) => {
         // Don't start dragging if we're interacting with the slider
-        if (isZoomSliding || e.target.closest('.slider-container')) {
+        if (isZoomSliding || (e.target as Element)?.closest?.('.slider-container')) {
           return;
         }
         handleMouseDown(e, 'drag');

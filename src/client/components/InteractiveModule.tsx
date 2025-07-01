@@ -2026,6 +2026,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 currentStep={currentStep}
                 timelineEvents={timelineEvents}
                 onImageUpload={handleImageUpload}
+                getImageBounds={getSafeImageBounds}
+                imageNaturalDimensions={imageNaturalDimensions}
               />
             </div>
           </MobileEditorLayout>
@@ -2147,6 +2149,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     currentStep={currentStep}
                     timelineEvents={timelineEvents}
                     onImageUpload={handleImageUpload}
+                    getImageBounds={getSafeImageBounds}
+                    imageNaturalDimensions={imageNaturalDimensions}
                     previewOverlayEvent={previewOverlayEvent}
                     onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
                   />
