@@ -386,6 +386,84 @@
   }
 }
 
+/* ===== LANDING PAGE STYLES ===== */
+
+@media screen and (max-width: 768px) {
+  .landing-header {
+    padding: 16px 0;
+    margin-bottom: 24px;
+  }
+
+  .landing-title {
+    font-size: 1.875rem; /* 30px */
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    padding: 0 16px;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .landing-subtitle {
+    font-size: 1rem; /* 16px */
+    line-height: 1.4;
+    padding: 0 20px;
+    color: #94a3b8;
+  }
+
+  .landing-controls {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .landing-add-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .landing-add-button:active {
+    transform: scale(0.95);
+    transition-duration: 0.1s;
+  }
+}
+
+/* Desktop landing page improvements */
+@media screen and (min-width: 769px) {
+  .landing-title-container {
+    min-width: 0; /* Allow flex shrinking */
+    max-width: 100%;
+  }
+
+  .landing-title-responsive {
+    white-space: nowrap;
+    overflow: visible;
+  }
+
+  /* Responsive title sizing for different desktop widths */
+  @media screen and (max-width: 1024px) {
+    .landing-title-responsive {
+      font-size: 2.25rem; /* 36px */
+    }
+  }
+
+  @media screen and (max-width: 900px) {
+    .landing-title-responsive {
+      font-size: 2rem; /* 32px */
+    }
+  }
+}
+
 /* ===== UTILITY CLASSES ===== */
 
 @media screen and (max-width: 768px) {

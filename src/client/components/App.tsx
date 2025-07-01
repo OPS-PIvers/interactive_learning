@@ -148,27 +148,50 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
-      <header className="mb-8 text-center">
-        <div className="flex justify-between items-center max-w-6xl mx-auto mb-2">
-            <span className="w-1/3"></span> {/* Spacer */}
-            <h1 className="w-1/3 text-4xl sm:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-            Interactive Learning Hub
-            </h1>
-            <div className="w-1/3 flex justify-end items-center space-x-4">
-                {isAdmin && (
+      <header className="mb-6 sm:mb-8 text-center">
+        <div className="max-w-6xl mx-auto">
+          {/* Mobile Layout: Stacked */}
+          <div className="block sm:hidden">
+            <div className="flex justify-end items-center mb-3 px-2">
+              {isAdmin && (
                 <button
-                    onClick={handleCreateNewProject}
-                    className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
-                    title="Create New Project"
-                    aria-label="Create New Project"
+                  onClick={handleCreateNewProject}
+                  className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors mr-3"
+                  title="Create New Project"
+                  aria-label="Create New Project"
                 >
-                    <PlusCircleIcon className="w-7 h-7" />
+                  <PlusCircleIcon className="w-6 h-6" />
                 </button>
-                )}
-                <AdminToggle isAdmin={isAdmin} onToggle={() => setIsAdmin(prev => !prev)} />
+              )}
+              <AdminToggle isAdmin={isAdmin} onToggle={() => setIsAdmin(prev => !prev)} />
             </div>
+            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4">
+              Interactive Learning Hub
+            </h1>
+          </div>
+          
+          {/* Desktop Layout: Horizontal */}
+          <div className="hidden sm:flex justify-between items-center mb-2">
+            <div className="flex-1"></div> {/* Left spacer */}
+            <h1 className="flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap">
+              Interactive Learning Hub
+            </h1>
+            <div className="flex-1 flex justify-end items-center space-x-4">
+              {isAdmin && (
+                <button
+                  onClick={handleCreateNewProject}
+                  className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
+                  title="Create New Project"
+                  aria-label="Create New Project"
+                >
+                  <PlusCircleIcon className="w-7 h-7" />
+                </button>
+              )}
+              <AdminToggle isAdmin={isAdmin} onToggle={() => setIsAdmin(prev => !prev)} />
+            </div>
+          </div>
         </div>
-        <p className="text-slate-400 mt-2 text-lg">Create and explore engaging interactive modules.</p>
+        <p className="text-slate-400 mt-2 text-base sm:text-lg px-4">Create and explore engaging interactive modules.</p>
       </header>
 
       <div className="max-w-6xl mx-auto">
