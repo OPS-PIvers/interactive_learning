@@ -257,11 +257,23 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={onTogglePreview}
+            onClick={() => {
+              console.log('🔍 PREVIEW DEBUG: Eye icon clicked', { 
+                eventId: event.id, 
+                eventName: event.name, 
+                eventType: event.type,
+                isPreviewing 
+              });
+              onTogglePreview();
+            }}
             className="text-gray-400 hover:text-white"
             aria-label="Toggle Preview"
           >
-            <EyeIcon className={`w-5 h-5 ${isPreviewing ? 'text-blue-400' : ''}`} />
+            {isPreviewing ? (
+              <EyeSlashIcon className="w-5 h-5 text-blue-400" />
+            ) : (
+              <EyeIcon className="w-5 h-5" />
+            )}
           </button>
           <button
             onClick={() => setIsEditingTitle(!isEditingTitle)}

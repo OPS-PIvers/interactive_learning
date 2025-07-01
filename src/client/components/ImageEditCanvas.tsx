@@ -3,6 +3,9 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import HotspotViewer from './HotspotViewer';
 import FileUpload from './FileUpload';
 import { PlusIcon } from './icons/PlusIcon';
+import PanZoomPreviewOverlay from './PanZoomPreviewOverlay';
+import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
+import TextPreviewOverlay from './TextPreviewOverlay';
 
 // Z_INDEX might be needed if it was used for z-ordering within this canvas part
 // For now, assuming styles are self-contained or passed via classNames.
@@ -48,6 +51,10 @@ interface ImageEditCanvasProps {
   
   // Drag state management
   isDragModeActive?: boolean;
+  
+  // Preview overlay support
+  previewOverlayEvent?: TimelineEventData | null;
+  onPreviewOverlayUpdate?: (event: TimelineEventData) => void;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -77,6 +84,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   timelineEvents,
   onImageUpload,
   isDragModeActive = false,
+  previewOverlayEvent,
+  onPreviewOverlayUpdate,
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
@@ -190,6 +199,60 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 />
               </div>
             ))}
+
+            {/* Preview Overlays - Only show when preview is active and in editing mode */}
+            {isEditing && previewOverlayEvent && onPreviewOverlayUpdate && (
+              <>
+                {/* Calculate container bounds for overlays */}
+                {(() => {
+                  const imgElement = actualImageRef.current;
+                  if (!imgElement) return null;
+                  
+                  const imgRect = imgElement.getBoundingClientRect();
+                  const containerBounds = {
+                    width: imgRect.width,
+                    height: imgRect.height,
+                    left: 0, // Relative to the image
+                    top: 0
+                  };
+
+                  // Render the appropriate overlay based on event type
+                  if (previewOverlayEvent.type === InteractionType.PAN_ZOOM || 
+                      previewOverlayEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+                    return (
+                      <PanZoomPreviewOverlay
+                        event={previewOverlayEvent}
+                        onUpdate={onPreviewOverlayUpdate}
+                        containerBounds={containerBounds}
+                      />
+                    );
+                  }
+                  
+                  if (previewOverlayEvent.type === InteractionType.SPOTLIGHT || 
+                      previewOverlayEvent.type === InteractionType.HIGHLIGHT_HOTSPOT) {
+                    return (
+                      <SpotlightPreviewOverlay
+                        event={previewOverlayEvent}
+                        onUpdate={onPreviewOverlayUpdate}
+                        containerBounds={containerBounds}
+                      />
+                    );
+                  }
+                  
+                  if (previewOverlayEvent.type === InteractionType.SHOW_TEXT) {
+                    return (
+                      <TextPreviewOverlay
+                        event={previewOverlayEvent}
+                        onUpdate={onPreviewOverlayUpdate}
+                        containerBounds={containerBounds}
+                      />
+                    );
+                  }
+                  
+                  return null;
+                })()}
+              </>
+            )}
           </div>
         ) : (
           onImageUpload && ( // Only show upload if handler is provided

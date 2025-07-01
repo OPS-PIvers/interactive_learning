@@ -25,6 +25,7 @@ interface EnhancedHotspotEditorModalProps {
   onClose: () => void;
   allHotspots: HotspotData[];
   onPreviewEvent?: (eventId: string) => void; // New callback for previewing on main image
+  onPreviewOverlay?: (event: TimelineEventData | null) => void; // New callback for preview overlays
 }
 
 // Event Type Selector Component
@@ -38,14 +39,15 @@ const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) =
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-2 gap-2">
       {eventTypes.map(({ type, label }) => (
         <button
           key={type}
           onClick={() => onSelectEventType(type)}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1"
+          className="px-2 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs flex flex-col items-center gap-1"
         >
-          <span>+ {label}</span>
+          <span className="text-lg">+</span>
+          <span>{label}</span>
         </button>
       ))}
     </div>
@@ -60,7 +62,7 @@ const HotspotEditorToolbar: React.FC<{
   onDelete: () => void;
   onClose: () => void;
 }> = ({ title, onTitleChange, onSave, onDelete, onClose }) => (
-  <div className="p-3 bg-gray-900 flex items-center justify-between">
+  <div className="p-2 bg-gray-900 flex items-center justify-between border-b border-gray-700">
     <input
       type="text"
       value={title}
@@ -104,7 +106,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onDeleteEvent,
   onClose,
   allHotspots,
-  onPreviewEvent
+  onPreviewEvent,
+  onPreviewOverlay
 }) => {
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
@@ -192,15 +195,28 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   
   const handleTogglePreview = (eventId: string) => {
     const isCurrentlyPreviewing = previewingEventIds.includes(eventId);
+    const event = relatedEvents.find(e => e.id === eventId);
+    
+    console.log('🔍 PREVIEW DEBUG: handleTogglePreview called', { 
+      eventId, 
+      isCurrentlyPreviewing, 
+      previewingEventIds: [...previewingEventIds],
+      onPreviewOverlayExists: !!onPreviewOverlay,
+      eventFound: !!event
+    });
     
     if (isCurrentlyPreviewing) {
-      // Remove from preview
+      // Remove from preview - hide overlay
+      console.log('🔍 PREVIEW DEBUG: Removing from preview and hiding overlay');
       setPreviewingEventIds(prev => prev.filter(id => id !== eventId));
+      onPreviewOverlay?.(null); // Hide overlay
     } else {
-      // Add to preview
+      // Add to preview - show overlay for this event
+      console.log('🔍 PREVIEW DEBUG: Adding to preview and showing overlay');
       setPreviewingEventIds(prev => [...prev, eventId]);
-      // Notify parent to preview on main image
-      onPreviewEvent?.(eventId);
+      if (event) {
+        onPreviewOverlay?.(event); // Show overlay for this event
+      }
     }
   };
 
@@ -219,7 +235,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="fixed inset-0 z-50 flex justify-end pointer-events-none" onClick={onClose}>
-        <div className="w-full max-w-4xl h-full bg-gray-800 text-white flex flex-col pointer-events-auto shadow-2xl border-l border-gray-700" onClick={e => e.stopPropagation()}>
+        <div className="w-full max-w-sm h-full bg-gray-800 text-white flex flex-col pointer-events-auto shadow-2xl border-l border-gray-700" onClick={e => e.stopPropagation()}>
           <HotspotEditorToolbar 
             title={localHotspot.title || `Edit Hotspot`} 
             onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
@@ -232,13 +248,13 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             }} 
             onClose={onClose} 
           />
-          <div className="flex-grow flex flex-col p-4 gap-4 overflow-hidden">
-            <div className="flex flex-col gap-4">
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2">Events</h3>
+          <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
+            <div className="flex flex-col gap-3">
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <h3 className="text-base font-semibold mb-2">Events</h3>
                 <EventTypeSelector onSelectEventType={handleAddEvent} />
               </div>
-              <div className="flex-grow bg-gray-700 p-2 rounded-lg overflow-y-auto">
+              <div className="flex-grow bg-gray-700 p-2 rounded-lg overflow-y-auto min-h-[200px] max-h-[400px]">
                 {localHotspotEvents?.map((event, index) => 
                   <EditableEventCard 
                     key={event.id} 

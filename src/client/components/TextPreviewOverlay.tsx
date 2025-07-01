@@ -1,0 +1,239 @@
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { TimelineEventData } from '../../shared/types';
+
+interface TextPreviewOverlayProps {
+  event: TimelineEventData;
+  onUpdate: (event: TimelineEventData) => void;
+  containerBounds: { width: number; height: number; left: number; top: number } | null;
+}
+
+const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
+  event,
+  onUpdate,
+  containerBounds
+}) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [tempText, setTempText] = useState('');
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Get current text properties with defaults
+  const textBox = {
+    x: event.textX || 50,
+    y: event.textY || 50,
+    width: event.textWidth || 200,
+    height: event.textHeight || 60,
+    content: event.content || event.textContent || 'Enter your text here...'
+  };
+
+  useEffect(() => {
+    setTempText(textBox.content);
+  }, [textBox.content]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, action: 'drag' | 'resize') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (action === 'drag') {
+      setIsDragging(true);
+    } else {
+      setIsResizing(true);
+    }
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!containerBounds || (!isDragging && !isResizing)) return;
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+
+    if (isDragging) {
+      // Convert pixel movement to percentage
+      const percentX = (deltaX / containerBounds.width) * 100;
+      const percentY = (deltaY / containerBounds.height) * 100;
+      
+      const maxX = 100 - (textBox.width / containerBounds.width) * 100;
+      const maxY = 100 - (textBox.height / containerBounds.height) * 100;
+      
+      const newX = Math.max(0, Math.min(maxX, textBox.x + percentX));
+      const newY = Math.max(0, Math.min(maxY, textBox.y + percentY));
+
+      // Update drag start position for incremental movement
+      setDragStart({ x: e.clientX, y: e.clientY });
+
+      onUpdate({
+        ...event,
+        textX: newX,
+        textY: newY
+      });
+    } else if (isResizing) {
+      // Resize the text box
+      const newWidth = Math.max(100, Math.min(containerBounds.width * 0.8, textBox.width + deltaX));
+      const newHeight = Math.max(40, Math.min(containerBounds.height * 0.6, textBox.height + deltaY));
+
+      // Update drag start position for incremental resizing
+      setDragStart({ x: e.clientX, y: e.clientY });
+
+      onUpdate({
+        ...event,
+        textWidth: newWidth,
+        textHeight: newHeight
+      });
+    }
+  }, [isDragging, isResizing, dragStart, textBox, containerBounds, event, onUpdate]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  const handleTextEdit = useCallback(() => {
+    setIsEditing(true);
+    setTimeout(() => {
+      textAreaRef.current?.focus();
+      textAreaRef.current?.select();
+    }, 0);
+  }, []);
+
+  const handleTextSave = useCallback(() => {
+    setIsEditing(false);
+    onUpdate({
+      ...event,
+      content: tempText,
+      textContent: tempText
+    });
+  }, [event, tempText, onUpdate]);
+
+  const handleTextCancel = useCallback(() => {
+    setIsEditing(false);
+    setTempText(textBox.content);
+  }, [textBox.content]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleTextSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleTextCancel();
+    }
+  }, [handleTextSave, handleTextCancel]);
+
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+
+  if (!containerBounds) return null;
+
+  // Calculate position in pixels
+  const leftPx = (textBox.x / 100) * containerBounds.width;
+  const topPx = (textBox.y / 100) * containerBounds.height;
+
+  return (
+    <div
+      ref={overlayRef}
+      className="absolute border-2 border-green-500 bg-black/80 text-white rounded cursor-move"
+      style={{
+        left: leftPx,
+        top: topPx,
+        width: textBox.width,
+        height: textBox.height,
+        zIndex: 1000
+      }}
+      onMouseDown={(e) => !isEditing && handleMouseDown(e, 'drag')}
+    >
+      {/* Text type indicator */}
+      <div className="absolute -top-8 left-0 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
+        Text Overlay
+      </div>
+      
+      {/* Text content area */}
+      <div className="relative w-full h-full p-2 overflow-hidden">
+        {isEditing ? (
+          <textarea
+            ref={textAreaRef}
+            value={tempText}
+            onChange={(e) => setTempText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleTextSave}
+            className="w-full h-full bg-transparent text-white resize-none border-none outline-none text-sm"
+            placeholder="Enter your text here..."
+            style={{ fontFamily: 'inherit' }}
+          />
+        ) : (
+          <div
+            className="w-full h-full text-sm leading-relaxed cursor-text overflow-auto"
+            onClick={handleTextEdit}
+            title="Double-click to edit text"
+          >
+            {textBox.content || 'Enter your text here...'}
+          </div>
+        )}
+      </div>
+
+      {/* Edit button */}
+      {!isEditing && (
+        <button
+          className="absolute top-1 right-1 w-6 h-6 bg-green-500 text-white rounded text-xs hover:bg-green-400 transition-colors flex items-center justify-center"
+          onClick={handleTextEdit}
+          title="Edit text"
+        >
+          ✎
+        </button>
+      )}
+
+      {/* Save/Cancel buttons when editing */}
+      {isEditing && (
+        <div className="absolute top-1 right-1 flex gap-1">
+          <button
+            className="w-6 h-6 bg-green-500 text-white rounded text-xs hover:bg-green-400 transition-colors flex items-center justify-center"
+            onClick={handleTextSave}
+            title="Save text (Enter)"
+          >
+            ✓
+          </button>
+          <button
+            className="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-400 transition-colors flex items-center justify-center"
+            onClick={handleTextCancel}
+            title="Cancel (Escape)"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Resize handle */}
+      {!isEditing && (
+        <div
+          className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-nw-resize hover:bg-green-400 transition-colors"
+          onMouseDown={(e) => handleMouseDown(e, 'resize')}
+          title="Drag to resize text box"
+        />
+      )}
+      
+      {/* Corner indicators */}
+      {!isEditing && (
+        <>
+          <div className="absolute -top-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
+          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
+          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default TextPreviewOverlay;

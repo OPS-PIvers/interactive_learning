@@ -180,12 +180,43 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [imageTransform, setImageTransform] = useState<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
   const [isTransforming, setIsTransforming] = useState(false);
   
+  // TEMPORARY: Log imageTransform changes
+  useEffect(() => {
+    console.log('🔍 PREVIEW DEBUG: imageTransform state changed', imageTransform);
+  }, [imageTransform]);
+  
   // New state for editing mode
   const [editingZoom, setEditingZoom] = useState<number>(1); // Only for editing mode
   // Already exists for editor mode, ensure it's used in viewer mode too
   const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
+  
+  // Preview overlay state for visual editing
+  const [previewOverlayEvent, setPreviewOverlayEvent] = useState<TimelineEventData | null>(null);
+  
+  // TEMPORARY: Log state changes
+  useEffect(() => {
+    console.log('🔍 PREVIEW DEBUG: highlightedHotspotId state changed', highlightedHotspotId);
+  }, [highlightedHotspotId]);
+  
+  useEffect(() => {
+    console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
+  }, [previewOverlayEvent]);
+  
+  // Handle preview overlay updates
+  const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
+    console.log('🔍 PREVIEW DEBUG: handlePreviewOverlayUpdate called', { 
+      eventId: updatedEvent.id, 
+      type: updatedEvent.type 
+    });
+    
+    // Update the event in timeline events
+    setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    
+    // Update the preview overlay event
+    setPreviewOverlayEvent(updatedEvent);
+  }, []);
   
   // Refs to break dependency loops
   const isApplyingTransformRef = useRef(false);
@@ -960,6 +991,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     }
     return false;
   }, [isEditing, handleZoomReset]);
+
+  // REMOVED: Old event execution system replaced with preview overlays
+  // The eye icon preview now shows interactive editing overlays instead of executing events
 
   // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
   useEffect(() => {
@@ -2113,6 +2147,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     currentStep={currentStep}
                     timelineEvents={timelineEvents}
                     onImageUpload={handleImageUpload}
+                    previewOverlayEvent={previewOverlayEvent}
+                    onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
                   />
                 </div>
 
@@ -2373,12 +2409,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
             setSelectedHotspotForModal(null);
           }}
           allHotspots={hotspots}
-          onPreviewEvent={(eventId) => {
-            // Find the event and execute it for preview on main image
-            const event = timelineEvents.find(e => e.id === eventId);
-            if (event) {
-              handleTimelineEvent(event);
-            }
+          onPreviewOverlay={(event) => {
+            console.log('🔍 PREVIEW DEBUG: onPreviewOverlay called in InteractiveModule', { 
+              event: event ? { id: event.id, type: event.type, name: event.name } : null
+            });
+            setPreviewOverlayEvent(event);
           }}
         />
       )}
