@@ -211,12 +211,42 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       type: updatedEvent.type 
     });
     
-    // Update the event in timeline events
-    setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    // Check if the event actually changed to prevent infinite loops
+    const currentEvent = timelineEvents.find(e => e.id === updatedEvent.id);
+    const currentPreview = previewOverlayEvent;
     
-    // Update the preview overlay event
-    setPreviewOverlayEvent(updatedEvent);
-  }, []);
+    // Only update if there are actual changes
+    let hasTimelineChanges = false;
+    let hasPreviewChanges = false;
+    
+    if (currentEvent) {
+      // Check for meaningful changes in the timeline event
+      const eventChanged = JSON.stringify(currentEvent) !== JSON.stringify(updatedEvent);
+      if (eventChanged) {
+        hasTimelineChanges = true;
+      }
+    }
+    
+    if (currentPreview && currentPreview.id === updatedEvent.id) {
+      // Check for meaningful changes in the preview event
+      const previewChanged = JSON.stringify(currentPreview) !== JSON.stringify(updatedEvent);
+      if (previewChanged) {
+        hasPreviewChanges = true;
+      }
+    } else if (!currentPreview) {
+      // No current preview, this is a new one
+      hasPreviewChanges = true;
+    }
+    
+    // Only update state if there are actual changes
+    if (hasTimelineChanges) {
+      setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    }
+    
+    if (hasPreviewChanges) {
+      setPreviewOverlayEvent(updatedEvent);
+    }
+  }, [timelineEvents, previewOverlayEvent]);
   
   // Refs to break dependency loops
   const isApplyingTransformRef = useRef(false);
@@ -2028,6 +2058,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 onImageUpload={handleImageUpload}
                 getImageBounds={getSafeImageBounds}
                 imageNaturalDimensions={imageNaturalDimensions}
+                imageFitMode={imageFitMode}
               />
             </div>
           </MobileEditorLayout>
@@ -2151,6 +2182,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                     onImageUpload={handleImageUpload}
                     getImageBounds={getSafeImageBounds}
                     imageNaturalDimensions={imageNaturalDimensions}
+                    imageFitMode={imageFitMode}
                     previewOverlayEvent={previewOverlayEvent}
                     onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
                   />

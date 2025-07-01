@@ -59,6 +59,7 @@ interface ImageEditCanvasProps {
   // Standardized positioning functions
   getImageBounds?: () => { width: number; height: number; left: number; top: number } | null;
   imageNaturalDimensions?: { width: number; height: number } | null;
+  imageFitMode?: string;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -92,6 +93,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   onPreviewOverlayUpdate,
   getImageBounds,
   imageNaturalDimensions,
+  imageFitMode,
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
@@ -213,17 +215,46 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 {(() => {
                   // Use standardized bounds if available, fallback to current method
                   let containerBounds = null;
+                  let boundsSource = 'none';
                   
                   if (getImageBounds && imageNaturalDimensions) {
-                    // Use the same bounds calculation as view mode
-                    const imageBounds = getImageBounds();
-                    if (imageBounds) {
+                    // Calculate edit-mode bounds that match view-mode positioning
+                    const imgElement = actualImageRef.current;
+                    if (imgElement && imageNaturalDimensions) {
+                      const imgRect = imgElement.getBoundingClientRect();
+                      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+                      const containerAspect = imgRect.width / imgRect.height;
+                      
+                      // Calculate content area using the same logic as view mode
+                      let contentWidth, contentHeight;
+                      
+                      // Edit mode typically uses 'contain' behavior
+                      if (containerAspect > imageAspect) {
+                        // Container is wider - image height fills, width is letterboxed
+                        contentHeight = imgRect.height;
+                        contentWidth = contentHeight * imageAspect;
+                      } else {
+                        // Container is taller - image width fills, height is letterboxed
+                        contentWidth = imgRect.width;
+                        contentHeight = contentWidth / imageAspect;
+                      }
+                      
                       containerBounds = {
-                        width: imageBounds.width,
-                        height: imageBounds.height,
-                        left: 0, // Relative to the image content area
+                        width: contentWidth,
+                        height: contentHeight,
+                        left: 0,
                         top: 0
                       };
+                      boundsSource = 'edit-mode-calculated';
+                      console.log('📐 BOUNDS DEBUG: Using edit-mode calculated bounds', {
+                        containerBounds,
+                        imgRect,
+                        imageNaturalDimensions,
+                        imageAspect,
+                        containerAspect,
+                        imageFitMode,
+                        isEditing
+                      });
                     }
                   }
                   
@@ -239,6 +270,12 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                       left: 0, // Relative to the image
                       top: 0
                     };
+                    boundsSource = 'fallback';
+                    console.log('📐 BOUNDS DEBUG: Using fallback bounds', {
+                      containerBounds,
+                      imgRect,
+                      isEditing
+                    });
                   }
 
                   // Render the appropriate overlay based on event type
