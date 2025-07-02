@@ -3,6 +3,41 @@ import { ImageTransformState } from '../../shared/types';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
 // Removed gesture coordination - using simple touch handling
 
+// Throttle utility function for performance optimization
+const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): T => {
+  let timeoutId: number | null = null;
+  let lastExecTime = 0;
+
+  return ((...args: Parameters<T>) => {
+    const currentTime = Date.now();
+    const timeSinceLastExec = currentTime - lastExecTime;
+
+    if (timeSinceLastExec > delay) {
+      lastExecTime = currentTime;
+      // Clear any existing timeout that would execute the last call
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      return func(...args);
+    } else {
+      // If a timeout is already set, clear it to reset the timer with the new call
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      // Set a new timeout to execute after the remaining delay
+      timeoutId = window.setTimeout(() => {
+        lastExecTime = Date.now();
+        func(...args);
+        timeoutId = null; // Clear the timeoutId after execution
+      }, delay - timeSinceLastExec);
+    }
+  }) as T;
+};
+
 const DOUBLE_TAP_THRESHOLD = 300; // ms
 const PAN_THRESHOLD_PIXELS = 5; // For distinguishing tap from pan
 
@@ -62,7 +97,19 @@ export const useTouchGestures = (
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
 
+  // Add gesture cleanup function
+  const cleanupGesture = useCallback(() => {
+    const gestureState = gestureStateRef.current;
+    gestureState.startDistance = null;
+    gestureState.startCenter = null;
+    gestureState.startTransform = null;
+    gestureState.isPanning = false;
+    gestureState.panStartCoords = null;
+    gestureState.isActive = false;
+  }, []);
+
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    try {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
@@ -185,9 +232,14 @@ export const useTouchGestures = (
       gestureState.startTransform = { ...imageTransform };
       gestureState.isPanning = false; // Stop panning if it was active
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive]);
+    } catch (error) {
+      console.warn('Touch start error:', error);
+      cleanupGesture(); // Ensure cleanup on error
+    }
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  // Internal touch move handler with the heavy calculations
+  const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
@@ -290,6 +342,16 @@ export const useTouchGestures = (
     }
   }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive]);
 
+  // Throttled touch move handler to improve performance (60fps)
+  const throttledTouchMove = useCallback(
+    throttle((e: React.TouchEvent<HTMLDivElement>) => {
+      handleTouchMoveInternal(e);
+    }, 16), // ~60fps (1000ms / 60fps ≈ 16ms)
+    [handleTouchMoveInternal]
+  );
+
+  const handleTouchMove = throttledTouchMove;
+
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
@@ -351,14 +413,17 @@ export const useTouchGestures = (
   // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {
     return () => {
+      // Cleanup all timeouts
       if (doubleTapTimeoutRef.current) {
         clearTimeout(doubleTapTimeoutRef.current);
       }
       if (touchEndTimeoutRef.current) {
         clearTimeout(touchEndTimeoutRef.current);
       }
+      // Reset gesture state
+      cleanupGesture();
     };
-  }, []); // Empty dependency array means this runs on mount and cleans up on unmount
+  }, [cleanupGesture]); // Include cleanupGesture in dependencies
 
   // Add method to check if gesture is currently active
   const isGestureActive = useCallback(() => {
