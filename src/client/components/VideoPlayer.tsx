@@ -56,6 +56,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, []);
 
+  // Handle fullscreen state changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -89,15 +102,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const toggleFullscreen = () => {
-    if (videoRef.current) {
-      if (!isFullscreen) {
-        videoRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        document.exitFullscreen();
-        setIsFullscreen(false);
+  const toggleFullscreen = async () => {
+    try {
+      if (videoRef.current) {
+        if (!isFullscreen) {
+          await videoRef.current.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
       }
+    } catch (error) {
+      console.warn('Fullscreen toggle failed:', error);
     }
   };
 

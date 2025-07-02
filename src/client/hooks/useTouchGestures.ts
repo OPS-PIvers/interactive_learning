@@ -62,7 +62,19 @@ export const useTouchGestures = (
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
 
+  // Add gesture cleanup function
+  const cleanupGesture = useCallback(() => {
+    const gestureState = gestureStateRef.current;
+    gestureState.startDistance = null;
+    gestureState.startCenter = null;
+    gestureState.startTransform = null;
+    gestureState.isPanning = false;
+    gestureState.panStartCoords = null;
+    gestureState.isActive = false;
+  }, []);
+
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    try {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
@@ -185,7 +197,11 @@ export const useTouchGestures = (
       gestureState.startTransform = { ...imageTransform };
       gestureState.isPanning = false; // Stop panning if it was active
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive]);
+    } catch (error) {
+      console.warn('Touch start error:', error);
+      cleanupGesture(); // Ensure cleanup on error
+    }
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere
@@ -351,14 +367,17 @@ export const useTouchGestures = (
   // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {
     return () => {
+      // Cleanup all timeouts
       if (doubleTapTimeoutRef.current) {
         clearTimeout(doubleTapTimeoutRef.current);
       }
       if (touchEndTimeoutRef.current) {
         clearTimeout(touchEndTimeoutRef.current);
       }
+      // Reset gesture state
+      cleanupGesture();
     };
-  }, []); // Empty dependency array means this runs on mount and cleans up on unmount
+  }, [cleanupGesture]); // Include cleanupGesture in dependencies
 
   // Add method to check if gesture is currently active
   const isGestureActive = useCallback(() => {

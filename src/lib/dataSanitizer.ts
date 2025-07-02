@@ -32,11 +32,11 @@ export class DataSanitizer {
     
     // Ensure required fields are present with defaults if needed
     return {
+      ...sanitized, // Spread sanitized first to prevent undefined override
       id: event.id,
       step: event.step,
       name: event.name || '',
-      type: event.type,
-      ...sanitized
+      type: event.type
     };
   }
 
@@ -50,12 +50,12 @@ export class DataSanitizer {
     
     // Ensure required fields are present with defaults if needed
     return {
+      ...sanitized, // Spread sanitized first to prevent undefined override
       id: hotspot.id,
       x: hotspot.x,
       y: hotspot.y,
       title: hotspot.title || '',
-      description: hotspot.description || '',
-      ...sanitized
+      description: hotspot.description || ''
     };
   }
 
