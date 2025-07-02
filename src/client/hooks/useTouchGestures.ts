@@ -3,6 +3,41 @@ import { ImageTransformState } from '../../shared/types';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
 // Removed gesture coordination - using simple touch handling
 
+// Throttle utility function for performance optimization
+const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): T => {
+  let timeoutId: number | null = null;
+  let lastExecTime = 0;
+
+  return ((...args: Parameters<T>) => {
+    const currentTime = Date.now();
+    const timeSinceLastExec = currentTime - lastExecTime;
+
+    if (timeSinceLastExec > delay) {
+      lastExecTime = currentTime;
+      // Clear any existing timeout that would execute the last call
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      return func(...args);
+    } else {
+      // If a timeout is already set, clear it to reset the timer with the new call
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      // Set a new timeout to execute after the remaining delay
+      timeoutId = window.setTimeout(() => {
+        lastExecTime = Date.now();
+        func(...args);
+        timeoutId = null; // Clear the timeoutId after execution
+      }, delay - timeSinceLastExec);
+    }
+  }) as T;
+};
+
 const DOUBLE_TAP_THRESHOLD = 300; // ms
 const PAN_THRESHOLD_PIXELS = 5; // For distinguishing tap from pan
 
@@ -203,7 +238,8 @@ export const useTouchGestures = (
     }
   }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  // Internal touch move handler with the heavy calculations
+  const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
@@ -305,6 +341,16 @@ export const useTouchGestures = (
       );
     }
   }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive]);
+
+  // Throttled touch move handler to improve performance (60fps)
+  const throttledTouchMove = useCallback(
+    throttle((e: React.TouchEvent<HTMLDivElement>) => {
+      handleTouchMoveInternal(e);
+    }, 16), // ~60fps (1000ms / 60fps ≈ 16ms)
+    [handleTouchMoveInternal]
+  );
+
+  const handleTouchMove = throttledTouchMove;
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere

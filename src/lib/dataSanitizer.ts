@@ -30,13 +30,15 @@ export class DataSanitizer {
   static sanitizeTimelineEvent(event: TimelineEventData): Partial<TimelineEventData> {
     const sanitized = this.removeUndefinedFields(event);
     
-    // Ensure required fields are present with defaults if needed
+    // Validate that required fields exist to prevent Firebase errors
+    if (!sanitized.id || sanitized.step === undefined || !sanitized.type) {
+      throw new Error(`TimelineEvent is missing required fields: ${JSON.stringify(event)}`);
+    }
+    
+    // Return sanitized object with validated required fields
     return {
-      ...sanitized, // Spread sanitized first to prevent undefined override
-      id: event.id,
-      step: event.step,
-      name: event.name || '',
-      type: event.type
+      ...sanitized,
+      name: sanitized.name || ''
     };
   }
 
@@ -48,14 +50,16 @@ export class DataSanitizer {
   static sanitizeHotspot(hotspot: HotspotData): Partial<HotspotData> {
     const sanitized = this.removeUndefinedFields(hotspot);
     
-    // Ensure required fields are present with defaults if needed
+    // Validate that required fields exist to prevent Firebase errors
+    if (!sanitized.id || sanitized.x === undefined || sanitized.y === undefined) {
+      throw new Error(`Hotspot is missing required fields: ${JSON.stringify(hotspot)}`);
+    }
+    
+    // Return sanitized object with validated required fields
     return {
-      ...sanitized, // Spread sanitized first to prevent undefined override
-      id: hotspot.id,
-      x: hotspot.x,
-      y: hotspot.y,
-      title: hotspot.title || '',
-      description: hotspot.description || ''
+      ...sanitized,
+      title: sanitized.title || '',
+      description: sanitized.description || ''
     };
   }
 

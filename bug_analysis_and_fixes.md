@@ -86,35 +86,37 @@ The DataSanitizer class has a critical logic error where it removes `undefined` 
 Incorrect order in object spreading - the sanitized object should take precedence over the original object.
 
 ### Fix
-Reverse the spread order in both sanitization methods:
+Add proper validation for required fields and improved sanitization logic:
 
 ```typescript
 static sanitizeTimelineEvent(event: TimelineEventData): Partial<TimelineEventData> {
   const sanitized = this.removeUndefinedFields(event);
   
-  // Ensure required fields are present with defaults if needed
+  // Validate that required fields exist to prevent Firebase errors
+  if (!sanitized.id || sanitized.step === undefined || !sanitized.type) {
+    throw new Error(`TimelineEvent is missing required fields: ${JSON.stringify(event)}`);
+  }
+  
+  // Return sanitized object with validated required fields
   return {
-    ...sanitized, // Spread sanitized first
-    id: event.id,
-    step: event.step,
-    name: event.name || '',
-    type: event.type,
-    // Remove any potential undefined fields that could override sanitized ones
+    ...sanitized,
+    name: sanitized.name || ''
   };
 }
 
 static sanitizeHotspot(hotspot: HotspotData): Partial<HotspotData> {
   const sanitized = this.removeUndefinedFields(hotspot);
   
-  // Ensure required fields are present with defaults if needed
+  // Validate that required fields exist to prevent Firebase errors
+  if (!sanitized.id || sanitized.x === undefined || sanitized.y === undefined) {
+    throw new Error(`Hotspot is missing required fields: ${JSON.stringify(hotspot)}`);
+  }
+  
+  // Return sanitized object with validated required fields
   return {
-    ...sanitized, // Spread sanitized first
-    id: hotspot.id,
-    x: hotspot.x,
-    y: hotspot.y,
-    title: hotspot.title || '',
-    description: hotspot.description || '',
-    // Remove any potential undefined fields that could override sanitized ones
+    ...sanitized,
+    title: sanitized.title || '',
+    description: sanitized.description || ''
   };
 }
 ```
@@ -147,20 +149,9 @@ The useTouchGestures hook has multiple performance issues and race conditions th
 4. Inadequate cleanup of timeout references
 
 ### Fix
-Implement proper gesture coordination and performance optimizations:
+Implement proper gesture coordination, error handling, and performance optimizations:
 
 ```typescript
-// Add this state management near the top of the hook
-const gestureStateRef = useRef<TouchGestureState>({
-  startDistance: null,
-  startCenter: null,
-  startTransform: null,
-  lastTap: 0,
-  isPanning: false,
-  panStartCoords: null,
-  isActive: false,
-});
-
 // Add gesture cleanup function
 const cleanupGesture = useCallback(() => {
   const gestureState = gestureStateRef.current;
@@ -175,54 +166,38 @@ const cleanupGesture = useCallback(() => {
 // Add error boundary for touch handling
 const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
   try {
-    // Check if touch is on a hotspot element - if so, don't interfere
-    const target = e.target as HTMLElement;
-    const isHotspotElement = target?.closest('[data-hotspot-id]') || 
-                            target?.hasAttribute('data-hotspot-id');
-    
-    if (isHotspotElement || isDragging || isEditing || isDragActive) {
-      return;
-    }
-    
-    const gestureState = gestureStateRef.current;
-    
-    // Atomic check and set for race condition prevention
-    if (gestureState.isActive) {
-      return; // Another gesture is already active
-    }
-    
-    gestureState.isActive = true; // Atomically claim the gesture
-    
-    // Rest of the touch start logic...
-    const touches = e.touches;
-    const touchCount = touches.length;
-    const now = Date.now();
-
-    if (touchCount === 1) {
-      // Handle single touch with performance optimization
-      const touch = touches[0];
-      const timeSinceLastTap = now - gestureState.lastTap;
-      
-      if (timeSinceLastTap < DOUBLE_TAP_THRESHOLD) {
-        // Double tap logic - optimized
-        handleDoubleTap(e, touch);
-      } else {
-        // Single tap preparation
-        gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
-        gestureState.startTransform = { ...imageTransform };
-        gestureState.lastTap = now;
-      }
-    } else if (touchCount === 2) {
-      // Pinch zoom initialization with caching
-      handlePinchStart(e, touches[0], touches[1]);
-    }
+    // Existing touch start logic with error handling
+    // ... (race condition prevention and gesture management)
   } catch (error) {
     console.warn('Touch start error:', error);
     cleanupGesture(); // Ensure cleanup on error
   }
-}, [imageTransform, isDragging, isEditing, isDragActive, cleanupGesture]);
+}, [/* dependencies including cleanupGesture */]);
 
-// Add comprehensive cleanup effect
+// Throttle utility function for performance
+const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): T => {
+  let timeoutId: number | null = null;
+  let lastExecTime = 0;
+  // ... throttle implementation
+};
+
+// Internal touch move handler with heavy calculations
+const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+  // All the heavy pan and pinch calculations here
+}, [/* dependencies */]);
+
+// Throttled touch move handler to improve performance (60fps)
+const throttledTouchMove = useCallback(
+  throttle((e: React.TouchEvent<HTMLDivElement>) => {
+    handleTouchMoveInternal(e);
+  }, 16), // ~60fps (1000ms / 60fps ≈ 16ms)
+  [handleTouchMoveInternal]
+);
+
+// Enhanced cleanup effect
 useEffect(() => {
   return () => {
     // Cleanup all timeouts
@@ -236,15 +211,6 @@ useEffect(() => {
     cleanupGesture();
   };
 }, [cleanupGesture]);
-
-// Optimize touch move with throttling
-const throttledTouchMove = useCallback(
-  throttle((e: React.TouchEvent<HTMLDivElement>) => {
-    // Move the heavy calculations here
-    handleTouchMoveInternal(e);
-  }, 16), // ~60fps
-  [/* dependencies */]
-);
 ```
 
 ### Impact
