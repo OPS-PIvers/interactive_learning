@@ -97,8 +97,12 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
-    if (!isEditing || !currentStep || !timelineEvents) return false;
-    // In editing mode, a hotspot is dimmed if it's not part of an active event in the current step
+    // FIXED: Never dim hotspots in editing mode - they should always be fully interactive
+    // Users need to be able to click on any hotspot to edit it, regardless of timeline state
+    if (isEditing) return false;
+    
+    if (!currentStep || !timelineEvents) return false;
+    // In viewing mode, a hotspot is dimmed if it's not part of an active event in the current step
     return currentStep > 0 && !timelineEvents.some(e =>
       e.step === currentStep &&
       e.targetId === hotspotId &&
@@ -129,7 +133,15 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b',
       }}
-        onClick={(e) => onImageOrHotspotClick && onImageOrHotspotClick(e)} // Unified click handling for all devices
+        onClick={(e) => {
+          console.log('Debug [ImageEditCanvas]: Container click detected', {
+            target: e.target,
+            currentTarget: e.currentTarget,
+            isEditing,
+            timestamp: Date.now()
+          });
+          onImageOrHotspotClick && onImageOrHotspotClick(e);
+        }} // Unified click handling for all devices
         // onTouchStart, onTouchMove, onTouchEnd are primarily for mobile, handled by InteractiveModule's touchGestureHandlers
         // If specific touch interactions are needed directly on ImageEditCanvas elements, they can be added.
     >
@@ -182,12 +194,20 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             )}
 
             {/* Hotspots */}
-            {hotspotsWithPositions.map(hotspot => (
+            {console.log('Debug [ImageEditCanvas]: Rendering hotspots', {
+              hotspotsCount: hotspotsWithPositions.length,
+              isEditing,
+              hotspotIds: hotspotsWithPositions.map(h => h.id),
+              timestamp: Date.now()
+            }) || hotspotsWithPositions.map(hotspot => (
               <div
                 key={hotspot.id}
                 className="hotspot-viewer"
                 style={{
-                  touchAction: isMobile ? 'none' : 'auto' // Better mobile drag performance
+                  touchAction: isMobile ? 'none' : 'auto', // Better mobile drag performance
+                  pointerEvents: 'auto', // Ensure pointer events are enabled
+                  position: 'relative', // Ensure proper positioning context
+                  zIndex: isEditing ? 1000 : 100 // Higher z-index in editing mode for better interaction
                 }}
               >
                 <HotspotViewer

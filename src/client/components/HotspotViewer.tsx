@@ -64,6 +64,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
   // Simple drag handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    console.log('Debug [HotspotViewer]: handlePointerDown called', {
+      hotspotId: hotspot.id,
+      isEditing,
+      isDimmed: isDimmedInEditMode,
+      timestamp: Date.now()
+    });
+    
     if (!isEditing) {
       onFocusRequest(hotspot.id);
       return;
@@ -136,13 +143,35 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    console.log('Debug [HotspotViewer]: handlePointerUp called', {
+      hotspotId: hotspot.id,
+      isEditing,
+      isDragging,
+      isHolding,
+      isDimmed: isDimmedInEditMode,
+      timestamp: Date.now()
+    });
+    
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
     }
 
-    // If it was just a tap (no drag), show focus
+    // If it was just a tap (no drag), open editor in editing mode or show focus in viewing mode
     if (!isDragging && dragDataRef.current) {
-      onFocusRequest(hotspot.id);
+      console.log('Debug [HotspotViewer]: Hotspot clicked', {
+        hotspotId: hotspot.id,
+        isEditing,
+        hasOnEditRequest: !!onEditRequest,
+        timestamp: Date.now()
+      });
+      
+      if (isEditing && onEditRequest) {
+        console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
+        onEditRequest(hotspot.id);
+      } else {
+        console.log('Debug [HotspotViewer]: Calling onFocusRequest for hotspot', hotspot.id);
+        onFocusRequest(hotspot.id);
+      }
     }
 
     // Clean up
@@ -152,7 +181,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
     // Release pointer capture
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-  }, [isDragging, hotspot.id, onFocusRequest]);
+  }, [isDragging, hotspot.id, onFocusRequest, onEditRequest, isEditing]);
 
   // Style classes
   const baseColor = hotspot.color || 'bg-sky-500';
