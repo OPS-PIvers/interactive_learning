@@ -1744,9 +1744,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
   // Unified handler for opening the HotspotEditorModal for an existing hotspot
   const handleOpenHotspotEditor = useCallback((hotspotId: string) => {
+    console.log('Debug [InteractiveModule]: handleOpenHotspotEditor called', {
+      hotspotId,
+      currentModalState: isHotspotModalOpen,
+      selectedHotspot: selectedHotspotForModal,
+      timestamp: Date.now()
+    });
+    
     setSelectedHotspotForModal(hotspotId);
     setIsHotspotModalOpen(true);
-  }, [setSelectedHotspotForModal, setIsHotspotModalOpen]);
+    
+    console.log('Debug [InteractiveModule]: Modal state updated for hotspot', hotspotId);
+  }, [setSelectedHotspotForModal, setIsHotspotModalOpen, isHotspotModalOpen, selectedHotspotForModal]);
 
   // Removed handleSaveHotspot (was for HotspotEditModal)
 

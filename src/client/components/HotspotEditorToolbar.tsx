@@ -141,20 +141,29 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
       {/* Action Buttons - Horizontal Layout */}
       <div className="flex gap-2">
         <button
-          onClick={handleAddEvent} // Assumes handleAddEvent is defined or calls props.onAddEvent
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddEvent();
+          }}
           className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-sm font-medium flex items-center justify-center gap-1">
           <PlusIcon className="w-4 h-4" />
           Add Event
         </button>
         <button
-          onClick={() => onEditHotspot(selectedHotspot)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditHotspot(selectedHotspot);
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
           title="Edit Properties" // Added title for clarity
         >
           <PencilIcon className="w-4 h-4" />
         </button>
         <button
-          onClick={handleDeleteHotspot} // Assumes handleDeleteHotspot is defined
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteHotspot();
+          }}
           className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
           title="Delete Hotspot" // Added title for clarity
         >
@@ -167,7 +176,10 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   const renderTabs = () => (
     <div className="flex bg-slate-700/30 rounded-lg p-1 mx-4 mb-4"> {/* Integrated Tabs - Added mx-4 for horizontal alignment with header */}
       <button
-        onClick={() => setActiveTab('properties')}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveTab('properties');
+        }}
         className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-all ${
           activeTab === 'properties'
             ? 'bg-slate-600 text-white shadow-sm'
@@ -177,7 +189,10 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
         Properties
       </button>
       <button
-        onClick={() => setActiveTab('events')}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveTab('events');
+        }}
         className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 ${
           activeTab === 'events'
             ? 'bg-slate-600 text-white shadow-sm'

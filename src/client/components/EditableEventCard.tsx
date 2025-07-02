@@ -236,7 +236,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
       ref={ref}
       style={{ opacity: isDragging ? 0.2 : 1 }}
       data-handler-id={handlerId}
-      className="p-3 mb-2 bg-gray-600 rounded-lg shadow cursor-move"
+      className={`p-3 mb-2 bg-gray-600 rounded-lg shadow ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center">
@@ -259,7 +259,8 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               console.log('🔍 PREVIEW DEBUG: Eye icon clicked', { 
                 eventId: event.id, 
                 eventName: event.name, 
@@ -278,14 +279,20 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
             )}
           </button>
           <button
-            onClick={() => setIsEditingTitle(!isEditingTitle)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditingTitle(!isEditingTitle);
+            }}
             className="text-gray-400 hover:text-white"
             aria-label="Edit Title"
           >
             <PencilIcon className="w-4 h-4" />
           </button>
           <button
-            onClick={() => onDelete(event.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(event.id);
+            }}
             className="text-gray-400 hover:text-red-500"
             aria-label="Delete Event"
           >
