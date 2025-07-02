@@ -302,7 +302,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
                   key={event.id}
                   event={event}
                   isActive={currentStep === event.step}
-                  isDragging={draggedEventId === event.id}
+                  isBeingDragged={draggedEventId === event.id}
                   onUpdate={handleUpdateEvent}
                   onDelete={handleDeleteEvent}
                   onJumpToStep={onJumpToStep}

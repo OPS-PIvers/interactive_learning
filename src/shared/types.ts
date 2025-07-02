@@ -16,6 +16,7 @@ export enum InteractionType {
   QUIZ = 'QUIZ',
   PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT',
   PLAY_AUDIO = 'PLAY_AUDIO',
+  PLAY_VIDEO = 'PLAY_VIDEO',
   
   // Media interaction types
   SHOW_VIDEO = 'SHOW_VIDEO',
@@ -35,6 +36,7 @@ export interface HotspotData {
   description: string;
   color?: string; // e.g., 'bg-red-500'
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
+  link?: string; // Optional link URL for hotspot
 }
 
 // Base Event interface

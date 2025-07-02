@@ -18,6 +18,7 @@ interface EditableEventCardProps {
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onTogglePreview: () => void;
   isPreviewing: boolean;
+  isBeingDragged?: boolean;
   allHotspots: HotspotData[];
   isActive?: boolean;
   onJumpToStep?: (step: number) => void;
@@ -61,6 +62,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   moveCard,
   onTogglePreview,
   isPreviewing,
+  isBeingDragged = false,
   allHotspots,
   isActive = false,
   onJumpToStep,

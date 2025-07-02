@@ -234,8 +234,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="fixed inset-0 z-50 flex justify-end pointer-events-none" onClick={onClose}>
-        <div className="w-full max-w-sm h-full bg-gray-800 text-white flex flex-col pointer-events-auto shadow-2xl border-l border-gray-700" onClick={e => e.stopPropagation()}>
+      <div 
+        className={`
+          fixed top-0 right-0 z-50 h-screen
+          transform transition-transform duration-300 ease-out
+          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}
+        style={{ width: '384px' }}
+      >
+        <div className="w-full h-full bg-gray-800 text-white flex flex-col shadow-2xl border-l border-gray-700">
           <HotspotEditorToolbar 
             title={localHotspot.title || `Edit Hotspot`} 
             onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
@@ -272,6 +279,13 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
         </div>
+        {/* Backdrop overlay for closing when clicking outside */}
+        {isOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-25 z-40"
+            onClick={onClose}
+          />
+        )}
       </div>
     </DndProvider>
   );

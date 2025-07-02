@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { HotspotData, ImageTransformState } from '../../shared/types'; // Assuming HotspotData and ImageTransformState are in shared/types
 
 // Interface for the hook's return utilities, as per problem description
@@ -9,10 +9,17 @@ export interface HotspotPositioningUtils {
     imageNaturalDimensions: { width: number; height: number } | null, // Natural dimensions of the image
     renderedImageRect: DOMRect | null // Actual rendered dimensions and position of the image element/div
   ) => { x: number; y: number } | null;
-  // updateHotspotPosition might be handled directly in the component state,
-  // but a utility could be provided if complex validation/conversion is needed.
-  // For now, focusing on getPixelPosition as per primary need.
-  // validatePosition: (pos: { x: number; y: number }) => { x: number; y: number }; // This might also be component-specific
+  getStablePixelPosition: (
+    hotspot: HotspotData,
+    currentImageTransform: ImageTransformState,
+    imageBounds: { width: number; height: number; left: number; top: number } | null,
+    containerDimensions?: { width: number; height: number },
+    isTransitioning?: boolean
+  ) => { x: number; y: number } | null;
+  validatePosition: (
+    position: { x: number; y: number },
+    containerBounds: { width: number; height: number }
+  ) => { x: number; y: number };
 }
 
 export const useHotspotPositioning = (
@@ -61,13 +68,65 @@ export const useHotspotPositioning = (
     []
   );
 
-  // Placeholder for other utilities if they become complex enough
-  // const updateHotspotPosition = useCallback(...)
-  // const validatePosition = useCallback(...)
+  // Enhanced position calculation with transition stability
+  const getStablePixelPosition = useCallback(
+    (
+      hotspot: HotspotData,
+      currentImageTransform: ImageTransformState,
+      imageBounds: { width: number; height: number; left: number; top: number } | null,
+      containerDimensions?: { width: number; height: number },
+      isTransitioning?: boolean
+    ): { x: number; y: number } | null => {
+      if (!imageBounds) {
+        return null;
+      }
+
+      // During transitions, use more stable calculations to prevent position jumping
+      if (isTransitioning) {
+        // Use percentage-based positioning with minimal transform interference
+        const basePixelX = (hotspot.x / 100) * imageBounds.width;
+        const basePixelY = (hotspot.y / 100) * imageBounds.height;
+        
+        // Apply only the translation component during transitions, not scaling
+        const positionX = imageBounds.left + basePixelX + (currentImageTransform.translateX || 0);
+        const positionY = imageBounds.top + basePixelY + (currentImageTransform.translateY || 0);
+        
+        return { x: positionX, y: positionY };
+      }
+
+      // Normal calculation - delegate to the existing function
+      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerDimensions);
+    },
+    [getPixelPosition]
+  );
+
+  // Position validation to ensure hotspots stay within reasonable bounds
+  const validatePosition = useCallback(
+    (
+      position: { x: number; y: number },
+      containerBounds: { width: number; height: number }
+    ): { x: number; y: number } => {
+      // Add padding to prevent hotspots from being completely off-screen
+      const padding = 20;
+      
+      const validatedX = Math.max(
+        -padding,
+        Math.min(containerBounds.width + padding, position.x)
+      );
+      
+      const validatedY = Math.max(
+        -padding,
+        Math.min(containerBounds.height + padding, position.y)
+      );
+      
+      return { x: validatedX, y: validatedY };
+    },
+    []
+  );
 
   return useMemo((): HotspotPositioningUtils => ({
     getPixelPosition,
-    // updateHotspotPosition,
-    // validatePosition,
-  }), [getPixelPosition]);
+    getStablePixelPosition,
+    validatePosition,
+  }), [getPixelPosition, getStablePixelPosition, validatePosition]);
 };

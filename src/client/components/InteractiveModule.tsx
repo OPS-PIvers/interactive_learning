@@ -204,6 +204,39 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
   }, [previewOverlayEvent]);
   
+  // Auto-adjust image scale when editor panel opens/closes
+  const previousPanelStateRef = useRef<boolean>(isHotspotModalOpen);
+  useEffect(() => {
+    const panelWasOpen = previousPanelStateRef.current;
+    const panelIsNowOpen = isHotspotModalOpen;
+    
+    // Only adjust if panel state actually changed
+    if (panelWasOpen !== panelIsNowOpen && !isMobile) {
+      const optimalTransform = calculateOptimalImageScale(
+        imageTransform.scale,
+        imageTransform.translateX,
+        imageTransform.translateY,
+        panelIsNowOpen
+      );
+      
+      // Apply the optimal transform if it's different from current
+      if (optimalTransform.scale !== imageTransform.scale ||
+          Math.abs(optimalTransform.translateX - imageTransform.translateX) > 1 ||
+          Math.abs(optimalTransform.translateY - imageTransform.translateY) > 1) {
+        setIsTransforming(true);
+        setImageTransform(optimalTransform);
+        
+        // End transformation after animation completes
+        setTimeout(() => {
+          setIsTransforming(false);
+        }, 500);
+      }
+    }
+    
+    // Update the previous state ref
+    previousPanelStateRef.current = panelIsNowOpen;
+  }, [isHotspotModalOpen, isMobile, imageTransform, setImageTransform, setIsTransforming]); // calculateOptimalImageScale omitted - useCallback ensures stability
+  
   // Handle preview overlay updates
   const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
     console.log('🔍 PREVIEW DEBUG: handlePreviewOverlayUpdate called', { 
@@ -317,10 +350,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         height: window.innerHeight
       };
     } else {
-      // Desktop: Use configured 80vw/80vh with max constraints
-      const divWidth = 80 * window.innerWidth / 100; // 80vw
-      const divHeight = 80 * window.innerHeight / 100; // 80vh
-      const maxWidth = 1200;
+      // Desktop: Calculate available space accounting for editor panel
+      const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
+      const availableViewportWidth = window.innerWidth - editorPanelWidth;
+      
+      // Use 80% of available width/height with responsive adjustments
+      const divWidth = 0.8 * availableViewportWidth;
+      const divHeight = 0.8 * window.innerHeight;
+      
+      // Adjust max constraints based on available space
+      const maxWidth = Math.min(1200, availableViewportWidth - 40); // 40px margin
       const maxHeight = 800;
       
       return {
@@ -328,7 +367,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
         height: Math.min(divHeight, maxHeight)
       };
     }
-  }, [isMobile]);
+  }, [isMobile, isHotspotModalOpen]);
+
 
   const throttledRecalculatePositions = useMemo(
     () => throttle(() => {
@@ -477,6 +517,75 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     originalImageBoundsRef.current = null;
   }, []);
 
+  // Calculate optimal image scale when editor panel state changes
+  const calculateOptimalImageScale = useCallback((
+    currentScale: number,
+    currentTranslateX: number,
+    currentTranslateY: number,
+    panelIsOpening: boolean
+  ) => {
+    if (isMobile) {
+      // Mobile doesn't need scale adjustments for panel changes
+      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+    }
+
+    const imageBounds = getSafeImageBounds();
+    const divDimensions = getScaledImageDivDimensions();
+    
+    if (!imageBounds || !divDimensions) {
+      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+    }
+
+    const scaledImageWidth = imageBounds.width * currentScale;
+    const scaledImageHeight = imageBounds.height * currentScale;
+    
+    // Check if current scaled image fits in the new container dimensions
+    const fitsWidth = scaledImageWidth <= divDimensions.width;
+    const fitsHeight = scaledImageHeight <= divDimensions.height;
+    
+    if (panelIsOpening && (!fitsWidth || !fitsHeight)) {
+      // Panel is opening and image doesn't fit - scale down to fit
+      const widthRatio = divDimensions.width / imageBounds.width;
+      const heightRatio = divDimensions.height / imageBounds.height;
+      const optimalScale = Math.min(widthRatio, heightRatio, currentScale); // Don't scale up
+      
+      // Reset translation to center when scaling down significantly
+      const scaleReduction = optimalScale / currentScale;
+      if (scaleReduction < 0.8) {
+        return {
+          scale: optimalScale,
+          translateX: 0,
+          translateY: 0
+        };
+      } else {
+        // Proportionally adjust translation
+        return {
+          scale: optimalScale,
+          translateX: currentTranslateX * scaleReduction,
+          translateY: currentTranslateY * scaleReduction
+        };
+      }
+    } else if (!panelIsOpening && currentScale < 1) {
+      // Panel is closing and we're zoomed out - potentially restore scale
+      const widthRatio = divDimensions.width / imageBounds.width;
+      const heightRatio = divDimensions.height / imageBounds.height;
+      const maxFitScale = Math.min(widthRatio, heightRatio);
+      
+      // Restore to fit scale or 1.0, whichever is smaller
+      const restoredScale = Math.min(1, maxFitScale);
+      if (restoredScale > currentScale) {
+        return {
+          scale: restoredScale,
+          translateX: 0,
+          translateY: 0
+        };
+      }
+    }
+    
+    // No scaling needed - return current values
+    return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+  }, [isMobile, getSafeImageBounds, getScaledImageDivDimensions]);
+
   // Helper to show media modals
   const showMediaModal = useCallback((
     type: 'video' | 'audio' | 'image' | 'youtube',
@@ -588,10 +697,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
 
     // Reserve space for UI elements
     const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
+    // Calculate editor panel width based on HotspotEditorModal state
+    const editorPanelWidth = isHotspotModalOpen ? 384 : 0; // HotspotEditorModal is 384px wide
     const sidebarWidth = 0; // No sidebar anymore - removed
 
     // This is the available visual area for the image content
-    const availableWidth = containerRect.width - sidebarWidth;
+    const availableWidth = containerRect.width - sidebarWidth - editorPanelWidth;
     const availableHeight = containerRect.height - timelineHeight;
 
     // Allow the image to move but keep at least 20% of its own scaled dimension visible
@@ -2287,11 +2398,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                         backgroundRepeat: 'no-repeat',
                         transformOrigin: 'center',
                         transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                        transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-                        // Sizing: Use 100% of parent for mobile, specific viewport % for desktop
-                        width: isMobile ? '100%' : '80vw',
+                        transition: isTransforming 
+                          ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' 
+                          : isHotspotModalOpen !== undefined 
+                            ? 'width 0.3s ease-out, height 0.3s ease-out, max-width 0.3s ease-out' 
+                            : 'none',
+                        // Responsive sizing: Account for editor panel on desktop
+                        width: isMobile ? '100%' : (() => {
+                          const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
+                          const availableWidth = window.innerWidth - editorPanelWidth;
+                          return `${Math.min(80, (0.8 * availableWidth / window.innerWidth) * 100)}vw`;
+                        })(),
                         height: isMobile ? '100%' : '80vh',
-                        maxWidth: isMobile ? '100%' : '1200px',
+                        maxWidth: isMobile ? '100%' : (() => {
+                          const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
+                          const availableWidth = window.innerWidth - editorPanelWidth;
+                          return `${Math.min(1200, availableWidth - 40)}px`;
+                        })(),
                         maxHeight: isMobile ? '100%' : '800px',
                         zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
                       }}

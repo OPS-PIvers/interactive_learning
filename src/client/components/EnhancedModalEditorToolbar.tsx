@@ -169,9 +169,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           <div className="border-b border-slate-200 dark:border-slate-700">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">
               {[
-                { id: 'general', name: 'General' },
-                { id: 'appearance', name: 'Appearance' },
-                { id: 'controls', name: 'Controls' },
+                { id: 'general', name: 'General', icon: null },
+                { id: 'appearance', name: 'Appearance', icon: null },
+                { id: 'controls', name: 'Controls', icon: null },
               ].map((tab) => (
                 <button
                   key={tab.id}

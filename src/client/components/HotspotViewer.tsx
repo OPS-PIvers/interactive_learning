@@ -11,6 +11,10 @@ interface HotspotViewerProps {
   isContinuouslyPulsing?: boolean;
   onEditRequest?: (id: string) => void;
   isMobile?: boolean;
+  pixelPosition?: { x: number; y: number; baseX?: number; baseY?: number; } | null;
+  usePixelPositioning?: boolean;
+  imageElement?: HTMLImageElement | null;
+  onDragStateChange?: () => void;
 }
 
 const HotspotViewer: React.FC<HotspotViewerProps> = ({
@@ -22,7 +26,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
   isDimmedInEditMode,
   isContinuouslyPulsing,
   onEditRequest,
-  isMobile
+  isMobile,
+  pixelPosition,
+  usePixelPositioning,
+  imageElement,
+  onDragStateChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
