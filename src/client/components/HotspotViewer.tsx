@@ -14,24 +14,28 @@ interface HotspotViewerProps {
   pixelPosition?: { x: number; y: number; baseX?: number; baseY?: number; } | null;
   usePixelPositioning?: boolean;
   imageElement?: HTMLImageElement | null;
-  onDragStateChange?: () => void;
+  onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
+  dragContainerRef?: React.RefObject<HTMLElement>; // Added new prop
 }
 
-const HotspotViewer: React.FC<HotspotViewerProps> = ({
-  hotspot,
-  isPulsing,
-  isEditing,
-  onFocusRequest,
-  onPositionChange,
-  isDimmedInEditMode,
-  isContinuouslyPulsing,
-  onEditRequest,
-  isMobile,
-  pixelPosition,
-  usePixelPositioning,
-  imageElement,
-  onDragStateChange
-}) => {
+const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
+  const {
+    hotspot,
+    isPulsing,
+    isEditing,
+    onFocusRequest,
+    onPositionChange,
+    isDimmedInEditMode,
+    isContinuouslyPulsing,
+    onEditRequest,
+    isMobile,
+    // pixelPosition, // Not directly used in this component's logic after recent changes
+    // usePixelPositioning, // Not directly used
+    // imageElement, // Not directly used
+    onDragStateChange,
+    dragContainerRef
+  } = props;
+
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const dragDataRef = useRef<{
@@ -80,8 +84,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     e.stopPropagation();
 
     // Find the container element (the image container)
-    const containerElement = (e.currentTarget as HTMLElement).closest('.relative');
-    if (!containerElement) return;
+    // Prioritize passed ref, fallback to DOM traversal
+    const containerElement = dragContainerRef?.current || (e.currentTarget as HTMLElement).closest('.relative');
+    if (!containerElement) {
+      console.error("HotspotViewer: Drag container element not found.");
+      return;
+    }
 
     // Store drag start data
     dragDataRef.current = {
@@ -105,7 +113,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
 
     // Capture pointer for reliable drag behavior
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, [isEditing, hotspot.id, hotspot.x, hotspot.y, isDragging, onFocusRequest, onEditRequest, isMobile]);
+  }, [isEditing, hotspot.id, hotspot.x, hotspot.y, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef]); // Added dragContainerRef
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -119,6 +127,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     if (!isDragging && (deltaX > threshold || deltaY > threshold)) {
       setIsDragging(true);
       setIsHolding(false);
+      if (onDragStateChange) onDragStateChange(true); // Notify parent about drag start
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
       }
@@ -175,13 +184,14 @@ const HotspotViewer: React.FC<HotspotViewerProps> = ({
     }
 
     // Clean up
+    if (isDragging && onDragStateChange) onDragStateChange(false); // Notify parent about drag end
     setIsDragging(false);
     setIsHolding(false);
     dragDataRef.current = null;
 
     // Release pointer capture
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-  }, [isDragging, hotspot.id, onFocusRequest, onEditRequest, isEditing]);
+  }, [isDragging, hotspot.id, onFocusRequest, onEditRequest, isEditing, onDragStateChange]); // Added onDragStateChange
 
   // Style classes
   const baseColor = hotspot.color || 'bg-sky-500';

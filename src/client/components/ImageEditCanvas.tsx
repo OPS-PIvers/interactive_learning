@@ -224,6 +224,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   onDragStateChange={onDragStateChange}
                   isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
                   isMobile={isMobile}
+                  dragContainerRef={zoomedImageContainerRef} // Pass the ref here
                 />
               </div>
             ))}
