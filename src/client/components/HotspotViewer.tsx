@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
+import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -38,6 +39,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
+  const announce = useScreenReaderAnnouncements();
   const dragDataRef = useRef<{
     startX: number;
     startY: number;
@@ -127,6 +129,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     if (!isDragging && (deltaX > threshold || deltaY > threshold)) {
       setIsDragging(true);
       setIsHolding(false);
+      announce('Drag started'); // Announce drag start
       if (onDragStateChange) onDragStateChange(true); // Notify parent about drag start
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
@@ -184,7 +187,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
 
     // Clean up
-    if (isDragging && onDragStateChange) onDragStateChange(false); // Notify parent about drag end
+    if (isDragging) {
+      announce('Drag stopped'); // Announce drag stop
+      if (onDragStateChange) onDragStateChange(false); // Notify parent about drag end
+    }
     setIsDragging(false);
     setIsHolding(false);
     dragDataRef.current = null;
@@ -230,6 +236,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       role="button"
       aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (drag to move, hold to edit)' : ''}`}
       tabIndex={0}
+      aria-pressed={isPulsing || isEditing} // Assuming isPulsing or active editing means "pressed"
+      aria-grabbed={isDragging}
+      aria-dropeffect={isDragging ? "move" : "none"}
     >
       <span className={dotClasses} aria-hidden="true">
         {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
