@@ -8,12 +8,14 @@ import {
   orderBy,
   writeBatch,
   serverTimestamp,
-  where
+  where,
+  getDoc
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { DataSanitizer } from './dataSanitizer'
+import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, { data: any, timestamp: number }>()
@@ -126,12 +128,35 @@ export class FirebaseProjectAPI {
       this.logUsage('WRITE_OPERATIONS', 1)
       const batch = writeBatch(db)
       const projectRef = doc(db, 'projects', project.id)
+
+      let finalThumbnailUrl = project.thumbnailUrl || null;
+
+      // Check if background image exists and if it might have changed
+      // To be more robust, we'd compare against the currently stored backgroundImage.
+      // For simplicity now, if a backgroundImage is provided, we attempt thumbnail generation.
+      if (project.interactiveData.backgroundImage) {
+        try {
+          console.log(`Generating thumbnail for project ${project.id}...`);
+          const thumbnailBlob = await generateThumbnail(project.interactiveData.backgroundImage, 400, 250, 'image/jpeg', 0.7);
+          // Use a more specific name for the thumbnail file in storage
+          const thumbnailFile = new File([thumbnailBlob], `thumb_${project.id}.jpg`, { type: 'image/jpeg' });
+          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + '_thumbnails');
+          console.log(`Thumbnail generated and uploaded: ${finalThumbnailUrl}`);
+        } catch (thumbError) {
+          console.error(`Failed to generate or upload thumbnail for project ${project.id}:`, thumbError);
+          // Keep existing thumbnail or null if it fails, don't let thumbnail failure block save.
+          // finalThumbnailUrl remains project.thumbnailUrl or null.
+        }
+      } else {
+        // No background image, so no thumbnail
+        finalThumbnailUrl = null;
+      }
       
       // Update main project document
       batch.set(projectRef, {
         title: project.title,
         description: project.description,
-        thumbnailUrl: project.thumbnailUrl || null,
+        thumbnailUrl: finalThumbnailUrl, // Use the generated or existing thumbnail URL
         backgroundImage: project.interactiveData.backgroundImage || null,
         imageFitMode: project.interactiveData.imageFitMode || 'cover',
         updatedAt: serverTimestamp()
@@ -185,8 +210,10 @@ export class FirebaseProjectAPI {
       
       await batch.commit()
       
-      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots`)
-      return project
+      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots and thumbnail URL: ${finalThumbnailUrl}`);
+      // Return the project with the potentially updated thumbnail URL
+      return { ...project, thumbnailUrl: finalThumbnailUrl };
+
     } catch (error) {
       console.error('Error saving project:', error)
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`)
