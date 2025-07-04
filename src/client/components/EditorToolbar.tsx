@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
 import { MenuIcon } from './icons/MenuIcon';
@@ -42,12 +42,52 @@ interface EditorToolbarProps {
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false); // For mobile collapsible menu
+  const [mobileSaveSuccessActive, setMobileSaveSuccessActive] = useState(false);
+  const mobileSaveSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear the timer on unmount
+    return () => {
+      if (mobileSaveSuccessTimerRef.current) {
+        clearTimeout(mobileSaveSuccessTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (props.isMobile && props.showSuccessMessage && !props.isSaving) {
+      setMobileSaveSuccessActive(true);
+      if (mobileSaveSuccessTimerRef.current) {
+        clearTimeout(mobileSaveSuccessTimerRef.current);
+      }
+      mobileSaveSuccessTimerRef.current = setTimeout(() => {
+        setMobileSaveSuccessActive(false);
+        // Potentially call a prop to reset parent's showSuccessMessage if needed,
+        // but for now, EditorToolbar manages its own visual success state timing.
+      }, 2500); // Show success for 2.5 seconds
+    } else if (props.isMobile && !props.showSuccessMessage) {
+      // If the parent component explicitly turns off showSuccessMessage, respect that.
+      setMobileSaveSuccessActive(false);
+      if (mobileSaveSuccessTimerRef.current) {
+        clearTimeout(mobileSaveSuccessTimerRef.current);
+      }
+    }
+  }, [props.showSuccessMessage, props.isSaving, props.isMobile]);
+
+  // Effect to clear success timer if saving starts (relevant for mobile context)
+  useEffect(() => {
+    if (props.isMobile && props.isSaving && mobileSaveSuccessTimerRef.current) {
+      clearTimeout(mobileSaveSuccessTimerRef.current);
+      setMobileSaveSuccessActive(false);
+    }
+  }, [props.isSaving, props.isMobile]);
+
 
   if (props.isMobile) {
     const saveButtonClasses = `p-2 rounded transition-colors flex items-center justify-center ${
       props.isSaving
         ? 'text-slate-400 cursor-not-allowed'
-        : props.showSuccessMessage
+        : mobileSaveSuccessActive // Use local state for styling
         ? 'text-green-400'
         : 'text-slate-300 hover:text-white'
     }`;
@@ -84,13 +124,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           <div className="flex items-center gap-1">
             <button
               onClick={props.onSave}
-              disabled={props.isSaving}
+              disabled={props.isSaving || mobileSaveSuccessActive} // Disable button briefly during success display
               className={saveButtonClasses}
             >
               {props.isSaving ? (
                 <span className="animate-spin w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full" />
-              ) : props.showSuccessMessage ? (
-                <CheckIcon className="w-6 h-6 text-green-400" /> // Use CheckIcon for success
+              ) : mobileSaveSuccessActive ? ( // Use local state for icon display
+                <CheckIcon className="w-6 h-6 text-green-400" />
               ) : (
                 <SaveIcon className="w-6 h-6" />
               )}
