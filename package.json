@@ -23,11 +23,13 @@
     "codespaces:preview": "npm run build && npm run firebase:serve"
   },
   "dependencies": {
+    "@types/lodash.debounce": "^4.0.9",
     "firebase": "^11.9.1",
+    "lodash.debounce": "^4.0.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1"
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
