@@ -15,34 +15,8 @@ function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
   return debounced as (...args: Parameters<F>) => void;
 }
 
-interface ScreenReaderAnnouncerProps {
-  message: string;
-  assertiveness?: 'assertive' | 'polite';
-}
-
-const ScreenReaderAnnouncer: React.FC<ScreenReaderAnnouncerProps> = ({ message, assertiveness = 'polite' }) => {
-  if (!message) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live={assertiveness}
-      aria-atomic="true"
-      style={{
-        position: 'absolute',
-        width: '1px',
-        height: '1px',
-        margin: '-1px',
-        padding: '0',
-        overflow: 'hidden',
-        clip: 'rect(0, 0, 0, 0)',
-        border: '0',
-      }}
-    >
-      {message}
-    </div>
-  );
-};
+// The ScreenReaderAnnouncer component and associated message array logic were not used
+// by the final hook implementation and have been removed to avoid confusion.
 
 let liveRegionContainer: HTMLDivElement | null = null;
 
@@ -66,17 +40,15 @@ const ensureLiveRegionContainer = () => {
   return liveRegionContainer;
 };
 
-
-// Store messages and their assertiveness levels
-const messages: Array<{ id: number; text: string; assertiveness: 'polite' | 'assertive' }> = [];
-let messageIdCounter = 0;
-let currentPoliteMessage = "";
-let currentAssertiveMessage = "";
+// Unused variables related to a previous approach have been removed.
+// let currentPoliteMessage = "";
+// let currentAssertiveMessage = "";
 
 const useScreenReaderAnnouncements = () => {
-  // These states are used to trigger re-renders of the Announcer components
-  const [, setPoliteUpdate] = useState(0);
-  const [, setAssertiveUpdate] = useState(0);
+  // State updates are kept to ensure React re-renders the hook's context if necessary,
+  // though direct DOM manipulation is primary here.
+  const [, setPoliteUpdate] = useState(0); // Kept for potential future use or strict React patterns
+  const [, setAssertiveUpdate] = useState(0); // Kept for potential future use or strict React patterns
 
   const announcePolitelyRef = useRef<(message: string) => void>();
   const announceAssertivelyRef = useRef<(message: string) => void>();
@@ -134,14 +106,19 @@ const useScreenReaderAnnouncements = () => {
     }; // Assertive announcements are immediate
 
     return () => {
-      // Cleanup: remove the regions when the last component using the hook unmounts
-      // This is tricky to get right if multiple components use the hook.
-      // For simplicity, we'll leave them, but in a real app, you might ref-count.
+      // Cleanup: The polite and assertive regions are children of liveRegionContainer.
+      // We should remove these specific regions if the hook instance is cleaned up,
+      // but not the liveRegionContainer itself, as it's shared.
+      // However, for simplicity and robustness against multiple hook instances,
+      // we will leave these regions. They are lightweight, and removing them
+      // correctly without a ref-counting system for the container is complex.
+      // The liveRegionContainer itself should persist for the application's lifetime.
       // politeRegion.remove();
       // assertiveRegion.remove();
-      // if (liveRegionContainer && liveRegionContainer.children.length === 0) {
-      //   liveRegionContainer.remove();
-      //   liveRegionContainer = null;
+
+      // Ensure liveRegionContainer is not removed.
+      // if (liveRegionContainer && liveRegionContainer.innerHTML === '') {
+      //   // Do not remove liveRegionContainer as it's a shared singleton.
       // }
     };
   }, []);
