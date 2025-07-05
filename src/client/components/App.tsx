@@ -85,38 +85,41 @@ const App: React.FC = () => {
       return;
     }
 
-    const updatedProjectData: Project = {
-      ...projectToSave,
-      interactiveData: data,
-      thumbnailUrl: data.backgroundImage || undefined, // Explicitly set thumbnailUrl
+    // Construct the project data to be saved.
+    // The actual thumbnailUrl will be determined by the backend (firebaseApi.ts)
+    // based on interactiveData.backgroundImage.
+    // We pass the existing projectToSave.thumbnailUrl which might be outdated or undefined.
+    // The backend will handle the logic.
+    const projectDataToSend: Project = {
+      ...projectToSave, // Includes existing id, title, description, current thumbnailUrl
+      interactiveData: data, // The latest interactive data including backgroundImage
     };
     
     setIsLoading(true);
     try {
-      // Pass the updatedProjectData which now includes the thumbnailUrl to the proxy
-      await appScriptProxy.saveProject(updatedProjectData);
+      // appScriptProxy.saveProject will now internally handle thumbnail generation if needed
+      // and return the project with the updated (or existing) thumbnail URL.
+      const savedProjectWithPotentiallyNewThumbnail = await appScriptProxy.saveProject(projectDataToSend);
 
-      // Optimistically update the local state with the new data, including the thumbnail.
-      // This ensures the UI updates immediately.
+      // Optimistically update with what we sent, but the refresh below is key for the actual thumbnail.
+      // A slightly better optimistic update would use `savedProjectWithPotentiallyNewThumbnail` if it's returned by `saveProject`.
+      // Assuming `saveProject` in the proxy now returns the updated project from `firebaseApi.ts`.
       setProjects(prevProjects =>
-        prevProjects.map(p => (p.id === projectId ? updatedProjectData : p))
+        prevProjects.map(p => (p.id === projectId ? savedProjectWithPotentiallyNewThumbnail : p))
       );
 
-      // Update selectedProject if it's the one being saved
       if (selectedProject && selectedProject.id === projectId) {
-        setSelectedProject(updatedProjectData);
+        setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      // Optionally, you can still refresh the project list from the server
-      // if you want to ensure full consistency or if the server might make further changes.
-      // However, for the thumbnail issue, the optimistic update should suffice for immediate UI correctness.
-      // For now, let's keep the refresh to ensure data integrity from the backend.
-       const refreshedProjects = await appScriptProxy.listProjects();
-       setProjects(refreshedProjects);
-       // Ensure selected project is also updated from the refreshed list
-       setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
+      // The optimistic updates above are now sufficient as `saveProject`
+      // returns the complete project data with the correct thumbnail URL.
+      // The full list refresh is no longer necessary here.
+      // const refreshedProjects = await appScriptProxy.listProjects();
+      // setProjects(refreshedProjects);
+      // setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
 
-      console.log('Project data save initiated via proxy:', projectId, updatedProjectData);
+      console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err.message || ''}`);

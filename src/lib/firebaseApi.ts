@@ -8,12 +8,22 @@ import {
   orderBy,
   writeBatch,
   serverTimestamp,
-  where
+  where,
+  getDoc
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { DataSanitizer } from './dataSanitizer'
+import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
+
+// Thumbnail Parameters
+const THUMBNAIL_WIDTH = 400;
+const THUMBNAIL_HEIGHT = 250;
+const THUMBNAIL_FORMAT = 'image/jpeg';
+const THUMBNAIL_QUALITY = 0.7;
+const THUMBNAIL_POSTFIX = '_thumbnails'; // Used for storage path organization
+const THUMBNAIL_FILE_PREFIX = 'thumb_'; // Used for filename
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, { data: any, timestamp: number }>()
@@ -126,18 +136,63 @@ export class FirebaseProjectAPI {
       this.logUsage('WRITE_OPERATIONS', 1)
       const batch = writeBatch(db)
       const projectRef = doc(db, 'projects', project.id)
-      
-      // Update main project document
+
+      // Fetch existing project data to compare backgroundImage and get old thumbnailUrl
+      const existingDocSnap = await getDoc(projectRef);
+      const existingData = existingDocSnap.data();
+      const existingBackgroundImage = existingData?.backgroundImage;
+      const existingThumbnailUrl = existingData?.thumbnailUrl;
+
+      let finalThumbnailUrl = existingThumbnailUrl || null; // Start with the current thumbnail URL
+      let newBackgroundImage = project.interactiveData.backgroundImage; // Changed to let
+
+      let oldThumbnailShouldBeDeleted = false;
+
+      if (newBackgroundImage && newBackgroundImage !== existingBackgroundImage) {
+        // Case 1: Background image is present and has changed (or is new)
+        console.log(`Background image changed for project ${project.id}. Regenerating thumbnail.`);
+        if (existingThumbnailUrl) {
+          oldThumbnailShouldBeDeleted = true; // Mark old one for deletion if new one succeeds
+        }
+        try {
+          const thumbnailBlob = await generateThumbnail(
+            newBackgroundImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
+          );
+          // Resilient way to get file extension from MIME type
+          const fileExtension = THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg', 'jpg') || 'dat';
+          const thumbnailFile = new File(
+            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
+          );
+          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
+          console.log(`New thumbnail uploaded: ${finalThumbnailUrl}`);
+        } catch (thumbError) {
+          console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+          finalThumbnailUrl = existingThumbnailUrl || null; // Revert to old if new one fails
+          oldThumbnailShouldBeDeleted = false; // Don't delete the old one if new one failed
+        }
+      } else if (!newBackgroundImage && existingBackgroundImage) {
+        // Case 2: Background image has been removed
+        console.log(`Background image removed for project ${project.id}. Clearing and marking old thumbnail for deletion.`);
+        if (existingThumbnailUrl) {
+          oldThumbnailShouldBeDeleted = true;
+        }
+        finalThumbnailUrl = null;
+      }
+      // Case 3: Background image unchanged (newBackgroundImage === existingBackgroundImage)
+      // Case 4: No background image initially and still no background image
+      // In both Case 3 and 4, finalThumbnailUrl remains as existingThumbnailUrl, and no deletion is needed.
+
+      // Firestore batch update
       batch.set(projectRef, {
         title: project.title,
         description: project.description,
-        thumbnailUrl: project.thumbnailUrl || null,
-        backgroundImage: project.interactiveData.backgroundImage || null,
+        thumbnailUrl: finalThumbnailUrl,
+        backgroundImage: newBackgroundImage || null,
         imageFitMode: project.interactiveData.imageFitMode || 'cover',
         updatedAt: serverTimestamp()
-      }, { merge: true })
-      
-      // Sanitize data before processing to remove undefined values
+      }, { merge: true });
+
+      // Subcollection updates (hotspots, timeline_events)
       const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
       const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
       
@@ -184,9 +239,20 @@ export class FirebaseProjectAPI {
       }
       
       await batch.commit()
+
+      // After batch commit is successful, attempt to delete the old thumbnail if marked
+      if (oldThumbnailShouldBeDeleted && existingThumbnailUrl) {
+        console.log(`Attempting to delete old thumbnail: ${existingThumbnailUrl}`);
+        // Non-blocking call as per suggestion
+        this._deleteImageFromStorage(existingThumbnailUrl).catch(err => {
+            console.error("Error during fire-and-forget deletion of old thumbnail:", err);
+        });
+      }
       
-      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots`)
-      return project
+      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots and thumbnail URL: ${finalThumbnailUrl}`);
+      // Return the project with the potentially updated thumbnail URL
+      return { ...project, thumbnailUrl: finalThumbnailUrl };
+
     } catch (error) {
       console.error('Error saving project:', error)
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -305,6 +371,33 @@ export class FirebaseProjectAPI {
   private async clearProjectSubcollections(projectId: string): Promise<void> {
     // This function was causing data loss - it's now handled in saveProject with upsert logic
     console.log(`Skipping clear operation for project ${projectId} - using upsert instead`)
+  }
+
+  // Helper function to delete an image from Firebase Storage, callable from methods.
+  // Made it private as it's an internal utility for this class.
+  private async _deleteImageFromStorage(imageUrl: string): Promise<void> {
+    if (!imageUrl) {
+      console.warn('Attempted to delete image with no URL.');
+      return;
+    }
+
+    try {
+      // Firebase SDK's ref() can take a gs:// URL or an https:// URL
+      // directly from Firebase Storage.
+      const imageRef = ref(storage, imageUrl);
+      await deleteObject(imageRef);
+      console.log(`Successfully deleted image from storage: ${imageUrl}`);
+    } catch (error: any) {
+      // It's common for "object-not-found" errors if the file was already deleted
+      // or the URL was incorrect. We can often ignore these.
+      if (error.code === 'storage/object-not-found') {
+        console.warn(`Old image not found during deletion attempt, skipping: ${imageUrl}`);
+      } else {
+        console.error(`Failed to delete image from storage (${imageUrl}):`, error);
+        // Optionally, re-throw if this is critical, but typically for cleanup,
+        // we might not want to fail the entire operation.
+      }
+    }
   }
 }
 
