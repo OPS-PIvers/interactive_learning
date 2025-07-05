@@ -158,8 +158,9 @@ export class FirebaseProjectAPI {
           const thumbnailBlob = await generateThumbnail(
             newBackgroundImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
           );
+          const fileExtension = THUMBNAIL_FORMAT === 'image/jpeg' ? 'jpg' : THUMBNAIL_FORMAT === 'image/webp' ? 'webp' : 'dat';
           const thumbnailFile = new File(
-            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.jpg`, { type: THUMBNAIL_FORMAT }
+            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
           );
           finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
           console.log(`New thumbnail uploaded: ${finalThumbnailUrl}`);

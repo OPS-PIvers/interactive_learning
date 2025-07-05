@@ -8,12 +8,18 @@ export async function generateThumbnail(
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'Anonymous'; // Handle CORS for images from URLs
+    let objectUrl: string | null = null;
 
     img.onload = () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null; // Clear it after use
+      }
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
+        // No objectUrl to revoke here if context creation fails before image processing
         return reject(new Error('Failed to get canvas context.'));
       }
 
