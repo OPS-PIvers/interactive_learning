@@ -144,7 +144,7 @@ export class FirebaseProjectAPI {
       const existingThumbnailUrl = existingData?.thumbnailUrl;
 
       let finalThumbnailUrl = existingThumbnailUrl || null; // Start with the current thumbnail URL
-      const newBackgroundImage = project.interactiveData.backgroundImage;
+      let newBackgroundImage = project.interactiveData.backgroundImage; // Changed to let
 
       let oldThumbnailShouldBeDeleted = false;
 
@@ -158,7 +158,8 @@ export class FirebaseProjectAPI {
           const thumbnailBlob = await generateThumbnail(
             newBackgroundImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
           );
-          const fileExtension = THUMBNAIL_FORMAT === 'image/jpeg' ? 'jpg' : THUMBNAIL_FORMAT === 'image/webp' ? 'webp' : 'dat';
+          // Resilient way to get file extension from MIME type
+          const fileExtension = THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg', 'jpg') || 'dat';
           const thumbnailFile = new File(
             [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
           );

@@ -60,6 +60,10 @@ export async function generateThumbnail(
     };
 
     img.onerror = (error) => {
+      if (objectUrl) { // Ensure revocation happens on error too if objectUrl was set
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
       console.error('Image loading error:', error);
       reject(new Error(`Failed to load image: ${error instanceof Event ? 'Network error or invalid image' : error.toString()}`));
     };
@@ -67,19 +71,9 @@ export async function generateThumbnail(
     if (typeof imageUrlOrFile === 'string') {
       img.src = imageUrlOrFile;
     } else {
-      // It's a File object, use FileReader to get a data URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target && typeof e.target.result === 'string') {
-          img.src = e.target.result;
-        } else {
-          reject(new Error('Failed to read file.'));
-        }
-      };
-      reader.onerror = (error) => {
-        reject(new Error(`FileReader error: ${error.toString()}`));
-      };
-      reader.readAsDataURL(imageUrlOrFile);
+      // It's a File object, use createObjectURL for memory efficiency
+      objectUrl = URL.createObjectURL(imageUrlOrFile);
+      img.src = objectUrl;
     }
   });
 }
