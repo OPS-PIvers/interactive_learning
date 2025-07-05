@@ -112,14 +112,14 @@ const App: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      // Refresh the entire list to ensure full consistency from the backend.
-      // This will fetch the definitive state, including the correct thumbnail URL.
-       const refreshedProjects = await appScriptProxy.listProjects();
-       setProjects(refreshedProjects);
-       // Ensure selected project is also updated from the refreshed list
-       setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
+      // The optimistic updates above are now sufficient as `saveProject`
+      // returns the complete project data with the correct thumbnail URL.
+      // The full list refresh is no longer necessary here.
+      // const refreshedProjects = await appScriptProxy.listProjects();
+      // setProjects(refreshedProjects);
+      // setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
 
-      console.log('Project data save initiated via proxy:', projectId, projectDataToSend);
+      console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err.message || ''}`);

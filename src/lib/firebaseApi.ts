@@ -237,6 +237,15 @@ export class FirebaseProjectAPI {
       }
       
       await batch.commit()
+
+      // After batch commit is successful, attempt to delete the old thumbnail if marked
+      if (oldThumbnailShouldBeDeleted && existingThumbnailUrl) {
+        console.log(`Attempting to delete old thumbnail: ${existingThumbnailUrl}`);
+        // Non-blocking call as per suggestion
+        this._deleteImageFromStorage(existingThumbnailUrl).catch(err => {
+            console.error("Error during fire-and-forget deletion of old thumbnail:", err);
+        });
+      }
       
       console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots and thumbnail URL: ${finalThumbnailUrl}`);
       // Return the project with the potentially updated thumbnail URL
