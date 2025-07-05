@@ -17,28 +17,27 @@ export async function generateThumbnail(
         return reject(new Error('Failed to get canvas context.'));
       }
 
-      let { width, height } = img;
-      const aspectRatio = width / height;
+      let sourceWidth = img.width;
+      let sourceHeight = img.height;
 
       // Calculate new dimensions to fit within targetWidth and targetHeight while maintaining aspect ratio
-      if (width > height) {
-        if (width > targetWidth) {
-          height = targetWidth / aspectRatio;
-          width = targetWidth;
-        }
-      } else {
-        if (height > targetHeight) {
-          width = targetHeight * aspectRatio;
-          height = targetHeight;
-        }
+      // We only scale down, never up.
+      const ratio = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+
+      let destWidth = sourceWidth;
+      let destHeight = sourceHeight;
+
+      if (ratio < 1) { // Only scale down if the image is larger than target dimensions
+        destWidth = Math.round(sourceWidth * ratio);
+        destHeight = Math.round(sourceHeight * ratio);
       }
 
       // Ensure dimensions are at least 1px to avoid errors
-      canvas.width = Math.max(1, width);
-      canvas.height = Math.max(1, height);
+      canvas.width = Math.max(1, destWidth);
+      canvas.height = Math.max(1, destHeight);
 
       // Draw the resized image onto the canvas
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, destWidth, destHeight);
 
       // Convert canvas content to Blob
       canvas.toBlob(
