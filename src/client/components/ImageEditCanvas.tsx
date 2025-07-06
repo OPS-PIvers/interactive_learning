@@ -60,6 +60,10 @@ interface ImageEditCanvasProps {
   getImageBounds?: () => { width: number; height: number; left: number; top: number } | null;
   imageNaturalDimensions?: { width: number; height: number } | null;
   imageFitMode?: string;
+
+  // Props for "click to place" new hotspot
+  isPlacingHotspot?: boolean;
+  onPlaceNewHotspot?: (x: number, y: number) => void;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -94,6 +98,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   getImageBounds,
   imageNaturalDimensions,
   imageFitMode,
+  isPlacingHotspot = false,
+  onPlaceNewHotspot,
 }) => {
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
@@ -126,31 +132,73 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
       className={`w-full h-full overflow-auto bg-slate-900 flex items-center justify-center ${
         isDragModeActive ? 'drag-mode-active' : ''
       } ${
-        isEditing && backgroundImage ? 'editing-mode-crosshair' : ''
-      }`} // Added flex items-center justify-center for mobile
-      style={{ // Styles from desktop version
+        // Apply crosshair if placing hotspot OR if editing and background image exists (original logic)
+        (isPlacingHotspot || (isEditing && backgroundImage)) ? 'editing-mode-crosshair' : ''
+      }`}
+      style={{
         scrollBehavior: 'smooth',
         scrollbarWidth: 'thin',
         scrollbarColor: '#475569 #1e293b',
+        cursor: isPlacingHotspot ? 'crosshair' : (isDragModeActive ? 'grabbing' : (isEditing && backgroundImage ? 'crosshair' : 'default')),
       }}
-        onClick={(e) => {
-          console.log('Debug [ImageEditCanvas]: Container click detected', {
-            target: e.target,
-            currentTarget: e.currentTarget,
-            isEditing,
-            timestamp: Date.now()
-          });
-          onImageOrHotspotClick && onImageOrHotspotClick(e);
-        }} // Unified click handling for all devices
-        // onTouchStart, onTouchMove, onTouchEnd are primarily for mobile, handled by InteractiveModule's touchGestureHandlers
-        // If specific touch interactions are needed directly on ImageEditCanvas elements, they can be added.
+      onClick={(e) => {
+        // If currently placing a hotspot and the click is on the canvas background (not a hotspot itself)
+        if (isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current) {
+          const target = e.target as HTMLElement;
+          // Check if the click was directly on the image or its container, not on a hotspot viewer
+          if (target === actualImageRef.current || target === zoomedImageContainerRef.current || target === scrollableContainerRef.current) {
+            const imageRect = actualImageRef.current.getBoundingClientRect();
+            const scrollRect = scrollableContainerRef.current?.getBoundingClientRect();
+
+            if (!scrollRect) return;
+
+            // Calculate click position relative to the scrollable container
+            const clickXInScrollContainer = e.clientX - scrollRect.left;
+            const clickYInScrollContainer = e.clientY - scrollRect.top;
+
+            // Account for current scroll position of the container
+            const scrollLeft = scrollableContainerRef.current?.scrollLeft || 0;
+            const scrollTop = scrollableContainerRef.current?.scrollTop || 0;
+
+            // Click position relative to the actual image element's top-left corner (considering its current display rect)
+            const clickXRelativeToImageOrigin = e.clientX - imageRect.left;
+            const clickYRelativeToImageOrigin = e.clientY - imageRect.top;
+
+            // Convert to coordinates on the unzoomed, natural-sized image
+            // The imageRect dimensions (width/height) are the displayed size, already affected by zoom.
+            // We need to map the click point (which is on the displayed image) back to the natural image.
+            const xOnNaturalImage = (clickXRelativeToImageOrigin / imageRect.width) * actualImageRef.current.naturalWidth;
+            const yOnNaturalImage = (clickYRelativeToImageOrigin / imageRect.height) * actualImageRef.current.naturalHeight;
+
+            // Convert to percentage of the natural image dimensions
+            const xPercent = (xOnNaturalImage / actualImageRef.current.naturalWidth) * 100;
+            const yPercent = (yOnNaturalImage / actualImageRef.current.naturalHeight) * 100;
+
+            // Clamp values between 0 and 100
+            const finalXPercent = Math.max(0, Math.min(100, xPercent));
+            const finalYPercent = Math.max(0, Math.min(100, yPercent));
+
+            onPlaceNewHotspot(finalXPercent, finalYPercent);
+            e.stopPropagation(); // Prevent other click handlers
+            return;
+          }
+        }
+        // Default behavior if not placing a hotspot
+        console.log('Debug [ImageEditCanvas]: Container click detected (default)', {
+          target: e.target,
+          currentTarget: e.currentTarget,
+          isEditing,
+          timestamp: Date.now()
+        });
+        onImageOrHotspotClick && onImageOrHotspotClick(e);
+      }}
     >
       <div
           className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'} ${
             isDragModeActive ? 'drag-mode-active' : ''
           }`}
         style={{
-          cursor: isDragModeActive ? 'grabbing' : (backgroundImage && isEditing ? 'crosshair' : 'default'),
+          // Cursor styling is now handled by the parent scrollableContainerRef
           zIndex: Z_INDEX_IMAGE_BASE
         }}
           // For mobile, the click is handled by the parent div in InteractiveModule which then calls onImageOrHotspotClick.
