@@ -103,9 +103,18 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       });
 
       // Automatically switch layout modes based on available space
-      if (isKeyboardVisible) {
+      // Prevent switching to modal mode if the keyboard is visible AND the active panel is already 'properties'
+      // as this is where text input occurs and we want to keep the MobileHotspotEditor visible.
+      if (isKeyboardVisible && activePanel !== 'properties') {
         setEditorMode('modal');
+        // It might be disruptive to force activePanel to 'properties' here.
+        // Consider if this line is truly necessary or if the modal should be more generic.
+        // For now, keeping original logic if modal mode is entered for other reasons.
         setActivePanel('properties');
+      } else if (isKeyboardVisible && activePanel === 'properties') {
+        // If keyboard is visible and we are on the properties panel, stay in compact mode
+        // to allow MobileHotspotEditor to be used. The layout should adjust.
+        setEditorMode('compact');
       } else if (visualViewportHeight < 600) {
         setEditorMode('fullscreen');
       } else {
