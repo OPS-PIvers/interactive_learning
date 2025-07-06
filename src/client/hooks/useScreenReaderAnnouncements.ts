@@ -68,9 +68,6 @@ const ensureLiveRegions = () => {
   }
 };
 
-// Call ensureLiveRegions once when the module is loaded.
-ensureLiveRegions();
-
 const useScreenReaderAnnouncements = () => {
   // Refs for debounced functions to ensure they are stable across re-renders
   const announcePolitelyRef = useRef<(message: string) => void>();

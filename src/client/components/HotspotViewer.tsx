@@ -89,9 +89,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // Prioritize passed ref, fallback to DOM traversal
     const containerElement = dragContainerRef?.current || (e.currentTarget as HTMLElement).closest('.relative');
     if (!containerElement) {
-      // console.error("HotspotViewer: Drag container element not found.");
-      // In a production-ready system, this path should ideally not be hit.
-      // If it can be, more robust error handling or a failsafe might be needed.
+      console.error("HotspotViewer: Drag container element not found. This is an unexpected state and should be investigated.");
       return;
     }
 
