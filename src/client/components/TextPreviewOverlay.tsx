@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData } from '../../shared/types';
+import { throttle } from '../utils/asyncUtils';
 
 interface TextPreviewOverlayProps {
   event: TimelineEventData;
@@ -46,6 +47,12 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
     setDragStart({ x: e.clientX, y: e.clientY });
   }, []);
 
+  const throttledUpdate = useMemo(() => {
+    return throttle((updatedEvent: TimelineEventData) => {
+      onUpdate(updatedEvent);
+    }, 50); // Throttle to 50ms
+  }, [onUpdate]);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!containerBounds || (!isDragging && !isResizing)) return;
 
@@ -53,11 +60,9 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
     const deltaY = e.clientY - dragStart.y;
 
     if (isDragging) {
-      // Convert pixel movement to percentage with more precision
       const percentX = (deltaX / containerBounds.width) * 100;
       const percentY = (deltaY / containerBounds.height) * 100;
       
-      // Calculate max positions accounting for text box size as percentage
       const textWidthPercent = (textBox.width / containerBounds.width) * 100;
       const textHeightPercent = (textBox.height / containerBounds.height) * 100;
       const maxX = Math.max(0, 100 - textWidthPercent);
@@ -66,34 +71,30 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
       const newX = Math.max(0, Math.min(maxX, textBox.x + percentX));
       const newY = Math.max(0, Math.min(maxY, textBox.y + percentY));
 
-      // Update drag start position for incremental movement
       setDragStart({ x: e.clientX, y: e.clientY });
 
-      onUpdate({
+      throttledUpdate({
         ...event,
         textX: newX,
         textY: newY
       });
     } else if (isResizing) {
-      // Resize the text box with constraints based on container bounds
-      const minWidth = Math.max(100, containerBounds.width * 0.1); // 10% min width
-      const maxWidth = containerBounds.width * 0.8; // 80% max width
-      const minHeight = Math.max(40, containerBounds.height * 0.05); // 5% min height
-      const maxHeight = containerBounds.height * 0.6; // 60% max height
+      const minWidth = Math.max(100, containerBounds.width * 0.1);
+      const maxWidth = containerBounds.width * 0.8;
+      const minHeight = Math.max(40, containerBounds.height * 0.05);
+      const maxHeight = containerBounds.height * 0.6;
       
       const newWidth = Math.max(minWidth, Math.min(maxWidth, textBox.width + deltaX));
       const newHeight = Math.max(minHeight, Math.min(maxHeight, textBox.height + deltaY));
 
-      // Ensure the text box doesn't go outside bounds when resizing
       const textWidthPercent = (newWidth / containerBounds.width) * 100;
       const textHeightPercent = (newHeight / containerBounds.height) * 100;
       const adjustedX = Math.min(textBox.x, 100 - textWidthPercent);
       const adjustedY = Math.min(textBox.y, 100 - textHeightPercent);
 
-      // Update drag start position for incremental resizing
       setDragStart({ x: e.clientX, y: e.clientY });
 
-      onUpdate({
+      throttledUpdate({
         ...event,
         textX: adjustedX,
         textY: adjustedY,
@@ -101,7 +102,7 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
         textHeight: newHeight
       });
     }
-  }, [isDragging, isResizing, dragStart, textBox, containerBounds, event, onUpdate]);
+  }, [isDragging, isResizing, dragStart, textBox, containerBounds, event, throttledUpdate]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
