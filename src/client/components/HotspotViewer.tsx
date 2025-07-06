@@ -220,6 +220,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   return (
     <div
+      // Add data-hotspot-id here for reliable touch target identification
+      data-hotspot-id={hotspot.id}
       className={`absolute group transform -translate-x-1/2 -translate-y-1/2 ${
         isDragging ? 'z-50' : 'z-20'
       } ${
