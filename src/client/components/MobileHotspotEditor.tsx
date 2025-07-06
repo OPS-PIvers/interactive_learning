@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import debounce from 'lodash.debounce';
 import { HotspotData, HotspotSize } from '../../shared/types';
 
 interface MobileHotspotEditorProps {
@@ -6,6 +7,8 @@ interface MobileHotspotEditorProps {
   onUpdate: (updates: Partial<HotspotData>) => void;
   onDelete?: () => void;
 }
+
+const DEBOUNCE_DELAY = 500;
 
 const MOBILE_COLOR_OPTIONS = [
   { value: 'bg-red-500', label: 'Red', color: '#ef4444' },
@@ -30,19 +33,48 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
   const [internalHotspot, setInternalHotspot] = useState<HotspotData>(hotspot);
 
+  // Debounced onUpdate function
+  const debouncedOnUpdate = useMemo(
+    () =>
+      debounce((updates: Partial<HotspotData>) => {
+        onUpdate(updates);
+      }, DEBOUNCE_DELAY),
+    [onUpdate]
+  );
+
   useEffect(() => {
     setInternalHotspot(hotspot);
-  }, [hotspot]);
+    // When the external hotspot data changes, cancel any pending debounced updates
+    // to prevent updating stale data or the wrong hotspot.
+    return () => {
+      debouncedOnUpdate.cancel();
+    };
+  }, [hotspot, debouncedOnUpdate]);
 
-  // Update internal state and call onUpdate when changes are made
-  const handleChange = (field: keyof HotspotData, value: any) => {
-    // TODO: Consider debouncing onUpdate or calling it only on explicit save/blur
-    // if performance issues arise due to frequent updates to the parent component.
-    // For now, direct update provides real-time feedback.
-    const updatedHotspot = { ...internalHotspot, [field]: value };
-    setInternalHotspot(updatedHotspot);
-    onUpdate({ [field]: value });
-  };
+
+  // Update internal state and call onUpdate (or debouncedOnUpdate) when changes are made
+  const handleChange = useCallback((field: keyof HotspotData, value: any) => {
+    setInternalHotspot(prevHotspot => ({ ...prevHotspot, [field]: value }));
+
+    if (field === 'title' || field === 'description') {
+      debouncedOnUpdate({ [field]: value });
+    } else {
+      // For non-text fields (color, size), update immediately
+      onUpdate({ [field]: value });
+      // If there was a pending debounced update for text, it might be good to cancel it,
+      // or ensure the immediate update doesn't conflict.
+      // However, typical use case is editing text OR clicking a button, not simultaneously.
+      // For now, this should be fine.
+    }
+  }, [onUpdate, debouncedOnUpdate]);
+
+
+  // Ensure debounced calls are flushed or cancelled on unmount
+  useEffect(() => {
+    return () => {
+      debouncedOnUpdate.cancel();
+    };
+  }, [debouncedOnUpdate]);
 
   const renderBasicTab = () => (
     <div className="space-y-4">

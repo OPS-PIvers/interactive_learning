@@ -1,85 +1,137 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
-const visuallyHiddenStyle: React.CSSProperties = {
-  position: 'absolute',
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  height: '1px',
-  width: '1px',
-  margin: '-1px',
-  padding: '0',
-  border: '0',
-};
+// Debounce utility
+function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  const debounced = (...args: Parameters<F>) => {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    timeout = setTimeout(() => func(...args), waitFor);
+  };
+
+  return debounced as (...args: Parameters<F>) => void;
+}
 
 let liveRegionContainer: HTMLDivElement | null = null;
+let currentPoliteMessage = "";
+let currentAssertiveMessage = "";
 
-function getLiveRegionContainer(): HTMLDivElement {
-  if (!liveRegionContainer) {
+const ensureLiveRegionContainer = () => {
+  if (!document.getElementById('screen-reader-announcements-container')) {
     liveRegionContainer = document.createElement('div');
     liveRegionContainer.id = 'screen-reader-announcements-container';
+    // Optional: Some styling to hide it visually but keep it accessible
+    liveRegionContainer.style.position = 'absolute';
+    liveRegionContainer.style.width = '1px';
+    liveRegionContainer.style.height = '1px';
+    liveRegionContainer.style.margin = '-1px';
+    liveRegionContainer.style.padding = '0';
+    liveRegionContainer.style.overflow = 'hidden';
+    liveRegionContainer.style.clip = 'rect(0, 0, 0, 0)';
+    liveRegionContainer.style.border = '0';
     document.body.appendChild(liveRegionContainer);
+  } else {
+    liveRegionContainer = document.getElementById('screen-reader-announcements-container') as HTMLDivElement;
   }
   return liveRegionContainer;
-}
+};
 
-interface ScreenReaderAnnouncer {
-  (message: string, politeness?: 'polite' | 'assertive'): void;
-}
+const useScreenReaderAnnouncements = () => {
+  const [, setPoliteUpdate] = useState(0);
+  const [, setAssertiveUpdate] = useState(0);
 
-/**
- * Custom hook to provide screen reader announcements.
- * Creates and manages a visually hidden ARIA live region.
- *
- * @returns A function to make announcements.
- */
-function useScreenReaderAnnouncements(): ScreenReaderAnnouncer {
-  const announcerRef = useRef<HTMLDivElement | null>(null);
+  const announcePolitelyRef = useRef<(message: string) => void>();
+  const announceAssertivelyRef = useRef<(message: string) => void>();
 
   useEffect(() => {
-    const container = getLiveRegionContainer();
-    const announcerDiv = document.createElement('div');
-    announcerDiv.id = `sr-announcer-${Math.random().toString(36).substr(2, 9)}`;
-    Object.assign(announcerDiv.style, visuallyHiddenStyle);
-    // Default to assertive, can be changed by the announce function
-    announcerDiv.setAttribute('aria-live', 'assertive');
-    announcerDiv.setAttribute('aria-atomic', 'true');
-    container.appendChild(announcerDiv);
-    announcerRef.current = announcerDiv;
+    ensureLiveRegionContainer();
+
+    // Create a "polite" live region
+    const politeRegion = document.createElement('div');
+    politeRegion.setAttribute('role', 'status');
+    politeRegion.setAttribute('aria-live', 'polite');
+    politeRegion.setAttribute('aria-atomic', 'true');
+    liveRegionContainer?.appendChild(politeRegion);
+
+    // Create an "assertive" live region
+    const assertiveRegion = document.createElement('div');
+    assertiveRegion.setAttribute('role', 'alert');
+    assertiveRegion.setAttribute('aria-live', 'assertive');
+    assertiveRegion.setAttribute('aria-atomic', 'true');
+    liveRegionContainer?.appendChild(assertiveRegion);
+
+    const updatePoliteRegion = (message: string) => {
+        if (politeRegion.textContent === message) {
+            politeRegion.textContent = '';
+            setTimeout(() => { politeRegion.textContent = message; }, 50);
+        } else {
+            politeRegion.textContent = message;
+        }
+        currentPoliteMessage = message;
+        setPoliteUpdate(c => c + 1);
+    };
+
+    const updateAssertiveRegion = (message: string) => {
+        if (assertiveRegion.textContent === message) {
+            assertiveRegion.textContent = '';
+            setTimeout(() => { assertiveRegion.textContent = message; }, 50);
+        } else {
+            assertiveRegion.textContent = message;
+        }
+        currentAssertiveMessage = message;
+        setAssertiveUpdate(c => c + 1);
+    };
+
+    announcePolitelyRef.current = debounce((message: string) => {
+        console.log(`Announcing politely: ${message}`);
+        updatePoliteRegion(message);
+    }, 200);
+
+    announceAssertivelyRef.current = (message: string) => {
+        console.log(`Announcing assertively: ${message}`);
+        updateAssertiveRegion(message);
+    };
 
     return () => {
-      if (announcerDiv) {
-        container.removeChild(announcerDiv);
-      }
-      // If this is the last announcer, remove the container
-      if (container.childElementCount === 0) {
-        document.body.removeChild(container);
-        liveRegionContainer = null;
-      }
+      // Cleanup handled by shared container pattern
     };
   }, []);
 
-  const announce = useCallback((message: string, politeness: 'polite' | 'assertive' = 'assertive') => {
-    if (announcerRef.current) {
-      // Update politeness if specified
-      if (announcerRef.current.getAttribute('aria-live') !== politeness) {
-        announcerRef.current.setAttribute('aria-live', politeness);
-      }
-      // Set text content to trigger announcement
-      // Using textContent is generally safer and more performant for text-only updates.
-      announcerRef.current.textContent = message;
-
-      // Optional: Clear after a short delay if messages might be similar and not re-announced.
-      // However, modern screen readers are usually good about re-announcing the same message
-      // if the content of an assertive live region is set again.
-      // setTimeout(() => {
-      //   if(announcerRef.current) {
-      //     announcerRef.current.textContent = '';
-      //   }
-      // }, 100); // Adjust delay as needed
+  const announce = useCallback((message: string, assertiveness: 'polite' | 'assertive' = 'polite') => {
+    if (assertiveness === 'polite' && announcePolitelyRef.current) {
+      announcePolitelyRef.current(message);
+    } else if (assertiveness === 'assertive' && announceAssertivelyRef.current) {
+      announceAssertivelyRef.current(message);
     }
   }, []);
 
-  return announce;
-}
+  // Functions for specific announcements
+  const announceDragStart = useCallback(() => {
+    announce('Drag started.', 'polite');
+  }, [announce]);
+
+  const announceDragStop = useCallback((targetDescription?: string) => {
+    announce(targetDescription ? `Drag stopped. Dropped on ${targetDescription}.` : 'Drag stopped.', 'polite');
+  }, [announce]);
+
+  const announceFocusChange = useCallback((focusedElementLabel: string) => {
+    announce(`${focusedElementLabel} focused.`, 'polite');
+  }, [announce]);
+
+  const announceModeChange = useCallback((modeName: string) => {
+    announce(`Switched to ${modeName} mode.`, 'polite');
+  }, [announce]);
+
+  return {
+    announce,
+    announceDragStart,
+    announceDragStop,
+    announceFocusChange,
+    announceModeChange,
+  };
+};
 
 export default useScreenReaderAnnouncements;

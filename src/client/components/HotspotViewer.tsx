@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 
@@ -37,9 +37,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     dragContainerRef
   } = props;
 
+  const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
-  const announce = useScreenReaderAnnouncements();
   const dragDataRef = useRef<{
     startX: number;
     startY: number;
@@ -129,7 +129,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     if (!isDragging && (deltaX > threshold || deltaY > threshold)) {
       setIsDragging(true);
       setIsHolding(false);
-      announce('Drag started'); // Announce drag start
+      announceDragStart(); // Announce drag start
       if (onDragStateChange) onDragStateChange(true); // Notify parent about drag start
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
@@ -188,7 +188,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // Clean up
     if (isDragging) {
-      announce('Drag stopped'); // Announce drag stop
+      announceDragStop(`hotspot ${hotspot.title}`); // Announce drag stop
       if (onDragStateChange) onDragStateChange(false); // Notify parent about drag end
     }
     setIsDragging(false);
@@ -197,7 +197,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // Release pointer capture
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-  }, [isDragging, hotspot.id, onFocusRequest, onEditRequest, isEditing, onDragStateChange]); // Added onDragStateChange
+  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStart, announceDragStop]);
 
   // Style classes
   const baseColor = hotspot.color || 'bg-sky-500';
@@ -236,9 +236,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       role="button"
       aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (drag to move, hold to edit)' : ''}`}
       tabIndex={0}
-      aria-pressed={isPulsing || isEditing} // Assuming isPulsing or active editing means "pressed"
       aria-grabbed={isDragging}
-      aria-dropeffect={isDragging ? "move" : "none"}
+      aria-dropeffect={isEditing ? "move" : "none"}
     >
       <span className={dotClasses} aria-hidden="true">
         {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
