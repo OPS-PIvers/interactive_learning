@@ -6,10 +6,11 @@ import {
   deleteDoc,
   query,
   orderBy,
-  writeBatch,
+  // writeBatch, // No longer using batch directly in saveProject
   serverTimestamp,
   where,
-  getDoc
+  getDoc,
+  runTransaction // Import runTransaction
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from './firebaseConfig'
@@ -130,132 +131,124 @@ export class FirebaseProjectAPI {
    * Save/update a project with all its data
    */
   async saveProject(project: Project): Promise<Project> {
-    projectCache.clear()
-    
+    projectCache.clear();
+    const projectRef = doc(db, 'projects', project.id);
+
+    // --- Thumbnail logic (pre-transaction) ---
+    const initialDocSnap = await getDoc(projectRef);
+    const existingData = initialDocSnap.data();
+    const existingBackgroundImage = existingData?.backgroundImage;
+    const existingThumbnailUrl = existingData?.thumbnailUrl;
+
+    let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
+    let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
+    let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
+
+    if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
+      if (existingThumbnailUrl) {
+        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+      }
+      try {
+        console.log(`Generating thumbnail for project ${project.id} due to image change.`);
+        const thumbnailBlob = await generateThumbnail(
+          newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
+        );
+        const mimeTypeToExtension: Record<string, string> = {
+          'image/jpeg': 'jpg',
+          'image/webp': 'webp',
+          'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
+        };
+        const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
+        const thumbnailFile = new File(
+          [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
+        );
+        finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
+        console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
+      } catch (thumbError) {
+        console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+        finalThumbnailUrl = existingThumbnailUrl || null;
+        newBackgroundImageForUpdate = existingBackgroundImage || null;
+        oldThumbnailUrlToDeleteAfterCommit = null;
+      }
+    } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
+      if (existingThumbnailUrl) {
+        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+      }
+      finalThumbnailUrl = null;
+    }
+    // --- End of Thumbnail logic ---
+
     try {
-      this.logUsage('WRITE_OPERATIONS', 1)
-      const batch = writeBatch(db)
-      const projectRef = doc(db, 'projects', project.id)
+      await runTransaction(db, async (transaction) => {
+        this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
-      // Fetch existing project data to compare backgroundImage and get old thumbnailUrl
-      const existingDocSnap = await getDoc(projectRef);
-      const existingData = existingDocSnap.data();
-      const existingBackgroundImage = existingData?.backgroundImage;
-      const existingThumbnailUrl = existingData?.thumbnailUrl;
+        // Although decisions on URLs are made outside, it's good practice to get the latest version
+        // of the document if other fields were to be updated based on transactional read.
+        // For this specific logic, we primarily use pre-calculated URLs.
+        // const transactionalExistingDocSnap = await transaction.get(projectRef);
+        // const currentProjectData = transactionalExistingDocSnap.data();
 
-      let finalThumbnailUrl = existingThumbnailUrl || null; // Start with the current thumbnail URL
-      let newBackgroundImage = project.interactiveData.backgroundImage; // Changed to let
-
-      let oldThumbnailShouldBeDeleted = false;
-
-      if (newBackgroundImage && newBackgroundImage !== existingBackgroundImage) {
-        // Case 1: Background image is present and has changed (or is new)
-        console.log(`Background image changed for project ${project.id}. Regenerating thumbnail.`);
-        if (existingThumbnailUrl) {
-          oldThumbnailShouldBeDeleted = true; // Mark old one for deletion if new one succeeds
-        }
-        try {
-          const thumbnailBlob = await generateThumbnail(
-            newBackgroundImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
-          );
-          // Resilient way to get file extension from MIME type
-          const fileExtension = THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg', 'jpg') || 'dat';
-          const thumbnailFile = new File(
-            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
-          );
-          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
-          console.log(`New thumbnail uploaded: ${finalThumbnailUrl}`);
-        } catch (thumbError) {
-          console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
-          finalThumbnailUrl = existingThumbnailUrl || null; // Revert to old if new one fails
-          oldThumbnailShouldBeDeleted = false; // Don't delete the old one if new one failed
-        }
-      } else if (!newBackgroundImage && existingBackgroundImage) {
-        // Case 2: Background image has been removed
-        console.log(`Background image removed for project ${project.id}. Clearing and marking old thumbnail for deletion.`);
-        if (existingThumbnailUrl) {
-          oldThumbnailShouldBeDeleted = true;
-        }
-        finalThumbnailUrl = null;
-      }
-      // Case 3: Background image unchanged (newBackgroundImage === existingBackgroundImage)
-      // Case 4: No background image initially and still no background image
-      // In both Case 3 and 4, finalThumbnailUrl remains as existingThumbnailUrl, and no deletion is needed.
-
-      // Firestore batch update
-      batch.set(projectRef, {
-        title: project.title,
-        description: project.description,
-        thumbnailUrl: finalThumbnailUrl,
-        backgroundImage: newBackgroundImage || null,
-        imageFitMode: project.interactiveData.imageFitMode || 'cover',
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      // Subcollection updates (hotspots, timeline_events)
-      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
-      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
-      
-      // Get existing subcollection documents to determine what to delete vs update
-      const [existingHotspots, existingEvents] = await Promise.all([
-        getDocs(collection(db, 'projects', project.id, 'hotspots')),
-        getDocs(collection(db, 'projects', project.id, 'timeline_events'))
-      ])
-      
-      // Track which documents we're keeping
-      const newHotspotIds = new Set(sanitizedHotspots.map(h => h.id!))
-      const newEventIds = new Set(sanitizedEvents.map(e => e.id!))
-      
-      // Delete hotspots that are no longer in the project
-      existingHotspots.docs.forEach(doc => {
-        if (!newHotspotIds.has(doc.id)) {
-          batch.delete(doc.ref)
-        }
-      })
-      
-      // Delete events that are no longer in the project
-      existingEvents.docs.forEach(doc => {
-        if (!newEventIds.has(doc.id)) {
-          batch.delete(doc.ref)
-        }
-      })
-      
-      // Add/update hotspots
-      for (const hotspot of sanitizedHotspots) {
-        const hotspotRef = doc(db, 'projects', project.id, 'hotspots', hotspot.id!)
-        batch.set(hotspotRef, {
-          ...hotspot,
+        transaction.set(projectRef, {
+          title: project.title,
+          description: project.description,
+          thumbnailUrl: finalThumbnailUrl,
+          backgroundImage: newBackgroundImageForUpdate || null,
+          imageFitMode: project.interactiveData.imageFitMode || 'cover',
           updatedAt: serverTimestamp()
-        })
-      }
-      
-      // Add/update timeline events
-      for (const event of sanitizedEvents) {
-        const eventRef = doc(db, 'projects', project.id, 'timeline_events', event.id!)
-        batch.set(eventRef, {
-          ...event,
-          updatedAt: serverTimestamp()
-        })
-      }
-      
-      await batch.commit()
+        }, { merge: true });
 
-      // After batch commit is successful, attempt to delete the old thumbnail if marked
-      if (oldThumbnailShouldBeDeleted && existingThumbnailUrl) {
-        console.log(`Attempting to delete old thumbnail: ${existingThumbnailUrl}`);
-        // Non-blocking call as per suggestion
-        this._deleteImageFromStorage(existingThumbnailUrl).catch(err => {
-            console.error("Error during fire-and-forget deletion of old thumbnail:", err);
+        const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
+        const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
+
+        const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
+        const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');
+
+        // For atomicity in subcollections, ideally, reads (like getDocs) should also be transactional
+        // if the write logic depends on them. Firestore transactions have limits on operations.
+        // A common pattern for full replacement is to delete all then add all.
+        // This means querying for existing docs *outside* the transaction (as getDocs on a query isn't a transaction.get)
+        // and then using their refs for deletion *inside* the transaction.
+        // This has a small risk if items are added/removed between the getDocs and the transaction start.
+
+        const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
+            getDocs(query(hotspotsColRef)),
+            getDocs(query(eventsColRef))
+        ]);
+
+        existingHotspotsSnap.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+        existingEventsSnap.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+
+        for (const hotspot of sanitizedHotspots) {
+          const hotspotRef = doc(hotspotsColRef, hotspot.id!);
+          transaction.set(hotspotRef, { ...hotspot, updatedAt: serverTimestamp() });
+        }
+
+        for (const event of sanitizedEvents) {
+          const eventRef = doc(eventsColRef, event.id!);
+          transaction.set(eventRef, { ...event, updatedAt: serverTimestamp() });
+        }
+      });
+
+      console.log(`Transaction for project ${project.id} committed successfully.`);
+
+      if (oldThumbnailUrlToDeleteAfterCommit) {
+        console.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
+        this._deleteImageFromStorage(oldThumbnailUrlToDeleteAfterCommit).catch(err => {
+          console.error("Error during fire-and-forget deletion of old thumbnail:", err);
         });
       }
       
-      console.log(`Project ${project.id} saved successfully with ${sanitizedHotspots.length} hotspots and thumbnail URL: ${finalThumbnailUrl}`);
-      // Return the project with the potentially updated thumbnail URL
-      return { ...project, thumbnailUrl: finalThumbnailUrl };
-
+      return {
+        ...project,
+        thumbnailUrl: finalThumbnailUrl,
+        interactiveData: {
+          ...project.interactiveData,
+          backgroundImage: newBackgroundImageForUpdate || undefined
+        }
+      };
     } catch (error) {
-      console.error('Error saving project:', error)
-      throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error in saveProject (transaction or post-transaction storage deletion):', error);
+      throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -263,31 +256,56 @@ export class FirebaseProjectAPI {
    * Delete a project and all its data
    */
   async deleteProject(projectId: string): Promise<{ success: boolean; projectId: string }> {
+    const projectRef = doc(db, 'projects', projectId);
+    let thumbnailUrlToDelete: string | null = null;
+
     try {
-      const batch = writeBatch(db)
+      // Fetch project data to get thumbnail URL *before* the transaction,
+      // as the document will be gone after the transaction.
+      const projectSnap = await getDoc(projectRef);
+      if (projectSnap.exists()) {
+        thumbnailUrlToDelete = projectSnap.data()?.thumbnailUrl || null;
+      }
+
+      await runTransaction(db, async (transaction) => {
+        this.logUsage('TRANSACTION_DELETE_PROJECT', 1);
+
+        // Optional: Re-read project document with transaction.get(projectRef) to ensure it still exists
+        // if there's a concern it might be deleted by another process between the getDoc above and here.
+        // For this operation, if it's already gone, our work for the main doc is done.
+        const freshProjectSnap = await transaction.get(projectRef); // Good practice to confirm existence within transaction
+        if (!freshProjectSnap.exists()) {
+          console.warn(`Project ${projectId} not found during delete transaction (already deleted?).`);
+          return; // Nothing to delete
+        }
+
+        const hotspotsColRef = collection(db, 'projects', projectId, 'hotspots');
+        const eventsColRef = collection(db, 'projects', projectId, 'timeline_events');
+
+        // To delete subcollections atomically, it's best to get their document references
+        // and delete them. Querying for all docs and then deleting their refs is common.
+        const hotspotsSnapshot = await getDocs(query(hotspotsColRef)); // Query outside, use refs inside
+        hotspotsSnapshot.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+
+        const eventsSnapshot = await getDocs(query(eventsColRef)); // Query outside, use refs inside
+        eventsSnapshot.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+
+        transaction.delete(projectRef); // Delete main project document
+      });
+
+      console.log(`Project ${projectId} Firestore data deleted successfully via transaction.`);
+
+      if (thumbnailUrlToDelete) {
+        console.log(`Attempting to delete thumbnail for deleted project (fire-and-forget): ${thumbnailUrlToDelete}`);
+        this._deleteImageFromStorage(thumbnailUrlToDelete).catch(err => {
+            console.error("Error during fire-and-forget deletion of project thumbnail:", err);
+        });
+      }
       
-      // Delete hotspots
-      const hotspotsSnapshot = await getDocs(collection(db, 'projects', projectId, 'hotspots'))
-      hotspotsSnapshot.docs.forEach(doc => {
-        batch.delete(doc.ref)
-      })
-      
-      // Delete timeline events
-      const eventsSnapshot = await getDocs(collection(db, 'projects', projectId, 'timeline_events'))
-      eventsSnapshot.docs.forEach(doc => {
-        batch.delete(doc.ref)
-      })
-      
-      // Delete main project
-      batch.delete(doc(db, 'projects', projectId))
-      
-      await batch.commit()
-      
-      console.log(`Project ${projectId} deleted successfully`)
-      return { success: true, projectId }
+      return { success: true, projectId };
     } catch (error) {
-      console.error('Error deleting project:', error)
-      throw new Error(`Failed to delete project: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error deleting project:', error);
+      throw new Error(`Failed to delete project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
