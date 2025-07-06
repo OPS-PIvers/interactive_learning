@@ -46,8 +46,9 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
     setInternalHotspot(hotspot);
     // When the external hotspot data changes, cancel any pending debounced updates
     // to prevent updating stale data or the wrong hotspot.
+    // Flush any pending changes for the outgoing hotspot before switching to the new one.
     return () => {
-      debouncedOnUpdate.cancel();
+      debouncedOnUpdate.flush();
     };
   }, [hotspot, debouncedOnUpdate]);
 
@@ -72,7 +73,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
   // Ensure debounced calls are flushed or cancelled on unmount
   useEffect(() => {
     return () => {
-      debouncedOnUpdate.cancel();
+      debouncedOnUpdate.flush();
     };
   }, [debouncedOnUpdate]);
 
