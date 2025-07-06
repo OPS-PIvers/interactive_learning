@@ -1,6 +1,7 @@
 // src/client/components/MobileEditorModal.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { getActualViewportHeight, getKeyboardHeight, isKeyboardVisible } from '../utils/mobileUtils';
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -91,25 +92,23 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     if (!isOpen) return;
 
     const detectKeyboard = () => {
-      const windowHeight = window.innerHeight;
-      const visualViewportHeight = window.visualViewport?.height || windowHeight;
-      const keyboardHeight = Math.max(0, windowHeight - visualViewportHeight);
-      const isKeyboardVisible = keyboardHeight > 100;
+      const keyboardHeight = getKeyboardHeight();
+      const keyboardVisible = isKeyboardVisible();
 
       setKeyboard(prev => ({
-        isVisible: isKeyboardVisible,
+        isVisible: keyboardVisible,
         height: keyboardHeight,
-        animating: prev.isVisible !== isKeyboardVisible
+        animating: prev.isVisible !== keyboardVisible
       }));
 
       // Adjust tab switching ability when keyboard is open
       setTabState(prev => ({
         ...prev,
-        canSwitchTabs: !isKeyboardVisible
+        canSwitchTabs: !keyboardVisible
       }));
 
       // Auto-scroll to focused input when keyboard opens
-      if (isKeyboardVisible && document.activeElement) {
+      if (keyboardVisible && document.activeElement) {
         setTimeout(() => {
           document.activeElement?.scrollIntoView({
             behavior: 'smooth',
@@ -121,12 +120,22 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
 
     detectKeyboard();
 
-    window.addEventListener('resize', detectKeyboard);
-    window.visualViewport?.addEventListener('resize', detectKeyboard);
+    // Use both window resize and visual viewport resize for better detection
+    const handleResize = () => {
+      // Debounce to avoid excessive calls during orientation changes
+      setTimeout(detectKeyboard, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    
+    // Also listen for orientation changes
+    window.addEventListener('orientationchange', handleResize);
 
     return () => {
-      window.removeEventListener('resize', detectKeyboard);
-      window.visualViewport?.removeEventListener('resize', detectKeyboard);
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
     };
   }, [isOpen]);
 
@@ -163,15 +172,23 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   // Prevent background scroll when modal is open
   useEffect(() => {
     if (isOpen) {
+      // Store current scroll position
+      scrollPositionRef.current = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Set height to current viewport height to prevent jumps
+      const currentHeight = getActualViewportHeight();
+      
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
+      document.body.style.height = `${currentHeight}px`;
       document.body.style.top = `-${scrollPositionRef.current}px`;
     } else {
       const scrollY = scrollPositionRef.current;
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
+      document.body.style.height = '';
       document.body.style.top = '';
       window.scrollTo(0, scrollY);
     }
@@ -180,6 +197,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
+      document.body.style.height = '';
       document.body.style.top = '';
     };
   }, [isOpen]);
@@ -306,6 +324,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
               // Add new event logic
               const newEvent: TimelineEventData = {
                 id: `event_${Date.now()}`,
+                name: 'New Event',
                 type: InteractionType.SHOW_HOTSPOT,
                 targetId: hotspot?.id || '',
                 step: currentStep,

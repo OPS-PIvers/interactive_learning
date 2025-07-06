@@ -240,7 +240,7 @@ export class FirebaseProjectAPI {
       
       return {
         ...project,
-        thumbnailUrl: finalThumbnailUrl,
+        thumbnailUrl: finalThumbnailUrl || undefined,
         interactiveData: {
           ...project.interactiveData,
           backgroundImage: newBackgroundImageForUpdate || undefined

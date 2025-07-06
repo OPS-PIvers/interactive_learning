@@ -8,6 +8,8 @@ import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
 import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
 import { PlusCircleIcon } from './icons/PlusCircleIcon'; // Import for Add Hotspot button
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
+import ShareModal from './ShareModal';
+import { Project } from '../../shared/types';
 
 interface EditorToolbarProps {
   projectName: string;
@@ -38,11 +40,15 @@ interface EditorToolbarProps {
   isMobile?: boolean; // Already present as per instructions
   onAddHotspot: () => void; // Prop for adding a hotspot
   isPlacingHotspot?: boolean; // For visual feedback
+  
+  // Share functionality
+  project?: Project; // Optional project data for sharing
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false); // For mobile collapsible menu
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [mobileSaveSuccessActive, setMobileSaveSuccessActive] = useState(false);
   const mobileSaveSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -125,7 +131,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             </button>
           </div>
 
-          {/* Right: Save & Menu */}
+          {/* Right: Save, Share & Menu */}
           <div className="flex items-center gap-1">
             <button
               onClick={props.onSave}
@@ -140,6 +146,17 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
                 <SaveIcon className="w-6 h-6" />
               )}
             </button>
+            {props.project && (
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="p-2 text-slate-300 hover:text-white transition-colors"
+                title="Share Module"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                </svg>
+              </button>
+            )}
             <button
               onClick={() => setShowMobileMenu(true)} // Open collapsible menu/modal
               className="p-2 text-slate-300 hover:text-white transition-colors"
@@ -228,6 +245,21 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
               )}
             </button>
 
+            {/* Share Button */}
+            {props.project && (
+              <>
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded font-medium transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  </svg>
+                  <span>Share</span>
+                </button>
+              </>
+            )}
+
             <div className="h-6 w-px bg-slate-600" />
 
             {/* Settings Button */}
@@ -247,6 +279,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
         onClose={() => setIsModalOpen(false)}
         {...props}
       />
+
+      {/* Share Modal */}
+      {props.project && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          project={props.project}
+        />
+      )}
     </>
   );
 };

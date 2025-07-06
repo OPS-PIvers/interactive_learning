@@ -48,6 +48,16 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     containerElement: Element | null;
   } | null>(null);
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  
+  // Cleanup effect for timeout
+  useEffect(() => {
+    return () => {
+      if (holdTimeoutRef.current) {
+        clearTimeout(holdTimeoutRef.current);
+        holdTimeoutRef.current = undefined;
+      }
+    };
+  }, []);
 
   // Size classes for the hotspot
   const getSizeClasses = (size: HotspotSize = 'medium') => {
@@ -103,6 +113,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     };
 
     setIsHolding(true);
+    
+    // Immediately notify parent that we're starting a potential drag
+    if (onDragStateChange) onDragStateChange(true);
 
     // Set up hold-to-edit timer
     holdTimeoutRef.current = setTimeout(() => {
@@ -110,12 +123,18 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         setIsHolding(false);
         onEditRequest(hotspot.id);
         dragDataRef.current = null;
+        // Reset drag state if we're going to edit instead of drag
+        if (onDragStateChange) onDragStateChange(false);
       }
     }, isMobile ? 600 : 800);
 
     // Capture pointer for reliable drag behavior
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, [isEditing, hotspot.id, hotspot.x, hotspot.y, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef]); // Added dragContainerRef
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (error) {
+      console.warn('Failed to capture pointer:', error);
+    }
+  }, [isEditing, hotspot.id, hotspot.x, hotspot.y, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef, onDragStateChange]); // Added onDragStateChange
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -130,9 +149,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       setIsDragging(true);
       setIsHolding(false);
       announceDragStart(); // Announce drag start
-      if (onDragStateChange) onDragStateChange(true); // Notify parent about drag start
+      // onDragStateChange was already called in handlePointerDown
       if (holdTimeoutRef.current) {
         clearTimeout(holdTimeoutRef.current);
+        holdTimeoutRef.current = undefined;
       }
     }
 
@@ -152,7 +172,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       
       onPositionChange(hotspot.id, newX, newY);
     }
-  }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile]);
+  }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     // console.log('Debug [HotspotViewer]: handlePointerUp called', {
@@ -166,6 +186,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = undefined;
     }
 
     // If it was just a tap (no drag), open editor in editing mode or show focus in viewing mode
@@ -187,17 +208,26 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
 
     // Clean up
-    if (isDragging) {
+    const wasDragging = isDragging;
+    if (wasDragging) {
       announceDragStop(`hotspot ${hotspot.title}`); // Announce drag stop
-      if (onDragStateChange) onDragStateChange(false); // Notify parent about drag end
     }
+    
+    // Always reset drag state to parent regardless of whether we were dragging
+    // This ensures the parent touch handlers are re-enabled
+    if (onDragStateChange) onDragStateChange(false);
+    
     setIsDragging(false);
     setIsHolding(false);
     dragDataRef.current = null;
 
     // Release pointer capture
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStart, announceDragStop]);
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (error) {
+      console.warn('Failed to release pointer capture:', error);
+    }
+  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop]);
 
   // Style classes
   const baseColor = hotspot.color || 'bg-sky-500';

@@ -35,6 +35,7 @@ export interface HotspotData {
   title: string;
   description: string;
   color?: string; // e.g., 'bg-red-500'
+  backgroundColor?: string; // e.g., 'bg-red-500' - alias for color for mobile editor compatibility
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   link?: string; // Optional link URL for hotspot
 }

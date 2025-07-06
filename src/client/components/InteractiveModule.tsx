@@ -98,6 +98,10 @@ interface InteractiveModuleProps {
   onClose?: () => void;
   projectName: string;
   projectId?: string;
+  // Shared viewer props
+  isSharedView?: boolean;
+  theme?: 'light' | 'dark';
+  autoStart?: boolean;
 }
 
 interface ImageTransformState {
@@ -108,7 +112,17 @@ interface ImageTransformState {
 }
 
 
-const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEditing, onSave, onClose, projectName, projectId }) => {
+const InteractiveModule: React.FC<InteractiveModuleProps> = ({ 
+  initialData, 
+  isEditing, 
+  onSave, 
+  onClose, 
+  projectName, 
+  projectId,
+  isSharedView = false,
+  theme = 'dark',
+  autoStart = false
+}) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents);
@@ -2231,6 +2245,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               showSuccessMessage={showSuccessMessage}
               isMobile={isMobile} // Will be false here
               isPlacingHotspot={isPlacingHotspot} // Pass isPlacingHotspot
+              project={projectId ? {
+                id: projectId,
+                title: projectName,
+                description: '',
+                interactiveData: {
+                  backgroundImage,
+                  hotspots,
+                  timelineEvents,
+                  imageFitMode: 'contain'
+                }
+              } : undefined}
             />
             </div>
 

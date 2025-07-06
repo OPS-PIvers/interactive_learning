@@ -7,11 +7,11 @@ import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventD
 const throttle = <T extends (...args: any[]) => any>(
   func: T,
   delay: number
-): T => {
+): T & { cancel: () => void } => {
   let timeoutId: number | null = null;
   let lastExecTime = 0;
 
-  return ((...args: Parameters<T>) => {
+  const throttled = ((...args: Parameters<T>) => {
     const currentTime = Date.now();
     const timeSinceLastExec = currentTime - lastExecTime;
 
@@ -35,7 +35,17 @@ const throttle = <T extends (...args: any[]) => any>(
         timeoutId = null; // Clear the timeoutId after execution
       }, delay - timeSinceLastExec);
     }
-  }) as T;
+  }) as T & { cancel: () => void };
+
+  // Add cancel method to clear pending timeouts
+  throttled.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+
+  return throttled;
 };
 
 const DOUBLE_TAP_THRESHOLD = 300; // ms
@@ -96,6 +106,7 @@ export const useTouchGestures = (
   });
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
+  const throttledTouchMoveRef = useRef<((e: React.TouchEvent<HTMLDivElement>) => void) & { cancel: () => void } | null>(null);
 
   // Add gesture cleanup function
   const cleanupGesture = useCallback(() => {
@@ -350,6 +361,9 @@ export const useTouchGestures = (
     [handleTouchMoveInternal]
   );
 
+  // Store the throttled function reference for cleanup
+  throttledTouchMoveRef.current = throttledTouchMove;
+
   const handleTouchMove = throttledTouchMove;
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
@@ -416,9 +430,16 @@ export const useTouchGestures = (
       // Cleanup all timeouts
       if (doubleTapTimeoutRef.current) {
         clearTimeout(doubleTapTimeoutRef.current);
+        doubleTapTimeoutRef.current = null;
       }
       if (touchEndTimeoutRef.current) {
         clearTimeout(touchEndTimeoutRef.current);
+        touchEndTimeoutRef.current = null;
+      }
+      // Cancel throttled function to prevent memory leaks
+      if (throttledTouchMoveRef.current) {
+        throttledTouchMoveRef.current.cancel();
+        throttledTouchMoveRef.current = null;
       }
       // Reset gesture state
       cleanupGesture();

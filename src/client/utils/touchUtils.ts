@@ -1,13 +1,13 @@
 import { ImageTransformState } from '../../shared/types';
 
-export const getTouchDistance = (touch1: Touch, touch2: Touch): number => {
+export const getTouchDistance = (touch1: React.Touch, touch2: React.Touch): number => {
   return Math.hypot(
     touch1.clientX - touch2.clientX,
     touch1.clientY - touch2.clientY
   );
 };
 
-export const getTouchCenter = (touch1: Touch, touch2: Touch): { x: number; y: number } => ({
+export const getTouchCenter = (touch1: React.Touch, touch2: React.Touch): { x: number; y: number } => ({
   x: (touch1.clientX + touch2.clientX) / 2,
   y: (touch1.clientY + touch2.clientY) / 2
 });

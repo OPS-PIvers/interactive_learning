@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
 import ProjectCard from './ProjectCard';
 import Modal from './Modal';
@@ -8,8 +9,10 @@ import AdminToggle from './AdminToggle';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
+import SharedModuleViewer from './SharedModuleViewer';
 
-const App: React.FC = () => {
+// Main App Component for the landing page
+const MainApp: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -282,6 +285,18 @@ const App: React.FC = () => {
         </>
       )}
     </div>
+  );
+};
+
+// Main App Component with Routing
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/view/:moduleId" element={<SharedModuleViewer />} />
+      </Routes>
+    </Router>
   );
 };
 
