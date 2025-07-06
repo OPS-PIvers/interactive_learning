@@ -110,7 +110,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         // It might be disruptive to force activePanel to 'properties' here.
         // Consider if this line is truly necessary or if the modal should be more generic.
         // For now, keeping original logic if modal mode is entered for other reasons.
-        setActivePanel('properties');
+        // setActivePanel('properties'); // Removed this line to prevent forced panel switch
       } else if (isKeyboardVisible && activePanel === 'properties') {
         // If keyboard is visible and we are on the properties panel, stay in compact mode
         // to allow MobileHotspotEditor to be used. The layout should adjust.
