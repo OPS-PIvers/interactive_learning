@@ -61,11 +61,12 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
       debouncedOnUpdate({ [field]: value });
     } else {
       // For non-text fields (color, size), update immediately
+      // First, flush any pending debounced text updates to ensure they are processed.
+      debouncedOnUpdate.flush();
+      // Then, apply the immediate update for the non-text field.
       onUpdate({ [field]: value });
-      // If there was a pending debounced update for text, it might be good to cancel it,
-      // or ensure the immediate update doesn't conflict.
-      // However, typical use case is editing text OR clicking a button, not simultaneously.
-      // For now, this should be fine.
+      // This addresses the concern about potential conflicts or lost updates if an
+      // immediate update interferes with a pending debounced update.
     }
   }, [onUpdate, debouncedOnUpdate]);
 
