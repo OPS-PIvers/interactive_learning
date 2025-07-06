@@ -133,6 +133,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const successMessageTimeoutRef = useRef<number | null>(null);
 
+  const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
+
   const isMobile = useIsMobile();
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
@@ -1094,6 +1096,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   }, [moduleState, handleNextStep]);
 
   const handleEscapeKey = useCallback((): boolean => {
+    if (isPlacingHotspot) {
+      setIsPlacingHotspot(false);
+      console.log("Hotspot placement cancelled via Escape key.");
+      return true; // Indicate event was handled
+    }
     if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
       setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
       return true;
@@ -1107,7 +1114,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
       return true;
     }
     return false;
-  }, [imageTransform, isHotspotModalOpen]);
+  }, [isPlacingHotspot, imageTransform, isHotspotModalOpen, setIsPlacingHotspot, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   const handlePlusKey = useCallback((e: KeyboardEvent): boolean => {
     if (isEditing && (e.ctrlKey || e.metaKey)) {
@@ -1705,13 +1712,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
   // for simplicity and because the individual state updates are relatively independent and don't require
   // the more complex batching provided by `batchedSetState` which is used in `handleAttemptClose` for resetting multiple states.
   const handleAddHotspot = useCallback(() => {
+    if (isPlacingHotspot) {
+      // If already in placement mode, clicking again cancels it.
+      setIsPlacingHotspot(false);
+      console.log("Hotspot placement cancelled by clicking 'Add Hotspot' button again.");
+    } else {
+      // Enter "placing hotspot" mode.
+      setIsPlacingHotspot(true);
+      // Potentially show a message to the user, e.g., "Click on the image to place the hotspot."
+      console.log("Add Hotspot clicked, entering placement mode.");
+    }
+  }, [isPlacingHotspot, setIsPlacingHotspot]);
+
+  const handlePlaceNewHotspot = useCallback((x: number, y: number) => {
     const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
     const defaultColor = currentScheme.colors[hotspots.length % currentScheme.colors.length];
 
     const newHotspotData: HotspotData = {
       id: `h${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      x: 50, // Default center position
-      y: 50, // Default center position
+      x: x, // Use clicked x coordinate
+      y: y, // Use clicked y coordinate
       title: "New Hotspot",
       description: "Default description",
       color: defaultColor,
@@ -1719,11 +1739,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     };
 
     setHotspots(prevHotspots => [...prevHotspots, newHotspotData]);
-    // setEditingHotspot(newHotspotData); // Removed: control HotspotEditorModal via isHotspotModalOpen & selectedHotspotForModal
-    setSelectedHotspotForModal(newHotspotData.id); // Set the ID of the new hotspot
-    setIsHotspotModalOpen(true); // Open the HotspotEditorModal
+    setSelectedHotspotForModal(newHotspotData.id);
+    setIsHotspotModalOpen(true);
 
-    // Optional: Create a default "SHOW_HOTSPOT" timeline event for the new hotspot
+    // Optional: Create a default "SHOW_HOTSPOT" timeline event
     const newEventStep = timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) + 1 : 1;
     const newShowEvent: TimelineEventData = {
       id: `te_show_${newHotspotData.id}_${Date.now()}`,
@@ -1736,9 +1755,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
     setTimelineEvents(prevEvents => [...prevEvents, newShowEvent].sort((a,b) => a.step - b.step));
     
     if (isEditing) {
-      setCurrentStep(newEventStep); // Optionally focus the timeline on this new event's step
+      setCurrentStep(newEventStep);
     }
-  }, [hotspots, timelineEvents, colorScheme, isEditing, setHotspots, setSelectedHotspotForModal, setIsHotspotModalOpen, setCurrentStep]); // Updated dependencies
+
+    setIsPlacingHotspot(false); // Exit placement mode
+    console.log(`New hotspot placed at ${x}%, ${y}% and modal opened.`);
+  }, [colorScheme, hotspots, timelineEvents, isEditing, setCurrentStep, setIsPlacingHotspot, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // Removed the first handleEditHotspotRequest (was for HotspotEditModal)
 
@@ -2162,6 +2184,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
                 hotspotsWithPositions={hotspotsWithPositions}
                 pulsingHotspotId={pulsingHotspotId}
                 activeHotspotDisplayIds={activeHotspotDisplayIds}
+                isPlacingHotspot={isPlacingHotspot}
+                onPlaceNewHotspot={handlePlaceNewHotspot}
                 highlightedHotspotId={highlightedHotspotId}
                 getHighlightGradientStyle={getHighlightGradientStyle}
                 onImageLoad={handleImageLoad}
@@ -2206,6 +2230,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({ initialData, isEd
               isSaving={isSaving}
               showSuccessMessage={showSuccessMessage}
               isMobile={isMobile} // Will be false here
+              isPlacingHotspot={isPlacingHotspot} // Pass isPlacingHotspot
             />
             </div>
 

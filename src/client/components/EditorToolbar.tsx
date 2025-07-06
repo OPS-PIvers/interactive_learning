@@ -37,6 +37,7 @@ interface EditorToolbarProps {
   showSuccessMessage: boolean;
   isMobile?: boolean; // Already present as per instructions
   onAddHotspot: () => void; // Prop for adding a hotspot
+  isPlacingHotspot?: boolean; // For visual feedback
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
@@ -112,11 +113,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           <div className="flex items-center gap-1">
             <button
               onClick={props.onAddHotspot}
-              className="flex items-center gap-1 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded transition-colors"
-              title="Add Hotspot"
+              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                props.isPlacingHotspot
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
+                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
+              }`}
+              title={props.isPlacingHotspot ? "Cancel Placement - Click on Image" : "Add Hotspot"}
             >
               <PlusCircleIcon className="w-5 h-5" />
-              <span className="text-sm">Add</span>
+              <span className="text-sm">{props.isPlacingHotspot ? "Place..." : "Add"}</span>
             </button>
           </div>
 
@@ -180,11 +185,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
 
             <button
               onClick={props.onAddHotspot}
-              className="flex items-center gap-2 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-md transition-colors"
-              title="Add Hotspot"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                props.isPlacingHotspot
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
+                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
+              }`}
+              title={props.isPlacingHotspot ? "Cancel Hotspot Placement" : "Add Hotspot"}
             >
               <PlusCircleIcon className="w-5 h-5" />
-              <span>Add Hotspot</span>
+              <span>{props.isPlacingHotspot ? "Click to Place Hotspot..." : "Add Hotspot"}</span>
             </button>
           </div>
 
