@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTouchGestures } from '../hooks/useTouchGestures';
+import { ImageTransformState } from '../../shared/types';
+import { useIsMobile } from '../hooks/useIsMobile'; // For instruction text
 
 interface ImageViewerProps {
   src: string;
@@ -17,19 +20,25 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const initialTransform: ImageTransformState = { scale: 1, translateX: 0, translateY: 0 };
+  const [imageTransform, setImageTransform] = useState<ImageTransformState>(initialTransform);
+  const [isMouseDragging, setIsMouseDragging] = useState(false); // Separate for mouse dragging
+  const [dragStartCoords, setDragStartCoords] = useState({ x: 0, y: 0 }); // For mouse dragging
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false); // Initially false
   const instructionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isTransformingViaTouch, setIsTransformingViaTouch] = useState(false);
+  const isMobile = useIsMobile();
+
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 5;
+  const DOUBLE_TAP_ZOOM_FACTOR = 2;
 
   // Reset zoom, position, and instruction visibility when image changes
   useEffect(() => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
+    setImageTransform(initialTransform);
     setImageLoaded(false);
     setImageError(false);
     // Don't set showInstructions to true here, wait for image load
@@ -65,7 +74,21 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     setImageLoaded(false);
   };
 
+  const {
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    isGestureActive,
+  } = useTouchGestures(
+    containerRef,
+    imageTransform,
+    setImageTransform,
+    setIsTransformingViaTouch,
+    { minScale: MIN_SCALE, maxScale: MAX_SCALE, doubleTapZoomFactor: DOUBLE_TAP_ZOOM_FACTOR }
+  );
+
   const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (isGestureActive()) return; // Don't interfere with touch gestures
     e.preventDefault();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -74,80 +97,86 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     const mouseY = e.clientY - rect.top;
 
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.max(0.5, Math.min(5, scale * delta));
 
-    // Zoom towards mouse position
-    const scaleChange = newScale / scale;
-    const newX = mouseX - (mouseX - position.x) * scaleChange;
-    const newY = mouseY - (mouseY - position.y) * scaleChange;
-
-    setScale(newScale);
-    setPosition({ x: newX, y: newY });
-  }, [scale, position]);
+    setImageTransform(prevTransform => {
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, prevTransform.scale * delta));
+      const scaleChange = newScale / prevTransform.scale;
+      const newTranslateX = mouseX - (mouseX - prevTransform.translateX) * scaleChange;
+      const newTranslateY = mouseY - (mouseY - prevTransform.translateY) * scaleChange;
+      return { scale: newScale, translateX: newTranslateX, translateY: newTranslateY };
+    });
+  }, [isGestureActive,setImageTransform]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return; // Only left mouse button
+    if (isGestureActive() || e.button !== 0) return;
     e.preventDefault();
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
+    setIsMouseDragging(true);
+    setDragStartCoords({
+      x: e.clientX - imageTransform.translateX,
+      y: e.clientY - imageTransform.translateY
     });
-  }, [position]);
+  }, [imageTransform, isGestureActive, setIsMouseDragging, setDragStartCoords]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isMouseDragging || isGestureActive()) return;
     e.preventDefault();
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  }, [isDragging, dragStart]);
+    setImageTransform(prevTransform => ({
+      scale: prevTransform.scale,
+      translateX: e.clientX - dragStartCoords.x,
+      translateY: e.clientY - dragStartCoords.y
+    }));
+  }, [isMouseDragging, dragStartCoords, isGestureActive, setImageTransform]);
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (isGestureActive()) return;
+    setIsMouseDragging(false);
+  }, [isGestureActive, setIsMouseDragging]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    if (isGestureActive()) return;
     e.preventDefault();
-    if (scale === 1) {
-      // Zoom to 2x at click point
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
 
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      const newScale = 2;
-      const scaleChange = newScale / scale;
-      const newX = mouseX - (mouseX - position.x) * scaleChange;
-      const newY = mouseY - (mouseY - position.y) * scaleChange;
+    setImageTransform(prevTransform => {
+      if (prevTransform.scale === 1 && prevTransform.translateX === 0 && prevTransform.translateY === 0) {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return prevTransform;
 
-      setScale(newScale);
-      setPosition({ x: newX, y: newY });
-    } else {
-      // Reset to fit
-      setScale(1);
-      setPosition({ x: 0, y: 0 });
-    }
-  }, [scale, position]);
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const newScale = DOUBLE_TAP_ZOOM_FACTOR;
+        const scaleChange = newScale / prevTransform.scale;
+        const newTranslateX = mouseX - (mouseX - prevTransform.translateX) * scaleChange;
+        const newTranslateY = mouseY - (mouseY - prevTransform.translateY) * scaleChange;
+        return { scale: newScale, translateX: newTranslateX, translateY: newTranslateY };
+      } else {
+        return initialTransform;
+      }
+    });
+  }, [isGestureActive, setImageTransform, initialTransform]);
 
   const zoomIn = () => {
-    const newScale = Math.min(5, scale * 1.2);
-    setScale(newScale);
+     setImageTransform(prevTransform => ({
+      ...prevTransform,
+      scale: Math.min(MAX_SCALE, prevTransform.scale * 1.2)
+    }));
   };
 
   const zoomOut = () => {
-    const newScale = Math.max(0.5, scale * 0.8);
-    setScale(newScale);
+    setImageTransform(prevTransform => ({
+      ...prevTransform,
+      scale: Math.max(MIN_SCALE, prevTransform.scale * 0.8)
+    }));
   };
 
   const resetZoom = () => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
+    setImageTransform(initialTransform);
   };
 
   const fitToContainer = () => {
-    if (!containerRef.current || !imageRef.current) return;
+    if (!containerRef.current || !imageRef.current || !imageRef.current.naturalWidth || !imageRef.current.naturalHeight) {
+      setImageTransform(initialTransform); // Fallback if image not loaded
+      return;
+    }
 
     const container = containerRef.current;
     const image = imageRef.current;
@@ -157,30 +186,56 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 
     let newScale;
     if (imageAspect > containerAspect) {
-      // Image is wider than container
       newScale = container.clientWidth / image.naturalWidth;
     } else {
-      // Image is taller than container
       newScale = container.clientHeight / image.naturalHeight;
     }
-
-    setScale(Math.min(1, newScale));
-    setPosition({ x: 0, y: 0 });
+    // Ensure fit scale is not less than min_scale and not more than 1 (initial fit)
+    const finalScale = Math.max(MIN_SCALE, Math.min(1, newScale));
+    setImageTransform({ scale: finalScale, translateX: 0, translateY: 0 });
   };
 
+  // Recalculate fit when window resizes, if image is loaded
+  useEffect(() => {
+    if (imageLoaded) {
+      const handleResize = () => {
+        // Only refit if current scale is close to a previous fit-to-container scale
+        // This heuristic prevents overriding user's zoom on every resize.
+        // A better approach might involve storing if the last action was "fitToContainer".
+        if (Math.abs(imageTransform.scale - 1) < 0.1 ||
+            (imageRef.current && containerRef.current &&
+             (Math.abs(imageTransform.scale - (containerRef.current.clientWidth / imageRef.current.naturalWidth)) < 0.1 ||
+              Math.abs(imageTransform.scale - (containerRef.current.clientHeight / imageRef.current.naturalHeight)) < 0.1))
+        ) {
+          fitToContainer();
+        }
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [imageLoaded, imageTransform.scale]); // Added imageTransform.scale to dependencies
+
   return (
-    <div className={`relative overflow-hidden bg-slate-900 ${className}`}>
+    <div className={`relative overflow-hidden bg-slate-900 ${className} touch-none`} // Added touch-none to prevent browser default touch actions like scroll/zoom on the container
+      style={{ touchAction: 'none' }} // Ensure touch-action is none for the container
+    >
       {/* Image Container */}
       <div
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center cursor-move"
+        className="w-full h-full flex items-center justify-center" // Removed cursor-move, useTouchGestures will handle cursor
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={handleMouseUp} // Keep mouse leave for mouse drag
         onDoubleClick={handleDoubleClick}
-        style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'zoom-in' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          cursor: isMouseDragging ? 'grabbing' : (imageTransform.scale > 1 && !isMobile) ? 'grab' : isMobile ? 'default' : 'zoom-in',
+          touchAction: 'none' // Critical for useTouchGestures to work without page scroll/zoom
+        }}
       >
         <img
           ref={imageRef}
@@ -188,17 +243,18 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           alt={alt}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          className="max-w-none select-none transition-transform duration-200 ease-out"
+          className="max-w-none select-none" // Removed transition-transform for smoother touch/mouse updates
           style={{
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-            display: imageLoaded ? 'block' : 'none'
+            transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
+            display: imageLoaded ? 'block' : 'none',
+            transition: isTransformingViaTouch ? 'none' : 'transform 0.2s ease-out', // Only animate transform if not via touch
           }}
           draggable={false}
         />
         
         {/* Loading State */}
         {!imageLoaded && !imageError && (
-          <div className="flex flex-col items-center justify-center text-slate-400">
+          <div className="flex flex-col items-center justify-center text-slate-400 absolute inset-0">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
             <p>Loading image...</p>
           </div>
@@ -206,7 +262,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         
         {/* Error State */}
         {imageError && (
-          <div className="flex flex-col items-center justify-center text-slate-400">
+          <div className="flex flex-col items-center justify-center text-slate-400 absolute inset-0">
             <svg className="w-16 h-16 mb-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
             </svg>
@@ -214,8 +270,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             <button
               onClick={() => {
                 setImageError(false);
+                // Trigger reload by changing src temporarily if needed, or just reset state
+                setImageLoaded(false);
                 if (imageRef.current) {
-                  imageRef.current.src = src;
+                  // A common trick to force reload if src hasn't changed but error occurred
+                  const currentSrc = imageRef.current.src;
+                  imageRef.current.src = '';
+                  imageRef.current.src = currentSrc;
                 }
               }}
               className="mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
@@ -226,13 +287,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         )}
       </div>
       
-      {/* Controls */}
+      {/* Controls - Conditionally render or adapt for mobile if needed */}
       {imageLoaded && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-2">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-2 z-10">
           <button
             onClick={zoomOut}
             className="text-white hover:text-blue-400 transition-colors p-1 rounded"
             aria-label="Zoom out"
+            disabled={imageTransform.scale <= MIN_SCALE}
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -240,14 +302,15 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             </svg>
           </button>
           
-          <span className="text-white text-sm min-w-[4rem] text-center">
-            {Math.round(scale * 100)}%
+          <span className="text-white text-sm min-w-[4rem] text-center tabular-nums">
+            {Math.round(imageTransform.scale * 100)}%
           </span>
           
           <button
             onClick={zoomIn}
             className="text-white hover:text-blue-400 transition-colors p-1 rounded"
             aria-label="Zoom in"
+            disabled={imageTransform.scale >= MAX_SCALE}
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -261,6 +324,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             onClick={resetZoom}
             className="text-white hover:text-blue-400 transition-colors p-1 rounded text-xs"
             aria-label="Reset zoom"
+            disabled={imageTransform.scale === 1 && imageTransform.translateX === 0 && imageTransform.translateY === 0}
           >
             1:1
           </button>
@@ -277,24 +341,34 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         </div>
       )}
       
-      {/* Title and Caption */}
+      {/* Title and Caption - ensure they don't interfere with touch */}
       {(title || caption) && imageLoaded && (
-        <div className="absolute top-4 left-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-3">
+        <div className="absolute top-4 left-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 pointer-events-none z-10">
           {title && <h3 className="text-white font-semibold mb-1">{title}</h3>}
           {caption && <p className="text-slate-300 text-sm">{caption}</p>}
         </div>
       )}
       
-      {/* Instructions */}
+      {/* Instructions - updated for touch and conditional rendering */}
       {imageLoaded && (
         <div
-          className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-2 transition-opacity duration-500 ease-in-out"
+          className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-2 transition-opacity duration-500 ease-in-out pointer-events-none z-10"
           style={{ opacity: showInstructions ? 1 : 0, visibility: showInstructions ? 'visible' : 'hidden' }}
         >
           <div className="text-slate-300 text-xs space-y-1">
-            <div>Scroll: Zoom</div>
-            <div>Double-click: Reset</div>
-            <div>Drag: Pan</div>
+            {isMobile ? (
+              <>
+                <div>Pinch: Zoom</div>
+                <div>Double-tap: Reset/Zoom</div>
+                <div>Drag: Pan</div>
+              </>
+            ) : (
+              <>
+                <div>Scroll: Zoom</div>
+                <div>Double-click: Reset/Zoom</div>
+                <div>Drag: Pan</div>
+              </>
+            )}
           </div>
         </div>
       )}
