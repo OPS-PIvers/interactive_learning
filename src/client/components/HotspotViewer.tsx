@@ -70,12 +70,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   // Simple drag handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    console.log('Debug [HotspotViewer]: handlePointerDown called', {
-      hotspotId: hotspot.id,
-      isEditing,
-      isDimmed: isDimmedInEditMode,
-      timestamp: Date.now()
-    });
+    // console.log('Debug [HotspotViewer]: handlePointerDown called', {
+    //   hotspotId: hotspot.id,
+    //   isEditing,
+    //   isDimmed: isDimmedInEditMode,
+    //   timestamp: Date.now()
+    // });
     
     if (!isEditing) {
       onFocusRequest(hotspot.id);
@@ -89,7 +89,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // Prioritize passed ref, fallback to DOM traversal
     const containerElement = dragContainerRef?.current || (e.currentTarget as HTMLElement).closest('.relative');
     if (!containerElement) {
-      console.error("HotspotViewer: Drag container element not found.");
+      console.error("HotspotViewer: Drag container element not found. This is an unexpected state and should be investigated.");
       return;
     }
 
@@ -155,14 +155,14 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    console.log('Debug [HotspotViewer]: handlePointerUp called', {
-      hotspotId: hotspot.id,
-      isEditing,
-      isDragging,
-      isHolding,
-      isDimmed: isDimmedInEditMode,
-      timestamp: Date.now()
-    });
+    // console.log('Debug [HotspotViewer]: handlePointerUp called', {
+    //   hotspotId: hotspot.id,
+    //   isEditing,
+    //   isDragging,
+    //   isHolding,
+    //   isDimmed: isDimmedInEditMode,
+    //   timestamp: Date.now()
+    // });
     
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
@@ -170,18 +170,18 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // If it was just a tap (no drag), open editor in editing mode or show focus in viewing mode
     if (!isDragging && dragDataRef.current) {
-      console.log('Debug [HotspotViewer]: Hotspot clicked', {
-        hotspotId: hotspot.id,
-        isEditing,
-        hasOnEditRequest: !!onEditRequest,
-        timestamp: Date.now()
-      });
+      // console.log('Debug [HotspotViewer]: Hotspot clicked', {
+      //   hotspotId: hotspot.id,
+      //   isEditing,
+      //   hasOnEditRequest: !!onEditRequest,
+      //   timestamp: Date.now()
+      // });
       
       if (isEditing && onEditRequest) {
-        console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
+        // console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
         onEditRequest(hotspot.id);
       } else {
-        console.log('Debug [HotspotViewer]: Calling onFocusRequest for hotspot', hotspot.id);
+        // console.log('Debug [HotspotViewer]: Calling onFocusRequest for hotspot', hotspot.id);
         onFocusRequest(hotspot.id);
       }
     }

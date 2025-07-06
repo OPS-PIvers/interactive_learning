@@ -15,90 +15,110 @@ function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
   return debounced as (...args: Parameters<F>) => void;
 }
 
-let liveRegionContainer: HTMLDivElement | null = null;
-let currentPoliteMessage = "";
-let currentAssertiveMessage = "";
+// Use a module-level scope to ensure these are created only once.
+let politeRegionSingleton: HTMLDivElement | null = null;
+let assertiveRegionSingleton: HTMLDivElement | null = null;
+let liveRegionContainerSingleton: HTMLDivElement | null = null;
 
-const ensureLiveRegionContainer = () => {
-  if (!document.getElementById('screen-reader-announcements-container')) {
-    liveRegionContainer = document.createElement('div');
-    liveRegionContainer.id = 'screen-reader-announcements-container';
-    // Optional: Some styling to hide it visually but keep it accessible
-    liveRegionContainer.style.position = 'absolute';
-    liveRegionContainer.style.width = '1px';
-    liveRegionContainer.style.height = '1px';
-    liveRegionContainer.style.margin = '-1px';
-    liveRegionContainer.style.padding = '0';
-    liveRegionContainer.style.overflow = 'hidden';
-    liveRegionContainer.style.clip = 'rect(0, 0, 0, 0)';
-    liveRegionContainer.style.border = '0';
-    document.body.appendChild(liveRegionContainer);
-  } else {
-    liveRegionContainer = document.getElementById('screen-reader-announcements-container') as HTMLDivElement;
+const SR_CONTAINER_ID = 'screen-reader-announcements-container';
+const SR_POLITE_REGION_ID = 'screen-reader-polite-region';
+const SR_ASSERTIVE_REGION_ID = 'screen-reader-assertive-region';
+
+const ensureLiveRegions = () => {
+  if (!liveRegionContainerSingleton) {
+    liveRegionContainerSingleton = document.getElementById(SR_CONTAINER_ID) as HTMLDivElement | null;
+    if (!liveRegionContainerSingleton) {
+      liveRegionContainerSingleton = document.createElement('div');
+      liveRegionContainerSingleton.id = SR_CONTAINER_ID;
+      // Visually hide the container
+      liveRegionContainerSingleton.style.position = 'absolute';
+      liveRegionContainerSingleton.style.width = '1px';
+      liveRegionContainerSingleton.style.height = '1px';
+      liveRegionContainerSingleton.style.margin = '-1px';
+      liveRegionContainerSingleton.style.padding = '0';
+      liveRegionContainerSingleton.style.overflow = 'hidden';
+      liveRegionContainerSingleton.style.clip = 'rect(0, 0, 0, 0)';
+      liveRegionContainerSingleton.style.border = '0';
+      document.body.appendChild(liveRegionContainerSingleton);
+    }
   }
-  return liveRegionContainer;
+
+  if (!politeRegionSingleton) {
+    politeRegionSingleton = document.getElementById(SR_POLITE_REGION_ID) as HTMLDivElement | null;
+    if (!politeRegionSingleton) {
+      politeRegionSingleton = document.createElement('div');
+      politeRegionSingleton.id = SR_POLITE_REGION_ID;
+      politeRegionSingleton.setAttribute('role', 'status');
+      politeRegionSingleton.setAttribute('aria-live', 'polite');
+      politeRegionSingleton.setAttribute('aria-atomic', 'true');
+      liveRegionContainerSingleton.appendChild(politeRegionSingleton);
+    }
+  }
+
+  if (!assertiveRegionSingleton) {
+    assertiveRegionSingleton = document.getElementById(SR_ASSERTIVE_REGION_ID) as HTMLDivElement | null;
+    if (!assertiveRegionSingleton) {
+      assertiveRegionSingleton = document.createElement('div');
+      assertiveRegionSingleton.id = SR_ASSERTIVE_REGION_ID;
+      assertiveRegionSingleton.setAttribute('role', 'alert');
+      assertiveRegionSingleton.setAttribute('aria-live', 'assertive');
+      assertiveRegionSingleton.setAttribute('aria-atomic', 'true');
+      liveRegionContainerSingleton.appendChild(assertiveRegionSingleton);
+    }
+  }
 };
 
 const useScreenReaderAnnouncements = () => {
-  const [, setPoliteUpdate] = useState(0);
-  const [, setAssertiveUpdate] = useState(0);
-
+  // Refs for debounced functions to ensure they are stable across re-renders
   const announcePolitelyRef = useRef<(message: string) => void>();
   const announceAssertivelyRef = useRef<(message: string) => void>();
 
   useEffect(() => {
-    ensureLiveRegionContainer();
-
-    // Create a "polite" live region
-    const politeRegion = document.createElement('div');
-    politeRegion.setAttribute('role', 'status');
-    politeRegion.setAttribute('aria-live', 'polite');
-    politeRegion.setAttribute('aria-atomic', 'true');
-    liveRegionContainer?.appendChild(politeRegion);
-
-    // Create an "assertive" live region
-    const assertiveRegion = document.createElement('div');
-    assertiveRegion.setAttribute('role', 'alert');
-    assertiveRegion.setAttribute('aria-live', 'assertive');
-    assertiveRegion.setAttribute('aria-atomic', 'true');
-    liveRegionContainer?.appendChild(assertiveRegion);
+    // Ensure regions are present (e.g., if body was cleared or for SSR hydration)
+    ensureLiveRegions();
 
     const updatePoliteRegion = (message: string) => {
-        if (politeRegion.textContent === message) {
-            politeRegion.textContent = '';
-            setTimeout(() => { politeRegion.textContent = message; }, 50);
+      if (politeRegionSingleton) {
+        // Hack to force re-announcement of the same message
+        if (politeRegionSingleton.textContent === message) {
+          politeRegionSingleton.textContent = '';
+          // Delay needs to be long enough for screen reader to process the change
+          setTimeout(() => {
+            if (politeRegionSingleton) politeRegionSingleton.textContent = message;
+          }, 100);
         } else {
-            politeRegion.textContent = message;
+          politeRegionSingleton.textContent = message;
         }
-        currentPoliteMessage = message;
-        setPoliteUpdate(c => c + 1);
+      }
     };
 
     const updateAssertiveRegion = (message: string) => {
-        if (assertiveRegion.textContent === message) {
-            assertiveRegion.textContent = '';
-            setTimeout(() => { assertiveRegion.textContent = message; }, 50);
+      if (assertiveRegionSingleton) {
+        // Hack to force re-announcement
+        if (assertiveRegionSingleton.textContent === message) {
+          assertiveRegionSingleton.textContent = '';
+          setTimeout(() => {
+            if (assertiveRegionSingleton) assertiveRegionSingleton.textContent = message;
+          }, 100);
         } else {
-            assertiveRegion.textContent = message;
+          assertiveRegionSingleton.textContent = message;
         }
-        currentAssertiveMessage = message;
-        setAssertiveUpdate(c => c + 1);
+      }
     };
 
     announcePolitelyRef.current = debounce((message: string) => {
-        console.log(`Announcing politely: ${message}`);
-        updatePoliteRegion(message);
-    }, 200);
+      // console.log(`Announcing politely: ${message}`);
+      updatePoliteRegion(message);
+    }, 200); // Debounce time for polite announcements
 
     announceAssertivelyRef.current = (message: string) => {
-        console.log(`Announcing assertively: ${message}`);
-        updateAssertiveRegion(message);
+      // console.log(`Announcing assertively: ${message}`);
+      updateAssertiveRegion(message);
     };
 
-    return () => {
-      // Cleanup handled by shared container pattern
-    };
-  }, []);
+    // No cleanup needed for global singletons in this model.
+    // If the hook were to manage its own instances, cleanup would be here.
+  }, []); // Empty dependency array means this effect runs once per component instance
 
   const announce = useCallback((message: string, assertiveness: 'polite' | 'assertive' = 'polite') => {
     if (assertiveness === 'polite' && announcePolitelyRef.current) {
@@ -106,7 +126,7 @@ const useScreenReaderAnnouncements = () => {
     } else if (assertiveness === 'assertive' && announceAssertivelyRef.current) {
       announceAssertivelyRef.current(message);
     }
-  }, []);
+  }, []); // useCallback dependencies are correct as refs don't change
 
   // Functions for specific announcements
   const announceDragStart = useCallback(() => {
