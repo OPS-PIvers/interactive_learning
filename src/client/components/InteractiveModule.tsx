@@ -262,7 +262,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     // Update the previous state ref
     previousPanelStateRef.current = panelIsNowOpen;
-  }, [isHotspotModalOpen, isMobile, imageTransform, setImageTransform, setIsTransforming]); // calculateOptimalImageScale omitted - useCallback ensures stability
+  }, [isHotspotModalOpen, isMobile, imageTransform, setImageTransform, setIsTransforming, calculateOptimalImageScale]);
   
   // Handle preview overlay updates
   const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
