@@ -23,18 +23,41 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false); // Initially false
+  const instructionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset zoom and position when image changes
+  // Reset zoom, position, and instruction visibility when image changes
   useEffect(() => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
     setImageLoaded(false);
     setImageError(false);
+    // Don't set showInstructions to true here, wait for image load
+    if (instructionTimeoutRef.current) {
+      clearTimeout(instructionTimeoutRef.current);
+      instructionTimeoutRef.current = null;
+    }
   }, [src]);
+
+  // Effect to clear timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (instructionTimeoutRef.current) {
+        clearTimeout(instructionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleImageLoad = () => {
     setImageLoaded(true);
     setImageError(false);
+    setShowInstructions(true); // Ensure they are shown on load
+    if (instructionTimeoutRef.current) {
+      clearTimeout(instructionTimeoutRef.current);
+    }
+    instructionTimeoutRef.current = setTimeout(() => {
+      setShowInstructions(false);
+    }, 5000); // Hide after 5 seconds
   };
 
   const handleImageError = () => {
@@ -264,7 +287,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       
       {/* Instructions */}
       {imageLoaded && (
-        <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-2">
+        <div
+          className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-2 transition-opacity duration-500 ease-in-out"
+          style={{ opacity: showInstructions ? 1 : 0, visibility: showInstructions ? 'visible' : 'hidden' }}
+        >
           <div className="text-slate-300 text-xs space-y-1">
             <div>Scroll: Zoom</div>
             <div>Double-click: Reset</div>
