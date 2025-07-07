@@ -289,36 +289,52 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
             {uniqueSortedSteps.map((step, index) => {
               const isActive = step === currentStep;
               return (
-                <button
-                  key={step}
-                  onClick={(event) => handleStepClick(step, event)}
-                  className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
-                    ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                    flex items-center justify-center
-                  `}
-                  aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-                  aria-current={isActive ? "step" : undefined}
-                  title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-                >
-                  {/* Optional: Inner dot or number if needed, for now just color indicates active */}
-                   {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
-                </button>
+                <div key={step} className="relative">
+                  <button
+                    onClick={(event) => handleStepClick(step, event)}
+                    className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                      flex items-center justify-center
+                    `}
+                    aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                    aria-current={isActive ? "step" : undefined}
+                    title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                  >
+                    {/* Optional: Inner dot or number if needed, for now just color indicates active */}
+                     {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                  </button>
+                  {/* Add hotspot indicators container */}
+                  <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
+                    {timelineEvents
+                      .filter(event => event.step === step && event.targetId)
+                      .map(event => {
+                        const hotspot = hotspots.find(h => h.id === event.targetId);
+                        return hotspot ? (
+                          <div
+                            key={`${event.id}-${hotspot.id}`}
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: hotspot.color || '#ccc' }}
+                            title={`Hotspot: ${hotspot.title}`}
+                          />
+                        ) : null;
+                      })}
+                  </div>
+                </div>
               );
-            })}
-          </div>
-
-          {/* Preview Card */}
-          {activePreview && showPreviews && !isMobile && ( // Don't show desktop preview card on mobile
-            <EventPreviewCard
-              step={activePreview}
-              events={timelineEvents}
-              hotspots={hotspots}
-              position={previewPosition}
-              onClose={() => setActivePreview(null)}
-            />
-          )}
+          })}
         </div>
       </div>
+      </div>
+      {/* Preview Card */}
+      {activePreview && showPreviews && !isMobile && ( // Don't show desktop preview card on mobile
+        <EventPreviewCard
+          step={activePreview}
+          events={timelineEvents}
+          hotspots={hotspots}
+          position={previewPosition}
+          onClose={() => setActivePreview(null)}
+        />
+      )}
       {renderNavigationControls()}
     </div>
   );
