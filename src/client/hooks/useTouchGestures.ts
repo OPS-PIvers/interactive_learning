@@ -616,11 +616,11 @@ export const useTouchGestures = (
         throttledTouchMoveRef.current.cancel();
         throttledTouchMoveRef.current = null;
       }
-+      // Cancel any ongoing animation frame
-+      if (gestureStateRef.current.animationFrameId) {
-+        cancelAnimationFrame(gestureStateRef.current.animationFrameId);
-+        gestureStateRef.current.animationFrameId = null;
-+      }
+      // Cancel any ongoing animation frame
+      if (gestureStateRef.current.animationFrameId) {
+        cancelAnimationFrame(gestureStateRef.current.animationFrameId);
+        gestureStateRef.current.animationFrameId = null;
+      }
       // Reset gesture state
       cleanupGesture();
     };
