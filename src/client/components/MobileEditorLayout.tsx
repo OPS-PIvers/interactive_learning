@@ -103,21 +103,33 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       });
 
       // Automatically switch layout modes based on available space
-      // Prevent switching to modal mode if the keyboard is visible AND the active panel is already 'properties'
-      // as this is where text input occurs and we want to keep the MobileHotspotEditor visible.
-      if (isKeyboardVisible && activePanel !== 'properties') {
-        setEditorMode('modal');
-        // It might be disruptive to force activePanel to 'properties' here.
-        // Consider if this line is truly necessary or if the modal should be more generic.
-        // For now, keeping original logic if modal mode is entered for other reasons.
-        setActivePanel('properties');
-      } else if (isKeyboardVisible && activePanel === 'properties') {
-        // If keyboard is visible and we are on the properties panel, stay in compact mode
-        // to allow MobileHotspotEditor to be used. The layout should adjust.
-        setEditorMode('compact');
-      } else if (visualViewportHeight < 600) {
+      const availableHeightWithoutKeyboard = visualViewportHeight; // visualViewportHeight already accounts for keyboard
+
+      if (isKeyboardVisible && activePanel === 'properties') {
+        // If keyboard is visible and we are on the properties panel,
+        // check if there's enough space. If not, switch to modal.
+        // Estimate typical header/toolbar height for 'compact' mode.
+        const compactModeNonContentHeight = 120; // Approx height of header + bottom tabs
+        if (availableHeightWithoutKeyboard < compactModeNonContentHeight + 200) { // 200px for content
+          setEditorMode('modal');
+        } else {
+          setEditorMode('compact');
+        }
+      } else if (isKeyboardVisible && activePanel !== 'properties') {
+        // If keyboard is visible but not on properties, modal might be suitable
+        // to give more space to the primary content (e.g. image) by moving secondary elements (properties) to a modal.
+        // However, the original logic forced properties panel here, which could be disruptive.
+        // For now, let's assume if keyboard is up for non-properties, user might be interacting with browser UI (e.g. find in page)
+        // or an unexpected scenario. Compact or fullscreen might still be better.
+        // Re-evaluate if specific use cases for keyboard + non-properties panel arise.
+        if (availableHeightWithoutKeyboard < 600) {
+          setEditorMode('fullscreen');
+        } else {
+          setEditorMode('compact');
+        }
+      } else if (availableHeightWithoutKeyboard < 600) { // No keyboard, check height for fullscreen
         setEditorMode('fullscreen');
-      } else {
+      } else { // Default to compact
         setEditorMode('compact');
       }
     };
@@ -374,10 +386,23 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           paddingBottom: `${viewport.keyboardHeight + viewport.safeAreaInsets.bottom}px` 
         }}
       >
-        {/* Properties editing content would go here */}
-        <div className="p-4">
-          {/* This would contain the MobileHotspotEditor or similar */}
-        </div>
+        {activePanel === 'properties' && selectedHotspot && onUpdateHotspot && onDeleteHotspot ? (
+          <MobileHotspotEditor
+            hotspot={selectedHotspot}
+            onUpdate={onUpdateHotspot}
+            onDelete={onDeleteHotspot}
+          />
+        ) : (
+          <div className="p-6 text-center text-slate-400">
+             <div className="mb-4">
+              <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium mb-2">No Hotspot Selected</p>
+            <p className="text-sm">Select a hotspot to edit its properties here, or tap 'Back to Editor' if this panel is not active.</p>
+          </div>
+        )}
       </div>
     </div>
   );
