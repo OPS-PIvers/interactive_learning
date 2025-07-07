@@ -213,16 +213,73 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               className="w-full bg-gray-800 text-white p-1 rounded"
               placeholder="Enter question..."
             />
-            <select
-              value={event.targetHotspotId || ''}
-              onChange={(e) => onUpdate({ ...event, targetHotspotId: e.target.value })}
-              className="w-full bg-gray-800 text-white p-1 rounded"
-            >
-              <option value="">Select Target Hotspot</option>
-              {allHotspots.filter(h => h.id !== event.targetId).map(h => (
-                <option key={h.id} value={h.id}>{h.title || h.id}</option>
+            {/* Quiz Options */}
+            <div className="space-y-1 mt-2">
+              <label className="text-sm">Options:</label>
+              {(event.quizOptions || []).map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name={`quizCorrectAnswer-${event.id}`}
+                    checked={event.quizCorrectAnswer === index}
+                    onChange={() => onUpdate({ ...event, quizCorrectAnswer: index })}
+                    className="form-radio h-4 w-4 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...(event.quizOptions || [])];
+                      newOptions[index] = e.target.value;
+                      onUpdate({ ...event, quizOptions: newOptions });
+                    }}
+                    className="w-full bg-gray-800 text-white p-1 rounded"
+                    placeholder={`Option ${index + 1}`}
+                  />
+                  <button
+                    onClick={() => {
+                      const newOptions = [...(event.quizOptions || [])];
+                      newOptions.splice(index, 1);
+                      let newCorrectAnswer = event.quizCorrectAnswer;
+                      if (newCorrectAnswer === index) {
+                        newCorrectAnswer = undefined; // Or 0 if you want to default to the first
+                      } else if (newCorrectAnswer && newCorrectAnswer > index) {
+                        newCorrectAnswer -= 1;
+                      }
+                      onUpdate({ ...event, quizOptions: newOptions, quizCorrectAnswer: newCorrectAnswer });
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Delete option"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+                </div>
               ))}
-            </select>
+              <button
+                onClick={() => {
+                  const newOptions = [...(event.quizOptions || []), ''];
+                  onUpdate({ ...event, quizOptions: newOptions });
+                }}
+                className="text-sm text-blue-400 hover:text-blue-300 mt-1"
+              >
+                + Add Option
+              </button>
+            </div>
+
+            {/* Target Hotspot for Quiz (Optional: if quiz success/failure leads to another hotspot) */}
+            <div className="mt-2">
+              <label className="text-sm">Target Hotspot (Optional):</label>
+              <select
+                value={event.targetHotspotId || ''}
+                onChange={(e) => onUpdate({ ...event, targetHotspotId: e.target.value })}
+                className="w-full bg-gray-800 text-white p-1 rounded mt-1"
+              >
+                <option value="">Select Target Hotspot (on correct answer)</option>
+                {allHotspots.filter(h => h.id !== event.targetId).map(h => ( // Ensure targetId is defined for event
+                  <option key={h.id} value={h.id}>{h.title || `Hotspot ${h.id.substring(0,4)}`}</option>
+                ))}
+              </select>
+            </div>
           </div>
         );
 
