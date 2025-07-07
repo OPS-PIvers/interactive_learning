@@ -17,9 +17,10 @@ const MainApp: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false); // For loading individual project details
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // For initial project list load
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -34,7 +35,7 @@ const MainApp: React.FC = () => {
   }, []); // Empty dependency array ensures this runs only once on mount and cleans up on unmount
 
   const loadProjects = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(true); // For initial list loading
     setError(null);
     try {
       await appScriptProxy.init(); // Initialize proxy (might be a no-op client-side)
@@ -53,17 +54,55 @@ const MainApp: React.FC = () => {
     loadProjects();
   }, [loadProjects]);
 
-  const handleViewProject = useCallback((project: Project) => {
-    setSelectedProject(project);
-    setIsEditingMode(false);
-    setIsModalOpen(true);
+  const loadProjectDetailsAndOpen = useCallback(async (project: Project, editingMode: boolean) => {
+    setIsProjectDetailsLoading(true);
+    setError(null);
+    try {
+      // Check if details (hotspots/timelineEvents) are already loaded
+      // A simple check could be if hotspots array exists and has items, or a dedicated flag.
+      // Assuming types are updated so hotspots/timelineEvents can be undefined.
+      if (!project.interactiveData.hotspots || !project.interactiveData.timelineEvents) {
+        console.log(`Fetching details for project: ${project.id}`);
+        // Type assertion needed as getProjectDetails returns Partial<InteractiveModuleState>
+        const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
+        const updatedProject = {
+          ...project,
+          interactiveData: {
+            // Preserve existing top-level fields like backgroundImage and imageFitMode from summary load
+            ...project.interactiveData,
+            // Merge fetched details
+            hotspots: details.hotspots || [],
+            timelineEvents: details.timelineEvents || [],
+            // Potentially update backgroundImage and imageFitMode if getProjectDetails also returns them
+            // and they are considered more authoritative.
+            backgroundImage: details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage,
+            imageFitMode: details.imageFitMode || project.interactiveData.imageFitMode,
+          }
+        };
+        setSelectedProject(updatedProject);
+        // Update the project in the main list as well
+        setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
+      } else {
+        setSelectedProject(project); // Details already loaded
+      }
+      setIsEditingMode(editingMode);
+      setIsModalOpen(true);
+    } catch (err: any) {
+      console.error(`Failed to load project details for ${project.id}:`, err);
+      setError(`Could not load project details: ${err.message || 'Please try again.'}`);
+      setSelectedProject(null); // Clear selection on error
+    } finally {
+      setIsProjectDetailsLoading(false);
+    }
   }, []);
 
+  const handleViewProject = useCallback((project: Project) => {
+    loadProjectDetailsAndOpen(project, false);
+  }, [loadProjectDetailsAndOpen]);
+
   const handleEditProject = useCallback((project: Project) => {
-    setSelectedProject(project);
-    setIsEditingMode(true);
-    setIsModalOpen(true);
-  }, []);
+    loadProjectDetailsAndOpen(project, true);
+  }, [loadProjectDetailsAndOpen]);
   
   const handleCreateNewProject = useCallback(async () => {
     const title = prompt("Enter new project title:");
@@ -212,23 +251,30 @@ const MainApp: React.FC = () => {
       </header>
 
       <div className="max-w-6xl mx-auto">
-        {isLoading && (
+        {/* Main loading indicator for project list */}
+        {isLoading && !isProjectDetailsLoading && (
           <div className="text-center py-10">
             <p className="text-slate-400 text-xl">Loading projects...</p>
+          </div>
+        )}
+        {/* Loading indicator for individual project details */}
+        {isProjectDetailsLoading && (
+          <div className="fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center z-[60]">
+            <p className="text-slate-300 text-2xl">Loading project details...</p>
           </div>
         )}
         {error && (
           <div className="text-center py-10 bg-red-800/50 p-4 rounded-lg">
             <p className="text-red-300 text-xl">{error}</p>
             <button 
-              onClick={loadProjects} 
+              onClick={selectedProject ? () => loadProjectDetailsAndOpen(selectedProject, isEditingMode) : loadProjects}
               className="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
             >
               Retry
             </button>
           </div>
         )}
-        {!isLoading && !error && projects.length === 0 && (
+        {!isLoading && !error && projects.length === 0 && !isProjectDetailsLoading && (
           <div className="text-center py-10">
             <p className="text-slate-500 text-xl">No projects yet. {isAdmin ? "Try creating one!" : "Check back later."}</p>
           </div>
@@ -249,51 +295,72 @@ const MainApp: React.FC = () => {
         )}
       </div>
 
-      {selectedProject && (
-        <>
-          {isEditingMode ? (
-            isMobile ? (
-              // Mobile editing mode - full screen without modal wrapper
-              <div className="fixed inset-0 z-50 bg-slate-900">
-                <InteractiveModule
-                  key={`${selectedProject.id}-${isEditingMode}`} 
-                  initialData={selectedProject.interactiveData}
-                  isEditing={isEditingMode}
-                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                  onClose={handleCloseModal}
-                  projectName={selectedProject.title}
-                  projectId={selectedProject.id}
-                />
-              </div>
-            ) : (
-              // Desktop editing mode - wrapped in modal
-              <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
-                <InteractiveModule
-                  key={`${selectedProject.id}-${isEditingMode}`} 
-                  initialData={selectedProject.interactiveData}
-                  isEditing={isEditingMode}
-                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                  onClose={handleCloseModal}
-                  projectName={selectedProject.title}
-                  projectId={selectedProject.id}
-                />
-              </Modal>
-            )
-          ) : (
-            // Full-screen viewer mode (both mobile and desktop)
+      {/* Modal / Fullscreen view for selected project */}
+      {/* Render InteractiveModule only if selectedProject and its core interactiveData are present */}
+      {/* And not currently in the process of loading details (isProjectDetailsLoading is false) */}
+      {selectedProject && selectedProject.interactiveData && !isProjectDetailsLoading && (
+      <>
+        {isEditingMode ? (
+          isMobile ? (
+            // Mobile editing mode - full screen without modal wrapper
             <div className="fixed inset-0 z-50 bg-slate-900">
+              {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
+                <InteractiveModule
+                  key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
+                  initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
+                  isEditing={isEditingMode}
+                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                  onClose={handleCloseModal}
+                  projectName={selectedProject.title}
+                  projectId={selectedProject.id}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-slate-400 text-xl">Loading editor...</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Desktop editing mode - wrapped in modal
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
+              {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
+                <InteractiveModule
+                  key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
+                  initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
+                  isEditing={isEditingMode}
+                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
+                  onClose={handleCloseModal}
+                  projectName={selectedProject.title}
+                  projectId={selectedProject.id}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-64"> {/* Adjust height as needed */}
+                  <p className="text-slate-400 text-xl">Loading editor...</p>
+                </div>
+              )}
+            </Modal>
+          )
+        ) : (
+          // Full-screen viewer mode (both mobile and desktop)
+          <div className="fixed inset-0 z-50 bg-slate-900">
+            {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
               <InteractiveModule
-                key={`${selectedProject.id}-${isEditingMode}`} 
-                initialData={selectedProject.interactiveData}
+                key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
+                initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
                 isEditing={isEditingMode}
                 onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
                 onClose={handleCloseModal}
                 projectName={selectedProject.title}
                 projectId={selectedProject.id}
               />
-            </div>
-          )}
-        </>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                 <p className="text-slate-400 text-xl">Loading viewer...</p>
+              </div>
+            )}
+          </div>
+        )}
+      </>
       )}
     </div>
   );
