@@ -1738,6 +1738,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [isPlacingHotspot, setIsPlacingHotspot]);
 
+  const handleCancelHotspotPlacement = useCallback(() => {
+    if (isPlacingHotspot) {
+      setIsPlacingHotspot(false);
+      console.log("Hotspot placement cancelled via right-click or other direct cancel action.");
+    }
+  }, [isPlacingHotspot, setIsPlacingHotspot]);
+
   const handlePlaceNewHotspot = useCallback((x: number, y: number) => {
     const currentScheme = COLOR_SCHEMES.find(s => s.name === colorScheme) || COLOR_SCHEMES[0];
     const defaultColor = currentScheme.colors[hotspots.length % currentScheme.colors.length];
@@ -2355,6 +2362,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     imageFitMode={imageFitMode}
                     previewOverlayEvent={previewOverlayEvent}
                     onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
+                 isPlacingHotspot={isPlacingHotspot} // Pass down isPlacingHotspot
+                 onCancelPlacement={handleCancelHotspotPlacement} // Pass down the cancel handler
                   />
                 </div>
 
