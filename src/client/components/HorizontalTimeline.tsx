@@ -303,10 +303,27 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                   {/* Optional: Inner dot or number if needed, for now just color indicates active */}
                    {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
                 </button>
-              );
-            })}
-          </div>
-
+                // Add hotspot indicators container
+                <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
+                  {timelineEvents
+                    .filter(event => event.step === step && event.targetId)
+                    .map(event => {
+                      const hotspot = hotspots.find(h => h.id === event.targetId);
+                      return hotspot ? (
+                        <div
+                          key={`${event.id}-${hotspot.id}`}
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: hotspot.color || '#ccc' }}
+                          title={`Hotspot: ${hotspot.title}`}
+                        />
+                      ) : null;
+                    })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
           {/* Preview Card */}
           {activePreview && showPreviews && !isMobile && ( // Don't show desktop preview card on mobile
             <EventPreviewCard
