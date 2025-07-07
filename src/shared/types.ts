@@ -194,8 +194,8 @@ export interface HotspotEventGroup {
 
 export interface InteractiveModuleState {
   backgroundImage?: string; // Base64 string of the image when loaded, or undefined
-  hotspots: HotspotData[];
-  timelineEvents: TimelineEventData[];
+  hotspots?: HotspotData[]; // Made optional for deferred loading
+  timelineEvents?: TimelineEventData[]; // Made optional for deferred loading
   imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
 }
 

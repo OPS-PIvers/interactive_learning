@@ -13,6 +13,11 @@ export const appScriptProxy = {
     return await firebaseAPI.listProjects()
   },
 
+  getProjectDetails: async (projectId: string): Promise<Partial<InteractiveModuleState>> => {
+    console.log(`Firebase: Getting details for project ${projectId}...`)
+    return await firebaseAPI.getProjectDetails(projectId)
+  },
+
   createProject: async (title: string, description: string): Promise<Project> => {
     console.log(`Firebase: Creating project "${title}"`)
     return await firebaseAPI.createProject(title, description)

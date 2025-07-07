@@ -1,12 +1,11 @@
 import { 
   collection, 
   doc, 
-  getDocs, 
-  setDoc, 
+  getDocs,
+  setDoc,
   deleteDoc,
   query,
   orderBy,
-  // writeBatch, // No longer using batch directly in saveProject
   serverTimestamp,
   where,
   getDoc,
@@ -44,49 +43,78 @@ export class FirebaseProjectAPI {
     const cached = projectCache.get(cacheKey)
     
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log('Using cached projects data')
+      console.log('Using cached projects data (summary)')
       return cached.data
     }
 
     try {
-      this.logUsage('READ_OPERATIONS', 1)
+      this.logUsage('READ_OPERATIONS', 1) // For projects collection
       const projectsRef = collection(db, 'projects')
       const snapshot = await getDocs(query(projectsRef, orderBy('updatedAt', 'desc')))
       
-      const projects = await Promise.all(
-        snapshot.docs.map(async (docSnap) => {
-          const projectData = docSnap.data()
-          
-          // Get hotspots and timeline events in parallel
-          const [hotspots, timelineEvents] = await Promise.all([
-            this.getHotspots(docSnap.id),
-            this.getTimelineEvents(docSnap.id)
-          ])
-          
-          return {
-            id: docSnap.id,
-            title: projectData.title || 'Untitled Project',
-            description: projectData.description || '',
-            thumbnailUrl: projectData.thumbnailUrl,
-            interactiveData: {
-              backgroundImage: projectData.backgroundImage,
-              hotspots,
-              timelineEvents,
-              imageFitMode: projectData.imageFitMode || 'cover'
-            }
-          } as Project
-        })
-      )
+      const projects: Project[] = snapshot.docs.map((docSnap) => {
+        const projectData = docSnap.data()
+        return {
+          id: docSnap.id,
+          title: projectData.title || 'Untitled Project',
+          description: projectData.description || '',
+          thumbnailUrl: projectData.thumbnailUrl,
+          // interactiveData will be loaded on demand.
+          // Initialize with what's available at the project document level.
+          interactiveData: {
+            backgroundImage: projectData.backgroundImage, // This is stored at the project level
+            imageFitMode: projectData.imageFitMode || 'cover', // Also at project level
+            // hotspots and timelineEvents are intentionally left undefined here
+          }
+        } as Project // Asserting as Project, knowing interactiveData is partial
+      })
       
-      // Cache the results
+      // Cache the results (summary data)
       projectCache.set(cacheKey, { data: projects, timestamp: Date.now() })
       
       return projects
     } catch (error) {
-      console.error('Error listing projects:', error)
-      throw new Error(`Failed to load projects: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error listing projects (summary):', error)
+      throw new Error(`Failed to load project summaries: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
+
+  /**
+   * Get detailed interactive data (hotspots, timeline events) for a single project.
+   * Also fetches backgroundImage and imageFitMode again to ensure consistency, though they might be available from summary.
+   */
+  async getProjectDetails(projectId: string): Promise<Partial<InteractiveModuleState>> {
+    try {
+      this.logUsage('READ_OPERATIONS_DETAILS', 1); // For project document read
+      const projectDocRef = doc(db, 'projects', projectId);
+      const projectDocSnap = await getDoc(projectDocRef);
+
+      if (!projectDocSnap.exists()) {
+        throw new Error(`Project with ID ${projectId} not found.`);
+      }
+      const projectData = projectDocSnap.data();
+
+      // Get hotspots and timeline events in parallel
+      // These count as additional reads.
+      const [hotspots, timelineEvents] = await Promise.all([
+        this.getHotspots(projectId), // Counts as 1 read operation (collection query)
+        this.getTimelineEvents(projectId) // Counts as 1 read operation (collection query)
+      ]);
+      this.logUsage('READ_OPERATIONS_DETAILS_SUBCOLLECTIONS', 2);
+
+
+      return {
+        backgroundImage: projectData.backgroundImage,
+        imageFitMode: projectData.imageFitMode || 'cover',
+        hotspots,
+        timelineEvents,
+      };
+    } catch (error) {
+      console.error(`Error getting project details for ${projectId}:`, error);
+      throw new Error(`Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
 
   /**
    * Create a new project
@@ -95,15 +123,17 @@ export class FirebaseProjectAPI {
     try {
       const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
       
+      // Newly created project will have empty hotspots and timelineEvents by default.
+      // The full interactiveData structure is provided here.
       const newProject: Project = {
         id: projectId,
         title,
         description,
         thumbnailUrl: undefined,
-        interactiveData: {
+        interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
-          hotspots: [],
-          timelineEvents: [],
+          hotspots: [], // Empty for new project
+          timelineEvents: [], // Empty for new project
           imageFitMode: 'cover'
         }
       }
