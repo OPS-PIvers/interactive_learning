@@ -215,7 +215,42 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2"> {/* Reduced gap for zoom controls area */}
+            {/* Zoom Controls */}
+            <button
+              onClick={props.onZoomOut}
+              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors"
+              title="Zoom Out"
+            >
+              <ZoomOutIcon className="w-5 h-5" />
+            </button>
+            <span className="text-sm text-slate-300 w-12 text-center">
+              {`${Math.round(props.currentZoom * 100)}%`}
+            </span>
+            <button
+              onClick={props.onZoomIn}
+              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors"
+              title="Zoom In"
+            >
+              <ZoomInIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={props.onZoomReset}
+              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors text-xs"
+              title="Reset Zoom"
+            >
+              Reset
+            </button>
+            <button
+              onClick={props.onCenter}
+              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors text-xs"
+              title="Center Image"
+            >
+              Center
+            </button>
+
+            <div className="h-6 w-px bg-slate-600 mx-2" /> {/* Divider */}
+
             {/* Quick Save Button */}
             <button
               onClick={props.onSave}
