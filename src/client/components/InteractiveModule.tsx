@@ -102,6 +102,11 @@ interface InteractiveModuleProps {
   isSharedView?: boolean;
   theme?: 'light' | 'dark';
   autoStart?: boolean;
+  viewerModes?: { // Added viewerModes
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
 }
 
 interface ImageTransformState {
@@ -121,7 +126,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   projectId,
   isSharedView = false,
   theme = 'dark',
-  autoStart = false
+  autoStart = false,
+  // Destructure viewerModes with a default value
+  viewerModes = { explore: true, selfPaced: true, timed: true }
 }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots);
@@ -2392,6 +2399,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 onStartExploring={handleStartExploring}
                 hasContent={!!backgroundImage}
                 isMobile={isMobile}
+                viewerModes={viewerModes} // Pass viewerModes
               />
             </div>
             
@@ -2515,18 +2523,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             <p className="text-slate-300 text-xs sm:text-sm">Choose how you'd like to explore this content</p>
                           </div>
                           <div className="flex flex-col space-y-2.5 sm:space-y-3">
-                            <button
-                              onClick={handleStartExploring}
-                              className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200 text-sm sm:text-base"
-                            >
-                              Explore Module
-                            </button>
-                            <button
-                              onClick={handleStartLearning}
-                              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 text-sm sm:text-base"
-                            >
-                              Start Guided Tour
-                            </button>
+                            {viewerModes.explore && (
+                              <button
+                                onClick={handleStartExploring}
+                                className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200 text-sm sm:text-base"
+                              >
+                                Explore Module
+                              </button>
+                            )}
+                            {(viewerModes.selfPaced || viewerModes.timed) && (
+                              <button
+                                onClick={handleStartLearning}
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 text-sm sm:text-base"
+                              >
+                                Start Guided Tour
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

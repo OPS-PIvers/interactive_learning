@@ -197,6 +197,11 @@ export interface InteractiveModuleState {
   hotspots?: HotspotData[]; // Made optional for deferred loading
   timelineEvents?: TimelineEventData[]; // Made optional for deferred loading
   imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
+  viewerModes?: {
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
 }
 
 // Stored in simulated Drive (module_data.json within project folder)

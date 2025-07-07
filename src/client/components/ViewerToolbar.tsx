@@ -9,6 +9,11 @@ interface ViewerToolbarProps {
   onStartExploring: () => void;
   hasContent: boolean;
   isMobile?: boolean;
+  viewerModes?: { // Added viewerModes
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
 }
 
 const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
@@ -18,7 +23,9 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
   onStartLearning,
   onStartExploring,
   hasContent,
-  isMobile
+  isMobile,
+  // Destructure viewerModes with a default value
+  viewerModes = { explore: true, selfPaced: true, timed: true }
 }) => {
   if (isMobile) {
     return (
@@ -41,26 +48,30 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
           {/* Right Section - Mode Controls */}
           {hasContent && (
             <div className="flex items-center gap-2">
-              <button
-                onClick={onStartExploring}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
-                  moduleState === 'idle'
-                    ? 'bg-sky-600 text-white'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-                }`}
-              >
-                Explore
-              </button>
-              <button
-                onClick={onStartLearning}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
-                  moduleState === 'learning'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-                }`}
-              >
-                Tour
-              </button>
+              {viewerModes.explore && (
+                <button
+                  onClick={onStartExploring}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                    moduleState === 'idle'
+                      ? 'bg-sky-600 text-white'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Explore
+                </button>
+              )}
+              {(viewerModes.selfPaced || viewerModes.timed) && (
+                <button
+                  onClick={onStartLearning}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                    moduleState === 'learning'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Tour
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -97,26 +108,30 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
         {/* Right Section - Mode Controls */}
         {hasContent && (
           <div className="flex items-center gap-3">
-            <button
-              onClick={onStartExploring}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                moduleState === 'idle' 
-                  ? 'bg-sky-600 text-white' 
-                  : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-              }`}
-            >
-              Explore Mode
-            </button>
-            <button
-              onClick={onStartLearning}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                moduleState === 'learning' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-              }`}
-            >
-              Guided Tour
-            </button>
+            {viewerModes.explore && (
+              <button
+                onClick={onStartExploring}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  moduleState === 'idle'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                }`}
+              >
+                Explore Mode
+              </button>
+            )}
+            {(viewerModes.selfPaced || viewerModes.timed) && (
+              <button
+                onClick={onStartLearning}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  moduleState === 'learning'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                }`}
+              >
+                Guided Tour
+              </button>
+            )}
           </div>
         )}
       </div>

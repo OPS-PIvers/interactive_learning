@@ -32,6 +32,14 @@ interface EditorToolbarProps {
   // Color schemes
   currentColorScheme: string;
   onColorSchemeChange: (schemeName: string) => void;
+
+  // Viewer Modes
+  viewerModes: {
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
+  onViewerModeChange: (mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => void;
   
   // Save
   onSave: () => void;

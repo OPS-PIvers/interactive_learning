@@ -35,6 +35,14 @@ interface EnhancedModalEditorToolbarProps {
   // Color schemes
   currentColorScheme: string;
   onColorSchemeChange: (schemeName: string) => void;
+
+  // Viewer Modes
+  viewerModes: {
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
+  onViewerModeChange: (mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => void;
   
   // Save
   onSave: () => void;
@@ -98,6 +106,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
   onCenter,
   currentColorScheme,
   onColorSchemeChange,
+  viewerModes,
+  onViewerModeChange,
   onSave,
   isSaving,
   showSuccessMessage,
@@ -301,6 +311,28 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Viewer Modes */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Viewer Modes</h3>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                    {['explore', 'selfPaced', 'timed'].map((mode) => (
+                      <div key={mode} className="flex items-center justify-between">
+                        <label className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={viewerModes[mode as keyof typeof viewerModes] ?? false}
+                            onChange={(e) => onViewerModeChange(mode as 'explore' | 'selfPaced' | 'timed', e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">
+                            {mode.replace(/([A-Z])/g, ' $1')} Mode
+                          </span>
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
