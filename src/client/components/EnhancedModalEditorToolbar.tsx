@@ -41,6 +41,14 @@ interface EnhancedModalEditorToolbarProps {
   isSaving: boolean;
   showSuccessMessage: boolean;
   isMobile?: boolean;
+
+  // New background props
+  backgroundImage?: string; // Current background image/video URL
+  backgroundType?: 'image' | 'video';
+  backgroundVideoType?: 'youtube' | 'mp4';
+  onBackgroundImageChange: (url: string) => void;
+  onBackgroundTypeChange: (type: 'image' | 'video') => void;
+  onBackgroundVideoTypeChange: (type: 'youtube' | 'mp4') => void;
 }
 
 const COLOR_SCHEMES: ColorScheme[] = [
@@ -101,16 +109,51 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
   onSave,
   isSaving,
   showSuccessMessage,
-  isMobile = false
+  isMobile = false,
+
+  // New background props
+  backgroundImage: currentBackgroundImageUrl = '', // Provide default to prevent uncontrolled behavior
+  backgroundType = 'image', // Default to image
+  backgroundVideoType = 'mp4', // Default video type
+  onBackgroundImageChange,
+  onBackgroundTypeChange,
+  onBackgroundVideoTypeChange
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [selectedColorPreset, setSelectedColorPreset] = useState('#ef4444');
+  const [localBackgroundImageUrl, setLocalBackgroundImageUrl] = useState(currentBackgroundImageUrl);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Sync local URL state when prop changes (e.g., on initial load or external update)
+  useEffect(() => {
+    setLocalBackgroundImageUrl(currentBackgroundImageUrl);
+  }, [currentBackgroundImageUrl]);
+
+  const handleImageFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      onReplaceImage(event.target.files[0]);
+      onReplaceImage(event.target.files[0]); // This prop is for file uploads
+      // If a file is uploaded, we assume it's an image background.
+      // The parent component will handle setting the URL from Firebase.
+      onBackgroundTypeChange('image');
     }
   };
+
+  const handleUrlInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalBackgroundImageUrl(event.target.value);
+  };
+
+  const handleUrlInputBlur = () => {
+    onBackgroundImageChange(localBackgroundImageUrl);
+    // Attempt to auto-detect video type from URL if type is video
+    if (backgroundType === 'video') {
+      if (localBackgroundImageUrl.includes('youtube.com') || localBackgroundImageUrl.includes('youtu.be')) {
+        onBackgroundVideoTypeChange('youtube');
+      } else if (localBackgroundImageUrl.toLowerCase().endsWith('.mp4')) {
+        onBackgroundVideoTypeChange('mp4');
+      }
+      // If user manually sets video type later, that will override this auto-detection
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -232,26 +275,110 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
             {/* General Tab */}
             {activeTab === 'general' && (
               <div className="space-y-6">
-                {/* Image Settings */}
+                {/* Background Settings */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Image Settings</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Background Image
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="enhanced-image-upload"
-                    />
-                    <label
-                      htmlFor="enhanced-image-upload"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
-                    >
-                      Replace Image
-                    </label>
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Background Settings</h3>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Background Type
+                      </label>
+                      <div className="flex gap-x-6 gap-y-2 flex-wrap">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="backgroundType"
+                            value="image"
+                            checked={backgroundType === 'image'}
+                            onChange={() => onBackgroundTypeChange('image')}
+                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-slate-700 dark:text-slate-300">Image</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="backgroundType"
+                            value="video"
+                            checked={backgroundType === 'video'}
+                            onChange={() => onBackgroundTypeChange('video')}
+                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-slate-700 dark:text-slate-300">Video</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {backgroundType === 'image' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Upload Image File
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileUpload} // Corrected this line
+                          className="hidden"
+                          id="enhanced-image-upload"
+                        />
+                        <label
+                          htmlFor="enhanced-image-upload"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
+                        >
+                          Choose Image File
+                        </label>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          Alternatively, provide an image URL below.
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <label htmlFor="background-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        {backgroundType === 'image' ? 'Image URL' : 'Video URL (YouTube or MP4)'}
+                      </label>
+                      <input
+                        type="text"
+                        id="background-url"
+                        value={localBackgroundImageUrl}
+                        onChange={handleUrlInputChange}
+                        onBlur={handleUrlInputBlur}
+                        placeholder={backgroundType === 'image' ? 'https://example.com/image.png' : 'https://youtube.com/watch?v=... or https://example.com/video.mp4'}
+                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    {backgroundType === 'video' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Video Format (auto-detected, can override)
+                        </label>
+                        <div className="flex gap-x-6 gap-y-2 flex-wrap">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="backgroundVideoType"
+                              value="youtube"
+                              checked={backgroundVideoType === 'youtube'}
+                              onChange={() => onBackgroundVideoTypeChange('youtube')}
+                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-300">YouTube</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="backgroundVideoType"
+                              value="mp4"
+                              checked={backgroundVideoType === 'mp4'}
+                              onChange={() => onBackgroundVideoTypeChange('mp4')}
+                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-300">MP4</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

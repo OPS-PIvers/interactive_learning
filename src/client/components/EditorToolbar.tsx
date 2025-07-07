@@ -43,6 +43,14 @@ interface EditorToolbarProps {
   
   // Share functionality
   project?: Project; // Optional project data for sharing
+
+  // Background settings props to pass to EnhancedModalEditorToolbar
+  backgroundImage?: string;
+  backgroundType?: 'image' | 'video';
+  backgroundVideoType?: 'youtube' | 'mp4';
+  onBackgroundImageChange: (url: string) => void;
+  onBackgroundTypeChange: (type: 'image' | 'video') => void;
+  onBackgroundVideoTypeChange: (type: 'youtube' | 'mp4') => void;
 }
 
 const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
@@ -173,6 +181,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           onClose={() => setShowMobileMenu(false)}
           {...props}
           isMobile={true} // Pass isMobile to the modal as well
+          // Pass background props
+          backgroundImage={props.backgroundImage}
+          backgroundType={props.backgroundType}
+          backgroundVideoType={props.backgroundVideoType}
+          onBackgroundImageChange={props.onBackgroundImageChange}
+          onBackgroundTypeChange={props.onBackgroundTypeChange}
+          onBackgroundVideoTypeChange={props.onBackgroundVideoTypeChange}
         />
       </>
     );
@@ -313,6 +328,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         {...props}
+        // Pass background props
+        backgroundImage={props.backgroundImage}
+        backgroundType={props.backgroundType}
+        backgroundVideoType={props.backgroundVideoType}
+        onBackgroundImageChange={props.onBackgroundImageChange}
+        onBackgroundTypeChange={props.onBackgroundTypeChange}
+        onBackgroundVideoTypeChange={props.onBackgroundVideoTypeChange}
       />
 
       {/* Share Modal */}
