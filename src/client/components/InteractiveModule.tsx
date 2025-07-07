@@ -2144,7 +2144,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
 
   return (
-    <div className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}>
+    <div
+      id="main-content"
+      tabIndex={-1}
+      className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}
+      // Add outline-none to prevent default focus ring if not desired, or style it appropriately
+      // style={{ outline: 'none' }}
+    >
       {isEditing ? (
         isMobile ? (
           <MobileEditorLayout

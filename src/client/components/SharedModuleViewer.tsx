@@ -117,8 +117,11 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
     <div className={`min-h-screen ${
       theme === 'light' ? 'bg-gray-100' : 'bg-slate-900'
     } ${isEmbedMode ? '' : 'relative'}`}>
+      <a href="#main-content" className="skip-to-main-content-link">
+        Skip to Main Content
+      </a>
       {/* Main Module Content */}
-      <div className={`${isEmbedMode ? 'h-screen' : 'min-h-screen'}`}>
+      <div id="main-content-wrapper" className={`${isEmbedMode ? 'h-screen' : 'min-h-screen'}`}>
         <InteractiveModule
           key={`shared-${project.id}`}
           initialData={project.interactiveData}
