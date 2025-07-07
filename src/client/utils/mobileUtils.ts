@@ -56,3 +56,21 @@ export const getMobileSafeAreaInsets = () => {
     right: 'env(safe-area-inset-right, 0px)'
   };
 };
+
+export const setDynamicVhProperty = () => {
+  const updateVh = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+
+  updateVh(); // Set initial value
+
+  window.addEventListener('resize', updateVh);
+  window.addEventListener('orientationchange', updateVh);
+
+  // Return a cleanup function to remove event listeners
+  return () => {
+    window.removeEventListener('resize', updateVh);
+    window.removeEventListener('orientationchange', updateVh);
+  };
+};

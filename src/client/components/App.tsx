@@ -10,6 +10,7 @@ import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SharedModuleViewer from './SharedModuleViewer';
+import { setDynamicVhProperty } from '../utils/mobileUtils';
 
 // Main App Component for the landing page
 const MainApp: React.FC = () => {
@@ -21,6 +22,16 @@ const MainApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // Set up the dynamic --vh property updater
+    const cleanupVhUpdater = setDynamicVhProperty();
+
+    // Cleanup function to remove event listeners when the component unmounts
+    return () => {
+      cleanupVhUpdater();
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount and cleans up on unmount
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
