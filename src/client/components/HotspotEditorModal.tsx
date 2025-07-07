@@ -5,7 +5,7 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { PlusIcon } from './icons/PlusIcon';
+import { PlusIcon } from './icons/PlusIcon'; // Already imported, can be reused
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
@@ -61,7 +61,8 @@ const HotspotEditorToolbar: React.FC<{
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
-}> = ({ title, onTitleChange, onSave, onDelete, onClose }) => (
+  onAddEventClick: () => void; // New prop for handling "Add Event" button click
+}> = ({ title, onTitleChange, onSave, onDelete, onClose, onAddEventClick }) => (
   <div className="p-2 bg-gray-900 flex items-center justify-between border-b border-gray-700">
     <input
       type="text"
@@ -70,6 +71,14 @@ const HotspotEditorToolbar: React.FC<{
       className="bg-gray-700 text-xl font-bold p-1 rounded"
     />
     <div className="flex items-center space-x-2">
+      <button
+        onClick={onAddEventClick} // Attach handler here
+        className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1 text-white"
+        title="Add a new event to this hotspot"
+      >
+        <PlusIcon className="w-4 h-4" />
+        Add Event
+      </button>
       <button
         onClick={onSave}
         className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 flex items-center gap-1"
@@ -112,11 +121,25 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
+  const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
+  const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
   useEffect(() => { 
     setLocalHotspot(selectedHotspot); 
     setPreviewingEventIds([]); 
+    setShowEventTypeSelector(false); // Reset on hotspot change
   }, [selectedHotspot]);
+
+  const handleToggleEventTypeSelector = () => {
+    setShowEventTypeSelector(prev => !prev);
+  };
+
+  // Scroll to EventTypeSelector when it becomes visible
+  useEffect(() => {
+    if (showEventTypeSelector && eventTypeSelectorRef.current) {
+      eventTypeSelectorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showEventTypeSelector]);
 
   const handleAddEvent = (type: InteractionType) => {
     if (!localHotspot) return;
@@ -253,15 +276,35 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                 onClose();
               }
             }} 
-            onClose={onClose} 
+            onClose={onClose}
+            onAddEventClick={handleToggleEventTypeSelector} // Pass the handler here
           />
           <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
             <div className="flex flex-col gap-3">
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <h3 className="text-base font-semibold mb-2">Events</h3>
-                <EventTypeSelector onSelectEventType={handleAddEvent} />
-              </div>
+              {showEventTypeSelector && ( // Conditionally render this section
+                <div ref={eventTypeSelectorRef} className="bg-gray-700 p-3 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-base font-semibold">Add New Event Type</h3>
+                    <button
+                      onClick={handleToggleEventTypeSelector}
+                      className="p-1 text-gray-400 hover:text-white"
+                      title="Close event type selector"
+                    >
+                      <XMarkIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <EventTypeSelector onSelectEventType={(type) => {
+                    handleAddEvent(type);
+                    setShowEventTypeSelector(false); // Optionally hide after selection
+                  }} />
+                </div>
+              )}
               <div className="flex-grow bg-gray-700 p-2 rounded-lg overflow-y-auto min-h-[200px] max-h-[400px]">
+                {localHotspotEvents?.length === 0 && !showEventTypeSelector && (
+                  <div className="text-center text-gray-400 py-4">
+                    No events for this hotspot. Click "Add Event" to create one.
+                  </div>
+                )}
                 {localHotspotEvents?.map((event, index) => 
                   <EditableEventCard 
                     key={event.id} 
