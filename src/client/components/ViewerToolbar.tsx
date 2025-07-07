@@ -43,7 +43,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={onStartExploring}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   moduleState === 'idle'
                     ? 'bg-sky-600 text-white'
                     : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
@@ -53,7 +53,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
               </button>
               <button
                 onClick={onStartLearning}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   moduleState === 'learning'
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
@@ -66,7 +66,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
         </div>
         {moduleState === 'learning' && (
            <div className="px-3 pb-1 pt-0.5 text-center">
-            <p className="text-xs text-slate-400">Use timeline below to navigate steps</p>
+             <p className="text-sm text-slate-300">Use timeline below to navigate steps</p>
           </div>
         )}
       </div>
