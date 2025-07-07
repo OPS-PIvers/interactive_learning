@@ -31,11 +31,14 @@ interface EnhancedHotspotEditorModalProps {
 // Event Type Selector Component
 const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
   const eventTypes: { type: InteractionType; label: string }[] = [
-    { type: InteractionType.SPOTLIGHT, label: 'spotlight' },
-    { type: InteractionType.PAN_ZOOM, label: 'pan-zoom' },
-    { type: InteractionType.SHOW_TEXT, label: 'text' },
-    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'media' },
-    { type: InteractionType.QUIZ, label: 'question' },
+    { type: InteractionType.SPOTLIGHT, label: 'Spotlight' },
+    { type: InteractionType.PAN_ZOOM, label: 'Pan & Zoom' },
+    { type: InteractionType.SHOW_TEXT, label: 'Text Display' },
+    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'Image Modal' },
+    { type: InteractionType.SHOW_VIDEO, label: 'Video Modal' },
+    { type: InteractionType.SHOW_AUDIO_MODAL, label: 'Audio Modal' },
+    { type: InteractionType.SHOW_YOUTUBE, label: 'YouTube Modal' },
+    { type: InteractionType.QUIZ, label: 'Quiz Question' },
   ];
 
   return (
@@ -44,10 +47,11 @@ const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) =
         <button
           key={type}
           onClick={() => onSelectEventType(type)}
-          className="px-2 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs flex flex-col items-center gap-1"
+          className="px-2 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs flex flex-col items-center gap-1 justify-center min-h-[50px]" // Added justify-center and min-h
         >
-          <span className="text-lg">+</span>
-          <span>{label}</span>
+          {/* Using a generic icon for now, could be specific later */}
+          <PlusIcon className="w-4 h-4 mb-0.5" />
+          <span className="text-center">{label}</span>
         </button>
       ))}
     </div>
@@ -181,12 +185,33 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         textWidth: 200,
         textHeight: 60
       }),
-      ...(type === InteractionType.SHOW_IMAGE_MODAL && { 
-        url: '', 
-        mediaUrl: '',
-        mediaType: 'image'
+      ...(type === InteractionType.SHOW_IMAGE_MODAL && {
+        imageUrl: '', // Correct field for SHOW_IMAGE_MODAL
+        mediaType: 'image', // Keep for clarity, though InteractiveModule uses the main type
+        name: 'New Image Modal',
       }),
-      ...(type === InteractionType.QUIZ && { 
+      ...(type === InteractionType.SHOW_VIDEO && {
+        videoUrl: '', // Correct field for SHOW_VIDEO
+        mediaType: 'video',
+        name: 'New Video Modal',
+        autoplay: false,
+        loop: false,
+      }),
+      ...(type === InteractionType.SHOW_AUDIO_MODAL && {
+        audioUrl: '', // Correct field for SHOW_AUDIO_MODAL
+        mediaType: 'audio',
+        name: 'New Audio Modal',
+        autoplay: false,
+        loop: false,
+      }),
+      ...(type === InteractionType.SHOW_YOUTUBE && {
+        youtubeVideoId: '', // Correct field for SHOW_YOUTUBE
+        mediaType: 'youtube',
+        name: 'New YouTube Modal',
+        autoplay: false,
+        loop: false,
+      }),
+      ...(type === InteractionType.QUIZ && {
         question: 'Enter question',
         quizQuestion: 'Enter question',
         targetHotspotId: '' 

@@ -181,22 +181,156 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         );
 
       case InteractionType.SHOW_IMAGE_MODAL:
+        return (
+          <div className="space-y-2 mt-2">
+            <input
+              type="text"
+              value={event.imageUrl || ''}
+              onChange={(e) => onUpdate({ ...event, imageUrl: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Enter Image URL"
+            />
+            <input
+              type="text"
+              value={event.caption || ''}
+              onChange={(e) => onUpdate({ ...event, caption: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Optional: Caption"
+            />
+          </div>
+        );
       case InteractionType.SHOW_VIDEO:
+        return (
+          <div className="space-y-2 mt-2">
+            <input
+              type="text"
+              value={event.videoUrl || ''}
+              onChange={(e) => onUpdate({ ...event, videoUrl: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Enter Video URL (e.g., .mp4)"
+            />
+            <input
+              type="text"
+              value={event.poster || ''}
+              onChange={(e) => onUpdate({ ...event, poster: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Optional: Poster Image URL"
+            />
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.autoplay} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, autoplay: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Autoplay</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.loop} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, loop: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Loop</span>
+              </label>
+            </div>
+          </div>
+        );
+      case InteractionType.SHOW_AUDIO_MODAL:
+        return (
+          <div className="space-y-2 mt-2">
+            <input
+              type="text"
+              value={event.audioUrl || ''}
+              onChange={(e) => onUpdate({ ...event, audioUrl: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Enter Audio URL (e.g., .mp3)"
+            />
+            <input
+              type="text"
+              value={event.textContent || ''} // Using textContent for Audio Title as per InteractiveModule
+              onChange={(e) => onUpdate({ ...event, textContent: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Optional: Track Title"
+            />
+            <input
+              type="text"
+              value={event.artist || ''}
+              onChange={(e) => onUpdate({ ...event, artist: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Optional: Artist Name"
+            />
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.autoplay} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, autoplay: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Autoplay</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.loop} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, loop: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Loop</span>
+              </label>
+            </div>
+          </div>
+        );
       case InteractionType.SHOW_YOUTUBE:
         return (
-          <input
-            type="text"
-            value={event.url || event.mediaUrl || event.imageUrl || event.videoUrl || ''}
-            onChange={(e) => onUpdate({ 
-              ...event, 
-              url: e.target.value,
-              mediaUrl: e.target.value,
-              imageUrl: e.target.value,
-              videoUrl: e.target.value
-            })}
-            className="w-full bg-gray-800 text-white p-1 rounded"
-            placeholder="Enter media URL"
-          />
+          <div className="space-y-2 mt-2">
+            <input
+              type="text"
+              value={event.youtubeVideoId || ''}
+              onChange={(e) => onUpdate({ ...event, youtubeVideoId: e.target.value })}
+              className="w-full bg-gray-800 text-white p-1 rounded"
+              placeholder="Enter YouTube Video ID"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                value={event.youtubeStartTime === undefined ? '' : event.youtubeStartTime} // Handle undefined for placeholder
+                onChange={(e) => onUpdate({ ...event, youtubeStartTime: e.target.value ? parseInt(e.target.value) : undefined })}
+                className="w-full bg-gray-800 text-white p-1 rounded"
+                placeholder="Start (secs)"
+              />
+              <input
+                type="number"
+                value={event.youtubeEndTime === undefined ? '' : event.youtubeEndTime} // Handle undefined for placeholder
+                onChange={(e) => onUpdate({ ...event, youtubeEndTime: e.target.value ? parseInt(e.target.value) : undefined })}
+                className="w-full bg-gray-800 text-white p-1 rounded"
+                placeholder="End (secs)"
+              />
+            </div>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.autoplay} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, autoplay: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Autoplay</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!event.loop} // Ensure boolean value
+                  onChange={(e) => onUpdate({ ...event, loop: e.target.checked })}
+                  className="form-checkbox h-4 w-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm">Loop</span>
+              </label>
+            </div>
+          </div>
         );
 
       case InteractionType.QUIZ:
