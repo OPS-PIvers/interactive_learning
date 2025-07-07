@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { TimelineEventData, HotspotData } from '../../shared/types';
+import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
@@ -21,6 +22,23 @@ interface HorizontalTimelineProps {
   isMobile?: boolean;
 }
 
+/**
+ * HorizontalTimeline Component
+ *
+ * Displays a timeline of steps, allowing users to navigate between them.
+ * Offers different views and interactions for desktop and mobile.
+ *
+ * Mobile Features:
+ * - Scrollable list of step indicators.
+ * - Progress bar.
+ * - Next/Previous buttons.
+ * - Swipe left/right gestures on the timeline area to navigate steps.
+ * - Haptic feedback ('milestone') on step change.
+ *
+ * Desktop Features:
+ * - Dot-based timeline with tooltips and hotspot indicators.
+ * - Optional event preview card on double-click (if `showPreviews` is true).
+ */
 const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   uniqueSortedSteps,
   currentStep,
@@ -44,6 +62,16 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   const [isEventPreviewCollapsed, setIsEventPreviewCollapsed] = useState<boolean>(true);
   const timelineScrollRef = React.useRef<HTMLDivElement>(null);
 
+  // Swipe gesture states
+  const touchStartXRef = useRef<number | null>(null);
+  const touchEndXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null); // To detect vertical scroll
+
+  const SWIPE_THRESHOLD = 50; // Minimum pixels for a swipe
+  const VERTICAL_SWIPE_THRESHOLD = 30; // Max vertical movement to still consider it a horizontal swipe
+
+  const prevCurrentStepIndexRef = useRef<number | undefined>(currentStepIndex);
+
   React.useEffect(() => {
     if (isMobile && timelineScrollRef.current && uniqueSortedSteps.length > 0 && currentStepIndex !== undefined) {
       const activeDot = timelineScrollRef.current.children[currentStepIndex] as HTMLElement;
@@ -53,6 +81,55 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       }
     }
   }, [currentStepIndex, isMobile, uniqueSortedSteps]);
+
+  // Effect for haptic feedback on step change
+  useEffect(() => {
+    if (isMobile && typeof prevCurrentStepIndexRef.current !== 'undefined' && prevCurrentStepIndexRef.current !== currentStepIndex) {
+      triggerHapticFeedback('milestone');
+    }
+    prevCurrentStepIndexRef.current = currentStepIndex;
+  }, [currentStepIndex, isMobile]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartXRef.current = e.targetTouches[0].clientX;
+    touchEndXRef.current = e.targetTouches[0].clientX; // Initialize endX
+    touchStartYRef.current = e.targetTouches[0].clientY;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) {
+      return;
+    }
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchEndXRef.current === null || touchStartYRef.current === null) {
+      return;
+    }
+
+    const deltaX = touchEndXRef.current - touchStartXRef.current;
+    // Use changedTouches for touchend event
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartYRef.current);
+
+    // Check if it's a horizontal swipe and not a vertical scroll
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < VERTICAL_SWIPE_THRESHOLD) {
+      if (deltaX > 0) { // Swipe Right
+        if (onPrevStep) {
+          onPrevStep();
+        }
+      } else { // Swipe Left
+        if (onNextStep) {
+          onNextStep();
+        }
+      }
+    }
+
+    // Reset refs
+    touchStartXRef.current = null;
+    touchEndXRef.current = null;
+    touchStartYRef.current = null;
+  }, [onPrevStep, onNextStep]);
 
 
   if (uniqueSortedSteps.length === 0 && !isEditing) { // Allow empty timeline in editing for initial step
@@ -196,7 +273,12 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
 
     return (
-      <div className="w-full bg-slate-800 py-2 border-t border-slate-700">
+      <div
+        className="w-full bg-slate-800 py-2 border-t border-slate-700"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Event Preview (Collapsible) */}
         {currentEvent && moduleState === 'learning' && (
           <div className="px-3 pb-2">

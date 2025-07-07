@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
+import { triggerHapticFeedback } from '../utils/hapticUtils';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -17,8 +18,26 @@ interface HotspotViewerProps {
   imageElement?: HTMLImageElement | null;
   onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
   dragContainerRef?: React.RefObject<HTMLElement>; // Added new prop
+  /**
+   * Callback triggered when a hotspot is double-tapped on a mobile device (and not in editing mode).
+   * Used to initiate auto-focusing on the hotspot.
+   * The parent component is responsible for implementing the focusing logic (e.g., by updating `ImageViewer`'s transform).
+   * @param hotspotId - The ID of the double-tapped hotspot.
+   * @param event - The pointer event associated with the double tap.
+   */
+  onHotspotDoubleClick?: (hotspotId: string, event: React.PointerEvent) => void;
 }
 
+/**
+ * HotspotViewer Component
+ *
+ * Displays an individual hotspot. Handles interactions like:
+ * - Dragging (in edit mode).
+ * - Single tap for focus/selection (calls `onFocusRequest`).
+ * - Hold-to-edit (in edit mode on mobile).
+ * - Double-tap to auto-focus (on mobile, non-editing, via `onHotspotDoubleClick` prop).
+ * - Haptic feedback for tap and double-tap on mobile.
+ */
 const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   const {
     hotspot,
@@ -48,6 +67,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     containerElement: Element | null;
   } | null>(null);
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const lastTapTimeRef = useRef(0);
+  const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
   
   // Cleanup effect for timeout
   useEffect(() => {
@@ -86,17 +107,32 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     //   isDimmed: isDimmedInEditMode,
     //   timestamp: Date.now()
     // });
-    
-    if (!isEditing) {
-      onFocusRequest(hotspot.id);
-      return;
-    }
 
-    e.preventDefault();
-    e.stopPropagation();
+    // If not editing, pointer down just prepares for a potential tap/double-tap in pointerUp.
+    // If editing, it prepares for potential drag or hold-to-edit.
+    if (isEditing) {
+      e.preventDefault(); // Prevent text selection, etc., only when editing.
+      e.stopPropagation(); // Stop propagation only when editing to allow drag.
+    } else {
+      // For non-editing mode, allow event to bubble for ImageViewer gestures,
+      // unless this specific interaction (double tap) is handled by this component later.
+      // We will call stopPropagation in handlePointerUp if we handle the double tap.
+    }
 
     // Find the container element (the image container)
     // Prioritize passed ref, fallback to DOM traversal
+    // Only do drag setup if in editing mode
+    if (!isEditing) {
+       // For non-editing, pointerDown doesn't do much here.
+       // The tap/double-tap logic is in pointerUp.
+       // We don't want to stopPropagation here generally, as it might interfere with
+       // the main ImageViewer's gestures if the tap isn't on a hotspot.
+       // However, since this handler is ON the hotspot div itself, a pointerdown
+       // here IS on the hotspot. We will stop propagation in pointerUp if we handle the double tap.
+      return;
+    }
+
+    // Following is for isEditing = true
     const containerElement = dragContainerRef?.current || (e.currentTarget as HTMLElement).closest('.relative');
     if (!containerElement) {
       console.error("HotspotViewer: Drag container element not found. This is an unexpected state and should be investigated.");
@@ -198,12 +234,32 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       //   timestamp: Date.now()
       // });
       
-      if (isEditing && onEditRequest) {
-        // console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
+      const currentTime = Date.now();
+      if (isMobile && !isEditing && props.onHotspotDoubleClick) {
+        if (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS) {
+          // This is a double tap
+          props.onHotspotDoubleClick(hotspot.id, e);
+          e.stopPropagation(); // Prevent image viewer's double tap
+          lastTapTimeRef.current = 0; // Reset to prevent triple tap issues
+          triggerHapticFeedback('heavy'); // Heavier feedback for focus
+          // onFocusRequest is likely also desired here, or handled by the parent managing the focus
+        } else {
+          // This is a single tap
+          lastTapTimeRef.current = currentTime;
+          onFocusRequest(hotspot.id);
+          triggerHapticFeedback('hotspotDiscovery');
+        }
+      } else if (isEditing && onEditRequest) {
+        // Editing mode: tap calls onEditRequest
         onEditRequest(hotspot.id);
+        lastTapTimeRef.current = 0; // Reset tap tracking when entering edit
       } else {
-        // console.log('Debug [HotspotViewer]: Calling onFocusRequest for hotspot', hotspot.id);
+        // Non-mobile, or no double tap handler, or isEditing without onEditRequest: standard focus
         onFocusRequest(hotspot.id);
+        lastTapTimeRef.current = 0; // Reset tap tracking
+        if (isMobile && !isEditing) {
+            triggerHapticFeedback('hotspotDiscovery');
+        }
       }
     }
 

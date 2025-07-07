@@ -9,14 +9,38 @@ interface ImageViewerProps {
   title?: string;
   caption?: string;
   className?: string;
+  /**
+   * When set, the ImageViewer will smoothly animate its transform (pan/zoom)
+   * to center the specified hotspot. The hotspot is defined by its percentage-based
+   * coordinates (0-100) relative to the image's natural dimensions.
+   * Set to `null` or `undefined` to clear the focus target.
+   * Parent component should manage this prop, typically resetting it to null
+   * via `onFocusAnimationComplete` to allow re-triggering.
+   */
+  focusHotspotTarget?: {
+    xPercent: number; // Hotspot's X position (0-100%)
+    yPercent: number; // Hotspot's Y position (0-100%)
+    targetScale?: number; // Optional: Specific zoom scale for this focus action
+  } | null;
+  /**
+   * Optional callback triggered after the auto-focus animation initiated by
+   * `focusHotspotTarget` is estimated to be complete.
+   * Useful for resetting `focusHotspotTarget` in the parent component.
+   */
+  onFocusAnimationComplete?: () => void;
 }
+
+/** Default scale to use when auto-focusing on a hotspot if not specified in `focusHotspotTarget`. */
+const DEFAULT_HOTSPOT_FOCUS_SCALE = 1.75;
 
 const ImageViewer: React.FC<ImageViewerProps> = ({
   src,
   alt = '',
   title,
   caption,
-  className = ''
+  className = '',
+  focusHotspotTarget,
+  onFocusAnimationComplete
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -214,6 +238,61 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       return () => window.removeEventListener('resize', handleResize);
     }
   }, [imageLoaded, imageTransform.scale]); // Added imageTransform.scale to dependencies
+
+
+  // Effect to handle auto-focusing on a hotspot
+  useEffect(() => {
+    if (focusHotspotTarget && imageRef.current && containerRef.current && imageLoaded) {
+      const { xPercent, yPercent, targetScale: explicitTargetScale } = focusHotspotTarget;
+
+      const img = imageRef.current;
+      const container = containerRef.current;
+
+      const imgNaturalWidth = img.naturalWidth;
+      const imgNaturalHeight = img.naturalHeight;
+
+      if (!imgNaturalWidth || !imgNaturalHeight) return;
+
+      // Calculate hotspot position in image's native pixels
+      const hotspotImgX = (xPercent / 100) * imgNaturalWidth;
+      const hotspotImgY = (yPercent / 100) * imgNaturalHeight;
+
+      const focusScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, explicitTargetScale || DEFAULT_HOTSPOT_FOCUS_SCALE));
+
+      // Calculate the translation needed to center the hotspot's pixel coordinates
+      // in the container, considering the new scale.
+      const containerCenterX = container.clientWidth / 2;
+      const containerCenterY = container.clientHeight / 2;
+
+      // newTranslate = containerCenter - (hotspotPositionInImagePixels * newScale)
+      const newTranslateX = containerCenterX - (hotspotImgX * focusScale);
+      const newTranslateY = containerCenterY - (hotspotImgY * focusScale);
+
+      // We should ensure isTransformingViaTouch is false so CSS transitions apply
+      // If useTouchGestures's momentum is active, this could conflict.
+      // For now, we assume direct setting will use the CSS transition if not actively touching.
+      if (isTransformingViaTouch) {
+         // If touch is active, perhaps defer or cancel this focus?
+         // Or, the parent component should avoid setting focusHotspotTarget during active touch.
+         // For now, let's assume parent handles this coordination.
+      }
+
+      setImageTransform({
+        scale: focusScale,
+        translateX: newTranslateX,
+        translateY: newTranslateY,
+      });
+
+      if (onFocusAnimationComplete) {
+        // Call completion callback after transition duration
+        // The transition is 0.2s (200ms)
+        setTimeout(() => {
+          onFocusAnimationComplete();
+        }, 250); // A bit longer than transition to be safe
+      }
+    }
+  }, [focusHotspotTarget, imageLoaded, setImageTransform, onFocusAnimationComplete, isTransformingViaTouch]);
+
 
   return (
     <div className={`relative overflow-hidden bg-slate-900 ${className} touch-none`} // Added touch-none to prevent browser default touch actions like scroll/zoom on the container
