@@ -1473,11 +1473,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setPulsingHotspotId(null); 
       setHighlightedHotspotId(null);
 
-      // This replaces the logic block for idle mode pan/zoom based on exploredHotspotId
+      let transformToApply: ImageTransformState;
+
       if (exploredHotspotId && exploredHotspotPanZoomActive) {
         const hotspot = hotspots.find(h => h.id === exploredHotspotId);
+        // Attempt to find a PAN_ZOOM_TO_HOTSPOT event. If not found, PAN_ZOOM could also be used.
         const panZoomEvent = timelineEvents
-          .filter(e => e.targetId === exploredHotspotId && e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
+          .filter(e => e.targetId === exploredHotspotId &&
+                       (e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.PAN_ZOOM))
           .sort((a, b) => a.step - b.step)[0];
 
         if (hotspot && panZoomEvent) {
@@ -1485,11 +1488,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           const viewportCenter = getSafeViewportCenter();
 
           if (imageBounds && viewportCenter) {
-            const scale = panZoomEvent.zoomFactor || 2; // Use event's zoomFactor, fallback to 2
+            const scale = panZoomEvent.zoomFactor || (panZoomEvent.type === InteractionType.PAN_ZOOM ? panZoomEvent.zoomLevel : undefined) || 2;
             const hotspotX = (hotspot.x / 100) * imageBounds.width;
             const hotspotY = (hotspot.y / 100) * imageBounds.height;
             
-            // Calculate translation for center-origin transform (same as above)
             const divDimensions = getScaledImageDivDimensions();
             const divCenterX = divDimensions.width / 2;
             const divCenterY = divDimensions.height / 2;
@@ -1500,46 +1502,46 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
             const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
             
-            let transform = {
+            transformToApply = {
               scale,
               translateX,
               translateY,
               targetHotspotId: hotspot.id
             };
-            newImageTransform = constrainTransform(transform); // Assign to newImageTransform
           } else {
             // Fallback if imageBounds or viewportCenter is null
-            newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+            transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
           }
         } else {
-          // Fallback if hotspot or its panZoomEvent is not found
-          newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+          // Fallback if hotspot or its panZoomEvent is not found (e.g. hotspot exists but no zoom event for it)
+          // This means exploredHotspotPanZoomActive might have been true based on a generic PAN_ZOOM,
+          // but we still want to reset if specific parameters for it are missing.
+          // Or, if exploredHotspotPanZoomActive was true but the event is somehow missing now.
+          transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
         }
-      } else if (exploredHotspotId && !exploredHotspotPanZoomActive) {
-        // If a hotspot was explored and zoomed, but pan/zoom is no longer active (e.g., mouse out),
-        // set to reset. This specific reset will be harmonized by the general reset logic in step 4
-        // if no other zoom condition (like stepHasPanZoomEvent) is active.
-        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+      } else {
+        // This covers:
+        // 1. exploredHotspotId is null (initial 'idle' state, or background click)
+        // 2. exploredHotspotId is set, but exploredHotspotPanZoomActive is false (hotspot has no pan/zoom event)
+        transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
       }
-      // Note: If 'exploredHotspotId' itself is null, this entire block is skipped.
-      // The general transform reset logic (to be updated in step 4) should handle the default case
-      // where neither timeline-driven pan/zoom nor idle-explored-hotspot pan/zoom is active.
-      //setImageTransform(newImageTransform); // Apply the determined transform // This line is removed as per the logic flow of the issue
+
+      newImageTransform = constrainTransform(transformToApply);
+
     } else {
-      // This block executes if no PAN_ZOOM_TO_HOTSPOT event is active for the current step,
-      // AND idle mode pan/zoom (exploredHotspotId && exploredHotspotPanZoomActive) is also not active.
+      // This block executes if moduleState is not 'learning' and not ('idle' AND '!isEditing').
+      // This typically means isEditing is true, or some other unexpected state.
+      // Default behavior here is to reset if a transform is active.
       if (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0) {
-        // If the current transform is not the default, a reset is needed.
         const resetTransform = {
           scale: 1,
           translateX: 0,
           translateY: 0,
           targetHotspotId: undefined
         };
-        // Apply constraints even to the reset state.
         newImageTransform = constrainTransform(resetTransform);
       } else {
-        // If the current transform is already the default, ensure newImageTransform is set to this default state.
+        // If current transform is already default, keep it.
         newImageTransform = lastAppliedTransformRef.current;
       }
     }
