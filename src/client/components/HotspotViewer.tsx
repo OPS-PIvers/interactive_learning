@@ -235,7 +235,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   const sizeClasses = getSizeClasses(hotspot.size);
   
   const dotClasses = `relative inline-flex rounded-full ${sizeClasses} ${baseColor} hover:${hoverColor} transition-all duration-200 ${
-    isContinuouslyPulsing ? 'animate-pulse' : ''
+    isContinuouslyPulsing ? 'subtle-pulse-animation' : ''
   } ${
     isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'
   } ${
