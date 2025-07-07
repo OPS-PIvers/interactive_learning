@@ -193,10 +193,12 @@ export interface HotspotEventGroup {
 }
 
 export interface InteractiveModuleState {
-  backgroundImage?: string; // Base64 string of the image when loaded, or undefined
+  backgroundImage?: string; // URL for image or video
+  backgroundType?: 'image' | 'video'; // Defaults to 'image' if undefined
+  backgroundVideoType?: 'youtube' | 'mp4'; // Relevant if backgroundType is 'video'
   hotspots?: HotspotData[]; // Made optional for deferred loading
   timelineEvents?: TimelineEventData[]; // Made optional for deferred loading
-  imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
+  imageFitMode?: 'cover' | 'contain' | 'fill'; // Keep for images and potentially for video letter/pillarboxing
 }
 
 // Stored in simulated Drive (module_data.json within project folder)

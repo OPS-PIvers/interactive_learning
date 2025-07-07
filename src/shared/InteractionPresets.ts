@@ -104,6 +104,13 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     settings: ['audioUrl', 'volume'],
     description: 'Play audio narration'
   },
+  [InteractionType.PLAY_VIDEO]: { // Added preset for PLAY_VIDEO
+    icon: '🎞️', // Placeholder icon
+    name: 'Play Video Inline', // Placeholder name
+    color: 'bg-orange-500', // Placeholder color
+    settings: ['videoUrl', 'autoplay', 'loop'], // Placeholder settings
+    description: 'Play video directly in content (not modal)' // Placeholder description
+  },
   
   // Media modal interaction types
   [InteractionType.SHOW_VIDEO]: {

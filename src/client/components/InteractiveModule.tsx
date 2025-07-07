@@ -26,6 +26,15 @@ import AudioPlayer from './AudioPlayer';
 import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
 
+// Helper function to extract YouTube Video ID from various URL formats
+const extractYouTubeVideoId = (url: string): string | null => {
+  if (!url) return null;
+  // Regular expression to cover various YouTube URL formats
+  const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regExp);
+  return (match && match[1]) ? match[1] : null;
+};
+
 // Using default memo export from HotspotViewer
 
 // Z-index layer management
@@ -154,7 +163,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
   
   // Image display state
-  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover'); 
+  const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover');
+  const [backgroundType, setBackgroundType] = useState<'image' | 'video'>(initialData.backgroundType || 'image');
+  const [backgroundVideoType, setBackgroundVideoType] = useState<'youtube' | 'mp4'>(initialData.backgroundVideoType || 'mp4');
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -1030,6 +1041,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   useEffect(() => {
     setBackgroundImage(initialData.backgroundImage);
+    setBackgroundType(initialData.backgroundType || 'image');
+    setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
     setHotspots(initialData.hotspots);
     setTimelineEvents(initialData.timelineEvents);
     setImageFitMode(initialData.imageFitMode || 'cover');
@@ -1613,6 +1626,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Get fresh state values to ensure consistency
     const currentData = {
       backgroundImage,
+      backgroundType,
+      backgroundVideoType,
       hotspots,
       timelineEvents,
       imageFitMode
@@ -2266,11 +2281,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 description: '',
                 interactiveData: {
                   backgroundImage,
+                  backgroundType,
+                  backgroundVideoType,
                   hotspots,
                   timelineEvents,
-                  imageFitMode: 'contain'
+                  imageFitMode: 'contain' // Default, or use current imageFitMode
                 }
               } : undefined}
+              // Background props for EditorToolbar -> EnhancedModalEditorToolbar
+              backgroundImage={backgroundImage}
+              backgroundType={backgroundType}
+              backgroundVideoType={backgroundVideoType}
+              onBackgroundImageChange={setBackgroundImage}
+              onBackgroundTypeChange={setBackgroundType}
+              onBackgroundVideoTypeChange={setBackgroundVideoType}
             />
             </div>
 
@@ -2450,28 +2474,37 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                       <img
                         key={backgroundImage}
                         src={backgroundImage}
-                        onLoad={(e) => setImageNaturalDimensions({
-                          width: e.currentTarget.naturalWidth,
-                          height: e.currentTarget.naturalHeight
-                        })}
+                        onLoad={(e) => {
+                          setImageNaturalDimensions({
+                            width: e.currentTarget.naturalWidth,
+                            height: e.currentTarget.naturalHeight
+                          });
+                          // If it's an image type, clear imageLoading (videos handle their own loading state)
+                          if (backgroundType === 'image' || !backgroundType) {
+                            setImageLoading(false);
+                          }
+                        }}
                         onError={() => {
-                          console.error('Failed to load background image:', backgroundImage);
+                          console.error('Failed to load background resource:', backgroundImage);
                           setImageNaturalDimensions(null);
+                          if (backgroundType === 'image' || !backgroundType) {
+                            setImageLoading(false); // Also handle error for images
+                          }
                         }}
                         style={{ display: 'none' }}
                         alt=""
                         aria-hidden="true"
                       />
                     )}
-                    {/* Scaled Image Div (used for background image and hotspots) */}
+                    {/* Scaled Image Div (acts as container for background content) */}
                     <div
-                      ref={scaledImageDivRef} // This ref is used by getSafeImageBounds for viewer mode
+                      ref={scaledImageDivRef}
                       className="relative" // Ensure positioning context for hotspots
                       style={{
-                        backgroundImage: `url(${backgroundImage})`,
-                        backgroundSize: imageFitMode,
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
+                        // backgroundImage CSS property is now handled by renderBackgroundContent or direct img tag
+                        backgroundSize: imageFitMode, // Still relevant for video object-fit equivalent
+                        backgroundPosition: 'center', // Still relevant for video object-fit equivalent
+                        backgroundRepeat: 'no-repeat', // Still relevant
                         transformOrigin: 'center',
                         transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
                         transition: isTransforming 
@@ -2493,9 +2526,37 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         })(),
                         maxHeight: isMobile ? '100%' : '800px',
                         zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
+                        // Ensure the container itself doesn't have a background image if a video is playing
+                        backgroundImage: (backgroundType === 'video' && backgroundImage) ? 'none' : `url(${backgroundImage})`,
                       }}
                       aria-hidden="true"
                     >
+                      {/* Conditional Background Content */}
+                      {(backgroundType === 'video' && backgroundImage) ? (
+                        backgroundVideoType === 'youtube' ? (
+                          <YouTubePlayer
+                            videoId={extractYouTubeVideoId(backgroundImage) || ''}
+                            className="absolute inset-0 w-full h-full"
+                            autoplay={true}
+                            loop={true}
+                            muted={true}
+                            controls={false} // No controls for background video
+                            style={{ objectFit: imageFitMode }} // Apply fit mode
+                          />
+                        ) : backgroundVideoType === 'mp4' ? (
+                          <VideoPlayer
+                            src={backgroundImage}
+                            className="absolute inset-0 w-full h-full"
+                            autoPlay={true}
+                            loop={true}
+                            muted={true}
+                            controls={false} // No controls for background video
+                            style={{ objectFit: imageFitMode }} // Apply fit mode
+                          />
+                        ) : null // Should ideally show an error or fallback if video type is unknown
+                      ) : null}
+                      {/* End Conditional Background Content */}
+
                       {/* Highlight Overlay */}
                       {(moduleState === 'learning' || isEditing) && highlightedHotspotId && activeHotspotDisplayIds.has(highlightedHotspotId) && (
                         <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
