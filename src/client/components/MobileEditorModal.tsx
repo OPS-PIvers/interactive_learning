@@ -371,7 +371,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         ...prev,
         [name]: (name === 'step' || name === 'duration') ? parseInt(value, 10) : value
       } : null);
-    };
+    }, []);
 
     const renderEventEditForm = (eventData: TimelineEventData) => {
       if (!currentEditData || currentEditData.id !== eventData.id) return null;
