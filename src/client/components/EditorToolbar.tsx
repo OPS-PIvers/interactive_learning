@@ -124,7 +124,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
                   ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
                   : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
               }`}
-              title={props.isPlacingHotspot ? "Cancel Placement - Click on Image" : "Add Hotspot"}
+              title={props.isPlacingHotspot ? "Cancel Placement (or tap button again)" : "Add Hotspot"}
             >
               <PlusCircleIcon className="w-5 h-5" />
               <span className="text-sm">{props.isPlacingHotspot ? "Place..." : "Add"}</span>
@@ -207,7 +207,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
                   ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
                   : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
               }`}
-              title={props.isPlacingHotspot ? "Cancel Hotspot Placement" : "Add Hotspot"}
+              title={props.isPlacingHotspot ? "Cancel Placement (or right-click on image)" : "Add Hotspot"}
             >
               <PlusCircleIcon className="w-5 h-5" />
               <span>{props.isPlacingHotspot ? "Click to Place Hotspot..." : "Add Hotspot"}</span>
