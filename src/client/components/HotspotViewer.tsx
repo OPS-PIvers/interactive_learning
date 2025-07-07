@@ -34,8 +34,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // usePixelPositioning, // Not directly used
     // imageElement, // Not directly used
     onDragStateChange,
-    dragContainerRef,
-    isDimmedInEditMode // Destructure the missing prop
+    dragContainerRef
   } = props;
 
   const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();
