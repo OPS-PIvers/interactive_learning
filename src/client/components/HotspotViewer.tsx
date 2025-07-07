@@ -267,6 +267,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       onPointerUp={handlePointerUp}
       role="button"
       aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (drag to move, hold to edit)' : ''}`}
+      title={!isEditing && !isMobile ? hotspot.title : undefined}
       tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect={isEditing ? "move" : "none"}
