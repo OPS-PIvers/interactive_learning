@@ -126,9 +126,16 @@ const MainApp: React.FC = () => {
 
 
   const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedProject(null);
-    if (isAdmin) loadProjects(); // Refresh project list after closing modal
+    // Add a small delay to ensure InteractiveModule cleanup completes
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setSelectedProject(null);
+      setIsEditingMode(false); // Also reset editing mode
+
+      if (isAdmin) {
+        loadProjects(); // Refresh project list after closing modal
+      }
+    }, 200); // Give time for InteractiveModule to clean up
   }, [isAdmin, loadProjects]);
 
   const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState) => {
