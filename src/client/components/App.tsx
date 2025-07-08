@@ -125,17 +125,24 @@ const MainApp: React.FC = () => {
   }, []);
 
 
-  const handleCloseModal = useCallback(() => {
-    // Add a small delay to ensure InteractiveModule cleanup completes
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setSelectedProject(null);
-      setIsEditingMode(false); // Also reset editing mode
+  const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
+    // This function is now called by InteractiveModule's onClose,
+    // or directly by the Modal's own close button.
 
-      if (isAdmin) {
-        loadProjects(); // Refresh project list after closing modal
-      }
-    }, 200); // Give time for InteractiveModule to clean up
+    // Perform App.tsx specific cleanup
+    setIsModalOpen(false);
+    setSelectedProject(null);
+    setIsEditingMode(false);
+
+    if (isAdmin) {
+      loadProjects(); // Refresh project list
+    }
+
+    // If a callback was provided by InteractiveModule, execute it.
+    // This callback is InteractiveModule's own setIsModeSwitching(false) etc.
+    if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
+      moduleCleanupCompleteCallback();
+    }
   }, [isAdmin, loadProjects]);
 
   const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState) => {

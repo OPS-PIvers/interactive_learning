@@ -104,7 +104,7 @@ interface InteractiveModuleProps {
   initialData: InteractiveModuleState;
   isEditing: boolean;
   onSave: (data: InteractiveModuleState) => void;
-  onClose?: () => void;
+  onClose?: (callback?: () => void) => void; // Modified onClose
   projectName: string;
   projectId?: string;
   // Shared viewer props
@@ -1041,10 +1041,120 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions, isMobile]);
 
+  // Consolidated Initialization useEffect
   useEffect(() => {
-    setBackgroundImage(initialData.backgroundImage);
-    setBackgroundType(initialData.backgroundType || 'image');
-    setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
+    let isMounted = true;
+
+    // Prevent re-initialization during mode switches or if already initialized for current data
+    if (isModeSwitching) {
+      debugLog('Init', 'Skipping initialization: mode switching.');
+      return;
+    }
+    // If we consider isInitialized as a guard against re-running for the *same* initialData,
+    // this might be too aggressive if initialData itself changes identity but not content.
+    // However, the dependencies array [initialData, isEditing, isModeSwitching] handles actual data changes.
+    // The primary role of isInitialized here is for the initial "Initializing..." screen.
+
+    debugLog('Init', 'Starting initialization process...', { isEditing, initialDataProvided: !!initialData });
+    if (isMounted) {
+      setInitError(null); // Clear previous errors
+    }
+
+    // Clear any existing timeouts from previous renders or states
+    if (pulseTimeoutRef.current) {
+      clearTimeout(pulseTimeoutRef.current);
+      pulseTimeoutRef.current = null;
+    }
+    if (successMessageTimeoutRef.current) {
+      clearTimeout(successMessageTimeoutRef.current);
+      successMessageTimeoutRef.current = null;
+    }
+    if (applyTransformTimeoutRef.current) {
+      clearTimeout(applyTransformTimeoutRef.current);
+      applyTransformTimeoutRef.current = null;
+    }
+
+    try {
+      setBackgroundImage(initialData.backgroundImage);
+      setBackgroundType(initialData.backgroundType || 'image');
+      setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
+      setHotspots(initialData.hotspots || []);
+      setTimelineEvents(initialData.timelineEvents || []);
+      setImageFitMode(initialData.imageFitMode || 'cover');
+
+      const newInitialModuleState = isEditing ? 'learning' : (initialData.timelineEvents && initialData.timelineEvents.length > 0 ? 'idle' : 'idle'); // Default to idle if no timeline
+      setModuleState(newInitialModuleState);
+
+      const safeTimelineEvents = initialData.timelineEvents || [];
+      const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
+      let initialStepValue = 1;
+      if (newInitialModuleState === 'learning' && newUniqueSortedSteps.length > 0) {
+          initialStepValue = newUniqueSortedSteps[0];
+      } else if (newInitialModuleState === 'idle' && newUniqueSortedSteps.length > 0) {
+          // For idle, start at the first step if available, but it won't auto-play
+          initialStepValue = newUniqueSortedSteps[0];
+      }
+      setCurrentStep(initialStepValue);
+
+      // Reset all other interactive states
+      setActiveHotspotDisplayIds(new Set());
+      setPulsingHotspotId(null);
+      setCurrentMessage(null);
+      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      setHighlightedHotspotId(null);
+      setExploredHotspotId(null);
+      setExploredHotspotPanZoomActive(false);
+
+      // Clear caches
+      clearImageBoundsCache(); // This sets originalImageBoundsRef.current = null
+      lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+
+      if (isMounted) {
+        setIsInitialized(true);
+        debugLog('Init', 'Initialization complete.');
+      }
+
+    } catch (error) {
+      console.error('Module initialization failed:', error);
+      debugLog('InitError', 'Module initialization failed', error);
+      if (isMounted) {
+        setInitError(error as Error);
+        setIsInitialized(true); // Still mark as initialized to show error UI
+      }
+    }
+
+    // Cleanup for this effect
+    return () => {
+      isMounted = false;
+      debugLog('Init', 'Cleanup function for initialization effect called.');
+      // This cleanup runs when initialData or isEditing changes, or on unmount.
+      // Setting isInitialized to false here would cause "Initializing..." screen to flash
+      // if initialData or isEditing changes. This might be desired if a full re-init feel is wanted.
+      // For now, let's not set isInitialized to false here, as the main purpose is the *initial* load.
+      // Subsequent changes to initialData/isEditing will re-run the effect and reset states appropriately.
+
+      // However, timeouts specific to this effect's lifecycle (if any were started and not cleared above)
+      // should be cleared. Currently, all relevant timeouts are cleared at the start of the effect.
+      // If a new initialData triggers this, we want to ensure old timeouts are gone.
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+        pulseTimeoutRef.current = null;
+      }
+      if (successMessageTimeoutRef.current) {
+        clearTimeout(successMessageTimeoutRef.current);
+        successMessageTimeoutRef.current = null;
+      }
+      if (applyTransformTimeoutRef.current) {
+        clearTimeout(applyTransformTimeoutRef.current);
+        applyTransformTimeoutRef.current = null;
+      }
+    };
+  }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, debugLog]); // Added isModeSwitching and debugLog
+
+  // useEffect(() => { // THIS IS THE ORIGINAL useEffect to be replaced by the one above
+    // setBackgroundImage(initialData.backgroundImage);
+    // setBackgroundType(initialData.backgroundType || 'image');
+    // setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
     setHotspots(initialData.hotspots || []);
     setTimelineEvents(initialData.timelineEvents || []);
     setImageFitMode(initialData.imageFitMode || 'cover');
@@ -1090,64 +1200,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     };
   }, [initialData, isEditing, clearImageBoundsCache]);
 
-  // Initialization useEffect
-  useEffect(() => {
-    // Prevent re-initialization during mode switches
-    if (isModeSwitching) return;
-
-    const initializeModule = async () => {
-      try {
-        setInitError(null);
-        // Clear any existing timeouts
-        if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
-      if (successMessageTimeoutRef.current) clearTimeout(successMessageTimeoutRef.current);
-      if (applyTransformTimeoutRef.current) clearTimeout(applyTransformTimeoutRef.current);
-
-      // Initialize state
-      const newInitialModuleState = !isEditing && initialData.timelineEvents.length > 0 ? 'learning' : 'idle';
-      setModuleState(newInitialModuleState);
-
-      const newUniqueSortedSteps = [...new Set(initialData.timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-      const initialStepValue = newUniqueSortedSteps.length > 0 ? newUniqueSortedSteps[0] : 1;
-      setCurrentStep(initialStepValue);
-
-      // Reset all other states
-      setActiveHotspotDisplayIds(new Set());
-      setPulsingHotspotId(null);
-      setCurrentMessage(null);
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      setHighlightedHotspotId(null);
-      setExploredHotspotId(null);
-      setExploredHotspotPanZoomActive(false);
-      // Assuming setActiveHotspotInfoId is not used based on previous steps. If it exists, add:
-      // setActiveHotspotInfoId(null);
-
-      // Clear caches
-      clearImageBoundsCache();
-      originalImageBoundsRef.current = null;
-      lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-
-      // Mark as initialized
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('Module initialization failed:', error);
-      setInitError(error as Error);
-      setIsInitialized(true); // Still mark as initialized to show error UI
-    }
-    };
-
-    initializeModule();
-
-    // Cleanup on unmount
-    return () => {
-      setIsInitialized(false);
-      // Add any other specific cleanup needed when the component unmounts entirely
-      if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
-      if (successMessageTimeoutRef.current) clearTimeout(successMessageTimeoutRef.current);
-      if (applyTransformTimeoutRef.current) clearTimeout(applyTransformTimeoutRef.current);
-    };
-  }, [initialData, isEditing, isModeSwitching, clearImageBoundsCache]);
-
+  // REMOVED Duplicative Initialization useEffect
 
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
@@ -1234,11 +1287,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
   useEffect(() => {
-    // Add safety check
-    if (!handleArrowLeftKey || !handleArrowRightKey || !handleEscapeKey ||
-        !handlePlusKey || !handleMinusKey || !handleZeroKey) {
-      return;
-    }
+    // REMOVED Redundant safety check:
+    // React guarantees hooks are defined in order before this effect runs.
+    // if (!handleArrowLeftKey || !handleArrowRightKey || !handleEscapeKey ||
+    //     !handlePlusKey || !handleMinusKey || !handleZeroKey) {
+    //   return;
+    // }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
@@ -1692,7 +1746,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setIsSaving(true);
     console.log('=== SAVE DEBUG ===');
     
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // await new Promise(resolve => setTimeout(resolve, 100)); // REMOVED
     
     const currentData = {
       backgroundImage,
@@ -2233,11 +2287,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setTimeout(() => {
       debugLog('ModeSwitch', 'Executing actual close action.');
       if (onClose) {
-        onClose();
+        // Pass a callback that will be executed by App.tsx's handleCloseModal
+        onClose(() => {
+          // This part is now effectively App.tsx's responsibility,
+          // but InteractiveModule ensures its own state is set before this callback is even available to App.tsx
+          setIsModeSwitching(false);
+          debugLog('ModeSwitch', 'InteractiveModule internal cleanup finished, App-side callback executed.');
+        });
+      } else {
+        // If no onClose is provided, finish mode switching here
+        setIsModeSwitching(false);
+        debugLog('ModeSwitch', 'InteractiveModule internal cleanup finished (no onClose callback).');
       }
-      setIsModeSwitching(false);
-      debugLog('ModeSwitch', 'Mode switch / close sequence finished.');
-    }, 150); // Increased delay for safety
+    }, 150); // Delay for internal state updates to settle before calling onClose
   }, [
     isModeSwitching,
     onClose,
