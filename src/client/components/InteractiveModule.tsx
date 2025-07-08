@@ -133,8 +133,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   autoStart = false
 }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
-  const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents);
+  const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -1043,14 +1043,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setBackgroundImage(initialData.backgroundImage);
     setBackgroundType(initialData.backgroundType || 'image');
     setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
-    setHotspots(initialData.hotspots);
-    setTimelineEvents(initialData.timelineEvents);
+    setHotspots(initialData.hotspots || []);
+    setTimelineEvents(initialData.timelineEvents || []);
     setImageFitMode(initialData.imageFitMode || 'cover');
     
     const newInitialModuleState = isEditing ? 'learning' : 'idle';
     setModuleState(newInitialModuleState);
     
-    const newUniqueSortedSteps = [...new Set(initialData.timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+    const safeTimelineEvents = initialData.timelineEvents || [];
+    const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
     let initialStepValue = 1;
     if (newInitialModuleState === 'learning' && newUniqueSortedSteps.length > 0) {
         initialStepValue = newUniqueSortedSteps[0];
@@ -1221,7 +1222,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   useEffect(() => {
     // Add safety checks to prevent temporal dead zone issues
-    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || !timelineEvents || !hotspots) {
+    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || timelineEvents === null || hotspots === null) {
       return;
     }
     
