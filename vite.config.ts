@@ -46,7 +46,17 @@ export default defineConfig(({ mode, command }) => {
             entryFileNames: 'assets/[name].[hash].js',
             chunkFileNames: 'assets/[name].[hash].js',
             assetFileNames: 'assets/[name].[hash].[ext]',
-            format: 'es'
+            format: 'es',
+            manualChunks: {
+              // Split Firebase into its own chunk
+              firebase: ['firebase/app', 'firebase/firestore', 'firebase/storage'],
+              // Split React libs into their own chunk
+              react: ['react', 'react-dom', 'react-router-dom'],
+              // Split utility libraries
+              utils: ['lodash.debounce', 'qrcode'],
+              // Split react-dnd into its own chunk
+              dnd: ['react-dnd', 'react-dnd-html5-backend']
+            }
           }
         },
         cssCodeSplit: true,
