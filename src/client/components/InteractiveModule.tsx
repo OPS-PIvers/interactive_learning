@@ -235,6 +235,75 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
   }, [previewOverlayEvent]);
   
+  // Calculate optimal image scale when editor panel state changes
+  const calculateOptimalImageScale = useCallback((
+    currentScale: number,
+    currentTranslateX: number,
+    currentTranslateY: number,
+    panelIsOpening: boolean
+  ) => {
+    if (isMobile) {
+      // Mobile doesn't need scale adjustments for panel changes
+      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+    }
+
+    const imageBounds = getSafeImageBounds();
+    const divDimensions = getScaledImageDivDimensions();
+    
+    if (!imageBounds || !divDimensions) {
+      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+    }
+
+    const scaledImageWidth = imageBounds.width * currentScale;
+    const scaledImageHeight = imageBounds.height * currentScale;
+    
+    // Check if current scaled image fits in the new container dimensions
+    const fitsWidth = scaledImageWidth <= divDimensions.width;
+    const fitsHeight = scaledImageHeight <= divDimensions.height;
+    
+    if (panelIsOpening && (!fitsWidth || !fitsHeight)) {
+      // Panel is opening and image doesn't fit - scale down to fit
+      const widthRatio = divDimensions.width / imageBounds.width;
+      const heightRatio = divDimensions.height / imageBounds.height;
+      const optimalScale = Math.min(widthRatio, heightRatio, currentScale); // Don't scale up
+      
+      // Reset translation to center when scaling down significantly
+      const scaleReduction = optimalScale / currentScale;
+      if (scaleReduction < 0.8) {
+        return {
+          scale: optimalScale,
+          translateX: 0,
+          translateY: 0
+        };
+      } else {
+        // Proportionally adjust translation
+        return {
+          scale: optimalScale,
+          translateX: currentTranslateX * scaleReduction,
+          translateY: currentTranslateY * scaleReduction
+        };
+      }
+    } else if (!panelIsOpening && currentScale < 1) {
+      // Panel is closing and we're zoomed out - potentially restore scale
+      const widthRatio = divDimensions.width / imageBounds.width;
+      const heightRatio = divDimensions.height / imageBounds.height;
+      const maxFitScale = Math.min(widthRatio, heightRatio);
+      
+      // Restore to fit scale or 1.0, whichever is smaller
+      const restoredScale = Math.min(1, maxFitScale);
+      if (restoredScale > currentScale) {
+        return {
+          scale: restoredScale,
+          translateX: 0,
+          translateY: 0
+        };
+      }
+    }
+    
+    // No scaling needed - return current values
+    return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
+  }, [isMobile, getSafeImageBounds, getScaledImageDivDimensions]);
+
   // Auto-adjust image scale when editor panel opens/closes
   const previousPanelStateRef = useRef<boolean>(isHotspotModalOpen);
   useEffect(() => {
@@ -550,74 +619,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     debugLog('Cache', 'Cleared image bounds cache');
   }, [debugLog]);
 
-  // Calculate optimal image scale when editor panel state changes
-  const calculateOptimalImageScale = useCallback((
-    currentScale: number,
-    currentTranslateX: number,
-    currentTranslateY: number,
-    panelIsOpening: boolean
-  ) => {
-    if (isMobile) {
-      // Mobile doesn't need scale adjustments for panel changes
-      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
-    }
-
-    const imageBounds = getSafeImageBounds();
-    const divDimensions = getScaledImageDivDimensions();
-    
-    if (!imageBounds || !divDimensions) {
-      return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
-    }
-
-    const scaledImageWidth = imageBounds.width * currentScale;
-    const scaledImageHeight = imageBounds.height * currentScale;
-    
-    // Check if current scaled image fits in the new container dimensions
-    const fitsWidth = scaledImageWidth <= divDimensions.width;
-    const fitsHeight = scaledImageHeight <= divDimensions.height;
-    
-    if (panelIsOpening && (!fitsWidth || !fitsHeight)) {
-      // Panel is opening and image doesn't fit - scale down to fit
-      const widthRatio = divDimensions.width / imageBounds.width;
-      const heightRatio = divDimensions.height / imageBounds.height;
-      const optimalScale = Math.min(widthRatio, heightRatio, currentScale); // Don't scale up
-      
-      // Reset translation to center when scaling down significantly
-      const scaleReduction = optimalScale / currentScale;
-      if (scaleReduction < 0.8) {
-        return {
-          scale: optimalScale,
-          translateX: 0,
-          translateY: 0
-        };
-      } else {
-        // Proportionally adjust translation
-        return {
-          scale: optimalScale,
-          translateX: currentTranslateX * scaleReduction,
-          translateY: currentTranslateY * scaleReduction
-        };
-      }
-    } else if (!panelIsOpening && currentScale < 1) {
-      // Panel is closing and we're zoomed out - potentially restore scale
-      const widthRatio = divDimensions.width / imageBounds.width;
-      const heightRatio = divDimensions.height / imageBounds.height;
-      const maxFitScale = Math.min(widthRatio, heightRatio);
-      
-      // Restore to fit scale or 1.0, whichever is smaller
-      const restoredScale = Math.min(1, maxFitScale);
-      if (restoredScale > currentScale) {
-        return {
-          scale: restoredScale,
-          translateX: 0,
-          translateY: 0
-        };
-      }
-    }
-    
-    // No scaling needed - return current values
-    return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
-  }, [isMobile, getSafeImageBounds, getScaledImageDivDimensions]);
 
   // Helper to show media modals
   const showMediaModal = useCallback((
