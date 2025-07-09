@@ -235,6 +235,47 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
   }, [previewOverlayEvent]);
   
+  // Helper functions moved before calculateOptimalImageScale to fix temporal dead zone errors
+  const getScaledImageDivDimensions = useCallback(() => {
+    if (isMobile) {
+      // Mobile: Use actual container dimensions since it's 100% width/height
+      const container = viewerImageContainerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        return {
+          width: rect.width,
+          height: rect.height
+        };
+      }
+      // Fallback to viewport dimensions for mobile
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+    } else {
+      // Desktop: Calculate available space accounting for editor panel
+      const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
+      const availableViewportWidth = window.innerWidth - editorPanelWidth;
+      
+      // Use 80% of available width/height with responsive adjustments
+      const divWidth = 0.8 * availableViewportWidth;
+      const divHeight = 0.8 * window.innerHeight;
+      
+      // Adjust max constraints based on available space
+      const maxWidth = Math.min(1200, availableViewportWidth - 40); // 40px margin
+      const maxHeight = 800;
+      
+      return {
+        width: Math.min(divWidth, maxWidth),
+        height: Math.min(divHeight, maxHeight)
+      };
+    }
+  }, [isMobile, isHotspotModalOpen]);
+
+  const getSafeImageBounds = useCallback(() => {
+    return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
+  }, [getImageBounds]);
+
   // Calculate optimal image scale when editor panel state changes
   const calculateOptimalImageScale = useCallback((
     currentScale: number,
@@ -433,42 +474,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [debugMode]);
 
-  // Helper to get the actual div dimensions (viewer mode only)
-  const getScaledImageDivDimensions = useCallback(() => {
-    if (isMobile) {
-      // Mobile: Use actual container dimensions since it's 100% width/height
-      const container = viewerImageContainerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        return {
-          width: rect.width,
-          height: rect.height
-        };
-      }
-      // Fallback to viewport dimensions for mobile
-      return {
-        width: window.innerWidth,
-        height: window.innerHeight
-      };
-    } else {
-      // Desktop: Calculate available space accounting for editor panel
-      const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
-      const availableViewportWidth = window.innerWidth - editorPanelWidth;
-      
-      // Use 80% of available width/height with responsive adjustments
-      const divWidth = 0.8 * availableViewportWidth;
-      const divHeight = 0.8 * window.innerHeight;
-      
-      // Adjust max constraints based on available space
-      const maxWidth = Math.min(1200, availableViewportWidth - 40); // 40px margin
-      const maxHeight = 800;
-      
-      return {
-        width: Math.min(divWidth, maxWidth),
-        height: Math.min(divHeight, maxHeight)
-      };
-    }
-  }, [isMobile, isHotspotModalOpen]);
 
 
   const throttledRecalculatePositions = useMemo(
@@ -609,9 +614,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     return null;
   }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
 
-  const getSafeImageBounds = useCallback(() => {
-    return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
-  }, [getImageBounds]);
 
   // Helper to clear cached bounds when needed
   const clearImageBoundsCache = useCallback(() => {
