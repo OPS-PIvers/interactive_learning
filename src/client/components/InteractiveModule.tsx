@@ -317,6 +317,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Store original untransformed bounds to prevent feedback loops
   const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null); // Ref for the timeout in handleAttemptClose
 
   // Touch gesture handling
   const touchGestureHandlers = useTouchGestures(
@@ -1150,6 +1151,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     };
   }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, debugLog]); // Added isModeSwitching and debugLog
+
+  // Cleanup for closeTimeoutRef
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // useEffect(() => { // THIS IS THE ORIGINAL useEffect to be replaced by the one above
     // setBackgroundImage(initialData.backgroundImage);
@@ -2284,7 +2294,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     ]);
 
     // Delay the actual close to allow state updates to complete
-    setTimeout(() => {
+    closeTimeoutRef.current = setTimeout(() => {
       debugLog('ModeSwitch', 'Executing actual close action.');
       if (onClose) {
         // Pass a callback that will be executed by App.tsx's handleCloseModal
