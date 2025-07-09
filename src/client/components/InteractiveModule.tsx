@@ -1088,11 +1088,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       const safeTimelineEvents = initialData.timelineEvents || [];
       const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
-      let initialStepValue = 1;
-      if (newInitialModuleState === 'learning' && newUniqueSortedSteps.length > 0) {
-          initialStepValue = newUniqueSortedSteps[0];
-      } else if (newInitialModuleState === 'idle' && newUniqueSortedSteps.length > 0) {
-          // For idle, start at the first step if available, but it won't auto-play
+      let initialStepValue = 1; // Default
+      if (newUniqueSortedSteps.length > 0) {
+          // In both 'learning' and 'idle' modes, we want to start at the first available step.
+          // The mode itself will determine if auto-play happens or if it's just the initial selected step.
           initialStepValue = newUniqueSortedSteps[0];
       }
       setCurrentStep(initialStepValue);
