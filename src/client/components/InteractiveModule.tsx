@@ -111,6 +111,7 @@ interface InteractiveModuleProps {
   isSharedView?: boolean;
   theme?: 'light' | 'dark';
   autoStart?: boolean;
+  onReloadRequest?: () => void; // Prop for custom reload handling
 }
 
 interface ImageTransformState {
@@ -130,7 +131,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   projectId,
   isSharedView = false,
   theme = 'dark',
-  autoStart = false
+  autoStart = false,
+  onReloadRequest
 }) => {
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
@@ -2335,10 +2337,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           <h2 className="text-xl font-bold mb-2">Initialization Error</h2>
           <p className="mb-4">{initError.message}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={onReloadRequest ? onReloadRequest : () => window.location.reload()}
             className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
           >
-            Reload Page
+            {onReloadRequest ? 'Retry Initialization' : 'Reload Page'}
           </button>
         </div>
       </div>

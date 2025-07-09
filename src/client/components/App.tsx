@@ -215,6 +215,32 @@ const MainApp: React.FC = () => {
     }
   }, [selectedProject, handleCloseModal]);
   
+  const handleModuleReloadRequest = useCallback(async () => {
+    if (selectedProject) {
+      console.log(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
+      // To ensure InteractiveModule gets new props and re-initializes,
+      // we can temporarily set selectedProject to null, then re-set it with fetched data.
+      // Or, more simply, ensure loadProjectDetailsAndOpen invalidates previous data or uses a key.
+      // For now, let's make sure getProjectDetails is always called by modifying the condition in loadProjectDetailsAndOpen slightly for reloads,
+      // or by creating a more specific refetch function.
+      // A simple way is to clear the detailed parts of the selected project before calling loadProjectDetailsAndOpen
+
+      const projectToReload = {
+        ...selectedProject,
+        interactiveData: {
+          ...selectedProject.interactiveData,
+          hotspots: undefined, // Force refetch of hotspots
+          timelineEvents: undefined, // Force refetch of timelineEvents
+        }
+      };
+      // No need to set selectedProject to null here, as loadProjectDetailsAndOpen will update it.
+      // This will also keep the modal open if it already is.
+      // isEditingMode should be preserved.
+      await loadProjectDetailsAndOpen(projectToReload as Project, isEditingMode);
+    } else {
+      console.warn("Module reload requested, but no project is currently selected.");
+    }
+  }, [selectedProject, loadProjectDetailsAndOpen, isEditingMode]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
@@ -327,6 +353,7 @@ const MainApp: React.FC = () => {
                   onClose={handleCloseModal}
                   projectName={selectedProject.title}
                   projectId={selectedProject.id}
+                  onReloadRequest={handleModuleReloadRequest}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -346,6 +373,7 @@ const MainApp: React.FC = () => {
                   onClose={handleCloseModal}
                   projectName={selectedProject.title}
                   projectId={selectedProject.id}
+                  onReloadRequest={handleModuleReloadRequest}
                 />
               ) : (
                 <div className="flex items-center justify-center h-64"> {/* Adjust height as needed */}
@@ -366,6 +394,7 @@ const MainApp: React.FC = () => {
                 onClose={handleCloseModal}
                 projectName={selectedProject.title}
                 projectId={selectedProject.id}
+                  onReloadRequest={handleModuleReloadRequest}
               />
             ) : (
               <div className="flex items-center justify-center h-full">
