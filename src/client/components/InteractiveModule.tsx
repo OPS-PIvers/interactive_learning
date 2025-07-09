@@ -1082,7 +1082,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setTimelineEvents(initialData.timelineEvents || []);
       setImageFitMode(initialData.imageFitMode || 'cover');
 
-      const newInitialModuleState = isEditing ? 'learning' : (initialData.timelineEvents && initialData.timelineEvents.length > 0 ? 'idle' : 'idle'); // Default to idle if no timeline
+      const newInitialModuleState = isEditing ? 'learning' : 'idle';
       setModuleState(newInitialModuleState);
 
       const safeTimelineEvents = initialData.timelineEvents || [];
@@ -1118,7 +1118,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       console.error('Module initialization failed:', error);
       debugLog('InitError', 'Module initialization failed', error);
       if (isMounted) {
-        setInitError(error as Error);
+        setInitError(error instanceof Error ? error : new Error(String(error)));
         setIsInitialized(true); // Still mark as initialized to show error UI
       }
     }
