@@ -1163,56 +1163,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     };
   }, []);
 
-  // useEffect(() => { // THIS IS THE ORIGINAL useEffect to be replaced by the one above
-    // setBackgroundImage(initialData.backgroundImage);
-    // setBackgroundType(initialData.backgroundType || 'image');
-    // setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
-    setHotspots(initialData.hotspots || []);
-    setTimelineEvents(initialData.timelineEvents || []);
-    setImageFitMode(initialData.imageFitMode || 'cover');
-    
-    const newInitialModuleState = isEditing ? 'learning' : 'idle';
-    setModuleState(newInitialModuleState);
-    
-    const safeTimelineEvents = initialData.timelineEvents || [];
-    const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    let initialStepValue = 1;
-    if (newInitialModuleState === 'learning' && newUniqueSortedSteps.length > 0) {
-        initialStepValue = newUniqueSortedSteps[0];
-    } else if (newInitialModuleState === 'idle' && newUniqueSortedSteps.length > 0) {
-        initialStepValue = newUniqueSortedSteps[0];
-    }
-    setCurrentStep(initialStepValue);
-        
-    setActiveHotspotDisplayIds(new Set());
-    setPulsingHotspotId(null);
-    setCurrentMessage(null);
-    setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-    setHighlightedHotspotId(null);
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false);
-
-    // Clear cached bounds when data changes
-    clearImageBoundsCache();
-    originalImageBoundsRef.current = null;
-    lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-
-    if (pulseTimeoutRef.current) {
-      clearTimeout(pulseTimeoutRef.current);
-      pulseTimeoutRef.current = null;
-    }
-    // Clear success message timeout on component unmount or when initialData changes
-    return () => {
-      if (successMessageTimeoutRef.current) {
-        clearTimeout(successMessageTimeoutRef.current);
-      }
-      if (applyTransformTimeoutRef.current) {
-        clearTimeout(applyTransformTimeoutRef.current);
-      }
-    };
-  }, [initialData, isEditing, clearImageBoundsCache]);
-
-  // REMOVED Duplicative Initialization useEffect
+  // REMOVED Duplicative Initialization useEffect - The new consolidated initialization effect above handles all this logic
 
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
