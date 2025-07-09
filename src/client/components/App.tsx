@@ -129,6 +129,12 @@ const MainApp: React.FC = () => {
     // This function is now called by InteractiveModule's onClose,
     // or directly by the Modal's own close button.
 
+    // If a callback was provided by InteractiveModule, execute it first
+    // to allow the module to finish its internal state cleanup before App.tsx unmounts it.
+    if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
+      moduleCleanupCompleteCallback();
+    }
+
     // Perform App.tsx specific cleanup
     setIsModalOpen(false);
     setSelectedProject(null);
@@ -136,12 +142,6 @@ const MainApp: React.FC = () => {
 
     if (isAdmin) {
       loadProjects(); // Refresh project list
-    }
-
-    // If a callback was provided by InteractiveModule, execute it.
-    // This callback is InteractiveModule's own setIsModeSwitching(false) etc.
-    if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
-      moduleCleanupCompleteCallback();
     }
   }, [isAdmin, loadProjects]);
 

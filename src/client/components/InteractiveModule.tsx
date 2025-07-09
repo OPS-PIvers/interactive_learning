@@ -547,7 +547,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Helper to clear cached bounds when needed
   const clearImageBoundsCache = useCallback(() => {
     originalImageBoundsRef.current = null;
-  }, []);
+    debugLog('Cache', 'Cleared image bounds cache');
+  }, [debugLog]);
 
   // Calculate optimal image scale when editor panel state changes
   const calculateOptimalImageScale = useCallback((
@@ -1742,10 +1743,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
   }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
-  const clearImageBoundsCache = useCallback(() => {
-    originalImageBoundsRef.current = null;
-    debugLog('Cache', 'Cleared image bounds cache');
-  }, [debugLog]);
+  // DUPLICATE REMOVED - Original definition is used (now includes debugLog)
+  // const clearImageBoundsCache = useCallback(() => {
+  //   originalImageBoundsRef.current = null;
+  //   debugLog('Cache', 'Cleared image bounds cache');
+  // }, [debugLog]);
 
   // Define handleSave early, before useAutoSave
   const handleSave = useCallback(async () => {
