@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*~
+*.swp
+*.swo
+
+# Development and test files
+dev.log
+test-*.md
+*-test.md
+*-verification.md
