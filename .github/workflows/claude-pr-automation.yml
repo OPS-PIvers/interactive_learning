@@ -1,0 +1,109 @@
+name: Claude Code PR Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run initial tests
+        run: npm run test:run
+        continue-on-error: true
+
+      - name: Claude Code Review and Fix
+        uses: anthropics/claude-code-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          instructions: |
+            Review this PR thoroughly and make any necessary changes to ensure:
+            1. Code follows project conventions in CLAUDE.md
+            2. TypeScript types are correct
+            3. All tests pass
+            4. No security vulnerabilities
+            5. Proper error handling
+            6. Accessibility requirements met
+            7. Mobile responsiveness maintained
+            
+            Fix any issues found and commit the changes directly to this PR branch.
+          
+      - name: Run tests after Claude fixes
+        run: npm run test:run
+
+      - name: Build project
+        run: npm run build
+
+      - name: Check if PR is ready for merge
+        id: merge-check
+        run: |
+          # Check if tests pass and build succeeds
+          if npm run test:run && npm run build; then
+            echo "ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "ready=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-merge PR if ready
+        if: steps.merge-check.outputs.ready == 'true'
+        uses: pascalgn/merge-action@v0.15.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          merge_method: squash
+          merge_commit_message: "Auto-merge: ${{ github.event.pull_request.title }}"
+
+      - name: Delete branch after merge
+        if: steps.merge-check.outputs.ready == 'true'
+        run: |
+          git push origin --delete ${{ github.head_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  claude-comment-trigger:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Claude Code Response
+        uses: anthropics/claude-code-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          instructions: |
+            Respond to the @claude comment in this PR. Follow the project conventions in CLAUDE.md.
+            Make any requested changes, run tests, and ensure everything works correctly.
