@@ -65,6 +65,55 @@ const safeGetPosition = <T extends any>(
   }
 };
 
+// Safe DOM access utilities
+const getSafeContainerRect = (
+  elementRef: React.RefObject<HTMLElement>,
+  fallback: DOMRect = {
+    width: 0,
+    height: 0,
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    x: 0,
+    y: 0
+  } as DOMRect
+): DOMRect => {
+  return safeGetPosition(
+    () => {
+      const element = elementRef.current;
+      if (!element) return null;
+      return element.getBoundingClientRect();
+    },
+    fallback
+  );
+};
+
+const getSafeElementBounds = (
+  elementRef: React.RefObject<HTMLElement>,
+  fallback: { width: number; height: number; left: number; top: number } = {
+    width: 0,
+    height: 0,
+    left: 0,
+    top: 0
+  }
+) => {
+  return safeGetPosition(
+    () => {
+      const element = elementRef.current;
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        top: rect.top
+      };
+    },
+    fallback
+  );
+};
+
 // Throttle expensive calculations
 const throttle = <T extends (...args: any[]) => any>(
   func: T,
@@ -158,6 +207,82 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Save state management
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+
+  // Error tracking for temporal dead zone detection
+  const [errorLog, setErrorLog] = useState<Array<{ timestamp: number; error: string; context: string }>>([]);
+  const errorLogRef = useRef<Array<{ timestamp: number; error: string; context: string }>>([]);
+
+  // Comprehensive error boundary function
+  const logError = useCallback((error: Error | string, context: string) => {
+    const errorEntry = {
+      timestamp: Date.now(),
+      error: typeof error === 'string' ? error : error.message,
+      context
+    };
+    
+    // Log to console for debugging
+    console.error(`[InteractiveModule] ${context}:`, error);
+    
+    // Add to error log (keep only last 10 errors)
+    errorLogRef.current = [...errorLogRef.current.slice(-9), errorEntry];
+    setErrorLog(errorLogRef.current);
+  }, []);
+
+  // Enhanced safe execution wrapper with error tracking
+  const safeExecuteWithLogging = useCallback(<T,>(
+    operation: () => T,
+    fallback: T,
+    context: string
+  ): T => {
+    try {
+      const result = operation();
+      if (result === null || result === undefined) {
+        logError(`Operation returned null/undefined`, context);
+        return fallback;
+      }
+      return result;
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error(String(error)), context);
+      return fallback;
+    }
+  }, [logError]);
+
+  // Function initialization validator
+  const validateFunctionInitialization = useCallback((functionName: string, fn: any) => {
+    if (typeof fn !== 'function') {
+      logError(`Function ${functionName} is not initialized or not a function`, 'Function Validation');
+      return false;
+    }
+    return true;
+  }, [logError]);
+
+  // Comprehensive cleanup function for all async operations
+  const clearAllTimeouts = useCallback(() => {
+    const timeoutRefs = [
+      successMessageTimeoutRef,
+      pulseTimeoutRef,
+      applyTransformTimeoutRef,
+      closeTimeoutRef,
+      animationTimeoutRef,
+      initTimeoutRef,
+      stateChangeTimeoutRef,
+      saveAnimationTimeoutRef
+    ];
+
+    timeoutRefs.forEach(ref => {
+      if (ref.current) {
+        clearTimeout(ref.current);
+        ref.current = null;
+      }
+    });
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts();
+    };
+  }, [clearAllTimeouts]);
   const successMessageTimeoutRef = useRef<number | null>(null);
 
   const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
@@ -368,8 +493,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         setImageTransform(optimalTransform);
         
         // End transformation after animation completes
-        setTimeout(() => {
+        if (stateChangeTimeoutRef.current) {
+          clearTimeout(stateChangeTimeoutRef.current);
+        }
+        stateChangeTimeoutRef.current = window.setTimeout(() => {
           setIsTransforming(false);
+          stateChangeTimeoutRef.current = null;
         }, 500);
       }
     }
@@ -430,6 +559,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Store original untransformed bounds to prevent feedback loops
   const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
   const closeTimeoutRef = useRef<number | null>(null); // Ref for the timeout in handleAttemptClose
+  
+  // Additional timeout refs for proper cleanup
+  const animationTimeoutRef = useRef<number | null>(null);
+  const initTimeoutRef = useRef<number | null>(null);
+  const stateChangeTimeoutRef = useRef<number | null>(null);
+  const saveAnimationTimeoutRef = useRef<number | null>(null);
 
   // Touch gesture handling
   const touchGestureHandlers = useTouchGestures(
@@ -766,20 +901,51 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length, getScaledImageDivDimensions]);
 
   const applyTransform = useCallback((newTransform: ImageTransformState) => {
-    debugLog('Transform', 'Applying new transform', newTransform);
-    isApplyingTransformRef.current = true;
-    lastAppliedTransformRef.current = newTransform;
-    setIsTransforming(true);
-    setImageTransform(newTransform);
+    // Enhanced safety checks to prevent temporal dead zone issues
+    if (!newTransform || typeof newTransform.scale !== 'number') {
+      console.warn('applyTransform: Invalid transform data provided', newTransform);
+      return;
+    }
 
-    // Reset flags after animation completes
+    debugLog('Transform', 'Applying new transform', newTransform);
+    
+    // Clear any existing timeout to prevent race conditions
     if (applyTransformTimeoutRef.current) {
       clearTimeout(applyTransformTimeoutRef.current);
+      applyTransformTimeoutRef.current = null;
     }
-    applyTransformTimeoutRef.current = window.setTimeout(() => {
-      setIsTransforming(false);
+    
+    try {
+      // Update refs first for consistency
+      isApplyingTransformRef.current = true;
+      lastAppliedTransformRef.current = newTransform;
+      
+      // Update state
+      setIsTransforming(true);
+      setImageTransform(newTransform);
+
+      // Reset flags after animation completes with enhanced cleanup
+      applyTransformTimeoutRef.current = window.setTimeout(() => {
+        try {
+          setIsTransforming(false);
+          isApplyingTransformRef.current = false;
+          applyTransformTimeoutRef.current = null;
+        } catch (error) {
+          console.error('Error in applyTransform timeout cleanup:', error);
+          // Ensure refs are reset even if state updates fail
+          isApplyingTransformRef.current = false;
+          applyTransformTimeoutRef.current = null;
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error in applyTransform:', error);
+      // Ensure refs are reset in case of error
       isApplyingTransformRef.current = false;
-    }, 500);
+      if (applyTransformTimeoutRef.current) {
+        clearTimeout(applyTransformTimeoutRef.current);
+        applyTransformTimeoutRef.current = null;
+      }
+    }
   }, [debugLog]);
 
 
@@ -838,7 +1004,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useEffect(() => {
     if (!imageContainerRef.current) return;
 
-    const handleResize = () => {
+    // Enhanced debounced resize handler to prevent excessive calculations
+    const debouncedHandleResize = throttle(() => {
       throttledRecalculatePositions();
       
       // Only recalculate transform if we're not in the middle of applying one
@@ -882,13 +1049,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           }
         }, 50); // Small delay to let other effects settle
       }
-    };
+    }, 100); // Debounce resize events to prevent excessive calculations
 
-    // Call it once initially
-    if (imageContainerRef.current) {
-       setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
+    // Safe initial setup
+    const initialRect = getSafeContainerRect(imageContainerRef);
+    if (initialRect.width > 0 && initialRect.height > 0) {
+      setImageContainerRect(initialRect);
     }
-    const resizeObserver = new ResizeObserver(handleResize);
+    
+    const resizeObserver = new ResizeObserver(debouncedHandleResize);
     resizeObserver.observe(imageContainerRef.current);
 
     return () => {
@@ -955,11 +1124,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     debugLog('Image', 'Image loaded successfully', newDimensions);
     setImageLoading(false);
     setPositionCalculating(true);
-    setTimeout(() => {
+    // Clear any existing initialization timeout
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+    }
+    initTimeoutRef.current = window.setTimeout(() => {
       if (imageContainerRef.current) {
         setImageContainerRect(imageContainerRef.current.getBoundingClientRect());
       }
       setPositionCalculating(false);
+      initTimeoutRef.current = null;
     }, 0);
   }, [debugLog]);
 
@@ -1010,14 +1184,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         originalImageBoundsRef.current = null;
         
         // Recalculate positions after container is ready - staggered for reliability
-        setTimeout(() => {
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = window.setTimeout(() => {
           throttledRecalculatePositions();
+          animationTimeoutRef.current = null;
         }, 50);
         
         // Additional recalculation for mobile devices with dynamic viewports
         if (isMobile) {
-          setTimeout(() => {
+          if (stateChangeTimeoutRef.current) {
+            clearTimeout(stateChangeTimeoutRef.current);
+          }
+          stateChangeTimeoutRef.current = window.setTimeout(() => {
             throttledRecalculatePositions();
+            stateChangeTimeoutRef.current = null;
           }, 150);
         }
       }
@@ -1031,18 +1213,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // Clear bounds cache to ensure fresh calculation with new dimensions
       originalImageBoundsRef.current = null;
       
-      setTimeout(() => {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      initTimeoutRef.current = window.setTimeout(() => {
         throttledRecalculatePositions();
+        initTimeoutRef.current = null;
       }, 100);
       
       // Additional check for mobile viewport stability
       if (isMobile) {
-        setTimeout(() => {
+        if (saveAnimationTimeoutRef.current) {
+          clearTimeout(saveAnimationTimeoutRef.current);
+        }
+        saveAnimationTimeoutRef.current = window.setTimeout(() => {
           // Verify container dimensions are stable before final recalculation
           const container = viewerImageContainerRef.current;
           if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
             throttledRecalculatePositions();
           }
+          saveAnimationTimeoutRef.current = null;
         }, 250);
       }
     }
@@ -2047,7 +2237,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     );
 
     const imageBounds = getSafeImageBounds(); // Use safe version
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    const containerRect = getSafeContainerRect(imageContainerRef);
 
     // Use custom spotlight position from event data if available, otherwise fall back to hotspot position
     const spotlightX = eventData?.spotlightX ?? hotspotToHighlight.x;
@@ -2099,7 +2289,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       const spotlightHeight = eventData?.spotlightHeight || 120;
       
       // Convert pixel dimensions to percentages relative to container
-      const containerRect = imageContainerRef.current?.getBoundingClientRect();
+      const containerRect = getSafeContainerRect(imageContainerRef);
       if (containerRect && containerRect.width > 0 && containerRect.height > 0) {
         const halfWidthPercent = (spotlightWidth / 2 / containerRect.width) * 100;
         const halfHeightPercent = (spotlightHeight / 2 / containerRect.height) * 100;
@@ -2187,7 +2377,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     const imageBounds = getSafeImageBounds();
-    const containerRect = imageContainerRef.current?.getBoundingClientRect();
+    const containerRect = getSafeContainerRect(imageContainerRef);
 
     return (
       <div
@@ -2209,6 +2399,41 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           </div>
         )}
         <div className="mt-1">Hotspots: {hotspotsWithPositions.length}</div>
+        
+        {/* Error Log Section */}
+        {errorLog.length > 0 && (
+          <div className="mt-2 border-t border-gray-600 pt-2">
+            <div className="font-bold text-red-400">Recent Errors ({errorLog.length})</div>
+            <div className="max-h-20 overflow-y-auto">
+              {errorLog.slice(-3).map((error, index) => (
+                <div key={error.timestamp} className="mt-1 text-red-300">
+                  <div className="font-mono text-xs">{error.context}</div>
+                  <div className="text-xs opacity-80 truncate">{error.error}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Function Validation Status */}
+        <div className="mt-2 border-t border-gray-600 pt-2">
+          <div className="font-bold text-blue-400">Function Status</div>
+          <div className="text-xs">
+            <span className={getSafeImageBounds ? 'text-green-400' : 'text-red-400'}>
+              getSafeImageBounds: {getSafeImageBounds ? '✓' : '✗'}
+            </span>
+          </div>
+          <div className="text-xs">
+            <span className={getSafeViewportCenter ? 'text-green-400' : 'text-red-400'}>
+              getSafeViewportCenter: {getSafeViewportCenter ? '✓' : '✗'}
+            </span>
+          </div>
+          <div className="text-xs">
+            <span className={constrainTransform ? 'text-green-400' : 'text-red-400'}>
+              constrainTransform: {constrainTransform ? '✓' : '✗'}
+            </span>
+          </div>
+        </div>
       </div>
     );
   };
