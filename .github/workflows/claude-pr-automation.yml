@@ -36,10 +36,10 @@ jobs:
         continue-on-error: true
 
       - name: Claude Code Review and Fix
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@beta
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          instructions: |
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          direct_prompt: |
             Review this PR thoroughly and make any necessary changes to ensure:
             1. Code follows project conventions in CLAUDE.md
             2. TypeScript types are correct
@@ -69,11 +69,10 @@ jobs:
 
       - name: Auto-merge PR if ready
         if: steps.merge-check.outputs.ready == 'true'
-        uses: pascalgn/merge-action@v0.15.6
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          merge_method: squash
-          merge_commit_message: "Auto-merge: ${{ github.event.pull_request.title }}"
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --squash --auto
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete branch after merge
         if: steps.merge-check.outputs.ready == 'true'
@@ -101,9 +100,7 @@ jobs:
         run: npm ci
 
       - name: Claude Code Response
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@beta
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          instructions: |
-            Respond to the @claude comment in this PR. Follow the project conventions in CLAUDE.md.
-            Make any requested changes, run tests, and ensure everything works correctly.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          trigger_phrase: "@claude"
