@@ -5,13 +5,14 @@ This workflow automates PR review, testing, fixes, and merging using Claude Code
 
 ## Required Setup
 
-### 1. Setup Authentication
-Add the required secret to your repository:
-- Go to repository Settings > Secrets and variables > Actions
-- Add secret: `ANTHROPIC_API_KEY` with your Anthropic API key from https://console.anthropic.com
-- `GITHUB_TOKEN`: Automatically provided by GitHub Actions
+### 1. Install Claude GitHub App
+For Claude Pro users, install the official Claude GitHub App:
+- Go to https://github.com/apps/claude
+- Click "Install" and select your repository
+- Grant necessary permissions
+- No API key required with Claude Pro account
 
-**Note:** Even with Claude Pro, you still need an API key for GitHub Actions integration.
+**Note:** The GitHub App provides authentication through your Claude Pro account.
 
 ### 2. Repository Settings
 Enable write permissions in your repository:
