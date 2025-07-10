@@ -283,7 +283,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       clearAllTimeouts();
     };
   }, [clearAllTimeouts]);
+  
+  // All timeout refs - consolidated at top to avoid temporal dead zone issues
   const successMessageTimeoutRef = useRef<number | null>(null);
+  const pulseTimeoutRef = useRef<number | null>(null);
+  const applyTransformTimeoutRef = useRef<number | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
+  const animationTimeoutRef = useRef<number | null>(null);
+  const initTimeoutRef = useRef<number | null>(null);
+  const stateChangeTimeoutRef = useRef<number | null>(null);
+  const saveAnimationTimeoutRef = useRef<number | null>(null);
+
+  // Transform and bounds refs - also at top to avoid temporal dead zone issues  
+  const isApplyingTransformRef = useRef(false);
+  const lastAppliedTransformRef = useRef<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+  const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
 
   const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
 
@@ -346,7 +360,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Already exists for editor mode, ensure it's used in viewer mode too
   const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
-  const pulseTimeoutRef = useRef<number | null>(null);
   
   // Preview overlay state for visual editing
   const [previewOverlayEvent, setPreviewOverlayEvent] = useState<TimelineEventData | null>(null);
@@ -396,6 +409,120 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       };
     }
   }, [isMobile, isHotspotModalOpen]);
+
+  const uniqueSortedSteps = useMemo(() => {
+    if (timelineEvents.length === 0) return isEditing ? [1] : [];
+    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+    return steps.length > 0 ? steps : (isEditing ? [1] : []);
+  }, [timelineEvents, isEditing]);
+
+  // Unified helper to calculate image content bounds for both editor and viewer modes
+  const getImageBounds = useCallback(() => {
+    if (!imageContainerRef.current || !backgroundImage || !imageNaturalDimensions) {
+      return null;
+    }
+
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+
+    if (isEditing && actualImageRef.current) {
+      // Editor mode: Extract bounds from actual img element but normalize to match viewer calculations
+      const imgRect = actualImageRef.current.getBoundingClientRect();
+      
+      // Get the natural dimensions and calculate how the image is fitted
+      const containerWidth = imgRect.width;
+      const containerHeight = imgRect.height;
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+      const containerAspect = containerWidth / containerHeight;
+
+      // Calculate the actual rendered image content area (accounting for object-fit behavior)
+      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
+
+      // Most img elements use object-fit: contain by default
+      if (containerAspect > imageAspect) {
+        // Container is wider - image height fills, width is letterboxed
+        contentHeight = containerHeight;
+        contentWidth = contentHeight * imageAspect;
+        contentLeft = (containerWidth - contentWidth) / 2;
+      } else {
+        // Container is taller - image width fills, height is letterboxed
+        contentWidth = containerWidth;
+        contentHeight = contentWidth / imageAspect;
+        contentTop = (containerHeight - contentHeight) / 2;
+      }
+
+      return {
+        width: contentWidth,
+        height: contentHeight,
+        left: (imgRect.left - containerRect.left) + contentLeft,
+        top: (imgRect.top - containerRect.top) + contentTop,
+        absoluteLeft: imgRect.left + contentLeft,
+        absoluteTop: imgRect.top + contentTop
+      };
+    } else if (!isEditing) {
+      // Viewer mode: Calculate bounds based on background-image positioning
+      
+      // Use cached bounds if available and transform is active to prevent feedback loops
+      if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
+        return originalImageBoundsRef.current;
+      }
+
+      // Get the div's configured dimensions
+      const divDimensions = getScaledImageDivDimensions();
+      const containerAspect = divDimensions.width / divDimensions.height;
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+
+      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
+
+      // Calculate content area based on fit mode (same logic for consistency)
+      if (imageFitMode === 'cover') {
+        if (containerAspect > imageAspect) {
+          contentWidth = divDimensions.width;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (divDimensions.height - contentHeight) / 2;
+        } else {
+          contentHeight = divDimensions.height;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (divDimensions.width - contentWidth) / 2;
+        }
+      } else if (imageFitMode === 'contain') {
+        if (containerAspect > imageAspect) {
+          contentHeight = divDimensions.height;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (divDimensions.width - contentWidth) / 2;
+        } else {
+          contentWidth = divDimensions.width;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (divDimensions.height - contentHeight) / 2;
+        }
+      } else { // fill
+        contentWidth = divDimensions.width;
+        contentHeight = divDimensions.height;
+      }
+
+      // Calculate div position within container
+      const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
+      const availableHeight = containerRect.height - timelineHeight;
+      const availableWidth = containerRect.width;
+      
+      const divLeft = (availableWidth - divDimensions.width) / 2;
+      const divTop = (availableHeight - divDimensions.height) / 2;
+
+      const bounds = {
+        width: contentWidth,
+        height: contentHeight,
+        left: divLeft + contentLeft,
+        top: divTop + contentTop,
+        absoluteLeft: containerRect.left + divLeft + contentLeft,
+        absoluteTop: containerRect.top + divTop + contentTop
+      };
+
+      // Cache the original bounds for viewer mode
+      originalImageBoundsRef.current = bounds;
+      return bounds;
+    }
+    
+    return null;
+  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
 
   const getSafeImageBounds = useCallback(() => {
     return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
@@ -550,21 +677,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setPreviewOverlayEvent(updatedEvent);
     }
   }, [timelineEvents, previewOverlayEvent]);
-  
-  // Refs to break dependency loops
-  const isApplyingTransformRef = useRef(false);
-  const lastAppliedTransformRef = useRef<ImageTransformState>({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-  const applyTransformTimeoutRef = useRef<number | null>(null);
-  
-  // Store original untransformed bounds to prevent feedback loops
-  const originalImageBoundsRef = useRef<{width: number, height: number, left: number, top: number, absoluteLeft: number, absoluteTop: number} | null>(null);
-  const closeTimeoutRef = useRef<number | null>(null); // Ref for the timeout in handleAttemptClose
-  
-  // Additional timeout refs for proper cleanup
-  const animationTimeoutRef = useRef<number | null>(null);
-  const initTimeoutRef = useRef<number | null>(null);
-  const stateChangeTimeoutRef = useRef<number | null>(null);
-  const saveAnimationTimeoutRef = useRef<number | null>(null);
 
   // Touch gesture handling
   const touchGestureHandlers = useTouchGestures(
@@ -621,12 +733,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     [setImageContainerRect] // Include setImageContainerRect to prevent closure issues
   );
 
-  const uniqueSortedSteps = useMemo(() => {
-    if (timelineEvents.length === 0) return isEditing ? [1] : [];
-    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    return steps.length > 0 ? steps : (isEditing ? [1] : []);
-  }, [timelineEvents, isEditing]);
-
   const currentStepIndex = useMemo(() => { 
     if (moduleState === 'learning') {
       const idx = uniqueSortedSteps.indexOf(currentStep);
@@ -640,115 +746,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const editorMaxStep = useMemo(() => {
     return timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) : 1;
   }, [timelineEvents]);
-
-  // Unified helper to calculate image content bounds for both editor and viewer modes
-  const getImageBounds = useCallback(() => {
-    if (!imageContainerRef.current || !backgroundImage || !imageNaturalDimensions) {
-      return null;
-    }
-
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
-
-    if (isEditing && actualImageRef.current) {
-      // Editor mode: Extract bounds from actual img element but normalize to match viewer calculations
-      const imgRect = actualImageRef.current.getBoundingClientRect();
-      
-      // Get the natural dimensions and calculate how the image is fitted
-      const containerWidth = imgRect.width;
-      const containerHeight = imgRect.height;
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-      const containerAspect = containerWidth / containerHeight;
-
-      // Calculate the actual rendered image content area (accounting for object-fit behavior)
-      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
-
-      // Most img elements use object-fit: contain by default
-      if (containerAspect > imageAspect) {
-        // Container is wider - image height fills, width is letterboxed
-        contentHeight = containerHeight;
-        contentWidth = contentHeight * imageAspect;
-        contentLeft = (containerWidth - contentWidth) / 2;
-      } else {
-        // Container is taller - image width fills, height is letterboxed
-        contentWidth = containerWidth;
-        contentHeight = contentWidth / imageAspect;
-        contentTop = (containerHeight - contentHeight) / 2;
-      }
-
-      return {
-        width: contentWidth,
-        height: contentHeight,
-        left: (imgRect.left - containerRect.left) + contentLeft,
-        top: (imgRect.top - containerRect.top) + contentTop,
-        absoluteLeft: imgRect.left + contentLeft,
-        absoluteTop: imgRect.top + contentTop
-      };
-    } else if (!isEditing) {
-      // Viewer mode: Calculate bounds based on background-image positioning
-      
-      // Use cached bounds if available and transform is active to prevent feedback loops
-      if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
-        return originalImageBoundsRef.current;
-      }
-
-      // Get the div's configured dimensions
-      const divDimensions = getScaledImageDivDimensions();
-      const containerAspect = divDimensions.width / divDimensions.height;
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-
-      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
-
-      // Calculate content area based on fit mode (same logic for consistency)
-      if (imageFitMode === 'cover') {
-        if (containerAspect > imageAspect) {
-          contentWidth = divDimensions.width;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (divDimensions.height - contentHeight) / 2;
-        } else {
-          contentHeight = divDimensions.height;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (divDimensions.width - contentWidth) / 2;
-        }
-      } else if (imageFitMode === 'contain') {
-        if (containerAspect > imageAspect) {
-          contentHeight = divDimensions.height;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (divDimensions.width - contentWidth) / 2;
-        } else {
-          contentWidth = divDimensions.width;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (divDimensions.height - contentHeight) / 2;
-        }
-      } else { // fill
-        contentWidth = divDimensions.width;
-        contentHeight = divDimensions.height;
-      }
-
-      // Calculate div position within container
-      const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
-      const availableHeight = containerRect.height - timelineHeight;
-      const availableWidth = containerRect.width;
-      
-      const divLeft = (availableWidth - divDimensions.width) / 2;
-      const divTop = (availableHeight - divDimensions.height) / 2;
-
-      const bounds = {
-        width: contentWidth,
-        height: contentHeight,
-        left: divLeft + contentLeft,
-        top: divTop + contentTop,
-        absoluteLeft: containerRect.left + divLeft + contentLeft,
-        absoluteTop: containerRect.top + divTop + contentTop
-      };
-
-      // Cache the original bounds for viewer mode
-      originalImageBoundsRef.current = bounds;
-      return bounds;
-    }
-    
-    return null;
-  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
-
 
   // Helper to clear cached bounds when needed
   const clearImageBoundsCache = useCallback(() => {

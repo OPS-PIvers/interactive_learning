@@ -451,6 +451,84 @@ export const useTouchGestures = (
 
   const handleTouchMove = throttledTouchMove;
 
+  const animateStep = useCallback(() => {
+    const gestureState = gestureStateRef.current;
+    if (!gestureState.animationFrameId) return; // Animation was cancelled
+
+    let currentTransform = imageTransform; // Get the latest transform
+
+    // Apply damping
+    gestureState.scaleVelocity *= DAMPING_FACTOR;
+    gestureState.translateXVelocity *= DAMPING_FACTOR;
+    gestureState.translateYVelocity *= DAMPING_FACTOR;
+
+    const newScale = currentTransform.scale + gestureState.scaleVelocity * (16/1000); // Assuming 60fps, so 16ms per frame
+    const newTranslateX = currentTransform.translateX + gestureState.translateXVelocity * (16/1000);
+    const newTranslateY = currentTransform.translateY + gestureState.translateYVelocity * (16/1000);
+
+    const nextTransform = getValidatedTransform(
+      { scale: newScale, translateX: newTranslateX, translateY: newTranslateY },
+      { minScale, maxScale }
+    );
+
+    setImageTransform(nextTransform);
+    currentTransform = nextTransform; // Update currentTransform for boundary checks
+
+    // Boundary Physics: Simple clamping is done by getValidatedTransform.
+    // For bounce, if nextTransform.scale is at min/maxScale and velocity was pushing it further, reverse velocity.
+    let stopAnimation = false;
+    if ((currentTransform.scale === minScale && gestureState.scaleVelocity < 0) ||
+        (currentTransform.scale === maxScale && gestureState.scaleVelocity > 0)) {
+      gestureState.scaleVelocity = 0; // Stop scale momentum if hitting boundaries
+    }
+
+    // Check if velocities are below threshold
+    if (
+      Math.abs(gestureState.scaleVelocity) < VELOCITY_THRESHOLD &&
+      Math.abs(gestureState.translateXVelocity) < VELOCITY_THRESHOLD &&
+      Math.abs(gestureState.translateYVelocity) < VELOCITY_THRESHOLD
+    ) {
+      stopAnimation = true;
+    }
+
+    // Additional check: if scale is at boundary and no more velocity to push it off, or it's not moving
+     if ( (currentTransform.scale === minScale || currentTransform.scale === maxScale) && Math.abs(gestureState.scaleVelocity) < VELOCITY_THRESHOLD) {
+        // If it's at a boundary and velocity is tiny, ensure it settles.
+        // This also helps stop if it's "stuck" at a boundary.
+     }
+
+
+    if (stopAnimation) {
+      gestureState.animationFrameId = null;
+      setIsTransforming(false);
+      // Perform a final validation to ensure it rests within bounds.
+      // This is mostly for translation if/when translation bounds are added.
+      // setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
+    } else {
+      gestureState.animationFrameId = requestAnimationFrame(animateStep);
+    }
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale]);
+
+  const startMomentumAnimation = useCallback(() => {
+    const gestureState = gestureStateRef.current;
+    if (
+      Math.abs(gestureState.scaleVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
+      Math.abs(gestureState.translateXVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
+      Math.abs(gestureState.translateYVelocity) > MIN_VELOCITY_FOR_MOMENTUM
+    ) {
+      setIsTransforming(true); // Ensure transforming is true during animation
+      if (gestureState.animationFrameId) {
+        cancelAnimationFrame(gestureState.animationFrameId);
+      }
+      gestureState.animationFrameId = requestAnimationFrame(animateStep);
+    } else {
+      // No significant velocity, just ensure we are not transforming
+      setIsTransforming(false);
+       // And ensure final state is validated (especially if just a tiny drag occurred without much velocity)
+      setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
+    }
+  }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform]);
+
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
@@ -517,87 +595,6 @@ export const useTouchGestures = (
     // Double tap transforming is handled in touchStart with its own timeout and setIsTransforming call
 
   }, [setIsTransforming, isDragging, isEditing, isDragActive, startMomentumAnimation, minScale, maxScale, setImageTransform]);
-
-
-  const animateStep = useCallback(() => {
-    const gestureState = gestureStateRef.current;
-    if (!gestureState.animationFrameId) return; // Animation was cancelled
-
-    let currentTransform = imageTransform; // Get the latest transform
-
-    // Apply damping
-    gestureState.scaleVelocity *= DAMPING_FACTOR;
-    gestureState.translateXVelocity *= DAMPING_FACTOR;
-    gestureState.translateYVelocity *= DAMPING_FACTOR;
-
-    const newScale = currentTransform.scale + gestureState.scaleVelocity * (16/1000); // Assuming 60fps, so 16ms per frame
-    const newTranslateX = currentTransform.translateX + gestureState.translateXVelocity * (16/1000);
-    const newTranslateY = currentTransform.translateY + gestureState.translateYVelocity * (16/1000);
-
-    const nextTransform = getValidatedTransform(
-      { scale: newScale, translateX: newTranslateX, translateY: newTranslateY },
-      { minScale, maxScale }
-    );
-
-    setImageTransform(nextTransform);
-    currentTransform = nextTransform; // Update currentTransform for boundary checks
-
-    // Boundary Physics: Simple clamping is done by getValidatedTransform.
-    // For bounce, if nextTransform.scale is at min/maxScale and velocity was pushing it further, reverse velocity.
-    let stopAnimation = false;
-    if ((currentTransform.scale === minScale && gestureState.scaleVelocity < 0) ||
-        (currentTransform.scale === maxScale && gestureState.scaleVelocity > 0)) {
-      gestureState.scaleVelocity = 0; // Stop scale momentum if hitting boundaries
-    }
-
-    // Check if velocities are below threshold
-    if (
-      Math.abs(gestureState.scaleVelocity) < VELOCITY_THRESHOLD &&
-      Math.abs(gestureState.translateXVelocity) < VELOCITY_THRESHOLD &&
-      Math.abs(gestureState.translateYVelocity) < VELOCITY_THRESHOLD
-    ) {
-      stopAnimation = true;
-    }
-
-    // Additional check: if scale is at boundary and no more velocity to push it off, or it's not moving
-     if ( (currentTransform.scale === minScale || currentTransform.scale === maxScale) && Math.abs(gestureState.scaleVelocity) < VELOCITY_THRESHOLD) {
-        // If it's at a boundary and velocity is tiny, ensure it settles.
-        // This also helps stop if it's "stuck" at a boundary.
-     }
-
-
-    if (stopAnimation) {
-      gestureState.animationFrameId = null;
-      setIsTransforming(false);
-      // Perform a final validation to ensure it rests within bounds.
-      // This is mostly for translation if/when translation bounds are added.
-      // setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
-    } else {
-      gestureState.animationFrameId = requestAnimationFrame(animateStep);
-    }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale]);
-
-
-  const startMomentumAnimation = useCallback(() => {
-    const gestureState = gestureStateRef.current;
-    if (
-      Math.abs(gestureState.scaleVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
-      Math.abs(gestureState.translateXVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
-      Math.abs(gestureState.translateYVelocity) > MIN_VELOCITY_FOR_MOMENTUM
-    ) {
-      setIsTransforming(true); // Ensure transforming is true during animation
-      if (gestureState.animationFrameId) {
-        cancelAnimationFrame(gestureState.animationFrameId);
-      }
-      gestureState.animationFrameId = requestAnimationFrame(animateStep);
-    } else {
-      // No significant velocity, just ensure we are not transforming
-      setIsTransforming(false);
-       // And ensure final state is validated (especially if just a tiny drag occurred without much velocity)
-      setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
-    }
-  }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform]);
-
 
   // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {
