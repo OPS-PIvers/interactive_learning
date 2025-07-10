@@ -1,39 +1,85 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import debounce from 'lodash.debounce';
-import { HotspotData, HotspotSize } from '../../shared/types';
+import { DndProvider } from 'react-dnd'; // Import DndProvider
+import { HTML5Backend } from 'react-dnd-html5-backend'; // Import HTML5Backend
+import { HotspotData, HotspotSize, TimelineEventData, InteractionType } from '../../shared/types';
+import { interactionPresets } from '../../shared/InteractionPresets';
+import EventTypeSelectorButtonGrid from './EventTypeSelectorButtonGrid';
+import EditableEventCard from './EditableEventCard';
+import { PlusIcon } from './icons/PlusIcon';
+import { XMarkIcon } from './icons/XMarkIcon';
+import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+
 
 interface MobileHotspotEditorProps {
   hotspot: HotspotData;
+  allHotspots: HotspotData[]; // Needed for EditableEventCard (e.g. Quiz target)
+  timelineEvents: TimelineEventData[]; // All timeline events for the project
+  currentStep: number; // Current step in the main timeline
   onUpdate: (updates: Partial<HotspotData>) => void;
   onDelete?: () => void;
+  onAddTimelineEvent: (event: TimelineEventData) => void;
+  onUpdateTimelineEvent: (event: TimelineEventData) => void;
+  onDeleteTimelineEvent: (eventId: string) => void;
+  // For EditableEventCard's drag-and-drop (will be implemented in Step 3)
+  // For now, provide a dummy function or make it optional in EditableEventCard if not used
+  // moveCard: (dragIndex: number, hoverIndex: number) => void;
 }
 
 const DEBOUNCE_DELAY = 500;
 
+// Constants moved from MobileEditorModal (or similar ones defined here)
 const MOBILE_COLOR_OPTIONS = [
-  { value: 'bg-red-500', label: 'Red', color: '#ef4444' },
-  { value: 'bg-blue-500', label: 'Blue', color: '#3b82f6' },
-  { value: 'bg-green-500', label: 'Green', color: '#22c55e' },
-  { value: 'bg-yellow-500', label: 'Yellow', color: '#eab308' },
-  { value: 'bg-purple-500', label: 'Purple', color: '#a855f7' },
-  { value: 'bg-pink-500', label: 'Pink', color: '#ec4899' },
-  { value: 'bg-indigo-500', label: 'Indigo', color: '#6366f1' },
-  { value: 'bg-gray-500', label: 'Gray', color: '#6b7280' },
+  { name: 'Purple', value: 'bg-purple-500', color: '#a855f7' },
+  { name: 'Blue', value: 'bg-blue-500', color: '#3b82f6' },
+  { name: 'Green', value: 'bg-green-500', color: '#22c55e' },
+  { name: 'Red', value: 'bg-red-500', color: '#ef4444' },
+  { name: 'Yellow', value: 'bg-yellow-500', color: '#eab308' },
+  { name: 'Pink', value: 'bg-pink-500', color: '#ec4899' },
+  { name: 'Indigo', value: 'bg-indigo-500', color: '#6366f1' },
+  { name: 'Gray', value: 'bg-gray-500', color: '#6b7280' },
 ];
 
 const HOTSPOT_SIZES = [
-  { value: 'small', label: 'S', previewClass: 'w-4 h-4' },
-  { value: 'medium', label: 'M', previewClass: 'w-6 h-6' },
-  { value: 'large', label: 'L', previewClass: 'w-8 h-8' },
+  { value: 'small', label: 'S', previewClass: 'w-4 h-4', displaySize: '32px' },
+  { value: 'medium', label: 'M', previewClass: 'w-6 h-6', displaySize: '40px' },
+  { value: 'large', label: 'L', previewClass: 'w-8 h-8', displaySize: '48px' },
 ];
 
-type ActiveTab = 'basic' | 'style';
+// Simplified interaction types for mobile, can be expanded later
+const INTERACTION_TYPE_OPTIONS = [
+  { value: InteractionType.SHOW_HOTSPOT, label: 'Show Hotspot' },
+  { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
+  // { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' }, // More complex, defer if needed
+  // { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' }, // More complex, defer if needed
+  { value: InteractionType.SHOW_TEXT, label: 'Show Text' }, // Assumes simple text, not rich text editor
+  { value: InteractionType.PLAY_VIDEO, label: 'Play Video (URL)' }, // Assumes direct video URL
+  { value: InteractionType.PLAY_AUDIO, label: 'Play Audio (URL)' }, // Assumes direct audio URL
+];
 
-const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUpdate, onDelete }) => {
+
+type ActiveTab = 'basic' | 'style' | 'timeline';
+
+const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
+  hotspot,
+  timelineEvents,
+  currentStep,
+  onUpdate,
+  onDelete,
+  onAddTimelineEvent,
+  onUpdateTimelineEvent,
+  onDeleteTimelineEvent,
+}) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
   const [internalHotspot, setInternalHotspot] = useState<HotspotData>(hotspot);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Debounced onUpdate function
+  // Filter events related to the current hotspot
+  const hotspotEvents = useMemo(() => {
+    return timelineEvents.filter(e => e.targetId === hotspot?.id).sort((a, b) => a.step - b.step);
+  }, [timelineEvents, hotspot?.id]);
+
+
   const debouncedOnUpdate = useMemo(
     () =>
       debounce((updates: Partial<HotspotData>) => {
@@ -44,39 +90,45 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
 
   useEffect(() => {
     setInternalHotspot(hotspot);
-    // When the external hotspot data changes, cancel any pending debounced updates
-    // to prevent updating stale data or the wrong hotspot.
-    // Flush any pending changes for the outgoing hotspot before switching to the new one.
     return () => {
-      debouncedOnUpdate.flush();
+      debouncedOnUpdate.cancel();
     };
   }, [hotspot, debouncedOnUpdate]);
 
-
-  // Update internal state and call onUpdate (or debouncedOnUpdate) when changes are made
   const handleChange = useCallback((field: keyof HotspotData, value: any) => {
-    setInternalHotspot(prevHotspot => ({ ...prevHotspot, [field]: value }));
+    const newInternalHotspot = { ...internalHotspot, [field]: value };
+    setInternalHotspot(newInternalHotspot);
 
-    if (field === 'title' || field === 'description') {
+    if (field === 'title' || field === 'description' || field === 'mediaUrl') {
       debouncedOnUpdate({ [field]: value });
     } else {
-      // For non-text fields (color, size), update immediately
-      // First, flush any pending debounced text updates to ensure they are processed.
-      debouncedOnUpdate.flush();
-      // Then, apply the immediate update for the non-text field.
+      debouncedOnUpdate.flush(); // Ensure pending text updates are saved
       onUpdate({ [field]: value });
-      // This addresses the concern about potential conflicts or lost updates if an
-      // immediate update interferes with a pending debounced update.
     }
-  }, [onUpdate, debouncedOnUpdate]);
+  }, [internalHotspot, onUpdate, debouncedOnUpdate]);
 
-
-  // Ensure debounced calls are flushed or cancelled on unmount
   useEffect(() => {
     return () => {
       debouncedOnUpdate.flush();
     };
   }, [debouncedOnUpdate]);
+
+
+  const handleAddNewEvent = () => {
+    // For simplicity, default to SHOW_TEXT or a common event type.
+    // A proper type selector can be added in step 2.
+    const newEvent: TimelineEventData = {
+      id: `event_${Date.now()}_${hotspot.id}`,
+      type: InteractionType.SHOW_TEXT, // Default, can be changed later
+      name: `New Event for ${hotspot.title}`,
+      targetId: hotspot.id,
+      step: currentStep + 1, // Or derive from existing events
+      duration: 2000, // Default duration
+      message: "Default message", // Example property for SHOW_TEXT
+    };
+    onAddTimelineEvent(newEvent);
+  };
+
 
   const renderBasicTab = () => (
     <div className="space-y-4">
@@ -104,6 +156,19 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
           rows={3}
           className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500"
           placeholder="Enter hotspot description"
+        />
+      </div>
+      <div>
+        <label htmlFor="hotspotMediaUrl" className="block text-sm font-medium text-slate-300 mb-1">
+          Media URL (optional for image/video display)
+        </label>
+        <input
+          type="url"
+          id="hotspotMediaUrl"
+          value={internalHotspot.mediaUrl || ''}
+          onChange={(e) => handleChange('mediaUrl', e.target.value)}
+          className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500"
+          placeholder="https://example.com/image.jpg or video.mp4"
         />
       </div>
     </div>
@@ -144,12 +209,17 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
             <button
               key={sizeOpt.value}
               type="button"
-              onClick={() => handleChange('size', sizeOpt.value as 'small' | 'medium' | 'large')}
-              className={`p-3 border rounded-md flex-1 flex flex-col items-center justify-center
-                          ${internalHotspot.size === sizeOpt.value ? 'bg-purple-600 border-purple-500 text-white' : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'}`}
+              onClick={() => handleChange('size', sizeOpt.value as HotspotSize)}
+               className={`flex-1 p-4 border-2 rounded-lg transition-all duration-200
+                          ${internalHotspot.size === sizeOpt.value ? 'border-purple-500 bg-purple-500 bg-opacity-20' : 'border-slate-600 hover:border-slate-400'}`}
             >
-              <div className={`rounded-full bg-slate-400 mb-1 ${sizeOpt.previewClass}`} />
-              <span className="text-sm">{sizeOpt.label}</span>
+              <div className="flex flex-col items-center space-y-2">
+                <div
+                  className={`rounded-full ${internalHotspot.backgroundColor || 'bg-purple-500'}`}
+                  style={{ width: sizeOpt.displaySize, height: sizeOpt.displaySize }}
+                />
+                <span className="text-sm text-slate-300">{sizeOpt.label}</span>
+              </div>
             </button>
           ))}
         </div>
@@ -157,41 +227,118 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
     </div>
   );
 
+  const renderTimelineTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-white">Associated Events</h3>
+        <button
+          onClick={handleAddNewEvent}
+          className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
+          Add Event
+        </button>
+      </div>
+      {hotspotEvents.length === 0 ? (
+        <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {hotspotEvents.map((event) => (
+            <div key={event.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-white truncate pr-2" title={event.name}>
+                  {event.name || `Event at step ${event.step}`}
+                </span>
+                <button
+                  onClick={() => onDeleteTimelineEvent(event.id)}
+                  className="text-red-400 hover:text-red-300 p-1"
+                  aria-label="Delete event"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+              <div className="text-xs text-slate-400">
+                Step {event.step} • Type: {INTERACTION_TYPE_OPTIONS.find(t => t.value === event.type)?.label || event.type.replace(/_/g, ' ')}
+              </div>
+              {/* Basic event editing (name, step, duration) can be added here later */}
+              {/* For now, focusing on add/delete and structure */}
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-slate-500 mt-2 text-center">
+        Full event configuration and reordering will be enhanced in the next steps.
+      </p>
+    </div>
+  );
+
+
   return (
     <div className="bg-slate-800 text-white h-full flex flex-col">
       {/* Tab Navigation */}
-      <div className="flex border-b border-slate-700">
-        <button
-          onClick={() => setActiveTab('basic')}
-          className={`flex-1 py-3 px-4 text-center font-medium transition-colors
-                      ${activeTab === 'basic' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-slate-400 hover:text-slate-200'}`}
-        >
-          Basic
-        </button>
-        <button
-          onClick={() => setActiveTab('style')}
-          className={`flex-1 py-3 px-4 text-center font-medium transition-colors
-                      ${activeTab === 'style' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-slate-400 hover:text-slate-200'}`}
-        >
-          Style
-        </button>
+      <div className="flex border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
+        {[
+          { id: 'basic', label: 'Basic' },
+          { id: 'style', label: 'Style' },
+          { id: 'timeline', label: 'Events' }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as ActiveTab)}
+            className={`flex-1 py-3 px-2 text-center font-medium text-sm transition-colors focus:outline-none
+                        ${activeTab === tab.id ? 'text-purple-400 border-b-2 border-purple-400' : 'text-slate-400 hover:text-slate-200'}`}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'basic' && renderBasicTab()}
         {activeTab === 'style' && renderStyleTab()}
+        {activeTab === 'timeline' && renderTimelineTab()}
       </div>
 
       {/* Action Buttons */}
       {onDelete && (
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700 sticky bottom-0 bg-slate-800 z-10">
           <button
-            onClick={onDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 rounded-md text-white font-semibold transition-colors"
           >
             Delete Hotspot
           </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal (Simplified) */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-lg p-6 max-w-sm w-full shadow-xl border border-slate-700">
+            <h3 className="text-lg font-semibold text-white mb-4">Delete Hotspot</h3>
+            <p className="text-slate-300 mb-6">Are you sure you want to delete this hotspot and its associated events? This action cannot be undone.</p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if(onDelete) onDelete();
+                  setShowDeleteConfirm(false);
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -199,15 +346,3 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({ hotspot, onUp
 };
 
 export default MobileHotspotEditor;
-// Placeholder for HotspotData if not defined globally
-// export interface HotspotData {
-//   id: string;
-//   title?: string;
-//   description?: string;
-//   backgroundColor?: string; // e.g., 'bg-red-500' or '#ef4444' for style consistency
-//   size?: 'small' | 'medium' | 'large';
-//   // other potential fields
-//   x?: number; // position
-//   y?: number; // position
-//   link?: string;
-// }

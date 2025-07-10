@@ -1,6 +1,6 @@
 // src/client/components/MobileEditorLayout.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { HotspotData, TimelineEventData } from '../../shared/types';
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types'; // Added InteractionType
 import MobileHotspotEditor from './MobileHotspotEditor';
 
 interface MobileEditorLayoutProps {
@@ -18,9 +18,15 @@ interface MobileEditorLayoutProps {
   onAddHotspot?: () => void;
   selectedHotspot?: HotspotData | null;
   onUpdateHotspot?: (updates: Partial<HotspotData>) => void;
-  onDeleteHotspot?: () => void;
+  onDeleteHotspot?: (hotspotId: string) => void; // HotspotId for clarity
   activePanelOverride?: 'image' | 'properties' | 'timeline';
   onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline') => void;
+
+  // Props needed for the enhanced MobileHotspotEditor's timeline tab
+  onAddTimelineEvent: (event: TimelineEventData) => void;
+  onUpdateTimelineEvent: (event: TimelineEventData) => void;
+  onDeleteTimelineEvent: (eventId: string) => void;
+  // allHotspots is already part of props (passed as 'hotspots'), re-pass to MobileHotspotEditor
 }
 
 interface ViewportState {
@@ -51,7 +57,10 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   onUpdateHotspot,
   onDeleteHotspot,
   activePanelOverride,
-  onActivePanelChange
+  onActivePanelChange,
+  onAddTimelineEvent,
+  onUpdateTimelineEvent,
+  onDeleteTimelineEvent,
 }) => {
   const [viewport, setViewport] = useState<ViewportState>({
     height: window.innerHeight,
