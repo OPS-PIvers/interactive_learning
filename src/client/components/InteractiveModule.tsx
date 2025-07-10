@@ -2885,7 +2885,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         maxHeight: isMobile ? '100%' : '800px',
                         zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
                         // Ensure the container itself doesn't have a background image if a video is playing
-                        backgroundImage: (backgroundType === 'video' && backgroundImage) ? 'none' : `url(${backgroundImage})`,
+                        backgroundImage: (backgroundType === 'video' && backgroundImage) ? 'none' : (backgroundImage ? `url(${backgroundImage})` : 'none'),
                       }}
                       aria-hidden="true"
                     >
@@ -2920,7 +2920,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
                       )}
                       {/* Hotspots */}
-                      <div style={{ zIndex: Z_INDEX.HOTSPOTS }}>
+                      <div style={{ position: 'relative', zIndex: Z_INDEX.HOTSPOTS }}>
                         {hotspotsWithPositions.map(hotspot => {
                           const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
                           if (!shouldShow) return null;
