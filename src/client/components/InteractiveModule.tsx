@@ -2928,6 +2928,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             <HotspotViewer
                               key={hotspot.id}
                               hotspot={hotspot}
+                              pixelPosition={hotspot.pixelPosition}
+                              usePixelPositioning={true}
                               isPulsing={(moduleState === 'learning') && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
                               isDimmedInEditMode={false} // Not in editing mode here
                               isEditing={false}

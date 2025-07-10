@@ -49,8 +49,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     isContinuouslyPulsing,
     onEditRequest,
     isMobile,
-    // pixelPosition, // Not directly used in this component's logic after recent changes
-    // usePixelPositioning, // Not directly used
+    pixelPosition, // Used for transformed container positioning
+    usePixelPositioning, // Used to enable pixel-based positioning
     // imageElement, // Not directly used
     onDragStateChange,
     dragContainerRef
@@ -314,8 +314,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         isDimmedInEditMode ? 'opacity-40 hover:opacity-100 transition-opacity' : ''
       }`}
       style={{
-        left: `${hotspot.x}%`,
-        top: `${hotspot.y}%`,
+        left: usePixelPositioning && pixelPosition ? `${pixelPosition.x}px` : `${hotspot.x}%`,
+        top: usePixelPositioning && pixelPosition ? `${pixelPosition.y}px` : `${hotspot.y}%`,
         touchAction: isEditing ? 'none' : 'auto'
       }}
       onPointerDown={handlePointerDown}
