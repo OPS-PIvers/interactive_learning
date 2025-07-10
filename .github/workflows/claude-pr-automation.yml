@@ -39,6 +39,7 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           direct_prompt: |
             Review this PR thoroughly and make any necessary changes to ensure:
             1. Code follows project conventions in CLAUDE.md
@@ -103,4 +104,5 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           trigger_phrase: "@claude"
