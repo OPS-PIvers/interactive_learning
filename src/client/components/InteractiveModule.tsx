@@ -2884,12 +2884,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         })(),
                         maxHeight: isMobile ? '100%' : '800px',
                         zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
-                        // Ensure the container itself doesn't have a background image if a video is playing
-                        backgroundImage: (backgroundType === 'video' && backgroundImage) ? 'none' : (backgroundImage ? `url(${backgroundImage})` : 'none'),
+                        // Ensure the container itself doesn't have a background image if child elements handle it
+                        backgroundImage: 'none', // Always none, child elements will render image/video
                       }}
                       aria-hidden="true"
                     >
                       {/* Conditional Background Content */}
+                      {/* Image Rendering for Viewer Mode */}
+                      {backgroundType === 'image' && backgroundImage && !isEditing && (
+                        <img
+                          src={backgroundImage}
+                          alt={projectName || 'Module background'} // Use projectName for more context
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: imageFitMode,
+                            objectPosition: 'center',
+                          }}
+                        />
+                      )}
+
+                      {/* Video Rendering */}
                       {(backgroundType === 'video' && backgroundImage) ? (
                         backgroundVideoType === 'youtube' ? (
                           <YouTubePlayer
