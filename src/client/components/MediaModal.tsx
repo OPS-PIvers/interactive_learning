@@ -7,6 +7,7 @@ interface MediaModalProps {
   title: string;
   children: React.ReactNode;
   size?: 'small' | 'medium' | 'large' | 'fullscreen';
+  disableTouch?: boolean;
 }
 
 const MediaModal: React.FC<MediaModalProps> = ({ 
@@ -14,7 +15,8 @@ const MediaModal: React.FC<MediaModalProps> = ({
   onClose, 
   title, 
   children, 
-  size = 'large' 
+  size = 'large',
+  disableTouch = false
 }) => {
   if (!isOpen) return null;
 
@@ -72,7 +74,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
             <XMarkIcon className="w-6 h-6" />
           </button>
         </header>
-        <div className="flex-grow overflow-hidden flex flex-col touch-none">
+        <div className={`flex-grow overflow-hidden flex flex-col ${disableTouch ? 'touch-none' : ''}`}>
           {children}
         </div>
       </div>
