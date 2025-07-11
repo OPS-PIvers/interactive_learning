@@ -41,130 +41,46 @@ npm run build
 
 ## File Structure
 ```
-.env
-.github/
-├── workflows/
-│   ├── README.md
-│   ├── claude-pr-automation.yml
-│   └── deploy.yml
-.gitignore
-AGENTS.md
-CLAUDE.md
-README.md
-firebase.json
-firestore.indexes.json
-firestore.rules
-global.d.ts
-metadata.json
-package-lock.json
-package.json
-postcss.config.js
-scripts/
-├── backup-data.ts
+.github/          # GitHub Actions workflows
+scripts/          # Utility scripts (e.g., backup-data.ts)
 src/
-├── client/
-│   ├── components/
-│   │   ├── AdminToggle.tsx
-│   │   ├── App.tsx
-│   │   ├── AudioPlayer.tsx
-│   │   ├── DragHandle.tsx
-│   │   ├── EditableEventCard.tsx
-│   │   ├── EditorToolbar.tsx
-│   │   ├── EnhancedModalEditorToolbar.tsx
-│   │   ├── ErrorBoundary.tsx
-│   │   ├── EventTypeSelector.tsx
-│   │   ├── EventTypeSelectorButtonGrid.tsx
-│   │   ├── EventTypeToggle.tsx
-│   │   ├── FileUpload.tsx
-│   │   ├── HorizontalTimeline.tsx
-│   │   ├── HotspotEditModal.tsx
-│   │   ├── HotspotEditorModal.tsx
-│   │   ├── HotspotEditorToolbar.tsx
-│   │   ├── HotspotViewer.tsx
-│   │   ├── ImageEditCanvas.tsx
-│   │   ├── ImageViewer.tsx
-│   │   ├── InfoPanel.tsx
-│   │   ├── InteractiveModule.tsx
-│   │   ├── LoadingStates.tsx
-│   │   ├── MediaModal.tsx
-│   │   ├── MobileEditorLayout.tsx
-│   │   ├── MobileEditorModal.tsx
-│   │   ├── MobileEditorTabs.tsx
-│   │   ├── MobileHotspotEditor.tsx
-│   │   ├── MobileTimelineControls.tsx
-│   │   ├── Modal.tsx
-│   │   ├── PanZoomPreviewOverlay.tsx
-│   │   ├── PanZoomSettings.tsx
-│   │   ├── PendingHotspotConfirmation.tsx
-│   │   ├── ProjectCard.tsx
-│   │   ├── ShareModal.tsx
-│   │   ├── SharedModuleViewer.tsx
-│   │   ├── SimpleHotspotPreview.tsx
-│   │   ├── SliderControl.tsx
-│   │   ├── SpotlightPreview.tsx
-│   │   ├── SpotlightPreviewOverlay.tsx
-│   │   ├── SpotlightSettings.tsx
-│   │   ├── StreamlinedHotspotEditor.tsx
-│   │   ├── TextPreviewOverlay.tsx
-│   │   ├── VideoPlayer.tsx
-│   │   ├── ViewerToolbar.tsx
-│   │   ├── YouTubePlayer.tsx
-│   │   └── icons/
-│   │       ├── AccessibilityIcon.tsx
-│   │       ├── AddIcon.tsx
-│   │       ├── AdminIcon.tsx
-│   │       ├── ArrowCounterClockwiseIcon.tsx
-│   │       ├── ArrowDownIcon.tsx
-│   │       ├── ArrowLeftIcon.tsx
-│   │       ├── ArrowRightIcon.tsx
-│   │       ├── ArrowUpIcon.tsx
-│   │       ├── ArrowsPointingOutIcon.tsx
-│   │       ├── AudioIcon.tsx
-│   │       ├── CheckmarkIcon.tsx
-│   │       ├── ChevronDownIcon.tsx
-│   │       ├── ChevronLeftIcon.tsx
-│   │       ├── ChevronRightIcon.tsx
-│   │       ├── ChevronUpIcon.tsx
-│   │       └── index.ts
-│   ├── hooks/
-│   │   ├── useHotspotPositioning.ts
-│   │   ├── useIsMobile.ts
-│   │   ├── useScreenReaderAnnouncements.ts
-│   │   ├── useSimplifiedTouch.ts
-│   │   └── useTouchGestures.ts
-│   ├── index.css
-│   ├── index.html
-│   ├── index.tsx
-│   ├── styles/
-│   │   ├── custom-scrollbar.css
-│   │   └── mobile.css
-│   ├── styles.css
-│   └── utils/
-│       ├── asyncUtils.ts
-│       ├── hapticUtils.ts
-│       ├── imageUtils.ts
-│       ├── mobileUtils.ts
-│       └── touchUtils.ts
-├── lib/
-│   ├── dataSanitizer.ts
-│   ├── firebaseApi.ts
-│   ├── firebaseConfig.ts
-│   ├── firebaseProxy.ts
-│   └── safeMathUtils.ts
-├── shared/
-│   ├── DataMigration.ts
-│   ├── InteractionPresets.ts
-│   └── types.ts
-└── tests/
-    ├── eventSystem.test.ts
+├── client/       # Frontend application (React)
+│   ├── components/     # React components (~40 files)
+│   │   ├── InteractiveModule.tsx    # Main app container
+│   │   ├── HotspotEditorModal.tsx   # Primary hotspot editor
+│   │   ├── ImageEditCanvas.tsx      # Image editing canvas
+│   │   ├── Mobile*/                 # Mobile-specific components
+│   │   └── icons/                   # Icon components
+│   ├── hooks/          # Custom React hooks (5 files)
+│   │   ├── useIsMobile.ts           # Mobile detection
+│   │   ├── useTouchGestures.ts      # Touch handling
+│   │   └── useScreenReaderAnnouncements.ts  # Accessibility
+│   ├── utils/          # Client-side utility functions (5 files)
+│   │   ├── touchUtils.ts            # Touch event utilities
+│   │   └── mobileUtils.ts           # Mobile-specific utilities
+│   └── styles/         # CSS and styling files
+├── lib/              # Core logic, Firebase utilities (5 files)
+│   ├── firebaseApi.ts           # Firebase integration
+│   ├── firebaseConfig.ts        # Firebase configuration
+│   └── safeMathUtils.ts         # Mathematical utilities
+├── shared/           # Types and logic shared between client/server
+│   ├── types.ts                 # TypeScript interfaces
+│   └── InteractionPresets.ts    # Event system presets
+└── tests/            # Test files (Vitest)
     ├── safeMathUtils.test.ts
-    ├── setup.ts
-    └── timelineEventExecution.test.ts
-storage.rules
-tailwind.config.js
-tsconfig.json
-vite.config.ts
-vitest.config.ts
+    └── eventSystem.test.ts
+
+# Key Configuration Files
+AGENTS.md         # Instructions for AI agents (this file)
+CLAUDE.md         # Project architecture overview
+README.md         # Main project documentation
+firebase.json     # Firebase hosting and services configuration
+firestore.rules   # Firestore security rules
+storage.rules     # Firebase Storage security rules
+package.json      # Project dependencies and scripts
+tsconfig.json     # TypeScript configuration
+vite.config.ts    # Vite build configuration
+vitest.config.ts  # Vitest test runner configuration
 ```
 
 ## Naming Conventions
