@@ -2894,7 +2894,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                       {backgroundType === 'image' && backgroundImage && !isEditing && (
                         <img
                           src={backgroundImage}
-                          alt={projectName || 'Module background'} // Use projectName for more context
+                          alt=""
                           style={{
                             width: '100%',
                             height: '100%',
