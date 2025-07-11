@@ -170,3 +170,6 @@ For questions, issues, or feature requests:
 ---
 
 **Interactive Learning Hub** - Transforming static content into engaging, interactive educational experiences.
+
+## 🤖 Claude Code Integration
+This project uses Claude Code automation for PR reviews and continuous integration.
