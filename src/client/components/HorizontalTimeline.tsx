@@ -60,7 +60,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   // Mobile Specific State
   const [isEventPreviewCollapsed, setIsEventPreviewCollapsed] = useState<boolean>(true);
-  const timelineScrollRef = React.useRef<HTMLDivElement>(null);
+  // timelineScrollRef removed as it's no longer used
 
   // Swipe gesture states
   const touchStartXRef = useRef<number | null>(null);
@@ -72,15 +72,15 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   const prevCurrentStepIndexRef = useRef<number | undefined>(currentStepIndex);
 
-  React.useEffect(() => {
-    if (isMobile && timelineScrollRef.current && uniqueSortedSteps.length > 0 && currentStepIndex !== undefined) {
-      const activeDot = timelineScrollRef.current.children[currentStepIndex] as HTMLElement;
-      if (activeDot) {
-        const scrollLeft = activeDot.offsetLeft - (timelineScrollRef.current.offsetWidth / 2) + (activeDot.offsetWidth / 2);
-        timelineScrollRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-      }
-    }
-  }, [currentStepIndex, isMobile, uniqueSortedSteps]);
+  // React.useEffect(() => { // This useEffect was for scrolling the old numbered step UI
+  //   if (isMobile && timelineScrollRef.current && uniqueSortedSteps.length > 0 && currentStepIndex !== undefined) {
+  //     const activeDot = timelineScrollRef.current.children[currentStepIndex] as HTMLElement;
+  //     if (activeDot) {
+  //       const scrollLeft = activeDot.offsetLeft - (timelineScrollRef.current.offsetWidth / 2) + (activeDot.offsetWidth / 2);
+  //       timelineScrollRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  //     }
+  //   }
+  // }, [currentStepIndex, isMobile, uniqueSortedSteps]);
 
   // Effect for haptic feedback on step change
   useEffect(() => {
@@ -269,17 +269,18 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   };
 
   if (isMobile) {
-    const progressPercent = totalSteps && totalSteps > 1 ? ((currentStepIndex || 0) / (totalSteps - 1)) * 100 : 0;
+    // const progressPercent = totalSteps && totalSteps > 1 ? ((currentStepIndex || 0) / (totalSteps - 1)) * 100 : 0; // Old progress bar
     const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
 
+    // Mobile view now aims to mirror desktop structure
     return (
       <div
         className="w-full bg-slate-800 py-2 border-t border-slate-700"
-        onTouchStart={handleTouchStart}
+        onTouchStart={handleTouchStart} // Keep swipe gestures for navigation
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Event Preview (Collapsible) */}
+        {/* Event Preview (Collapsible) - Kept for now */}
         {currentEvent && moduleState === 'learning' && (
           <div className="px-3 pb-2">
             <button
@@ -297,49 +298,63 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           </div>
         )}
 
-        {/* Progress Bar and Step Indicators */}
-        <div className="px-3">
-          <div className="relative h-2 bg-slate-600 rounded-full w-full">
-            <div
-              className="absolute top-0 left-0 h-2 bg-purple-500 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div
-            ref={timelineScrollRef}
-            className="mt-2 flex gap-x-2 overflow-x-auto pb-2 hide-scrollbar" // hide-scrollbar is a utility class you might need to define
-            style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {uniqueSortedSteps.map((step, index) => {
-              const isActive = step === currentStep;
-              return (
-                <button
-                  key={step}
-                  onClick={() => onStepSelect(step)}
-                  className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-medium transition-all duration-200 ease-in-out border-2
-                    ${isActive ? 'bg-purple-500 border-purple-300 text-white scale-110' : 'bg-slate-500 border-slate-400 text-slate-200 hover:bg-purple-400 hover:border-purple-300'}
-                    flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-1 focus:ring-offset-slate-800
-                  `}
-                  aria-label={`Step ${index + 1}`}
-                  aria-current={isActive ? "step" : undefined}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
+        {/* Timeline dots - styled like desktop */}
+        <div className="px-4 py-2"> {/* Using similar padding as desktop */}
+          <div className="relative w-full h-8 flex items-center"> {/* Using same height and flex properties */}
+            {/* Timeline track */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
+
+            {/* Timeline dots */}
+            <div className="relative w-full flex items-center justify-between">
+              {uniqueSortedSteps.map((step) => {
+                const isActive = step === currentStep;
+                return (
+                  <div key={step} className="relative"> {/* Each dot is relative for potential future absolute children like hotspot indicators */}
+                    <button
+                      onClick={() => onStepSelect(step)} // Simplified click handler for mobile, no double click preview
+                      className={`relative w-6 h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                        ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                        flex items-center justify-center
+                      `}
+                      aria-label={getStepTooltip(step)} // Tooltip for accessibility
+                      aria-current={isActive ? "step" : undefined}
+                      title={getStepTooltip(step)} // Title for mouse hover
+                    >
+                      {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                    </button>
+                    {/* Hotspot indicators for mobile - mirroring desktop structure */}
+                    <div className="absolute top-full mt-1 flex space-x-0.5 justify-center w-full"> {/* Reduced mt and space for mobile */}
+                      {timelineEvents
+                        .filter(event => event.step === step && event.targetId)
+                        .map(event => {
+                          const hotspot = hotspots.find(h => h.id === event.targetId);
+                          return hotspot ? (
+                            <div
+                              key={`${event.id}-${hotspot.id}-mobile`}
+                              className="w-1.5 h-1.5 rounded-full" // Smaller dots for mobile
+                              style={{ backgroundColor: hotspot.color || '#ccc' }}
+                              title={`Hotspot: ${hotspot.title}`} // Keep title for accessibility if possible, though less useful on touch
+                            />
+                          ) : null;
+                        })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Navigation Controls */}
+        {/* Navigation Controls - using existing mobile button structure */}
         {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
           <div className="flex items-center justify-between mt-2 px-3">
             <button
               onClick={onPrevStep}
               disabled={currentStepIndex === 0}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-60 text-slate-200 hover:text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed" // Adjusted: gap, px, disabled:opacity, text color
             >
               <ChevronLeftIcon className="w-4 h-4" />
-              Prev
+              Previous
             </button>
             <span className="text-slate-300 text-xs font-medium">
               Step {(currentStepIndex || 0) + 1} / {totalSteps}
@@ -347,7 +362,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
             <button
               onClick={onNextStep}
               disabled={currentStepIndex >= totalSteps - 1}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-60 text-slate-200 hover:text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed" // Adjusted: gap, px, disabled:opacity, text color
             >
               Next
               <ChevronRightIcon className="w-4 h-4" />
@@ -368,12 +383,12 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
           {/* Timeline dots */}
           <div className="relative w-full flex items-center justify-between">
-            {uniqueSortedSteps.map((step, index) => {
+            {uniqueSortedSteps.map((step, index) => { // Added index here for consistency, though not used directly in this part
               const isActive = step === currentStep;
               return (
                 <div key={step} className="relative">
                   <button
-                    onClick={(event) => handleStepClick(step, event)}
+                    onClick={(event) => handleStepClick(step, event)} // Desktop keeps double click preview
                     className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
                       ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
                       flex items-center justify-center
