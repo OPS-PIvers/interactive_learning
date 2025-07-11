@@ -60,13 +60,74 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
   const dragDataRef = useRef<{
-    startX: number;
-    startY: number;
-    startHotspotX: number;
-    startHotspotY: number;
+    startX: number; // Viewport X of pointer down
+    startY: number; // Viewport Y of pointer down
+    initialHotspotLeft_inContainer: number; // Hotspot div's initial 'left' relative to container
+    initialHotspotTop_inContainer: number;  // Hotspot div's initial 'top' relative to container
+    startHotspotX_percentage: number; // Original hotspot.x percentage (fallback)
+    startHotspotY_percentage: number; // Original hotspot.y percentage (fallback)
     containerElement: Element | null;
   } | null>(null);
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+// Helper function to calculate the visible image bounds relative to the drag container
+// This is crucial for correct drag behavior with object-contain
+const getActualImageVisibleBounds = (
+  imageElement: HTMLImageElement | null, // actualImageRef from ImageEditCanvas props
+  dragContainer: HTMLElement | null // zoomedImageContainerRef from ImageEditCanvas props
+): { x: number, y: number, width: number, height: number } | null => {
+  if (!imageElement || !dragContainer || !imageElement.naturalWidth || imageElement.naturalWidth === 0 || !imageElement.naturalHeight || imageElement.naturalHeight === 0) {
+    // console.warn("getActualImageVisibleBounds: Missing elements or natural dimensions.");
+    return null;
+  }
+
+  const { naturalWidth, naturalHeight } = imageElement;
+  const imgAspectRatio = naturalWidth / naturalHeight;
+
+  // Bounding box of the <img> tag itself, relative to viewport
+  const imgElementVPRect = imageElement.getBoundingClientRect();
+  // Bounding box of the drag container (e.g., zoomedImageContainerRef), relative to viewport
+  const dragContainerVPRect = dragContainer.getBoundingClientRect();
+
+  if (imgElementVPRect.width === 0 || imgElementVPRect.height === 0) {
+    // console.warn("getActualImageVisibleBounds: Image element has no dimensions.");
+    return null;
+  }
+
+  let visibleImgWidthInBox = imgElementVPRect.width;
+  let visibleImgHeightInBox = imgElementVPRect.height;
+  let internalOffsetX = 0; // Offset of visible content *within* the imgElementVPRect (letterboxing)
+  let internalOffsetY = 0;
+
+  const boxAspectRatio = imgElementVPRect.width / imgElementVPRect.height;
+
+  // Tolerance for floating point comparisons
+  const tolerance = 0.001;
+  if (Math.abs(boxAspectRatio - imgAspectRatio) > tolerance) {
+    if (boxAspectRatio > imgAspectRatio) { // Box is wider than image's aspect ratio
+      visibleImgHeightInBox = imgElementVPRect.width / imgAspectRatio;
+      internalOffsetY = (imgElementVPRect.height - visibleImgHeightInBox) / 2;
+    } else { // Box is taller than image's aspect ratio
+      visibleImgWidthInBox = imgElementVPRect.height * imgAspectRatio;
+      internalOffsetX = (imgElementVPRect.width - visibleImgWidthInBox) / 2;
+    }
+  }
+
+  // Position of the <img> element's content box relative to drag container's top-left
+  const imgBoxXInDragContainer = imgElementVPRect.left - dragContainerVPRect.left;
+  const imgBoxYInDragContainer = imgElementVPRect.top - dragContainerVPRect.top;
+
+  // Final offset of *visible image content* from drag container's top-left
+  const finalX = imgBoxXInDragContainer + internalOffsetX;
+  const finalY = imgBoxYInDragContainer + internalOffsetY;
+
+  return {
+    x: finalX, // x pos of visible image relative to drag container
+    y: finalY, // y pos of visible image relative to drag container
+    width: visibleImgWidthInBox,
+    height: visibleImgHeightInBox,
+  };
+};
   const lastTapTimeRef = useRef(0);
   const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
   
@@ -140,11 +201,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
 
     // Store drag start data
+    const currentPixelPos = props.pixelPosition; // This is the top-left of the hotspot div
+
     dragDataRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startHotspotX: hotspot.x,
-      startHotspotY: hotspot.y,
+      startX: e.clientX, // Viewport X of pointer down
+      startY: e.clientY, // Viewport Y of pointer down
+      initialHotspotLeft_inContainer: currentPixelPos ? currentPixelPos.x : 0,
+      initialHotspotTop_inContainer: currentPixelPos ? currentPixelPos.y : 0,
+      startHotspotX_percentage: hotspot.x, // Store original percentages as fallback/reference
+      startHotspotY_percentage: hotspot.y,
       containerElement
     };
 
@@ -175,40 +240,78 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
 
-    const { startX, startY, startHotspotX, startHotspotY, containerElement } = dragDataRef.current;
-    const deltaX = Math.abs(e.clientX - startX);
-    const deltaY = Math.abs(e.clientY - startY);
-    const threshold = isMobile ? 12 : 8;
+    if (!dragDataRef.current || !isEditing || !onPositionChange) return;
 
-    // Start dragging if we've moved beyond threshold
-    if (!isDragging && (deltaX > threshold || deltaY > threshold)) {
-      setIsDragging(true);
-      setIsHolding(false);
-      announceDragStart(); // Announce drag start
-      // onDragStateChange was already called in handlePointerDown
-      if (holdTimeoutRef.current) {
-        clearTimeout(holdTimeoutRef.current);
-        holdTimeoutRef.current = undefined;
+    const {
+      startX: pointerDownViewX,
+      startY: pointerDownViewY,
+      initialHotspotLeft_inContainer,
+      initialHotspotTop_inContainer,
+      containerElement
+    } = dragDataRef.current;
+
+    // Calculate overall delta in viewport coordinates
+    const deltaX_viewport = e.clientX - pointerDownViewX;
+    const deltaY_viewport = e.clientY - pointerDownViewY;
+
+    // Start dragging if we've moved beyond threshold (only if not already dragging)
+    if (!isDragging) {
+      const threshold = isMobile ? 10 : 5; // Adjusted threshold
+      if (Math.abs(deltaX_viewport) > threshold || Math.abs(deltaY_viewport) > threshold) {
+        setIsDragging(true);
+        setIsHolding(false); // No longer just holding
+        announceDragStart();
+        if (holdTimeoutRef.current) {
+          clearTimeout(holdTimeoutRef.current);
+          holdTimeoutRef.current = undefined;
+        }
+      } else {
+        return; // Not enough movement to start a drag
       }
     }
 
-    // Update position during drag
+    // If actively dragging and containerElement exists
     if (isDragging && containerElement) {
-      const containerRect = containerElement.getBoundingClientRect();
-      const totalDeltaX = e.clientX - startX;
-      const totalDeltaY = e.clientY - startY;
+      // Get the actual visible image bounds relative to the drag container (zoomedImageContainerRef)
+      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement, containerElement as HTMLElement);
+
+      if (!visibleImageBounds || visibleImageBounds.width === 0 || visibleImageBounds.height === 0) {
+        // Fallback or error handling if bounds are not valid
+        // console.warn("Cannot calculate new hotspot position: visibleImageBounds are invalid.");
+        // As a fallback, use the old logic (though it has issues)
+        const containerRect = containerElement.getBoundingClientRect();
+        if (containerRect.width === 0 || containerRect.height === 0) return; // Avoid division by zero
+
+        const percentDeltaX = (deltaX_viewport / containerRect.width) * 100;
+        const percentDeltaY = (deltaY_viewport / containerRect.height) * 100;
+
+        const fallbackX = Math.max(0, Math.min(100, dragDataRef.current.startHotspotX_percentage + percentDeltaX));
+        const fallbackY = Math.max(0, Math.min(100, dragDataRef.current.startHotspotY_percentage + percentDeltaY));
+        onPositionChange(hotspot.id, fallbackX, fallbackY);
+        return;
+      }
+
+      // New intended top-left position of the hotspot div, relative to the drag container
+      const newHotspotDivLeft_inContainer = initialHotspotLeft_inContainer + deltaX_viewport;
+      const newHotspotDivTop_inContainer = initialHotspotTop_inContainer + deltaY_viewport;
+
+      // The hotspot's visual center is effectively its top-left (due to -translate-x/y-1/2)
+      // Convert this new top-left position (which is the center) to be relative to the visible image's top-left
+      const newHotspotCenterX_relativeToVisibleImage = newHotspotDivLeft_inContainer - visibleImageBounds.x;
+      const newHotspotCenterY_relativeToVisibleImage = newHotspotDivTop_inContainer - visibleImageBounds.y;
+
+      // Calculate the new percentage based on the visible image dimensions
+      let newXPercent = (newHotspotCenterX_relativeToVisibleImage / visibleImageBounds.width) * 100;
+      let newYPercent = (newHotspotCenterY_relativeToVisibleImage / visibleImageBounds.height) * 100;
+
+      // Clamp the percentages to be within the visible image (0-100%)
+      // The problem description mentioned "quarter from the bottom", so 0-100 is the target.
+      newXPercent = Math.max(0, Math.min(100, newXPercent));
+      newYPercent = Math.max(0, Math.min(100, newYPercent));
       
-      // Convert pixel deltas to percentage
-      const percentDeltaX = (totalDeltaX / containerRect.width) * 100;
-      const percentDeltaY = (totalDeltaY / containerRect.height) * 100;
-      
-      // Calculate new position with bounds checking
-      const newX = Math.max(2, Math.min(98, startHotspotX + percentDeltaX));
-      const newY = Math.max(2, Math.min(98, startHotspotY + percentDeltaY));
-      
-      onPositionChange(hotspot.id, newX, newY);
+      onPositionChange(hotspot.id, newXPercent, newYPercent);
     }
-  }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart]);
+  }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     // console.log('Debug [HotspotViewer]: handlePointerUp called', {
