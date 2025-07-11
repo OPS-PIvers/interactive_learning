@@ -6,10 +6,11 @@ import { ZoomInIcon } from './icons/ZoomInIcon';
 import { ZoomOutIcon } from './icons/ZoomOutIcon';
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
 import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
-import { PlusCircleIcon } from './icons/PlusCircleIcon'; // Import for Add Hotspot button
+import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 import ShareModal from './ShareModal';
 import { Project } from '../../shared/types';
+import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 
 interface EditorToolbarProps {
   projectName: string;

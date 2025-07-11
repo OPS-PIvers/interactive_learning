@@ -344,7 +344,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                         onChange={handleUrlInputChange}
                         onBlur={handleUrlInputBlur}
                         placeholder={backgroundType === 'image' ? 'https://example.com/image.png' : 'https://youtube.com/watch?v=... or https://example.com/video.mp4'}
-                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
 
