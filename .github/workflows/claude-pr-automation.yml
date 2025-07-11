@@ -15,6 +15,7 @@ permissions:
 jobs:
   claude-review:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,13 +36,63 @@ jobs:
         run: npm run test:run
         continue-on-error: true
 
+      - name: Wait for Gemini review
+        run: |
+          echo "Waiting 5 minutes for Gemini Code Assist to review PR..."
+          sleep 300
+
+      - name: Fetch PR comments and extract Gemini feedback
+        id: gemini-feedback
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number
+              });
+            
+            // Look for Gemini feedback in comments
+            let geminiFeedback = '';
+            for (const comment of comments) {
+              // Check if comment is from Gemini (adjust bot name as needed)
+              if (comment.user.login.includes('gemini') || 
+                  comment.user.login.includes('code-assist') ||
+                  comment.body.includes('Gemini Code Assist') ||
+                  comment.body.includes('Google AI Code Review')) {
+                geminiFeedback = comment.body;
+                console.log(`Found Gemini feedback from ${comment.user.login}`);
+                break;
+              }
+            }
+            
+            if (geminiFeedback) {
+              console.log('Gemini feedback found:', geminiFeedback.substring(0, 200) + '...');
+              core.setOutput('feedback', geminiFeedback);
+              core.setOutput('has_feedback', 'true');
+            } else {
+              console.log('No Gemini feedback found in PR comments');
+              core.setOutput('feedback', '');
+              core.setOutput('has_feedback', 'false');
+            }
+            } catch (error) {
+              console.error('Error fetching PR comments:', error);
+              core.setOutput('feedback', '');
+              core.setOutput('has_feedback', 'false');
+            }
+
       - name: Claude Code Review and Fix
         uses: anthropics/claude-code-action@beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           direct_prompt: |
-            Review this PR thoroughly and make any necessary changes to ensure:
+            ${{ steps.gemini-feedback.outputs.has_feedback == 'true' && format('PRIORITY: Address the following feedback from Gemini Code Assist:
+            
+            {0}
+            
+            Based on this feedback, review the PR and make the necessary changes. Additionally, ensure:', steps.gemini-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
             1. Code follows project conventions in CLAUDE.md
             2. TypeScript types are correct
             3. All tests pass
@@ -84,6 +135,7 @@ jobs:
 
   claude-comment-trigger:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')
     steps:
       - name: Checkout code
