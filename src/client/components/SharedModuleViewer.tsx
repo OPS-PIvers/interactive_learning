@@ -148,7 +148,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           theme={theme} // Pass theme to InteractiveModule
           autoStart={autoStart} // Pass autoStart to InteractiveModule
         />
-      </div>
+      </main>
 
       {/* Professional Branding Footer - only in standalone mode and if enabled */}
       {!isEmbedMode && showBranding && (
