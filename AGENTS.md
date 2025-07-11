@@ -41,15 +41,130 @@ npm run build
 
 ## File Structure
 ```
+.env
+.github/
+├── workflows/
+│   ├── README.md
+│   ├── claude-pr-automation.yml
+│   └── deploy.yml
+.gitignore
+AGENTS.md
+CLAUDE.md
+README.md
+firebase.json
+firestore.indexes.json
+firestore.rules
+global.d.ts
+metadata.json
+package-lock.json
+package.json
+postcss.config.js
+scripts/
+├── backup-data.ts
 src/
 ├── client/
-│   ├── components/     # React components
-│   ├── hooks/         # Custom React hooks  
-│   ├── utils/         # Utility functions
-│   └── styles/        # CSS files
-├── lib/               # Firebase and core utilities
-├── shared/            # Types and shared logic
-└── tests/             # Test files
+│   ├── components/
+│   │   ├── AdminToggle.tsx
+│   │   ├── App.tsx
+│   │   ├── AudioPlayer.tsx
+│   │   ├── DragHandle.tsx
+│   │   ├── EditableEventCard.tsx
+│   │   ├── EditorToolbar.tsx
+│   │   ├── EnhancedModalEditorToolbar.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── EventTypeSelector.tsx
+│   │   ├── EventTypeSelectorButtonGrid.tsx
+│   │   ├── EventTypeToggle.tsx
+│   │   ├── FileUpload.tsx
+│   │   ├── HorizontalTimeline.tsx
+│   │   ├── HotspotEditModal.tsx
+│   │   ├── HotspotEditorModal.tsx
+│   │   ├── HotspotEditorToolbar.tsx
+│   │   ├── HotspotViewer.tsx
+│   │   ├── ImageEditCanvas.tsx
+│   │   ├── ImageViewer.tsx
+│   │   ├── InfoPanel.tsx
+│   │   ├── InteractiveModule.tsx
+│   │   ├── LoadingStates.tsx
+│   │   ├── MediaModal.tsx
+│   │   ├── MobileEditorLayout.tsx
+│   │   ├── MobileEditorModal.tsx
+│   │   ├── MobileEditorTabs.tsx
+│   │   ├── MobileHotspotEditor.tsx
+│   │   ├── MobileTimelineControls.tsx
+│   │   ├── Modal.tsx
+│   │   ├── PanZoomPreviewOverlay.tsx
+│   │   ├── PanZoomSettings.tsx
+│   │   ├── PendingHotspotConfirmation.tsx
+│   │   ├── ProjectCard.tsx
+│   │   ├── ShareModal.tsx
+│   │   ├── SharedModuleViewer.tsx
+│   │   ├── SimpleHotspotPreview.tsx
+│   │   ├── SliderControl.tsx
+│   │   ├── SpotlightPreview.tsx
+│   │   ├── SpotlightPreviewOverlay.tsx
+│   │   ├── SpotlightSettings.tsx
+│   │   ├── StreamlinedHotspotEditor.tsx
+│   │   ├── TextPreviewOverlay.tsx
+│   │   ├── VideoPlayer.tsx
+│   │   ├── ViewerToolbar.tsx
+│   │   ├── YouTubePlayer.tsx
+│   │   └── icons/
+│   │       ├── AccessibilityIcon.tsx
+│   │       ├── AddIcon.tsx
+│   │       ├── AdminIcon.tsx
+│   │       ├── ArrowCounterClockwiseIcon.tsx
+│   │       ├── ArrowDownIcon.tsx
+│   │       ├── ArrowLeftIcon.tsx
+│   │       ├── ArrowRightIcon.tsx
+│   │       ├── ArrowUpIcon.tsx
+│   │       ├── ArrowsPointingOutIcon.tsx
+│   │       ├── AudioIcon.tsx
+│   │       ├── CheckmarkIcon.tsx
+│   │       ├── ChevronDownIcon.tsx
+│   │       ├── ChevronLeftIcon.tsx
+│   │       ├── ChevronRightIcon.tsx
+│   │       ├── ChevronUpIcon.tsx
+│   │       └── index.ts
+│   ├── hooks/
+│   │   ├── useHotspotPositioning.ts
+│   │   ├── useIsMobile.ts
+│   │   ├── useScreenReaderAnnouncements.ts
+│   │   ├── useSimplifiedTouch.ts
+│   │   └── useTouchGestures.ts
+│   ├── index.css
+│   ├── index.html
+│   ├── index.tsx
+│   ├── styles/
+│   │   ├── custom-scrollbar.css
+│   │   └── mobile.css
+│   ├── styles.css
+│   └── utils/
+│       ├── asyncUtils.ts
+│       ├── hapticUtils.ts
+│       ├── imageUtils.ts
+│       ├── mobileUtils.ts
+│       └── touchUtils.ts
+├── lib/
+│   ├── dataSanitizer.ts
+│   ├── firebaseApi.ts
+│   ├── firebaseConfig.ts
+│   ├── firebaseProxy.ts
+│   └── safeMathUtils.ts
+├── shared/
+│   ├── DataMigration.ts
+│   ├── InteractionPresets.ts
+│   └── types.ts
+└── tests/
+    ├── eventSystem.test.ts
+    ├── safeMathUtils.test.ts
+    ├── setup.ts
+    └── timelineEventExecution.test.ts
+storage.rules
+tailwind.config.js
+tsconfig.json
+vite.config.ts
+vitest.config.ts
 ```
 
 ## Naming Conventions
