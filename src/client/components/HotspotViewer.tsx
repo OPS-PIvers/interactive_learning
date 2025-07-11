@@ -286,50 +286,56 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop]);
 
   // Style classes
-  const baseColor = hotspot.color || 'bg-sky-500';
-  const hoverColor = baseColor.replace('500', '400').replace('600', '500');
+  const baseColor = hotspot.color || 'bg-sky-500'; // Default to sky blue
+  const hoverColor = baseColor.replace('500', '400').replace('600', '500'); // Basic hover adjustment
+  const ringColor = baseColor.replace('bg-', 'ring-').replace('-500', '-400'); // For focus ring
+
   const sizeClasses = getSizeClasses(hotspot.size);
   
-  const dotClasses = `relative inline-flex rounded-full ${sizeClasses} ${baseColor} hover:${hoverColor} transition-all duration-200 ${
-    isContinuouslyPulsing ? 'subtle-pulse-animation' : ''
-  } ${
-    isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'
-  } ${
-    isDragging ? 'scale-110 shadow-lg z-50' : ''
-  } ${
-    isHolding ? 'scale-105 animate-pulse' : ''
-  }`;
+  const dotClasses = `relative inline-flex items-center justify-center rounded-full ${sizeClasses} ${baseColor}
+    transition-all duration-150 ease-in-out group-hover:brightness-110 group-focus:brightness-110
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${ringColor}
+    shadow-md hover:shadow-lg
+    ${isContinuouslyPulsing ? 'animate-pulse-subtle' : ''}
+    ${isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'}
+    ${isDragging ? 'scale-110 shadow-xl z-50 brightness-125' : ''}
+    ${isHolding ? 'scale-105 animate-pulse ring-2 ring-white/50' : ''}`;
 
+  // More pronounced pulse for timeline-driven events
   const timelinePulseClasses = isPulsing 
-    ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-75` 
+    ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-80`
     : '';
+
+  // Inner dot for visual flair, especially on larger hotspots or mobile
+  const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
+    ${(hotspot.size === 'large' || (isMobile && hotspot.size !== 'small')) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`;
+
 
   return (
     <div
-      // Add data-hotspot-id here for reliable touch target identification
       data-hotspot-id={hotspot.id}
-      className={`absolute group transform -translate-x-1/2 -translate-y-1/2 ${
-        isDragging ? 'z-50' : 'z-20'
-      } ${
-        isDimmedInEditMode ? 'opacity-40 hover:opacity-100 transition-opacity' : ''
-      }`}
+      className={`absolute group transform -translate-x-1/2 -translate-y-1/2 outline-none
+        ${isDragging ? 'z-50' : 'z-20'}
+        ${isDimmedInEditMode ? 'opacity-30 hover:opacity-90 focus-within:opacity-90 transition-opacity' : 'opacity-100'}`}
       style={{
         left: usePixelPositioning && pixelPosition ? `${pixelPosition.x}px` : `${hotspot.x}%`,
         top: usePixelPositioning && pixelPosition ? `${pixelPosition.y}px` : `${hotspot.y}%`,
-        touchAction: isEditing ? 'none' : 'auto'
+        touchAction: isEditing ? 'none' : 'auto', // Allow native scrolling/gestures if not editing
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}  
       onPointerUp={handlePointerUp}
       role="button"
-      aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (drag to move, hold to edit)' : ''}`}
-      title={!isEditing && !isMobile ? hotspot.title : undefined}
-      tabIndex={0}
-      aria-grabbed={isDragging}
+      aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (draggable, press and hold to edit details)' : ' (activate to view details)'}`}
+      title={!isEditing && !isMobile ? hotspot.title : (isEditing ? `Drag to move ${hotspot.title}`: undefined)}
+      tabIndex={0} // Make it focusable
+      aria-grabbed={isEditing ? isDragging : undefined}
       aria-dropeffect={isEditing ? "move" : "none"}
     >
       <span className={dotClasses} aria-hidden="true">
         {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
+        {/* Inner dot for improved visibility/style, conditional rendering based on size or if mobile */}
+        <span className={innerDotClasses}></span>
       </span>
     </div>
   );

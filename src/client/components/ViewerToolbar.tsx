@@ -22,41 +22,42 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 }) => {
   if (isMobile) {
     return (
-      <div className="bg-slate-800 border-b border-slate-700 z-50 h-16 flex flex-col justify-center">
-        <div className="flex items-center justify-between px-3 h-full">
+      <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0">
+        {/* Main Toolbar Row */}
+        <div className="flex items-center justify-between px-2 h-12"> {/* Reduced height and padding for mobile */}
           {/* Left Section - Back Button and Project Name */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 overflow-hidden"> {/* Reduced gap */}
             <button
               onClick={onBack}
-              className="p-2 text-slate-300 hover:text-white transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-              aria-label="Back"
+              className="p-2 text-slate-200 hover:text-white active:bg-slate-700 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+              aria-label="Back to projects"
             >
-              <ChevronLeftIcon className="w-6 h-6" />
+              <ChevronLeftIcon className="w-5 h-5 flex-shrink-0" /> {/* Slightly smaller icon */}
             </button>
-            <h1 className="text-base font-medium text-white truncate">
+            <h1 className="text-sm font-semibold text-slate-100 truncate pr-1"> {/* Smaller text, pr for spacing from buttons */}
               {projectName}
             </h1>
           </div>
 
           {/* Right Section - Mode Controls */}
           {hasContent && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0"> {/* Reduced gap */}
               <button
                 onClick={onStartExploring}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-sky-400 whitespace-nowrap ${
                   moduleState === 'idle'
-                    ? 'bg-sky-600 text-white'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                    ? 'bg-sky-500 text-white shadow-sm hover:bg-sky-400 active:bg-sky-600'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
                 }`}
               >
                 Explore
               </button>
               <button
                 onClick={onStartLearning}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-purple-400 whitespace-nowrap ${
                   moduleState === 'learning'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                    ? 'bg-purple-500 text-white shadow-sm hover:bg-purple-400 active:bg-purple-600'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
                 }`}
               >
                 Tour
@@ -64,9 +65,10 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
             </div>
           )}
         </div>
+        {/* Conditional Message for Learning Mode */}
         {moduleState === 'learning' && (
-           <div className="px-3 pb-1 pt-0.5 text-center">
-             <p className="text-sm text-slate-300">Use timeline below to navigate steps</p>
+           <div className="px-3 pb-2 text-center bg-slate-700/30"> {/* Adjusted padding and added subtle background */}
+             <p className="text-xs text-sky-300">Using timeline to navigate tour steps.</p> {/* More prominent text color */}
           </div>
         )}
       </div>
@@ -75,21 +77,22 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 
   // Default Desktop Toolbar
   return (
-    <div className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50 h-14">
-      <div className="flex items-center justify-between h-full px-4">
+    <div className="fixed top-0 left-0 right-0 bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 h-16 shadow-lg">
+      <div className="max-w-screen-xl mx-auto flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
         {/* Left Section */}
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-md px-2 py-1 -ml-2"
+            aria-label="Back to projects"
           >
             <ChevronLeftIcon className="w-5 h-5" />
-            <span className="font-medium">Back</span>
+            <span className="font-medium text-sm">Back</span>
           </button>
           
           <div className="h-6 w-px bg-slate-600" />
           
-          <h1 className="text-lg font-semibold text-white truncate max-w-96">
+          <h1 className="text-xl font-semibold text-slate-100 truncate max-w-md xl:max-w-lg">
             {projectName}
           </h1>
         </div>
@@ -99,9 +102,9 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={onStartExploring}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 ${
                 moduleState === 'idle' 
-                  ? 'bg-sky-600 text-white' 
+                  ? 'bg-sky-500 text-white shadow-md hover:bg-sky-400'
                   : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
               }`}
             >
@@ -109,9 +112,9 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
             </button>
             <button
               onClick={onStartLearning}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${
                 moduleState === 'learning' 
-                  ? 'bg-purple-600 text-white' 
+                  ? 'bg-purple-500 text-white shadow-md hover:bg-purple-400'
                   : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
               }`}
             >

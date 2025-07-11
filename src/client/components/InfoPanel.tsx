@@ -129,8 +129,8 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
   return (
     <div
       ref={panelRef}
-      className={`hotspot-info-panel absolute p-3 min-w-[200px] bg-slate-900/90 backdrop-blur-md text-white rounded-lg shadow-xl z-30 border border-slate-700 transition-opacity duration-200 ease-out ${
-        isDragging ? 'cursor-grabbing shadow-2xl scale-105' : 'cursor-grab'
+      className={`hotspot-info-panel absolute p-4 min-w-[240px] bg-slate-800/80 backdrop-blur-lg text-slate-100 rounded-xl shadow-2xl z-30 border border-slate-700/50 transition-all duration-200 ease-out flex flex-col ${
+        isDragging ? 'cursor-grabbing scale-105 shadow-sky-500/30' : 'cursor-grab'
       }`}
       style={{
         left: `${position.x}px`,
@@ -139,47 +139,82 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         width: `${maxDimensions.maxWidth}px`,
         maxHeight: `${maxDimensions.maxHeight}px`,
         display: position.opacity === 0 ? 'none' : 'flex',
-        flexDirection: 'column',
-        transition: isDragging ? 'transform 0.1s ease-out' : 'opacity 0.2s ease-out',
+        // Transition for opacity is handled by class, transform by dragging state
+        transitionProperty: 'opacity, transform',
+        transitionDuration: isDragging ? '50ms' :'200ms',
+        transitionTimingFunction: 'ease-out',
       }}
       role="dialog"
       aria-labelledby={`hotspot-title-${hotspot.id}`}
-      aria-modal="false"
+      aria-describedby={`hotspot-desc-${hotspot.id}`}
+      aria-modal="false" // It's not a modal dialog in the strict sense that traps focus
       onMouseDown={handleMouseDown}
+      // Add tabIndex to make the panel focusable itself, if desired, though content inside should be focusable
+      // tabIndex={-1}
     >
-      <div className="flex justify-between items-start mb-2 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-400 text-xs" title="Drag to move">☰</span>
+      {/* Header with Title and Edit/Remove Buttons */}
+      <div className="flex justify-between items-center mb-3 flex-shrink-0 border-b border-slate-700 pb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Enhanced Drag Handle */}
+          <button
+            className="text-slate-400 hover:text-sky-300 active:text-sky-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 rounded-sm p-0.5 -ml-1"
+            title="Drag to move panel"
+            aria-label="Drag to move panel"
+            onMouseDown={handleMouseDown} // Allow dragging from icon too
+            onClick={(e) => e.stopPropagation()} // Prevent panel click through
+          >
+            {/* Using a more standard drag handle icon (dots) */}
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <circle cx="6" cy="10" r="1.5" />
+              <circle cx="10" cy="10" r="1.5" />
+              <circle cx="14" cy="10" r="1.5" />
+            </svg>
+          </button>
           <h4
             id={`hotspot-title-${hotspot.id}`}
-            className="font-bold text-md text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500"
+            className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300 truncate"
+            title={hotspot.title} // Show full title on hover if truncated
+            // tabIndex={0} // Make title focusable if panel itself is not, could be useful for screen readers to jump to title
           >
             {hotspot.title}
           </h4>
         </div>
         {isEditing && (
-          <div className="flex items-center ml-2 space-x-1 flex-shrink-0">
+          <div className="flex items-center ml-2 space-x-2 flex-shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); onEditRequest(hotspot.id); }}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="p-1 bg-blue-600 hover:bg-blue-500 rounded-full text-white"
-              aria-label={`Edit hotspot ${hotspot.title}`}
+              onMouseDown={(e) => e.stopPropagation()} // Prevent drag from starting on button click
+              className="p-1.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 rounded-full text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 transition-colors"
+              aria-label={`Edit hotspot: ${hotspot.title}`}
+              title="Edit hotspot"
             >
-              <PencilIcon className="w-4 h-4" />
+              <PencilIcon className="w-4 h-4" aria-hidden="true" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(hotspot.id); }}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="p-1 bg-red-600 hover:bg-red-500 rounded-full text-white"
-              aria-label={`Remove hotspot ${hotspot.title}`}
+              onMouseDown={(e) => e.stopPropagation()} // Prevent drag from starting on button click
+              className="p-1.5 bg-red-600 hover:bg-red-500 active:bg-red-700 rounded-full text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 transition-colors"
+              aria-label={`Remove hotspot: ${hotspot.title}`}
+              title="Remove hotspot"
             >
-              <XMarkIcon className="w-4 h-4" />
+              <XMarkIcon className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         )}
       </div>
-      <div className="text-sm text-slate-300 overflow-y-auto flex-grow">
-        <p>{hotspot.description}</p>
+
+      {/* Content Area */}
+      <div
+        id={`hotspot-desc-${hotspot.id}`}
+        className="text-sm text-slate-300 overflow-y-auto flex-grow custom-scrollbar pr-1 focus:outline-none" // Added focus:outline-none if panel itself is focusable
+        tabIndex={0} // Make content area scrollable and focusable for keyboard users
+      >
+        {/* Using dangerouslySetInnerHTML for rich text if needed, otherwise simple <p> is fine */}
+        {/* For now, assuming plain text. If HTML content:
+        <div dangerouslySetInnerHTML={{ __html: hotspot.description }} />
+        Ensure hotspot.description is sanitized if using dangerouslySetInnerHTML.
+        */}
+        <p className="whitespace-pre-wrap break-words">{hotspot.description}</p>
       </div>
     </div>
   );
