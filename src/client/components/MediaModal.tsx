@@ -72,7 +72,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
             <XMarkIcon className="w-6 h-6" />
           </button>
         </header>
-        <div className="flex-grow overflow-hidden flex flex-col">
+        <div className="flex-grow overflow-hidden flex flex-col touch-none">
           {children}
         </div>
       </div>
