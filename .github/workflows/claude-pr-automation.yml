@@ -38,8 +38,8 @@ jobs:
 
       - name: Wait for Gemini review
         run: |
-          echo "Waiting 5 minutes for Gemini Code Assist to review PR..."
-          sleep 300
+          echo "Waiting 10 minutes for Gemini Code Assist to review PR..."
+          sleep 600
 
       - name: Fetch PR comments and extract Gemini feedback
         id: gemini-feedback
@@ -56,11 +56,11 @@ jobs:
             // Look for Gemini feedback in comments
             let geminiFeedback = '';
             for (const comment of comments) {
-              // Check if comment is from Gemini (adjust bot name as needed)
-              if (comment.user.login.includes('gemini') || 
-                  comment.user.login.includes('code-assist') ||
+              // Check if comment is from Gemini Code Assist
+              if (comment.user.login === 'gemini-code-assist' || 
+                  comment.user.login.includes('gemini-code-assist') ||
                   comment.body.includes('Gemini Code Assist') ||
-                  comment.body.includes('Google AI Code Review')) {
+                  comment.body.includes('@gemini-code-assist')) {
                 geminiFeedback = comment.body;
                 console.log(`Found Gemini feedback from ${comment.user.login}`);
                 break;
