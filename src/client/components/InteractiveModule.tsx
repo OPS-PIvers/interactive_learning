@@ -422,7 +422,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       return null;
     }
 
-    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    const containerRect = scrollableContainerRef.current.getBoundingClientRect();
 
     if (isEditing && actualImageRef.current) {
       // Editor mode: Extract bounds from actual img element but normalize to match viewer calculations
