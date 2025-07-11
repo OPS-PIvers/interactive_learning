@@ -1,0 +1,41 @@
+/* Custom Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Mostly for vertical scrollbars */
+  height: 8px; /* Mostly for horizontal scrollbars */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(100, 116, 139, 0.2); /* slate-500 with opacity */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.7); /* slate-500 with higher opacity */
+  border-radius: 10px;
+  border: 2px solid transparent; /* Creates padding around thumb */
+  background-clip: content-box; /* Makes border transparent */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.9); /* slate-600 with higher opacity */
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.7) rgba(100, 116, 139, 0.2); /* thumb track */
+}
+
+/* Improve contrast for light theme if needed, though current is theme-agnostic */
+/* Example for light theme specific scrollbar (if you wrap InfoPanel or other components with a theme class) */
+/*
+.theme-light .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+}
+.theme-light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.7);
+}
+.theme-light .custom-scrollbar {
+  scrollbar-color: rgba(100, 116, 139, 0.5) rgba(100, 116, 139, 0.1);
+}
+*/
