@@ -101,6 +101,9 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   isPlacingHotspot = false,
   onPlaceNewHotspot,
 }) => {
+  const Z_INDEX_IMAGE_BASE = 10;
+  const Z_INDEX_IMAGE_TRANSFORMED = 15;
+
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
     // FIXED: Never dim hotspots in editing mode - they should always be fully interactive
@@ -122,9 +125,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   // The main click/touch handlers might be on the parent div in InteractiveModule for mobile,
   // so onImageClick, onTouchStart etc. are passed to this specific scrollable/image area
   // if direct interaction is needed here.
-
-  const Z_INDEX_IMAGE_BASE = 10;
-  const Z_INDEX_IMAGE_TRANSFORMED = 15;
 
   return (
     <div
