@@ -20,6 +20,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log all errors caught by the boundary for general debugging
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+
     // Enhanced TDZ error detection
     if (
       error.message.includes('before initialization') ||
