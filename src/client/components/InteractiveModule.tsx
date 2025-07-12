@@ -821,14 +821,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
 
       if (imageFitMode === 'cover') {
-        if (divAspect > imageAspect) {
-          contentHeight = divDimensions.height;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (divDimensions.width - contentWidth) / 2;
-        } else {
+        if (divAspect > imageAspect) { // Container is wider, so fit width and crop height
           contentWidth = divDimensions.width;
           contentHeight = contentWidth / imageAspect;
           contentTop = (divDimensions.height - contentHeight) / 2;
+        } else { // Container is taller, so fit height and crop width
+          contentHeight = divDimensions.height;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (divDimensions.width - contentWidth) / 2;
         }
       } else if (imageFitMode === 'contain') {
         if (divAspect > imageAspect) {
@@ -906,32 +906,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
              baseX: imageBounds.left + baseX, // Still provide this for other potential uses if needed
              baseY: imageBounds.top + baseY
         };
-      } else if (imageContainerRef.current) { // Fallback, less precise for editor
-        const rect = imageContainerRef.current.getBoundingClientRect();
-        editorContainerDimensions = { width: rect.width, height: rect.height };
       }
 
-
-      // Apply transforms if active (This block is complex and might be why editor works by side-effect or is overridden)
-      // This transform logic is more suited if pixelPosition was screen-space and HotspotViewer was a global overlay.
-      // Since HotspotViewer is child of scaled divs, this transform is likely redundant or misapplied for direct CSS.
-      if (currentTransform.scale !== 1 || currentTransform.translateX !== 0 || currentTransform.translateY !== 0) {
-        if (editorContainerDimensions) { // This was `containerDimensions`
-          const centerX = editorContainerDimensions.width / 2;
-          const centerY = editorContainerDimensions.height / 2;
-
-          // This attempts to calculate screen position.
-          positionX = (positionX - centerX) * currentTransform.scale + centerX + currentTransform.translateX;
-          positionY = (positionY - centerY) * currentTransform.scale + centerY + currentTransform.translateY;
-        }
-      }
-
-      return {
-        x: positionX,
-        y: positionY,
-        baseX: imageBounds.left + baseX,
-        baseY: imageBounds.top + baseY
-      };
+      // If the primary `zoomedImageContainerRef` is not available, we cannot reliably calculate
+      // the hotspot position in editor mode. The old fallback logic is complex and
+      // likely misaligned with the current architecture. Returning null is safer.
+      return null;
     }
   }, [isEditing, getSafeImageBounds, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, lastAppliedTransformRef, zoomedImageContainerRef, imageContainerRef]);
 
