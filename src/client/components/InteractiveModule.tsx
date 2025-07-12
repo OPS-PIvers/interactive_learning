@@ -803,7 +803,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     const imageBounds = getSafeImageBounds(); // Common for both, but interpretation differs.
                                           // For viewer, imageBounds.width/height IS contentWidth/Height.
                                           // For editor, it's also contentWidth/Height of the <img>.
-    if (!imageNaturalDimensions || !imageBounds) return null;
+    if (!imageNaturalDimensions || !imageBounds || imageBounds.width === 0 || imageBounds.height === 0) return null;
 
     if (!isEditing) {
       // VIEWER MODE:
