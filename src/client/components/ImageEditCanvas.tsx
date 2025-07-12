@@ -6,11 +6,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import PanZoomPreviewOverlay from './PanZoomPreviewOverlay';
 import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
-
-// Z_INDEX might be needed if it was used for z-ordering within this canvas part
-// For now, assuming styles are self-contained or passed via classNames.
-// const Z_INDEX = { IMAGE_TRANSFORMED: 15, IMAGE_BASE: 10, HOTSPOTS: 20 };
-
+import { Z_INDEX } from '../utils/styleConstants';
 
 interface ImageEditCanvasProps {
   backgroundImage: string | undefined;
@@ -101,9 +97,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   isPlacingHotspot = false,
   onPlaceNewHotspot,
 }) => {
-  const Z_INDEX_IMAGE_BASE = 10;
-  const Z_INDEX_IMAGE_TRANSFORMED = 15;
-
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
     // FIXED: Never dim hotspots in editing mode - they should always be fully interactive
@@ -199,7 +192,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           }`}
         style={{
           // Cursor styling is now handled by the parent scrollableContainerRef
-          zIndex: Z_INDEX_IMAGE_BASE
+          zIndex: Z_INDEX.IMAGE_BASE
         }}
           // For mobile, the click is handled by the parent div in InteractiveModule which then calls onImageOrHotspotClick.
           // For desktop, the click is handled by the scrollableContainerRef above.
@@ -216,7 +209,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               transformOrigin: 'center',
               transition: 'transform 0.2s ease-out',
               // zIndex for desktop, mobile canvas is simpler
-              zIndex: !isMobile && editingZoom > 1 ? Z_INDEX_IMAGE_TRANSFORMED : Z_INDEX_IMAGE_BASE,
+              zIndex: !isMobile && editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
             }}
           >
             <img
