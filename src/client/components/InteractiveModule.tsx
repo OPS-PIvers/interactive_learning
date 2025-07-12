@@ -18,6 +18,7 @@ import MobileEditorLayout from './MobileEditorLayout';
 import ImageEditCanvas from './ImageEditCanvas';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
+import { Z_INDEX } from '../utils/styleConstants';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import MediaModal from './MediaModal';
@@ -36,18 +37,6 @@ const extractYouTubeVideoId = (url: string): string | null => {
 };
 
 // Using default memo export from HotspotViewer
-
-// Z-index layer management
-const Z_INDEX = {
-  IMAGE_BASE: 10,
-  IMAGE_TRANSFORMED: 15,
-  HOTSPOTS: 20,
-  INFO_PANEL: 30,
-  TIMELINE: 40,
-  TOOLBAR: 50,
-  MODAL: 60,
-  DEBUG: 100
-} as const;
 
 // Error boundary for positioning failures
 const safeGetPosition = <T extends any>(
