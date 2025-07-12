@@ -3096,6 +3096,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           onClose={closeMediaModal}
           title={mediaModal.title}
           size="large"
+          disableTouch={mediaModal.type === 'image'}
         >
           {mediaModal.type === 'video' && mediaModal.data && (
             <VideoPlayer
