@@ -254,7 +254,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 style={{
                   touchAction: isMobile ? 'none' : 'auto', // Better mobile drag performance
                   pointerEvents: 'auto', // Ensure pointer events are enabled
-                  position: 'relative', // Ensure proper positioning context
                   zIndex: isEditing ? 1000 : 100 // Higher z-index in editing mode for better interaction
                 }}
               >
