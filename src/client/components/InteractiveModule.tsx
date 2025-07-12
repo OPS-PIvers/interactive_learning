@@ -807,48 +807,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     if (!isEditing) {
       // VIEWER MODE:
-      // Calculate pixel positions relative to scaledImageDivRef.
-      // The transform on scaledImageDivRef will then position them correctly.
+      // The `imageBounds` from `getSafeImageBounds` already gives us the visual size and position
+      // of the image content within the main container. We can use this directly.
 
-      // 1. Get dimensions of scaledImageDivRef (the container for hotspots in viewer)
-      const divDimensions = getScaledImageDivDimensions();
-      if (!divDimensions || divDimensions.width === 0 || divDimensions.height === 0) return null;
+      // Calculate hotspot's pixel position relative to the image's content area (imageBounds)
+      const hotspotX_on_image = (hotspot.x / 100) * imageBounds.width;
+      const hotspotY_on_image = (hotspot.y / 100) * imageBounds.height;
 
-      // 2. Calculate image content dimensions and offsets *within* scaledImageDivRef
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-      const divAspect = divDimensions.width / divDimensions.height;
-
-      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
-
-      if (imageFitMode === 'cover') {
-        if (divAspect > imageAspect) { // Container is wider, so fit width and crop height
-          contentWidth = divDimensions.width;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (divDimensions.height - contentHeight) / 2;
-        } else { // Container is taller, so fit height and crop width
-          contentHeight = divDimensions.height;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (divDimensions.width - contentWidth) / 2;
-        }
-      } else if (imageFitMode === 'contain') {
-        if (divAspect > imageAspect) {
-          contentHeight = divDimensions.height;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (divDimensions.width - contentWidth) / 2;
-        } else {
-          contentWidth = divDimensions.width;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (divDimensions.height - contentHeight) / 2;
-        }
-      } else { // fill
-        contentWidth = divDimensions.width;
-        contentHeight = divDimensions.height;
-        // contentLeft & contentTop remain 0
-      }
-
-      // 3. Calculate hotspot position relative to scaledImageDivRef's top-left
-      const finalX = contentLeft + (hotspot.x / 100) * contentWidth;
-      const finalY = contentTop + (hotspot.y / 100) * contentHeight;
+      // The final position for the hotspot div should be relative to the `scaledImageDivRef`,
+      // which is the parent of the hotspots. `imageBounds.left` and `imageBounds.top` are the offsets
+      // of the visible image content from the top-left of the `scaledImageDivRef`.
+      const finalX = imageBounds.left + hotspotX_on_image;
+      const finalY = imageBounds.top + hotspotY_on_image;
 
       // The baseX/Y for centering calculations needs to be relative to the overall imageContainerRef,
       // which is what imageBounds (from getSafeImageBounds) provides.
