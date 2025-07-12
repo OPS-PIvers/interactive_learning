@@ -18,7 +18,7 @@ import MobileEditorLayout from './MobileEditorLayout';
 import ImageEditCanvas from './ImageEditCanvas';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
-import { Z_INDEX } from '../utils/styleConstants';
+import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import MediaModal from './MediaModal';
@@ -172,6 +172,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   autoStart = false,
   onReloadRequest
 }) => {
+
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
@@ -201,78 +202,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [errorLog, setErrorLog] = useState<Array<{ timestamp: number; error: string; context: string }>>([]);
   const errorLogRef = useRef<Array<{ timestamp: number; error: string; context: string }>>([]);
 
-  // Comprehensive error boundary function
-  const logError = useCallback((error: Error | string, context: string) => {
-    const errorEntry = {
-      timestamp: Date.now(),
-      error: typeof error === 'string' ? error : error.message,
-      context
-    };
-    
-    // Log to console for debugging
-    console.error(`[InteractiveModule] ${context}:`, error);
-    
-    // Add to error log (keep only last 10 errors)
-    errorLogRef.current = [...errorLogRef.current.slice(-9), errorEntry];
-    setErrorLog(errorLogRef.current);
-  }, []);
-
-  // Enhanced safe execution wrapper with error tracking
-  const safeExecuteWithLogging = useCallback(<T,>(
-    operation: () => T,
-    fallback: T,
-    context: string
-  ): T => {
-    try {
-      const result = operation();
-      if (result === null || result === undefined) {
-        logError(`Operation returned null/undefined`, context);
-        return fallback;
-      }
-      return result;
-    } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), context);
-      return fallback;
-    }
-  }, [logError]);
-
-  // Function initialization validator
-  const validateFunctionInitialization = useCallback((functionName: string, fn: any) => {
-    if (typeof fn !== 'function') {
-      logError(`Function ${functionName} is not initialized or not a function`, 'Function Validation');
-      return false;
-    }
-    return true;
-  }, [logError]);
-
-  // Comprehensive cleanup function for all async operations
-  const clearAllTimeouts = useCallback(() => {
-    const timeoutRefs = [
-      successMessageTimeoutRef,
-      pulseTimeoutRef,
-      applyTransformTimeoutRef,
-      closeTimeoutRef,
-      animationTimeoutRef,
-      initTimeoutRef,
-      stateChangeTimeoutRef,
-      saveAnimationTimeoutRef
-    ];
-
-    timeoutRefs.forEach(ref => {
-      if (ref.current) {
-        clearTimeout(ref.current);
-        ref.current = null;
-      }
-    });
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      clearAllTimeouts();
-    };
-  }, [clearAllTimeouts]);
-  
   // All timeout refs - consolidated at top to avoid temporal dead zone issues
   const successMessageTimeoutRef = useRef<number | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
@@ -361,6 +290,77 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useEffect(() => {
     console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
   }, [previewOverlayEvent]);
+
+  // Comprehensive error boundary function
+  const logError = useCallback((error: Error | string, context: string) => {
+    const errorEntry = {
+      timestamp: Date.now(),
+      error: typeof error === 'string' ? error : error.message,
+      context
+    };
+
+    // Log to console for debugging
+    console.error(`[InteractiveModule] ${context}:`, error);
+
+    // Add to error log (keep only last 10 errors)
+    errorLogRef.current = [...errorLogRef.current.slice(-9), errorEntry];
+    setErrorLog(errorLogRef.current);
+  }, []);
+
+  // Enhanced safe execution wrapper with error tracking
+  const safeExecuteWithLogging = useCallback(<T,>(
+    operation: () => T,
+    fallback: T,
+    context: string
+  ): T => {
+    try {
+      const result = operation();
+      if (result === null || result === undefined) {
+        logError(`Operation returned null/undefined`, context);
+        return fallback;
+      }
+      return result;
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error(String(error)), context);
+      return fallback;
+    }
+  }, [logError]);
+
+  // Function initialization validator
+  const validateFunctionInitialization = useCallback((functionName: string, fn: any) => {
+    if (typeof fn !== 'function') {
+      logError(`Function ${functionName} is not initialized or not a function`, 'Function Validation');
+      return false;
+    }
+    return true;
+  }, [logError]);
+
+  // Comprehensive cleanup function for all async operations
+  const clearAllTimeouts = useCallback(() => {
+    const timeoutRefs = [
+      successMessageTimeoutRef,
+      pulseTimeoutRef,
+      applyTransformTimeoutRef,
+      closeTimeoutRef,
+      animationTimeoutRef,
+      initTimeoutRef,
+      stateChangeTimeoutRef,
+      saveAnimationTimeoutRef
+    ];
+
+    timeoutRefs.forEach(ref => {
+      if (ref.current) {
+        clearTimeout(ref.current);
+        ref.current = null;
+      }
+    });
+  }, []);
+
+  const uniqueSortedSteps = useMemo(() => {
+    if (timelineEvents.length === 0) return isEditing ? [1] : [];
+    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+    return steps.length > 0 ? steps : (isEditing ? [1] : []);
+  }, [timelineEvents, isEditing]);
   
   // Helper functions moved before calculateOptimalImageScale to fix temporal dead zone errors
   const getScaledImageDivDimensions = useCallback(() => {
@@ -408,12 +408,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     return { width: contentWidth, height: contentHeight };
 
   }, [isMobile, imageNaturalDimensions, uniqueSortedSteps.length, imageFitMode]);
-
-  const uniqueSortedSteps = useMemo(() => {
-    if (timelineEvents.length === 0) return isEditing ? [1] : [];
-    const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    return steps.length > 0 ? steps : (isEditing ? [1] : []);
-  }, [timelineEvents, isEditing]);
 
   // Unified helper to calculate image content bounds for both editor and viewer modes
   const getImageBounds = useCallback(() => {
@@ -570,43 +564,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // No scaling needed - return current values
     return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
   }, [isMobile, getSafeImageBounds, getScaledImageDivDimensions]);
-
-  // Auto-adjust image scale when editor panel opens/closes
-  const previousPanelStateRef = useRef<boolean>(isHotspotModalOpen);
-  useEffect(() => {
-    const panelWasOpen = previousPanelStateRef.current;
-    const panelIsNowOpen = isHotspotModalOpen;
-    
-    // Only adjust if panel state actually changed
-    if (panelWasOpen !== panelIsNowOpen && !isMobile) {
-      const optimalTransform = calculateOptimalImageScale(
-        imageTransform.scale,
-        imageTransform.translateX,
-        imageTransform.translateY,
-        panelIsNowOpen
-      );
-      
-      // Apply the optimal transform if it's different from current
-      if (optimalTransform.scale !== imageTransform.scale ||
-          Math.abs(optimalTransform.translateX - imageTransform.translateX) > 1 ||
-          Math.abs(optimalTransform.translateY - imageTransform.translateY) > 1) {
-        setIsTransforming(true);
-        setImageTransform(optimalTransform);
-        
-        // End transformation after animation completes
-        if (stateChangeTimeoutRef.current) {
-          clearTimeout(stateChangeTimeoutRef.current);
-        }
-        stateChangeTimeoutRef.current = window.setTimeout(() => {
-          setIsTransforming(false);
-          stateChangeTimeoutRef.current = null;
-        }, 500);
-      }
-    }
-    
-    // Update the previous state ref
-    previousPanelStateRef.current = panelIsNowOpen;
-  }, [isHotspotModalOpen, isMobile, imageTransform, setImageTransform, setIsTransforming, calculateOptimalImageScale]);
   
   // Handle preview overlay updates
   const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
@@ -1010,70 +967,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Interaction parameter states
 
-  useEffect(() => {
-    if (!imageContainerRef.current) return;
-
-    // Enhanced debounced resize handler to prevent excessive calculations
-    const debouncedHandleResize = throttle(() => {
-      throttledRecalculatePositions();
-      
-      // Only recalculate transform if we're not in the middle of applying one
-      // and if the transform was user-initiated (not timeline-driven)
-      const currentTransform = lastAppliedTransformRef.current;
-      if (!isApplyingTransformRef.current && 
-          currentTransform.scale > 1 && 
-          currentTransform.targetHotspotId &&
-          moduleState === 'idle') { // Only in idle mode for user-initiated zooms
-        
-        // Use a separate timeout to avoid immediate recalculation
-        setTimeout(() => {
-          if (!isApplyingTransformRef.current) {
-            const targetHotspot = hotspots.find(h => h.id === currentTransform.targetHotspotId);
-            if (targetHotspot) {
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-              if (imageBounds && viewportCenter) {
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-                
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-                
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-                
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * currentTransform.scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * currentTransform.scale - divCenterY;
-                
-                // Only update if values have actually changed significantly
-                const threshold = 1; // 1px threshold
-                if (Math.abs(translateX - currentTransform.translateX) > threshold ||
-                    Math.abs(translateY - currentTransform.translateY) > threshold) {
-                  setImageTransform(prev => ({ ...prev, translateX, translateY }));
-                  lastAppliedTransformRef.current = { ...currentTransform, translateX, translateY };
-                }
-              }
-            }
-          }
-        }, 50); // Small delay to let other effects settle
-      }
-    }, 100); // Debounce resize events to prevent excessive calculations
-
-    // Safe initial setup
-    const initialRect = getSafeContainerRect(imageContainerRef);
-    if (initialRect.width > 0 && initialRect.height > 0) {
-      setImageContainerRect(initialRect);
-    }
-    
-    const resizeObserver = new ResizeObserver(debouncedHandleResize);
-    resizeObserver.observe(imageContainerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState, getScaledImageDivDimensions]);
-
   // Define wheel zoom handler before the useEffect that uses it
   const handleWheelZoom = useCallback((event: WheelEvent) => {
     if (!event.ctrlKey || !isEditing) return;
@@ -1164,209 +1057,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, []);
 
-  // Add wheel event listener for Ctrl+scroll zoom
-  useEffect(() => {
-    const container = scrollableContainerRef.current;
-    if (!container || !isEditing) return; // Only add when editing
-
-    // Add event listener with passive: false to allow preventDefault
-    container.addEventListener('wheel', handleWheelZoom, { passive: false });
-    
-    return () => {
-      if (container) {
-        container.removeEventListener('wheel', handleWheelZoom);
-      }
-    };
-  }, [handleWheelZoom, isEditing]);
-
-
-  // Effect to handle viewer mode initialization and ensure proper image display
-  useEffect(() => {
-    if (!isEditing && backgroundImage && moduleState !== 'idle') {
-      // When transitioning to viewer mode, ensure proper container setup
-      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
-      if (container) {
-        // Force a reflow to ensure container has proper dimensions
-        container.offsetHeight;
-        
-        // Clear any cached bounds to force fresh calculation
-        originalImageBoundsRef.current = null;
-        
-        // Recalculate positions after container is ready - staggered for reliability
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        animationTimeoutRef.current = window.setTimeout(() => {
-          throttledRecalculatePositions();
-          animationTimeoutRef.current = null;
-        }, 50);
-        
-        // Additional recalculation for mobile devices with dynamic viewports
-        if (isMobile) {
-          if (stateChangeTimeoutRef.current) {
-            clearTimeout(stateChangeTimeoutRef.current);
-          }
-          stateChangeTimeoutRef.current = window.setTimeout(() => {
-            throttledRecalculatePositions();
-            stateChangeTimeoutRef.current = null;
-          }, 150);
-        }
-      }
-    }
-  }, [isEditing, backgroundImage, moduleState, isMobile, throttledRecalculatePositions]);
-
-  // Effect to recalculate positions when image natural dimensions are loaded
-  useEffect(() => {
-    if (!isEditing && imageNaturalDimensions && backgroundImage) {
-      // Image has loaded and we have dimensions, recalculate positions
-      // Clear bounds cache to ensure fresh calculation with new dimensions
-      originalImageBoundsRef.current = null;
-      
-      if (initTimeoutRef.current) {
-        clearTimeout(initTimeoutRef.current);
-      }
-      initTimeoutRef.current = window.setTimeout(() => {
-        throttledRecalculatePositions();
-        initTimeoutRef.current = null;
-      }, 100);
-      
-      // Additional check for mobile viewport stability
-      if (isMobile) {
-        if (saveAnimationTimeoutRef.current) {
-          clearTimeout(saveAnimationTimeoutRef.current);
-        }
-        saveAnimationTimeoutRef.current = window.setTimeout(() => {
-          // Verify container dimensions are stable before final recalculation
-          const container = viewerImageContainerRef.current;
-          if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
-            throttledRecalculatePositions();
-          }
-          saveAnimationTimeoutRef.current = null;
-        }, 250);
-      }
-    }
-  }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions, isMobile]);
-
-  // Consolidated Initialization useEffect
-  useEffect(() => {
-    let isMounted = true;
-
-    // Prevent re-initialization during mode switches or if already initialized for current data
-    if (isModeSwitching) {
-      debugLog('Init', 'Skipping initialization: mode switching.');
-      return;
-    }
-    // If we consider isInitialized as a guard against re-running for the *same* initialData,
-    // this might be too aggressive if initialData itself changes identity but not content.
-    // However, the dependencies array [initialData, isEditing, isModeSwitching] handles actual data changes.
-    // The primary role of isInitialized here is for the initial "Initializing..." screen.
-
-    debugLog('Init', 'Starting initialization process...', { isEditing, initialDataProvided: !!initialData });
-    if (isMounted) {
-      setInitError(null); // Clear previous errors
-    }
-
-    // Clear any existing timeouts from previous renders or states
-    if (pulseTimeoutRef.current) {
-      clearTimeout(pulseTimeoutRef.current);
-      pulseTimeoutRef.current = null;
-    }
-    if (successMessageTimeoutRef.current) {
-      clearTimeout(successMessageTimeoutRef.current);
-      successMessageTimeoutRef.current = null;
-    }
-    if (applyTransformTimeoutRef.current) {
-      clearTimeout(applyTransformTimeoutRef.current);
-      applyTransformTimeoutRef.current = null;
-    }
-
-    try {
-      setBackgroundImage(initialData.backgroundImage);
-      setBackgroundType(initialData.backgroundType || 'image');
-      setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
-      setHotspots(initialData.hotspots || []);
-      setTimelineEvents(initialData.timelineEvents || []);
-      setImageFitMode(initialData.imageFitMode || 'cover');
-
-      const newInitialModuleState = isEditing ? 'learning' : 'idle';
-      setModuleState(newInitialModuleState);
-
-      const safeTimelineEvents = initialData.timelineEvents || [];
-      const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
-      let initialStepValue = 1; // Default
-      if (newUniqueSortedSteps.length > 0) {
-          // In both 'learning' and 'idle' modes, we want to start at the first available step.
-          // The mode itself will determine if auto-play happens or if it's just the initial selected step.
-          initialStepValue = newUniqueSortedSteps[0];
-      }
-      setCurrentStep(initialStepValue);
-
-      // Reset all other interactive states
-      setActiveHotspotDisplayIds(new Set());
-      setPulsingHotspotId(null);
-      setCurrentMessage(null);
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      setHighlightedHotspotId(null);
-      setExploredHotspotId(null);
-      setExploredHotspotPanZoomActive(false);
-
-      // Clear caches
-      clearImageBoundsCache(); // This sets originalImageBoundsRef.current = null
-      lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-
-      if (isMounted) {
-        setIsInitialized(true);
-        debugLog('Init', 'Initialization complete.');
-      }
-
-    } catch (error) {
-      console.error('Module initialization failed:', error);
-      debugLog('InitError', 'Module initialization failed', error);
-      if (isMounted) {
-        setInitError(error instanceof Error ? error : new Error(String(error)));
-        setIsInitialized(true); // Still mark as initialized to show error UI
-      }
-    }
-
-    // Cleanup for this effect
-    return () => {
-      isMounted = false;
-      debugLog('Init', 'Cleanup function for initialization effect called.');
-      // This cleanup runs when initialData or isEditing changes, or on unmount.
-      // Setting isInitialized to false here would cause "Initializing..." screen to flash
-      // if initialData or isEditing changes. This might be desired if a full re-init feel is wanted.
-      // For now, let's not set isInitialized to false here, as the main purpose is the *initial* load.
-      // Subsequent changes to initialData/isEditing will re-run the effect and reset states appropriately.
-
-      // However, timeouts specific to this effect's lifecycle (if any were started and not cleared above)
-      // should be cleared. Currently, all relevant timeouts are cleared at the start of the effect.
-      // If a new initialData triggers this, we want to ensure old timeouts are gone.
-      if (pulseTimeoutRef.current) {
-        clearTimeout(pulseTimeoutRef.current);
-        pulseTimeoutRef.current = null;
-      }
-      if (successMessageTimeoutRef.current) {
-        clearTimeout(successMessageTimeoutRef.current);
-        successMessageTimeoutRef.current = null;
-      }
-      if (applyTransformTimeoutRef.current) {
-        clearTimeout(applyTransformTimeoutRef.current);
-        applyTransformTimeoutRef.current = null;
-      }
-    };
-  }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, debugLog]); // Added isModeSwitching and debugLog
-
-  // Cleanup for closeTimeoutRef
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // REMOVED Duplicative Initialization useEffect - The new consolidated initialization effect above handles all this logic
-
   const handlePrevStep = useCallback(() => {
     if (moduleState === 'learning') {
       const currentIndex = uniqueSortedSteps.indexOf(currentStep);
@@ -1449,428 +1139,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // REMOVED: Old event execution system replaced with preview overlays
   // The eye icon preview now shows interactive editing overlays instead of executing events
-
-  // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
-  useEffect(() => {
-    // REMOVED Redundant safety check:
-    // React guarantees hooks are defined in order before this effect runs.
-    // if (!handleArrowLeftKey || !handleArrowRightKey || !handleEscapeKey ||
-    //     !handlePlusKey || !handleMinusKey || !handleZeroKey) {
-    //   return;
-    // }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
-      // Don't interfere with input fields
-      if (e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement ||
-          (e.target instanceof HTMLElement && e.target.isContentEditable)
-         ) {
-        return;
-      }
-
-      let preventDefault = false;
-
-      if (e.key === 'ArrowLeft') {
-        preventDefault = handleArrowLeftKey();
-      } else if (e.key === 'ArrowRight') {
-        preventDefault = handleArrowRightKey();
-      } else if (e.key === 'Escape') {
-        preventDefault = handleEscapeKey();
-      } else if (e.key === '+' || e.key === '=') {
-        preventDefault = handlePlusKey(e);
-      } else if (e.key === '-') {
-        preventDefault = handleMinusKey(e);
-      } else if (e.key === '0') {
-        preventDefault = handleZeroKey(e);
-      }
-
-      if (preventDefault) {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [
-    debugLog,
-    handleArrowLeftKey,
-    handleArrowRightKey,
-    handleEscapeKey,
-    handlePlusKey,
-    handleMinusKey,
-    handleZeroKey
-  ]);
-
-
-
-  useEffect(() => {
-    // Add safety checks to prevent temporal dead zone issues
-    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || timelineEvents === null || hotspots === null) {
-      return;
-    }
-    
-    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
-
-    // Removed newActiveHotspotInfoId - using modal now
-    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-
-    if (moduleState === 'learning') {
-      const newActiveDisplayIds = new Set<string>();
-      let newMessage: string | null = null;
-      let newPulsingHotspotId: string | null = null;
-      let newHighlightedHotspotId: string | null = null;
-      
-      const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
-      let stepHasPanZoomEvent = false;
-
-      eventsForCurrentStep.forEach(event => {
-        if (event.targetId) newActiveDisplayIds.add(event.targetId);
-        switch (event.type) {
-          case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
-          case InteractionType.SHOW_HOTSPOT: if (event.targetId) { /* Show in modal instead */ } break;
-          case InteractionType.PULSE_HOTSPOT:
-            if (event.targetId) {
-              newPulsingHotspotId = event.targetId;
-              if (event.duration) {
-                pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
-              }
-            }
-            break;
-          case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-            stepHasPanZoomEvent = true;
-            if (event.targetId) {
-              const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              // Ensure hotspotsWithPositions is used if available, otherwise find in hotspots
-              // const targetHotspot = hotspotsWithPositions.find(h => h.id === event.targetId) || hotspots.find(h => h.id === event.targetId);
-
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-
-              if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomFactor || 2;
-
-                // Calculate hotspot position on the unscaled image, relative to imageBounds content area
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-
-                // Calculate translation to center the hotspot
-                // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
-                // The hotspot's scaled position without additional translation would be:
-                // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
-                // OR more simply, if thinking about the image content itself:
-                // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
-                // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
-                // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
-
-                // The CSS transform `translate(tx, ty) scale(s)` on a div means:
-                // screenX = divOriginalScreenX * s + tx
-                // screenY = divOriginalScreenY * s + ty
-                // If the div has `transform-origin: center center`, it's more complex.
-                // The `scaledImageDivRef` has `transform-origin: center`.
-
-                // Let's use the formula from the issue, as it's specified.
-                // It calculates translateX/Y such that when the `scaledImageDivRef` is translated and scaled,
-                // the specific hotspot point (hotspotX, hotspotY, which is relative to image content origin)
-                // lands on viewportCenter.
-                // The `imageBounds.left` and `imageBounds.top` are the offsets of the image content
-                // *within* the `scaledImageDivRef` before the main `imageTransform` is applied.
-                // So, if the `scaledImageDivRef` itself is at (0,0) in the container,
-                // the image content origin is at `(imageBounds.left, imageBounds.top)`.
-                // A point `(hotspotX, hotspotY)` on the image content is at
-                // `(imageBounds.left + hotspotX, imageBounds.top + hotspotY)` relative to `scaledImageDivRef` origin.
-                // After scaling this by `scale` (around `scaledImageDivRef`'s origin, which is `center`),
-                // and then translating by `translateX, translateY`:
-                // target_on_screen_X = ( (imageBounds.left + hotspotX) - divCenterX) * scale + divCenterX + translateX
-                // target_on_screen_Y = ( (imageBounds.top + hotspotY) - divCenterY) * scale + divCenterY + translateY
-                // We want target_on_screen_X = viewportCenter.centerX
-                
-                // Calculate translation for center-origin transform
-                // With transform-origin: center, we need to account for the div's center point
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-                
-                // For center-origin scaling, the transform formula is:
-                // final_position = (original_position - center) * scale + center + translate
-                // We want: hotspot_final_position = viewportCenter
-                // So: translate = viewportCenter - ((hotspot_original - center) * scale + center)
-                // Simplifying: translate = viewportCenter - (hotspot_original - center) * scale - center
-                
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-                
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
-                
-                let newTransform: ImageTransformState = {
-                  scale,
-                  translateX,
-                  translateY,
-                  targetHotspotId: event.targetId
-                };
-
-                newTransform = constrainTransform(newTransform);
-
-                newImageTransform = newTransform;
-              } else if (targetHotspot) { // imageBounds or viewportCenter might be null
-                  // Fallback or error? For now, do nothing if critical info is missing.
-                  // Or reset? The default is to reset if no pan/zoom event.
-              }
-            }
-            break;
-          case InteractionType.HIGHLIGHT_HOTSPOT:
-            if (event.targetId) { newHighlightedHotspotId = event.targetId; }
-            break;
-          case InteractionType.SHOW_TEXT:
-            if (event.textContent) {
-              newMessage = event.textContent;
-            }
-            break;
-          case InteractionType.SHOW_IMAGE:
-            if (event.imageUrl) {
-              // For now, show image URL as message - could be enhanced with modal
-              newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
-            }
-            break;
-          case InteractionType.PAN_ZOOM:
-            if (event.targetId) {
-              stepHasPanZoomEvent = true;
-              const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-
-              if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomLevel || 2;
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-                
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-                
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
-                
-                let newTransform: ImageTransformState = {
-                  scale,
-                  translateX,
-                  translateY,
-                  targetHotspotId: event.targetId
-                };
-
-                newTransform = constrainTransform(newTransform);
-                newImageTransform = newTransform;
-              }
-            }
-            break;
-          case InteractionType.SPOTLIGHT:
-            if (event.targetId) { 
-              newHighlightedHotspotId = event.targetId; 
-              // Could be enhanced with intensity and radius parameters
-            }
-            break;
-          case InteractionType.QUIZ:
-            if (event.quizQuestion) {
-              newMessage = `Quiz: ${event.quizQuestion}`;
-              // Could be enhanced with modal for quiz interaction
-            }
-            break;
-          case InteractionType.PULSE_HIGHLIGHT:
-            if (event.targetId) {
-              newPulsingHotspotId = event.targetId;
-              newHighlightedHotspotId = event.targetId;
-              if (event.duration) {
-                pulseTimeoutRef.current = window.setTimeout(() => {
-                  setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId);
-                  setHighlightedHotspotId(prevId => prevId === event.targetId ? null : prevId);
-                }, event.duration);
-              }
-            }
-            break;
-          case InteractionType.PLAY_AUDIO:
-            if (event.audioUrl) {
-              // Basic audio playback - could be enhanced with volume control
-              const audio = new Audio(event.audioUrl);
-              if (event.volume !== undefined) {
-                audio.volume = Math.max(0, Math.min(1, event.volume / 100));
-              }
-              audio.play().catch(error => console.warn('Audio playback failed:', error));
-            }
-            break;
-          case InteractionType.SHOW_VIDEO:
-            if (event.videoUrl) {
-              showMediaModal('video', event.name || 'Video', {
-                src: event.videoUrl,
-                poster: event.poster,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
-              });
-            }
-            break;
-          case InteractionType.SHOW_AUDIO_MODAL:
-            if (event.audioUrl) {
-              showMediaModal('audio', event.name || 'Audio', {
-                src: event.audioUrl,
-                title: event.textContent,
-                artist: event.artist,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
-              });
-            }
-            break;
-          case InteractionType.SHOW_IMAGE_MODAL:
-            if (event.imageUrl) {
-              showMediaModal('image', event.name || 'Image', {
-                src: event.imageUrl,
-                alt: event.caption || '',
-                title: event.textContent,
-                caption: event.caption
-              });
-            }
-            break;
-          case InteractionType.SHOW_YOUTUBE:
-            if (event.youtubeVideoId) {
-              showMediaModal('youtube', event.name || 'YouTube Video', {
-                videoId: event.youtubeVideoId,
-                startTime: event.youtubeStartTime,
-                endTime: event.youtubeEndTime,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
-              });
-            }
-            break;
-        }
-      });
-
-      if (!stepHasPanZoomEvent && (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0)) {
-        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-      }
-
-      eventsForCurrentStep.forEach(event => {
-        if (event.type === InteractionType.HIDE_HOTSPOT && event.targetId) {
-          newActiveDisplayIds.delete(event.targetId);
-          if (newPulsingHotspotId === event.targetId) newPulsingHotspotId = null;
-          if (newHighlightedHotspotId === event.targetId) newHighlightedHotspotId = null;
-          if (newImageTransform.targetHotspotId === event.targetId) newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-          // Remove info display - using modal now
-        }
-      });
-      
-      setActiveHotspotDisplayIds(newActiveDisplayIds);
-      setCurrentMessage(newMessage);
-      setPulsingHotspotId(newPulsingHotspotId);
-      setHighlightedHotspotId(newHighlightedHotspotId);
-    
-    } else if (moduleState === 'idle' && !isEditing) {
-      setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id))); 
-      setCurrentMessage(null);
-      setPulsingHotspotId(null); 
-      setHighlightedHotspotId(null);
-
-      let transformToApply: ImageTransformState;
-
-      if (exploredHotspotId && exploredHotspotPanZoomActive) {
-        const hotspot = hotspots.find(h => h.id === exploredHotspotId);
-        // Attempt to find a PAN_ZOOM_TO_HOTSPOT event. If not found, PAN_ZOOM could also be used.
-        const panZoomEvent = timelineEvents
-          .filter(e => e.targetId === exploredHotspotId &&
-                       (e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.PAN_ZOOM))
-          .sort((a, b) => a.step - b.step)[0];
-
-        if (hotspot && panZoomEvent) {
-          const imageBounds = getSafeImageBounds();
-          const viewportCenter = getSafeViewportCenter();
-
-          if (imageBounds && viewportCenter) {
-            const scale = panZoomEvent.zoomFactor || (panZoomEvent.type === InteractionType.PAN_ZOOM ? panZoomEvent.zoomLevel : undefined) || 2;
-            const hotspotX = (hotspot.x / 100) * imageBounds.width;
-            const hotspotY = (hotspot.y / 100) * imageBounds.height;
-            
-            const divDimensions = getScaledImageDivDimensions();
-            const divCenterX = divDimensions.width / 2;
-            const divCenterY = divDimensions.height / 2;
-            
-            const hotspotOriginalX = imageBounds.left + hotspotX;
-            const hotspotOriginalY = imageBounds.top + hotspotY;
-            
-            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
-            
-            transformToApply = {
-              scale,
-              translateX,
-              translateY,
-              targetHotspotId: hotspot.id
-            };
-          } else {
-            // Fallback if imageBounds or viewportCenter is null
-            transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-          }
-        } else {
-          // Fallback if hotspot or its panZoomEvent is not found (e.g. hotspot exists but no zoom event for it)
-          // This means exploredHotspotPanZoomActive might have been true based on a generic PAN_ZOOM,
-          // but we still want to reset if specific parameters for it are missing.
-          // Or, if exploredHotspotPanZoomActive was true but the event is somehow missing now.
-          transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-        }
-      } else {
-        // This covers:
-        // 1. exploredHotspotId is null (initial 'idle' state, or background click)
-        // 2. exploredHotspotId is set, but exploredHotspotPanZoomActive is false (hotspot has no pan/zoom event)
-        transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
-      }
-
-      newImageTransform = constrainTransform(transformToApply);
-
-    } else {
-      // This block executes if moduleState is not 'learning' and not ('idle' AND '!isEditing').
-      // This typically means isEditing is true, or some other unexpected state.
-      // Default behavior here is to reset if a transform is active.
-      if (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0) {
-        const resetTransform = {
-          scale: 1,
-          translateX: 0,
-          translateY: 0,
-          targetHotspotId: undefined
-        };
-        newImageTransform = constrainTransform(resetTransform);
-      } else {
-        // If current transform is already default, keep it.
-        newImageTransform = lastAppliedTransformRef.current;
-      }
-    }
-    // Apply the determined transform at the end, only if it has actually changed
-    const currentTransform = lastAppliedTransformRef.current;
-    if (newImageTransform.scale !== currentTransform.scale ||
-        Math.abs(newImageTransform.translateX - currentTransform.translateX) > 1 ||
-        Math.abs(newImageTransform.translateY - currentTransform.translateY) > 1 ||
-        newImageTransform.targetHotspotId !== currentTransform.targetHotspotId) {
-      
-      lastAppliedTransformRef.current = newImageTransform;
-      applyTransform(newImageTransform);
-    }
-    
-    return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
-
-  // Debug effect to track transform changes and detect loops
-  useEffect(() => {
-    if (debugMode) {
-      debugLog('Transform State', 'Transform changed', {
-        scale: imageTransform.scale,
-        translateX: imageTransform.translateX.toFixed(2),
-        translateY: imageTransform.translateY.toFixed(2),
-        targetHotspotId: imageTransform.targetHotspotId,
-        stack: new Error().stack?.split('\n').slice(1, 4)
-      });
-    }
-  }, [imageTransform, debugMode, debugLog]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     if (isEditing) {
@@ -2511,6 +1779,739 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // States that are only being reset via batchedSetState do not need to be listed as deps
     // unless their current value is read for some logic within this callback before being reset.
   ]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts();
+    };
+  }, [clearAllTimeouts]);
+
+  // Auto-adjust image scale when editor panel opens/closes
+  const previousPanelStateRef = useRef<boolean>(isHotspotModalOpen);
+  useEffect(() => {
+    const panelWasOpen = previousPanelStateRef.current;
+    const panelIsNowOpen = isHotspotModalOpen;
+
+    // Only adjust if panel state actually changed
+    if (panelWasOpen !== panelIsNowOpen && !isMobile) {
+      const optimalTransform = calculateOptimalImageScale(
+        imageTransform.scale,
+        imageTransform.translateX,
+        imageTransform.translateY,
+        panelIsNowOpen
+      );
+
+      // Apply the optimal transform if it's different from current
+      if (optimalTransform.scale !== imageTransform.scale ||
+          Math.abs(optimalTransform.translateX - imageTransform.translateX) > 1 ||
+          Math.abs(optimalTransform.translateY - imageTransform.translateY) > 1) {
+        setIsTransforming(true);
+        setImageTransform(optimalTransform);
+
+        // End transformation after animation completes
+        if (stateChangeTimeoutRef.current) {
+          clearTimeout(stateChangeTimeoutRef.current);
+        }
+        stateChangeTimeoutRef.current = window.setTimeout(() => {
+          setIsTransforming(false);
+          stateChangeTimeoutRef.current = null;
+        }, 500);
+      }
+    }
+
+    // Update the previous state ref
+    previousPanelStateRef.current = panelIsNowOpen;
+  }, [isHotspotModalOpen, isMobile, imageTransform, setImageTransform, setIsTransforming, calculateOptimalImageScale]);
+
+  useEffect(() => {
+    if (!imageContainerRef.current) return;
+
+    // Enhanced debounced resize handler to prevent excessive calculations
+    const debouncedHandleResize = throttle(() => {
+      throttledRecalculatePositions();
+
+      // Only recalculate transform if we're not in the middle of applying one
+      // and if the transform was user-initiated (not timeline-driven)
+      const currentTransform = lastAppliedTransformRef.current;
+      if (!isApplyingTransformRef.current &&
+          currentTransform.scale > 1 &&
+          currentTransform.targetHotspotId &&
+          moduleState === 'idle') { // Only in idle mode for user-initiated zooms
+
+        // Use a separate timeout to avoid immediate recalculation
+        setTimeout(() => {
+          if (!isApplyingTransformRef.current) {
+            const targetHotspot = hotspots.find(h => h.id === currentTransform.targetHotspotId);
+            if (targetHotspot) {
+              const imageBounds = getSafeImageBounds();
+              const viewportCenter = getSafeViewportCenter();
+              if (imageBounds && viewportCenter) {
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * currentTransform.scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * currentTransform.scale - divCenterY;
+
+                // Only update if values have actually changed significantly
+                const threshold = 1; // 1px threshold
+                if (Math.abs(translateX - currentTransform.translateX) > threshold ||
+                    Math.abs(translateY - currentTransform.translateY) > threshold) {
+                  setImageTransform(prev => ({ ...prev, translateX, translateY }));
+                  lastAppliedTransformRef.current = { ...currentTransform, translateX, translateY };
+                }
+              }
+            }
+          }
+        }, 50); // Small delay to let other effects settle
+      }
+    }, 100); // Debounce resize events to prevent excessive calculations
+
+    // Safe initial setup
+    const initialRect = getSafeContainerRect(imageContainerRef);
+    if (initialRect.width > 0 && initialRect.height > 0) {
+      setImageContainerRect(initialRect);
+    }
+
+    const resizeObserver = new ResizeObserver(debouncedHandleResize);
+    resizeObserver.observe(imageContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState, getScaledImageDivDimensions]);
+
+  // Add wheel event listener for Ctrl+scroll zoom
+  useEffect(() => {
+    const container = scrollableContainerRef.current;
+    if (!container || !isEditing) return; // Only add when editing
+
+    // Add event listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleWheelZoom, { passive: false });
+
+    return () => {
+      if (container) {
+        container.removeEventListener('wheel', handleWheelZoom);
+      }
+    };
+  }, [handleWheelZoom, isEditing]);
+
+
+  // Effect to handle viewer mode initialization and ensure proper image display
+  useEffect(() => {
+    if (!isEditing && backgroundImage && moduleState !== 'idle') {
+      // When transitioning to viewer mode, ensure proper container setup
+      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
+      if (container) {
+        // Force a reflow to ensure container has proper dimensions
+        container.offsetHeight;
+
+        // Clear any cached bounds to force fresh calculation
+        originalImageBoundsRef.current = null;
+
+        // Recalculate positions after container is ready - staggered for reliability
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
+        }
+        animationTimeoutRef.current = window.setTimeout(() => {
+          throttledRecalculatePositions();
+          animationTimeoutRef.current = null;
+        }, 50);
+
+        // Additional recalculation for mobile devices with dynamic viewports
+        if (isMobile) {
+          if (stateChangeTimeoutRef.current) {
+            clearTimeout(stateChangeTimeoutRef.current);
+          }
+          stateChangeTimeoutRef.current = window.setTimeout(() => {
+            throttledRecalculatePositions();
+            stateChangeTimeoutRef.current = null;
+          }, 150);
+        }
+      }
+    }
+  }, [isEditing, backgroundImage, moduleState, isMobile, throttledRecalculatePositions]);
+
+  // Effect to recalculate positions when image natural dimensions are loaded
+  useEffect(() => {
+    if (!isEditing && imageNaturalDimensions && backgroundImage) {
+      // Image has loaded and we have dimensions, recalculate positions
+      // Clear bounds cache to ensure fresh calculation with new dimensions
+      originalImageBoundsRef.current = null;
+
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      initTimeoutRef.current = window.setTimeout(() => {
+        throttledRecalculatePositions();
+        initTimeoutRef.current = null;
+      }, 100);
+
+      // Additional check for mobile viewport stability
+      if (isMobile) {
+        if (saveAnimationTimeoutRef.current) {
+          clearTimeout(saveAnimationTimeoutRef.current);
+        }
+        saveAnimationTimeoutRef.current = window.setTimeout(() => {
+          // Verify container dimensions are stable before final recalculation
+          const container = viewerImageContainerRef.current;
+          if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
+            throttledRecalculatePositions();
+          }
+          saveAnimationTimeoutRef.current = null;
+        }, 250);
+      }
+    }
+  }, [isEditing, imageNaturalDimensions, backgroundImage, throttledRecalculatePositions, isMobile]);
+
+  // Consolidated Initialization useEffect
+  useEffect(() => {
+    let isMounted = true;
+
+    // Prevent re-initialization during mode switches or if already initialized for current data
+    if (isModeSwitching) {
+      debugLog('Init', 'Skipping initialization: mode switching.');
+      return;
+    }
+    // If we consider isInitialized as a guard against re-running for the *same* initialData,
+    // this might be too aggressive if initialData itself changes identity but not content.
+    // However, the dependencies array [initialData, isEditing, isModeSwitching] handles actual data changes.
+    // The primary role of isInitialized here is for the initial "Initializing..." screen.
+
+    debugLog('Init', 'Starting initialization process...', { isEditing, initialDataProvided: !!initialData });
+    if (isMounted) {
+      setInitError(null); // Clear previous errors
+    }
+
+    // Clear any existing timeouts from previous renders or states
+    if (pulseTimeoutRef.current) {
+      clearTimeout(pulseTimeoutRef.current);
+      pulseTimeoutRef.current = null;
+    }
+    if (successMessageTimeoutRef.current) {
+      clearTimeout(successMessageTimeoutRef.current);
+      successMessageTimeoutRef.current = null;
+    }
+    if (applyTransformTimeoutRef.current) {
+      clearTimeout(applyTransformTimeoutRef.current);
+      applyTransformTimeoutRef.current = null;
+    }
+
+    try {
+      setBackgroundImage(initialData.backgroundImage);
+      setBackgroundType(initialData.backgroundType || 'image');
+      setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
+      setHotspots(initialData.hotspots || []);
+      setTimelineEvents(initialData.timelineEvents || []);
+      setImageFitMode(initialData.imageFitMode || 'cover');
+
+      const newInitialModuleState = isEditing ? 'learning' : 'idle';
+      setModuleState(newInitialModuleState);
+
+      const safeTimelineEvents = initialData.timelineEvents || [];
+      const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
+      let initialStepValue = 1; // Default
+      if (newUniqueSortedSteps.length > 0) {
+          // In both 'learning' and 'idle' modes, we want to start at the first available step.
+          // The mode itself will determine if auto-play happens or if it's just the initial selected step.
+          initialStepValue = newUniqueSortedSteps[0];
+      }
+      setCurrentStep(initialStepValue);
+
+      // Reset all other interactive states
+      setActiveHotspotDisplayIds(new Set());
+      setPulsingHotspotId(null);
+      setCurrentMessage(null);
+      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      setHighlightedHotspotId(null);
+      setExploredHotspotId(null);
+      setExploredHotspotPanZoomActive(false);
+
+      // Clear caches
+      clearImageBoundsCache(); // This sets originalImageBoundsRef.current = null
+      lastAppliedTransformRef.current = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+
+      if (isMounted) {
+        setIsInitialized(true);
+        debugLog('Init', 'Initialization complete.');
+      }
+
+    } catch (error) {
+      console.error('Module initialization failed:', error);
+      debugLog('InitError', 'Module initialization failed', error);
+      if (isMounted) {
+        setInitError(error instanceof Error ? error : new Error(String(error)));
+        setIsInitialized(true); // Still mark as initialized to show error UI
+      }
+    }
+
+    // Cleanup for this effect
+    return () => {
+      isMounted = false;
+      debugLog('Init', 'Cleanup function for initialization effect called.');
+      // This cleanup runs when initialData or isEditing changes, or on unmount.
+      // Setting isInitialized to false here would cause "Initializing..." screen to flash
+      // if initialData or isEditing changes. This might be desired if a full re-init feel is wanted.
+      // For now, let's not set isInitialized to false here, as the main purpose is the *initial* load.
+      // Subsequent changes to initialData/isEditing will re-run the effect and reset states appropriately.
+
+      // However, timeouts specific to this effect's lifecycle (if any were started and not cleared above)
+      // should be cleared. Currently, all relevant timeouts are cleared at the start of the effect.
+      // If a new initialData triggers this, we want to ensure old timeouts are gone.
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+        pulseTimeoutRef.current = null;
+      }
+      if (successMessageTimeoutRef.current) {
+        clearTimeout(successMessageTimeoutRef.current);
+        successMessageTimeoutRef.current = null;
+      }
+      if (applyTransformTimeoutRef.current) {
+        clearTimeout(applyTransformTimeoutRef.current);
+        applyTransformTimeoutRef.current = null;
+      }
+    };
+  }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, debugLog]); // Added isModeSwitching and debugLog
+
+  // Cleanup for closeTimeoutRef
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // REMOVED Duplicative Initialization useEffect - The new consolidated initialization effect above handles all this logic
+
+  // Consider refactoring handleKeyDown into smaller, modular functions for each shortcut
+  useEffect(() => {
+    // REMOVED Redundant safety check:
+    // React guarantees hooks are defined in order before this effect runs.
+    // if (!handleArrowLeftKey || !handleArrowRightKey || !handleEscapeKey ||
+    //     !handlePlusKey || !handleMinusKey || !handleZeroKey) {
+    //   return;
+    // }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
+      // Don't interfere with input fields
+      if (e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target instanceof HTMLElement && e.target.isContentEditable)
+         ) {
+        return;
+      }
+
+      let preventDefault = false;
+
+      if (e.key === 'ArrowLeft') {
+        preventDefault = handleArrowLeftKey();
+      } else if (e.key === 'ArrowRight') {
+        preventDefault = handleArrowRightKey();
+      } else if (e.key === 'Escape') {
+        preventDefault = handleEscapeKey();
+      } else if (e.key === '+' || e.key === '=') {
+        preventDefault = handlePlusKey(e);
+      } else if (e.key === '-') {
+        preventDefault = handleMinusKey(e);
+      } else if (e.key === '0') {
+        preventDefault = handleZeroKey(e);
+      }
+
+      if (preventDefault) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    debugLog,
+    handleArrowLeftKey,
+    handleArrowRightKey,
+    handleEscapeKey,
+    handlePlusKey,
+    handleMinusKey,
+    handleZeroKey
+  ]);
+
+
+
+  useEffect(() => {
+    // Add safety checks to prevent temporal dead zone issues
+    if (!getSafeImageBounds || !getSafeViewportCenter || !constrainTransform || !applyTransform || timelineEvents === null || hotspots === null) {
+      return;
+    }
+
+    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
+
+    // Removed newActiveHotspotInfoId - using modal now
+    let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+
+    if (moduleState === 'learning') {
+      const newActiveDisplayIds = new Set<string>();
+      let newMessage: string | null = null;
+      let newPulsingHotspotId: string | null = null;
+      let newHighlightedHotspotId: string | null = null;
+
+      const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
+      let stepHasPanZoomEvent = false;
+
+      eventsForCurrentStep.forEach(event => {
+        if (event.targetId) newActiveDisplayIds.add(event.targetId);
+        switch (event.type) {
+          case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
+          case InteractionType.SHOW_HOTSPOT: if (event.targetId) { /* Show in modal instead */ } break;
+          case InteractionType.PULSE_HOTSPOT:
+            if (event.targetId) {
+              newPulsingHotspotId = event.targetId;
+              if (event.duration) {
+                pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
+              }
+            }
+            break;
+          case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+            stepHasPanZoomEvent = true;
+            if (event.targetId) {
+              const targetHotspot = hotspots.find(h => h.id === event.targetId);
+              // Ensure hotspotsWithPositions is used if available, otherwise find in hotspots
+              // const targetHotspot = hotspotsWithPositions.find(h => h.id === event.targetId) || hotspots.find(h => h.id === event.targetId);
+
+              const imageBounds = getSafeImageBounds();
+              const viewportCenter = getSafeViewportCenter();
+
+              if (targetHotspot && imageBounds && viewportCenter) {
+                const scale = event.zoomFactor || 2;
+
+                // Calculate hotspot position on the unscaled image, relative to imageBounds content area
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                // Calculate translation to center the hotspot
+                // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
+                // The hotspot's scaled position without additional translation would be:
+                // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
+                // OR more simply, if thinking about the image content itself:
+                // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
+                // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
+                // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
+
+                // The CSS transform `translate(tx, ty) scale(s)` on a div means:
+                // screenX = divOriginalScreenX * s + tx
+                // screenY = divOriginalScreenY * s + ty
+                // If the div has `transform-origin: center center`, it's more complex.
+                // The `scaledImageDivRef` has `transform-origin: center`.
+
+                // Let's use the formula from the issue, as it's specified.
+                // It calculates translateX/Y such that when the `scaledImageDivRef` is translated and scaled,
+                // the specific hotspot point (hotspotX, hotspotY, which is relative to image content origin)
+                // lands on viewportCenter.
+                // The `imageBounds.left` and `imageBounds.top` are the offsets of the image content
+                // *within* the `scaledImageDivRef` before the main `imageTransform` is applied.
+                // So, if the `scaledImageDivRef` itself is at (0,0) in the container,
+                // the image content origin is at `(imageBounds.left, imageBounds.top)`.
+                // A point `(hotspotX, hotspotY)` on the image content is at
+                // `(imageBounds.left + hotspotX, imageBounds.top + hotspotY)` relative to `scaledImageDivRef` origin.
+                // After scaling this by `scale` (around `scaledImageDivRef`'s origin, which is `center`),
+                // and then translating by `translateX, translateY`:
+                // target_on_screen_X = ( (imageBounds.left + hotspotX) - divCenterX) * scale + divCenterX + translateX
+                // target_on_screen_Y = ( (imageBounds.top + hotspotY) - divCenterY) * scale + divCenterY + translateY
+                // We want target_on_screen_X = viewportCenter.centerX
+
+                // Calculate translation for center-origin transform
+                // With transform-origin: center, we need to account for the div's center point
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+
+                // For center-origin scaling, the transform formula is:
+                // final_position = (original_position - center) * scale + center + translate
+                // We want: hotspot_final_position = viewportCenter
+                // So: translate = viewportCenter - ((hotspot_original - center) * scale + center)
+                // Simplifying: translate = viewportCenter - (hotspot_original - center) * scale - center
+
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+
+                let newTransform: ImageTransformState = {
+                  scale,
+                  translateX,
+                  translateY,
+                  targetHotspotId: event.targetId
+                };
+
+                newTransform = constrainTransform(newTransform);
+
+                newImageTransform = newTransform;
+              } else if (targetHotspot) { // imageBounds or viewportCenter might be null
+                  // Fallback or error? For now, do nothing if critical info is missing.
+                  // Or reset? The default is to reset if no pan/zoom event.
+              }
+            }
+            break;
+          case InteractionType.HIGHLIGHT_HOTSPOT:
+            if (event.targetId) { newHighlightedHotspotId = event.targetId; }
+            break;
+          case InteractionType.SHOW_TEXT:
+            if (event.textContent) {
+              newMessage = event.textContent;
+            }
+            break;
+          case InteractionType.SHOW_IMAGE:
+            if (event.imageUrl) {
+              // For now, show image URL as message - could be enhanced with modal
+              newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
+            }
+            break;
+          case InteractionType.PAN_ZOOM:
+            if (event.targetId) {
+              stepHasPanZoomEvent = true;
+              const targetHotspot = hotspots.find(h => h.id === event.targetId);
+              const imageBounds = getSafeImageBounds();
+              const viewportCenter = getSafeViewportCenter();
+
+              if (targetHotspot && imageBounds && viewportCenter) {
+                const scale = event.zoomLevel || 2;
+                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+
+                const divDimensions = getScaledImageDivDimensions();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
+
+                const hotspotOriginalX = imageBounds.left + hotspotX;
+                const hotspotOriginalY = imageBounds.top + hotspotY;
+
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+
+                let newTransform: ImageTransformState = {
+                  scale,
+                  translateX,
+                  translateY,
+                  targetHotspotId: event.targetId
+                };
+
+                newTransform = constrainTransform(newTransform);
+                newImageTransform = newTransform;
+              }
+            }
+            break;
+          case InteractionType.SPOTLIGHT:
+            if (event.targetId) {
+              newHighlightedHotspotId = event.targetId;
+              // Could be enhanced with intensity and radius parameters
+            }
+            break;
+          case InteractionType.QUIZ:
+            if (event.quizQuestion) {
+              newMessage = `Quiz: ${event.quizQuestion}`;
+              // Could be enhanced with modal for quiz interaction
+            }
+            break;
+          case InteractionType.PULSE_HIGHLIGHT:
+            if (event.targetId) {
+              newPulsingHotspotId = event.targetId;
+              newHighlightedHotspotId = event.targetId;
+              if (event.duration) {
+                pulseTimeoutRef.current = window.setTimeout(() => {
+                  setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId);
+                  setHighlightedHotspotId(prevId => prevId === event.targetId ? null : prevId);
+                }, event.duration);
+              }
+            }
+            break;
+          case InteractionType.PLAY_AUDIO:
+            if (event.audioUrl) {
+              // Basic audio playback - could be enhanced with volume control
+              const audio = new Audio(event.audioUrl);
+              if (event.volume !== undefined) {
+                audio.volume = Math.max(0, Math.min(1, event.volume / 100));
+              }
+              audio.play().catch(error => console.warn('Audio playback failed:', error));
+            }
+            break;
+          case InteractionType.SHOW_VIDEO:
+            if (event.videoUrl) {
+              showMediaModal('video', event.name || 'Video', {
+                src: event.videoUrl,
+                poster: event.poster,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
+            break;
+          case InteractionType.SHOW_AUDIO_MODAL:
+            if (event.audioUrl) {
+              showMediaModal('audio', event.name || 'Audio', {
+                src: event.audioUrl,
+                title: event.textContent,
+                artist: event.artist,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
+            break;
+          case InteractionType.SHOW_IMAGE_MODAL:
+            if (event.imageUrl) {
+              showMediaModal('image', event.name || 'Image', {
+                src: event.imageUrl,
+                alt: event.caption || '',
+                title: event.textContent,
+                caption: event.caption
+              });
+            }
+            break;
+          case InteractionType.SHOW_YOUTUBE:
+            if (event.youtubeVideoId) {
+              showMediaModal('youtube', event.name || 'YouTube Video', {
+                videoId: event.youtubeVideoId,
+                startTime: event.youtubeStartTime,
+                endTime: event.youtubeEndTime,
+                autoplay: event.autoplay || false,
+                loop: event.loop || false
+              });
+            }
+            break;
+        }
+      });
+
+      if (!stepHasPanZoomEvent && (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0)) {
+        newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+      }
+
+      eventsForCurrentStep.forEach(event => {
+        if (event.type === InteractionType.HIDE_HOTSPOT && event.targetId) {
+          newActiveDisplayIds.delete(event.targetId);
+          if (newPulsingHotspotId === event.targetId) newPulsingHotspotId = null;
+          if (newHighlightedHotspotId === event.targetId) newHighlightedHotspotId = null;
+          if (newImageTransform.targetHotspotId === event.targetId) newImageTransform = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+          // Remove info display - using modal now
+        }
+      });
+
+      setActiveHotspotDisplayIds(newActiveDisplayIds);
+      setCurrentMessage(newMessage);
+      setPulsingHotspotId(newPulsingHotspotId);
+      setHighlightedHotspotId(newHighlightedHotspotId);
+
+    } else if (moduleState === 'idle' && !isEditing) {
+      setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id)));
+      setCurrentMessage(null);
+      setPulsingHotspotId(null);
+      setHighlightedHotspotId(null);
+
+      let transformToApply: ImageTransformState;
+
+      if (exploredHotspotId && exploredHotspotPanZoomActive) {
+        const hotspot = hotspots.find(h => h.id === exploredHotspotId);
+        // Attempt to find a PAN_ZOOM_TO_HOTSPOT event. If not found, PAN_ZOOM could also be used.
+        const panZoomEvent = timelineEvents
+          .filter(e => e.targetId === exploredHotspotId &&
+                       (e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.PAN_ZOOM))
+          .sort((a, b) => a.step - b.step)[0];
+
+        if (hotspot && panZoomEvent) {
+          const imageBounds = getSafeImageBounds();
+          const viewportCenter = getSafeViewportCenter();
+
+          if (imageBounds && viewportCenter) {
+            const scale = panZoomEvent.zoomFactor || (panZoomEvent.type === InteractionType.PAN_ZOOM ? panZoomEvent.zoomLevel : undefined) || 2;
+            const hotspotX = (hotspot.x / 100) * imageBounds.width;
+            const hotspotY = (hotspot.y / 100) * imageBounds.height;
+
+            const divDimensions = getScaledImageDivDimensions();
+            const divCenterX = divDimensions.width / 2;
+            const divCenterY = divDimensions.height / 2;
+
+            const hotspotOriginalX = imageBounds.left + hotspotX;
+            const hotspotOriginalY = imageBounds.top + hotspotY;
+
+            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+
+            transformToApply = {
+              scale,
+              translateX,
+              translateY,
+              targetHotspotId: hotspot.id
+            };
+          } else {
+            // Fallback if imageBounds or viewportCenter is null
+            transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+          }
+        } else {
+          // Fallback if hotspot or its panZoomEvent is not found (e.g. hotspot exists but no zoom event for it)
+          // This means exploredHotspotPanZoomActive might have been true based on a generic PAN_ZOOM,
+          // but we still want to reset if specific parameters for it are missing.
+          // Or, if exploredHotspotPanZoomActive was true but the event is somehow missing now.
+          transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+        }
+      } else {
+        // This covers:
+        // 1. exploredHotspotId is null (initial 'idle' state, or background click)
+        // 2. exploredHotspotId is set, but exploredHotspotPanZoomActive is false (hotspot has no pan/zoom event)
+        transformToApply = { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
+      }
+
+      newImageTransform = constrainTransform(transformToApply);
+
+    } else {
+      // This block executes if moduleState is not 'learning' and not ('idle' AND '!isEditing').
+      // This typically means isEditing is true, or some other unexpected state.
+      // Default behavior here is to reset if a transform is active.
+      if (lastAppliedTransformRef.current.scale !== 1 || lastAppliedTransformRef.current.translateX !== 0 || lastAppliedTransformRef.current.translateY !== 0) {
+        const resetTransform = {
+          scale: 1,
+          translateX: 0,
+          translateY: 0,
+          targetHotspotId: undefined
+        };
+        newImageTransform = constrainTransform(resetTransform);
+      } else {
+        // If current transform is already default, keep it.
+        newImageTransform = lastAppliedTransformRef.current;
+      }
+    }
+    // Apply the determined transform at the end, only if it has actually changed
+    const currentTransform = lastAppliedTransformRef.current;
+    if (newImageTransform.scale !== currentTransform.scale ||
+        Math.abs(newImageTransform.translateX - currentTransform.translateX) > 1 ||
+        Math.abs(newImageTransform.translateY - currentTransform.translateY) > 1 ||
+        newImageTransform.targetHotspotId !== currentTransform.targetHotspotId) {
+
+      lastAppliedTransformRef.current = newImageTransform;
+      applyTransform(newImageTransform);
+    }
+
+    return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
+
+  // Debug effect to track transform changes and detect loops
+  useEffect(() => {
+    if (debugMode) {
+      debugLog('Transform State', 'Transform changed', {
+        scale: imageTransform.scale,
+        translateX: imageTransform.translateX.toFixed(2),
+        translateY: imageTransform.translateY.toFixed(2),
+        targetHotspotId: imageTransform.targetHotspotId,
+        stack: new Error().stack?.split('\n').slice(1, 4)
+      });
+    }
+  }, [imageTransform, debugMode, debugLog]);
 
   // Add guard to prevent rendering before initialization
   if (!isInitialized) {
