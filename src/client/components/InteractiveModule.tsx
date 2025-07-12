@@ -471,7 +471,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     } else if (!isEditing) {
       // Viewer mode: Calculate bounds based on background-image positioning
       
-      // Viewer mode: Calculate bounds based on the visual content area.
       if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
         return originalImageBoundsRef.current;
       }
@@ -480,12 +479,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
       if (!container) return null;
 
-      const containerRect = container.getBoundingClientRect();
       const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
 
       // The area available for the image content.
-      const availableWidth = containerRect.width;
-      const availableHeight = containerRect.height - (isMobile ? timelineHeight : 0);
+      const availableWidth = container.clientWidth;
+      const availableHeight = container.clientHeight - (isMobile ? timelineHeight : 0);
 
       // The actual dimensions of the fitted image content.
       const contentDimensions = getScaledImageDivDimensions();
@@ -494,6 +492,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       const contentLeft = (availableWidth - contentDimensions.width) / 2;
       const contentTop = (availableHeight - contentDimensions.height) / 2;
 
+      const containerRect = container.getBoundingClientRect();
       const bounds = {
         width: contentDimensions.width,
         height: contentDimensions.height,
