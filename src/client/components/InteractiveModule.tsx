@@ -800,52 +800,140 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // Helper to convert hotspot percentage to absolute pixel coordinates using unified positioning
   const getHotspotPixelPosition = useCallback((hotspot: HotspotData, transform?: ImageTransformState) => {
-    const imageBounds = getSafeImageBounds();
-    if (!imageBounds) return null;
+    const imageBounds = getSafeImageBounds(); // Common for both, but interpretation differs.
+                                          // For viewer, imageBounds.width/height IS contentWidth/Height.
+                                          // For editor, it's also contentWidth/Height of the <img>.
+    if (!imageNaturalDimensions || !imageBounds) return null;
 
-    // Use provided transform or current transform
-    const currentTransform = transform || lastAppliedTransformRef.current;
-    
-    // Get container dimensions for transform origin calculations
-    let containerDimensions = null;
     if (!isEditing) {
-      // Viewer mode: use div dimensions
+      // VIEWER MODE:
+      // Calculate pixel positions relative to scaledImageDivRef.
+      // The transform on scaledImageDivRef will then position them correctly.
+
+      // 1. Get dimensions of scaledImageDivRef (the container for hotspots in viewer)
       const divDimensions = getScaledImageDivDimensions();
-      containerDimensions = divDimensions;
-    } else if (imageContainerRef.current) {
-      // Editor mode: use container dimensions
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
-      containerDimensions = { width: containerRect.width, height: containerRect.height };
-    }
+      if (!divDimensions || divDimensions.width === 0 || divDimensions.height === 0) return null;
 
-    // Calculate base position on the image content
-    const baseX = (hotspot.x / 100) * imageBounds.width;
-    const baseY = (hotspot.y / 100) * imageBounds.height;
-    
-    // Position relative to image bounds
-    let positionX = imageBounds.left + baseX;
-    let positionY = imageBounds.top + baseY;
+      // 2. Calculate image content dimensions and offsets *within* scaledImageDivRef
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+      const divAspect = divDimensions.width / divDimensions.height;
 
-    // Apply transforms if active
-    if (currentTransform.scale !== 1 || currentTransform.translateX !== 0 || currentTransform.translateY !== 0) {
-      if (containerDimensions) {
-        const centerX = containerDimensions.width / 2;
-        const centerY = containerDimensions.height / 2;
-        
-        // Apply center-origin transform
-        positionX = (positionX - centerX) * currentTransform.scale + centerX + currentTransform.translateX;
-        positionY = (positionY - centerY) * currentTransform.scale + centerY + currentTransform.translateY;
+      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
+
+      if (imageFitMode === 'cover') {
+        if (divAspect > imageAspect) {
+          contentHeight = divDimensions.height;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (divDimensions.width - contentWidth) / 2;
+        } else {
+          contentWidth = divDimensions.width;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (divDimensions.height - contentHeight) / 2;
+        }
+      } else if (imageFitMode === 'contain') {
+        if (divAspect > imageAspect) {
+          contentHeight = divDimensions.height;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (divDimensions.width - contentWidth) / 2;
+        } else {
+          contentWidth = divDimensions.width;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (divDimensions.height - contentHeight) / 2;
+        }
+      } else { // fill
+        contentWidth = divDimensions.width;
+        contentHeight = divDimensions.height;
+        // contentLeft & contentTop remain 0
       }
-    }
 
-    return {
-      x: positionX,
-      y: positionY,
-      // Also return the base position for centering calculations
-      baseX: imageBounds.left + baseX,
-      baseY: imageBounds.top + baseY
-    };
-  }, [getSafeImageBounds, getScaledImageDivDimensions, isEditing]);
+      // 3. Calculate hotspot position relative to scaledImageDivRef's top-left
+      const finalX = contentLeft + (hotspot.x / 100) * contentWidth;
+      const finalY = contentTop + (hotspot.y / 100) * contentHeight;
+
+      // The baseX/Y for centering calculations needs to be relative to the overall imageContainerRef,
+      // which is what imageBounds (from getSafeImageBounds) provides.
+      const baseXForCentering = imageBounds.left + (hotspot.x / 100) * imageBounds.width;
+      const baseYForCentering = imageBounds.top + (hotspot.y / 100) * imageBounds.height;
+
+      return {
+        x: finalX,
+        y: finalY,
+        baseX: baseXForCentering, // Used for PAN_ZOOM_TO_HOTSPOT calculations
+        baseY: baseYForCentering, // Used for PAN_ZOOM_TO_HOTSPOT calculations
+      };
+
+    } else {
+      // EDITOR MODE (existing logic, potentially simplified or reviewed if issues arise)
+      // The current editor logic seems to work, so we keep it but acknowledge it might be complex.
+      // It uses imageBounds (which for editor is from the <img> tag) and applies transforms.
+      // This might be calculating final screen positions, which HotspotViewer in editor mode might handle differently.
+
+      const currentTransform = transform || lastAppliedTransformRef.current; // This is likely viewer's transform, not editor's zoom.
+                                                                          // Editor's `editingZoom` is applied via CSS scale on `zoomedImageContainerRef`.
+                                                                          // `HotspotViewer` in editor uses `dragContainerRef={zoomedImageContainerRef}`.
+
+      // Calculate base position on the image content (imageBounds.width/height is content width/height from <img>)
+      const baseX = (hotspot.x / 100) * imageBounds.width;
+      const baseY = (hotspot.y / 100) * imageBounds.height;
+
+      // Position relative to image bounds origin (imageBounds.left/top are relative to scrollableContainerRef)
+      let positionX = imageBounds.left + baseX;
+      let positionY = imageBounds.top + baseY;
+
+      // Get container dimensions for transform origin calculations (Editor specific)
+      let editorContainerDimensions = null;
+      if (zoomedImageContainerRef.current) { // Use the container that is actually scaled in editor
+        const rect = zoomedImageContainerRef.current.getBoundingClientRect();
+         // The `editingZoom` is applied to `zoomedImageContainerRef`.
+         // `HotspotViewer` instances are children of this.
+         // Their `left`/`top` CSS will be relative to this `zoomedImageContainerRef`.
+         // So, `pixelPosition` for editor should be `baseX, baseY` (relative to the <img> content),
+         // and `actualImageRef` is a direct child of `zoomedImageContainerRef`.
+         // The `imageBounds.left/top` for editor are offsets of `<img>` content within `scrollableContainerRef`.
+         // This suggests the editor's `pixelPosition` might be best calculated within `ImageEditCanvas`
+         // or this path needs significant rework to be relative to `zoomedImageContainerRef`.
+         // Given editor works, we assume its `HotspotViewer`'s drag/placement logic overrides initial render if needed.
+
+         // For now, returning values that are relative to the image content itself,
+         // assuming the `editingZoom` scale on `zoomedImageContainerRef` handles it.
+         // The `imageBounds.left/top` are offsets of the image *within the scrollable container*,
+         // not within the `zoomedImageContainerRef`.
+         // If `actualImageRef` is at (0,0) within `zoomedImageContainerRef`, then (baseX, baseY) is correct.
+         // This is true because `actualImageRef` style doesn't have explicit positioning offsets.
+        return {
+             x: baseX,
+             y: baseY,
+             baseX: imageBounds.left + baseX, // Still provide this for other potential uses if needed
+             baseY: imageBounds.top + baseY
+        };
+      } else if (imageContainerRef.current) { // Fallback, less precise for editor
+        const rect = imageContainerRef.current.getBoundingClientRect();
+        editorContainerDimensions = { width: rect.width, height: rect.height };
+      }
+
+
+      // Apply transforms if active (This block is complex and might be why editor works by side-effect or is overridden)
+      // This transform logic is more suited if pixelPosition was screen-space and HotspotViewer was a global overlay.
+      // Since HotspotViewer is child of scaled divs, this transform is likely redundant or misapplied for direct CSS.
+      if (currentTransform.scale !== 1 || currentTransform.translateX !== 0 || currentTransform.translateY !== 0) {
+        if (editorContainerDimensions) { // This was `containerDimensions`
+          const centerX = editorContainerDimensions.width / 2;
+          const centerY = editorContainerDimensions.height / 2;
+
+          // This attempts to calculate screen position.
+          positionX = (positionX - centerX) * currentTransform.scale + centerX + currentTransform.translateX;
+          positionY = (positionY - centerY) * currentTransform.scale + centerY + currentTransform.translateY;
+        }
+      }
+
+      return {
+        x: positionX,
+        y: positionY,
+        baseX: imageBounds.left + baseX,
+        baseY: imageBounds.top + baseY
+      };
+    }
+  }, [isEditing, getSafeImageBounds, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, lastAppliedTransformRef, zoomedImageContainerRef, imageContainerRef]);
 
 
   // Helper to constrain transforms and prevent UI overlap
