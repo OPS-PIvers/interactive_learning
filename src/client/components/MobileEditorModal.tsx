@@ -37,15 +37,40 @@ const MOBILE_COLORS = [
   { name: 'Gray', value: 'bg-gray-500', color: '#6b7280' },
 ];
 
-const INTERACTION_TYPES = [
-  { value: InteractionType.SHOW_HOTSPOT, label: 'Show Hotspot' },
-  { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
-  { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' },
-  { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' },
-  { value: InteractionType.SHOW_TEXT, label: 'Show Text' },
-  { value: InteractionType.PLAY_VIDEO, label: 'Play Video' },
-  { value: InteractionType.PLAY_AUDIO, label: 'Play Audio' },
+const MOBILE_INTERACTION_TYPES = [
+  // Visual Effects
+  {
+    category: 'Visual Effects',
+    types: [
+      { value: InteractionType.SPOTLIGHT, label: 'Spotlight', icon: '💡', description: 'Highlight specific area' },
+      { value: InteractionType.PAN_ZOOM, label: 'Pan & Zoom', icon: '🔍', description: 'Focus on area' },
+      { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse', icon: '💓', description: 'Animate hotspot' },
+    ]
+  },
+  // Media Content
+  {
+    category: 'Media',
+    types: [
+      { value: InteractionType.SHOW_VIDEO, label: 'Video', icon: '🎥', description: 'Play video file' },
+      { value: InteractionType.SHOW_AUDIO_MODAL, label: 'Audio', icon: '🎵', description: 'Play audio' },
+      { value: InteractionType.SHOW_IMAGE_MODAL, label: 'Image', icon: '🖼️', description: 'Show image' },
+      { value: InteractionType.SHOW_YOUTUBE, label: 'YouTube', icon: '📺', description: 'Play YouTube video' },
+    ]
+  },
+  // Interactive
+  {
+    category: 'Interactive',
+    types: [
+      { value: InteractionType.SHOW_TEXT, label: 'Text Modal', icon: '💬', description: 'Show text popup' },
+      { value: InteractionType.QUIZ, label: 'Quiz', icon: '❓', description: 'Ask question' },
+    ]
+  }
 ];
+
+// Performance optimization: Create lookup map for interaction type labels
+const interactionTypeLabelMap = new Map(
+  MOBILE_INTERACTION_TYPES.flatMap(c => c.types).map(t => [t.value, t.label])
+);
 
 const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   isOpen,
@@ -73,6 +98,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const [localHotspot, setLocalHotspot] = useState<HotspotData | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -312,17 +338,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-white">Timeline Events</h3>
           <button
-            onClick={() => {
-              // Add new event logic
-              const newEvent: TimelineEventData = {
-                id: `event_${Date.now()}`,
-                type: InteractionType.SHOW_HOTSPOT,
-                targetId: hotspot?.id || '',
-                step: currentStep, // Use currentStep from props
-                duration: 2000 // Default duration
-              };
-              onAddTimelineEvent(newEvent);
-            }}
+            onClick={() => setShowEventTypeSelector(true)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
           >
             Add Event
@@ -338,7 +354,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-white font-medium">
-                    {INTERACTION_TYPES.find(t => t.value === event.type)?.label || 'Unknown'}
+                    {interactionTypeLabelMap.get(event.type) || 'Unknown'}
                   </span>
                 </div>
                 <button
@@ -460,6 +476,23 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         </div>
       </div>
 
+      {showEventTypeSelector && (
+        <MobileEventTypeSelector
+          onClose={() => setShowEventTypeSelector(false)}
+          onSelect={(type) => {
+            const newEvent: TimelineEventData = {
+              id: `event_${Date.now()}`,
+              type,
+              targetId: hotspot?.id || '',
+              step: currentStep,
+              duration: 2000
+            };
+            onAddTimelineEvent(newEvent);
+            setShowEventTypeSelector(false);
+          }}
+        />
+      )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-60 bg-black bg-opacity-75 flex items-center justify-center p-4">
@@ -486,6 +519,46 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const MobileEventTypeSelector: React.FC<{
+  onSelect: (type: InteractionType) => void;
+  onClose: () => void;
+}> = ({ onSelect, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-60 bg-black bg-opacity-75 flex flex-col justify-end">
+      <div className="bg-slate-800 rounded-t-2xl p-4 max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <h3 className="text-lg font-semibold text-white">Select Event Type</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label="Close event type selector">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto">
+          {MOBILE_INTERACTION_TYPES.map(category => (
+            <div key={category.category} className="mb-4">
+              <h4 className="text-sm font-bold text-purple-400 mb-2 px-2">{category.category}</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {category.types.map(type => (
+                  <button
+                    key={type.value}
+                    onClick={() => onSelect(type.value)}
+                    className="bg-slate-700 rounded-lg p-4 text-left hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <div className="text-2xl mb-2">{type.icon}</div>
+                    <div className="font-semibold text-white">{type.label}</div>
+                    <div className="text-xs text-gray-400 mt-1">{type.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
