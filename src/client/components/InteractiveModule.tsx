@@ -20,6 +20,20 @@ import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
+import MediaModal from './MediaModal';
+import VideoPlayer from './VideoPlayer';
+import AudioPlayer from './AudioPlayer';
+import ImageViewer from './ImageViewer';
+import YouTubePlayer from './YouTubePlayer';
+
+// Helper function to extract YouTube Video ID from various URL formats
+const extractYouTubeVideoId = (url: string): string | null => {
+  if (!url) return null;
+  // Regular expression to cover various YouTube URL formats
+  const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regExp);
+  return (match && match[1]) ? match[1] : null;
+};
 
 import { MemoizedHotspotViewer } from './HotspotViewer';
 
@@ -213,6 +227,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover');
+  const [backgroundType, setBackgroundType] = useState<'image' | 'video'>(initialData.backgroundType || 'image');
+  const [backgroundVideoType, setBackgroundVideoType] = useState<'youtube' | 'mp4'>(initialData.backgroundVideoType || 'mp4');
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -226,6 +242,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
   const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
+
+  // Media modal states
+  const [mediaModal, setMediaModal] = useState<{
+    isOpen: boolean;
+    type: 'video' | 'audio' | 'image' | 'youtube' | null;
+    title: string;
+    data: any;
+  }>({
+    isOpen: false,
+    type: null,
+    title: '',
+    data: null
+  });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
@@ -408,21 +437,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     const imageBounds = getSafeImageBounds();
     
-    if (!imageBounds) {
+    if (!imageBounds || !imageContainerRef.current) {
       return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
     }
 
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
     const scaledImageWidth = imageBounds.width * currentScale;
     const scaledImageHeight = imageBounds.height * currentScale;
     
     // Check if current scaled image fits in the new container dimensions
-    const fitsWidth = scaledImageWidth <= imageBounds.width;
-    const fitsHeight = scaledImageHeight <= imageBounds.height;
+    const fitsWidth = scaledImageWidth <= containerRect.width;
+    const fitsHeight = scaledImageHeight <= containerRect.height;
     
     if (panelIsOpening && (!fitsWidth || !fitsHeight)) {
       // Panel is opening and image doesn't fit - scale down to fit
-      const widthRatio = imageBounds.width / imageBounds.width;
-      const heightRatio = imageBounds.height / imageBounds.height;
+      const widthRatio = containerRect.width / imageBounds.width;
+      const heightRatio = containerRect.height / imageBounds.height;
       const optimalScale = Math.min(widthRatio, heightRatio, currentScale); // Don't scale up
       
       // Reset translation to center when scaling down significantly
@@ -443,8 +473,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     } else if (!panelIsOpening && currentScale < 1) {
       // Panel is closing and we're zoomed out - potentially restore scale
-      const widthRatio = imageBounds.width / imageBounds.width;
-      const heightRatio = imageBounds.height / imageBounds.height;
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+      const widthRatio = containerRect.width / imageBounds.width;
+      const heightRatio = containerRect.height / imageBounds.height;
       const maxFitScale = Math.min(widthRatio, heightRatio);
       
       // Restore to fit scale or 1.0, whichever is smaller
@@ -582,6 +613,29 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [debugLog]);
 
 
+  // Helper to show media modals
+  const showMediaModal = useCallback((
+    type: 'video' | 'audio' | 'image' | 'youtube',
+    title: string,
+    data: any
+  ) => {
+    setMediaModal({
+      isOpen: true,
+      type,
+      title,
+      data
+    });
+  }, []);
+
+  const closeMediaModal = useCallback(() => {
+    setMediaModal({
+      isOpen: false,
+      type: null,
+      title: '',
+      data: null
+    });
+  }, []);
+
   // Helper to get viewport center for centering operations
   const getViewportCenter = useCallback(() => {
     if (!imageContainerRef.current) return null;
@@ -698,7 +752,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // likely misaligned with the current architecture. Returning null is safer.
       return null;
     }
-  }, [isEditing, getSafeImageBounds, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, lastAppliedTransformRef, zoomedImageContainerRef, imageContainerRef]);
+  }, [isEditing, getSafeImageBounds, imageNaturalDimensions, imageFitMode, lastAppliedTransformRef, zoomedImageContainerRef, imageContainerRef]);
 
 
   // Helper to constrain transforms and prevent UI overlap
@@ -1099,6 +1153,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     const currentData = {
       backgroundImage,
+      backgroundType,
+      backgroundVideoType,
       hotspots,
       timelineEvents,
       imageFitMode
@@ -1812,7 +1868,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState, getScaledImageDivDimensions]);
+  }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState]);
 
   // Add wheel event listener for Ctrl+scroll zoom
   useEffect(() => {
@@ -1831,6 +1887,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
 
   // Effect to handle viewer mode initialization and ensure proper image display
+  useEffect(() => {
+    if (imageNaturalDimensions) {
+      throttledRecalculatePositions();
+    }
+  }, [imageNaturalDimensions]);
+
   useEffect(() => {
     if (!isEditing && backgroundImage && moduleState !== 'idle') {
       // When transitioning to viewer mode, ensure proper container setup
@@ -1932,6 +1994,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     try {
       setBackgroundImage(initialData.backgroundImage);
+      setBackgroundType(initialData.backgroundType || 'image');
+      setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
       setHotspots(initialData.hotspots || []);
       setTimelineEvents(initialData.timelineEvents || []);
       setImageFitMode(initialData.imageFitMode || 'cover');
@@ -2147,6 +2211,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
                 // Calculate translation for center-origin transform
                 // With transform-origin: center, we need to account for the div's center point
+                const divDimensions = imageContainerRef.current.getBoundingClientRect();
+                const divCenterX = divDimensions.width / 2;
+                const divCenterY = divDimensions.height / 2;
 
                 // For center-origin scaling, the transform formula is:
                 // final_position = (original_position - center) * scale + center + translate
@@ -2157,8 +2224,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 const hotspotOriginalX = imageBounds.left + hotspotX;
                 const hotspotOriginalY = imageBounds.top + hotspotY;
 
-                const translateX = viewportCenter.centerX - hotspotOriginalX * scale;
-                const translateY = viewportCenter.centerY - hotspotOriginalY * scale;
+                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
+                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
 
                 let newTransform: ImageTransformState = {
                   scale,
@@ -2408,7 +2475,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, getScaledImageDivDimensions]);
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform]);
 
   // Debug effect to track transform changes and detect loops
   useEffect(() => {
@@ -2600,11 +2667,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 description: '',
                 interactiveData: {
                   backgroundImage,
+                  backgroundType,
+                  backgroundVideoType,
                   hotspots,
                   timelineEvents,
                   imageFitMode: 'contain' // Default, or use current imageFitMode
                 }
               } : undefined}
+              // Background props for EditorToolbar -> EnhancedModalEditorToolbar
+              backgroundImage={backgroundImage}
+              backgroundType={backgroundType}
+              backgroundVideoType={backgroundVideoType}
+              onBackgroundImageChange={setBackgroundImage}
+              onBackgroundTypeChange={setBackgroundType}
+              onBackgroundVideoTypeChange={setBackgroundVideoType}
             />
             </div>
 
@@ -2801,8 +2877,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             width: e.currentTarget.naturalWidth,
                             height: e.currentTarget.naturalHeight
                           });
-                          // Trigger position recalculation after image loads
-                          throttledRecalculatePositions();
                         }}
                         onError={() => {
                           console.error('Failed to load background image:', backgroundImage);
@@ -2810,6 +2884,30 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         }}
                         draggable={false}
                       />
+
+                      {/* Video Rendering */}
+                      {(backgroundType === 'video' && backgroundImage) ? (
+                        backgroundVideoType === 'youtube' ? (
+                          <YouTubePlayer
+                            videoId={extractYouTubeVideoId(backgroundImage) || ''}
+                            className="absolute inset-0 w-full h-full"
+                            autoplay={true}
+                            loop={true}
+                            showControls={false} // No controls for background video
+                            style={{ objectFit: imageFitMode }} // Apply fit mode
+                          />
+                        ) : backgroundVideoType === 'mp4' ? (
+                          <VideoPlayer
+                            src={backgroundImage}
+                            className="absolute inset-0 w-full h-full"
+                            autoplay={true}
+                            loop={true}
+                            muted={true}
+                            style={{ objectFit: imageFitMode }} // Apply fit mode
+                          />
+                        ) : null // Should ideally show an error or fallback if video type is unknown
+                      ) : null}
+                      {/* End Conditional Background Content */}
 
                       {/* Highlight overlay */}
                       {(moduleState === 'learning' || isEditing) && highlightedHotspotId && activeHotspotDisplayIds.has(highlightedHotspotId) && (
@@ -2836,7 +2934,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                               isDimmedInEditMode={false}
                               isEditing={false}
                               onFocusRequest={handleHotspotClick}
-                              isContinuouslyPulsing={(moduleState === 'idle') && !isTransforming}
+                              isContinuouslyPulsing={(moduleState === 'idle') && !isTransforming && !isHotspotDragging}
                               isMobile={isMobile}
                               onDragStateChange={setIsHotspotDragging}
                             />
@@ -2972,6 +3070,67 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             setPreviewOverlayEvent(event);
           }}
         />
+      )}
+
+      {/* Media Modal */}
+      {mediaModal.isOpen && (
+        <MediaModal
+          isOpen={mediaModal.isOpen}
+          onClose={closeMediaModal}
+          title={mediaModal.title}
+          size="large"
+          disableTouch={mediaModal.type === 'image'}
+        >
+          {mediaModal.type === 'video' && mediaModal.data && (
+            <VideoPlayer
+              src={mediaModal.data.src}
+              title={mediaModal.title}
+              poster={mediaModal.data.poster}
+              autoplay={mediaModal.data.autoplay}
+              loop={mediaModal.data.loop}
+              className="w-full h-full"
+            />
+          )}
+
+          {mediaModal.type === 'audio' && mediaModal.data && (
+            <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
+              minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
+            }}>
+              <AudioPlayer
+                src={mediaModal.data.src}
+                title={mediaModal.data.title}
+                artist={mediaModal.data.artist}
+                autoplay={mediaModal.data.autoplay}
+                loop={mediaModal.data.loop}
+                className="w-full max-w-lg"
+              />
+            </div>
+          )}
+
+          {mediaModal.type === 'image' && mediaModal.data && (
+            <ImageViewer
+              src={mediaModal.data.src}
+              alt={mediaModal.data.alt}
+              title={mediaModal.data.title}
+              caption={mediaModal.data.caption}
+              className="w-full h-full min-h-[500px]"
+            />
+          )}
+
+          {mediaModal.type === 'youtube' && mediaModal.data && (
+            <div className="p-4">
+              <YouTubePlayer
+                videoId={mediaModal.data.videoId}
+                title={mediaModal.title}
+                startTime={mediaModal.data.startTime}
+                endTime={mediaModal.data.endTime}
+                autoplay={mediaModal.data.autoplay}
+                loop={mediaModal.data.loop}
+                className="w-full"
+              />
+            </div>
+          )}
+        </MediaModal>
       )}
     </div>
   );
