@@ -366,50 +366,34 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Helper functions moved before calculateOptimalImageScale to fix temporal dead zone errors
   const getScaledImageDivDimensions = useCallback(() => {
-    // This function now calculates the dimensions of the visible image content area,
-    // which is what 'scaledImageDiv' conceptually represents for positioning.
-    const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
-    if (!container || !imageNaturalDimensions) {
-      // Fallback to basic container size if image isn't loaded yet
+    if (isMobile) {
+      // For mobile, we need to get the actual container dimensions
+      const container = viewerImageContainerRef.current || imageContainerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        return {
+          width: rect.width,
+          height: rect.height
+        };
+      }
+      // Fallback to viewport dimensions
       return {
-        width: container?.clientWidth || window.innerWidth,
-        height: container?.clientHeight || window.innerHeight
+        width: window.innerWidth,
+        height: window.innerHeight * 0.8 // Account for UI elements
+      };
+    } else {
+      // Desktop calculations remain the same
+      const divWidth = 80 * window.innerWidth / 100;
+      const divHeight = 80 * window.innerHeight / 100;
+      const maxWidth = 1200;
+      const maxHeight = 800;
+      
+      return {
+        width: Math.min(divWidth, maxWidth),
+        height: Math.min(divHeight, maxHeight)
       };
     }
-
-    const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
-    const availableWidth = container.clientWidth;
-    const availableHeight = container.clientHeight - (isMobile ? timelineHeight : 0);
-
-    const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-    const containerAspect = availableWidth / availableHeight;
-
-    let contentWidth, contentHeight;
-
-    if (imageFitMode === 'cover') {
-      if (containerAspect > imageAspect) {
-        contentWidth = availableWidth;
-        contentHeight = contentWidth / imageAspect;
-      } else {
-        contentHeight = availableHeight;
-        contentWidth = contentHeight * imageAspect;
-      }
-    } else if (imageFitMode === 'contain') {
-      if (containerAspect > imageAspect) {
-        contentHeight = availableHeight;
-        contentWidth = contentHeight * imageAspect;
-      } else {
-        contentWidth = availableWidth;
-        contentHeight = contentWidth / imageAspect;
-      }
-    } else { // fill
-      contentWidth = availableWidth;
-      contentHeight = availableHeight;
-    }
-
-    return { width: contentWidth, height: contentHeight };
-
-  }, [isMobile, imageNaturalDimensions, uniqueSortedSteps.length, imageFitMode]);
+  }, [isMobile]);
 
   // Unified helper to calculate image content bounds for both editor and viewer modes
   const getImageBounds = useCallback(() => {
@@ -454,39 +438,71 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         absoluteTop: imgRect.top + contentTop
       };
     } else if (!isEditing) {
-      // Viewer mode: Calculate bounds based on background-image positioning
+      // Viewer mode: Calculate bounds based on img element positioning
       
+      // Use cached bounds if available and transform is active to prevent feedback loops
       if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
         return originalImageBoundsRef.current;
       }
 
-      // The container for the viewer image area.
-      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
-      if (!container) return null;
-
-      const timelineHeight = uniqueSortedSteps.length > 0 ? 100 : 0;
-
-      // The area available for the image content.
-      const availableWidth = container.clientWidth;
-      const availableHeight = container.clientHeight - (isMobile ? timelineHeight : 0);
-
-      // The actual dimensions of the fitted image content.
-      const contentDimensions = getScaledImageDivDimensions();
+      // Get the actual scaled div element bounds
+      if (!scaledImageDivRef.current) return null;
       
-      // Calculate the offsets to center the content within the available area.
-      const contentLeft = (availableWidth - contentDimensions.width) / 2;
-      const contentTop = (availableHeight - contentDimensions.height) / 2;
+      // Find the img element within the scaled div
+      const imgElement = scaledImageDivRef.current.querySelector('img');
+      if (!imgElement) return null;
+      
+      const imgRect = imgElement.getBoundingClientRect();
+      const containerRect = imageContainerRef.current.getBoundingClientRect();
+      
+      // Calculate the actual rendered image content area (accounting for object-fit behavior)
+      const imgWidth = imgRect.width;
+      const imgHeight = imgRect.height;
+      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
+      const imgContainerAspect = imgWidth / imgHeight;
 
-      const containerRect = container.getBoundingClientRect();
+      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
+
+      // Calculate content area based on object-fit mode
+      if (imageFitMode === 'cover') {
+        if (imgContainerAspect > imageAspect) {
+          contentWidth = imgWidth;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (imgHeight - contentHeight) / 2;
+        } else {
+          contentHeight = imgHeight;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (imgWidth - contentWidth) / 2;
+        }
+      } else if (imageFitMode === 'contain') {
+        if (imgContainerAspect > imageAspect) {
+          contentHeight = imgHeight;
+          contentWidth = contentHeight * imageAspect;
+          contentLeft = (imgWidth - contentWidth) / 2;
+        } else {
+          contentWidth = imgWidth;
+          contentHeight = contentWidth / imageAspect;
+          contentTop = (imgHeight - contentHeight) / 2;
+        }
+      } else { // fill
+        contentWidth = imgWidth;
+        contentHeight = imgHeight;
+      }
+
+      // Calculate the position relative to the container
+      const imgLeft = imgRect.left - containerRect.left;
+      const imgTop = imgRect.top - containerRect.top;
+
       const bounds = {
-        width: contentDimensions.width,
-        height: contentDimensions.height,
-        left: contentLeft,
-        top: contentTop,
-        absoluteLeft: containerRect.left + contentLeft,
-        absoluteTop: containerRect.top + contentTop,
+        width: contentWidth,
+        height: contentHeight,
+        left: imgLeft + contentLeft,
+        top: imgTop + contentTop,
+        absoluteLeft: imgRect.left + contentLeft,
+        absoluteTop: imgRect.top + contentTop
       };
 
+      // Cache the original bounds for viewer mode
       originalImageBoundsRef.current = bounds;
       return bounds;
     }
@@ -737,6 +753,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                                           // For viewer, imageBounds.width/height IS contentWidth/Height.
                                           // For editor, it's also contentWidth/Height of the <img>.
     if (!imageNaturalDimensions || !imageBounds || imageBounds.width === 0 || imageBounds.height === 0) return null;
+
+    // Add debug logging
+    const debugMode = localStorage.getItem('debug_positioning') === 'true';
+    if (!isEditing && debugMode) {
+      console.log('Hotspot positioning debug:', {
+        hotspotId: hotspot.id,
+        hotspotPercentages: { x: hotspot.x, y: hotspot.y },
+        imageBounds,
+        containerDimensions: !isEditing ? getScaledImageDivDimensions() : null
+      });
+    }
 
     if (!isEditing) {
       // VIEWER MODE:
