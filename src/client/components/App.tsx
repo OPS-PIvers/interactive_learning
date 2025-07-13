@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
 import ProjectCard from './ProjectCard';
 import Modal from './Modal';
-import InteractiveModule from './InteractiveModule';
+import InteractiveModuleWrapper from './InteractiveModuleWrapper';
+import HookErrorBoundary from './HookErrorBoundary';
 import AdminToggle from './AdminToggle';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
@@ -335,75 +336,18 @@ const MainApp: React.FC = () => {
         )}
       </div>
 
-      {/* Modal / Fullscreen view for selected project */}
-      {/* Render InteractiveModule only if selectedProject and its core interactiveData are present */}
-      {/* And not currently in the process of loading details (isProjectDetailsLoading is false) */}
+      {/* ✅ Simplified rendering with consistent hook order */}
       {selectedProject && selectedProject.interactiveData && !isProjectDetailsLoading && (
-      <>
-        {isEditingMode ? (
-          isMobile ? (
-            // Mobile editing mode - full screen without modal wrapper
-            <div className="fixed inset-0 z-50 bg-slate-900">
-              {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
-                <InteractiveModule
-                  key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
-                  initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
-                  isEditing={isEditingMode}
-                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                  onClose={handleCloseModal}
-                  projectName={selectedProject.title}
-                  projectId={selectedProject.id}
-                  onReloadRequest={handleModuleReloadRequest}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-slate-400 text-xl">Loading editor...</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Desktop editing mode - wrapped in modal
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedProject.title}>
-              {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
-                <InteractiveModule
-                  key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
-                  initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
-                  isEditing={isEditingMode}
-                  onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                  onClose={handleCloseModal}
-                  projectName={selectedProject.title}
-                  projectId={selectedProject.id}
-                  onReloadRequest={handleModuleReloadRequest}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-64"> {/* Adjust height as needed */}
-                  <p className="text-slate-400 text-xl">Loading editor...</p>
-                </div>
-              )}
-            </Modal>
-          )
-        ) : (
-          // Full-screen viewer mode (both mobile and desktop)
-          <div className="fixed inset-0 z-50 bg-slate-900">
-            {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
-              <InteractiveModule
-                key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
-                initialData={selectedProject.interactiveData as Required<InteractiveModuleState>} // Assert details are loaded
-                isEditing={isEditingMode}
-                onSave={(data) => handleSaveProjectData(selectedProject.id, data)}
-                onClose={handleCloseModal}
-                projectName={selectedProject.title}
-                projectId={selectedProject.id}
-                  onReloadRequest={handleModuleReloadRequest}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                 <p className="text-slate-400 text-xl">Loading viewer...</p>
-              </div>
-            )}
-          </div>
-        )}
-      </>
+        <HookErrorBoundary>
+          <InteractiveModuleWrapper
+            selectedProject={selectedProject}
+            isEditingMode={isEditingMode}
+            isMobile={isMobile}
+            onClose={handleCloseModal}
+            onSave={handleSaveProjectData}
+            onReloadRequest={handleModuleReloadRequest}
+          />
+        </HookErrorBoundary>
       )}
     </div>
   );

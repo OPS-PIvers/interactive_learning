@@ -2554,23 +2554,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     </div>;
   }
 
-  // Add error UI
-  if (initError) {
-    return (
-      <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
-        <div className="bg-red-800 text-white p-6 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-2">Initialization Error</h2>
-          <p className="mb-4">{initError.message}</p>
-          <button
-            onClick={onReloadRequest ? onReloadRequest : () => window.location.reload()}
-            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
-          >
-            {onReloadRequest ? 'Retry Initialization' : 'Reload Page'}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // ✅ Moved error handling to render section to prevent hook order issues
 
   // Master cleanup effect for component unmount
   useEffect(() => {
@@ -2605,6 +2589,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     };
   }, []);
+
+  // ✅ Handle initialization errors after all hooks are called
+  if (initError) {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
+        <div className="bg-red-800 text-white p-6 rounded-lg max-w-md">
+          <h2 className="text-xl font-bold mb-2">Initialization Error</h2>
+          <p className="mb-4">{initError.message}</p>
+          <button
+            onClick={onReloadRequest ? onReloadRequest : () => window.location.reload()}
+            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
+          >
+            {onReloadRequest ? 'Retry Initialization' : 'Reload Page'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
