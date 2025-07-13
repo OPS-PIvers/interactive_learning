@@ -473,7 +473,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     } else if (!panelIsOpening && currentScale < 1) {
       // Panel is closing and we're zoomed out - potentially restore scale
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
       const widthRatio = containerRect.width / imageBounds.width;
       const heightRatio = containerRect.height / imageBounds.height;
       const maxFitScale = Math.min(widthRatio, heightRatio);
@@ -802,7 +801,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     };
 
     return constrainedTransform;
-  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length, getScaledImageDivDimensions]);
+  }, [getSafeImageBounds, getSafeViewportCenter, isEditing, uniqueSortedSteps.length]);
 
   const applyTransform = useCallback((newTransform: ImageTransformState) => {
     // Enhanced safety checks to prevent temporal dead zone issues
@@ -1441,14 +1440,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [hotspots, moduleState, isEditing, backgroundImage, isDragModeActive]);
 
   const handleHotspotClick = useCallback((hotspotId: string) => {
-    // In viewer mode, clicking a hotspot should trigger the same logic as focusing it
-    // which might involve starting the learning sequence or showing info.
-    if (!isEditing) {
-      handleFocusHotspot(hotspotId);
-    }
-    // In editing mode, this could be wired to select the hotspot for editing.
-    // The existing `handleFocusHotspot` already handles this distinction.
-  }, [isEditing, handleFocusHotspot]);
+    // This handler is for viewer mode clicks. It forwards to the main focus handler.
+    handleFocusHotspot(hotspotId);
+  }, [handleFocusHotspot]);
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
@@ -2410,10 +2404,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             const hotspotX = (hotspot.x / 100) * imageBounds.width;
             const hotspotY = (hotspot.y / 100) * imageBounds.height;
 
-            const divDimensions = getScaledImageDivDimensions();
-            const divCenterX = divDimensions.width / 2;
-            const divCenterY = divDimensions.height / 2;
-
             const hotspotOriginalX = imageBounds.left + hotspotX;
             const hotspotOriginalY = imageBounds.top + hotspotY;
 
@@ -2877,10 +2867,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             width: e.currentTarget.naturalWidth,
                             height: e.currentTarget.naturalHeight
                           });
+                          if (backgroundType === 'image' || !backgroundType) {
+                            setImageLoading(false);
+                          }
                         }}
                         onError={() => {
                           console.error('Failed to load background image:', backgroundImage);
                           setImageNaturalDimensions(null);
+                          if (backgroundType === 'image' || !backgroundType) {
+                            setImageLoading(false);
+                          }
                         }}
                         draggable={false}
                       />
@@ -2942,7 +2938,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         })}
                       </div>
                     </div>
-                                        {/* Initial view buttons overlay (common for desktop/mobile idle) */}
+                    {/* Initial view buttons overlay (common for desktop/mobile idle) */}
                     {moduleState === 'idle' && !isEditing && backgroundImage && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
                         <div className="text-center space-y-4 sm:space-y-6 p-6 sm:p-8 bg-black/60 rounded-lg sm:rounded-2xl border border-white/20 shadow-xl sm:shadow-2xl max-w-xs sm:max-w-md">
