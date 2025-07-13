@@ -35,7 +35,7 @@ const extractYouTubeVideoId = (url: string): string | null => {
   return (match && match[1]) ? match[1] : null;
 };
 
-import { MemoizedHotspotViewer } from './HotspotViewer';
+import HotspotViewer from './HotspotViewer';
 
 // Using default memo export from HotspotViewer
 
@@ -490,7 +490,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     // No scaling needed - return current values
     return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
-  }, [isMobile, getSafeImageBounds, getScaledImageDivDimensions]);
+  }, [isMobile, getSafeImageBounds]);
   
   // Handle preview overlay updates
   const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
@@ -1833,8 +1833,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 const hotspotOriginalX = imageBounds.left + hotspotX;
                 const hotspotOriginalY = imageBounds.top + hotspotY;
 
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * currentTransform.scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * currentTransform.scale - divCenterY;
+                const translateX = viewportCenter.centerX - hotspotOriginalX * currentTransform.scale;
+                const translateY = viewportCenter.centerY - hotspotOriginalY * currentTransform.scale;
 
                 // Only update if values have actually changed significantly
                 const threshold = 1; // 1px threshold
@@ -2205,7 +2205,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
                 // Calculate translation for center-origin transform
                 // With transform-origin: center, we need to account for the div's center point
-                const divDimensions = imageContainerRef.current.getBoundingClientRect();
+                const divDimensions = imageContainerRef.current?.getBoundingClientRect();
+                if (!divDimensions) return;
                 const divCenterX = divDimensions.width / 2;
                 const divCenterY = divDimensions.height / 2;
 
@@ -2407,8 +2408,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             const hotspotOriginalX = imageBounds.left + hotspotX;
             const hotspotOriginalY = imageBounds.top + hotspotY;
 
-            const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-            const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+            const translateX = viewportCenter.centerX - hotspotOriginalX * scale;
+            const translateY = viewportCenter.centerY - hotspotOriginalY * scale;
 
             transformToApply = {
               scale,
@@ -2920,7 +2921,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                           const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
                           if (!shouldShow) return null;
                           return (
-                            <MemoizedHotspotViewer
+                            <HotspotViewer
                               key={hotspot.id}
                               hotspot={hotspot}
                               pixelPosition={hotspot.pixelPosition}
