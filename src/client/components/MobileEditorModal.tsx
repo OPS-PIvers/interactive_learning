@@ -67,6 +67,11 @@ const MOBILE_INTERACTION_TYPES = [
   }
 ];
 
+// Performance optimization: Create lookup map for interaction type labels
+const interactionTypeLabelMap = new Map(
+  MOBILE_INTERACTION_TYPES.flatMap(c => c.types).map(t => [t.value, t.label])
+);
+
 const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   isOpen,
   hotspot,
@@ -349,7 +354,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-white font-medium">
-                    {MOBILE_INTERACTION_TYPES.flatMap(c => c.types).find(t => t.value === event.type)?.label || 'Unknown'}
+                    {interactionTypeLabelMap.get(event.type) || 'Unknown'}
                   </span>
                 </div>
                 <button
@@ -472,7 +477,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
       </div>
 
       {showEventTypeSelector && (
-        <EventTypeSelector
+        <MobileEventTypeSelector
           onClose={() => setShowEventTypeSelector(false)}
           onSelect={(type) => {
             const newEvent: TimelineEventData = {
@@ -518,7 +523,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   );
 };
 
-const EventTypeSelector: React.FC<{
+const MobileEventTypeSelector: React.FC<{
   onSelect: (type: InteractionType) => void;
   onClose: () => void;
 }> = ({ onSelect, onClose }) => {
@@ -527,7 +532,7 @@ const EventTypeSelector: React.FC<{
       <div className="bg-slate-800 rounded-t-2xl p-4 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h3 className="text-lg font-semibold text-white">Select Event Type</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label="Close event type selector">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
