@@ -3,7 +3,6 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
-import HotspotViewer from './HotspotViewer';
 import HorizontalTimeline from './HorizontalTimeline';
 import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
 import MobileEditorModal from './MobileEditorModal';
@@ -21,20 +20,8 @@ import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
-import MediaModal from './MediaModal';
-import VideoPlayer from './VideoPlayer';
-import AudioPlayer from './AudioPlayer';
-import ImageViewer from './ImageViewer';
-import YouTubePlayer from './YouTubePlayer';
 
-// Helper function to extract YouTube Video ID from various URL formats
-const extractYouTubeVideoId = (url: string): string | null => {
-  if (!url) return null;
-  // Regular expression to cover various YouTube URL formats
-  const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regExp);
-  return (match && match[1]) ? match[1] : null;
-};
+import { MemoizedHotspotViewer } from './HotspotViewer';
 
 // Using default memo export from HotspotViewer
 
@@ -226,8 +213,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover');
-  const [backgroundType, setBackgroundType] = useState<'image' | 'video'>(initialData.backgroundType || 'image');
-  const [backgroundVideoType, setBackgroundVideoType] = useState<'youtube' | 'mp4'>(initialData.backgroundVideoType || 'mp4');
   
   const [activeHotspotDisplayIds, setActiveHotspotDisplayIds] = useState<Set<string>>(new Set()); // Hotspots to *render* (dots)
   const [pulsingHotspotId, setPulsingHotspotId] = useState<string | null>(null);
@@ -235,24 +220,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Track when any hotspot is being dragged - using isDragModeActive instead
   const [isDragModeActive, setIsDragModeActive] = useState(false);
+  const [isHotspotDragging, setIsHotspotDragging] = useState(false);
   
   
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
   const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
-
-  // Media modal states
-  const [mediaModal, setMediaModal] = useState<{
-    isOpen: boolean;
-    type: 'video' | 'audio' | 'image' | 'youtube' | null;
-    title: string;
-    data: any;
-  }>({
-    isOpen: false,
-    type: null,
-    title: '',
-    data: null
-  });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
@@ -364,151 +337,58 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     return steps.length > 0 ? steps : (isEditing ? [1] : []);
   }, [timelineEvents, isEditing]);
   
-  // Helper functions moved before calculateOptimalImageScale to fix temporal dead zone errors
-  const getScaledImageDivDimensions = useCallback(() => {
-    if (isMobile) {
-      // For mobile, we need to get the actual container dimensions
-      const container = viewerImageContainerRef.current || imageContainerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        return {
-          width: rect.width,
-          height: rect.height
-        };
-      }
-      // Fallback to viewport dimensions
-      return {
-        width: window.innerWidth,
-        height: window.innerHeight * 0.8 // Account for UI elements
-      };
-    } else {
-      // Desktop calculations remain the same
-      const divWidth = 80 * window.innerWidth / 100;
-      const divHeight = 80 * window.innerHeight / 100;
-      const maxWidth = 1200;
-      const maxHeight = 800;
-      
-      return {
-        width: Math.min(divWidth, maxWidth),
-        height: Math.min(divHeight, maxHeight)
-      };
-    }
-  }, [isMobile]);
+  const getImageClassName = useCallback(() => {
+    const baseClasses = "block select-none";
 
-  // Unified helper to calculate image content bounds for both editor and viewer modes
+    if (isMobile) {
+      return `${baseClasses} max-w-full max-h-full object-contain`;
+    } else {
+      // Desktop classes depend on fit mode
+      if (imageFitMode === 'contain') {
+        return `${baseClasses} max-w-full max-h-full object-contain`;
+      } else if (imageFitMode === 'cover') {
+        return `${baseClasses} min-w-full min-h-full object-cover`;
+      } else { // fill
+        return `${baseClasses} w-full h-full object-fill`;
+      }
+    }
+  }, [isMobile, imageFitMode]);
+
+  const getImageStyle = useCallback(() => {
+    if (isMobile) {
+      // Mobile always uses contain-like behavior
+      return {};
+    } else {
+      // Desktop might need specific dimensions based on mode
+      if (imageFitMode === 'contain') {
+        return {};
+      } else if (imageFitMode === 'cover') {
+        return {};
+      } else { // fill
+        return { width: '100%', height: '100%' };
+      }
+    }
+  }, [isMobile, imageFitMode]);
+
   const getImageBounds = useCallback(() => {
-    if (!imageContainerRef.current || !backgroundImage || !imageNaturalDimensions) {
+    if (!imageContainerRef.current || !backgroundImage || !actualImageRef.current) {
       return null;
     }
 
-    const containerRect = (isEditing ? scrollableContainerRef.current : imageContainerRef.current).getBoundingClientRect();
-
-    if (isEditing && actualImageRef.current) {
-      // Editor mode: Extract bounds from actual img element but normalize to match viewer calculations
-      const imgRect = actualImageRef.current.getBoundingClientRect();
-      
-      // Get the natural dimensions and calculate how the image is fitted
-      const containerWidth = imgRect.width;
-      const containerHeight = imgRect.height;
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-      const containerAspect = containerWidth / containerHeight;
-
-      // Calculate the actual rendered image content area (accounting for object-fit behavior)
-      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
-
-      // Most img elements use object-fit: contain by default
-      if (containerAspect > imageAspect) {
-        // Container is wider - image height fills, width is letterboxed
-        contentHeight = containerHeight;
-        contentWidth = contentHeight * imageAspect;
-        contentLeft = (containerWidth - contentWidth) / 2;
-      } else {
-        // Container is taller - image width fills, height is letterboxed
-        contentWidth = containerWidth;
-        contentHeight = contentWidth / imageAspect;
-        contentTop = (containerHeight - contentHeight) / 2;
-      }
-
-      return {
-        width: contentWidth,
-        height: contentHeight,
-        left: (imgRect.left - containerRect.left) + contentLeft,
-        top: (imgRect.top - containerRect.top) + contentTop,
-        absoluteLeft: imgRect.left + contentLeft,
-        absoluteTop: imgRect.top + contentTop
-      };
-    } else if (!isEditing) {
-      // Viewer mode: Calculate bounds based on img element positioning
-      
-      // Use cached bounds if available and transform is active to prevent feedback loops
-      if (originalImageBoundsRef.current && lastAppliedTransformRef.current.scale > 1) {
-        return originalImageBoundsRef.current;
-      }
-
-      // Get the actual scaled div element bounds
-      if (!scaledImageDivRef.current) return null;
-      
-      // Find the img element within the scaled div
-      const imgElement = scaledImageDivRef.current.querySelector('img');
-      if (!imgElement) return null;
-      
-      const imgRect = imgElement.getBoundingClientRect();
-      const containerRect = imageContainerRef.current.getBoundingClientRect();
-      
-      // Calculate the actual rendered image content area (accounting for object-fit behavior)
-      const imgWidth = imgRect.width;
-      const imgHeight = imgRect.height;
-      const imageAspect = imageNaturalDimensions.width / imageNaturalDimensions.height;
-      const imgContainerAspect = imgWidth / imgHeight;
-
-      let contentWidth, contentHeight, contentLeft = 0, contentTop = 0;
-
-      // Calculate content area based on object-fit mode
-      if (imageFitMode === 'cover') {
-        if (imgContainerAspect > imageAspect) {
-          contentWidth = imgWidth;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (imgHeight - contentHeight) / 2;
-        } else {
-          contentHeight = imgHeight;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (imgWidth - contentWidth) / 2;
-        }
-      } else if (imageFitMode === 'contain') {
-        if (imgContainerAspect > imageAspect) {
-          contentHeight = imgHeight;
-          contentWidth = contentHeight * imageAspect;
-          contentLeft = (imgWidth - contentWidth) / 2;
-        } else {
-          contentWidth = imgWidth;
-          contentHeight = contentWidth / imageAspect;
-          contentTop = (imgHeight - contentHeight) / 2;
-        }
-      } else { // fill
-        contentWidth = imgWidth;
-        contentHeight = imgHeight;
-      }
-
-      // Calculate the position relative to the container
-      const imgLeft = imgRect.left - containerRect.left;
-      const imgTop = imgRect.top - containerRect.top;
-
-      const bounds = {
-        width: contentWidth,
-        height: contentHeight,
-        left: imgLeft + contentLeft,
-        top: imgTop + contentTop,
-        absoluteLeft: imgRect.left + contentLeft,
-        absoluteTop: imgRect.top + contentTop
-      };
-
-      // Cache the original bounds for viewer mode
-      originalImageBoundsRef.current = bounds;
-      return bounds;
-    }
+    const containerRect = imageContainerRef.current.getBoundingClientRect();
+    const imgRect = actualImageRef.current.getBoundingClientRect();
     
-    return null;
-  }, [isEditing, backgroundImage, imageNaturalDimensions, imageFitMode, getScaledImageDivDimensions, uniqueSortedSteps.length]);
+    // The img element gives us the exact bounds of the rendered image
+    // This works for both editor and viewer modes now
+    return {
+      width: imgRect.width,
+      height: imgRect.height,
+      left: imgRect.left - containerRect.left,
+      top: imgRect.top - containerRect.top,
+      absoluteLeft: imgRect.left,
+      absoluteTop: imgRect.top
+    };
+  }, [backgroundImage]);
 
   const getSafeImageBounds = useCallback(() => {
     return safeGetPosition(() => getImageBounds(), null); // Fallback is null as per original getImageBounds
@@ -527,9 +407,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     const imageBounds = getSafeImageBounds();
-    const divDimensions = getScaledImageDivDimensions();
     
-    if (!imageBounds || !divDimensions) {
+    if (!imageBounds) {
       return { scale: currentScale, translateX: currentTranslateX, translateY: currentTranslateY };
     }
 
@@ -537,13 +416,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     const scaledImageHeight = imageBounds.height * currentScale;
     
     // Check if current scaled image fits in the new container dimensions
-    const fitsWidth = scaledImageWidth <= divDimensions.width;
-    const fitsHeight = scaledImageHeight <= divDimensions.height;
+    const fitsWidth = scaledImageWidth <= imageBounds.width;
+    const fitsHeight = scaledImageHeight <= imageBounds.height;
     
     if (panelIsOpening && (!fitsWidth || !fitsHeight)) {
       // Panel is opening and image doesn't fit - scale down to fit
-      const widthRatio = divDimensions.width / imageBounds.width;
-      const heightRatio = divDimensions.height / imageBounds.height;
+      const widthRatio = imageBounds.width / imageBounds.width;
+      const heightRatio = imageBounds.height / imageBounds.height;
       const optimalScale = Math.min(widthRatio, heightRatio, currentScale); // Don't scale up
       
       // Reset translation to center when scaling down significantly
@@ -564,8 +443,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     } else if (!panelIsOpening && currentScale < 1) {
       // Panel is closing and we're zoomed out - potentially restore scale
-      const widthRatio = divDimensions.width / imageBounds.width;
-      const heightRatio = divDimensions.height / imageBounds.height;
+      const widthRatio = imageBounds.width / imageBounds.width;
+      const heightRatio = imageBounds.height / imageBounds.height;
       const maxFitScale = Math.min(widthRatio, heightRatio);
       
       // Restore to fit scale or 1.0, whichever is smaller
@@ -703,29 +582,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [debugLog]);
 
 
-  // Helper to show media modals
-  const showMediaModal = useCallback((
-    type: 'video' | 'audio' | 'image' | 'youtube',
-    title: string,
-    data: any
-  ) => {
-    setMediaModal({
-      isOpen: true,
-      type,
-      title,
-      data
-    });
-  }, []);
-
-  const closeMediaModal = useCallback(() => {
-    setMediaModal({
-      isOpen: false,
-      type: null,
-      title: '',
-      data: null
-    });
-  }, []);
-
   // Helper to get viewport center for centering operations
   const getViewportCenter = useCallback(() => {
     if (!imageContainerRef.current) return null;
@@ -760,8 +616,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       console.log('Hotspot positioning debug:', {
         hotspotId: hotspot.id,
         hotspotPercentages: { x: hotspot.x, y: hotspot.y },
-        imageBounds,
-        containerDimensions: !isEditing ? getScaledImageDivDimensions() : null
+        imageBounds
       });
     }
 
@@ -1244,8 +1099,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     const currentData = {
       backgroundImage,
-      backgroundType,
-      backgroundVideoType,
       hotspots,
       timelineEvents,
       imageFitMode
@@ -1531,6 +1384,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [hotspots, moduleState, isEditing, backgroundImage, isDragModeActive]);
 
+  const handleHotspotClick = useCallback((hotspotId: string) => {
+    // In viewer mode, clicking a hotspot should trigger the same logic as focusing it
+    // which might involve starting the learning sequence or showing info.
+    if (!isEditing) {
+      handleFocusHotspot(hotspotId);
+    }
+    // In editing mode, this could be wired to select the hotspot for editing.
+    // The existing `handleFocusHotspot` already handles this distinction.
+  }, [isEditing, handleFocusHotspot]);
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
@@ -1918,10 +1780,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
                 const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
 
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-
                 const hotspotOriginalX = imageBounds.left + hotspotX;
                 const hotspotOriginalY = imageBounds.top + hotspotY;
 
@@ -2074,8 +1932,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     try {
       setBackgroundImage(initialData.backgroundImage);
-      setBackgroundType(initialData.backgroundType || 'image');
-      setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
       setHotspots(initialData.hotspots || []);
       setTimelineEvents(initialData.timelineEvents || []);
       setImageFitMode(initialData.imageFitMode || 'cover');
@@ -2291,9 +2147,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
                 // Calculate translation for center-origin transform
                 // With transform-origin: center, we need to account for the div's center point
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
 
                 // For center-origin scaling, the transform formula is:
                 // final_position = (original_position - center) * scale + center + translate
@@ -2304,8 +2157,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 const hotspotOriginalX = imageBounds.left + hotspotX;
                 const hotspotOriginalY = imageBounds.top + hotspotY;
 
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+                const translateX = viewportCenter.centerX - hotspotOriginalX * scale;
+                const translateY = viewportCenter.centerY - hotspotOriginalY * scale;
 
                 let newTransform: ImageTransformState = {
                   scale,
@@ -2349,15 +2202,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
                 const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
 
-                const divDimensions = getScaledImageDivDimensions();
-                const divCenterX = divDimensions.width / 2;
-                const divCenterY = divDimensions.height / 2;
-
                 const hotspotOriginalX = imageBounds.left + hotspotX;
                 const hotspotOriginalY = imageBounds.top + hotspotY;
 
-                const translateX = viewportCenter.centerX - (hotspotOriginalX - divCenterX) * scale - divCenterX;
-                const translateY = viewportCenter.centerY - (hotspotOriginalY - divCenterY) * scale - divCenterY;
+                const translateX = viewportCenter.centerX - hotspotOriginalX * scale;
+                const translateY = viewportCenter.centerY - hotspotOriginalY * scale;
 
                 let newTransform: ImageTransformState = {
                   scale,
@@ -2751,20 +2600,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 description: '',
                 interactiveData: {
                   backgroundImage,
-                  backgroundType,
-                  backgroundVideoType,
                   hotspots,
                   timelineEvents,
                   imageFitMode: 'contain' // Default, or use current imageFitMode
                 }
               } : undefined}
-              // Background props for EditorToolbar -> EnhancedModalEditorToolbar
-              backgroundImage={backgroundImage}
-              backgroundType={backgroundType}
-              backgroundVideoType={backgroundVideoType}
-              onBackgroundImageChange={setBackgroundImage}
-              onBackgroundTypeChange={setBackgroundType}
-              onBackgroundVideoTypeChange={setBackgroundVideoType}
             />
             </div>
 
@@ -2938,137 +2778,73 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
                 {backgroundImage ? (
                   <>
-                    {/* Hidden image for natural dimensions, used by both desktop and mobile */}
-                    {!isEditing && (
+                    {/* Container div for the image - maintains transform */}
+                    <div
+                      ref={scaledImageDivRef}
+                      className="relative flex items-center justify-center w-full h-full"
+                      style={{
+                        transformOrigin: 'center',
+                        transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
+                        transition: isTransforming ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+                        zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
+                      }}
+                    >
+                      {/* Actual image element */}
                       <img
-                        key={backgroundImage}
+                        ref={actualImageRef} // Reuse the same ref name as editor for consistency
                         src={backgroundImage}
+                        alt="Interactive module background"
+                        className={getImageClassName()} // Helper function for responsive classes
+                        style={getImageStyle()} // Helper function for dynamic styles
                         onLoad={(e) => {
                           setImageNaturalDimensions({
                             width: e.currentTarget.naturalWidth,
                             height: e.currentTarget.naturalHeight
                           });
-                          // If it's an image type, clear imageLoading (videos handle their own loading state)
-                          if (backgroundType === 'image' || !backgroundType) {
-                            setImageLoading(false);
-                          }
+                          // Trigger position recalculation after image loads
+                          throttledRecalculatePositions();
                         }}
                         onError={() => {
-                          console.error('Failed to load background resource:', backgroundImage);
+                          console.error('Failed to load background image:', backgroundImage);
                           setImageNaturalDimensions(null);
-                          if (backgroundType === 'image' || !backgroundType) {
-                            setImageLoading(false); // Also handle error for images
-                          }
                         }}
-                        style={{ display: 'none' }}
-                        alt=""
-                        aria-hidden="true"
+                        draggable={false}
                       />
-                    )}
-                    {/* Scaled Image Div (acts as container for background content) */}
-                    <div
-                      ref={scaledImageDivRef}
-                      className="relative" // Ensure positioning context for hotspots
-                      style={{
-                        // backgroundImage CSS property is now handled by renderBackgroundContent or direct img tag
-                        backgroundSize: imageFitMode, // Still relevant for video object-fit equivalent
-                        backgroundPosition: 'center', // Still relevant for video object-fit equivalent
-                        backgroundRepeat: 'no-repeat', // Still relevant
-                        transformOrigin: 'center',
-                        transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
-                        transition: isTransforming 
-                          ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' 
-                          : isHotspotModalOpen !== undefined 
-                            ? 'width 0.3s ease-out, height 0.3s ease-out, max-width 0.3s ease-out' 
-                            : 'none',
-                        // Responsive sizing: Account for editor panel on desktop
-                        width: isMobile ? '100%' : (() => {
-                          const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
-                          const availableWidth = window.innerWidth - editorPanelWidth;
-                          return `${Math.min(80, (0.8 * availableWidth / window.innerWidth) * 100)}vw`;
-                        })(),
-                        height: isMobile ? '100%' : '80vh',
-                        maxWidth: isMobile ? '100%' : (() => {
-                          const editorPanelWidth = isHotspotModalOpen ? 384 : 0;
-                          const availableWidth = window.innerWidth - editorPanelWidth;
-                          return `${Math.min(1200, availableWidth - 40)}px`;
-                        })(),
-                        maxHeight: isMobile ? '100%' : '800px',
-                        zIndex: imageTransform.scale > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
-                        // Ensure the container itself doesn't have a background image if child elements handle it
-                        backgroundImage: 'none', // Always none, child elements will render image/video
-                      }}
-                      aria-hidden="true"
-                    >
-                      {/* Conditional Background Content */}
-                      {/* Image Rendering for Viewer Mode */}
-                      {backgroundType === 'image' && backgroundImage && !isEditing && (
-                        <img
-                          src={backgroundImage}
-                          alt=""
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: imageFitMode,
-                            objectPosition: 'center',
-                          }}
+
+                      {/* Highlight overlay */}
+                      {(moduleState === 'learning' || isEditing) && highlightedHotspotId && activeHotspotDisplayIds.has(highlightedHotspotId) && (
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }}
+                          aria-hidden="true"
                         />
                       )}
 
-                      {/* Video Rendering */}
-                      {(backgroundType === 'video' && backgroundImage) ? (
-                        backgroundVideoType === 'youtube' ? (
-                          <YouTubePlayer
-                            videoId={extractYouTubeVideoId(backgroundImage) || ''}
-                            className="absolute inset-0 w-full h-full"
-                            autoplay={true}
-                            loop={true}
-                            showControls={false} // No controls for background video
-                            style={{ objectFit: imageFitMode }} // Apply fit mode
-                          />
-                        ) : backgroundVideoType === 'mp4' ? (
-                          <VideoPlayer
-                            src={backgroundImage}
-                            className="absolute inset-0 w-full h-full"
-                            autoplay={true}
-                            loop={true}
-                            muted={true}
-                            style={{ objectFit: imageFitMode }} // Apply fit mode
-                          />
-                        ) : null // Should ideally show an error or fallback if video type is unknown
-                      ) : null}
-                      {/* End Conditional Background Content */}
-
-                      {/* Highlight Overlay */}
-                      {(moduleState === 'learning' || isEditing) && highlightedHotspotId && activeHotspotDisplayIds.has(highlightedHotspotId) && (
-                        <div className="absolute inset-0 pointer-events-none" style={{ ...getHighlightGradientStyle(), zIndex: Z_INDEX.HOTSPOTS - 1 }} aria-hidden="true"/>
-                      )}
-                      {/* Hotspots */}
-                      <div style={{ position: 'relative', zIndex: Z_INDEX.HOTSPOTS }}>
+                      {/* Hotspots container */}
+                      <div className="absolute inset-0" style={{ zIndex: Z_INDEX.HOTSPOTS }}>
                         {hotspotsWithPositions.map(hotspot => {
                           const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
                           if (!shouldShow) return null;
                           return (
-                            <HotspotViewer
+                            <MemoizedHotspotViewer
                               key={hotspot.id}
                               hotspot={hotspot}
                               pixelPosition={hotspot.pixelPosition}
                               usePixelPositioning={true}
+                              imageElement={actualImageRef.current} // Pass the img element reference
                               isPulsing={(moduleState === 'learning') && pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                              isDimmedInEditMode={false} // Not in editing mode here
+                              isDimmedInEditMode={false}
                               isEditing={false}
-                              onFocusRequest={handleFocusHotspot}
-                              onEditRequest={handleOpenHotspotEditor} // Should not be called in viewer
-                              isContinuouslyPulsing={moduleState === 'idle' && !exploredHotspotId}
+                              onFocusRequest={handleHotspotClick}
+                              isContinuouslyPulsing={(moduleState === 'idle') && !isTransforming}
                               isMobile={isMobile}
-                              onDragStateChange={() => {}} // No-op since this is viewing mode
+                              onDragStateChange={setIsHotspotDragging}
                             />
                           );
                         })}
                       </div>
                     </div>
-
-                    {/* Initial view buttons overlay (common for desktop/mobile idle) */}
+                                        {/* Initial view buttons overlay (common for desktop/mobile idle) */}
                     {moduleState === 'idle' && !isEditing && backgroundImage && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
                         <div className="text-center space-y-4 sm:space-y-6 p-6 sm:p-8 bg-black/60 rounded-lg sm:rounded-2xl border border-white/20 shadow-xl sm:shadow-2xl max-w-xs sm:max-w-md">
@@ -3196,67 +2972,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             setPreviewOverlayEvent(event);
           }}
         />
-      )}
-
-      {/* Media Modal */}
-      {mediaModal.isOpen && (
-        <MediaModal
-          isOpen={mediaModal.isOpen}
-          onClose={closeMediaModal}
-          title={mediaModal.title}
-          size="large"
-          disableTouch={mediaModal.type === 'image'}
-        >
-          {mediaModal.type === 'video' && mediaModal.data && (
-            <VideoPlayer
-              src={mediaModal.data.src}
-              title={mediaModal.title}
-              poster={mediaModal.data.poster}
-              autoplay={mediaModal.data.autoplay}
-              loop={mediaModal.data.loop}
-              className="w-full h-full"
-            />
-          )}
-          
-          {mediaModal.type === 'audio' && mediaModal.data && (
-            <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
-              minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
-            }}>
-              <AudioPlayer
-                src={mediaModal.data.src}
-                title={mediaModal.data.title}
-                artist={mediaModal.data.artist}
-                autoplay={mediaModal.data.autoplay}
-                loop={mediaModal.data.loop}
-                className="w-full max-w-lg"
-              />
-            </div>
-          )}
-          
-          {mediaModal.type === 'image' && mediaModal.data && (
-            <ImageViewer
-              src={mediaModal.data.src}
-              alt={mediaModal.data.alt}
-              title={mediaModal.data.title}
-              caption={mediaModal.data.caption}
-              className="w-full h-full min-h-[500px]"
-            />
-          )}
-          
-          {mediaModal.type === 'youtube' && mediaModal.data && (
-            <div className="p-4">
-              <YouTubePlayer
-                videoId={mediaModal.data.videoId}
-                title={mediaModal.title}
-                startTime={mediaModal.data.startTime}
-                endTime={mediaModal.data.endTime}
-                autoplay={mediaModal.data.autoplay}
-                loop={mediaModal.data.loop}
-                className="w-full"
-              />
-            </div>
-          )}
-        </MediaModal>
       )}
     </div>
   );
