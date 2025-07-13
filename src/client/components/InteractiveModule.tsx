@@ -2547,15 +2547,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [imageTransform, debugMode, debugLog]);
 
-  // Add guard to prevent rendering before initialization
-  if (!isInitialized) {
-    return <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
-      <div className="text-white">Initializing module...</div>
-    </div>;
-  }
-
-  // ✅ Moved error handling to render section to prevent hook order issues
-
+  // ✅ IMPORTANT: All hooks must be called before any early returns
+  
   // Master cleanup effect for component unmount
   useEffect(() => {
     return () => {
@@ -2590,7 +2583,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     };
   }, []);
 
-  // ✅ Handle initialization errors after all hooks are called
+  // ✅ Handle all early returns after ALL hooks are called to prevent React 310 errors
+  if (!isInitialized) {
+    return <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
+      <div className="text-white">Initializing module...</div>
+    </div>;
+  }
+
   if (initError) {
     return (
       <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
