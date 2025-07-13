@@ -1,19 +1,29 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface MobileMediaUploadProps {
   label: string;
   onUpload: (file: File) => void;
+  acceptedTypes?: string;
+  maxSizeBytes?: number;
   className?: string;
 }
 
 export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
   label,
   onUpload,
+  acceptedTypes = 'image/*,video/*,audio/*',
+  maxSizeBytes = 10 * 1024 * 1024, // 10MB default
   className = ''
 }) => {
+  const id = useId();
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > maxSizeBytes) {
+        alert(`File size must be less than ${Math.round(maxSizeBytes / (1024 * 1024))}MB`);
+        return;
+      }
       onUpload(file);
     }
   };
@@ -23,7 +33,7 @@ export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
       <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
       <div className="flex items-center justify-center w-full">
         <label
-          htmlFor="file-upload"
+          htmlFor={id}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800 hover:bg-slate-700"
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -46,7 +56,13 @@ export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
             </p>
             <p className="text-xs text-gray-500">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
           </div>
-          <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} />
+          <input 
+            id={id} 
+            type="file" 
+            accept={acceptedTypes}
+            className="hidden" 
+            onChange={handleFileChange} 
+          />
         </label>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface MobileColorPickerProps {
   label: string;
@@ -13,11 +13,14 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
   onChange,
   className = ''
 }) => {
+  const id = useId();
+  
   return (
     <div className={`flex items-center justify-between ${className}`}>
-      <label className="text-sm font-medium text-gray-300">{label}</label>
+      <label htmlFor={id} className="text-sm font-medium text-gray-300">{label}</label>
       <div className="flex items-center space-x-2">
         <input
+          id={id}
           type="color"
           value={color}
           onChange={(e) => onChange(e.target.value)}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface MobileToggleProps {
   label: string;
@@ -13,11 +13,17 @@ export const MobileToggle: React.FC<MobileToggleProps> = ({
   onChange,
   className = ''
 }) => {
+  const id = useId();
+  
   return (
     <div className={`flex items-center justify-between ${className}`}>
-      <label className="text-sm font-medium text-gray-300">{label}</label>
+      <label id={`${id}-label`} className="text-sm font-medium text-gray-300">{label}</label>
       <button
+        id={id}
         type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-labelledby={`${id}-label`}
         className={`${
           enabled ? 'bg-blue-600' : 'bg-slate-700'
         } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
