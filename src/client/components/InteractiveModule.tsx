@@ -206,6 +206,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const successMessageTimeoutRef = useRef<number | null>(null);
   const pulseTimeoutRef = useRef<number | null>(null);
   const applyTransformTimeoutRef = useRef<number | null>(null);
+  const debouncedApplyTransformTimeoutRef = useRef<number | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
   const initTimeoutRef = useRef<number | null>(null);
@@ -341,6 +342,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       successMessageTimeoutRef,
       pulseTimeoutRef,
       applyTransformTimeoutRef,
+      debouncedApplyTransformTimeoutRef,
       closeTimeoutRef,
       animationTimeoutRef,
       initTimeoutRef,
@@ -914,6 +916,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [debugLog]);
 
+  // Debounced version of applyTransform for performance optimization
+  const debouncedApplyTransform = useMemo(
+    () => {
+      return (newTransform: ImageTransformState) => {
+        if (debouncedApplyTransformTimeoutRef.current) {
+          clearTimeout(debouncedApplyTransformTimeoutRef.current);
+        }
+        debouncedApplyTransformTimeoutRef.current = window.setTimeout(() => {
+          applyTransform(newTransform);
+        }, 16); // ~60fps
+      };
+    },
+    [applyTransform] // Now safely referenced
+  );
 
   // Memoized hotspot positions that update with explicit transform changes
   const hotspotsWithPositions = useMemo(() => {
@@ -1136,6 +1152,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
     return false;
   }, [isEditing, handleZoomReset]);
+
+  // Create stable keyboard handler reference to prevent TDZ issues
+  const stableKeyboardHandlers = useMemo(() => ({
+    handleArrowLeftKey,
+    handleArrowRightKey,
+    handleEscapeKey,
+    handlePlusKey,
+    handleMinusKey,
+    handleZeroKey
+  }), [
+    handleArrowLeftKey,
+    handleArrowRightKey,
+    handleEscapeKey,
+    handlePlusKey,
+    handleMinusKey,
+    handleZeroKey
+  ]);
 
   // REMOVED: Old event execution system replaced with preview overlays
   // The eye icon preview now shows interactive editing overlays instead of executing events
@@ -1483,6 +1516,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       return;
     }
   }, [editorMaxStep, hotspots, currentStep, isEditing]);
+
+  const handleUpdateTimelineEvent = useCallback((updatedEvent: TimelineEventData) => {
+    setTimelineEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  }, []);
+
+  const handleDeleteTimelineEvent = useCallback((eventId: string) => {
+    setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
+  }, []);
   
   // Legacy edit function removed - now handled by enhanced editor
 
@@ -2111,19 +2152,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
 
       let preventDefault = false;
+      const handlers = stableKeyboardHandlers;
 
       if (e.key === 'ArrowLeft') {
-        preventDefault = handleArrowLeftKey();
+        preventDefault = handlers.handleArrowLeftKey();
       } else if (e.key === 'ArrowRight') {
-        preventDefault = handleArrowRightKey();
+        preventDefault = handlers.handleArrowRightKey();
       } else if (e.key === 'Escape') {
-        preventDefault = handleEscapeKey();
+        preventDefault = handlers.handleEscapeKey();
       } else if (e.key === '+' || e.key === '=') {
-        preventDefault = handlePlusKey(e);
+        preventDefault = handlers.handlePlusKey(e);
       } else if (e.key === '-') {
-        preventDefault = handleMinusKey(e);
+        preventDefault = handlers.handleMinusKey(e);
       } else if (e.key === '0') {
-        preventDefault = handleZeroKey(e);
+        preventDefault = handlers.handleZeroKey(e);
       }
 
       if (preventDefault) {
@@ -2135,15 +2177,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [
-    debugLog,
-    handleArrowLeftKey,
-    handleArrowRightKey,
-    handleEscapeKey,
-    handlePlusKey,
-    handleMinusKey,
-    handleZeroKey
-  ]);
+  }, [debugLog, stableKeyboardHandlers]); // Stable dependency
 
 
 
@@ -2538,6 +2572,40 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     );
   }
 
+  // Master cleanup effect for component unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup all timeouts on unmount
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+      }
+      if (successMessageTimeoutRef.current) {
+        clearTimeout(successMessageTimeoutRef.current);
+      }
+      if (applyTransformTimeoutRef.current) {
+        clearTimeout(applyTransformTimeoutRef.current);
+      }
+      if (debouncedApplyTransformTimeoutRef.current) {
+        clearTimeout(debouncedApplyTransformTimeoutRef.current);
+      }
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      if (stateChangeTimeoutRef.current) {
+        clearTimeout(stateChangeTimeoutRef.current);
+      }
+      if (saveAnimationTimeoutRef.current) {
+        clearTimeout(saveAnimationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div
       id="main-content"
@@ -2582,6 +2650,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 setActiveMobileEditorTab('timeline');
               }
             }}
+            onAddTimelineEvent={handleAddTimelineEvent}
+            onUpdateTimelineEvent={handleUpdateTimelineEvent}
+            onDeleteTimelineEvent={handleDeleteTimelineEvent}
           >
             {/* Pass the existing ImageEditCanvas as children */}
             <div
@@ -2766,7 +2837,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     previewOverlayEvent={previewOverlayEvent}
                     onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
                  isPlacingHotspot={isPlacingHotspot} // Pass down isPlacingHotspot
-                 onCancelPlacement={handleCancelHotspotPlacement} // Pass down the cancel handler
                   />
                 </div>
 
@@ -2925,18 +2995,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             className="absolute inset-0 w-full h-full"
                             autoplay={true}
                             loop={true}
-                            muted={true}
-                            controls={false} // No controls for background video
+                            showControls={false} // No controls for background video
                             style={{ objectFit: imageFitMode }} // Apply fit mode
                           />
                         ) : backgroundVideoType === 'mp4' ? (
                           <VideoPlayer
                             src={backgroundImage}
                             className="absolute inset-0 w-full h-full"
-                            autoPlay={true}
+                            autoplay={true}
                             loop={true}
                             muted={true}
-                            controls={false} // No controls for background video
                             style={{ objectFit: imageFitMode }} // Apply fit mode
                           />
                         ) : null // Should ideally show an error or fallback if video type is unknown
