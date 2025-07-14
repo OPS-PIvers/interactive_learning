@@ -18,7 +18,7 @@ interface MobileEditorLayoutProps {
   onAddHotspot?: () => void;
   selectedHotspot?: HotspotData | null;
   onUpdateHotspot?: (updates: Partial<HotspotData>) => void;
-  onDeleteHotspot?: (hotspotId: string) => void;
+  onDeleteHotspot?: (hotspotId: string) => void; // HotspotId for clarity
   activePanelOverride?: 'image' | 'properties' | 'timeline';
   onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline') => void;
 
