@@ -65,6 +65,7 @@ export class FirebaseProjectAPI {
           interactiveData: {
             backgroundImage: projectData.backgroundImage, // This is stored at the project level
             imageFitMode: projectData.imageFitMode || 'cover', // Also at project level
+            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
             // hotspots and timelineEvents are intentionally left undefined here
           }
         } as Project // Asserting as Project, knowing interactiveData is partial
@@ -107,6 +108,7 @@ export class FirebaseProjectAPI {
       return {
         backgroundImage: projectData.backgroundImage,
         imageFitMode: projectData.imageFitMode || 'cover',
+        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
         hotspots,
         timelineEvents,
       };
@@ -135,7 +137,8 @@ export class FirebaseProjectAPI {
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
-          imageFitMode: 'cover'
+          imageFitMode: 'cover',
+          viewerModes: { explore: true, selfPaced: true, timed: true } // Added viewerModes with defaults
         }
       }
       
@@ -147,6 +150,7 @@ export class FirebaseProjectAPI {
         thumbnailUrl: null,
         backgroundImage: null,
         imageFitMode: 'cover',
+        viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       })
@@ -225,6 +229,7 @@ export class FirebaseProjectAPI {
           thumbnailUrl: finalThumbnailUrl,
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
+          viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
           updatedAt: serverTimestamp()
         }, { merge: true });
 

@@ -9,6 +9,11 @@ interface ViewerToolbarProps {
   onStartExploring: () => void;
   hasContent: boolean;
   isMobile?: boolean;
+  viewerModes?: { // Added viewerModes
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
 }
 
 const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
@@ -18,7 +23,9 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
   onStartLearning,
   onStartExploring,
   hasContent,
-  isMobile
+  isMobile,
+  // Destructure viewerModes with a default value
+  viewerModes = { explore: true, selfPaced: true, timed: true }
 }) => {
   if (isMobile) {
     return (
@@ -42,26 +49,30 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
           {/* Right Section - Mode Controls */}
           {hasContent && (
             <div className="flex items-center gap-1.5 flex-shrink-0"> {/* Reduced gap */}
-              <button
-                onClick={onStartExploring}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-sky-400 whitespace-nowrap ${
-                  moduleState === 'idle'
-                    ? 'bg-sky-500 text-white shadow-sm hover:bg-sky-400 active:bg-sky-600'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
-                }`}
-              >
-                Explore
-              </button>
-              <button
-                onClick={onStartLearning}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-purple-400 whitespace-nowrap ${
-                  moduleState === 'learning'
-                    ? 'bg-purple-500 text-white shadow-sm hover:bg-purple-400 active:bg-purple-600'
-                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
-                }`}
-              >
-                Tour
-              </button>
+              {viewerModes.explore && (
+                <button
+                  onClick={onStartExploring}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-sky-400 whitespace-nowrap ${
+                    moduleState === 'idle'
+                      ? 'bg-sky-500 text-white shadow-sm hover:bg-sky-400 active:bg-sky-600'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
+                  }`}
+                >
+                  Explore
+                </button>
+              )}
+              {(viewerModes.selfPaced || viewerModes.timed) && (
+                <button
+                  onClick={onStartLearning}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-purple-400 whitespace-nowrap ${
+                    moduleState === 'learning'
+                      ? 'bg-purple-500 text-white shadow-sm hover:bg-purple-400 active:bg-purple-600'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
+                  }`}
+                >
+                  Tour
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -100,26 +111,30 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
         {/* Right Section - Mode Controls */}
         {hasContent && (
           <div className="flex items-center gap-3">
-            <button
-              onClick={onStartExploring}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 ${
-                moduleState === 'idle' 
-                  ? 'bg-sky-500 text-white shadow-md hover:bg-sky-400'
-                  : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-              }`}
-            >
-              Explore Mode
-            </button>
-            <button
-              onClick={onStartLearning}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${
-                moduleState === 'learning' 
-                  ? 'bg-purple-500 text-white shadow-md hover:bg-purple-400'
-                  : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
-              }`}
-            >
-              Guided Tour
-            </button>
+            {viewerModes.explore && (
+              <button
+                onClick={onStartExploring}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 ${
+                  moduleState === 'idle' 
+                    ? 'bg-sky-500 text-white shadow-md hover:bg-sky-400'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                }`}
+              >
+                Explore Mode
+              </button>
+            )}
+            {(viewerModes.selfPaced || viewerModes.timed) && (
+              <button
+                onClick={onStartLearning}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${
+                  moduleState === 'learning' 
+                    ? 'bg-purple-500 text-white shadow-md hover:bg-purple-400'
+                    : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white'
+                }`}
+              >
+                Guided Tour
+              </button>
+            )}
           </div>
         )}
       </div>
