@@ -138,6 +138,8 @@ export interface TimelineEventData {
   quizQuestion?: string;
   quizOptions?: string[];
   quizCorrectAnswer?: number;
+  quizExplanation?: string;
+  quizShuffleOptions?: boolean;
   mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
   mediaUrl?: string;
   
