@@ -7,6 +7,7 @@ import PanZoomPreviewOverlay from './PanZoomPreviewOverlay';
 import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
 import { Z_INDEX } from '../utils/styleConstants';
+import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
 
 interface ImageEditCanvasProps {
   backgroundImage: string | undefined;
@@ -113,9 +114,9 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               key={`preview-${event.id}`}
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: `radial-gradient(circle at ${event.spotlightX || 50}% ${event.spotlightY || 50}%,
-                  transparent ${event.highlightRadius || 60}px,
-                  rgba(0, 0, 0, ${(event.dimPercentage || 70) / 100}) 100%)`,
+                background: `radial-gradient(circle at ${event.spotlightX || PREVIEW_DEFAULTS.SPOTLIGHT_X}% ${event.spotlightY || PREVIEW_DEFAULTS.SPOTLIGHT_Y}%,
+                  transparent ${event.highlightRadius || PREVIEW_DEFAULTS.HIGHLIGHT_RADIUS}px,
+                  rgba(0, 0, 0, ${(event.dimPercentage || PREVIEW_DEFAULTS.DIM_PERCENTAGE) / 100}) 100%)`,
                 zIndex: 20
               }}
             />
@@ -128,10 +129,10 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               key={`preview-text-${event.id}`}
               className="absolute bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-lg pointer-events-none"
               style={{
-                left: `${event.textX || 50}%`,
-                top: `${event.textY || 50}%`,
+                left: `${event.textX || PREVIEW_DEFAULTS.TEXT_X}%`,
+                top: `${event.textY || PREVIEW_DEFAULTS.TEXT_Y}%`,
                 transform: 'translate(-50%, -50%)',
-                maxWidth: '200px',
+                maxWidth: PREVIEW_DEFAULTS.MAX_WIDTH,
                 zIndex: 30
               }}
             >
@@ -147,10 +148,10 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               key={`preview-zoom-${event.id}`}
               className="absolute inset-0 pointer-events-none border-2 border-blue-400 rounded"
               style={{
-                left: `${(event.targetX || 50) - 10}%`,
-                top: `${(event.targetY || 50) - 10}%`,
-                width: '20%',
-                height: '20%',
+                left: `${(event.targetX || PREVIEW_DEFAULTS.TARGET_X) - PREVIEW_DEFAULTS.ZOOM_PREVIEW_OFFSET}%`,
+                top: `${(event.targetY || PREVIEW_DEFAULTS.TARGET_Y) - PREVIEW_DEFAULTS.ZOOM_PREVIEW_OFFSET}%`,
+                width: PREVIEW_DEFAULTS.ZOOM_PREVIEW_WIDTH,
+                height: PREVIEW_DEFAULTS.ZOOM_PREVIEW_HEIGHT,
                 zIndex: 25
               }}
             />

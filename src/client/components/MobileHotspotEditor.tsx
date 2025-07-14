@@ -285,9 +285,10 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
 
               {/* Edit Button */}
               <button
-                onClick={() => {}}
-                className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
-                title="Edit event"
+                onClick={() => { /* TODO: Implement event editing */ }}
+                className="p-1 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Edit event (Not yet implemented)"
+                disabled
               >
                 <PencilIcon className="w-4 h-4" />
               </button>
@@ -334,10 +335,25 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
           </div>
         )}
 
-        {/* Event List */}
-        <div className="space-y-2">
-          {hotspotEvents.map(renderEventCard)}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-white">Associated Events</h3>
+          <button
+            onClick={handleAddNewEvent}
+            className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
+            Add Event
+          </button>
         </div>
+
+        {/* Event List */}
+        {hotspotEvents.length === 0 ? (
+          <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {hotspotEvents.map(renderEventCard)}
+          </div>
+        )}
       </div>
     );
   };
