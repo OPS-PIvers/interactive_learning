@@ -38,6 +38,7 @@ export interface HotspotData {
   backgroundColor?: string; // e.g., 'bg-red-500' - alias for color for mobile editor compatibility
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   link?: string; // Optional link URL for hotspot
+  displayHotspotInEvent?: boolean; // When true, hotspot remains visible when its events are active
 }
 
 // Base Event interface

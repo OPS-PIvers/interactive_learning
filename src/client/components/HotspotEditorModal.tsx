@@ -305,6 +305,29 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             onAddEventClick={handleToggleEventTypeSelector} // Pass the handler here
           />
           <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
+            {/* Hotspot Settings Section */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <h3 className="text-base font-semibold mb-2 text-white">Hotspot Settings</h3>
+              <div className="flex items-center justify-between">
+                <label htmlFor="display-hotspot-toggle" className="text-sm text-gray-300">
+                  Display hotspot during event
+                </label>
+                <div
+                  onClick={() =>
+                    setLocalHotspot(prev => prev ? { ...prev, displayHotspotInEvent: !prev.displayHotspotInEvent } : null)
+                  }
+                  id="display-hotspot-toggle"
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+                              ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}
+                >
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-3">
               {showEventTypeSelector && ( // Conditionally render this section
                 <div ref={eventTypeSelectorRef} className="bg-gray-700 p-3 rounded-lg">
