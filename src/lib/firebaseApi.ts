@@ -10,10 +10,11 @@ import {
   serverTimestamp,
   where,
   getDoc,
-  runTransaction // Import runTransaction
+  runTransaction, // Import runTransaction
+  Timestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { db, storage } from './firebaseConfig'
+import { auth, db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { DataSanitizer } from './dataSanitizer'
 import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
@@ -25,6 +26,7 @@ const THUMBNAIL_FORMAT = 'image/jpeg';
 const THUMBNAIL_QUALITY = 0.7;
 const THUMBNAIL_POSTFIX = '_thumbnails'; // Used for storage path organization
 const THUMBNAIL_FILE_PREFIX = 'thumb_'; // Used for filename
+const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, { data: any, timestamp: number }>()
@@ -122,17 +124,27 @@ export class FirebaseProjectAPI {
   /**
    * Create a new project
    */
+  private generateProjectId(): string {
+    return `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  }
+
   async createProject(title: string, description: string): Promise<Project> {
     try {
-      const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to create projects');
+      }
+
+      const projectId = this.generateProjectId();
       
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
-      const newProject: Project = {
+      const newProjectData: Project = {
         id: projectId,
         title,
         description,
-        thumbnailUrl: undefined,
+        createdBy: auth.currentUser.uid, // Add user ID
+        createdAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
+        updatedAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
@@ -140,22 +152,22 @@ export class FirebaseProjectAPI {
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true } // Added viewerModes with defaults
         }
-      }
+      };
       
-      // Save to Firestore
-      const projectRef = doc(db, 'projects', projectId)
+      // Save to Firestore with flattened structure to match expected schema
+      const projectRef = doc(db, 'projects', projectId);
+      const { createdAt, updatedAt, interactiveData, ...projectMetadata } = newProjectData;
       await setDoc(projectRef, {
-        title,
-        description,
-        thumbnailUrl: null,
-        backgroundImage: null,
-        imageFitMode: 'cover',
-        viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
+        ...projectMetadata,
+        backgroundImage: null, // New projects start with no background image
+        imageFitMode: interactiveData.imageFitMode,
+        viewerModes: interactiveData.viewerModes,
+        thumbnailUrl: null, // New projects start with no thumbnail
+        createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
+        updatedAt: serverTimestamp(),
+      });
       
-      return newProject
+      return newProjectData;
     } catch (error) {
       console.error('Error creating project:', error)
       throw new Error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -166,72 +178,103 @@ export class FirebaseProjectAPI {
    * Save/update a project with all its data
    */
   async saveProject(project: Project): Promise<Project> {
-    projectCache.clear();
-    const projectRef = doc(db, 'projects', project.id);
-
-    // --- Thumbnail logic (pre-transaction) ---
-    const initialDocSnap = await getDoc(projectRef);
-    const existingData = initialDocSnap.data();
-    const existingBackgroundImage = existingData?.backgroundImage;
-    const existingThumbnailUrl = existingData?.thumbnailUrl;
-
-    let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
-    let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
-    let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
-
-    if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
-      if (existingThumbnailUrl) {
-        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
-      }
-      try {
-        console.log(`Generating thumbnail for project ${project.id} due to image change.`);
-        const thumbnailBlob = await generateThumbnail(
-          newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
-        );
-        const mimeTypeToExtension: Record<string, string> = {
-          'image/jpeg': 'jpg',
-          'image/webp': 'webp',
-          'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
-        };
-        const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
-        const thumbnailFile = new File(
-          [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
-        );
-        finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
-        console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
-      } catch (thumbError) {
-        console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
-        finalThumbnailUrl = existingThumbnailUrl || null;
-        newBackgroundImageForUpdate = existingBackgroundImage || null;
-        oldThumbnailUrlToDeleteAfterCommit = null;
-      }
-    } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
-      if (existingThumbnailUrl) {
-        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
-      }
-      finalThumbnailUrl = null;
-    }
-    // --- End of Thumbnail logic ---
-
     try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('User must be authenticated to save projects');
+      }
+
+      // Check if it's a new project before mutating the ID
+      const isNewProject = project.id === NEW_PROJECT_ID;
+      
+      // If new project, set createdBy and generate ID
+      if (isNewProject) {
+        project.id = this.generateProjectId();
+        project.createdBy = user.uid;
+      }
+
+
+      projectCache.clear();
+      const projectRef = doc(db, 'projects', project.id);
+
+      // --- Thumbnail logic (pre-transaction) ---
+      const initialDocSnap = await getDoc(projectRef);
+      const existingData = initialDocSnap.data();
+      const existingBackgroundImage = existingData?.backgroundImage;
+      const existingThumbnailUrl = existingData?.thumbnailUrl;
+
+      let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
+      let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
+      let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
+
+      if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
+        if (existingThumbnailUrl) {
+          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+        }
+        try {
+          console.log(`Generating thumbnail for project ${project.id} due to image change.`);
+          const thumbnailBlob = await generateThumbnail(
+            newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
+          );
+          const mimeTypeToExtension: Record<string, string> = {
+            'image/jpeg': 'jpg',
+            'image/webp': 'webp',
+            'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
+          };
+          const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
+          const thumbnailFile = new File(
+            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
+          );
+          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
+          console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
+        } catch (thumbError) {
+          console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+          finalThumbnailUrl = existingThumbnailUrl || null;
+          newBackgroundImageForUpdate = existingBackgroundImage || null;
+          oldThumbnailUrlToDeleteAfterCommit = null;
+        }
+      } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
+        if (existingThumbnailUrl) {
+          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+        }
+        finalThumbnailUrl = null;
+      }
+      // --- End of Thumbnail logic ---
+
       await runTransaction(db, async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
-        // Although decisions on URLs are made outside, it's good practice to get the latest version
-        // of the document if other fields were to be updated based on transactional read.
-        // For this specific logic, we primarily use pre-calculated URLs.
-        // const transactionalExistingDocSnap = await transaction.get(projectRef);
-        // const currentProjectData = transactionalExistingDocSnap.data();
+        const projectSnap = await transaction.get(projectRef);
+        if (projectSnap.exists()) {
+          const projectData = projectSnap.data();
+          if (projectData.createdBy && projectData.createdBy !== user.uid) {
+            throw new Error('You do not have permission to modify this project');
+          }
+          if (!projectData.createdBy) {
+            project.createdBy = user.uid;
+          }
+        } else if (!isNewProject) {
+          // A project with an ID that is not 'temp' should already exist for a save operation.
+          throw new Error('Project not found. Cannot update a non-existent project.');
+        }
 
-        transaction.set(projectRef, {
+        const updateData: any = {
           title: project.title,
           description: project.description,
           thumbnailUrl: finalThumbnailUrl,
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+          updatedAt: serverTimestamp(),
+          createdBy: project.createdBy
+        };
+        
+        // Add createdAt only for new projects
+        if (isNewProject) {
+          updateData.createdAt = serverTimestamp();
+        }
+        
+        transaction.set(projectRef, updateData, { merge: true });
 
         const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
         const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
