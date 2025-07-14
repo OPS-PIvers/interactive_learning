@@ -1,6 +1,9 @@
 // src/client/components/MobileEditorModal.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSwipeable } from 'react-swipeable';
+import ReactPullToRefresh from 'react-pull-to-refresh';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { triggerHapticFeedback } from '../utils/hapticUtils';
 import MobileTextSettings from './mobile/MobileTextSettings';
 import MobileEventEditor from './mobile/MobileEventEditor';
 import MobileEventPreview from './mobile/MobileEventPreview';
@@ -112,8 +115,37 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
+  const initialModalHeight = useRef<number>(0);
 
-  // Sync local hotspot with prop
+  const handleRefresh = (resolve: () => void, reject: () => void) => {
+    // Simulate a data refresh
+    setTimeout(() => {
+      resolve();
+    }, 2000);
+  };
+
+  const handleSwipe = useSwipeable({
+    onSwipedLeft: () => switchTab('right'),
+    onSwipedRight: () => switchTab('left'),
+    preventScrollOnSwipe: true,
+    trackMouse: true,
+  });
+
+  const switchTab = (direction: 'left' | 'right') => {
+    const tabs = ['basic', 'style', 'timeline'];
+    const currentIndex = tabs.indexOf(tabState.activeTab);
+    let nextIndex;
+
+    if (direction === 'right') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    }
+
+    setTabState(prev => ({ ...prev, activeTab: tabs[nextIndex] as any }));
+    triggerHapticFeedback('selection');
+  };
+
   useEffect(() => {
     if (hotspot) {
       setLocalHotspot({ ...hotspot });
@@ -125,43 +157,35 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    const detectKeyboard = () => {
-      const windowHeight = window.innerHeight;
-      const visualViewportHeight = window.visualViewport?.height || windowHeight;
-      const keyboardHeight = Math.max(0, windowHeight - visualViewportHeight);
-      const isKeyboardVisible = keyboardHeight > 100;
+    const visualViewport = window.visualViewport;
 
-      setKeyboard(prev => ({
-        isVisible: isKeyboardVisible,
-        height: keyboardHeight,
-        animating: prev.isVisible !== isKeyboardVisible
-      }));
+    const handleResize = () => {
+      if (visualViewport) {
+        const { height } = visualViewport;
+        if (modalRef.current) {
+          if (initialModalHeight.current === 0) {
+            initialModalHeight.current = modalRef.current.offsetHeight;
+          }
+          const newHeight = height < initialModalHeight.current
+            ? height
+            : initialModalHeight.current;
+          modalRef.current.style.height = `${newHeight}px`;
 
-      // Adjust tab switching ability when keyboard is open
-      setTabState(prev => ({
-        ...prev,
-        canSwitchTabs: !isKeyboardVisible
-      }));
-
-      // Auto-scroll to focused input when keyboard opens
-      if (isKeyboardVisible && document.activeElement) {
-        setTimeout(() => {
-          document.activeElement?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          });
-        }, 100);
+          if (document.activeElement) {
+            document.activeElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
       }
     };
 
-    detectKeyboard();
-
-    window.addEventListener('resize', detectKeyboard);
-    window.visualViewport?.addEventListener('resize', detectKeyboard);
+    if (visualViewport) {
+      visualViewport.addEventListener('resize', handleResize);
+    }
 
     return () => {
-      window.removeEventListener('resize', detectKeyboard);
-      window.visualViewport?.removeEventListener('resize', detectKeyboard);
+      if (visualViewport) {
+        visualViewport.removeEventListener('resize', handleResize);
+      }
     };
   }, [isOpen]);
 
@@ -534,8 +558,10 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         )}
 
         {/* Content */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto">
-          {renderTabContent()}
+        <div ref={contentRef} className="flex-1 overflow-y-auto" {...handleSwipe}>
+          <ReactPullToRefresh onRefresh={handleRefresh}>
+            {renderTabContent()}
+          </ReactPullToRefresh>
         </div>
       </div>
 

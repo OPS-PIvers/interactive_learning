@@ -1,5 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 import { ImageTransformState } from '../../shared/types';
+import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
 
 /**
@@ -99,8 +100,7 @@ export interface TouchGestureHandlers {
   handleTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
   handleTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
   handleTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void;
-  isGestureActive: () => boolean; // Add method to check if gesture is active
-  // handleDoubleTap is implicitly handled by touchEnd/touchStart logic
+  isGestureActive: () => boolean;
 }
 
 export const useTouchGestures = (
@@ -126,8 +126,8 @@ export const useTouchGestures = (
     isDragActive = false,
   } = options || {};
 
-  // Add gesture coordination
-  // Simplified touch handling without complex gesture coordination
+  const isPinchingRef = useRef(false);
+  const initialPinchDistanceRef = useRef(0);
 
   const gestureStateRef = useRef<TouchGestureState>({
     startDistance: null,
@@ -168,17 +168,36 @@ export const useTouchGestures = (
     }
   }, []);
 
+  const handlePinchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      initialPinchDistanceRef.current = getTouchDistance(e.touches[0], e.touches[1]);
+      isPinchingRef.current = true;
+      triggerHapticFeedback('light');
+    }
+  };
+
+  const handlePinchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && isPinchingRef.current) {
+      const newDistance = getTouchDistance(e.touches[0], e.touches[1]);
+      const scale = newDistance / initialPinchDistanceRef.current;
+      setImageTransform(prev => ({ ...prev, scale: prev.scale * scale }));
+      initialPinchDistanceRef.current = newDistance;
+    }
+  };
+
+  const handlePinchEnd = () => {
+    isPinchingRef.current = false;
+  };
+
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     const gestureState = gestureStateRef.current;
-    // Cancel any ongoing momentum animation when a new touch starts
     if (gestureState.animationFrameId) {
       cancelAnimationFrame(gestureState.animationFrameId);
       gestureState.animationFrameId = null;
-      setIsTransforming(false); // Ensure transforming state is reset
+      setIsTransforming(false);
     }
 
     try {
-    // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
                             target?.hasAttribute('data-hotspot-id') ||
@@ -304,17 +323,17 @@ export const useTouchGestures = (
       gestureState.scaleVelocity = 0;
       gestureState.translateXVelocity = 0;
       gestureState.translateYVelocity = 0;
-      gestureState.lastMoveTimestamp = Date.now(); // Initialize for velocity calculation
+      gestureState.lastMoveTimestamp = Date.now();
     }
+    handlePinchStart(e);
     } catch (error) {
       console.warn('Touch start error:', error);
-      cleanupGesture(); // Ensure cleanup on error
+      cleanupGesture();
     }
   }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture]);
 
-  // Internal touch move handler with the heavy calculations
   const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    // Check if touch is on a hotspot element - if so, don't interfere
+    handlePinchMove(e);
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
                             target?.hasAttribute('data-hotspot-id') ||
@@ -593,13 +612,11 @@ export const useTouchGestures = (
         setIsTransforming(false);
     }
     // Double tap transforming is handled in touchStart with its own timeout and setIsTransforming call
-
+    handlePinchEnd();
   }, [setIsTransforming, isDragging, isEditing, isDragActive, startMomentumAnimation, minScale, maxScale, setImageTransform]);
 
-  // Effect to clear timeouts when the hook unmounts or dependencies change significantly
   useEffect(() => {
     return () => {
-      // Cleanup all timeouts
       if (doubleTapTimeoutRef.current) {
         clearTimeout(doubleTapTimeoutRef.current);
         doubleTapTimeoutRef.current = null;
