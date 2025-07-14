@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { MobileSlider } from './MobileSlider';
-import { MobileColorPicker } from './MobileColorPicker';
-import { MobileToggle } from './MobileToggle';
 
 interface MobileTextSettingsProps {
   event: TimelineEventData;

@@ -257,8 +257,8 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           </label>
           <input
             type="url"
-            value={localHotspot.mediaUrl || ''}
-            onChange={(e) => updateLocalHotspot({ mediaUrl: e.target.value })}
+            value={localHotspot.link || ''}
+            onChange={(e) => updateLocalHotspot({ link: e.target.value })}
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="https://example.com/image.jpg"
           />
@@ -496,6 +496,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           onSelect={(type) => {
             const newEvent: TimelineEventData = {
               id: `event_${Date.now()}`,
+              name: `Event ${currentStep}`,
               type,
               targetId: hotspot?.id || '',
               step: currentStep,
