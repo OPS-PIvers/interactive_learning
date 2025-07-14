@@ -39,7 +39,6 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
         step={step}
         isActive={currentStep === step}
         events={eventsAtStep}
-        hotspots={hotspots}
         isEditing={isEditing}
         onSelect={() => onStepSelect(step)}
         onDelete={() => onDeleteStep(step)}

@@ -12,7 +12,6 @@ interface MobileTimelineStepProps {
   step: number;
   isActive: boolean;
   events: TimelineEventData[];
-  hotspots: HotspotData[];
   isEditing: boolean;
   onSelect: () => void;
   onDelete: () => void;
@@ -25,7 +24,6 @@ const MobileTimelineStep: React.FC<MobileTimelineStepProps> = ({
   step,
   isActive,
   events,
-  hotspots,
   isEditing,
   onSelect,
   onDelete,

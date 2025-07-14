@@ -22,6 +22,11 @@ const MobileStepManager: React.FC<MobileStepManagerProps> = ({ onAddStep }) => {
         type="number"
         value={newStep}
         onChange={(e) => setNewStep(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleAddStep();
+          }
+        }}
         className="w-20 bg-slate-800 text-white p-2 rounded"
         placeholder="Step #"
       />
