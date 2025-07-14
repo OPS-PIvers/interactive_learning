@@ -1,6 +1,7 @@
 // src/client/components/MobileEditorModal.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import MobileEventEditor from './mobile/MobileEventEditor';
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -332,57 +333,45 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     );
   }, [localHotspot, updateLocalHotspot]);
 
+  const handleHotspotEventsChange = (updatedHotspotEvents: TimelineEventData[]) => {
+    const otherEvents = timelineEvents.filter(e => e.targetId !== hotspot?.id);
+    const newTimeline = [...otherEvents, ...updatedHotspotEvents];
+
+    // This is still a bit of a hack. A better approach would be to have more granular
+    // update functions (onUpdate, onDelete, onReorder) passed to the editor.
+    // For now, we'll find what changed and call the appropriate function.
+
+    // Deletes
+    hotspotEvents.forEach(oldEvent => {
+      if (!updatedHotspotEvents.find(newEvent => newEvent.id === oldEvent.id)) {
+        onDeleteTimelineEvent(oldEvent.id);
+      }
+    });
+
+    // Additions and Updates
+    updatedHotspotEvents.forEach(newEvent => {
+      const oldEvent = hotspotEvents.find(e => e.id === newEvent.id);
+      if (!oldEvent) {
+        // onAddTimelineEvent(newEvent); This will be handled by the event type selector
+      } else if (JSON.stringify(oldEvent) !== JSON.stringify(newEvent)) {
+        onUpdateTimelineEvent(newEvent);
+      }
+    });
+  };
+
   const TimelineTabContent = useMemo(() => {
     return (
-      <div className="space-y-4 p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-white">Timeline Events</h3>
-          <button
-            onClick={() => setShowEventTypeSelector(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
-          >
-            Add Event
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {hotspotEvents.map((event) => (
-            <div
-              key={event.id}
-              className="bg-slate-700 rounded-lg p-4 border border-slate-600"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-white font-medium">
-                    {interactionTypeLabelMap.get(event.type) || 'Unknown'}
-                  </span>
-                </div>
-                <button
-                  onClick={() => onDeleteTimelineEvent(event.id)}
-                  className="text-red-400 hover:text-red-300 p-1"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-              <div className="text-sm text-gray-300">
-                Step {event.step} • Duration: {event.duration}ms
-              </div>
-              {/* Add controls to edit event.step and event.duration here if needed */}
-            </div>
-          ))}
-
-          {hotspotEvents.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              <p>No timeline events yet</p>
-              <p className="text-sm">Add events to make this hotspot interactive</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <MobileEventEditor
+        events={hotspotEvents}
+        onAddEvent={() => setShowEventTypeSelector(true)}
+        onEventsChange={handleHotspotEventsChange}
+        onSelectEvent={(event) => {
+          // For now, just log. Later this could open a detail editor view.
+          console.log('Selected event', event);
+        }}
+      />
     );
-  }, [hotspotEvents, hotspot?.id, currentStep, onAddTimelineEvent, onDeleteTimelineEvent]);
+  }, [hotspotEvents, hotspot?.id, onAddTimelineEvent, onUpdateTimelineEvent, onDeleteTimelineEvent]);
 
 
   // FIXED: Use stable component rendering instead of function calls

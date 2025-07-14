@@ -1,0 +1,92 @@
+import React, { useState } from 'react';
+import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { DragHandleDots2Icon } from '@radix-ui/react-icons';
+
+interface MobileEventCardProps {
+  event: TimelineEventData;
+  onUpdate: (event: TimelineEventData) => void;
+  onDelete: () => void;
+  onSelect: () => void;
+}
+
+const getEventIcon = (type: InteractionType) => {
+  const iconMap: Record<InteractionType, string> = {
+    [InteractionType.SHOW_TEXT]: '💬',
+    [InteractionType.SHOW_IMAGE_MODAL]: '🖼️',
+    [InteractionType.SHOW_VIDEO]: '🎥',
+    [InteractionType.SHOW_AUDIO_MODAL]: '🎵',
+    [InteractionType.SHOW_YOUTUBE]: '📺',
+    [InteractionType.SPOTLIGHT]: '💡',
+    [InteractionType.PAN_ZOOM]: '🔍',
+    [InteractionType.PULSE_HOTSPOT]: '💓',
+    [InteractionType.QUIZ]: '❓',
+    // Add other icons as needed
+  };
+  return iconMap[type] || '⚙️';
+};
+
+const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDelete, onSelect }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ ...event, name: e.target.value });
+  };
+
+  return (
+    <div className="bg-slate-700 rounded-lg border border-slate-600 shadow-md">
+      <div
+        className="flex items-center p-3 cursor-pointer"
+        onClick={onSelect}
+      >
+        <div className="flex items-center space-x-3 flex-1">
+          <span className="text-2xl">{getEventIcon(event.type)}</span>
+          <div className="flex-1">
+            <p className="text-white font-medium">{event.name || `Event at step ${event.step}`}</p>
+            <p className="text-sm text-gray-400">
+              Step {event.step} • {event.type}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+           <button
+            onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+            }}
+            className="p-2 text-gray-400 hover:text-white"
+            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          <div className="cursor-grab p-2 text-gray-400 hover:text-white">
+            <DragHandleDots2Icon />
+          </div>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="p-4 border-t border-slate-600">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Event Name</label>
+              <input
+                type="text"
+                value={event.name || ''}
+                onChange={handleTitleChange}
+                className="w-full bg-slate-800 border border-slate-600 rounded-md px-3 py-2 text-white placeholder-slate-400"
+                placeholder="Enter event name"
+              />
+            </div>
+            <button
+              onClick={onDelete}
+              className="w-full py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+            >
+              Delete Event
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MobileEventCard;
