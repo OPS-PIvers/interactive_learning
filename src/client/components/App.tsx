@@ -1,6 +1,7 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider, useAuth } from '../../lib/authContext';
+import { AuthModal } from './AuthModal';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
 import ProjectCard from './ProjectCard';
 import Modal from './Modal';
@@ -12,34 +13,96 @@ import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SharedModuleViewer from './SharedModuleViewer';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
+import './App.css';
 
-// Main App Component for the landing page
+const AppHeader: React.FC = () => {
+  const { user, logout } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  return (
+    <header className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Interactive Learning Hub
+            </h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700">
+                  Welcome, {user.displayName || user.email}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
+    </header>
+  );
+};
+
+const LoadingScreen: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
+
+// Main App Component for authenticated users
 const MainApp: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false); // For loading individual project details
+  const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // For initial project list load
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Set up the dynamic --vh property updater
     const cleanupVhUpdater = setDynamicVhProperty();
-
-    // Cleanup function to remove event listeners when the component unmounts
     return () => {
       cleanupVhUpdater();
     };
-  }, []); // Empty dependency array ensures this runs only once on mount and cleans up on unmount
+  }, []);
 
   const loadProjects = useCallback(async () => {
-    setIsLoading(true); // For initial list loading
+    setIsLoading(true);
     setError(null);
     try {
-      await appScriptProxy.init(); // Initialize proxy (might be a no-op client-side)
+      await appScriptProxy.init();
       const fetchedProjects = await appScriptProxy.listProjects();
       setProjects(fetchedProjects);
     } catch (err: any) {
@@ -59,39 +122,30 @@ const MainApp: React.FC = () => {
     setIsProjectDetailsLoading(true);
     setError(null);
     try {
-      // Check if details (hotspots/timelineEvents) are already loaded
-      // A simple check could be if hotspots array exists and has items, or a dedicated flag.
-      // Assuming types are updated so hotspots/timelineEvents can be undefined.
       if (!project.interactiveData.hotspots || !project.interactiveData.timelineEvents) {
         console.log(`Fetching details for project: ${project.id}`);
-        // Type assertion needed as getProjectDetails returns Partial<InteractiveModuleState>
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
         const updatedProject = {
           ...project,
           interactiveData: {
-            // Preserve existing top-level fields like backgroundImage and imageFitMode from summary load
             ...project.interactiveData,
-            // Merge fetched details
             hotspots: details.hotspots || [],
             timelineEvents: details.timelineEvents || [],
-            // Potentially update backgroundImage and imageFitMode if getProjectDetails also returns them
-            // and they are considered more authoritative.
             backgroundImage: details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage,
             imageFitMode: details.imageFitMode || project.interactiveData.imageFitMode,
           }
         };
         setSelectedProject(updatedProject);
-        // Update the project in the main list as well
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
-        setSelectedProject(project); // Details already loaded
+        setSelectedProject(project);
       }
       setIsEditingMode(editingMode);
       setIsModalOpen(true);
     } catch (err: any) {
       console.error(`Failed to load project details for ${project.id}:`, err);
       setError(`Could not load project details: ${err.message || 'Please try again.'}`);
-      setSelectedProject(null); // Clear selection on error
+      setSelectedProject(null);
     } finally {
       setIsProjectDetailsLoading(false);
     }
@@ -125,24 +179,17 @@ const MainApp: React.FC = () => {
     }
   }, []);
 
-
   const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
-    // This function is now called by InteractiveModule's onClose,
-    // or directly by the Modal's own close button.
-
-    // If a callback was provided by InteractiveModule, execute it first
-    // to allow the module to finish its internal state cleanup before App.tsx unmounts it.
     if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
       moduleCleanupCompleteCallback();
     }
 
-    // Perform App.tsx specific cleanup
     setIsModalOpen(false);
     setSelectedProject(null);
     setIsEditingMode(false);
 
     if (isAdmin) {
-      loadProjects(); // Refresh project list
+      loadProjects();
     }
   }, [isAdmin, loadProjects]);
 
@@ -153,25 +200,15 @@ const MainApp: React.FC = () => {
       return;
     }
 
-    // Construct the project data to be saved.
-    // The actual thumbnailUrl will be determined by the backend (firebaseApi.ts)
-    // based on interactiveData.backgroundImage.
-    // We pass the existing projectToSave.thumbnailUrl which might be outdated or undefined.
-    // The backend will handle the logic.
     const projectDataToSend: Project = {
-      ...projectToSave, // Includes existing id, title, description, current thumbnailUrl
-      interactiveData: data, // The latest interactive data including backgroundImage
+      ...projectToSave,
+      interactiveData: data,
     };
     
     setIsLoading(true);
     try {
-      // appScriptProxy.saveProject will now internally handle thumbnail generation if needed
-      // and return the project with the updated (or existing) thumbnail URL.
       const savedProjectWithPotentiallyNewThumbnail = await appScriptProxy.saveProject(projectDataToSend);
 
-      // Optimistically update with what we sent, but the refresh below is key for the actual thumbnail.
-      // A slightly better optimistic update would use `savedProjectWithPotentiallyNewThumbnail` if it's returned by `saveProject`.
-      // Assuming `saveProject` in the proxy now returns the updated project from `firebaseApi.ts`.
       setProjects(prevProjects =>
         prevProjects.map(p => (p.id === projectId ? savedProjectWithPotentiallyNewThumbnail : p))
       );
@@ -180,13 +217,6 @@ const MainApp: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      // The optimistic updates above are now sufficient as `saveProject`
-      // returns the complete project data with the correct thumbnail URL.
-      // The full list refresh is no longer necessary here.
-      // const refreshedProjects = await appScriptProxy.listProjects();
-      // setProjects(refreshedProjects);
-      // setSelectedProject(prevSelected => prevSelected ? refreshedProjects.find(p => p.id === prevSelected.id) || null : null);
-
       console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
@@ -194,7 +224,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [projects]);
+  }, [projects, selectedProject]);
 
   const handleDeleteProject = useCallback(async (projectId: string) => {
     if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
@@ -219,24 +249,14 @@ const MainApp: React.FC = () => {
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
       console.log(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
-      // To ensure InteractiveModule gets new props and re-initializes,
-      // we can temporarily set selectedProject to null, then re-set it with fetched data.
-      // Or, more simply, ensure loadProjectDetailsAndOpen invalidates previous data or uses a key.
-      // For now, let's make sure getProjectDetails is always called by modifying the condition in loadProjectDetailsAndOpen slightly for reloads,
-      // or by creating a more specific refetch function.
-      // A simple way is to clear the detailed parts of the selected project before calling loadProjectDetailsAndOpen
-
       const projectToReload = {
         ...selectedProject,
         interactiveData: {
           ...selectedProject.interactiveData,
-          hotspots: undefined, // Force refetch of hotspots
-          timelineEvents: undefined, // Force refetch of timelineEvents
+          hotspots: undefined,
+          timelineEvents: undefined,
         }
       };
-      // No need to set selectedProject to null here, as loadProjectDetailsAndOpen will update it.
-      // This will also keep the modal open if it already is.
-      // isEditingMode should be preserved.
       await loadProjectDetailsAndOpen(projectToReload as Project, isEditingMode);
     } else {
       console.warn("Module reload requested, but no project is currently selected.");
@@ -247,7 +267,6 @@ const MainApp: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
       <header className="mb-6 sm:mb-8 text-center">
         <div className="max-w-6xl mx-auto">
-          {/* Mobile Layout: Stacked */}
           <div className="block sm:hidden">
             <div className="flex justify-end items-center mb-3 px-2">
               {isAdmin && (
@@ -267,9 +286,8 @@ const MainApp: React.FC = () => {
             </h1>
           </div>
           
-          {/* Desktop Layout: Horizontal */}
           <div className="hidden sm:flex justify-between items-center mb-2">
-            <div className="flex-1"></div> {/* Left spacer */}
+            <div className="flex-1"></div>
             <h1 className="flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap">
               Interactive Learning Hub
             </h1>
@@ -292,13 +310,11 @@ const MainApp: React.FC = () => {
       </header>
 
       <div className="max-w-6xl mx-auto">
-        {/* Main loading indicator for project list */}
         {isLoading && !isProjectDetailsLoading && (
           <div className="text-center py-10">
             <p className="text-slate-400 text-xl">Loading projects...</p>
           </div>
         )}
-        {/* Loading indicator for individual project details */}
         {isProjectDetailsLoading && (
           <div className="fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center z-[60]">
             <p className="text-slate-300 text-2xl">Loading project details...</p>
@@ -336,7 +352,6 @@ const MainApp: React.FC = () => {
         )}
       </div>
 
-      {/* ✅ Simplified rendering with consistent hook order */}
       {selectedProject && selectedProject.interactiveData && !isProjectDetailsLoading && (
         <HookErrorBoundary>
           <InteractiveModuleWrapper
@@ -353,15 +368,61 @@ const MainApp: React.FC = () => {
   );
 };
 
-// Main App Component with Routing
+const AuthenticatedApp: React.FC = () => {
+  const { user, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <div className="max-w-4xl mx-auto py-12 px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Welcome to Interactive Learning Hub
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Create engaging, interactive learning experiences with hotspots, timelines, and multimedia content.
+          </p>
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
+          >
+            Get Started - Sign In
+          </button>
+        </div>
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader />
+      <main>
+        <MainApp />
+      </main>
+    </div>
+  );
+};
+
+// Main App Component with Routing and Authentication
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainApp />} />
-        <Route path="/view/:moduleId" element={<SharedModuleViewer />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<AuthenticatedApp />} />
+          <Route path="/view/:moduleId" element={<SharedModuleViewer />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 
