@@ -137,13 +137,13 @@ export class FirebaseProjectAPI {
       
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
-      const newProject: Project = {
+      const newProjectData = {
         id: projectId,
-        title: title,
-        description: description,
+        title,
+        description,
         createdBy: auth.currentUser.uid, // Add user ID
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
@@ -151,23 +151,17 @@ export class FirebaseProjectAPI {
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true } // Added viewerModes with defaults
         }
-      }
+      };
       
       // Save to Firestore
       const projectRef = doc(db, 'projects', projectId)
       await setDoc(projectRef, {
-        title,
-        description,
-        createdBy: newProject.createdBy,
-        thumbnailUrl: null,
-        backgroundImage: null,
-        imageFitMode: 'cover',
-        viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
+        ...newProjectData,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
+        updatedAt: serverTimestamp(),
+      });
       
-      return newProject
+      return newProjectData;
     } catch (error) {
       console.error('Error creating project:', error)
       throw new Error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -183,25 +177,6 @@ export class FirebaseProjectAPI {
         throw new Error('User must be authenticated to save projects');
       }
 
-      // For existing projects, verify ownership
-      if (project.id !== NEW_PROJECT_ID) {
-        const projectRef = doc(db, 'projects', project.id);
-        const projectSnap = await getDoc(projectRef);
-
-        if (projectSnap.exists()) {
-          const projectData = projectSnap.data();
-          if (projectData.createdBy && projectData.createdBy !== auth.currentUser.uid) {
-            throw new Error('You do not have permission to modify this project');
-          }
-          if (!projectData.createdBy) {
-            project.createdBy = auth.currentUser.uid;
-          }
-        } else {
-          // A project with an ID that is not 'temp' should already exist for a save operation.
-          throw new Error('Project not found. Cannot update a non-existent project.');
-        }
-      }
-
       // If new project, set createdBy
       if (project.id === NEW_PROJECT_ID) {
         project.id = this.generateProjectId();
@@ -213,7 +188,8 @@ export class FirebaseProjectAPI {
       const projectRef = doc(db, 'projects', project.id);
 
       // --- Thumbnail logic (pre-transaction) ---
-      const existingData = projectSnap ? projectSnap.data() : undefined;
+      const initialDocSnap = await getDoc(projectRef);
+      const existingData = initialDocSnap.data();
       const existingBackgroundImage = existingData?.backgroundImage;
       const existingThumbnailUrl = existingData?.thumbnailUrl;
 
@@ -258,11 +234,19 @@ export class FirebaseProjectAPI {
       await runTransaction(db, async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
-        // Although decisions on URLs are made outside, it's good practice to get the latest version
-        // of the document if other fields were to be updated based on transactional read.
-        // For this specific logic, we primarily use pre-calculated URLs.
-        // const transactionalExistingDocSnap = await transaction.get(projectRef);
-        // const currentProjectData = transactionalExistingDocSnap.data();
+        const projectSnap = await transaction.get(projectRef);
+        if (projectSnap.exists()) {
+          const projectData = projectSnap.data();
+          if (projectData.createdBy && projectData.createdBy !== auth.currentUser!.uid) {
+            throw new Error('You do not have permission to modify this project');
+          }
+          if (!projectData.createdBy) {
+            project.createdBy = auth.currentUser!.uid;
+          }
+        } else if (project.id !== NEW_PROJECT_ID) {
+          // A project with an ID that is not 'temp' should already exist for a save operation.
+          throw new Error('Project not found. Cannot update a non-existent project.');
+        }
 
         transaction.set(projectRef, {
           title: project.title,
