@@ -1,42 +1,31 @@
 import React from 'react';
-import { TextEvent } from '../../../shared/types';
+import { TimelineEventData } from '../../../shared/types';
 import { MobileSlider } from './MobileSlider';
 
 interface MobileTextSettingsProps {
-  settings: TextEvent;
-  onSettingsChange: (settings: TextEvent) => void;
+  event: TimelineEventData;
+  onUpdate: (event: Partial<TimelineEventData>) => void;
 }
 
-export const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({
-  settings,
-  onSettingsChange,
-}) => {
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onSettingsChange({ ...settings, text: e.target.value });
-  };
-
+export const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="text-content" className="block text-sm font-medium text-gray-300">
-          Text Content
-        </label>
+        <label className="block text-sm font-medium text-gray-300">Text Content</label>
         <textarea
-          id="text-content"
+          value={event.textContent || ''}
+          onChange={(e) => onUpdate({ textContent: e.target.value })}
+          className="w-full bg-slate-700 text-white rounded-lg p-2 mt-1"
           rows={5}
-          value={settings.text || ''}
-          onChange={handleTextChange}
-          className="mt-1 block w-full bg-slate-800 border-slate-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-white p-2"
         />
       </div>
       <MobileSlider
         label="Font Size"
-        value={settings.fontSize || 16}
-        min={10}
+        min={12}
         max={48}
-        step={2}
+        value={event.size?.width || 16}
+        onChange={(value) => onUpdate({ size: { ...(event.size || { width: 16, height: 0 }), width: value } })}
         unit="px"
-        onChange={(value) => onSettingsChange({ ...settings, fontSize: value })}
       />
     </div>
   );
