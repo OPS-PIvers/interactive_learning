@@ -1408,6 +1408,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Updated handleImageOrHotspotClick function
   // This function is now intended to be called by ImageEditCanvas with event and potential hotspotId
   const handleImageOrHotspotClick = useCallback((event: React.MouseEvent<HTMLElement>, hotspotIdFromCanvas?: string) => {
+    console.log('Debug [InteractiveModule]: handleImageOrHotspotClick called', {
+      target: event.target,
+      currentTarget: event.currentTarget,
+      hotspotIdFromCanvas,
+      timestamp: Date.now()
+    });
+    
     // Check if the click target or its parent has the data-hotspot-id attribute
     let targetElement = event.target as HTMLElement;
     let foundHotspotId: string | undefined = hotspotIdFromCanvas; // Use if provided directly by canvas logic
@@ -1426,12 +1433,25 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     if (foundHotspotId) {
       const clickedHotspot = hotspots.find(h => h.id === foundHotspotId);
       if (clickedHotspot) {
+        console.log('Debug [InteractiveModule]: Hotspot clicked via container', {
+          hotspotId: foundHotspotId,
+          isEditing,
+          currentEditingHotspot: editingHotspot?.id,
+          timestamp: Date.now()
+        });
+        
         // Only update if the clicked hotspot is different from the currently editing one
         if (editingHotspot?.id !== clickedHotspot.id) {
           setEditingHotspot(clickedHotspot);
         }
       }
     } else {
+      console.log('Debug [InteractiveModule]: Background clicked via container', {
+        isEditing,
+        currentEditingHotspot: editingHotspot?.id,
+        timestamp: Date.now()
+      });
+      
       // Clicked on background or an unidentifiable part of the canvas
       // Only update if there was a hotspot being edited
       if (editingHotspot !== null) {
