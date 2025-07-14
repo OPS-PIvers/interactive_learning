@@ -471,6 +471,10 @@ const getActualImageVisibleBounds = (
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}  
       onPointerUp={handlePointerUp}
+      onClick={isEditing ? (e) => {
+        console.log('Debug [HotspotViewer]: onClick called, stopping propagation');
+        e.stopPropagation();
+      } : undefined}
       role="button"
       aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (draggable, press and hold to edit details)' : ' (activate to view details)'}`}
       title={!isEditing && !isMobile ? hotspot.title : (isEditing ? `Drag to move ${hotspot.title}`: undefined)}
