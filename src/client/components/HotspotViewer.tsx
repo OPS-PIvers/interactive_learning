@@ -18,6 +18,7 @@ interface HotspotViewerProps {
   imageElement?: HTMLImageElement | null;
   onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
   dragContainerRef?: React.RefObject<HTMLElement>; // Added new prop
+  isActive?: boolean; // New prop to indicate if the hotspot is active
   /**
    * Callback triggered when a hotspot is double-tapped on a mobile device (and not in editing mode).
    * Used to initiate auto-focusing on the hotspot.
@@ -53,7 +54,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     usePixelPositioning, // Used to enable pixel-based positioning
     // imageElement, // Not directly used
     onDragStateChange,
-    dragContainerRef
+    dragContainerRef,
+    isActive
   } = props;
 
   const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();
@@ -413,6 +415,10 @@ const getActualImageVisibleBounds = (
   const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
     ${(hotspot.size === 'large' || (isMobile && hotspot.size !== 'small')) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`;
 
+  // If an event is active for this hotspot, and the user has not opted to display it, render nothing.
+  if (isActive && !hotspot.displayHotspotInEvent) {
+    return null;
+  }
 
   return (
     <div

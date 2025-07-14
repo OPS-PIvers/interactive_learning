@@ -178,6 +178,21 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-2">
+          Display hotspot during event
+        </label>
+        <div
+          onClick={() => handleChange('displayHotspotInEvent', !internalHotspot.displayHotspotInEvent)}
+          className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+                      ${internalHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}
+        >
+          <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                        ${internalHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`}
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">
           Background Color
         </label>
         <div className="grid grid-cols-4 gap-3">

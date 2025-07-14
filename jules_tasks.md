@@ -130,6 +130,10 @@ return <div>{hotspot.title}</div>; // TDZ error if hotspot is undefined
 - [ ] All exports come after declarations
 
 ---
+### Task: Add toggle to both desktop and mobile hotspot editor to display hotspot during event - COMPLETE
+**Can run in parallel with other foundation tasks**
+- When toggled on, when the user clicks on the hotspot or the hotspot is active in the timeline, the hotspot itself remains visible.
+- When toggled off, the hotspot itself is invisible when active (whether the user has clicked on the hotspot or it is the active hotspot in the timeline).
 
 ## 🔵 FOUNDATION TASKS (Start Here)
 

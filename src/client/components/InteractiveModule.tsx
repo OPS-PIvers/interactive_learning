@@ -3020,6 +3020,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                               isContinuouslyPulsing={(moduleState === 'idle') && !isTransforming && !isHotspotDragging}
                               isMobile={isMobile}
                               onDragStateChange={setIsHotspotDragging}
+                              isActive={activeHotspotDisplayIds.has(hotspot.id)}
                             />
                           );
                         })}
