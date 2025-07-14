@@ -1,9 +1,59 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /images/{allPaths=**} {
-      // Allow uploads up to 10MB
-      allow read, write: if request.resource.size < 10 * 1024 * 1024;
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isValidImageFile() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    function isValidMediaFile() {
+      return (request.resource.contentType.matches('image/.*') ||
+              request.resource.contentType.matches('video/.*') ||
+              request.resource.contentType.matches('audio/.*')) &&
+             request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    }
+    
+    // Images uploaded by users
+    match /images/{userId}/{imageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                     isOwner(userId) && 
+                     isValidImageFile();
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // General images folder (backwards compatibility)
+    match /images/general/{imageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImageFile();
+    }
+    
+    // Project-specific media files
+    match /projects/{projectId}/media/{mediaId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidMediaFile();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Thumbnails
+    match /thumbnails/{userId}/{thumbId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                     isOwner(userId) && 
+                     isValidImageFile();
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }

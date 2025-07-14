@@ -262,6 +262,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // For the Hotspot Editor Modal
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState<boolean>(false);
   const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState<boolean>(false);
 
   // Media modal states
   const [mediaModal, setMediaModal] = useState<{
@@ -792,7 +793,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Reserve space for UI elements
     const timelineHeight = !isEditing && uniqueSortedSteps.length > 0 ? 100 : 0;
     // Calculate editor panel width based on HotspotEditorModal state
-    const editorPanelWidth = isHotspotModalOpen ? 384 : 0; // HotspotEditorModal is 384px wide
+    const editorPanelWidth = isHotspotModalOpen ? (isEditorCollapsed ? 0 : 384) : 0; // HotspotEditorModal is 384px wide or 0px when collapsed
     const sidebarWidth = 0; // No sidebar anymore - removed
 
     // This is the available visual area for the image content
@@ -3215,6 +3216,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               event: event ? { id: event.id, type: event.type, name: event.name } : null
             });
             setPreviewOverlayEvent(event);
+          }}
+          onCollapseChange={(isCollapsed) => {
+            console.log('🔍 COLLAPSE DEBUG: Editor collapse state changed:', isCollapsed);
+            setIsEditorCollapsed(isCollapsed);
           }}
         />
       )}

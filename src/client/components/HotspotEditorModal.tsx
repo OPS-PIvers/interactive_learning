@@ -5,7 +5,9 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { PlusIcon } from './icons/PlusIcon'; // Already imported, can be reused
+import { PlusIcon } from './icons/PlusIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
@@ -26,6 +28,7 @@ interface EnhancedHotspotEditorModalProps {
   allHotspots: HotspotData[];
   onPreviewEvent?: (eventId: string) => void; // New callback for previewing on main image
   onPreviewOverlay?: (event: TimelineEventData | null) => void; // New callback for preview overlays
+  onCollapseChange?: (isCollapsed: boolean) => void; // New callback for collapse state changes
 }
 
 // Event Type Selector Component
@@ -65,8 +68,7 @@ const HotspotEditorToolbar: React.FC<{
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
-  onAddEventClick: () => void; // New prop for handling "Add Event" button click
-}> = ({ title, onTitleChange, onSave, onDelete, onClose, onAddEventClick }) => (
+}> = ({ title, onTitleChange, onSave, onDelete, onClose }) => (
   <div className="p-2 bg-gray-900 flex items-center justify-between border-b border-gray-700">
     <input
       type="text"
@@ -76,19 +78,11 @@ const HotspotEditorToolbar: React.FC<{
     />
     <div className="flex items-center space-x-2">
       <button
-        onClick={onAddEventClick} // Attach handler here
-        className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1 text-white"
-        title="Add a new event to this hotspot"
-      >
-        <PlusIcon className="w-4 h-4" />
-        Add Event
-      </button>
-      <button
         onClick={onSave}
-        className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 flex items-center gap-1"
+        className="p-2 bg-green-600 rounded hover:bg-green-700"
+        title="Save & Close"
       >
         <SaveIcon className="w-4 h-4" />
-        Save & Close
       </button>
       <button
         onClick={onDelete}
@@ -120,12 +114,22 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onClose,
   allHotspots,
   onPreviewEvent,
-  onPreviewOverlay
+  onPreviewOverlay,
+  onCollapseChange
 }) => {
+  // Debug logging to understand modal rendering
+  console.log('🔍 HOTSPOT EDITOR MODAL DEBUG:', {
+    isOpen,
+    selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
+    relatedEventsCount: relatedEvents.length,
+    component: 'HotspotEditorModal',
+    timestamp: Date.now()
+  });
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
+  const [isCollapsed, setIsCollapsed] = useState(false); // New state for collapse/expand
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
   useEffect(() => { 
@@ -136,6 +140,14 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   const handleToggleEventTypeSelector = () => {
     setShowEventTypeSelector(prev => !prev);
+  };
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const newCollapsed = !prev;
+      onCollapseChange?.(newCollapsed);
+      return newCollapsed;
+    });
   };
 
   // Scroll to EventTypeSelector when it becomes visible
@@ -272,7 +284,19 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     setLocalHotspot(updatedHotspot);
   };
 
-  if (!isOpen || !localHotspot) return null;
+  // Debug the early return condition
+  console.log('🔍 MODAL EARLY RETURN CHECK:', {
+    isOpen,
+    localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
+    selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
+    willReturn: (!isOpen || !localHotspot),
+    timestamp: Date.now()
+  });
+
+  if (!isOpen || !localHotspot) {
+    console.log('🔍 MODAL RETURNING NULL:', { isOpen, localHotspot: !!localHotspot });
+    return null;
+  }
 
   const localHotspotEvents = relatedEvents.filter(event => event.targetId === localHotspot.id);
   const previewingEvents = localHotspotEvents.filter(event => previewingEventIds.includes(event.id));
@@ -280,18 +304,48 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const activePreviewEvent = localHotspotEvents.find(event => event.id === activePreviewEventId);
 
 
+  console.log('🔍 MODAL RENDERING:', {
+    isOpen,
+    localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
+    className: `fixed top-0 right-0 z-60 h-screen transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`,
+    timestamp: Date.now()
+  });
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <div 
-        className={`
-          fixed top-0 right-0 z-60 h-screen
-          transform transition-transform duration-300 ease-out
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        `}
-        style={{ width: '384px' }}
+      <>
+        <div 
+          className={`
+            fixed top-0 right-0 z-[70] h-screen
+            transform transition-transform duration-300 ease-out
+            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+          `}
+          style={{ 
+            width: isCollapsed ? '0px' : '384px',
+            visibility: isOpen ? 'visible' : 'hidden', // Explicit visibility
+            display: 'block', // Ensure it's not hidden
+            willChange: 'transform, width', // Optimize for animation
+            right: isOpen ? '0' : (isCollapsed ? '0px' : '-384px'), // Fallback positioning
+            transition: 'width 0.3s ease-out', // Smooth width transition
+            overflow: 'visible' // Allow arrow to be visible outside the collapsed area
+          }}
       >
+        {/* Collapse/Expand Arrow - Always visible */}
+        <button
+          onClick={handleToggleCollapse}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full z-[71] bg-gray-800 text-white p-2 rounded-l-md border-l border-t border-b border-gray-700 hover:bg-gray-700 transition-colors"
+          aria-label={isCollapsed ? "Expand hotspot editor" : "Collapse hotspot editor"}
+        >
+          {isCollapsed ? (
+            <ChevronLeftIcon className="w-4 h-4" />
+          ) : (
+            <ChevronRightIcon className="w-4 h-4" />
+          )}
+        </button>
+
         <div className="w-full h-full bg-gray-800 text-white flex flex-col shadow-2xl border-l border-gray-700" onClick={(e) => e.stopPropagation()}>
-          <HotspotEditorToolbar 
+          {!isCollapsed && (
+            <HotspotEditorToolbar 
             title={localHotspot.title || `Edit Hotspot`} 
             onTitleChange={(title) => setLocalHotspot(prev => prev ? { ...prev, title } : null)} 
             onSave={handleSave} 
@@ -302,9 +356,19 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
               }
             }} 
             onClose={onClose}
-            onAddEventClick={handleToggleEventTypeSelector} // Pass the handler here
           />
-          <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
+          )}
+          
+          {/* Collapsed State UI - Only arrow tab visible */}
+          {isCollapsed && (
+            <div className="w-0 h-full">
+              {/* Empty - only the arrow tab should be visible */}
+            </div>
+          )}
+          
+          {/* Full State UI */}
+          {!isCollapsed && (
+            <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
             {/* Hotspot Settings Section */}
             <div className="bg-gray-700 p-3 rounded-lg">
               <h3 className="text-base font-semibold mb-2 text-white">Hotspot Settings</h3>
@@ -326,6 +390,18 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Add Event Button - For adding events to the current hotspot */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <button
+                onClick={handleToggleEventTypeSelector}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                title="Add a new event to this hotspot"
+              >
+                <PlusIcon className="w-5 h-5" />
+                Add Event
+              </button>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -369,6 +445,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
       {/* Backdrop overlay for closing when clicking outside */}
@@ -378,6 +455,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           onClick={onClose}
         />
       )}
+      </>
     </DndProvider>
   );
 };
