@@ -6,7 +6,27 @@ export const useIsMobile = () => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(isMobileDevice());
+      const newIsMobile = isMobileDevice();
+      
+      // Debug logging to help identify issues
+      if (newIsMobile !== isMobile) {
+        console.log('🔍 MOBILE DEBUG: Mobile detection changed', {
+          oldValue: isMobile,
+          newValue: newIsMobile,
+          viewport: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+          },
+          userAgent: navigator.userAgent,
+          touchCapable: 'ontouchstart' in window,
+          maxTouchPoints: navigator.maxTouchPoints,
+          timestamp: Date.now()
+        });
+      }
+      
+      setIsMobile(newIsMobile);
     };
 
     // Debounce the resize handler to avoid performance issues from frequent re-renders.
@@ -23,7 +43,7 @@ export const useIsMobile = () => {
       window.removeEventListener('resize', debouncedCheckMobile);
       clearTimeout(timeoutId);
     };
-  }, []);
+  }, [isMobile]); // Add isMobile to dependency array for debugging
 
   return isMobile;
 };

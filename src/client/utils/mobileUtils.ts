@@ -1,4 +1,28 @@
-export const isMobileDevice = () => window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
+export const isMobileDevice = () => {
+  // Primary check: viewport width (most reliable indicator)
+  const isNarrowViewport = window.matchMedia('(max-width: 768px)').matches;
+  
+  // If viewport is narrow, it's definitely mobile
+  if (isNarrowViewport) {
+    return true;
+  }
+  
+  // For wider viewports, check if it's actually a mobile device
+  // using user agent and additional device characteristics
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUserAgent = /mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+  
+  // Check for tablet-specific patterns (iPads in desktop mode, etc.)
+  const isTablet = /ipad|tablet|kindle|silk|playbook/.test(userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  // Check for small screen even with desktop user agent (some 2-in-1 devices)
+  const isSmallScreen = window.screen.width <= 768 || window.screen.height <= 768;
+  
+  // Only consider it mobile if we have positive mobile indicators
+  // Don't just rely on touch capability alone
+  return isMobileUserAgent || (isTablet && isNarrowViewport) || (isSmallScreen && 'ontouchstart' in window);
+};
 
 export const getMobileViewportHeight = () => {
   // Handle mobile viewport quirks - use Visual Viewport API when available

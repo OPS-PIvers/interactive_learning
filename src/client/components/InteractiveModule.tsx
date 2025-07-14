@@ -229,6 +229,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
 
   const isMobile = useIsMobile();
+  
+  // TEMPORARY: Manual override for mobile detection during debugging
+  // Remove this after confirming the fix works
+  const forceDesktopMode = window.location.search.includes('forceDesktop=true');
+  const effectiveIsMobile = forceDesktopMode ? false : isMobile;
+
+  console.log('🔍 MOBILE OVERRIDE DEBUG:', {
+    originalIsMobile: isMobile,
+    forceDesktopMode,
+    effectiveIsMobile,
+    url: window.location.href
+  });
+  
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
   
@@ -1137,7 +1150,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM_TO_HOTSPOT));
     }
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-  }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
+  }, [isEditing, moduleState, timelineEvents, hotspots, effectiveIsMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // DUPLICATE REMOVED - Original definition is used (now includes debugLog)
   // const clearImageBoundsCache = useCallback(() => {
@@ -2001,7 +2014,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useEffect(() => {
     if (!isEditing && backgroundImage && moduleState !== 'idle') {
       // When transitioning to viewer mode, ensure proper container setup
-      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
+      const container = effectiveIsMobile ? viewerImageContainerRef.current : imageContainerRef.current;
       if (container) {
         // Force a reflow to ensure container has proper dimensions
         container.offsetHeight;
@@ -2661,7 +2674,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // style={{ outline: 'none' }}
     >
       {isEditing ? (
-        isMobile ? (
+        effectiveIsMobile ? (
           <MobileEditorLayout
             projectName={projectName}
             backgroundImage={backgroundImage || null}
@@ -2702,7 +2715,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <div
               ref={imageContainerRef}
               className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
-              {...(isMobile && isEditing ? touchGestureHandlers : {})}
+              {...(effectiveIsMobile && isEditing ? touchGestureHandlers : {})}
             >
               <ImageEditCanvas
                 backgroundImage={backgroundImage}
@@ -2911,9 +2924,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         </div>
         )
       ) : (
-        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+        <div className={`flex flex-col bg-slate-900 ${effectiveIsMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
             {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
-            <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
+            <div className={`${effectiveIsMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
               <ViewerToolbar
                 projectName={projectName}
                 onBack={handleAttemptClose}
@@ -2928,26 +2941,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             
             {/* Main content area (Image + Timeline for Mobile) */}
             {/* Desktop: This div is part of the fixed layout, for Mobile: it's the flex-1 content area */}
-            <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
+            <div className={`flex-1 flex flex-col relative ${effectiveIsMobile ? '' : 'h-full'}`}>
             {/* Image container with mobile-safe sizing */}
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
             <div
-              ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
+              ref={effectiveIsMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
               className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
               onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
-              {...(isMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
+              {...(effectiveIsMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
             >
               <div
                 className="w-full h-full flex items-center justify-center"
                 role={backgroundImage ? "button" : undefined}
-                aria-label={backgroundImage ? (isMobile ? "Interactive image area" : "Interactive image") : undefined}
+                aria-label={backgroundImage ? (effectiveIsMobile ? "Interactive image area" : "Interactive image") : undefined}
               >
                 {/* TransformIndicator and Debug can be kept for both, or made conditional */}
                 <TransformIndicator />
                 <PositioningDebugPanel />
                 {debugMode && (
-                  <div className="absolute top-4 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG, marginTop: isMobile ? '0' : '56px' /* Adjust for desktop toolbar if needed */ }}>
+                  <div className="absolute top-4 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG, marginTop: effectiveIsMobile ? '0' : '56px' /* Adjust for desktop toolbar if needed */ }}>
                     <div>Mode: Viewer (isMobile: {isMobile.toString()})</div>
                     <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
                     <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
@@ -3096,8 +3109,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Desktop: timeline is part of fixed layout, Mobile: flex-shrink-0 */}
             {backgroundImage && (
               <div
-                ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
-                className={`${isMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
+                ref={effectiveIsMobile ? viewerTimelineRef : null} // Use specific ref for mobile
+                className={`${effectiveIsMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
                 style={{ zIndex: Z_INDEX.TIMELINE }}
               >
                 <HorizontalTimeline
@@ -3126,7 +3139,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
 
       {/* Enhanced Hotspot Editor Modal - Conditional rendering for mobile vs desktop */}
-      {isMobile ? (
+      {(() => {
+        // Enhanced modal selection logic with debugging and fallback
+        const shouldUseMobileEditor = effectiveIsMobile && window.innerWidth <= 768; // Double-check with actual viewport
+
+        console.log('🔍 MODAL DEBUG: Determining which modal to render', {
+          effectiveIsMobile,
+          windowWidth: window.innerWidth,
+          shouldUseMobileEditor,
+          isHotspotModalOpen,
+          selectedHotspotForModal,
+          userAgent: navigator.userAgent.substring(0, 100) // Truncate for logging
+        });
+
+        return shouldUseMobileEditor;
+      })() ? (
         <MobileEditorModal
           isOpen={isHotspotModalOpen}
           hotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
@@ -3214,7 +3241,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
           {mediaModal.type === 'audio' && mediaModal.data && (
             <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
-              minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
+              minHeight: effectiveIsMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
             }}>
               <AudioPlayer
                 src={mediaModal.data.src}
