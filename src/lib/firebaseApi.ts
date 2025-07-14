@@ -134,8 +134,8 @@ export class FirebaseProjectAPI {
       // The full interactiveData structure is provided here.
       const newProject: Project = {
         id: projectId,
-        title: DataSanitizer.sanitizeString(title),
-        description: DataSanitizer.sanitizeString(description),
+        title: title,
+        description: description,
         createdBy: auth.currentUser.uid, // Add user ID
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -188,6 +188,9 @@ export class FirebaseProjectAPI {
           if (projectData.createdBy !== auth.currentUser.uid) {
             throw new Error('You do not have permission to modify this project');
           }
+        } else {
+          // A project with an ID that is not 'temp' should already exist for a save operation.
+          throw new Error('Project not found. Cannot update a non-existent project.');
         }
       }
 
