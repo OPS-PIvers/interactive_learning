@@ -222,8 +222,8 @@ export interface Project {
   title: string;
   description: string;
   createdBy: string;    // Add user ID
-  createdAt?: Date;     // Add timestamps
-  updatedAt?: Date;
+  createdAt: Date;     // Add timestamps
+  updatedAt: Date;
   thumbnailUrl?: string; // Base64 string of the background image, for card display
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }

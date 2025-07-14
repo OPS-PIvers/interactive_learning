@@ -122,13 +122,17 @@ export class FirebaseProjectAPI {
   /**
    * Create a new project
    */
+  private generateProjectId(): string {
+    return `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  }
+
   async createProject(title: string, description: string): Promise<Project> {
     try {
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to create projects');
       }
 
-      const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+      const projectId = this.generateProjectId();
       
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
@@ -151,8 +155,8 @@ export class FirebaseProjectAPI {
       // Save to Firestore
       const projectRef = doc(db, 'projects', projectId)
       await setDoc(projectRef, {
-        title: newProject.title,
-        description: newProject.description,
+        title,
+        description,
         createdBy: newProject.createdBy,
         thumbnailUrl: null,
         backgroundImage: null,
@@ -196,16 +200,21 @@ export class FirebaseProjectAPI {
 
       // If new project, set createdBy
       if (project.id === 'temp') {
-        project.id = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        project.id = this.generateProjectId();
         project.createdBy = auth.currentUser.uid;
+      }
+
+      let projectSnap;
+      if (project.id !== 'temp') {
+        const projectRef = doc(db, 'projects', project.id);
+        projectSnap = await getDoc(projectRef);
       }
 
       projectCache.clear();
       const projectRef = doc(db, 'projects', project.id);
 
       // --- Thumbnail logic (pre-transaction) ---
-      const initialDocSnap = await getDoc(projectRef);
-      const existingData = initialDocSnap.data();
+      const existingData = projectSnap ? projectSnap.data() : undefined;
       const existingBackgroundImage = existingData?.backgroundImage;
       const existingThumbnailUrl = existingData?.thumbnailUrl;
 
@@ -263,7 +272,8 @@ export class FirebaseProjectAPI {
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
+          createdBy: project.createdBy
         }, { merge: true });
 
         const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
