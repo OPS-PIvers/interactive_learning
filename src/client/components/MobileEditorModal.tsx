@@ -107,6 +107,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [eventToPreview, setEventToPreview] = useState<TimelineEventData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -234,15 +235,15 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     setIsPreviewing(false);
     setEventToPreview(null);
     setIsPlaying(false);
+    setPreviewKey(0); // Reset preview key
   };
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleRestart = () => {
-    // This is a simplified restart. A more complex implementation might involve
-    // re-triggering animations or media playback from the start.
-    setIsPlaying(false);
-    setTimeout(() => setIsPlaying(true), 50);
+    // Force React to remount the preview component for a clean restart
+    setPreviewKey(prev => prev + 1);
+    setIsPlaying(true);
   };
 
   // FIXED: Move tab content rendering to stable components to prevent hook issues
@@ -446,9 +447,11 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     return (
       <div className="fixed inset-0 z-50 bg-black">
         <MobileEventPreview
+          key={previewKey}
           event={eventToPreview}
           hotspot={hotspot}
           onUpdateEvent={onUpdateTimelineEvent}
+          backgroundImageUrl="data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100' height='100' fill='%23374151'/%3E%3C/svg%3E"
         />
         <MobilePreviewOverlay
           isPlaying={isPlaying}

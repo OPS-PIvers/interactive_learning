@@ -61,7 +61,7 @@ const MobilePreviewOverlay: React.FC<MobilePreviewOverlayProps> = ({
                 </svg>
               ) : (
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4.536 3.123A1 1 0 016 4v12a1 1 0 01-1.464.877L1.5 14.828V5.172l3.036-2.049zM15.464 3.123l-3.036 2.049v9.656l3.036 2.049A1 1 0 0016 16V4a1 1 0 00-.536-.877z" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                 </svg>
               )}
             </button>
