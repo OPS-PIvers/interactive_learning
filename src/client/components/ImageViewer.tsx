@@ -329,6 +329,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             transition: isTransformingViaTouch ? 'none' : 'transform 0.2s ease-out', // Only animate transform if not via touch
           }}
           draggable={false}
+          loading="lazy"
         />
         
         {/* Loading State */}
