@@ -154,11 +154,15 @@ export class FirebaseProjectAPI {
         }
       };
       
-      // Save to Firestore
+      // Save to Firestore with flattened structure to match expected schema
       const projectRef = doc(db, 'projects', projectId);
-      const { createdAt, updatedAt, ...dataToSave } = newProjectData; // Exclude client-side timestamps
+      const { createdAt, updatedAt, interactiveData, ...projectMetadata } = newProjectData;
       await setDoc(projectRef, {
-        ...dataToSave,
+        ...projectMetadata,
+        backgroundImage: null, // New projects start with no background image
+        imageFitMode: interactiveData.imageFitMode,
+        viewerModes: interactiveData.viewerModes,
+        thumbnailUrl: null, // New projects start with no thumbnail
         createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
         updatedAt: serverTimestamp(),
       });
@@ -180,8 +184,11 @@ export class FirebaseProjectAPI {
         throw new Error('User must be authenticated to save projects');
       }
 
-      // If new project, set createdBy
-      if (project.id === NEW_PROJECT_ID) {
+      // Check if it's a new project before mutating the ID
+      const isNewProject = project.id === NEW_PROJECT_ID;
+      
+      // If new project, set createdBy and generate ID
+      if (isNewProject) {
         project.id = this.generateProjectId();
         project.createdBy = user.uid;
       }
@@ -246,12 +253,12 @@ export class FirebaseProjectAPI {
           if (!projectData.createdBy) {
             project.createdBy = user.uid;
           }
-        } else if (project.id !== NEW_PROJECT_ID) {
+        } else if (!isNewProject) {
           // A project with an ID that is not 'temp' should already exist for a save operation.
           throw new Error('Project not found. Cannot update a non-existent project.');
         }
 
-        transaction.set(projectRef, {
+        const updateData: any = {
           title: project.title,
           description: project.description,
           thumbnailUrl: finalThumbnailUrl,
@@ -260,7 +267,14 @@ export class FirebaseProjectAPI {
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy
-        }, { merge: true });
+        };
+        
+        // Add createdAt only for new projects
+        if (isNewProject) {
+          updateData.createdAt = serverTimestamp();
+        }
+        
+        transaction.set(projectRef, updateData, { merge: true });
 
         const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
         const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
