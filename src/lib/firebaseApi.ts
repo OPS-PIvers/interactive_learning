@@ -6,6 +6,7 @@ import {
   deleteDoc,
   query,
   orderBy,
+  // writeBatch, // No longer using batch directly in saveProject
   serverTimestamp,
   where,
   getDoc,
@@ -270,7 +271,7 @@ export class FirebaseProjectAPI {
       
       return {
         ...project,
-        thumbnailUrl: finalThumbnailUrl || undefined,
+        thumbnailUrl: finalThumbnailUrl,
         interactiveData: {
           ...project.interactiveData,
           backgroundImage: newBackgroundImageForUpdate || undefined
