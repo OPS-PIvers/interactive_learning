@@ -81,7 +81,7 @@ describe('InteractiveModule', () => {
       if (!overlay) return;
 
       expect(within(overlay).getByText('Explore Module')).toBeInTheDocument();
-      expect(within(overlay).queryByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).queryByText('Start Guided Tour')).not.toBeInTheDocument();
     });
 
     test('renders only "Start Guided Tour" button if only selfPaced mode is enabled', () => {
@@ -90,7 +90,7 @@ describe('InteractiveModule', () => {
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).toBeInTheDocument();
+      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
       expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
     });
 
@@ -100,7 +100,7 @@ describe('InteractiveModule', () => {
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).toBeInTheDocument();
+      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
       expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
     });
 
@@ -110,7 +110,7 @@ describe('InteractiveModule', () => {
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).toBeInTheDocument();
+      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
       expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
     });
 
@@ -120,8 +120,8 @@ describe('InteractiveModule', () => {
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).toBeInTheDocument();
-      expect(within(overlay).queryByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
+      expect(within(overlay).queryByText('Start Guided Tour')).not.toBeInTheDocument();
       // It should still show the "Interactive Module Ready" text.
       expect(within(overlay).getByText('Interactive Module Ready')).toBeInTheDocument();
     });

@@ -117,7 +117,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 background: `radial-gradient(circle at ${event.spotlightX || PREVIEW_DEFAULTS.SPOTLIGHT_X}% ${event.spotlightY || PREVIEW_DEFAULTS.SPOTLIGHT_Y}%,
                   transparent ${event.highlightRadius || PREVIEW_DEFAULTS.HIGHLIGHT_RADIUS}px,
                   rgba(0, 0, 0, ${(event.dimPercentage || PREVIEW_DEFAULTS.DIM_PERCENTAGE) / 100}) 100%)`,
-                zIndex: 20
+                zIndex: Z_INDEX.PREVIEW_SPOTLIGHT
               }}
             />
           );
@@ -133,7 +133,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 top: `${event.textY || PREVIEW_DEFAULTS.TEXT_Y}%`,
                 transform: 'translate(-50%, -50%)',
                 maxWidth: PREVIEW_DEFAULTS.MAX_WIDTH,
-                zIndex: 30
+                zIndex: Z_INDEX.PREVIEW_TEXT
               }}
             >
               <div className="text-white text-sm">{event.message || event.textContent}</div>
@@ -152,7 +152,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 top: `${(event.targetY || PREVIEW_DEFAULTS.TARGET_Y) - PREVIEW_DEFAULTS.ZOOM_PREVIEW_OFFSET}%`,
                 width: PREVIEW_DEFAULTS.ZOOM_PREVIEW_WIDTH,
                 height: PREVIEW_DEFAULTS.ZOOM_PREVIEW_HEIGHT,
-                zIndex: 25
+                zIndex: Z_INDEX.PREVIEW_ZOOM
               }}
             />
           );
