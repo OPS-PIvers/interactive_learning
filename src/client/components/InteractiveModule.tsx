@@ -2562,7 +2562,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             onSave={handleSave}
             isSaving={isSaving}
             showSuccessMessage={showSuccessMessage}
-            onAddHotspot={handleAddHotspot}
+            onAddHotspot={isPlacingHotspot ? undefined : handleAddHotspot}
             selectedHotspot={editingHotspot}
             onUpdateHotspot={(updates) => {
               if (editingHotspot) {

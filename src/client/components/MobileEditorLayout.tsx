@@ -18,7 +18,7 @@ interface MobileEditorLayoutProps {
   onAddHotspot?: () => void;
   selectedHotspot?: HotspotData | null;
   onUpdateHotspot?: (updates: Partial<HotspotData>) => void;
-  onDeleteHotspot?: (hotspotId: string) => void; // HotspotId for clarity
+  onDeleteHotspot?: (hotspotId: string) => void;
   activePanelOverride?: 'image' | 'properties' | 'timeline';
   onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline') => void;
 
@@ -243,7 +243,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
               <MobileHotspotEditor
                 hotspot={selectedHotspot}
                 onUpdate={onUpdateHotspot}
-                onDelete={onDeleteHotspot}
+                onDelete={() => onDeleteHotspot(selectedHotspot.id)}
               />
             ) : (
               <div className="p-6 text-center text-slate-400">
@@ -399,7 +399,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           <MobileHotspotEditor
             hotspot={selectedHotspot}
             onUpdate={onUpdateHotspot}
-            onDelete={onDeleteHotspot}
+            onDelete={() => onDeleteHotspot(selectedHotspot.id)}
           />
         ) : (
           <div className="p-6 text-center text-slate-400">
