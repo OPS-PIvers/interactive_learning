@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { TimelineEventData } from '../../../shared/types';
 import MobileEventCard from './MobileEventCard';
 
-const SortableEventCard = ({ event, onUpdate, onDelete, onSelect }: { event: TimelineEventData, onUpdate: (event: TimelineEventData) => void, onDelete: () => void, onSelect: () => void }) => {
+const SortableEventCard = ({ event, onUpdate, onDelete, onSelect, onPreview }: { event: TimelineEventData, onUpdate: (event: TimelineEventData) => void, onDelete: () => void, onSelect: () => void, onPreview: () => void }) => {
     const {
       attributes,
       listeners,
@@ -41,6 +41,7 @@ const SortableEventCard = ({ event, onUpdate, onDelete, onSelect }: { event: Tim
           onUpdate={onUpdate}
           onDelete={onDelete}
           onSelect={onSelect}
+          onPreview={onPreview}
         />
       </div>
     );
@@ -52,6 +53,7 @@ interface MobileEventEditorProps {
   onEventsChange: (events: TimelineEventData[]) => void;
   onSelectEvent: (event: TimelineEventData) => void;
   onAddEvent: () => void;
+  onPreviewEvent: (event: TimelineEventData) => void;
 }
 
 const MobileEventEditor: React.FC<MobileEventEditorProps> = ({
@@ -59,6 +61,7 @@ const MobileEventEditor: React.FC<MobileEventEditorProps> = ({
   onEventsChange,
   onSelectEvent,
   onAddEvent,
+  onPreviewEvent,
 }) => {
   const [activeTab, setActiveTab] = useState('events');
 
@@ -133,6 +136,7 @@ const MobileEventEditor: React.FC<MobileEventEditorProps> = ({
                       onUpdate={handleUpdateEvent}
                       onDelete={() => handleDeleteEvent(event.id)}
                       onSelect={() => onSelectEvent(event)}
+                      onPreview={() => onPreviewEvent(event)}
                     />
                   ))}
                 </div>

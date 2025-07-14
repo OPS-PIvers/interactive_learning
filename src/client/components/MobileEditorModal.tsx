@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileTextSettings from './mobile/MobileTextSettings';
 import MobileEventEditor from './mobile/MobileEventEditor';
+import MobileEventPreview from './mobile/MobileEventPreview';
+import MobilePreviewOverlay from './mobile/MobilePreviewOverlay';
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -102,6 +104,10 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [eventToPreview, setEventToPreview] = useState<TimelineEventData | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -218,6 +224,27 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const hotspotEvents = useMemo(() => {
     return timelineEvents.filter(e => e.targetId === hotspot?.id);
   }, [timelineEvents, hotspot?.id]);
+
+  const handlePreviewEvent = (event: TimelineEventData) => {
+    setEventToPreview(event);
+    setIsPreviewing(true);
+    setIsPlaying(true); // Auto-play on open
+  };
+
+  const handleExitPreview = () => {
+    setIsPreviewing(false);
+    setEventToPreview(null);
+    setIsPlaying(false);
+    setPreviewKey(0); // Reset preview key
+  };
+
+  const handlePlay = () => setIsPlaying(true);
+  const handlePause = () => setIsPlaying(false);
+  const handleRestart = () => {
+    // Force React to remount the preview component for a clean restart
+    setPreviewKey(prev => prev + 1);
+    setIsPlaying(true);
+  };
 
   // FIXED: Move tab content rendering to stable components to prevent hook issues
   const BasicTabContent = useMemo(() => {
@@ -394,9 +421,10 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           }
           // Add handlers for other event types here
         }}
+        onPreviewEvent={handlePreviewEvent}
       />
     );
-  }, [hotspotEvents, hotspot?.id, onAddTimelineEvent, onUpdateTimelineEvent, onDeleteTimelineEvent, handleHotspotEventsChange]);
+  }, [hotspotEvents, hotspot?.id, onAddTimelineEvent, onUpdateTimelineEvent, onDeleteTimelineEvent, handleHotspotEventsChange, handlePreviewEvent]);
 
 
   // FIXED: Use stable component rendering instead of function calls
@@ -414,6 +442,27 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   };
 
   if (!isOpen || !hotspot || !localHotspot) return null;
+
+  if (isPreviewing && eventToPreview) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black">
+        <MobileEventPreview
+          key={previewKey}
+          event={eventToPreview}
+          hotspot={hotspot}
+          onUpdateEvent={onUpdateTimelineEvent}
+          backgroundImageUrl="data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100' height='100' fill='%23374151'/%3E%3C/svg%3E"
+        />
+        <MobilePreviewOverlay
+          isPlaying={isPlaying}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onRestart={handleRestart}
+          onExit={handleExitPreview}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex flex-col">

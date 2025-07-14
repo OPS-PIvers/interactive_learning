@@ -7,6 +7,7 @@ interface MobileEventCardProps {
   onUpdate: (event: TimelineEventData) => void;
   onDelete: () => void;
   onSelect: () => void;
+  onPreview: () => void;
 }
 
 const getEventIcon = (type: InteractionType) => {
@@ -25,7 +26,7 @@ const getEventIcon = (type: InteractionType) => {
   return iconMap[type] || '⚙️';
 };
 
-const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDelete, onSelect }) => {
+const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDelete, onSelect, onPreview }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,13 +49,24 @@ const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDe
           </div>
         </div>
         <div className="flex items-center space-x-2">
-           <button
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview();
+            }}
+            className="p-2 text-gray-400 hover:text-white"
+            aria-label="Preview event"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+          </button>
+          <button
             onClick={(e) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
             }}
             className="p-2 text-gray-400 hover:text-white"
-            >
+            aria-label="Expand event details"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
           <div className="cursor-grab p-2 text-gray-400 hover:text-white">
