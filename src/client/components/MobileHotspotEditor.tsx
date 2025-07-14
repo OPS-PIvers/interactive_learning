@@ -8,6 +8,10 @@ import EventTypeSelectorButtonGrid from './EventTypeSelectorButtonGrid';
 import EditableEventCard from './EditableEventCard';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { EyeIcon } from './icons/EyeIcon';
+import { EyeSlashIcon } from './icons/EyeSlashIcon';
+import { PencilIcon } from './icons/PencilIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 
 
@@ -24,6 +28,10 @@ interface MobileHotspotEditorProps {
   // For EditableEventCard's drag-and-drop (will be implemented in Step 3)
   // For now, provide a dummy function or make it optional in EditableEventCard if not used
   // moveCard: (dragIndex: number, hoverIndex: number) => void;
+  isPreviewMode?: boolean;
+  previewingEvents?: TimelineEventData[];
+  onPreviewEvent?: (event: TimelineEventData) => void;
+  onStopPreview?: () => void;
 }
 
 const DEBOUNCE_DELAY = 500;
@@ -69,6 +77,10 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
   onAddTimelineEvent,
   onUpdateTimelineEvent,
   onDeleteTimelineEvent,
+  isPreviewMode = false,
+  previewingEvents = [],
+  onPreviewEvent,
+  onStopPreview
 }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
   const [internalHotspot, setInternalHotspot] = useState<HotspotData>(hotspot);
@@ -242,52 +254,93 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     </div>
   );
 
-  const renderTimelineTab = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-white">Associated Events</h3>
-        <button
-          onClick={handleAddNewEvent}
-          className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
-          Add Event
-        </button>
-      </div>
-      {hotspotEvents.length === 0 ? (
-        <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
-      ) : (
-        <div className="space-y-3">
-          {hotspotEvents.map((event) => (
-            <div key={event.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-white truncate pr-2" title={event.name}>
-                  {event.name || `Event at step ${event.step}`}
-                </span>
-                <button
-                  onClick={() => onDeleteTimelineEvent(event.id)}
-                  className="text-red-400 hover:text-red-300 p-1"
-                  aria-label="Delete event"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-              <div className="text-xs text-slate-400">
-                Step {event.step} • Type: {INTERACTION_TYPE_OPTIONS.find(t => t.value === event.type)?.label || event.type.replace(/_/g, ' ')}
-              </div>
-              {/* Basic event editing (name, step, duration) can be added here later */}
-              {/* For now, focusing on add/delete and structure */}
+  const renderTimelineTab = () => {
+    const renderEventCard = (event: TimelineEventData) => {
+      const isCurrentlyPreviewing = previewingEvents.some(e => e.id === event.id);
+
+      return (
+        <div key={event.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-white font-medium text-sm">{event.name}</span>
+              <span className="text-xs text-slate-400">Step {event.step}</span>
             </div>
-          ))}
+            <div className="flex items-center space-x-2">
+              {/* Preview Toggle Button */}
+              <button
+                onClick={() => isCurrentlyPreviewing ? onStopPreview?.() : onPreviewEvent?.(event)}
+                className={`p-1 rounded transition-colors ${
+                  isCurrentlyPreviewing
+                    ? 'text-purple-400 bg-purple-400/20'
+                    : 'text-slate-400 hover:text-purple-400'
+                }`}
+                title={isCurrentlyPreviewing ? "Stop Preview" : "Preview Event"}
+              >
+                {isCurrentlyPreviewing ? (
+                  <EyeSlashIcon className="w-4 h-4" />
+                ) : (
+                  <EyeIcon className="w-4 h-4" />
+                )}
+              </button>
+
+              {/* Edit Button */}
+              <button
+                onClick={() => {}}
+                className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                title="Edit event"
+              >
+                <PencilIcon className="w-4 h-4" />
+              </button>
+
+              {/* Delete Button */}
+              <button
+                onClick={() => onDeleteTimelineEvent(event.id)}
+                className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                title="Delete event"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Event details */}
+          <div className="text-xs text-slate-400 space-y-1">
+            <div>Type: {event.type.replace(/_/g, ' ')}</div>
+            {event.message && <div>Message: "{event.message}"</div>}
+            {event.duration && <div>Duration: {event.duration}ms</div>}
+            {event.zoomFactor && <div>Zoom: {event.zoomFactor}x</div>}
+          </div>
         </div>
-      )}
-      <p className="text-xs text-slate-500 mt-2 text-center">
-        Full event configuration and reordering will be enhanced in the next steps.
-      </p>
-    </div>
-  );
+      );
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Preview Mode Indicator */}
+        {isPreviewMode && (
+          <div className="bg-purple-900/50 border border-purple-600 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                <span className="text-purple-400 font-medium">Preview Mode</span>
+              </div>
+              <button
+                onClick={onStopPreview}
+                className="text-purple-400 hover:text-purple-300 text-sm"
+              >
+                Stop Preview
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Event List */}
+        <div className="space-y-2">
+          {hotspotEvents.map(renderEventCard)}
+        </div>
+      </div>
+    );
+  };
 
 
   return (

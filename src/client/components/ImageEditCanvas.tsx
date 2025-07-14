@@ -60,6 +60,8 @@ interface ImageEditCanvasProps {
   // Props for "click to place" new hotspot
   isPlacingHotspot?: boolean;
   onPlaceNewHotspot?: (x: number, y: number) => void;
+  previewingEvents?: TimelineEventData[];
+  isPreviewMode?: boolean;
 }
 
 const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
@@ -96,7 +98,69 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   imageFitMode,
   isPlacingHotspot = false,
   onPlaceNewHotspot,
+  previewingEvents = [],
+  isPreviewMode = false
 }) => {
+  const renderPreviewOverlays = () => {
+    if (!isPreviewMode || previewingEvents.length === 0) return null;
+
+    return previewingEvents.map(event => {
+      switch (event.type) {
+        case InteractionType.SPOTLIGHT:
+        case InteractionType.HIGHLIGHT_HOTSPOT:
+          return (
+            <div
+              key={`preview-${event.id}`}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at ${event.spotlightX || 50}% ${event.spotlightY || 50}%,
+                  transparent ${event.highlightRadius || 60}px,
+                  rgba(0, 0, 0, ${(event.dimPercentage || 70) / 100}) 100%)`,
+                zIndex: 20
+              }}
+            />
+          );
+
+        case InteractionType.SHOW_TEXT:
+        case InteractionType.SHOW_MESSAGE:
+          return (
+            <div
+              key={`preview-text-${event.id}`}
+              className="absolute bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-lg pointer-events-none"
+              style={{
+                left: `${event.textX || 50}%`,
+                top: `${event.textY || 50}%`,
+                transform: 'translate(-50%, -50%)',
+                maxWidth: '200px',
+                zIndex: 30
+              }}
+            >
+              <div className="text-white text-sm">{event.message || event.textContent}</div>
+            </div>
+          );
+
+        case InteractionType.PAN_ZOOM:
+        case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+          // Apply zoom preview effect
+          return (
+            <div
+              key={`preview-zoom-${event.id}`}
+              className="absolute inset-0 pointer-events-none border-2 border-blue-400 rounded"
+              style={{
+                left: `${(event.targetX || 50) - 10}%`,
+                top: `${(event.targetY || 50) - 10}%`,
+                width: '20%',
+                height: '20%',
+                zIndex: 25
+              }}
+            />
+          );
+
+        default:
+          return null;
+      }
+    });
+  };
   // Determine if dimming logic is applicable (simplified from InteractiveModule)
   const getIsHotspotDimmed = (hotspotId: string) => {
     // FIXED: Never dim hotspots in editing mode - they should always be fully interactive
@@ -388,6 +452,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           )
         )}
 
+        {/* Preview Overlays */}
+        {renderPreviewOverlays()}
       </div>
     </div>
   );

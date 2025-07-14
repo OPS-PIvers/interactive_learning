@@ -27,6 +27,9 @@ interface MobileEditorLayoutProps {
   onUpdateTimelineEvent: (event: TimelineEventData) => void;
   onDeleteTimelineEvent: (eventId: string) => void;
   // allHotspots is already part of props (passed as 'hotspots'), re-pass to MobileHotspotEditor
+  previewingEvents?: TimelineEventData[];
+  onPreviewEvent?: (event: TimelineEventData) => void;
+  onStopPreview?: () => void;
 }
 
 interface ViewportState {
@@ -61,7 +64,25 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   onAddTimelineEvent,
   onUpdateTimelineEvent,
   onDeleteTimelineEvent,
+  previewingEvents = [],
+  onPreviewEvent,
+  onStopPreview
 }) => {
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewingEventId, setPreviewingEventId] = useState<string | null>(null);
+
+  const handlePreviewEvent = useCallback((event: TimelineEventData) => {
+    setPreviewingEventId(event.id);
+    setIsPreviewMode(true);
+    onPreviewEvent?.(event);
+  }, [onPreviewEvent]);
+
+  const handleStopPreview = useCallback(() => {
+    setPreviewingEventId(null);
+    setIsPreviewMode(false);
+    onStopPreview?.();
+  }, [onStopPreview]);
+
   const [viewport, setViewport] = useState<ViewportState>({
     height: window.innerHeight,
     availableHeight: window.innerHeight,
@@ -246,7 +267,10 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         {activePanel === 'image' ? (
           /* Image Editing Area */
           <div className="flex-1 relative bg-slate-800 min-h-0">
-            {children}
+            {React.cloneElement(children as React.ReactElement, {
+              isPreviewMode,
+              previewingEvents,
+            })}
           </div>
         ) : activePanel === 'properties' ? (
           /* Properties Panel */
@@ -256,6 +280,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
                 hotspot={selectedHotspot}
                 onUpdate={onUpdateHotspot}
                 onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
+                onPreviewEvent={handlePreviewEvent}
+                onStopPreview={handleStopPreview}
+                previewingEvents={previewingEvents}
               />
             ) : (
               <div className="p-6 text-center text-slate-400">
