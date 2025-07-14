@@ -387,6 +387,7 @@ const getActualImageVisibleBounds = (
         // Editing mode: tap calls onEditRequest
         console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
         onEditRequest(hotspot.id);
+        e.stopPropagation(); // Prevent container click handler from firing
         lastTapTimeRef.current = 0; // Reset tap tracking when entering edit
       } else {
         // Non-mobile, or no double tap handler, or isEditing without onEditRequest: standard focus
