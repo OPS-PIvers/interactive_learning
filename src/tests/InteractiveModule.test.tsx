@@ -57,7 +57,7 @@ describe('InteractiveModule', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // Test suite for initial overlay buttons in viewer mode

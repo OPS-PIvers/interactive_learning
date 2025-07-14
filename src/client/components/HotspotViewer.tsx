@@ -204,12 +204,42 @@ const getActualImageVisibleBounds = (
 
     // Store drag start data
     const currentPixelPos = props.pixelPosition; // This is the top-left of the hotspot div
+    
+    // Calculate fallback pixel position if pixelPosition is not available
+    let initialHotspotLeft_inContainer = 0;
+    let initialHotspotTop_inContainer = 0;
+    
+    if (currentPixelPos) {
+      // Use provided pixel position
+      initialHotspotLeft_inContainer = currentPixelPos.x;
+      initialHotspotTop_inContainer = currentPixelPos.y;
+    } else {
+      // Calculate pixel position from percentage coordinates and container bounds
+      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement, containerElement as HTMLElement);
+      
+      if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
+        // Calculate hotspot position relative to the visible image bounds
+        const hotspotX_relativeToImage = (hotspot.x / 100) * visibleImageBounds.width;
+        const hotspotY_relativeToImage = (hotspot.y / 100) * visibleImageBounds.height;
+        
+        // Add the image's offset within the container
+        initialHotspotLeft_inContainer = visibleImageBounds.x + hotspotX_relativeToImage;
+        initialHotspotTop_inContainer = visibleImageBounds.y + hotspotY_relativeToImage;
+      } else {
+        // Final fallback: use container bounds directly (less accurate but prevents jump to 0,0)
+        const containerRect = containerElement.getBoundingClientRect();
+        if (containerRect.width > 0 && containerRect.height > 0) {
+          initialHotspotLeft_inContainer = (hotspot.x / 100) * containerRect.width;
+          initialHotspotTop_inContainer = (hotspot.y / 100) * containerRect.height;
+        }
+      }
+    }
 
     dragDataRef.current = {
       startX: e.clientX, // Viewport X of pointer down
       startY: e.clientY, // Viewport Y of pointer down
-      initialHotspotLeft_inContainer: currentPixelPos ? currentPixelPos.x : 0,
-      initialHotspotTop_inContainer: currentPixelPos ? currentPixelPos.y : 0,
+      initialHotspotLeft_inContainer,
+      initialHotspotTop_inContainer,
       startHotspotX_percentage: hotspot.x, // Store original percentages as fallback/reference
       startHotspotY_percentage: hotspot.y,
       containerElement
