@@ -1,6 +1,7 @@
 // src/client/components/MobileEditorModal.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import MobileTextSettings from './mobile/MobileTextSettings';
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -99,6 +100,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -333,6 +335,27 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   }, [localHotspot, updateLocalHotspot]);
 
   const TimelineTabContent = useMemo(() => {
+    if (editingEvent) {
+      const handleBack = () => setEditingEvent(null);
+      return (
+        <div className="p-4">
+          <button onClick={handleBack} className="text-purple-400 hover:text-purple-300 mb-4">
+            &larr; Back to Events
+          </button>
+          {editingEvent.type === InteractionType.SHOW_TEXT && (
+            <MobileTextSettings
+              event={editingEvent}
+              onUpdate={(updatedEvent) => {
+                onUpdateTimelineEvent(updatedEvent);
+                setEditingEvent(updatedEvent);
+              }}
+            />
+          )}
+          {/* Add other event settings components here */}
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4 p-4">
         <div className="flex items-center justify-between">
@@ -350,6 +373,12 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
             <div
               key={event.id}
               className="bg-slate-700 rounded-lg p-4 border border-slate-600"
+              onClick={() => {
+                if (event.type === InteractionType.SHOW_TEXT) {
+                  setEditingEvent(event);
+                }
+                // Add handlers for other event types here
+              }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
@@ -358,7 +387,10 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
                   </span>
                 </div>
                 <button
-                  onClick={() => onDeleteTimelineEvent(event.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTimelineEvent(event.id);
+                  }}
                   className="text-red-400 hover:text-red-300 p-1"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -369,7 +401,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
               <div className="text-sm text-gray-300">
                 Step {event.step} • Duration: {event.duration}ms
               </div>
-              {/* Add controls to edit event.step and event.duration here if needed */}
             </div>
           ))}
 
@@ -382,7 +413,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         </div>
       </div>
     );
-  }, [hotspotEvents, hotspot?.id, currentStep, onAddTimelineEvent, onDeleteTimelineEvent]);
+  }, [hotspotEvents, editingEvent, onUpdateTimelineEvent, onDeleteTimelineEvent]);
 
 
   // FIXED: Use stable component rendering instead of function calls
