@@ -272,8 +272,6 @@ const getActualImageVisibleBounds = (
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
 
-    if (!dragDataRef.current || !isEditing || !onPositionChange) return;
-
     const {
       startX: pointerDownViewX,
       startY: pointerDownViewY,
@@ -346,14 +344,15 @@ const getActualImageVisibleBounds = (
   }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    // console.log('Debug [HotspotViewer]: handlePointerUp called', {
-    //   hotspotId: hotspot.id,
-    //   isEditing,
-    //   isDragging,
-    //   isHolding,
-    //   isDimmed: isDimmedInEditMode,
-    //   timestamp: Date.now()
-    // });
+    console.log('Debug [HotspotViewer]: handlePointerUp called', {
+      hotspotId: hotspot.id,
+      isEditing,
+      isDragging,
+      isHolding,
+      isDimmed: isDimmedInEditMode,
+      hasDragDataRef: !!dragDataRef.current,
+      timestamp: Date.now()
+    });
     
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
@@ -362,12 +361,12 @@ const getActualImageVisibleBounds = (
 
     // If it was just a tap (no drag), open editor in editing mode or show focus in viewing mode
     if (!isDragging && dragDataRef.current) {
-      // console.log('Debug [HotspotViewer]: Hotspot clicked', {
-      //   hotspotId: hotspot.id,
-      //   isEditing,
-      //   hasOnEditRequest: !!onEditRequest,
-      //   timestamp: Date.now()
-      // });
+      console.log('Debug [HotspotViewer]: Hotspot clicked', {
+        hotspotId: hotspot.id,
+        isEditing,
+        hasOnEditRequest: !!onEditRequest,
+        timestamp: Date.now()
+      });
       
       const currentTime = Date.now();
       if (isMobile && !isEditing && props.onHotspotDoubleClick) {
@@ -386,6 +385,7 @@ const getActualImageVisibleBounds = (
         }
       } else if (isEditing && onEditRequest) {
         // Editing mode: tap calls onEditRequest
+        console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
         onEditRequest(hotspot.id);
         lastTapTimeRef.current = 0; // Reset tap tracking when entering edit
       } else {
@@ -396,6 +396,12 @@ const getActualImageVisibleBounds = (
             triggerHapticFeedback('hotspotDiscovery');
         }
       }
+    } else {
+      console.log('Debug [HotspotViewer]: Click not processed - condition not met', {
+        isDragging,
+        hasDragDataRef: !!dragDataRef.current,
+        hotspotId: hotspot.id
+      });
     }
 
     // Clean up
