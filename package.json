@@ -37,7 +37,9 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.6.3"
+    "react-pull-to-refresh": "^2.0.1",
+    "react-router-dom": "^7.6.3",
+    "react-swipeable": "^7.0.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

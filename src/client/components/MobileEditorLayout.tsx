@@ -75,8 +75,10 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
   const [editorMode, setEditorMode] = useState<'compact' | 'fullscreen' | 'modal'>('compact');
   const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline'>(activePanelOverride || 'image');
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
+    window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
+  );
 
-  // Sync with override prop
   useEffect(() => {
     if (activePanelOverride) {
       setActivePanel(activePanelOverride);
@@ -158,7 +160,17 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
     };
   }, []);
 
-  // Handle back gesture detection
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, []);
+
   const handleBackGesture = useCallback((e: TouchEvent) => {
     // Implement edge swipe detection for back navigation
     if (e.touches[0]?.clientX < 20 && !viewport.isKeyboardVisible) {
