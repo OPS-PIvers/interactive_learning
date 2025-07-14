@@ -13,7 +13,7 @@ import {
   runTransaction // Import runTransaction
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { db, storage } from './firebaseConfig'
+import { auth, db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { DataSanitizer } from './dataSanitizer'
 import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
@@ -124,15 +124,21 @@ export class FirebaseProjectAPI {
    */
   async createProject(title: string, description: string): Promise<Project> {
     try {
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to create projects');
+      }
+
       const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
       
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
       const newProject: Project = {
         id: projectId,
-        title,
-        description,
-        thumbnailUrl: undefined,
+        title: DataSanitizer.sanitizeString(title),
+        description: DataSanitizer.sanitizeString(description),
+        createdBy: auth.currentUser.uid, // Add user ID
+        createdAt: new Date(),
+        updatedAt: new Date(),
         interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
@@ -145,8 +151,9 @@ export class FirebaseProjectAPI {
       // Save to Firestore
       const projectRef = doc(db, 'projects', projectId)
       await setDoc(projectRef, {
-        title,
-        description,
+        title: newProject.title,
+        description: newProject.description,
+        createdBy: newProject.createdBy,
         thumbnailUrl: null,
         backgroundImage: null,
         imageFitMode: 'cover',
@@ -166,54 +173,77 @@ export class FirebaseProjectAPI {
    * Save/update a project with all its data
    */
   async saveProject(project: Project): Promise<Project> {
-    projectCache.clear();
-    const projectRef = doc(db, 'projects', project.id);
-
-    // --- Thumbnail logic (pre-transaction) ---
-    const initialDocSnap = await getDoc(projectRef);
-    const existingData = initialDocSnap.data();
-    const existingBackgroundImage = existingData?.backgroundImage;
-    const existingThumbnailUrl = existingData?.thumbnailUrl;
-
-    let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
-    let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
-    let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
-
-    if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
-      if (existingThumbnailUrl) {
-        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
-      }
-      try {
-        console.log(`Generating thumbnail for project ${project.id} due to image change.`);
-        const thumbnailBlob = await generateThumbnail(
-          newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
-        );
-        const mimeTypeToExtension: Record<string, string> = {
-          'image/jpeg': 'jpg',
-          'image/webp': 'webp',
-          'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
-        };
-        const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
-        const thumbnailFile = new File(
-          [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
-        );
-        finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
-        console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
-      } catch (thumbError) {
-        console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
-        finalThumbnailUrl = existingThumbnailUrl || null;
-        newBackgroundImageForUpdate = existingBackgroundImage || null;
-        oldThumbnailUrlToDeleteAfterCommit = null;
-      }
-    } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
-      if (existingThumbnailUrl) {
-        oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
-      }
-      finalThumbnailUrl = null;
-    }
-    // --- End of Thumbnail logic ---
-
     try {
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to save projects');
+      }
+
+      // For existing projects, verify ownership
+      if (project.id !== 'temp') {
+        const projectRef = doc(db, 'projects', project.id);
+        const projectSnap = await getDoc(projectRef);
+
+        if (projectSnap.exists()) {
+          const projectData = projectSnap.data();
+          if (projectData.createdBy !== auth.currentUser.uid) {
+            throw new Error('You do not have permission to modify this project');
+          }
+        }
+      }
+
+      // If new project, set createdBy
+      if (project.id === 'temp') {
+        project.id = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        project.createdBy = auth.currentUser.uid;
+      }
+
+      projectCache.clear();
+      const projectRef = doc(db, 'projects', project.id);
+
+      // --- Thumbnail logic (pre-transaction) ---
+      const initialDocSnap = await getDoc(projectRef);
+      const existingData = initialDocSnap.data();
+      const existingBackgroundImage = existingData?.backgroundImage;
+      const existingThumbnailUrl = existingData?.thumbnailUrl;
+
+      let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
+      let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
+      let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
+
+      if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
+        if (existingThumbnailUrl) {
+          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+        }
+        try {
+          console.log(`Generating thumbnail for project ${project.id} due to image change.`);
+          const thumbnailBlob = await generateThumbnail(
+            newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
+          );
+          const mimeTypeToExtension: Record<string, string> = {
+            'image/jpeg': 'jpg',
+            'image/webp': 'webp',
+            'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
+          };
+          const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
+          const thumbnailFile = new File(
+            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
+          );
+          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
+          console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
+        } catch (thumbError) {
+          console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+          finalThumbnailUrl = existingThumbnailUrl || null;
+          newBackgroundImageForUpdate = existingBackgroundImage || null;
+          oldThumbnailUrlToDeleteAfterCommit = null;
+        }
+      } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
+        if (existingThumbnailUrl) {
+          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+        }
+        finalThumbnailUrl = null;
+      }
+      // --- End of Thumbnail logic ---
+
       await runTransaction(db, async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 

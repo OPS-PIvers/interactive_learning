@@ -221,8 +221,20 @@ export interface Project {
   id: string; // Corresponds to the Drive Folder ID
   title: string;
   description: string;
+  createdBy: string;    // Add user ID
+  createdAt?: Date;     // Add timestamps
+  updatedAt?: Date;
   thumbnailUrl?: string; // Base64 string of the background image, for card display
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName?: string;
+  createdAt: Date;
+  lastLoginAt: Date;
+  projectCount: number;
 }
 
 export interface ImageTransformState {
