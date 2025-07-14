@@ -2571,11 +2571,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 setEditingHotspot(updatedHotspot);
               }
             }}
-            onDeleteHotspot={() => {
-              if (editingHotspot) {
-                handleRemoveHotspot(editingHotspot.id);
-                setEditingHotspot(null);
-              }
+            onDeleteHotspot={(hotspotId) => {
+              handleRemoveHotspot(hotspotId);
+              setEditingHotspot(null);
             }}
             activePanelOverride={activeMobileEditorTab === 'properties' ? 'properties' : activeMobileEditorTab === 'timeline' ? 'timeline' : 'image'}
             onActivePanelChange={(panel) => {

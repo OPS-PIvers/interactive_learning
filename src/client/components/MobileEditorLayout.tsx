@@ -243,7 +243,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
               <MobileHotspotEditor
                 hotspot={selectedHotspot}
                 onUpdate={onUpdateHotspot}
-                onDelete={() => onDeleteHotspot(selectedHotspot.id)}
+                onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
               />
             ) : (
               <div className="p-6 text-center text-slate-400">
@@ -399,7 +399,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           <MobileHotspotEditor
             hotspot={selectedHotspot}
             onUpdate={onUpdateHotspot}
-            onDelete={() => onDeleteHotspot(selectedHotspot.id)}
+            onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
           />
         ) : (
           <div className="p-6 text-center text-slate-400">
