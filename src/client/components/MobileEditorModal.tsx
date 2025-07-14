@@ -1,10 +1,12 @@
 // src/client/components/MobileEditorModal.tsx
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
-import MobileTextSettings from './mobile/MobileTextSettings';
-import MobileEventEditor from './mobile/MobileEventEditor';
-import MobileEventPreview from './mobile/MobileEventPreview';
-import MobilePreviewOverlay from './mobile/MobilePreviewOverlay';
+
+const MobileTextSettings = lazy(() => import('./mobile/MobileTextSettings'));
+const MobileEventEditor = lazy(() => import('./mobile/MobileEventEditor'));
+const MobileEventPreview = lazy(() => import('./mobile/MobileEventPreview'));
+const MobilePreviewOverlay = lazy(() => import('./mobile/MobilePreviewOverlay'));
+const MobileEventTypeSelector = lazy(() => import('./mobile/MobileEventTypeSelector'));
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -470,10 +472,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
       <div
         ref={modalRef}
         className="bg-slate-800 flex flex-col h-full"
-        style={{
-          paddingBottom: keyboard.isVisible ? `${keyboard.height}px` : '0px',
-          transition: keyboard.animating ? 'padding-bottom 0.3s ease' : 'none'
-        }}
       >
         {/* Header */}
         <div className="flex-shrink-0 bg-slate-900 border-b border-slate-700">
@@ -535,26 +533,39 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
 
         {/* Content */}
         <div ref={contentRef} className="flex-1 overflow-y-auto">
-          {renderTabContent()}
+          <Suspense fallback={<div>Loading...</div>}>
+            {renderTabContent()}
+          </Suspense>
         </div>
+
+        {/* Keyboard spacer */}
+        <div
+          style={{
+            height: keyboard.isVisible ? `${keyboard.height}px` : '0px',
+            transition: keyboard.animating ? 'height 0.3s ease' : 'none',
+            flexShrink: 0,
+          }}
+        />
       </div>
 
       {showEventTypeSelector && (
-        <MobileEventTypeSelector
-          onClose={() => setShowEventTypeSelector(false)}
-          onSelect={(type) => {
-            const newEvent: TimelineEventData = {
-              id: `event_${Date.now()}`,
-              name: `Event ${currentStep}`,
-              type,
-              targetId: hotspot?.id || '',
-              step: currentStep,
-              duration: 2000
-            };
-            onAddTimelineEvent(newEvent);
-            setShowEventTypeSelector(false);
-          }}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <MobileEventTypeSelector
+            onClose={() => setShowEventTypeSelector(false)}
+            onSelect={(type) => {
+              const newEvent: TimelineEventData = {
+                id: `event_${Date.now()}`,
+                name: `Event ${currentStep}`,
+                type,
+                targetId: hotspot?.id || '',
+                step: currentStep,
+                duration: 2000
+              };
+              onAddTimelineEvent(newEvent);
+              setShowEventTypeSelector(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Delete Confirmation Modal */}
@@ -583,46 +594,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-const MobileEventTypeSelector: React.FC<{
-  onSelect: (type: InteractionType) => void;
-  onClose: () => void;
-}> = ({ onSelect, onClose }) => {
-  return (
-    <div className="fixed inset-0 z-60 bg-black bg-opacity-75 flex flex-col justify-end">
-      <div className="bg-slate-800 rounded-t-2xl p-4 max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          <h3 className="text-lg font-semibold text-white">Select Event Type</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white" aria-label="Close event type selector">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="overflow-y-auto">
-          {MOBILE_INTERACTION_TYPES.map(category => (
-            <div key={category.category} className="mb-4">
-              <h4 className="text-sm font-bold text-purple-400 mb-2 px-2">{category.category}</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {category.types.map(type => (
-                  <button
-                    key={type.value}
-                    onClick={() => onSelect(type.value)}
-                    className="bg-slate-700 rounded-lg p-4 text-left hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <div className="text-2xl mb-2">{type.icon}</div>
-                    <div className="font-semibold text-white">{type.label}</div>
-                    <div className="text-xs text-gray-400 mt-1">{type.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
