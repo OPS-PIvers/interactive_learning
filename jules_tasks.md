@@ -377,7 +377,7 @@ Create mobile-optimized settings for text modal events.
 
 ## 🔴 EVENT PREVIEW SYSTEM (Depends on settings components)
 
-### Task: Create Mobile Event Preview Engine
+### Task: Create Mobile Event Preview Engine (✅ Completed)
 **Start after at least 2 event settings components are complete**
 
 Build the preview system that allows users to test events on mobile.
@@ -448,7 +448,7 @@ Replace the basic event creation with a full-featured mobile event editor.
 
 ## 🟠 TIMELINE INTEGRATION (Depends on event editor)
 
-### Task: Enable Mobile Timeline Editing
+### Task: Enable Mobile Timeline Editing (✅ Completed)
 **Start after event editor is functional**
 
 Replace the disabled mobile timeline with full editing capabilities.
