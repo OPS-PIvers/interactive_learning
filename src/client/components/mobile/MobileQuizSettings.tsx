@@ -1,5 +1,5 @@
 // MobileQuizSettings.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import { MobileToggle } from './MobileToggle';
 
@@ -9,6 +9,7 @@ interface MobileQuizSettingsProps {
 }
 
 export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, onChange }) => {
+  const questionId = useId();
   if (event.type !== InteractionType.QUIZ) {
     return null;
   }
@@ -53,8 +54,9 @@ export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, o
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Question</label>
+        <label htmlFor={questionId} className="block text-sm font-medium text-gray-300 mb-2">Question</label>
         <textarea
+          id={questionId}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white"
@@ -74,6 +76,7 @@ export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, o
               className="form-radio h-5 w-5 text-blue-600 bg-slate-700 border-slate-600"
             />
             <input
+              data-testid={`option-${index}`}
               type="text"
               value={option}
               onChange={(e) => handleOptionChange(index, e.target.value)}

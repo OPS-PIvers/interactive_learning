@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useId } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { MobileSlider } from './MobileSlider';
 
@@ -8,6 +8,7 @@ interface MobileTextSettingsProps {
 }
 
 const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate }) => {
+  const textContentId = useId();
   const [textContent, setTextContent] = useState(event.textContent || '');
 
   useEffect(() => {
@@ -39,7 +40,7 @@ const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate
   return (
     <div className="space-y-4 p-4 bg-slate-800 rounded-lg">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor={textContentId} className="block text-sm font-medium text-gray-300 mb-2">
           Text Content
         </label>
         <div className="flex items-center space-x-2 mb-2">
@@ -47,6 +48,7 @@ const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate
           <button onClick={() => toggleStyle('italic')} className="px-3 py-1 bg-slate-600 rounded-md text-white italic">I</button>
         </div>
         <textarea
+          id={textContentId}
           value={textContent}
           onChange={handleTextChange}
           onBlur={handleTextBlur}

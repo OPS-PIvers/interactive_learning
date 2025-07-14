@@ -62,6 +62,7 @@ export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
             accept={acceptedTypes}
             className="hidden" 
             onChange={handleFileChange} 
+            aria-label="Click to upload"
           />
         </label>
       </div>

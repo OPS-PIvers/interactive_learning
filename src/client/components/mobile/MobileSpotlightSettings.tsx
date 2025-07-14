@@ -2,25 +2,33 @@ import React from 'react';
 import { MobileSlider } from './MobileSlider';
 import { MobileShapeSelector } from './MobileShapeSelector';
 import { TimelineEventData } from '../../../shared/types';
+import { CircleIcon, SquareIcon } from '@radix-ui/react-icons';
 
 interface MobileSpotlightSettingsProps {
   event: TimelineEventData;
   onUpdate: (event: Partial<TimelineEventData>) => void;
 }
 
+const shapes = [
+  { value: 'circle', label: 'Circle', icon: <CircleIcon className="w-8 h-8" /> },
+  { value: 'rectangle', label: 'Rectangle', icon: <SquareIcon className="w-8 h-8" /> },
+];
+
 export const MobileSpotlightSettings: React.FC<MobileSpotlightSettingsProps> = ({ event, onUpdate }) => {
   return (
     <div className="space-y-4">
       <MobileShapeSelector
-        shape={event.highlightShape || 'circle'}
-        onShapeChange={(shape) => onUpdate({ highlightShape: shape })}
+        label="Shape"
+        shapes={shapes}
+        selectedShape={event.spotlightShape || 'circle'}
+        onChange={(shape) => onUpdate({ spotlightShape: shape })}
       />
       <MobileSlider
         label="Size"
         min={50}
         max={300}
-        value={event.highlightRadius || 120}
-        onChange={(value) => onUpdate({ highlightRadius: value })}
+        value={event.spotlightWidth || 120}
+        onChange={(value) => onUpdate({ spotlightWidth: value, spotlightHeight: value })}
         unit="px"
       />
       <MobileSlider
