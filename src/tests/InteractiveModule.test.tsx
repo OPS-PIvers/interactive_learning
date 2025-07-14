@@ -1,30 +1,43 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import InteractiveModule from '../client/components/InteractiveModule';
 import { InteractiveModuleState } from '../shared/types';
 
 // Mock child components that are not relevant to these specific tests
-jest.mock('../client/components/ViewerToolbar', () => (props: any) => (
-  <div data-testid="viewer-toolbar">
-    ViewerToolbar ({props.viewerModes?.explore ? 'ExploreEnabled' : ''} {props.viewerModes?.selfPaced || props.viewerModes?.timed ? 'TourEnabled' : ''})
-  </div>
-));
-jest.mock('../client/components/EditorToolbar', () => () => <div data-testid="editor-toolbar">EditorToolbar</div>);
-jest.mock('../client/components/HotspotViewer', () => () => <div data-testid="hotspot-viewer">HotspotViewer</div>);
-jest.mock('../client/components/HorizontalTimeline', () => () => <div data-testid="horizontal-timeline">HorizontalTimeline</div>);
-jest.mock('../client/components/ImageEditCanvas', () => () => <div data-testid="image-edit-canvas">ImageEditCanvas</div>);
-jest.mock('../client/components/HotspotEditorModal', () => () => <div data-testid="hotspot-editor-modal">HotspotEditorModal</div>);
-jest.mock('../lib/firebaseProxy', () => ({
+vi.mock('../client/components/ViewerToolbar', () => ({
+  default: (props: any) => (
+    <div data-testid="viewer-toolbar">
+      ViewerToolbar ({props.viewerModes?.explore ? 'ExploreEnabled' : ''} {props.viewerModes?.selfPaced || props.viewerModes?.timed ? 'TourEnabled' : ''})
+    </div>
+  )
+}));
+vi.mock('../client/components/EditorToolbar', () => ({
+  default: () => <div data-testid="editor-toolbar">EditorToolbar</div>
+}));
+vi.mock('../client/components/HotspotViewer', () => ({
+  default: () => <div data-testid="hotspot-viewer">HotspotViewer</div>
+}));
+vi.mock('../client/components/HorizontalTimeline', () => ({
+  default: () => <div data-testid="horizontal-timeline">HorizontalTimeline</div>
+}));
+vi.mock('../client/components/ImageEditCanvas', () => ({
+  default: () => <div data-testid="image-edit-canvas">ImageEditCanvas</div>
+}));
+vi.mock('../client/components/HotspotEditorModal', () => ({
+  default: () => <div data-testid="hotspot-editor-modal">HotspotEditorModal</div>
+}));
+vi.mock('../lib/firebaseProxy', () => ({
   appScriptProxy: {
-    uploadImage: jest.fn().mockResolvedValue('mockImageUrl'),
+    uploadImage: vi.fn().mockResolvedValue('mockImageUrl'),
   },
 }));
 
 
 describe('InteractiveModule', () => {
-  const mockOnSave = jest.fn();
-  const mockOnClose = jest.fn();
+  const mockOnSave = vi.fn();
+  const mockOnClose = vi.fn();
 
   const defaultInitialData: InteractiveModuleState = {
     backgroundImage: 'test-image.jpg',

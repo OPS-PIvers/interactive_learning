@@ -1,12 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import ViewerToolbar from '../client/components/ViewerToolbar';
 
 describe('ViewerToolbar', () => {
-  const mockOnBack = jest.fn();
-  const mockOnStartLearning = jest.fn();
-  const mockOnStartExploring = jest.fn();
+  const mockOnBack = vi.fn();
+  const mockOnStartLearning = vi.fn();
+  const mockOnStartExploring = vi.fn();
 
   const defaultProps = {
     projectName: 'Test Project',
@@ -19,7 +20,7 @@ describe('ViewerToolbar', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders both Explore and Tour buttons by default', () => {
