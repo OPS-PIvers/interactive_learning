@@ -10,7 +10,8 @@ import {
   serverTimestamp,
   where,
   getDoc,
-  runTransaction // Import runTransaction
+  runTransaction, // Import runTransaction
+  Timestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { auth, db, storage } from './firebaseConfig'
@@ -137,13 +138,13 @@ export class FirebaseProjectAPI {
       
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
-      const newProjectData = {
+      const newProjectData: Project = {
         id: projectId,
         title,
         description,
         createdBy: auth.currentUser.uid, // Add user ID
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
+        updatedAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
@@ -154,10 +155,11 @@ export class FirebaseProjectAPI {
       };
       
       // Save to Firestore
-      const projectRef = doc(db, 'projects', projectId)
+      const projectRef = doc(db, 'projects', projectId);
+      const { createdAt, updatedAt, ...dataToSave } = newProjectData; // Exclude client-side timestamps
       await setDoc(projectRef, {
-        ...newProjectData,
-        createdAt: serverTimestamp(),
+        ...dataToSave,
+        createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
         updatedAt: serverTimestamp(),
       });
       
@@ -173,14 +175,15 @@ export class FirebaseProjectAPI {
    */
   async saveProject(project: Project): Promise<Project> {
     try {
-      if (!auth.currentUser) {
+      const user = auth.currentUser;
+      if (!user) {
         throw new Error('User must be authenticated to save projects');
       }
 
       // If new project, set createdBy
       if (project.id === NEW_PROJECT_ID) {
         project.id = this.generateProjectId();
-        project.createdBy = auth.currentUser.uid;
+        project.createdBy = user.uid;
       }
 
 
@@ -237,11 +240,11 @@ export class FirebaseProjectAPI {
         const projectSnap = await transaction.get(projectRef);
         if (projectSnap.exists()) {
           const projectData = projectSnap.data();
-          if (projectData.createdBy && projectData.createdBy !== auth.currentUser!.uid) {
+          if (projectData.createdBy && projectData.createdBy !== user.uid) {
             throw new Error('You do not have permission to modify this project');
           }
           if (!projectData.createdBy) {
-            project.createdBy = auth.currentUser!.uid;
+            project.createdBy = user.uid;
           }
         } else if (project.id !== NEW_PROJECT_ID) {
           // A project with an ID that is not 'temp' should already exist for a save operation.
