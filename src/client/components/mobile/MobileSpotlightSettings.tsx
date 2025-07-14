@@ -9,11 +9,18 @@ interface MobileSpotlightSettingsProps {
 }
 
 export const MobileSpotlightSettings: React.FC<MobileSpotlightSettingsProps> = ({ event, onUpdate }) => {
+  const shapes = [
+    { value: 'circle', label: 'Circle', icon: <div className="w-10 h-10 bg-white rounded-full" /> },
+    { value: 'rectangle', label: 'Rectangle', icon: <div className="w-10 h-10 bg-white" /> },
+  ];
+
   return (
     <div className="space-y-4">
       <MobileShapeSelector
-        shape={event.highlightShape || 'circle'}
-        onShapeChange={(shape) => onUpdate({ highlightShape: shape })}
+        label="Spotlight Shape"
+        shapes={shapes}
+        selectedShape={event.highlightShape || 'circle'}
+        onChange={(shape) => onUpdate({ highlightShape: shape })}
       />
       <MobileSlider
         label="Size"

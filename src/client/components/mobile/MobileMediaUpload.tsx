@@ -30,11 +30,12 @@ export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
 
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor={id}>{label}</label>
       <div className="flex items-center justify-center w-full">
         <label
           htmlFor={id}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-800 hover:bg-slate-700"
+          aria-label={label}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <svg
@@ -43,6 +44,7 @@ export const MobileMediaUpload: React.FC<MobileMediaUploadProps> = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"

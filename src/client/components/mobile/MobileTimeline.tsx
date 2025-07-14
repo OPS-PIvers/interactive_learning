@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TimelineEventData, HotspotData } from '../../../shared/types';
@@ -29,6 +29,33 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   onMoveStep,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (isEditing) return;
+
+    const currentIndex = uniqueSortedSteps.indexOf(currentStep);
+    if (currentIndex === -1) return;
+
+    let nextIndex = -1;
+    if (event.key === 'ArrowRight') {
+      nextIndex = Math.min(currentIndex + 1, uniqueSortedSteps.length - 1);
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = Math.max(currentIndex - 1, 0);
+    }
+
+    if (nextIndex !== -1 && nextIndex !== currentIndex) {
+      onStepSelect(uniqueSortedSteps[nextIndex]);
+      event.preventDefault();
+    }
+  }, [isEditing, currentStep, uniqueSortedSteps, onStepSelect]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      const activeStepElement = timelineContainerRef.current?.querySelector(`[data-step="${currentStep}"]`);
+      (activeStepElement as HTMLElement)?.focus();
+    }
+  }, [currentStep, isEditing]);
 
   const renderStep = (step: number, index: number) => {
     const eventsAtStep = timelineEvents.filter(e => e.step === step);
@@ -52,15 +79,22 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
     <DndProvider backend={HTML5Backend}>
       <div className="w-full bg-slate-800 p-2">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-white font-semibold">Timeline</h3>
+          <h3 className="text-white font-semibold" id="timeline-heading">Timeline</h3>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="text-purple-400 hover:text-purple-300"
+            aria-label={isEditing ? 'Finish editing timeline' : 'Edit timeline'}
           >
             {isEditing ? 'Done' : 'Edit'}
           </button>
         </div>
-        <div className="flex overflow-x-auto space-x-2 p-2 bg-slate-900 rounded">
+        <div
+          ref={timelineContainerRef}
+          className="flex overflow-x-auto space-x-2 p-2 bg-slate-900 rounded"
+          role="region"
+          aria-labelledby="timeline-heading"
+          onKeyDown={handleKeyDown}
+        >
           {uniqueSortedSteps.map((step, index) => renderStep(step, index))}
           {isEditing && <MobileStepManager onAddStep={onAddStep} />}
         </div>

@@ -31,6 +31,10 @@ export const MobileSlider: React.FC<MobileSliderProps> = ({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full h-8 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-valuetext={`${value}${unit}`}
       />
     </div>
   );

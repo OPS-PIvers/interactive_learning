@@ -37,6 +37,7 @@ export const MobileShapeSelector: React.FC<MobileShapeSelectorProps> = ({
             type="button"
             role="radio"
             aria-checked={selectedShape === shape.value}
+            aria-label={shape.label}
             className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 ${
               selectedShape === shape.value
                 ? 'border-blue-500 bg-blue-900'

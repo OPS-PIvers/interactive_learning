@@ -93,10 +93,14 @@ const MobileEventEditor: React.FC<MobileEventEditorProps> = ({
   return (
     <div className="h-full flex flex-col">
       <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700">
-        <div className="flex">
+        <div className="flex" role="tablist" aria-label="Event Editor Tabs">
           {['events', 'preview'].map((tab) => (
             <button
               key={tab}
+              id={`tab-${tab}`}
+              role="tab"
+              aria-selected={activeTab === tab}
+              aria-controls={`tabpanel-${tab}`}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-3 px-2 text-center text-sm font-medium transition-colors ${
                 activeTab === tab
@@ -111,45 +115,52 @@ const MobileEventEditor: React.FC<MobileEventEditorProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {activeTab === 'events' && (
-          <div>
-            <button
-              onClick={onAddEvent}
-              className="w-full mb-4 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
+        <div
+          id="tabpanel-events"
+          role="tabpanel"
+          aria-labelledby="tab-events"
+          hidden={activeTab !== 'events'}
+        >
+          <button
+            onClick={onAddEvent}
+            className="w-full mb-4 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
+          >
+            Add New Event
+          </button>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={events.map(e => e.id)}
+              strategy={verticalListSortingStrategy}
             >
-              Add New Event
-            </button>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={events.map(e => e.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  {events.map((event) => (
-                    <SortableEventCard
-                      key={event.id}
-                      event={event}
-                      onUpdate={handleUpdateEvent}
-                      onDelete={() => handleDeleteEvent(event.id)}
-                      onSelect={() => onSelectEvent(event)}
-                      onPreview={() => onPreviewEvent(event)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
-        {activeTab === 'preview' && (
-          <div className="text-center text-gray-400 py-10">
-            <p>Event Preview Area</p>
-            <p className="text-sm">Previews will be shown here.</p>
-          </div>
-        )}
+              <div className="space-y-3">
+                {events.map((event) => (
+                  <SortableEventCard
+                    key={event.id}
+                    event={event}
+                    onUpdate={handleUpdateEvent}
+                    onDelete={() => handleDeleteEvent(event.id)}
+                    onSelect={() => onSelectEvent(event)}
+                    onPreview={() => onPreviewEvent(event)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+        <div
+          id="tabpanel-preview"
+          role="tabpanel"
+          aria-labelledby="tab-preview"
+          hidden={activeTab !== 'preview'}
+          className="text-center text-gray-400 py-10"
+        >
+          <p>Event Preview Area</p>
+          <p className="text-sm">Previews will be shown here.</p>
+        </div>
       </div>
     </div>
   );

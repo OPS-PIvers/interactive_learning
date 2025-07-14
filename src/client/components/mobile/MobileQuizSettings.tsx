@@ -53,12 +53,14 @@ export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, o
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Question</label>
+        <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="quiz-question">Question</label>
         <textarea
+          id="quiz-question"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white"
           rows={3}
+          aria-label="Quiz question"
         />
       </div>
 
@@ -72,16 +74,19 @@ export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, o
               checked={correctAnswer === index}
               onChange={() => setCorrectAnswer(index)}
               className="form-radio h-5 w-5 text-blue-600 bg-slate-700 border-slate-600"
+              aria-label={`Set option ${index + 1} as the correct answer`}
             />
             <input
               type="text"
               value={option}
               onChange={(e) => handleOptionChange(index, e.target.value)}
               className="flex-grow p-2 bg-slate-700 border border-slate-600 rounded-md text-white"
+              aria-label={`Quiz option ${index + 1}`}
             />
             <button
               onClick={() => removeOption(index)}
               className="p-2 bg-red-600 text-white rounded-md"
+              aria-label={`Remove option ${index + 1}`}
             >
               Remove
             </button>
@@ -96,13 +101,15 @@ export const MobileQuizSettings: React.FC<MobileQuizSettingsProps> = ({ event, o
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Explanation (Optional)</label>
+        <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="quiz-explanation">Explanation (Optional)</label>
         <textarea
+          id="quiz-explanation"
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
           className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white"
           rows={2}
           placeholder="Explain why the correct answer is right."
+          aria-label="Quiz explanation"
         />
       </div>
 

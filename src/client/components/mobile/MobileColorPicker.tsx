@@ -25,6 +25,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
           value={color}
           onChange={(e) => onChange(e.target.value)}
           className="w-8 h-8 cursor-pointer"
+          aria-label={`Current color: ${color}. Click to change.`}
         />
         <span className="text-sm text-gray-400">{color.toUpperCase()}</span>
       </div>
