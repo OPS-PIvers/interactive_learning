@@ -67,15 +67,25 @@ const MobileTimelineStep: React.FC<MobileTimelineStepProps> = ({
         ${isEditing ? 'cursor-grab' : 'cursor-pointer'}
       `}
       onClick={!isEditing ? onSelect : undefined}
+      onKeyDown={(e) => {
+        if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+          onSelect();
+        }
+      }}
+      tabIndex={isEditing ? -1 : 0}
+      data-step={step}
+      aria-label={`Step ${step}, ${events.length} events`}
+      aria-current={isActive}
     >
       <div className="flex flex-col items-center justify-center h-full">
-        <span className="text-lg font-bold text-white">{step}</span>
-        <span className="text-xs text-slate-300">{events.length} events</span>
+        <span className="text-lg font-bold text-white" aria-hidden="true">{step}</span>
+        <span className="text-xs text-slate-300" aria-hidden="true">{events.length} events</span>
       </div>
       {isEditing && (
         <button
           onClick={onDelete}
           className="absolute top-0 right-0 p-1 bg-red-600 rounded-full text-white"
+          aria-label={`Delete step ${step}`}
         >
           <TrashIcon className="w-4 h-4" />
         </button>

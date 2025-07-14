@@ -39,19 +39,21 @@ const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate
   return (
     <div className="space-y-4 p-4 bg-slate-800 rounded-lg">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="text-content-editor">
           Text Content
         </label>
         <div className="flex items-center space-x-2 mb-2">
-          <button onClick={() => toggleStyle('bold')} className="px-3 py-1 bg-slate-600 rounded-md text-white font-bold">B</button>
-          <button onClick={() => toggleStyle('italic')} className="px-3 py-1 bg-slate-600 rounded-md text-white italic">I</button>
+          <button onClick={() => toggleStyle('bold')} className="px-3 py-1 bg-slate-600 rounded-md text-white font-bold" aria-label="Toggle bold text">B</button>
+          <button onClick={() => toggleStyle('italic')} className="px-3 py-1 bg-slate-600 rounded-md text-white italic" aria-label="Toggle italic text">I</button>
         </div>
         <textarea
+          id="text-content-editor"
           value={textContent}
           onChange={handleTextChange}
           onBlur={handleTextBlur}
           className="w-full h-32 p-2 bg-slate-700 text-white rounded-md resize-none"
           placeholder="Enter your text..."
+          aria-label="Text content editor"
         />
       </div>
 
@@ -77,7 +79,7 @@ const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate
         <label className="block text-sm font-medium text-gray-300 mb-2">
           Text Alignment
         </label>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" role="group" aria-label="Text alignment">
           {['left', 'center', 'right'].map((align) => (
             <button
               key={align}
@@ -87,6 +89,7 @@ const MobileTextSettings: React.FC<MobileTextSettingsProps> = ({ event, onUpdate
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-600 text-gray-300'
               }`}
+              aria-pressed={event.textPosition === align}
             >
               {align.charAt(0).toUpperCase() + align.slice(1)}
             </button>
