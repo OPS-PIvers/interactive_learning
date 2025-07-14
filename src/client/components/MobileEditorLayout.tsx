@@ -306,27 +306,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
                 )}
               </div>
 
-              {/* Quick Actions */}
-              <div className="border-t border-slate-700 pt-4">
-                <h4 className="text-sm font-medium text-slate-300 mb-3">Quick Actions</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    className="text-xs text-center py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
-                    disabled
-                  >
-                    Add Event
-                  </button>
-                  <button 
-                    className="text-xs text-center py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
-                    disabled
-                  >
-                    Edit Events
-                  </button>
-                </div>
-                <p className="text-xs text-slate-500 mt-2 text-center">
-                  Full timeline editing available on desktop
-                </p>
-              </div>
+              {/* Timeline editing is now handled by the HorizontalTimeline component when isEditing is true */}
             </div>
           </div>
         )}

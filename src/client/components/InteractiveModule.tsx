@@ -1463,6 +1463,90 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const handleDeleteTimelineEvent = useCallback((eventId: string) => {
     setTimelineEvents(prev => prev.filter(e => e.id !== eventId));
   }, []);
+
+  // Timeline step management functions for mobile editing
+  const handleAddStep = useCallback((step: number) => {
+    // Check if step already exists
+    const stepExists = timelineEvents.some(e => e.step === step);
+    if (stepExists) {
+      alert(`Step ${step} already exists. Please choose a different step number.`);
+      return;
+    }
+    
+    // Add the step by navigating to it (will be created if needed)
+    setCurrentStep(step);
+  }, [timelineEvents]);
+
+  const handleDeleteStep = useCallback((step: number) => {
+    const eventsAtStep = timelineEvents.filter(e => e.step === step);
+    if (eventsAtStep.length > 0) {
+      const confirmed = confirm(`Delete step ${step} and its ${eventsAtStep.length} event(s)?`);
+      if (!confirmed) return;
+    }
+    
+    // Remove all events at this step
+    setTimelineEvents(prev => prev.filter(e => e.step !== step));
+    
+    // If we're currently on this step, move to the first available step
+    if (currentStep === step) {
+      const remainingSteps = timelineEvents
+        .filter(e => e.step !== step)
+        .map(e => e.step);
+      const uniqueSteps = [...new Set(remainingSteps)].sort((a, b) => a - b);
+      setCurrentStep(uniqueSteps.length > 0 ? uniqueSteps[0] : 1);
+    }
+  }, [timelineEvents, currentStep]);
+
+  const handleUpdateStep = useCallback((oldStep: number, newStep: number) => {
+    // Check if the new step number already exists (unless it's the same as old)
+    if (oldStep !== newStep && timelineEvents.some(e => e.step === newStep)) {
+      alert(`Step ${newStep} already exists. Please choose a different step number.`);
+      return;
+    }
+    
+    // Update all events at the old step to the new step
+    setTimelineEvents(prev => 
+      prev.map(e => e.step === oldStep ? { ...e, step: newStep } : e)
+    );
+    
+    // If we're currently on the old step, move to the new step
+    if (currentStep === oldStep) {
+      setCurrentStep(newStep);
+    }
+  }, [timelineEvents, currentStep]);
+
+  const handleMoveStep = useCallback((dragIndex: number, hoverIndex: number) => {
+    const sortedSteps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+    
+    if (dragIndex < 0 || dragIndex >= sortedSteps.length || 
+        hoverIndex < 0 || hoverIndex >= sortedSteps.length) {
+      return;
+    }
+    
+    const dragStep = sortedSteps[dragIndex];
+    const hoverStep = sortedSteps[hoverIndex];
+    
+    // Create a mapping of old steps to new steps
+    const newSortedSteps = [...sortedSteps];
+    newSortedSteps.splice(dragIndex, 1);
+    newSortedSteps.splice(hoverIndex, 0, dragStep);
+    
+    // Create step mapping
+    const stepMapping: Record<number, number> = {};
+    sortedSteps.forEach((oldStep, index) => {
+      stepMapping[oldStep] = newSortedSteps[index];
+    });
+    
+    // Update all timeline events with new step numbers
+    setTimelineEvents(prev => 
+      prev.map(e => ({ ...e, step: stepMapping[e.step] || e.step }))
+    );
+    
+    // Update current step if it was affected
+    if (stepMapping[currentStep]) {
+      setCurrentStep(stepMapping[currentStep]);
+    }
+  }, [timelineEvents, currentStep]);
   
   // Legacy edit function removed - now handled by enhanced editor
 
@@ -2789,6 +2873,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   timelineEvents={timelineEvents}
                   hotspots={hotspots}
                   isMobile={isMobile}
+                  onAddStep={handleAddStep}
+                  onDeleteStep={handleDeleteStep}
+                  onUpdateStep={handleUpdateStep}
+                  onMoveStep={handleMoveStep}
                 />
               </div>
             )}
@@ -2992,6 +3080,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   currentStepIndex={currentStepIndex}
                   totalSteps={totalTimelineInteractionPoints}
                   isMobile={isMobile}
+                  onAddStep={handleAddStep}
+                  onDeleteStep={handleDeleteStep}
+                  onUpdateStep={handleUpdateStep}
+                  onMoveStep={handleMoveStep}
                 />
               </div>
             )}
