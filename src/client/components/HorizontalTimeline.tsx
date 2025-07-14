@@ -13,6 +13,7 @@ interface HorizontalTimelineProps {
   onStepSelect: (step: number) => void;
   isEditing: boolean;
   timelineEvents: TimelineEventData[];
+  setTimelineEvents: (events: TimelineEventData[]) => void; // Added for templates
   hotspots: HotspotData[];
   showPreviews?: boolean; // New optional prop
   moduleState?: 'idle' | 'learning';
@@ -33,6 +34,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   onStepSelect,
   isEditing,
   timelineEvents,
+  setTimelineEvents,
   hotspots,
   showPreviews = true,
   moduleState,
@@ -110,6 +112,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         currentStep={currentStep}
         onStepSelect={onStepSelect}
         timelineEvents={timelineEvents}
+        setTimelineEvents={setTimelineEvents}
         hotspots={hotspots}
         onAddStep={onAddStep}
         onDeleteStep={onDeleteStep}
