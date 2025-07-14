@@ -25,6 +25,7 @@ const THUMBNAIL_FORMAT = 'image/jpeg';
 const THUMBNAIL_QUALITY = 0.7;
 const THUMBNAIL_POSTFIX = '_thumbnails'; // Used for storage path organization
 const THUMBNAIL_FILE_PREFIX = 'thumb_'; // Used for filename
+const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, { data: any, timestamp: number }>()
@@ -141,8 +142,8 @@ export class FirebaseProjectAPI {
         title: title,
         description: description,
         createdBy: auth.currentUser.uid, // Add user ID
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         interactiveData: { // This is complete for a new project
           backgroundImage: undefined,
           hotspots: [], // Empty for new project
@@ -183,14 +184,17 @@ export class FirebaseProjectAPI {
       }
 
       // For existing projects, verify ownership
-      if (project.id !== 'temp') {
+      if (project.id !== NEW_PROJECT_ID) {
         const projectRef = doc(db, 'projects', project.id);
         const projectSnap = await getDoc(projectRef);
 
         if (projectSnap.exists()) {
           const projectData = projectSnap.data();
-          if (projectData.createdBy !== auth.currentUser.uid) {
+          if (projectData.createdBy && projectData.createdBy !== auth.currentUser.uid) {
             throw new Error('You do not have permission to modify this project');
+          }
+          if (!projectData.createdBy) {
+            project.createdBy = auth.currentUser.uid;
           }
         } else {
           // A project with an ID that is not 'temp' should already exist for a save operation.
@@ -199,16 +203,11 @@ export class FirebaseProjectAPI {
       }
 
       // If new project, set createdBy
-      if (project.id === 'temp') {
+      if (project.id === NEW_PROJECT_ID) {
         project.id = this.generateProjectId();
         project.createdBy = auth.currentUser.uid;
       }
 
-      let projectSnap;
-      if (project.id !== 'temp') {
-        const projectRef = doc(db, 'projects', project.id);
-        projectSnap = await getDoc(projectRef);
-      }
 
       projectCache.clear();
       const projectRef = doc(db, 'projects', project.id);

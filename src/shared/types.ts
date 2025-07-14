@@ -1,4 +1,6 @@
 
+import { Timestamp } from 'firebase/firestore';
+
 export enum InteractionType {
   // Existing types
   SHOW_HOTSPOT = 'SHOW_HOTSPOT',
@@ -217,23 +219,25 @@ export interface StoredInteractiveModuleData {
   imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
 }
 
+export type UserId = string;
+
 export interface Project {
   id: string; // Corresponds to the Drive Folder ID
   title: string;
   description: string;
-  createdBy: string;    // Add user ID
-  createdAt: Date;     // Add timestamps
-  updatedAt: Date;
+  createdBy: UserId;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   thumbnailUrl?: string; // Base64 string of the background image, for card display
   interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
 }
 
 export interface UserProfile {
-  uid: string;
+  uid: UserId;
   email: string;
   displayName?: string;
-  createdAt: Date;
-  lastLoginAt: Date;
+  createdAt: Timestamp;
+  lastLoginAt: Timestamp;
   projectCount: number;
 }
 
