@@ -27,18 +27,26 @@ export class DataSanitizer {
    * @param event - Timeline event to sanitize
    * @returns Sanitized timeline event with undefined fields removed
    */
-  static sanitizeTimelineEvent(event: TimelineEventData): Partial<TimelineEventData> {
+  static sanitizeTimelineEvent(event: Partial<TimelineEventData>): Partial<TimelineEventData> {
     const sanitized = this.removeUndefinedFields(event);
-    
+
     // Validate that required fields exist to prevent Firebase errors
     if (!sanitized.id || sanitized.step === undefined || !sanitized.type) {
       throw new Error(`TimelineEvent is missing required fields: ${JSON.stringify(event)}`);
     }
-    
+
+    const defaults = {
+      name: '',
+      zoomFactor: 2,
+      highlightRadius: 60,
+      highlightShape: 'circle' as const,
+      dimPercentage: 70,
+    }
+
     // Return sanitized object with validated required fields
     return {
+      ...defaults,
       ...sanitized,
-      name: sanitized.name || ''
     };
   }
 
@@ -47,19 +55,25 @@ export class DataSanitizer {
    * @param hotspot - Hotspot to sanitize
    * @returns Sanitized hotspot with undefined fields removed
    */
-  static sanitizeHotspot(hotspot: HotspotData): Partial<HotspotData> {
+  static sanitizeHotspot(hotspot: Partial<HotspotData>): Partial<HotspotData> {
     const sanitized = this.removeUndefinedFields(hotspot);
-    
+
     // Validate that required fields exist to prevent Firebase errors
     if (!sanitized.id || sanitized.x === undefined || sanitized.y === undefined) {
       throw new Error(`Hotspot is missing required fields: ${JSON.stringify(hotspot)}`);
     }
-    
+
+    const defaults = {
+      title: '',
+      description: '',
+      size: 'medium' as const,
+      displayHotspotInEvent: false,
+    };
+
     // Return sanitized object with validated required fields
     return {
+      ...defaults,
       ...sanitized,
-      title: sanitized.title || '',
-      description: sanitized.description || ''
     };
   }
 
