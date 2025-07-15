@@ -41,19 +41,23 @@ export class FirebaseProjectAPI {
    * List all projects with their hotspots and timeline events
    */
   async listProjects(): Promise<Project[]> {
-    // Check cache first
-    const cacheKey = 'all_projects'
-    const cached = projectCache.get(cacheKey)
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log('Using cached projects data (summary)')
-      return cached.data
-    }
-
     try {
-      this.logUsage('READ_OPERATIONS', 1) // For projects collection
-      const projectsRef = collection(db, 'projects')
-      const snapshot = await getDocs(query(projectsRef, orderBy('updatedAt', 'desc')))
+      // Check authentication first
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to access projects');
+      }
+
+      this.logUsage('READ_OPERATIONS', 1);
+      const projectsRef = collection(db, 'projects');
+      
+      // Query only projects created by the current user
+      const userProjectsQuery = query(
+        projectsRef, 
+        where('createdBy', '==', auth.currentUser.uid),
+        orderBy('updatedAt', 'desc')
+      );
+      
+      const snapshot = await getDocs(userProjectsQuery);
       
       const projects: Project[] = snapshot.docs.map((docSnap) => {
         const projectData = docSnap.data()
@@ -61,21 +65,21 @@ export class FirebaseProjectAPI {
           id: docSnap.id,
           title: projectData.title || 'Untitled Project',
           description: projectData.description || '',
+          createdBy: projectData.createdBy,
+          createdAt: projectData.createdAt?.toDate?.() || new Date(),
+          updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
           thumbnailUrl: projectData.thumbnailUrl,
-          // interactiveData will be loaded on demand.
-          // Initialize with what's available at the project document level.
           interactiveData: {
-            backgroundImage: projectData.backgroundImage, // This is stored at the project level
-            imageFitMode: projectData.imageFitMode || 'cover', // Also at project level
-            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
-            // hotspots and timelineEvents are intentionally left undefined here
+            backgroundImage: projectData.backgroundImage,
+            imageFitMode: projectData.imageFitMode || 'cover',
+            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+            hotspots: [], // Will be loaded on demand
+            timelineEvents: [] // Will be loaded on demand
           }
-        } as Project // Asserting as Project, knowing interactiveData is partial
+        } as Project
       })
-      
-      // Cache the results (summary data)
-      projectCache.set(cacheKey, { data: projects, timestamp: Date.now() })
-      
+
+      console.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
       return projects
     } catch (error) {
       console.error('Error listing projects (summary):', error)
@@ -254,7 +258,6 @@ export class FirebaseProjectAPI {
             project.createdBy = user.uid;
           }
         } else if (!isNewProject) {
-          // A project with an ID that is not 'temp' should already exist for a save operation.
           throw new Error('Project not found. Cannot update a non-existent project.');
         }
 
@@ -335,15 +338,22 @@ export class FirebaseProjectAPI {
    * Delete a project and all its data
    */
   async deleteProject(projectId: string): Promise<{ success: boolean; projectId: string }> {
-    const projectRef = doc(db, 'projects', projectId);
-    let thumbnailUrlToDelete: string | null = null;
-
     try {
-      // Fetch project data to get thumbnail URL *before* the transaction,
-      // as the document will be gone after the transaction.
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to delete projects');
+      }
+
+      const projectRef = doc(db, 'projects', projectId);
+      let thumbnailUrlToDelete: string | null = null;
+
+      // Fetch project data to get thumbnail URL and verify ownership
       const projectSnap = await getDoc(projectRef);
       if (projectSnap.exists()) {
-        thumbnailUrlToDelete = projectSnap.data()?.thumbnailUrl || null;
+        const projectData = projectSnap.data();
+        if (projectData.createdBy !== auth.currentUser.uid) {
+          throw new Error('You do not have permission to delete this project');
+        }
+        thumbnailUrlToDelete = projectData.thumbnailUrl || null;
       }
 
       await runTransaction(db, async (transaction) => {

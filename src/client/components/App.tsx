@@ -13,7 +13,6 @@ import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SharedModuleViewer from './SharedModuleViewer';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
-import './App.css';
 
 const AppHeader: React.FC = () => {
   const { user, logout } = useAuth();
@@ -81,6 +80,7 @@ const LoadingScreen: React.FC = () => (
 
 // Main App Component for authenticated users
 const MainApp: React.FC = () => {
+  const { user, loading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -89,6 +89,7 @@ const MainApp: React.FC = () => {
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -98,7 +99,14 @@ const MainApp: React.FC = () => {
     };
   }, []);
 
+  // Load projects only when user is authenticated
   const loadProjects = useCallback(async () => {
+    if (!user) {
+      setProjects([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -112,13 +120,21 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
+  // Load projects when user authentication state changes
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    if (!loading) {
+      loadProjects();
+    }
+  }, [user, loading, loadProjects]);
 
   const loadProjectDetailsAndOpen = useCallback(async (project: Project, editingMode: boolean) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     setIsProjectDetailsLoading(true);
     setError(null);
     try {
@@ -149,7 +165,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsProjectDetailsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const handleViewProject = useCallback((project: Project) => {
     loadProjectDetailsAndOpen(project, false);
@@ -160,6 +176,11 @@ const MainApp: React.FC = () => {
   }, [loadProjectDetailsAndOpen]);
   
   const handleCreateNewProject = useCallback(async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     const title = prompt("Enter new project title:");
     if (!title) return;
     const description = prompt("Enter project description (optional):") || "";
@@ -177,7 +198,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
     if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
@@ -194,6 +215,11 @@ const MainApp: React.FC = () => {
   }, [isAdmin, loadProjects]);
 
   const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     const projectToSave = projects.find(p => p.id === projectId);
     if (!projectToSave) {
       setError("Project not found for saving.");
@@ -224,9 +250,14 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [projects, selectedProject]);
+  }, [user, projects, selectedProject]);
 
   const handleDeleteProject = useCallback(async (projectId: string) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
       return;
     }
@@ -244,7 +275,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProject, handleCloseModal]);
+  }, [user, selectedProject, handleCloseModal]);
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
@@ -262,6 +293,46 @@ const MainApp: React.FC = () => {
       console.warn("Module reload requested, but no project is currently selected.");
     }
   }, [selectedProject, loadProjectDetailsAndOpen, isEditingMode]);
+
+  // Show loading screen while authentication is being determined
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  // Show authentication required screen for non-authenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="max-w-md mx-auto text-center p-8 bg-white rounded-xl shadow-lg">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Interactive Learning Hub
+              </h1>
+              <p className="text-gray-600">
+                Create and explore engaging interactive modules.
+              </p>
+            </div>
+            <div className="mb-8">
+              <p className="text-gray-700 mb-4">
+                Sign in to access your projects and start creating amazing interactive content.
+              </p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
+              >
+                Get Started - Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">

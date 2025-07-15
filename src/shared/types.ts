@@ -222,14 +222,14 @@ export interface StoredInteractiveModuleData {
 export type UserId = string;
 
 export interface Project {
-  id: string; // Corresponds to the Drive Folder ID
+  id: string;
   title: string;
   description: string;
-  createdBy: UserId;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  thumbnailUrl?: string; // Base64 string of the background image, for card display
-  interactiveData: InteractiveModuleState; // Contains resolved backgroundImage (base64)
+  createdBy: string;        // User ID who created the project
+  createdAt?: Date;         // When the project was created
+  updatedAt?: Date;         // When the project was last updated
+  thumbnailUrl?: string;    // URL for project thumbnail image
+  interactiveData: InteractiveModuleState;
 }
 
 export interface UserProfile {

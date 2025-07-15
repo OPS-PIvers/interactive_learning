@@ -11,11 +11,12 @@ service cloud.firestore {
     }
     
     function isValidProject() {
-      return resource.data.keys().hasAll(['title', 'description']) &&
-             resource.data.title is string &&
-             resource.data.description is string &&
-             resource.data.title.size() <= 200 &&
-             resource.data.description.size() <= 1000;
+      return request.resource.data.keys().hasAll(['title', 'description', 'createdBy']) &&
+             request.resource.data.title is string &&
+             request.resource.data.description is string &&
+             request.resource.data.createdBy is string &&
+             request.resource.data.title.size() <= 200 &&
+             request.resource.data.description.size() <= 1000;
     }
     
     function isValidHotspot() {
@@ -36,12 +37,12 @@ service cloud.firestore {
              resource.data.name.size() <= 100;
     }
     
-    // Projects collection - require authentication for all operations
+    // Projects collection - require authentication and ownership
     match /projects/{projectId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && isOwner(resource.data.createdBy);
       
       allow create: if isAuthenticated() && 
-                       isOwner(request.auth.uid) &&
+                       isOwner(request.resource.data.createdBy) &&
                        isValidProject();
       
       allow update: if isAuthenticated() && 
@@ -53,18 +54,14 @@ service cloud.firestore {
       
       // Hotspots subcollection
       match /hotspots/{hotspotId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated() && 
-                        isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy) &&
-                        isValidHotspot();
+        allow read, write: if isAuthenticated() && 
+                             isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy);
       }
       
       // Timeline events subcollection  
       match /timeline_events/{eventId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated() && 
-                        isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy) &&
-                        isValidTimelineEvent();
+        allow read, write: if isAuthenticated() && 
+                             isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy);
       }
     }
     
@@ -73,7 +70,7 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && isOwner(userId);
     }
     
-    // Deny all other document access
+    // Deny all other access
     match /{document=**} {
       allow read, write: if false;
     }
