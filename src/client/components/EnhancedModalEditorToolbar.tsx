@@ -321,10 +321,13 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
             {/* General Tab */}
             {activeTab === 'general' && (
               <div className="space-y-6">
-                {/* Background Settings */}
+                {/* Background Settings - Enhanced with preview and prominence */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Background Settings</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                    <span className="text-xl">🖼️</span>
+                    Background Settings
+                  </h3>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-lg p-4 space-y-4 border border-blue-200 dark:border-slate-600">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                         Background Type
@@ -355,10 +358,46 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                       </div>
                     </div>
 
+                    {/* Current Background Preview */}
+                    {currentBackgroundImageUrl && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Current Background
+                        </label>
+                        <div className="relative">
+                          {backgroundType === 'image' ? (
+                            <img 
+                              src={currentBackgroundImageUrl} 
+                              alt="Current background" 
+                              className="w-full h-32 object-cover rounded-lg border border-slate-300 dark:border-slate-600"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-32 bg-slate-200 dark:bg-slate-700 rounded-lg border border-slate-300 dark:border-slate-600 flex items-center justify-center">
+                              <div className="text-center">
+                                <span className="text-4xl mb-2 block">🎥</span>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                  {backgroundVideoType === 'youtube' ? 'YouTube Video' : 'MP4 Video'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                            {backgroundType === 'image' ? 'Image' : 'Video'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Enhanced Upload Interface */}
                     <div className="space-y-4">
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        {backgroundType === 'image' ? 'Upload or Add Background Image' : 'Upload or Add Background Video'}
+                        <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                          {currentBackgroundImageUrl ? 'Replace Background' : 'Add Background'}
+                        </span>
+                        {backgroundType === 'image' ? ' Image' : ' Video'}
                       </label>
                       
                       {/* Upload Options */}
@@ -375,7 +414,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             />
                             <label
                               htmlFor="enhanced-image-upload"
-                              className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                              className="w-full inline-flex items-center justify-center px-4 py-3 border-2 border-blue-300 dark:border-blue-600 text-sm font-medium rounded-lg text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 cursor-pointer transition-colors shadow-sm"
                             >
                               📁 Choose Image File
                             </label>

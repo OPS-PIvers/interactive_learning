@@ -247,6 +247,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
   
+  // State for viewer modes (separate from props to allow editing)
+  const [currentViewerModes, setCurrentViewerModes] = useState(() => ({
+    explore: viewerModes.explore ?? true,
+    selfPaced: viewerModes.selfPaced ?? true,
+    timed: viewerModes.timed ?? true
+  }));
+  
   // Image display state
   const [imageFitMode, setImageFitMode] = useState<'cover' | 'contain' | 'fill'>(initialData.imageFitMode || 'cover');
   const [backgroundType, setBackgroundType] = useState<'image' | 'video'>(initialData.backgroundType || 'image');
@@ -1367,6 +1374,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     console.log('Debug [InteractiveModule]: Modal state updated for hotspot', hotspotId);
   }, [setSelectedHotspotForModal, setIsHotspotModalOpen, isHotspotModalOpen, selectedHotspotForModal]);
+
+  // Handler for viewer mode changes
+  const handleViewerModeChange = useCallback((mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => {
+    setCurrentViewerModes(prev => ({
+      ...prev,
+      [mode]: enabled
+    }));
+  }, []);
 
   // Removed handleSaveHotspot (was for HotspotEditModal)
 
@@ -2861,6 +2876,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               onBackgroundImageChange={setBackgroundImage}
               onBackgroundTypeChange={setBackgroundType}
               onBackgroundVideoTypeChange={setBackgroundVideoType}
+              viewerModes={currentViewerModes}
+              onViewerModeChange={handleViewerModeChange}
             />
             </div>
 
@@ -3003,7 +3020,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 onStartExploring={handleStartExploring}
                 hasContent={!!backgroundImage}
                 isMobile={isMobile}
-                viewerModes={viewerModes} // Pass viewerModes
+                viewerModes={currentViewerModes} // Pass current viewer modes state
               />
             </div>
             
@@ -3144,7 +3161,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             <p className="text-slate-300 text-xs sm:text-sm">Choose how you'd like to explore this content</p>
                           </div>
                           <div className="flex flex-col space-y-2.5 sm:space-y-3">
-                            {viewerModes.explore && (
+                            {currentViewerModes.explore && (
                               <button
                                 onClick={handleStartExploring}
                                 className="flex-1 bg-gradient-to-r from-sky-600 to-cyan-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-sky-500 hover:to-cyan-500 transition-all duration-200 text-sm sm:text-base"
@@ -3152,7 +3169,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                                 Explore Module
                               </button>
                             )}
-                            {(viewerModes.selfPaced || viewerModes.timed) && (
+                            {(currentViewerModes.selfPaced || currentViewerModes.timed) && (
                               <button
                                 onClick={handleStartLearning}
                                 className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2.5 sm:py-3 px-5 sm:px-6 rounded-md sm:rounded-lg shadow-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 text-sm sm:text-base"

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
 import { MenuIcon } from './icons/MenuIcon';
+import { GearIcon } from './icons/GearIcon';
 import { ZoomInIcon } from './icons/ZoomInIcon';
 import { ZoomOutIcon } from './icons/ZoomOutIcon';
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
@@ -179,8 +180,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             <button
               onClick={() => setShowMobileMenu(true)} // Open collapsible menu/modal
               className="p-2 text-slate-300 hover:text-white transition-colors"
+              title="Settings"
+              aria-label="Settings"
             >
-              <MenuIcon className="w-6 h-6" />
+              <GearIcon className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -326,9 +329,12 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             {/* Settings Button */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-1.5 rounded font-medium transition-colors"
+              className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded font-medium transition-colors flex items-center gap-2"
+              title="Settings"
+              aria-label="Settings"
             >
-              Settings
+              <GearIcon className="w-5 h-5" />
+              <span>Settings</span>
             </button>
 
             <div className="h-6 w-px bg-slate-600" />
