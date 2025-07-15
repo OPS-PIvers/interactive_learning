@@ -509,15 +509,10 @@ export class FirebaseProjectAPI {
       
       return snapshot.docs.map(doc => {
         const data = doc.data()
-        return {
+        return DataSanitizer.sanitizeHotspot({
           id: doc.id,
-          x: data.x || 0,
-          y: data.y || 0,
-          title: data.title || '',
-          description: data.description || '',
-          color: data.color,
-          size: data.size || 'medium'
-        } as HotspotData
+          ...data
+        } as HotspotData)
       })
     } catch (error) {
       console.error(`Error getting hotspots for project ${projectId}:`, error)
@@ -535,17 +530,10 @@ export class FirebaseProjectAPI {
       
       return snapshot.docs.map(doc => {
         const data = doc.data()
-        return {
+        return DataSanitizer.sanitizeTimelineEvent({
           id: doc.id,
-          step: data.step || 1,
-          name: data.name || '',
-          type: data.type,
-          targetId: data.targetId,
-          message: data.message,
-          duration: data.duration,
-          zoomFactor: data.zoomFactor,
-          highlightRadius: data.highlightRadius
-        } as TimelineEventData
+          ...data
+        } as TimelineEventData)
       })
     } catch (error) {
       console.error(`Error getting timeline events for project ${projectId}:`, error)
