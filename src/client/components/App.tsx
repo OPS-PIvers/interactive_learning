@@ -14,60 +14,6 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import SharedModuleViewer from './SharedModuleViewer';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
 
-const AppHeader: React.FC = () => {
-  const { user, logout } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
-
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Interactive Learning Hub
-            </h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">
-                  Welcome, {user.displayName || user.email}
-                </span>
-                <button
-                  onClick={handleSignOut}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Sign In
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
-      />
-    </header>
-  );
-};
 
 const LoadingScreen: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -80,7 +26,7 @@ const LoadingScreen: React.FC = () => (
 
 // Main App Component for authenticated users
 const MainApp: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -358,7 +304,24 @@ const MainApp: React.FC = () => {
           </div>
           
           <div className="hidden sm:flex justify-between items-center mb-2">
-            <div className="flex-1"></div>
+            <div className="flex-1 flex items-center space-x-4">
+              <span className="text-slate-300">
+                Welcome, {user?.displayName || user?.email}
+              </span>
+              <div className="h-6 w-px bg-slate-600" />
+              <button
+                onClick={async () => {
+                  try {
+                    await logout();
+                  } catch (error) {
+                    console.error('Sign out error:', error);
+                  }
+                }}
+                className="text-slate-300 hover:text-white transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
             <h1 className="flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap">
               Interactive Learning Hub
             </h1>
@@ -450,7 +413,6 @@ const AuthenticatedApp: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AppHeader />
         <div className="max-w-4xl mx-auto py-12 px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Welcome to Interactive Learning Hub
@@ -475,7 +437,6 @@ const AuthenticatedApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppHeader />
       <main>
         <MainApp />
       </main>
