@@ -20,6 +20,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  switchAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -54,6 +55,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const switchAccount = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error('Google sign in error:', error);
       throw error;
     }
   };
@@ -103,7 +115,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signInWithGoogle,
     logout,
-    resetPassword
+    resetPassword,
+    switchAccount
   };
 
   return (
