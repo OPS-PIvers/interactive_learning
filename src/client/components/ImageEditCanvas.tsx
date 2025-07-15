@@ -361,15 +361,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                         top: 0
                       };
                       boundsSource = 'edit-mode-calculated';
-                      console.log('📐 BOUNDS DEBUG: Using edit-mode calculated bounds', {
-                        containerBounds,
-                        imgRect,
-                        imageNaturalDimensions,
-                        imageAspect,
-                        containerAspect,
-                        imageFitMode,
-                        isEditing
-                      });
                     }
                   }
                   
@@ -386,11 +377,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                       top: 0
                     };
                     boundsSource = 'fallback';
-                    console.log('📐 BOUNDS DEBUG: Using fallback bounds', {
-                      containerBounds,
-                      imgRect,
-                      isEditing
-                    });
                   }
 
                   // Render the appropriate overlay based on event type
