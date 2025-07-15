@@ -16,25 +16,30 @@ service cloud.firestore {
              request.resource.data.description is string &&
              request.resource.data.createdBy is string &&
              request.resource.data.title.size() <= 200 &&
-             request.resource.data.description.size() <= 1000;
+             request.resource.data.description.size() <= 1000 &&
+             // Optional fields validation
+             (request.resource.data.keys().hasAny(['thumbnailUrl']) == false || request.resource.data.thumbnailUrl is string || request.resource.data.thumbnailUrl == null) &&
+             (request.resource.data.keys().hasAny(['backgroundImage']) == false || request.resource.data.backgroundImage is string || request.resource.data.backgroundImage == null) &&
+             (request.resource.data.keys().hasAny(['imageFitMode']) == false || request.resource.data.imageFitMode is string) &&
+             (request.resource.data.keys().hasAny(['viewerModes']) == false || request.resource.data.viewerModes is map);
     }
     
     function isValidHotspot() {
-      return resource.data.keys().hasAll(['x', 'y', 'title']) &&
-             resource.data.x is number &&
-             resource.data.y is number &&
-             resource.data.x >= 0 && resource.data.x <= 100 &&
-             resource.data.y >= 0 && resource.data.y <= 100 &&
-             resource.data.title is string &&
-             resource.data.title.size() <= 100;
+      return request.resource.data.keys().hasAll(['x', 'y', 'title']) &&
+             request.resource.data.x is number &&
+             request.resource.data.y is number &&
+             request.resource.data.x >= 0 && request.resource.data.x <= 100 &&
+             request.resource.data.y >= 0 && request.resource.data.y <= 100 &&
+             request.resource.data.title is string &&
+             request.resource.data.title.size() <= 100;
     }
     
     function isValidTimelineEvent() {
-      return resource.data.keys().hasAll(['step', 'name']) &&
-             resource.data.step is number &&
-             resource.data.step > 0 &&
-             resource.data.name is string &&
-             resource.data.name.size() <= 100;
+      return request.resource.data.keys().hasAll(['step', 'name']) &&
+             request.resource.data.step is number &&
+             request.resource.data.step > 0 &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() <= 100;
     }
     
     // Projects collection - require authentication and ownership
