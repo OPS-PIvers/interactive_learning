@@ -41,8 +41,15 @@ export async function generateThumbnail(
         return reject(new Error('Failed to get canvas context.'));
       }
 
-      if (img.width <= 0 || img.height <= 0 || targetWidth <= 0 || targetHeight <= 0) {
-        return reject(new Error(`Image dimensions and target dimensions must be positive numbers. Image: ${img.width}x${img.height}, Target: ${targetWidth}x${targetHeight}`));
+      const MAX_DIMENSION = 4096;
+      if (img.width <= 0 || img.height <= 0) {
+        return reject(new Error(`Invalid source image dimensions: ${img.width}x${img.height}.`));
+      }
+      if (targetWidth <= 0 || targetHeight <= 0) {
+        return reject(new Error(`Target dimensions must be positive: ${targetWidth}x${targetHeight}.`));
+      }
+      if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+        return reject(new Error(`Target dimensions (${targetWidth}x${targetHeight}) exceed the maximum allowed dimension of ${MAX_DIMENSION}px.`));
       }
       const sourceWidth = img.width;
       const sourceHeight = img.height;
