@@ -208,17 +208,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           timestamp: Date.now()
         });
 
-        // DEBUG: Log placement condition values
-        console.log('Debug [ImageEditCanvas]: Placement condition debug', {
-          isPlacingHotspot,
-          onPlaceNewHotspot: typeof onPlaceNewHotspot,
-          hasOnPlaceNewHotspot: !!onPlaceNewHotspot,
-          actualImageRef: actualImageRef.current,
-          hasActualImageRef: !!actualImageRef.current,
-          conditionResult: isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current,
-          timestamp: Date.now()
-        });
-
         // If currently placing a hotspot and the click is on the canvas background (not a hotspot itself)
         if (isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current) {
           const target = e.target as HTMLElement;
