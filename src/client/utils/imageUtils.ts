@@ -41,21 +41,45 @@ export async function generateThumbnail(
         return reject(new Error('Failed to get canvas context.'));
       }
 
-      let sourceWidth = img.width;
-      let sourceHeight = img.height;
+      const sourceWidth = img.width;
+      const sourceHeight = img.height;
 
-      const ratio = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
-      let destWidth = sourceWidth;
-      let destHeight = sourceHeight;
+      // Calculate the aspect ratios
+      const sourceAspectRatio = sourceWidth / sourceHeight;
+      const targetAspectRatio = targetWidth / targetHeight;
 
-      if (ratio < 1) { // Only scale down
-        destWidth = Math.round(sourceWidth * ratio);
-        destHeight = Math.round(sourceHeight * ratio);
+      let drawWidth, drawHeight, drawX, drawY;
+
+      // Determine how to crop the image to fit the target aspect ratio
+      if (sourceAspectRatio > targetAspectRatio) {
+        // Source image is wider than target
+        drawHeight = sourceHeight;
+        drawWidth = sourceHeight * targetAspectRatio;
+        drawX = (sourceWidth - drawWidth) / 2;
+        drawY = 0;
+      } else {
+        // Source image is taller than or equal to the target aspect ratio
+        drawWidth = sourceWidth;
+        drawHeight = sourceWidth / targetAspectRatio;
+        drawY = (sourceHeight - drawHeight) / 2;
+        drawX = 0;
       }
 
-      canvas.width = Math.max(1, destWidth);
-      canvas.height = Math.max(1, destHeight);
-      ctx.drawImage(img, 0, 0, destWidth, destHeight);
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Draw the cropped and resized image onto the canvas
+      ctx.drawImage(
+        img,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+      );
 
       canvas.toBlob(
         (blob) => {

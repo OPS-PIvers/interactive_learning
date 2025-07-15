@@ -5,8 +5,8 @@ export const compressImage = async (file: File, customOptions?: any): Promise<Fi
   const isMobile = isMobileDevice();
   
   const defaultOptions = {
-    maxSizeMB: 1,
-    maxWidthOrHeight: 1920,
+    maxSizeMB: 2,
+    maxWidthOrHeight: 2048,
     useWebWorker: !isMobile, // Disable web workers on mobile for better stability
   };
   
