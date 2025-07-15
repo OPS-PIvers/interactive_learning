@@ -23,107 +23,57 @@ export class DataSanitizer {
   }
 
   /**
-   * Sanitize timeline event data to remove undefined values and ensure defaults
+   * Sanitize timeline event data to remove undefined values
    * @param event - Timeline event to sanitize
-   * @returns Sanitized timeline event with all fields present
+   * @returns Sanitized timeline event with undefined fields removed
    */
-  static sanitizeTimelineEvent(event: Partial<TimelineEventData>): TimelineEventData {
-    const sanitized = this.removeUndefinedFields(event) as Partial<TimelineEventData>;
+  static sanitizeTimelineEvent(event: Partial<TimelineEventData>): Partial<TimelineEventData> {
+    const sanitized = this.removeUndefinedFields(event);
 
+    // Validate that required fields exist to prevent Firebase errors
     if (!sanitized.id || sanitized.step === undefined || !sanitized.type) {
       throw new Error(`TimelineEvent is missing required fields: ${JSON.stringify(event)}`);
     }
 
-    // Return sanitized object with all fields present, providing defaults for optional fields
+    const defaults = {
+      name: '',
+      zoomFactor: 2,
+      highlightRadius: 60,
+      highlightShape: 'circle' as const,
+      dimPercentage: 70,
+    }
+
+    // Return sanitized object with validated required fields
     return {
-      id: sanitized.id,
-      step: sanitized.step,
-      name: sanitized.name || '',
-      type: sanitized.type,
-      targetId: sanitized.targetId,
-      message: sanitized.message,
-      duration: sanitized.duration,
-      zoomFactor: sanitized.zoomFactor ?? 2,
-      highlightRadius: sanitized.highlightRadius ?? 60,
-      highlightShape: sanitized.highlightShape ?? 'circle',
-      dimPercentage: sanitized.dimPercentage ?? 70,
-      spotlightX: sanitized.spotlightX,
-      spotlightY: sanitized.spotlightY,
-      spotlightWidth: sanitized.spotlightWidth,
-      spotlightHeight: sanitized.spotlightHeight,
-      textContent: sanitized.textContent,
-      textPosition: sanitized.textPosition,
-      textX: sanitized.textX,
-      textY: sanitized.textY,
-      textWidth: sanitized.textWidth,
-      textHeight: sanitized.textHeight,
-      quizQuestion: sanitized.quizQuestion,
-      quizOptions: sanitized.quizOptions,
-      quizCorrectAnswer: sanitized.quizCorrectAnswer,
-      quizExplanation: sanitized.quizExplanation,
-      quizShuffleOptions: sanitized.quizShuffleOptions,
-      mediaType: sanitized.mediaType,
-      mediaUrl: sanitized.mediaUrl,
-      imageUrl: sanitized.imageUrl,
-      caption: sanitized.caption,
-      zoomLevel: sanitized.zoomLevel,
-      smooth: sanitized.smooth,
-      radius: sanitized.radius,
-      intensity: sanitized.intensity,
-      audioUrl: sanitized.audioUrl,
-      volume: sanitized.volume,
-      videoUrl: sanitized.videoUrl,
-      youtubeVideoId: sanitized.youtubeVideoId,
-      youtubeStartTime: sanitized.youtubeStartTime,
-      youtubeEndTime: sanitized.youtubeEndTime,
-      autoplay: sanitized.autoplay,
-      loop: sanitized.loop,
-      poster: sanitized.poster,
-      artist: sanitized.artist,
-      shape: sanitized.shape,
-      opacity: sanitized.opacity,
-      position: sanitized.position,
-      size: sanitized.size,
-      targetX: sanitized.targetX,
-      targetY: sanitized.targetY,
-      zoom: sanitized.zoom,
-      content: sanitized.content,
-      modalPosition: sanitized.modalPosition,
-      modalSize: sanitized.modalSize,
-      url: sanitized.url,
-      targetHotspotId: sanitized.targetHotspotId,
-      question: sanitized.question,
-      options: sanitized.options,
-      correctAnswer: sanitized.correctAnswer,
-      positioningVersion: sanitized.positioningVersion,
-      constraintsApplied: sanitized.constraintsApplied,
+      ...defaults,
+      ...sanitized,
     };
   }
 
   /**
-   * Sanitize hotspot data to remove undefined values and ensure defaults
+   * Sanitize hotspot data to remove undefined values
    * @param hotspot - Hotspot to sanitize
-   * @returns Sanitized hotspot with all fields present
+   * @returns Sanitized hotspot with undefined fields removed
    */
-  static sanitizeHotspot(hotspot: Partial<HotspotData>): HotspotData {
-    const sanitized = this.removeUndefinedFields(hotspot) as Partial<HotspotData>;
+  static sanitizeHotspot(hotspot: Partial<HotspotData>): Partial<HotspotData> {
+    const sanitized = this.removeUndefinedFields(hotspot);
 
+    // Validate that required fields exist to prevent Firebase errors
     if (!sanitized.id || sanitized.x === undefined || sanitized.y === undefined) {
       throw new Error(`Hotspot is missing required fields: ${JSON.stringify(hotspot)}`);
     }
 
-    // Return sanitized object with all fields present, providing defaults for optional fields
+    const defaults = {
+      title: '',
+      description: '',
+      size: 'medium' as const,
+      displayHotspotInEvent: false,
+    };
+
+    // Return sanitized object with validated required fields
     return {
-      id: sanitized.id,
-      x: sanitized.x,
-      y: sanitized.y,
-      title: sanitized.title || '',
-      description: sanitized.description || '',
-      color: sanitized.color,
-      backgroundColor: sanitized.backgroundColor,
-      size: sanitized.size || 'medium',
-      link: sanitized.link,
-      displayHotspotInEvent: sanitized.displayHotspotInEvent || false,
+      ...defaults,
+      ...sanitized,
     };
   }
 
