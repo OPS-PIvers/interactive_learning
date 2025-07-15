@@ -512,7 +512,7 @@ export class FirebaseProjectAPI {
         return DataSanitizer.sanitizeHotspot({
           id: doc.id,
           ...data
-        } as HotspotData)
+        } as Partial<HotspotData>)
       })
     } catch (error) {
       console.error(`Error getting hotspots for project ${projectId}:`, error)
@@ -533,7 +533,7 @@ export class FirebaseProjectAPI {
         return DataSanitizer.sanitizeTimelineEvent({
           id: doc.id,
           ...data
-        } as TimelineEventData)
+        } as Partial<TimelineEventData>)
       })
     } catch (error) {
       console.error(`Error getting timeline events for project ${projectId}:`, error)

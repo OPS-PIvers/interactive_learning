@@ -27,7 +27,7 @@ export class DataSanitizer {
    * @param event - Timeline event to sanitize
    * @returns Sanitized timeline event with all fields present
    */
-  static sanitizeTimelineEvent(event: TimelineEventData): TimelineEventData {
+  static sanitizeTimelineEvent(event: Partial<TimelineEventData>): TimelineEventData {
     const sanitized = this.removeUndefinedFields(event) as Partial<TimelineEventData>;
 
     if (!sanitized.id || sanitized.step === undefined || !sanitized.type) {
@@ -43,10 +43,10 @@ export class DataSanitizer {
       targetId: sanitized.targetId,
       message: sanitized.message,
       duration: sanitized.duration,
-      zoomFactor: sanitized.zoomFactor,
-      highlightRadius: sanitized.highlightRadius,
-      highlightShape: sanitized.highlightShape,
-      dimPercentage: sanitized.dimPercentage,
+      zoomFactor: sanitized.zoomFactor ?? 2,
+      highlightRadius: sanitized.highlightRadius ?? 60,
+      highlightShape: sanitized.highlightShape ?? 'circle',
+      dimPercentage: sanitized.dimPercentage ?? 70,
       spotlightX: sanitized.spotlightX,
       spotlightY: sanitized.spotlightY,
       spotlightWidth: sanitized.spotlightWidth,
@@ -105,7 +105,7 @@ export class DataSanitizer {
    * @param hotspot - Hotspot to sanitize
    * @returns Sanitized hotspot with all fields present
    */
-  static sanitizeHotspot(hotspot: HotspotData): HotspotData {
+  static sanitizeHotspot(hotspot: Partial<HotspotData>): HotspotData {
     const sanitized = this.removeUndefinedFields(hotspot) as Partial<HotspotData>;
 
     if (!sanitized.id || sanitized.x === undefined || sanitized.y === undefined) {
