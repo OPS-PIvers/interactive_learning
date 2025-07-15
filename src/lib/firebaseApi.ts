@@ -73,8 +73,8 @@ export class FirebaseProjectAPI {
             backgroundImage: projectData.backgroundImage,
             imageFitMode: projectData.imageFitMode || 'cover',
             viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            hotspots: [], // Will be loaded on demand
-            timelineEvents: [] // Will be loaded on demand
+            hotspots: projectData.hotspots || [],
+            timelineEvents: projectData.timelineEvents || []
           }
         } as Project
       })

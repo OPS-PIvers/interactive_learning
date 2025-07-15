@@ -48,7 +48,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900">
       <WrapperComponent {...wrapperProps}>
-        {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
+        {selectedProject.interactiveData ? (
           <InteractiveModule
             key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
             initialData={selectedProject.interactiveData}
