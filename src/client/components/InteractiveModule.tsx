@@ -395,9 +395,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, []);
 
   const uniqueSortedSteps = useMemo(() => {
-    if (timelineEvents.length === 0) return isEditing ? [1] : [];
+    if (timelineEvents.length === 0) return [1]; // Always provide at least one step for timeline navigation
     const steps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-    return steps.length > 0 ? steps : (isEditing ? [1] : []);
+    return steps.length > 0 ? steps : [1];
   }, [timelineEvents, isEditing]);
   
   const getImageClassName = useCallback(() => {

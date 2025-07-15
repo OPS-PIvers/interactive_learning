@@ -122,9 +122,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     );
   }
 
-  if (uniqueSortedSteps.length === 0 && !isEditing) {
-    return null;
-  }
+  // Remove early return - timeline should always be available for navigation
 
   const getStepTooltip = (step: number): string => {
     const eventsAtStep = timelineEvents.filter(e => e.step === step);
