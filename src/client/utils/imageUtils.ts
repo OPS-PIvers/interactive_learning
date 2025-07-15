@@ -42,7 +42,7 @@ export async function generateThumbnail(
       }
 
       if (img.width <= 0 || img.height <= 0 || targetWidth <= 0 || targetHeight <= 0) {
-        return reject(new Error('Image dimensions and target dimensions must be positive numbers.'));
+        return reject(new Error(`Image dimensions and target dimensions must be positive numbers. Image: ${img.width}x${img.height}, Target: ${targetWidth}x${targetHeight}`));
       }
       const sourceWidth = img.width;
       const sourceHeight = img.height;

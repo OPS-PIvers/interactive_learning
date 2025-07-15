@@ -1,7 +1,15 @@
 import imageCompression from 'browser-image-compression';
 import { isMobileDevice } from './mobileUtils';
 
+/**
+ * The maximum size of an image in megabytes after compression.
+ * This value is used to control the file size of uploaded images to balance quality and storage/bandwidth usage.
+ */
 const IMAGE_COMPRESSION_MAX_SIZE_MB = 2;
+/**
+ * The maximum dimension (width or height) of an image in pixels after compression.
+ * This helps to standardize the size of images and prevent overly large images from being stored.
+ */
 const IMAGE_COMPRESSION_MAX_DIMENSION_PX = 2048;
 
 export const compressImage = async (file: File, customOptions?: any): Promise<File> => {
