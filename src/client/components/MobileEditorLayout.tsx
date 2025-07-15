@@ -278,11 +278,18 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
             {selectedHotspot && onUpdateHotspot && onDeleteHotspot ? (
               <MobileHotspotEditor
                 hotspot={selectedHotspot}
+                allHotspots={hotspots}
+                timelineEvents={timelineEvents}
+                currentStep={currentStep}
                 onUpdate={onUpdateHotspot}
                 onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
+                onAddTimelineEvent={onAddTimelineEvent}
+                onUpdateTimelineEvent={onUpdateTimelineEvent}
+                onDeleteTimelineEvent={onDeleteTimelineEvent}
                 onPreviewEvent={handlePreviewEvent}
                 onStopPreview={handleStopPreview}
                 previewingEvents={previewingEvents}
+                isPreviewMode={isPreviewMode}
               />
             ) : (
               <div className="p-6 text-center text-slate-400">
@@ -417,8 +424,18 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         {activePanel === 'properties' && selectedHotspot && onUpdateHotspot && onDeleteHotspot ? (
           <MobileHotspotEditor
             hotspot={selectedHotspot}
+            allHotspots={hotspots}
+            timelineEvents={timelineEvents}
+            currentStep={currentStep}
             onUpdate={onUpdateHotspot}
             onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
+            onAddTimelineEvent={onAddTimelineEvent}
+            onUpdateTimelineEvent={onUpdateTimelineEvent}
+            onDeleteTimelineEvent={onDeleteTimelineEvent}
+            onPreviewEvent={handlePreviewEvent}
+            onStopPreview={handleStopPreview}
+            previewingEvents={previewingEvents}
+            isPreviewMode={isPreviewMode}
           />
         ) : (
           <div className="p-6 text-center text-slate-400">

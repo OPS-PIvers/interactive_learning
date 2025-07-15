@@ -260,7 +260,11 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
       <div className="space-y-4">
         {/* Preview Mode Indicator */}
         {isPreviewMode && (
-          <div className="bg-purple-900/50 border border-purple-600 rounded-lg p-3">
+          <div 
+            className="bg-purple-900/50 border border-purple-600 rounded-lg p-3"
+            aria-live="polite"
+            aria-label="Preview mode is active"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
@@ -269,6 +273,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
               <button
                 onClick={onStopPreview}
                 className="text-purple-400 hover:text-purple-300 text-sm"
+                aria-label="Stop preview mode"
               >
                 Stop Preview
               </button>

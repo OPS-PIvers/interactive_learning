@@ -242,12 +242,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           }
         }
         // Default behavior if not placing a hotspot
-        console.log('Debug [ImageEditCanvas]: Container click detected (default)', {
-          target: e.target,
-          currentTarget: e.currentTarget,
-          isEditing,
-          timestamp: Date.now()
-        });
         onImageOrHotspotClick && onImageOrHotspotClick(e);
       }}
     >
@@ -300,12 +294,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             )}
 
             {/* Hotspots */}
-            {console.log('Debug [ImageEditCanvas]: Rendering hotspots', {
-              hotspotsCount: hotspotsWithPositions.length,
-              isEditing,
-              hotspotIds: hotspotsWithPositions.map(h => h.id),
-              timestamp: Date.now()
-            }) || hotspotsWithPositions.map(hotspot => (
+            {hotspotsWithPositions.map(hotspot => (
               <div
                 key={hotspot.id}
                 className="hotspot-viewer"
