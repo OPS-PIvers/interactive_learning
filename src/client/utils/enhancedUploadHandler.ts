@@ -1,6 +1,7 @@
 // Enhanced upload handler for mobile devices
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { compressImage } from './imageCompression';
+import { generateThumbnail } from './imageUtils';
 import { 
   getMobileOptimizedSettings, 
   createMobileUploadError, 
@@ -14,16 +15,25 @@ import { isMobileDevice } from './mobileUtils';
 import { retryWithBackoff, refreshAuthTokenIfNeeded, RetryContext } from './retryUtils';
 import { networkMonitor, waitForNetwork, NetworkState } from './networkMonitor';
 
+// Thumbnail Parameters (match firebaseApi.ts)
+const THUMBNAIL_WIDTH = 400;
+const THUMBNAIL_HEIGHT = 250;
+const THUMBNAIL_FORMAT = 'image/jpeg' as const;
+const THUMBNAIL_QUALITY = 0.7;
+const THUMBNAIL_POSTFIX = '_thumbnails';
+const THUMBNAIL_FILE_PREFIX = 'thumb_';
+
 export interface UploadResult {
   success: boolean;
   imageUrl?: string;
+  thumbnailUrl?: string;
   error?: string;
 }
 
 export interface UploadCallbacks {
   onStart?: () => void;
   onProgress?: (status: string) => void;
-  onComplete?: (imageUrl: string) => void;
+  onComplete?: (imageUrl: string, thumbnailUrl?: string) => void;
   onError?: (error: string) => void;
   onNetworkChange?: (state: NetworkState) => void;
 }
@@ -156,7 +166,43 @@ export async function handleEnhancedImageUpload(
       }
     }
 
-    onProgress?.('Uploading to server...');
+    onProgress?.('Generating thumbnail...');
+    
+    // Generate thumbnail from original file (no CORS issues)
+    let thumbnailUrl: string | undefined;
+    try {
+      const thumbnailBlob = await generateThumbnail(
+        file, // Use original file, not URL
+        THUMBNAIL_WIDTH,
+        THUMBNAIL_HEIGHT,
+        THUMBNAIL_FORMAT,
+        THUMBNAIL_QUALITY
+      );
+      
+      const mimeTypeToExtension: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/webp': 'webp',
+        'image/png': 'png'
+      };
+      
+      const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || 'jpg';
+      const thumbnailFile = new File(
+        [thumbnailBlob],
+        `${THUMBNAIL_FILE_PREFIX}${projectId}.${fileExtension}`,
+        { type: THUMBNAIL_FORMAT }
+      );
+      
+      // Upload thumbnail first
+      onProgress?.('Uploading thumbnail...');
+      thumbnailUrl = await appScriptProxy.uploadImage(thumbnailFile, projectId + THUMBNAIL_POSTFIX);
+      console.log(`Thumbnail generated and uploaded: ${thumbnailUrl}`);
+      
+    } catch (thumbnailError) {
+      console.warn('Thumbnail generation failed:', thumbnailError);
+      // Continue without thumbnail - don't fail the entire upload
+    }
+
+    onProgress?.('Uploading main image...');
 
     // Upload with exponential backoff retry logic
     const imageUrl = await retryWithBackoff(async (context: RetryContext) => {
@@ -253,11 +299,12 @@ export async function handleEnhancedImageUpload(
 
     onProgress?.('Upload complete!');
     cleanup(); // Stop network monitoring
-    onComplete?.(imageUrl!);
+    onComplete?.(imageUrl!, thumbnailUrl);
     
     return {
       success: true,
-      imageUrl: imageUrl!
+      imageUrl: imageUrl!,
+      thumbnailUrl
     };
 
   } catch (error) {
@@ -304,7 +351,8 @@ export function createMobileOptimizedUploadHandler(
   setImageTransform: (transform: any) => void,
   setEditingZoom: (zoom: number) => void,
   debugLog: (category: string, message: string, data?: any) => void,
-  hotspots: any[] = []
+  hotspots: any[] = [],
+  onThumbnailGenerated?: (thumbnailUrl: string) => void
 ) {
   return async (file: File) => {
     // Check for existing hotspots
@@ -324,12 +372,18 @@ export function createMobileOptimizedUploadHandler(
     const result = await handleEnhancedImageUpload(file, projectId, {
       onStart: () => setImageLoading(true),
       onProgress: (status) => debugLog('Image', 'Upload progress', { status }),
-      onComplete: (imageUrl) => {
+      onComplete: (imageUrl, thumbnailUrl) => {
         setBackgroundImage(imageUrl);
         setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
         setEditingZoom(1);
         setImageLoading(false);
-        debugLog('Image', 'Enhanced upload successful', { imageUrl });
+        
+        // Store thumbnail URL for later use
+        if (thumbnailUrl && onThumbnailGenerated) {
+          onThumbnailGenerated(thumbnailUrl);
+        }
+        
+        debugLog('Image', 'Enhanced upload successful', { imageUrl, thumbnailUrl });
       },
       onError: (error) => {
         setImageLoading(false);

@@ -211,32 +211,19 @@ export class FirebaseProjectAPI {
       let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
       let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
 
+      // Check if background image changed and use provided thumbnail URL
       if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
         if (existingThumbnailUrl) {
           oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
         }
-        try {
-          console.log(`Generating thumbnail for project ${project.id} due to image change.`);
-          const thumbnailBlob = await generateThumbnail(
-            newBackgroundImageForUpdate, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY
-          );
-          const mimeTypeToExtension: Record<string, string> = {
-            'image/jpeg': 'jpg',
-            'image/webp': 'webp',
-            'image/png': 'png' // Added png for completeness, though not currently in THUMBNAIL_FORMAT type
-          };
-          const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || THUMBNAIL_FORMAT.split('/')[1]?.replace('jpeg','jpg') || 'dat';
-          const thumbnailFile = new File(
-            [thumbnailBlob], `${THUMBNAIL_FILE_PREFIX}${project.id}.${fileExtension}`, { type: THUMBNAIL_FORMAT }
-          );
-          finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
-          console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
-        } catch (thumbError) {
-          console.warn(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
-          console.warn('Continuing with project save without thumbnail update');
-          finalThumbnailUrl = existingThumbnailUrl || null;
-          newBackgroundImageForUpdate = existingBackgroundImage || null;
-          oldThumbnailUrlToDeleteAfterCommit = null;
+        
+        // Use thumbnail URL if provided (generated during upload)
+        if (project.thumbnailUrl) {
+          finalThumbnailUrl = project.thumbnailUrl;
+          console.log(`Using pre-generated thumbnail: ${finalThumbnailUrl}`);
+        } else {
+          console.log('No thumbnail provided, continuing without thumbnail');
+          finalThumbnailUrl = null;
         }
       } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
         if (existingThumbnailUrl) {

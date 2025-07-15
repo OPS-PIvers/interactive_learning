@@ -204,6 +204,7 @@ export interface InteractiveModuleState {
   hotspots?: HotspotData[]; // Made optional for deferred loading
   timelineEvents?: TimelineEventData[]; // Made optional for deferred loading
   imageFitMode?: 'cover' | 'contain' | 'fill'; // Keep for images and potentially for video letter/pillarboxing
+  thumbnailUrl?: string; // URL for project thumbnail image
   viewerModes?: {
     explore?: boolean;
     selfPaced?: boolean;

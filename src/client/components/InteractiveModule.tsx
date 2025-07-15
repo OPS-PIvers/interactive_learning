@@ -183,6 +183,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 }) => {
 
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(undefined);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
   
@@ -1193,7 +1194,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       backgroundVideoType,
       hotspots,
       timelineEvents,
-      imageFitMode
+      imageFitMode,
+      thumbnailUrl
     };
     
     // Validate data before saving
@@ -1281,9 +1283,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setImageTransform,
       setEditingZoom,
       debugLog,
-      hotspots
+      hotspots,
+      setThumbnailUrl
     ), 
-    [projectId, setImageLoading, setBackgroundImage, setImageTransform, setEditingZoom, debugLog, hotspots]
+    [projectId, setImageLoading, setBackgroundImage, setImageTransform, setEditingZoom, debugLog, hotspots, setThumbnailUrl]
   );
 
 
