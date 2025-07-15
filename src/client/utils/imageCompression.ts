@@ -1,4 +1,4 @@
-import imageCompression from 'browser-image-compression';
+import imageCompression, { type Options } from 'browser-image-compression';
 import { isMobileDevice } from './mobileUtils';
 
 /**
@@ -12,7 +12,7 @@ const IMAGE_COMPRESSION_MAX_SIZE_MB = 2;
  */
 const IMAGE_COMPRESSION_MAX_DIMENSION_PX = 2048;
 
-export const compressImage = async (file: File, customOptions?: Partial<import('browser-image-compression').Options>): Promise<File> => {
+export const compressImage = async (file: File, customOptions?: Partial<Options>): Promise<File> => {
   const isMobile = isMobileDevice();
   
   const defaultOptions = {
