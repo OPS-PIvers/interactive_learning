@@ -250,32 +250,9 @@ const MainApp: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="max-w-md mx-auto text-center p-8 bg-white rounded-xl shadow-lg">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Interactive Learning Hub
-              </h1>
-              <p className="text-gray-600">
-                Create and explore engaging interactive modules.
-              </p>
-            </div>
-            <div className="mb-8">
-              <p className="text-gray-700 mb-4">
-                Sign in to access your projects and start creating amazing interactive content.
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
-              >
-                Get Started - Sign In
-              </button>
-            </div>
-          </div>
-        </div>
         <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)} 
+          isOpen={true}
+          onClose={() => {}}
         />
       </div>
     );
@@ -405,7 +382,13 @@ const MainApp: React.FC = () => {
 
 const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      setShowAuthModal(false);
+    }
+  }, [user]);
 
   if (loading) {
     return <LoadingScreen />;
@@ -421,12 +404,6 @@ const AuthenticatedApp: React.FC = () => {
           <p className="text-xl text-gray-600 mb-8">
             Create engaging, interactive learning experiences with hotspots, timelines, and multimedia content.
           </p>
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
-          >
-            Get Started - Sign In
-          </button>
         </div>
         <AuthModal 
           isOpen={showAuthModal} 

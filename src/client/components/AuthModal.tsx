@@ -3,7 +3,7 @@ import { useAuth } from '../../lib/authContext';
 
 interface AuthModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
@@ -39,7 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       } else {
         await signUp(email, password, displayName);
       }
-      onClose();
+      if (onClose) onClose();
       resetForm();
     } catch (error: any) {
       setError(getErrorMessage(error.code));
@@ -53,7 +53,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setError('');
     try {
       await signInWithGoogle();
-      onClose();
+      if (onClose) onClose();
       resetForm();
     } catch (error: any) {
       setError(getErrorMessage(error.code));
@@ -109,7 +109,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div 
         className="bg-slate-800 border border-slate-700 rounded-lg p-8 max-w-md w-full mx-4 text-slate-100"
         role="dialog"
@@ -120,13 +120,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <h2 id="auth-modal-title" className="text-2xl font-bold text-slate-100">
             {showReset ? 'Reset Password' : (isLogin ? 'Sign In' : 'Create Account')}
           </h2>
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 text-3xl"
-            aria-label="Close modal"
-          >
-            &times;
-          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-200 text-3xl"
+              aria-label="Close modal"
+            >
+              &times;
+            </button>
+          )}
         </div>
 
         {error && (
