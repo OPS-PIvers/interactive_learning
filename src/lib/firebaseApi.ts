@@ -399,22 +399,115 @@ export class FirebaseProjectAPI {
   }
 
   /**
-   * Upload an image file and return the download URL
+   * Upload an image file and return the download URL with optimized connection handling
    */
   async uploadImage(file: File, projectId?: string): Promise<string> {
     try {
-      const fileName = `images/${projectId || 'general'}/${Date.now()}_${file.name}`
-      const imageRef = ref(storage, fileName)
+      // Verify authentication before upload
+      if (!auth.currentUser) {
+        throw new Error('auth/user-not-authenticated: User must be authenticated to upload images');
+      }
+
+      // Validate file before upload
+      if (!file || file.size === 0) {
+        throw new Error('Invalid file: File is empty or corrupted');
+      }
+
+      // Generate unique filename with timestamp and random suffix
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `images/${projectId || 'general'}/${timestamp}_${randomSuffix}_${sanitizedName}`;
       
-      console.log(`Uploading image: ${fileName}`)
-      const snapshot = await uploadBytes(imageRef, file)
-      const downloadURL = await getDownloadURL(snapshot.ref)
+      const imageRef = ref(storage, fileName);
       
-      console.log('Image uploaded successfully:', downloadURL)
-      return downloadURL
+      console.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
+      
+      // Create upload task with metadata for better tracking
+      const metadata = {
+        contentType: file.type,
+        customMetadata: {
+          projectId: projectId || 'general',
+          uploadedAt: new Date().toISOString(),
+          userId: auth.currentUser.uid,
+          originalName: file.name
+        }
+      };
+      
+      // Upload with optimized timeout and retry handling
+      const uploadPromise = uploadBytes(imageRef, file, metadata);
+      
+      // Add timeout wrapper with appropriate time based on file size
+      const timeoutMs = Math.max(30000, file.size / 1024 / 1024 * 10000); // 10 seconds per MB, min 30s
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('storage/timeout: Upload timed out'));
+        }, timeoutMs);
+      });
+      
+      const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+      
+      // Get download URL with retry logic
+      let downloadURL: string;
+      let urlAttempts = 0;
+      const maxUrlAttempts = 3;
+      
+      while (urlAttempts < maxUrlAttempts) {
+        try {
+          downloadURL = await getDownloadURL(snapshot.ref);
+          break;
+        } catch (urlError) {
+          urlAttempts++;
+          if (urlAttempts >= maxUrlAttempts) {
+            throw new Error(`Failed to get download URL after ${maxUrlAttempts} attempts: ${urlError}`);
+          }
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * urlAttempts));
+        }
+      }
+      
+      console.log('Image uploaded successfully:', downloadURL);
+      return downloadURL!;
     } catch (error) {
-      console.error('Error uploading image:', error)
-      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error uploading image:', error);
+      
+      // Enhanced error categorization with Firebase Storage specific errors
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('auth/') || errorMessage.includes('authentication')) {
+          throw new Error(`Authentication error: ${error.message}`);
+        }
+        if (errorMessage.includes('storage/unauthorized') || errorMessage.includes('permission')) {
+          throw new Error(`Permission denied: Check Firebase Storage rules`);
+        }
+        if (errorMessage.includes('storage/quota-exceeded')) {
+          throw new Error(`Storage quota exceeded: Upgrade your Firebase plan`);
+        }
+        if (errorMessage.includes('storage/timeout') || errorMessage.includes('timeout')) {
+          throw new Error(`Upload timeout: File may be too large or connection too slow`);
+        }
+        if (errorMessage.includes('storage/invalid-format')) {
+          throw new Error(`Invalid file format: ${error.message}`);
+        }
+        if (errorMessage.includes('storage/object-not-found')) {
+          throw new Error(`Storage reference not found: ${error.message}`);
+        }
+        if (errorMessage.includes('storage/bucket-not-found')) {
+          throw new Error(`Storage bucket not found: Check Firebase configuration`);
+        }
+        if (errorMessage.includes('storage/')) {
+          throw new Error(`Storage error: ${error.message}`);
+        }
+        if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('failed to fetch')) {
+          throw new Error(`Network error: ${error.message}`);
+        }
+        if (errorMessage.includes('cors')) {
+          throw new Error(`CORS error: Check Firebase Storage CORS configuration`);
+        }
+      }
+      
+      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
