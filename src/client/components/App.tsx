@@ -246,18 +246,6 @@ const MainApp: React.FC = () => {
     return <LoadingScreen />;
   }
 
-  // Show authentication required screen for non-authenticated users
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AuthModal 
-          isOpen={true}
-          onClose={() => {}}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
       <header className="mb-6 sm:mb-8 text-center">
@@ -382,13 +370,6 @@ const MainApp: React.FC = () => {
 
 const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(true);
-
-  useEffect(() => {
-    if (user) {
-      setShowAuthModal(false);
-    }
-  }, [user]);
 
   if (loading) {
     return <LoadingScreen />;
@@ -397,18 +378,7 @@ const AuthenticatedApp: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Interactive Learning Hub
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Create engaging, interactive learning experiences with hotspots, timelines, and multimedia content.
-          </p>
-        </div>
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)} 
-        />
+        <AuthModal isOpen={true} />
       </div>
     );
   }

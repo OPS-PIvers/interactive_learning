@@ -39,7 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       } else {
         await signUp(email, password, displayName);
       }
-      if (onClose) onClose();
+      onClose?.();
       resetForm();
     } catch (error: any) {
       setError(getErrorMessage(error.code));
@@ -53,7 +53,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setError('');
     try {
       await signInWithGoogle();
-      if (onClose) onClose();
+      onClose?.();
       resetForm();
     } catch (error: any) {
       setError(getErrorMessage(error.code));

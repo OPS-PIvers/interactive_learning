@@ -78,6 +78,11 @@ export default defineConfig(({ mode, command }) => {
         include: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage'],
         // Force pre-bundling in development for consistency
         force: isDevelopment
+      },
+      test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './src/tests/setup.ts',
       }
     };
 });
