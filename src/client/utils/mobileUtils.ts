@@ -1,6 +1,7 @@
+const MOBILE_MAX_WIDTH = 768;
 export const isMobileDevice = () => {
   // Primary check: viewport width (most reliable indicator)
-  const isNarrowViewport = window.matchMedia('(max-width: 768px)').matches;
+  const isNarrowViewport = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches : false;
   
   // If viewport is narrow, it's definitely mobile
   if (isNarrowViewport) {

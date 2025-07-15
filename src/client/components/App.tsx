@@ -246,41 +246,6 @@ const MainApp: React.FC = () => {
     return <LoadingScreen />;
   }
 
-  // Show authentication required screen for non-authenticated users
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="max-w-md mx-auto text-center p-8 bg-white rounded-xl shadow-lg">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Interactive Learning Hub
-              </h1>
-              <p className="text-gray-600">
-                Create and explore engaging interactive modules.
-              </p>
-            </div>
-            <div className="mb-8">
-              <p className="text-gray-700 mb-4">
-                Sign in to access your projects and start creating amazing interactive content.
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
-              >
-                Get Started - Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)} 
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
       <header className="mb-6 sm:mb-8 text-center">
@@ -405,35 +370,13 @@ const MainApp: React.FC = () => {
 
 const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   if (loading) {
     return <LoadingScreen />;
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Interactive Learning Hub
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Create engaging, interactive learning experiences with hotspots, timelines, and multimedia content.
-          </p>
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors"
-          >
-            Get Started - Sign In
-          </button>
-        </div>
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)} 
-        />
-      </div>
-    );
+    return <AuthModal isOpen={true} />;
   }
 
   return (
