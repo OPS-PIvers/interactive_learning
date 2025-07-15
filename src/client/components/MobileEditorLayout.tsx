@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types'; // Added InteractionType
 import MobileHotspotEditor from './MobileHotspotEditor';
+import MobileBackgroundSettings from './MobileBackgroundSettings';
 
 interface MobileEditorLayoutProps {
   projectName: string;
@@ -19,8 +20,8 @@ interface MobileEditorLayoutProps {
   selectedHotspot?: HotspotData | null;
   onUpdateHotspot?: (updates: Partial<HotspotData>) => void;
   onDeleteHotspot?: (hotspotId: string) => void; // HotspotId for clarity
-  activePanelOverride?: 'image' | 'properties' | 'timeline';
-  onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline') => void;
+  activePanelOverride?: 'image' | 'properties' | 'timeline' | 'background';
+  onActivePanelChange?: (panel: 'image' | 'properties' | 'timeline' | 'background') => void;
 
   // Props needed for the enhanced MobileHotspotEditor's timeline tab
   onAddTimelineEvent: (event: TimelineEventData) => void;
@@ -30,6 +31,14 @@ interface MobileEditorLayoutProps {
   previewingEvents?: TimelineEventData[];
   onPreviewEvent?: (event: TimelineEventData) => void;
   onStopPreview?: () => void;
+
+  // Background settings props
+  backgroundType?: 'image' | 'video';
+  backgroundVideoType?: 'youtube' | 'mp4';
+  onReplaceImage?: (file: File) => void;
+  onBackgroundImageChange?: (url: string) => void;
+  onBackgroundTypeChange?: (type: 'image' | 'video') => void;
+  onBackgroundVideoTypeChange?: (type: 'youtube' | 'mp4') => void;
 }
 
 interface ViewportState {
@@ -66,7 +75,13 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   onDeleteTimelineEvent,
   previewingEvents = [],
   onPreviewEvent,
-  onStopPreview
+  onStopPreview,
+  backgroundType = 'image',
+  backgroundVideoType = 'youtube',
+  onReplaceImage,
+  onBackgroundImageChange,
+  onBackgroundTypeChange,
+  onBackgroundVideoTypeChange
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewingEventId, setPreviewingEventId] = useState<string | null>(null);
@@ -95,7 +110,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   });
 
   const [editorMode, setEditorMode] = useState<'compact' | 'fullscreen' | 'modal'>('compact');
-  const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline'>(activePanelOverride || 'image');
+  const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline' | 'background'>(activePanelOverride || 'image');
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
     window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
   );
@@ -299,6 +314,31 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
               </div>
             )}
           </div>
+        ) : activePanel === 'background' ? (
+          /* Background Settings Panel */
+          <div className="flex-1 bg-slate-800 overflow-y-auto">
+            {onReplaceImage && onBackgroundImageChange && onBackgroundTypeChange && onBackgroundVideoTypeChange ? (
+              <MobileBackgroundSettings
+                backgroundImage={backgroundImage}
+                backgroundType={backgroundType}
+                backgroundVideoType={backgroundVideoType}
+                onReplaceImage={onReplaceImage}
+                onBackgroundImageChange={onBackgroundImageChange}
+                onBackgroundTypeChange={onBackgroundTypeChange}
+                onBackgroundVideoTypeChange={onBackgroundVideoTypeChange}
+              />
+            ) : (
+              <div className="p-6 text-center text-slate-400">
+                <div className="mb-4">
+                  <svg className="w-12 h-12 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-lg font-medium mb-2">Background Settings</p>
+                <p className="text-sm">Background upload handlers not available</p>
+              </div>
+            )}
+          </div>
         ) : (
           /* Timeline Panel */
           <div className="flex-1 bg-slate-800 overflow-y-auto">
@@ -359,12 +399,13 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
             {[
               { id: 'image', label: 'Image' },
               { id: 'properties', label: 'Properties' },
-              { id: 'timeline', label: 'Timeline' }
+              { id: 'timeline', label: 'Timeline' },
+              { id: 'background', label: 'Background' }
             ].map((panel) => (
               <button
                 key={panel.id}
                 onClick={() => {
-                  const newPanel = panel.id as 'image' | 'properties' | 'timeline';
+                  const newPanel = panel.id as 'image' | 'properties' | 'timeline' | 'background';
                   setActivePanel(newPanel);
                   onActivePanelChange?.(newPanel);
                 }}

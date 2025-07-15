@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type MobileEditorActiveTab = 'properties' | 'timeline';
+export type MobileEditorActiveTab = 'properties' | 'timeline' | 'background';
 
 interface MobileEditorTabsProps {
   activeTab: MobileEditorActiveTab;
@@ -11,6 +11,7 @@ const MobileEditorTabs: React.FC<MobileEditorTabsProps> = ({ activeTab, onTabCha
   const tabs: { id: MobileEditorActiveTab; label: string }[] = [
     { id: 'properties', label: 'Properties' },
     { id: 'timeline', label: 'Timeline' },
+    { id: 'background', label: 'Background' },
   ];
 
   return (

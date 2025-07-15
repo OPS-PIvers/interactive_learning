@@ -2703,12 +2703,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               handleRemoveHotspot(hotspotId);
               setEditingHotspot(null);
             }}
-            activePanelOverride={activeMobileEditorTab === 'properties' ? 'properties' : activeMobileEditorTab === 'timeline' ? 'timeline' : 'image'}
+            activePanelOverride={activeMobileEditorTab === 'properties' ? 'properties' : activeMobileEditorTab === 'timeline' ? 'timeline' : activeMobileEditorTab === 'background' ? 'background' : 'image'}
             onActivePanelChange={(panel) => {
               if (panel === 'properties') {
                 setActiveMobileEditorTab('properties');
               } else if (panel === 'timeline') {
                 setActiveMobileEditorTab('timeline');
+              } else if (panel === 'background') {
+                setActiveMobileEditorTab('background');
               }
             }}
             onAddTimelineEvent={handleAddTimelineEvent}
@@ -2717,6 +2719,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             previewingEvents={mobilePreviewEvents}
             onPreviewEvent={handleMobilePreviewEvent}
             onStopPreview={handleStopMobilePreview}
+            backgroundType={backgroundType}
+            backgroundVideoType={backgroundVideoType}
+            onReplaceImage={handleImageUpload}
+            onBackgroundImageChange={setBackgroundImage}
+            onBackgroundTypeChange={setBackgroundType}
+            onBackgroundVideoTypeChange={setBackgroundVideoType}
           >
             {/* Pass the existing ImageEditCanvas as children */}
             <div
