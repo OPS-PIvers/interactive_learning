@@ -1,12 +1,15 @@
 import imageCompression from 'browser-image-compression';
 import { isMobileDevice } from './mobileUtils';
 
+const IMAGE_COMPRESSION_MAX_SIZE_MB = 2;
+const IMAGE_COMPRESSION_MAX_DIMENSION_PX = 2048;
+
 export const compressImage = async (file: File, customOptions?: any): Promise<File> => {
   const isMobile = isMobileDevice();
   
   const defaultOptions = {
-    maxSizeMB: 2,
-    maxWidthOrHeight: 2048,
+    maxSizeMB: IMAGE_COMPRESSION_MAX_SIZE_MB,
+    maxWidthOrHeight: IMAGE_COMPRESSION_MAX_DIMENSION_PX,
     useWebWorker: !isMobile, // Disable web workers on mobile for better stability
   };
   
