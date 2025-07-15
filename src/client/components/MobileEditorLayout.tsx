@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types'; // Added InteractionType
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
+import AuthButton from './AuthButton';
 
 interface MobileEditorLayoutProps {
   projectName: string;
@@ -272,6 +273,8 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
             >
               {isSaving ? 'Saving...' : showSuccessMessage ? 'Saved!' : 'Save'}
             </button>
+            
+            <AuthButton variant="compact" />
           </div>
         </div>
       </div>
@@ -442,12 +445,15 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
             ← Back to Editor
           </button>
           <span className="text-white font-medium">Edit Properties</span>
-          <button
-            onClick={onSave}
-            className="text-purple-400 hover:text-purple-300"
-          >
-            Save
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSave}
+              className="text-purple-400 hover:text-purple-300"
+            >
+              Save
+            </button>
+            <AuthButton variant="compact" />
+          </div>
         </div>
       </div>
 
