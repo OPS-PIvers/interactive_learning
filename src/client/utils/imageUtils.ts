@@ -51,20 +51,20 @@ export async function generateThumbnail(
       const sourceAspectRatio = sourceWidth / sourceHeight;
       const targetAspectRatio = targetWidth / targetHeight;
 
-      let drawWidth, drawHeight, drawX, drawY;
+      let drawWidth: number, drawHeight: number, drawX: number, drawY: number;
 
       // Determine how to crop the image to fit the target aspect ratio
       if (sourceAspectRatio > targetAspectRatio) {
         // Source image is wider than target
         drawHeight = sourceHeight;
-        drawWidth = sourceHeight * targetAspectRatio;
-        drawX = (sourceWidth - drawWidth) / 2;
+        drawWidth = Math.round(sourceHeight * targetAspectRatio);
+        drawX = Math.round((sourceWidth - drawWidth) / 2);
         drawY = 0;
       } else {
         // Source image is taller than or equal to the target aspect ratio
         drawWidth = sourceWidth;
-        drawHeight = sourceWidth / targetAspectRatio;
-        drawY = (sourceHeight - drawHeight) / 2;
+        drawHeight = Math.round(sourceWidth / targetAspectRatio);
+        drawY = Math.round((sourceHeight - drawHeight) / 2);
         drawX = 0;
       }
 
