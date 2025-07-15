@@ -15,7 +15,7 @@ const IMAGE_COMPRESSION_MAX_DIMENSION_PX = 2048;
 export const compressImage = async (file: File, customOptions?: Partial<Options>): Promise<File> => {
   const isMobile = isMobileDevice();
   
-  const defaultOptions = {
+  const defaultOptions: Partial<Options> = {
     maxSizeMB: IMAGE_COMPRESSION_MAX_SIZE_MB,
     maxWidthOrHeight: IMAGE_COMPRESSION_MAX_DIMENSION_PX,
     useWebWorker: !isMobile, // Disable web workers on mobile for better stability
