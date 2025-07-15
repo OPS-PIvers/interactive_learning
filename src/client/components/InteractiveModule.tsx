@@ -143,7 +143,7 @@ const throttle = <T extends (...args: any[]) => any>(
 interface InteractiveModuleProps {
   initialData: InteractiveModuleState;
   isEditing: boolean;
-  onSave: (data: InteractiveModuleState) => void;
+  onSave: (data: InteractiveModuleState, thumbnailUrl?: string) => void;
   onClose?: (callback?: () => void) => void; // Modified onClose
   projectName: string;
   projectId?: string;
@@ -1194,8 +1194,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       backgroundVideoType,
       hotspots,
       timelineEvents,
-      imageFitMode,
-      thumbnailUrl
+      imageFitMode
     };
     
     // Validate data before saving
@@ -1221,7 +1220,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     });
     
     try {
-      await onSave(currentData);
+      await onSave(currentData, thumbnailUrl);
       console.log('Save completed successfully');
       setShowSuccessMessage(true);
       if (successMessageTimeoutRef.current) {

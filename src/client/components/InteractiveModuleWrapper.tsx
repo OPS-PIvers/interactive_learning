@@ -8,7 +8,7 @@ interface InteractiveModuleWrapperProps {
   isEditingMode: boolean;
   isMobile: boolean;
   onClose: () => void;
-  onSave: (projectId: string, data: InteractiveModuleState) => void;
+  onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => void;
   onReloadRequest?: () => void;
 }
 
@@ -53,7 +53,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
             initialData={selectedProject.interactiveData}
             isEditing={isEditingMode}
-            onSave={(data) => onSave(selectedProject.id, data)}
+            onSave={(data, thumbnailUrl) => onSave(selectedProject.id, data, thumbnailUrl)}
             onClose={onClose}
             projectName={selectedProject.title}
             projectId={selectedProject.id}

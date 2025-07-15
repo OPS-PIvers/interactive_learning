@@ -160,7 +160,7 @@ const MainApp: React.FC = () => {
     }
   }, [isAdmin, loadProjects]);
 
-  const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState) => {
+  const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => {
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -175,6 +175,7 @@ const MainApp: React.FC = () => {
     const projectDataToSend: Project = {
       ...projectToSave,
       interactiveData: data,
+      thumbnailUrl: thumbnailUrl || projectToSave.thumbnailUrl, // Use new thumbnail or keep existing
     };
     
     setIsLoading(true);
