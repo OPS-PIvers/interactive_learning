@@ -132,6 +132,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
   const [activeTab, setActiveTab] = useState('general');
   const [selectedColorPreset, setSelectedColorPreset] = useState('#ef4444');
   const [localBackgroundImageUrl, setLocalBackgroundImageUrl] = useState(currentBackgroundImageUrl);
+  const [showYouTubeInput, setShowYouTubeInput] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
 
   // Sync local URL state when prop changes (e.g., on initial load or external update)
   useEffect(() => {
@@ -161,6 +164,39 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
         onBackgroundVideoTypeChange('mp4');
       }
       // If user manually sets video type later, that will override this auto-detection
+    }
+  };
+
+  // Helper function to extract YouTube Video ID from various URL formats
+  const extractYouTubeVideoId = (url: string): string | null => {
+    if (!url) return null;
+    // Regular expression to cover various YouTube URL formats
+    const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regExp);
+    return (match && match[1]) ? match[1] : null;
+  };
+
+  const handleYouTubeUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setYoutubeUrl(event.target.value);
+  };
+
+  const handleYouTubeUrlBlur = () => {
+    if (youtubeUrl.trim()) {
+      // Extract video ID and create YouTube embed URL
+      const videoId = extractYouTubeVideoId(youtubeUrl);
+      if (videoId) {
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        onBackgroundImageChange(embedUrl);
+        onBackgroundTypeChange('video');
+        onBackgroundVideoTypeChange('youtube');
+        // Clear the input after successful processing
+        setYoutubeUrl('');
+        setShowYouTubeInput(false);
+      } else {
+        // If extraction fails, treat as regular URL
+        onBackgroundImageChange(youtubeUrl);
+        onBackgroundTypeChange('video');
+      }
     }
   };
 
@@ -319,43 +355,96 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                       </div>
                     </div>
 
-                    {backgroundType === 'image' && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                          Upload Image File
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageFileUpload} // Corrected this line
-                          className="hidden"
-                          id="enhanced-image-upload"
-                        />
-                        <label
-                          htmlFor="enhanced-image-upload"
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
-                        >
-                          Choose Image File
-                        </label>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          Alternatively, provide an image URL below.
-                        </p>
-                      </div>
-                    )}
-
-                    <div>
-                      <label htmlFor="background-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        {backgroundType === 'image' ? 'Image URL' : 'Video URL (YouTube or MP4)'}
+                    {/* Enhanced Upload Interface */}
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        {backgroundType === 'image' ? 'Upload or Add Background Image' : 'Upload or Add Background Video'}
                       </label>
-                      <input
-                        type="text"
-                        id="background-url"
-                        value={localBackgroundImageUrl}
-                        onChange={handleUrlInputChange}
-                        onBlur={handleUrlInputBlur}
-                        placeholder={backgroundType === 'image' ? 'https://example.com/image.png' : 'https://youtube.com/watch?v=... or https://example.com/video.mp4'}
-                        className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
-                      />
+                      
+                      {/* Upload Options */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* File Upload Option */}
+                        {backgroundType === 'image' && (
+                          <div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageFileUpload}
+                              className="hidden"
+                              id="enhanced-image-upload"
+                            />
+                            <label
+                              htmlFor="enhanced-image-upload"
+                              className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                            >
+                              📁 Choose Image File
+                            </label>
+                          </div>
+                        )}
+                        
+                        {/* YouTube URL Option */}
+                        {backgroundType === 'video' && (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setShowYouTubeInput(!showYouTubeInput)}
+                              className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              🎥 Add YouTube URL
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* URL Input Option */}
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowUrlInput(!showUrlInput)}
+                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                          >
+                            🔗 Add {backgroundType === 'image' ? 'Image' : 'Video'} URL
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* YouTube URL Input */}
+                      {backgroundType === 'video' && showYouTubeInput && (
+                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                          <label htmlFor="youtube-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            YouTube URL
+                          </label>
+                          <input
+                            type="text"
+                            id="youtube-url"
+                            value={youtubeUrl}
+                            onChange={handleYouTubeUrlChange}
+                            onBlur={handleYouTubeUrlBlur}
+                            placeholder="https://youtube.com/watch?v=... or youtu.be/..."
+                            className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Paste any YouTube URL format - video ID will be extracted automatically
+                          </p>
+                        </div>
+                      )}
+
+                      {/* General URL Input */}
+                      {showUrlInput && (
+                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                          <label htmlFor="background-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            {backgroundType === 'image' ? 'Image URL' : 'Video URL (YouTube or MP4)'}
+                          </label>
+                          <input
+                            type="text"
+                            id="background-url"
+                            value={localBackgroundImageUrl}
+                            onChange={handleUrlInputChange}
+                            onBlur={handleUrlInputBlur}
+                            placeholder={backgroundType === 'image' ? 'https://example.com/image.png' : 'https://youtube.com/watch?v=... or https://example.com/video.mp4'}
+                            className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {backgroundType === 'video' && (

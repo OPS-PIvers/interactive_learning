@@ -20,6 +20,7 @@ import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
+import { createMobileOptimizedUploadHandler } from '../utils/enhancedUploadHandler';
 import MediaModal from './MediaModal';
 import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
@@ -1272,31 +1273,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [moduleState, isEditing]);
 
 
-  const handleImageUpload = useCallback(async (file: File) => {
-    // If there's already an image and hotspots, warn the user
-    if (backgroundImage && hotspots.length > 0) {
-      const confirmReplace = confirm(
-        `Replacing the image may affect hotspot positioning. You have ${hotspots.length} hotspot(s) that may need to be repositioned.\n\nDo you want to continue?`
-      );
-      if (!confirmReplace) return;
-    }
-    
-    debugLog('Image', 'Image upload started', { fileName: file.name, fileSize: file.size });
-    setImageLoading(true);
-
-    try {
-      // Upload to Firebase Storage and get URL
-      const imageUrl = await appScriptProxy.uploadImage(file, projectId);
-      setBackgroundImage(imageUrl);
-      setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
-      setEditingZoom(1);
-      setImageLoading(false);
-    } catch (error) {
-      setImageLoading(false);
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
-    }
-  }, [backgroundImage, hotspots.length, debugLog, projectId]);
+  const handleImageUpload = useMemo(() => 
+    createMobileOptimizedUploadHandler(
+      projectId,
+      setImageLoading,
+      setBackgroundImage,
+      setImageTransform,
+      setEditingZoom,
+      debugLog,
+      hotspots
+    ), 
+    [projectId, setImageLoading, setBackgroundImage, setImageTransform, setEditingZoom, debugLog, hotspots]
+  );
 
 
   // New handleAddHotspot function as per plan
