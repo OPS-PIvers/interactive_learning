@@ -41,21 +41,62 @@ export async function generateThumbnail(
         return reject(new Error('Failed to get canvas context.'));
       }
 
-      let sourceWidth = img.width;
-      let sourceHeight = img.height;
+      const MAX_DIMENSION = 4096;
+      if (img.width <= 0 || img.height <= 0) {
+        return reject(new Error(`Invalid source image dimensions: ${img.width}x${img.height}.`));
+      }
+      if (targetWidth <= 0 || targetHeight <= 0) {
+        return reject(new Error(`Target dimensions must be positive: ${targetWidth}x${targetHeight}.`));
+      }
+      if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+        return reject(new Error(`Target dimensions (${targetWidth}x${targetHeight}) exceed the maximum allowed dimension of ${MAX_DIMENSION}px.`));
+      }
+      const sourceWidth = img.width;
+      const sourceHeight = img.height;
 
-      const ratio = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
-      let destWidth = sourceWidth;
-      let destHeight = sourceHeight;
+      // Calculate the aspect ratios
+      const sourceAspectRatio = sourceWidth / sourceHeight;
+      const targetAspectRatio = targetWidth / targetHeight;
 
-      if (ratio < 1) { // Only scale down
-        destWidth = Math.round(sourceWidth * ratio);
-        destHeight = Math.round(sourceHeight * ratio);
+      let drawWidth: number, drawHeight: number, drawX: number, drawY: number;
+
+      const EPSILON = 1e-5;
+      // Determine how to crop the image to fit the target aspect ratio
+      if (sourceAspectRatio > targetAspectRatio + EPSILON) {
+        // Source image is wider than target
+        drawHeight = sourceHeight;
+        drawWidth = Math.round(sourceHeight * targetAspectRatio);
+        drawX = Math.round((sourceWidth - drawWidth) / 2);
+        drawY = 0;
+      } else if (sourceAspectRatio < targetAspectRatio - EPSILON) {
+        // Source image is taller than target
+        drawWidth = sourceWidth;
+        drawHeight = Math.round(sourceWidth / targetAspectRatio);
+        drawY = Math.round((sourceHeight - drawHeight) / 2);
+        drawX = 0;
+      } else {
+        // Source image is close enough to the target aspect ratio, no cropping needed
+        drawWidth = sourceWidth;
+        drawHeight = sourceHeight;
+        drawX = 0;
+        drawY = 0;
       }
 
-      canvas.width = Math.max(1, destWidth);
-      canvas.height = Math.max(1, destHeight);
-      ctx.drawImage(img, 0, 0, destWidth, destHeight);
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Draw the cropped and resized image onto the canvas
+      ctx.drawImage(
+        img,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+      );
 
       canvas.toBlob(
         (blob) => {
