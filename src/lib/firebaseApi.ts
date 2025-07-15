@@ -232,7 +232,8 @@ export class FirebaseProjectAPI {
           finalThumbnailUrl = await this.uploadImage(thumbnailFile, project.id + THUMBNAIL_POSTFIX);
           console.log(`New thumbnail generated and uploaded: ${finalThumbnailUrl}`);
         } catch (thumbError) {
-          console.error(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+          console.warn(`Failed to generate/upload new thumbnail for ${project.id}:`, thumbError);
+          console.warn('Continuing with project save without thumbnail update');
           finalThumbnailUrl = existingThumbnailUrl || null;
           newBackgroundImageForUpdate = existingBackgroundImage || null;
           oldThumbnailUrlToDeleteAfterCommit = null;
