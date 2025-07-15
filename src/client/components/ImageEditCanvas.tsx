@@ -204,8 +204,19 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         // If currently placing a hotspot and the click is on the canvas background (not a hotspot itself)
         if (isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current) {
           const target = e.target as HTMLElement;
-          // Check if the click was directly on the image or its container, not on a hotspot viewer
-          if (target === actualImageRef.current || target === zoomedImageContainerRef.current || target === scrollableContainerRef.current) {
+          // Check if the click was on the image or its containers, not on a hotspot viewer
+          // Allow clicks on the image element itself, its containers, or any descendant within the image area
+          const isValidTarget = 
+            target === actualImageRef.current || 
+            target === zoomedImageContainerRef.current || 
+            target === scrollableContainerRef.current ||
+            (actualImageRef.current && actualImageRef.current.contains(target)) ||
+            (zoomedImageContainerRef.current && zoomedImageContainerRef.current.contains(target));
+          
+          // Don't place hotspot if clicking on an existing hotspot
+          const isClickingOnHotspot = target.closest('[data-hotspot-id]') !== null;
+          
+          if (isValidTarget && !isClickingOnHotspot) {
             const imageRect = actualImageRef.current.getBoundingClientRect();
             const scrollRect = scrollableContainerRef.current?.getBoundingClientRect();
 
