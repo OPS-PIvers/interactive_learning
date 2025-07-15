@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import InteractiveModule from '../client/components/InteractiveModule';
@@ -48,12 +48,13 @@ describe('InteractiveModule', () => {
   };
 
   const getProps = (viewerModesOptions?: { explore?: boolean; selfPaced?: boolean; timed?: boolean }) => ({
-    initialData: { ...defaultInitialData, viewerModes: viewerModesOptions || { explore: true, selfPaced: true, timed: true} },
+    initialData: defaultInitialData,
     isEditing: false,
     onSave: mockOnSave,
     onClose: mockOnClose,
     projectName: 'Test Project',
     isSharedView: true, // To ensure viewer mode UI is shown
+    viewerModes: viewerModesOptions || { explore: true, selfPaced: true, timed: true },
   });
 
   beforeEach(() => {
@@ -141,8 +142,9 @@ describe('InteractiveModule', () => {
 
       // Re-render or wait for state update. For this component, it might auto-hide.
       // Check if the overlay is gone. This depends on the component's internal logic for hiding the overlay.
-      overlay = screen.queryByText('Interactive Module Ready')?.closest('div.bg-black\\/40');
-      expect(overlay).not.toBeInTheDocument();
+      const moduleReadyText = screen.queryByText('Interactive Module Ready');
+      const overlayAfterClick = moduleReadyText?.closest('div.bg-black\\/40') || null;
+      expect(overlayAfterClick).not.toBeInTheDocument();
 
     });
   });
