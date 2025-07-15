@@ -2961,6 +2961,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     previewOverlayEvent={previewOverlayEvent}
                     onPreviewOverlayUpdate={handlePreviewOverlayUpdate}
                  isPlacingHotspot={isPlacingHotspot} // Pass down isPlacingHotspot
+                 onPlaceNewHotspot={handlePlaceNewHotspot} // CRITICAL FIX: Add missing onPlaceNewHotspot prop for desktop
                   />
                 </div>
 
