@@ -376,11 +376,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AuthModal isOpen={true} />
-      </div>
-    );
+    return <AuthModal isOpen={true} />;
   }
 
   return (
