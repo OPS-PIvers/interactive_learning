@@ -239,11 +239,13 @@ export async function handleEnhancedImageUpload(
       baseDelay: isMobile ? 2000 : 1000,
       maxDelay: isMobile ? 30000 : 15000,
       retryCondition: (error) => {
-        // Don't retry authentication errors or file size errors
+        // Don't retry authentication errors, file size errors, or permission errors
         if (error instanceof Error) {
           return !error.message.includes('auth/user-not-authenticated') &&
                  !error.message.includes('SIZE_ERROR') &&
-                 !error.message.includes('file too large');
+                 !error.message.includes('file too large') &&
+                 !error.message.includes('storage/unauthorized') &&
+                 !error.message.includes('permission denied');
         }
         return true;
       }

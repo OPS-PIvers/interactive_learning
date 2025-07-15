@@ -33,6 +33,13 @@ export function getDefaultRetryOptions(): RetryOptions {
       // Retry network errors, timeouts, and some Firebase errors
       if (error instanceof Error) {
         const message = error.message.toLowerCase();
+        // Don't retry permission errors
+        if (message.includes('storage/unauthorized') || 
+            message.includes('permission denied') ||
+            message.includes('storage/object-not-found') ||
+            message.includes('storage/bucket-not-found')) {
+          return false;
+        }
         return message.includes('network') || 
                message.includes('timeout') || 
                message.includes('fetch') ||
