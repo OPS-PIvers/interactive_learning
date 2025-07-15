@@ -41,6 +41,9 @@ export async function generateThumbnail(
         return reject(new Error('Failed to get canvas context.'));
       }
 
+      if (img.width <= 0 || img.height <= 0 || targetWidth <= 0 || targetHeight <= 0) {
+        return reject(new Error('Image dimensions and target dimensions must be positive numbers.'));
+      }
       const sourceWidth = img.width;
       const sourceHeight = img.height;
 
