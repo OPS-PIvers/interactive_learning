@@ -306,6 +306,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Preview overlay state for visual editing
   const [previewOverlayEvent, setPreviewOverlayEvent] = useState<TimelineEventData | null>(null);
   
+  // Mobile preview state for the new preview feature
+  const [mobilePreviewEvents, setMobilePreviewEvents] = useState<TimelineEventData[]>([]);
+  const [isMobilePreviewMode, setIsMobilePreviewMode] = useState(false);
+  
   // TEMPORARY: Log state changes
   useEffect(() => {
     console.log('🔍 PREVIEW DEBUG: highlightedHotspotId state changed', highlightedHotspotId);
@@ -556,6 +560,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setPreviewOverlayEvent(updatedEvent);
     }
   }, [timelineEvents, previewOverlayEvent]);
+
+  // Handle mobile preview events
+  const handleMobilePreviewEvent = useCallback((event: TimelineEventData) => {
+    setMobilePreviewEvents([event]);
+    setIsMobilePreviewMode(true);
+  }, []);
+
+  const handleStopMobilePreview = useCallback(() => {
+    setMobilePreviewEvents([]);
+    setIsMobilePreviewMode(false);
+  }, []);
 
   // Touch gesture handling
   const touchGestureHandlers = useTouchGestures(
@@ -2711,6 +2726,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             onAddTimelineEvent={handleAddTimelineEvent}
             onUpdateTimelineEvent={handleUpdateTimelineEvent}
             onDeleteTimelineEvent={handleDeleteTimelineEvent}
+            previewingEvents={mobilePreviewEvents}
+            onPreviewEvent={handleMobilePreviewEvent}
+            onStopPreview={handleStopMobilePreview}
           >
             {/* Pass the existing ImageEditCanvas as children */}
             <div
@@ -2747,6 +2765,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 getImageBounds={getSafeImageBounds}
                 imageNaturalDimensions={imageNaturalDimensions}
                 imageFitMode={imageFitMode}
+                previewingEvents={mobilePreviewEvents}
+                isPreviewMode={isMobilePreviewMode}
               />
             </div>
           </MobileEditorLayout>
