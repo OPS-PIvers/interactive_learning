@@ -201,66 +201,81 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         cursor: isPlacingHotspot ? 'crosshair' : (isDragModeActive ? 'grabbing' : (isEditing && backgroundImage ? 'crosshair' : 'default')),
       }}
       onClick={(e) => {
+        console.log('Debug [ImageEditCanvas]: Click handler called', {
+          target: e.target,
+          currentTarget: e.currentTarget,
+          isPlacingHotspot,
+          timestamp: Date.now()
+        });
+
         // If currently placing a hotspot and the click is on the canvas background (not a hotspot itself)
         if (isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current) {
           const target = e.target as HTMLElement;
-          // Check if the click was on the image or its containers, not on a hotspot viewer
-          // Allow clicks on the image element itself, its containers, or any descendant within the image area
-          const isValidTarget = 
-            target === actualImageRef.current || 
-            target === zoomedImageContainerRef.current || 
-            target === scrollableContainerRef.current ||
-            (actualImageRef.current && actualImageRef.current.contains(target)) ||
-            (zoomedImageContainerRef.current && zoomedImageContainerRef.current.contains(target));
           
           // Don't place hotspot if clicking on an existing hotspot
           const isClickingOnHotspot = target.closest('[data-hotspot-id]') !== null;
           
-          if (isValidTarget && !isClickingOnHotspot) {
+          console.log('Debug [ImageEditCanvas]: Placement mode validation', {
+            isClickingOnHotspot,
+            targetTagName: target.tagName,
+            targetClassName: target.className,
+            isImageElement: target === actualImageRef.current,
+            timestamp: Date.now()
+          });
+          
+          if (!isClickingOnHotspot) {
+            // More permissive target validation - allow clicks on the image or its containers
             const imageRect = actualImageRef.current.getBoundingClientRect();
-            const scrollRect = scrollableContainerRef.current?.getBoundingClientRect();
+            
+            // Check if click is within image bounds regardless of the exact target
+            if (e.clientX >= imageRect.left && e.clientX <= imageRect.right &&
+                e.clientY >= imageRect.top && e.clientY <= imageRect.bottom) {
+              
+              const clickXRelativeToImageOrigin = e.clientX - imageRect.left;
+              const clickYRelativeToImageOrigin = e.clientY - imageRect.top;
 
-            if (!scrollRect) return;
+              // Convert to coordinates on the unzoomed, natural-sized image
+              const xOnNaturalImage = (clickXRelativeToImageOrigin / imageRect.width) * actualImageRef.current.naturalWidth;
+              const yOnNaturalImage = (clickYRelativeToImageOrigin / imageRect.height) * actualImageRef.current.naturalHeight;
 
-            // Calculate click position relative to the scrollable container
-            const clickXInScrollContainer = e.clientX - scrollRect.left;
-            const clickYInScrollContainer = e.clientY - scrollRect.top;
+              // Convert to percentage of the natural image dimensions
+              const xPercent = (xOnNaturalImage / actualImageRef.current.naturalWidth) * 100;
+              const yPercent = (yOnNaturalImage / actualImageRef.current.naturalHeight) * 100;
 
-            // Account for current scroll position of the container
-            const scrollLeft = scrollableContainerRef.current?.scrollLeft || 0;
-            const scrollTop = scrollableContainerRef.current?.scrollTop || 0;
+              // Clamp values between 0 and 100
+              const finalXPercent = Math.max(0, Math.min(100, xPercent));
+              const finalYPercent = Math.max(0, Math.min(100, yPercent));
 
-            // Click position relative to the actual image element's top-left corner (considering its current display rect)
-            const clickXRelativeToImageOrigin = e.clientX - imageRect.left;
-            const clickYRelativeToImageOrigin = e.clientY - imageRect.top;
+              console.log('Debug [ImageEditCanvas]: Creating hotspot', {
+                clickX: clickXRelativeToImageOrigin,
+                clickY: clickYRelativeToImageOrigin,
+                xPercent,
+                yPercent,
+                finalXPercent,
+                finalYPercent,
+                timestamp: Date.now()
+              });
 
-            // Convert to coordinates on the unzoomed, natural-sized image
-            // The imageRect dimensions (width/height) are the displayed size, already affected by zoom.
-            // We need to map the click point (which is on the displayed image) back to the natural image.
-            const xOnNaturalImage = (clickXRelativeToImageOrigin / imageRect.width) * actualImageRef.current.naturalWidth;
-            const yOnNaturalImage = (clickYRelativeToImageOrigin / imageRect.height) * actualImageRef.current.naturalHeight;
-
-            // Convert to percentage of the natural image dimensions
-            const xPercent = (xOnNaturalImage / actualImageRef.current.naturalWidth) * 100;
-            const yPercent = (yOnNaturalImage / actualImageRef.current.naturalHeight) * 100;
-
-            // Clamp values between 0 and 100
-            const finalXPercent = Math.max(0, Math.min(100, xPercent));
-            const finalYPercent = Math.max(0, Math.min(100, yPercent));
-
-            onPlaceNewHotspot(finalXPercent, finalYPercent);
-            e.stopPropagation(); // Prevent other click handlers
-            return;
+              onPlaceNewHotspot(finalXPercent, finalYPercent);
+              e.stopPropagation(); // Prevent other click handlers
+              return;
+            }
           }
         }
+        
         // Default behavior if not placing a hotspot
         console.log('Debug [ImageEditCanvas]: Container click detected (default)', {
           target: e.target,
           currentTarget: e.currentTarget,
           isEditing,
+          isPlacingHotspot,
           timestamp: Date.now()
         });
-        onImageOrHotspotClick && onImageOrHotspotClick(e);
+        
+        // Only call the background click handler if we're not in placement mode
+        if (!isPlacingHotspot) {
+          onImageOrHotspotClick && onImageOrHotspotClick(e);
+        }
       }}
     >
       <div

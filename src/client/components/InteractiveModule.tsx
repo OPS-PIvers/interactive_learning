@@ -1431,8 +1431,52 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       target: event.target,
       currentTarget: event.currentTarget,
       hotspotIdFromCanvas,
+      isPlacingHotspot,
       timestamp: Date.now()
     });
+    
+    // CRITICAL FIX: Check for placement mode first
+    if (isPlacingHotspot) {
+      console.log('Debug [InteractiveModule]: In placement mode, checking if click should create hotspot');
+      
+      // If we're in placement mode, we should only handle hotspot creation
+      // The ImageEditCanvas should handle the actual placement, but if it reaches here,
+      // it means the placement logic didn't work, so we need to handle it
+      
+      const target = event.target as HTMLElement;
+      const isClickingOnHotspot = target.closest('[data-hotspot-id]') !== null;
+      
+      if (!isClickingOnHotspot && actualImageRef.current) {
+        // Calculate click position and create hotspot
+        const imageRect = actualImageRef.current.getBoundingClientRect();
+        
+        // Check if click is within image bounds
+        if (event.clientX >= imageRect.left && event.clientX <= imageRect.right &&
+            event.clientY >= imageRect.top && event.clientY <= imageRect.bottom) {
+          
+          const clickX = event.clientX - imageRect.left;
+          const clickY = event.clientY - imageRect.top;
+          
+          const xPercent = (clickX / imageRect.width) * 100;
+          const yPercent = (clickY / imageRect.height) * 100;
+          
+          const finalXPercent = Math.max(0, Math.min(100, xPercent));
+          const finalYPercent = Math.max(0, Math.min(100, yPercent));
+          
+          console.log('Debug [InteractiveModule]: Creating hotspot from handleImageOrHotspotClick', {
+            clickX, clickY, xPercent, yPercent, finalXPercent, finalYPercent
+          });
+          
+          handlePlaceNewHotspot(finalXPercent, finalYPercent);
+          return; // Exit early after creating hotspot
+        }
+      }
+      
+      // If we're in placement mode but the click wasn't valid for placement,
+      // don't treat it as a background click - just return
+      console.log('Debug [InteractiveModule]: In placement mode but click not valid for placement');
+      return;
+    }
     
     // Check if the click target or its parent has the data-hotspot-id attribute
     let targetElement = event.target as HTMLElement;
@@ -1468,22 +1512,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       console.log('Debug [InteractiveModule]: Background clicked via container', {
         isEditing,
         currentEditingHotspot: editingHotspot?.id,
+        isPlacingHotspot,
         timestamp: Date.now()
       });
       
-      // Clicked on background or an unidentifiable part of the canvas
-      // Only update if there was a hotspot being edited
-      if (editingHotspot !== null) {
-        setEditingHotspot(null); // Close any open editor modal
-      }
+      // Only treat as background click if we're not in placement mode
+      if (!isPlacingHotspot) {
+        // Clicked on background or an unidentifiable part of the canvas
+        // Only update if there was a hotspot being edited
+        if (editingHotspot !== null) {
+          setEditingHotspot(null); // Close any open editor modal
+        }
 
-      // Existing logic for idle mode background click (if applicable when clicking canvas background)
-      if (moduleState === 'idle' && !isEditing && backgroundImage) {
-          setExploredHotspotId(null);
-          setExploredHotspotPanZoomActive(false);
+        // Existing logic for idle mode background click (if applicable when clicking canvas background)
+        if (moduleState === 'idle' && !isEditing && backgroundImage) {
+            setExploredHotspotId(null);
+            setExploredHotspotPanZoomActive(false);
+        }
       }
     }
-  }, [hotspots, moduleState, isEditing, backgroundImage, isDragModeActive]);
+  }, [hotspots, moduleState, isEditing, backgroundImage, isDragModeActive, isPlacingHotspot, editingHotspot, actualImageRef, handlePlaceNewHotspot]);
 
   const handleHotspotClick = useCallback((hotspotId: string) => {
     // This handler is for viewer mode clicks. It forwards to the main focus handler.
