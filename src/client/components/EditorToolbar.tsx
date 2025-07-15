@@ -9,6 +9,7 @@ import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 import ShareModal from './ShareModal';
+import AuthButton from './AuthButton';
 import { Project } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 
@@ -148,7 +149,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             </button>
           </div>
 
-          {/* Right: Save, Share & Menu */}
+          {/* Right: Save, Share, Auth & Menu */}
           <div className="flex items-center gap-1">
             <button
               onClick={props.onSave}
@@ -174,6 +175,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
                 </svg>
               </button>
             )}
+            <AuthButton variant="compact" />
             <button
               onClick={() => setShowMobileMenu(true)} // Open collapsible menu/modal
               className="p-2 text-slate-300 hover:text-white transition-colors"
@@ -328,6 +330,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             >
               Settings
             </button>
+
+            <div className="h-6 w-px bg-slate-600" />
+
+            {/* Auth Button */}
+            <AuthButton variant="toolbar" showUserName={true} />
           </div>
         </div>
       </div>
