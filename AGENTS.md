@@ -188,5 +188,202 @@ vitest.config.ts  # Vitest test runner configuration
 
 ---
 
+## 🚨 CRITICAL: TDZ (Temporal Dead Zone) ERROR PREVENTION
+
+**EVERY DEVELOPMENT TASK MUST FOLLOW THESE RULES TO PREVENT TDZ ERRORS:**
+
+### Import/Export Order Rules:
+```typescript
+// ✅ CORRECT ORDER:
+// 1. React imports first
+import React, { useState, useEffect, useCallback } from 'react';
+// 2. Third-party imports
+import { DndProvider } from 'react-dnd';
+// 3. Internal types and interfaces
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+// 4. Internal components (no circular imports!)
+import { MobileSlider } from './MobileSlider';
+// 5. Relative imports last
+import './styles.css';
+
+// ❌ NEVER DO:
+import { ComponentThatImportsThis } from './ComponentThatImportsThis'; // Circular!
+```
+
+### Component Declaration Rules:
+```typescript
+// ✅ CORRECT - Declare interfaces before components:
+interface Props {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+// ✅ CORRECT - Use const declarations for components:
+const MyComponent: React.FC<Props> = ({ value, onChange }) => {
+  // Component logic here
+};
+
+// ✅ CORRECT - Export after declaration:
+export default MyComponent;
+
+// ❌ NEVER DO - Function declarations can cause hoisting issues:
+function MyComponent() { } // Avoid this pattern
+```
+
+### State Initialization Rules:
+```typescript
+// ✅ CORRECT - Initialize all state with proper defaults:
+const [eventSettings, setEventSettings] = useState<EventSettings>({
+  type: InteractionType.SHOW_TEXT,
+  enabled: false,
+  // Always provide complete initial state
+});
+
+// ✅ CORRECT - Use callback pattern for expensive initialization:
+const [computedState, setComputedState] = useState(() => {
+  return expensiveComputation();
+});
+
+// ❌ NEVER DO - Undefined initial state:
+const [settings, setSettings] = useState<Settings>(); // TDZ risk!
+```
+
+### Hook Dependencies Rules:
+```typescript
+// ✅ CORRECT - List all dependencies:
+useEffect(() => {
+  if (hotspot && eventType) {
+    updateEvent();
+  }
+}, [hotspot, eventType, updateEvent]); // All dependencies listed
+
+// ✅ CORRECT - Use useCallback for functions used in dependencies:
+const updateEvent = useCallback(() => {
+  // function logic
+}, [dependency1, dependency2]);
+
+// ❌ NEVER DO - Missing dependencies:
+useEffect(() => {
+  updateEvent();
+}, []); // Missing dependencies causes stale closures
+```
+
+### Variable Access Rules:
+```typescript
+// ✅ CORRECT - Check existence before access:
+const handleUpdate = () => {
+  if (selectedHotspot?.id) {
+    processHotspot(selectedHotspot.id);
+  }
+};
+
+// ✅ CORRECT - Use optional chaining:
+const title = hotspot?.title || 'Default Title';
+
+// ❌ NEVER DO - Access without checking:
+const id = selectedHotspot.id; // TDZ error if selectedHotspot is undefined
+```
+
+### Component Integration Rules:
+```typescript
+// ✅ CORRECT - Always check props before rendering:
+if (!isOpen || !hotspot) {
+  return null;
+}
+
+// ✅ CORRECT - Provide fallbacks for undefined props:
+const eventList = events || [];
+
+// ❌ NEVER DO - Render without checking:
+return <div>{hotspot.title}</div>; // TDZ error if hotspot is undefined
+```
+
+**VALIDATION CHECKLIST FOR EVERY TASK:**
+- [ ] No circular imports between new and existing files
+- [ ] All imports follow correct order (React → 3rd party → internal → relative)
+- [ ] All state initialized with proper defaults
+- [ ] All useEffect dependencies properly listed
+- [ ] All props checked before use
+- [ ] All optional chaining used where needed
+- [ ] No access to variables before declaration
+- [ ] All exports come after declarations
+
+### TDZ Error Prevention Validation
+**MUST be run after EVERY completed task**
+
+**TDZ Testing Checklist:**
+```bash
+# 1. Build test - catches most TDZ errors
+npm run build
+
+# 2. TypeScript check
+npm run type-check
+
+# 3. Start dev server and check console
+npm run dev
+# Look for errors like:
+# - "Cannot access 'X' before initialization"
+# - "X is not defined"
+# - "Cannot read property of undefined"
+
+# 4. Test specific user flows:
+# - Open mobile editor
+# - Create new hotspot
+# - Add different event types
+# - Preview events
+# - Switch between tabs
+# - Save and reload
+
+# 5. Check browser console for any errors during these flows
+```
+
+**Common TDZ Error Patterns to Check:**
+- Components that don't render (blank screens)
+- State that resets unexpectedly
+- Functions that are undefined when called
+- Import errors in dev tools
+- Circular dependency warnings
+
+**If TDZ errors found:**
+1. Check import order in affected files
+2. Verify all state has default values
+3. Check for circular imports between components
+4. Ensure all variables declared before use
+5. Add optional chaining where needed
+
+---
+
+## ACTIVE TASKS
+
+### Performance Optimization for Mobile (In Progress)
+**Status:** Partial completion
+**Files to modify:** All mobile components
+
+**Remaining optimizations needed:**
+- Virtual scrolling for long event lists (SKIPPED due to complexity with dnd-kit)
+- Memory leak prevention (COMPLETED - code review found no leaks)
+- Bundle size optimization (COMPLETED - analysis showed good chunking)
+
+**Completed optimizations:**
+- ✅ Lazy loading of event settings components
+- ✅ Image optimization and lazy loading  
+- ✅ Animation performance optimization
+
+### Create Mobile Editor Test Suite (Pending)
+**Status:** Not started
+**Files to create:**
+- `src/client/components/mobile/__tests__/`
+- Test files for all mobile components
+
+**Test coverage needed:**
+- Unit tests for all mobile components
+- Integration tests for event creation workflow
+- Touch gesture testing
+- Performance testing on various devices
+- Accessibility testing
+- Cross-browser mobile testing
+
+---
+
 // This is a complex interactive application with mobile-first design and accessibility requirements
 // Always prioritize user experience and code maintainability over feature velocity
