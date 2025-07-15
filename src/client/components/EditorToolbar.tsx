@@ -334,7 +334,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             <div className="h-6 w-px bg-slate-600" />
 
             {/* Auth Button */}
-            <AuthButton variant="toolbar" showUserName={true} />
+            <AuthButton variant="toolbar" />
           </div>
         </div>
       </div>

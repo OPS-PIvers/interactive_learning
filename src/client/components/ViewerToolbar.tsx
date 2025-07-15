@@ -142,7 +142,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
               )}
             </div>
           )}
-          <AuthButton variant="toolbar" showUserName={true} />
+          <AuthButton variant="toolbar" />
         </div>
       </div>
     </div>
