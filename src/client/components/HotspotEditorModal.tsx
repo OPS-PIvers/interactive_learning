@@ -204,7 +204,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
       ...(type === InteractionType.SHOW_VIDEO && {
         videoUrl: '', // Correct field for SHOW_VIDEO
-        mediaType: 'video',
+        mediaType: 'mp4',
         name: 'New Video Modal',
         autoplay: false,
         loop: false,

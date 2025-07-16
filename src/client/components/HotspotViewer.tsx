@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
+import { useMobileTouchGestures } from '../hooks/useMobileTouchGestures';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -133,6 +134,41 @@ const getActualImageVisibleBounds = (
   const lastTapTimeRef = useRef(0);
   const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
   
+  // Mobile touch gestures
+  const handleTap = useCallback((id: string) => {
+    if (isEditing && onEditRequest) {
+      onEditRequest(id);
+    } else {
+      onFocusRequest(id);
+    }
+  }, [isEditing, onEditRequest, onFocusRequest]);
+
+  const handleDoubleTap = useCallback((id: string) => {
+    if (isMobile && !isEditing && props.onHotspotDoubleClick) {
+      // Create a synthetic pointer event for compatibility
+      const syntheticEvent = new PointerEvent('pointermove', {
+        pointerId: 1,
+        clientX: 0,
+        clientY: 0,
+        bubbles: true,
+        cancelable: true
+      }) as unknown as React.PointerEvent;
+      props.onHotspotDoubleClick(id, syntheticEvent);
+    }
+  }, [isMobile, isEditing, props.onHotspotDoubleClick]);
+
+  const handleLongPress = useCallback((id: string) => {
+    if (isEditing && onEditRequest) {
+      onEditRequest(id);
+    }
+  }, [isEditing, onEditRequest]);
+
+  const { handleTouchStart, handleTouchEnd } = useMobileTouchGestures(
+    handleTap,
+    handleDoubleTap,
+    handleLongPress
+  );
+  
   // Cleanup effect for timeout
   useEffect(() => {
     return () => {
@@ -215,7 +251,7 @@ const getActualImageVisibleBounds = (
       initialHotspotTop_inContainer = currentPixelPos.y;
     } else {
       // Calculate pixel position from percentage coordinates and container bounds
-      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement, containerElement as HTMLElement);
+      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement || null, containerElement as HTMLElement);
       
       if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
         // Calculate hotspot position relative to the visible image bounds
@@ -303,7 +339,7 @@ const getActualImageVisibleBounds = (
     // If actively dragging and containerElement exists
     if (isDragging && containerElement) {
       // Get the actual visible image bounds relative to the drag container (zoomedImageContainerRef)
-      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement, containerElement as HTMLElement);
+      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement || null, containerElement as HTMLElement);
 
       if (!visibleImageBounds || visibleImageBounds.width === 0 || visibleImageBounds.height === 0) {
         // Fallback or error handling if bounds are not valid
@@ -471,6 +507,8 @@ const getActualImageVisibleBounds = (
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}  
       onPointerUp={handlePointerUp}
+      onTouchStart={isMobile ? (e) => handleTouchStart(hotspot.id, e) : undefined}
+      onTouchEnd={isMobile ? (e) => handleTouchEnd(hotspot.id) : undefined}
       onClick={isEditing ? (e) => {
         console.log('Debug [HotspotViewer]: onClick called, stopping propagation');
         e.stopPropagation();

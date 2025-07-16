@@ -312,18 +312,19 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
             </div>
             
             <div className="space-y-2">
-              {sortedEvents.map(event => (
+              {sortedEvents.map((event, index) => (
                 <EditableEventCard
                   key={event.id}
+                  index={index}
                   event={event}
                   isActive={currentStep === event.step}
-                  isBeingDragged={draggedEventId === event.id}
                   onUpdate={handleUpdateEvent}
                   onDelete={handleDeleteEvent}
                   onJumpToStep={onJumpToStep}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
+                  moveCard={() => {}} // TODO: Implement proper drag and drop
+                  onTogglePreview={() => {}} // TODO: Implement preview functionality
+                  isPreviewing={false}
+                  allHotspots={allHotspots}
                 />
               ))}
             </div>

@@ -327,12 +327,14 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             )}
 
             {/* Hotspots */}
-            {console.log('Debug [ImageEditCanvas]: Rendering hotspots', {
-              hotspotsCount: hotspotsWithPositions.length,
-              isEditing,
-              hotspotIds: hotspotsWithPositions.map(h => h.id),
-              timestamp: Date.now()
-            }) || hotspotsWithPositions.map(hotspot => (
+            {(() => {
+              console.log('Debug [ImageEditCanvas]: Rendering hotspots', {
+                hotspotsCount: hotspotsWithPositions.length,
+                isEditing,
+                hotspotIds: hotspotsWithPositions.map(h => h.id),
+                timestamp: Date.now()
+              });
+              return hotspotsWithPositions.map(hotspot => (
               <div
                 key={hotspot.id}
                 className="hotspot-viewer"
@@ -359,7 +361,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   dragContainerRef={zoomedImageContainerRef} // Pass the ref here
                 />
               </div>
-            ))}
+            ));
+            })()}
 
             {/* Preview Overlays - Only show when preview is active and in editing mode */}
             {isEditing && previewOverlayEvent && onPreviewOverlayUpdate && (

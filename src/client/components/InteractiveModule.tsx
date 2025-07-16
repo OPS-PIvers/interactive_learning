@@ -228,7 +228,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const pulseTimeoutRef = useRef<number | null>(null);
   const applyTransformTimeoutRef = useRef<number | null>(null);
   const debouncedApplyTransformTimeoutRef = useRef<number | null>(null);
-  const closeTimeoutRef = useRef<number | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
   const initTimeoutRef = useRef<number | null>(null);
   const stateChangeTimeoutRef = useRef<number | null>(null);
@@ -686,18 +686,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     src: string;
     poster?: string;
     autoplay?: boolean;
+    loop?: boolean;
   }
   
   interface AudioMediaData {
     src: string;
     title?: string;
     artist?: string;
+    loop?: boolean;
   }
   
   interface ImageMediaData {
     src: string;
     alt?: string;
     title?: string;
+    caption?: string;
   }
   
   interface YouTubeMediaData {
@@ -1361,7 +1364,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleImageUpload = useMemo(() => 
     createMobileOptimizedUploadHandler(
-      projectId,
+      projectId || '',
       setImageLoading,
       setBackgroundImage,
       setImageTransform,
@@ -1953,18 +1956,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         <div className="mt-2 border-t border-gray-600 pt-2">
           <div className="font-bold text-blue-400">Function Status</div>
           <div className="text-xs">
-            <span className={getSafeImageBounds ? 'text-green-400' : 'text-red-400'}>
-              getSafeImageBounds: {getSafeImageBounds ? '✓' : '✗'}
+            <span className={typeof getSafeImageBounds === 'function' ? 'text-green-400' : 'text-red-400'}>
+              getSafeImageBounds: {typeof getSafeImageBounds === 'function' ? '✓' : '✗'}
             </span>
           </div>
           <div className="text-xs">
-            <span className={getSafeViewportCenter ? 'text-green-400' : 'text-red-400'}>
-              getSafeViewportCenter: {getSafeViewportCenter ? '✓' : '✗'}
+            <span className={typeof getSafeViewportCenter === 'function' ? 'text-green-400' : 'text-red-400'}>
+              getSafeViewportCenter: {typeof getSafeViewportCenter === 'function' ? '✓' : '✗'}
             </span>
           </div>
           <div className="text-xs">
-            <span className={constrainTransform ? 'text-green-400' : 'text-red-400'}>
-              constrainTransform: {constrainTransform ? '✓' : '✗'}
+            <span className={typeof constrainTransform === 'function' ? 'text-green-400' : 'text-red-400'}>
+              constrainTransform: {typeof constrainTransform === 'function' ? '✓' : '✗'}
             </span>
           </div>
         </div>
