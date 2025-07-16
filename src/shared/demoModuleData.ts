@@ -48,9 +48,9 @@ const timelineEvents: TimelineEventData[] = [
   // Step 13: Play Audio
   { id: 'te13', step: 13, name: 'Play Audio for hs12', type: InteractionType.PLAY_AUDIO, targetId: 'hs12', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', volume: 80 },
   // Step 14: Play Video
-  { id: 'te14', step: 14, name: 'Play Video for hs13', type: InteractionType.PLAY_VIDEO, targetId: 'hs13', videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', autoplay: true, loop: true },
+  { id: 'te14', step: 14, name: 'Play Video for hs13', type: InteractionType.PLAY_VIDEO, targetId: 'hs13', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', autoplay: true, loop: true },
   // Step 15: Show Video
-  { id: 'te15', step: 15, name: 'Show Video for hs14', type: InteractionType.SHOW_VIDEO, targetId: 'hs14', videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
+  { id: 'te15', step: 15, name: 'Show Video for hs14', type: InteractionType.SHOW_VIDEO, targetId: 'hs14', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
   // Step 16: Show Audio Modal
   { id: 'te16', step: 16, name: 'Show Audio Modal for hs15', type: InteractionType.SHOW_AUDIO_MODAL, targetId: 'hs15', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
   // Step 17: Show Image Modal

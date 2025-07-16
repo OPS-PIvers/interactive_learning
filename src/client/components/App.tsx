@@ -156,14 +156,20 @@ const MainApp: React.FC = () => {
           ...newProject,
           interactiveData: demoModuleData,
         };
-        await appScriptProxy.saveProject(projectWithDemoData);
-        setProjects(prevProjects => [...prevProjects, projectWithDemoData]);
-        setSelectedProject(projectWithDemoData);
-        setIsEditingMode(true);
-        setIsModalOpen(true);
+        
+        try {
+          await appScriptProxy.saveProject(projectWithDemoData);
+          setProjects(prevProjects => [...prevProjects, projectWithDemoData]);
+          setSelectedProject(projectWithDemoData);
+          setIsEditingMode(true);
+          setIsModalOpen(true);
+        } catch (saveErr: any) {
+          console.error("Failed to save demo project data:", saveErr);
+          setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
+        }
       } catch (err: any) {
         console.error("Failed to create demo project:", err);
-        setError(`Failed to create demo project: ${err.message || ''}`);
+        setError(`Failed to create demo project: ${err.message || 'Please try again.'}`);
       } finally {
         setIsLoading(false);
       }
