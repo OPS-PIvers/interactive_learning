@@ -99,7 +99,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     const newInternalHotspot = { ...internalHotspot, [field]: value };
     setInternalHotspot(newInternalHotspot);
 
-    if (field === 'title' || field === 'description' || field === 'mediaUrl') {
+    if (field === 'title' || field === 'description') {
       debouncedOnUpdate({ [field]: value });
     } else {
       debouncedOnUpdate.flush(); // Ensure pending text updates are saved
@@ -164,11 +164,11 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         </label>
         <input
           type="url"
-          id="hotspotMediaUrl"
-          value={internalHotspot.mediaUrl || ''}
-          onChange={(e) => handleChange('mediaUrl', e.target.value)}
+          id="hotspotLink"
+          value={internalHotspot.link || ''}
+          onChange={(e) => handleChange('link', e.target.value)}
           className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500"
-          placeholder="https://example.com/image.jpg or video.mp4"
+          placeholder="https://example.com/link"
         />
       </div>
     </div>
@@ -204,7 +204,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
               className={`aspect-square rounded-lg border-2 flex items-center justify-center
                           ${internalHotspot.backgroundColor === option.value ? 'border-white ring-2 ring-purple-500' : 'border-transparent hover:border-slate-400'}`}
               style={{ backgroundColor: option.color }}
-              aria-label={option.label}
+              aria-label={option.name}
             >
               {internalHotspot.backgroundColor === option.value && (
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">

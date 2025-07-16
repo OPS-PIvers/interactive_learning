@@ -3009,6 +3009,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 id: projectId,
                 title: projectName,
                 description: '',
+                createdBy: 'current-user', // TODO: Get actual user ID
                 interactiveData: {
                   backgroundImage,
                   backgroundType,
@@ -3145,6 +3146,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   onStepSelect={handleTimelineDotClick}
                   isEditing={isEditing}
                   timelineEvents={timelineEvents}
+                  setTimelineEvents={setTimelineEvents}
                   hotspots={hotspots}
                   isMobile={isMobile}
                   onAddStep={handleAddStep}
@@ -3253,7 +3255,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             autoplay={true}
                             loop={true}
                             showControls={false} // No controls for background video
-                            style={{ objectFit: imageFitMode }} // Apply fit mode
                           />
                         ) : backgroundVideoType === 'mp4' ? (
                           <VideoPlayer
@@ -3262,7 +3263,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                             autoplay={true}
                             loop={true}
                             muted={true}
-                            style={{ objectFit: imageFitMode }} // Apply fit mode
                           />
                         ) : null // Should ideally show an error or fallback if video type is unknown
                       ) : null}
@@ -3365,6 +3365,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   onStepSelect={handleTimelineDotClick}
                   isEditing={isEditing}
                   timelineEvents={timelineEvents}
+                  setTimelineEvents={setTimelineEvents}
                   hotspots={hotspots}
                   moduleState={moduleState}
                   onPrevStep={handlePrevStep}

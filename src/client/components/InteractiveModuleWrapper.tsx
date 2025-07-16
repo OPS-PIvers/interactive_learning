@@ -42,7 +42,11 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
         title: selectedProject.title
       };
     }
-    return {};
+    return {
+      isOpen: true, // Default for non-modal usage
+      onClose: () => {},
+      title: ''
+    };
   }, [isEditingMode, isMobile, isModalOpen, onClose, selectedProject.title]);
   
   return (

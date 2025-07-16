@@ -301,9 +301,6 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
                 onAddTimelineEvent={onAddTimelineEvent}
                 onUpdateTimelineEvent={onUpdateTimelineEvent}
                 onDeleteTimelineEvent={onDeleteTimelineEvent}
-                onPreviewEvent={handlePreviewEvent}
-                onStopPreview={handleStopPreview}
-                previewingEvents={previewingEvents}
               />
             ) : (
               <div className="p-6 text-center text-slate-400">
