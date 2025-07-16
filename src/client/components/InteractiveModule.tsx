@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
+import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/deviceHandoff';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import FileUpload from './FileUpload';
@@ -15,9 +17,13 @@ import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileEditorLayout from './MobileEditorLayout';
 import ImageEditCanvas from './ImageEditCanvas';
+import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
+
+// Constants for cross-device sync
+const CROSS_DEVICE_SYNC_DEBOUNCE_MS = 2000;
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { createMobileOptimizedUploadHandler } from '../utils/enhancedUploadHandler';
@@ -330,6 +336,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [mobilePreviewEvents, setMobilePreviewEvents] = useState<TimelineEventData[]>([]);
   const [isMobilePreviewMode, setIsMobilePreviewMode] = useState(false);
   
+  // Cross-device sync
+  const { syncData, updateSyncPosition } = useCrossDeviceSync(projectId || null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+
   // TEMPORARY: Log state changes
   useEffect(() => {
     console.log('🔍 PREVIEW DEBUG: highlightedHotspotId state changed', highlightedHotspotId);
@@ -2756,6 +2766,34 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [imageTransform, debugMode, debugLog]);
 
+  useEffect(() => {
+    if (syncData) {
+      // Avoid syncing if the change is very recent to prevent loops
+      if (Date.now() - syncData.lastUpdated < CROSS_DEVICE_SYNC_DEBOUNCE_MS) return;
+
+      const stepExists = uniqueSortedSteps.includes(syncData.position);
+      if (stepExists && syncData.position !== currentStep) {
+        setCurrentStep(syncData.position);
+      }
+    }
+  }, [syncData, uniqueSortedSteps]);
+
+  useEffect(() => {
+    if (isEditing) return; // Only sync progress in viewer mode
+    updateSyncPosition(currentStep);
+  }, [currentStep, isEditing, updateSyncPosition]);
+
+  const handleGenerateQrCode = async () => {
+    if (!projectId) return;
+    const url = generateDeviceHandoffUrl(projectId, currentStep);
+    const dataUrl = await generateQrCodeDataUrl(url);
+    if (dataUrl) {
+      setQrCodeDataUrl(dataUrl);
+    } else {
+      console.error('Failed to generate QR code for device handoff');
+    }
+  };
+
   // ✅ IMPORTANT: All hooks must be called before any early returns
   
   // Master cleanup effect for component unmount
@@ -3102,6 +3140,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 onStartExploring={handleStartExploring}
                 hasContent={!!backgroundImage}
                 isMobile={isMobile}
+                onGenerateQrCode={handleGenerateQrCode}
                 viewerModes={currentViewerModes} // Pass current viewer modes state
               />
             </div>
@@ -3456,6 +3495,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             </div>
           )}
         </MediaModal>
+      )}
+
+      {qrCodeDataUrl && (
+        <Modal
+          isOpen={!!qrCodeDataUrl}
+          onClose={() => setQrCodeDataUrl(null)}
+          title="Continue on another device"
+        >
+          <div className="p-4 flex flex-col items-center">
+            <p className="text-center mb-4">
+              Scan this QR code with your mobile device to continue where you left off.
+            </p>
+            <img src={qrCodeDataUrl} alt="QR Code for device handoff" />
+          </div>
+        </Modal>
       )}
     </div>
   );

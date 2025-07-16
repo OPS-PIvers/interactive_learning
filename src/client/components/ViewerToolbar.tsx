@@ -10,6 +10,7 @@ interface ViewerToolbarProps {
   onStartExploring: () => void;
   hasContent: boolean;
   isMobile?: boolean;
+  onGenerateQrCode?: () => void;
   viewerModes?: { // Added viewerModes
     explore?: boolean;
     selfPaced?: boolean;
@@ -25,6 +26,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
   onStartExploring,
   hasContent,
   isMobile,
+  onGenerateQrCode,
   // Destructure viewerModes with a default value
   viewerModes = { explore: true, selfPaced: true, timed: true }
 }) => {
@@ -138,6 +140,15 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
                   }`}
                 >
                   Guided Tour
+                </button>
+              )}
+              {onGenerateQrCode && (
+                <button
+                  onClick={onGenerateQrCode}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-green-500"
+                  aria-label="Continue on another device"
+                >
+                  Sync
                 </button>
               )}
             </div>
