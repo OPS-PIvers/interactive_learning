@@ -76,10 +76,10 @@ service cloud.firestore {
     }
 
     // Cross-device sync collection - used for real-time progress sharing
-    // This allows any authenticated user to read/write to sync documents.
-    // The data is not sensitive (just module position), so this is acceptable.
+    // This allows the project owner to read/write to sync documents.
+    // The rule ensures that a user can only access the sync data for projects they own.
     match /crossDeviceSync/{syncId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && get(/databases/$(database)/documents/projects/$(syncId)).data.createdBy == request.auth.uid;
     }
     
     // Deny all other access
