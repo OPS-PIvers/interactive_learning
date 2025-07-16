@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
+// import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
 import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/deviceHandoff';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
@@ -345,7 +345,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [isMobilePreviewMode, setIsMobilePreviewMode] = useState(false);
   
   // Cross-device sync
-  const { syncData, updateSyncPosition } = useCrossDeviceSync(projectId || null);
+  // const { syncData, updateSyncPosition } = useCrossDeviceSync(projectId || null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
   // TEMPORARY: Log state changes
@@ -2849,22 +2849,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [imageTransform, debugMode, debugLog]);
 
-  useEffect(() => {
-    if (syncData) {
-      // Avoid syncing if the change is very recent to prevent loops
-      if (Date.now() - syncData.lastUpdated < CROSS_DEVICE_SYNC_DEBOUNCE_MS) return;
+  // useEffect(() => {
+  //   if (syncData) {
+  //     // Avoid syncing if the change is very recent to prevent loops
+  //     if (Date.now() - syncData.lastUpdated < CROSS_DEVICE_SYNC_DEBOUNCE_MS) return;
 
-      const stepExists = uniqueSortedSteps.includes(syncData.position);
-      if (stepExists && syncData.position !== currentStep) {
-        setCurrentStep(syncData.position);
-      }
-    }
-  }, [syncData, uniqueSortedSteps]);
+  //     const stepExists = uniqueSortedSteps.includes(syncData.position);
+  //     if (stepExists && syncData.position !== currentStep) {
+  //       setCurrentStep(syncData.position);
+  //     }
+  //   }
+  // }, [syncData, uniqueSortedSteps]);
 
-  useEffect(() => {
-    if (isEditing) return; // Only sync progress in viewer mode
-    updateSyncPosition(currentStep);
-  }, [currentStep, isEditing, updateSyncPosition]);
+  // useEffect(() => {
+  //   if (isEditing) return; // Only sync progress in viewer mode
+  //   updateSyncPosition(currentStep);
+  // }, [currentStep, isEditing, updateSyncPosition]);
 
   const handleGenerateQrCode = async () => {
     if (!projectId) return;
