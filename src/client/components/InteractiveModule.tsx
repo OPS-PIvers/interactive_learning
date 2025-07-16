@@ -195,6 +195,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
+  const [hasUserChosenMode, setHasUserChosenMode] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [imageLoading, setImageLoading] = useState(false);
   const [positionCalculating, setPositionCalculating] = useState(false);
@@ -1322,6 +1323,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleStartLearning = () => {
     setModuleState('learning');
+    setHasUserChosenMode(true);
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false); 
     setCurrentStep(uniqueSortedSteps[0] || 1);
@@ -1335,6 +1337,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleStartExploring = useCallback(() => {
     setModuleState('idle');
+    setHasUserChosenMode(true);
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
     // Clear bounds cache for fresh calculation in new mode
@@ -3274,7 +3277,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                       </div>
                     </div>
                     {/* Initial view buttons overlay (common for desktop/mobile idle) */}
-                    {moduleState === 'idle' && !isEditing && backgroundImage && (
+                    {moduleState === 'idle' && !isEditing && backgroundImage && !hasUserChosenMode && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
                         <div className="text-center space-y-4 sm:space-y-6 p-6 sm:p-8 bg-black/60 rounded-lg sm:rounded-2xl border border-white/20 shadow-xl sm:shadow-2xl max-w-xs sm:max-w-md">
                           <div>
