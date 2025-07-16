@@ -154,7 +154,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     
     return (
       <div
-        className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-3 min-w-[250px] max-w-[350px]"
+        className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-3 min-w-[250px] max-w-xs"
         style={{
           left: `${position.x}px`,
           top: `${position.y - 10}px`,
@@ -203,9 +203,16 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     if (showPreviews && event.detail === 2) {
       const rect = (event.target as HTMLElement).getBoundingClientRect();
       const containerRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
       
+      let x = rect.left - containerRect.left + rect.width / 2;
+      // Adjust if the preview card would go off-screen
+      if (x + 350 > viewportWidth) {
+        x = viewportWidth - 360; // 350 for card width + 10 for padding
+      }
+
       setPreviewPosition({
-        x: rect.left - containerRect.left + rect.width / 2,
+        x: x,
         y: rect.top - containerRect.top
       });
       setActivePreview(step);

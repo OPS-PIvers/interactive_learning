@@ -12,6 +12,7 @@ import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
+import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
 interface EnhancedHotspotEditorModalProps {
   isOpen: boolean;
@@ -248,7 +249,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   const handleSave = () => { 
     if (localHotspot) {
-      onUpdateHotspot(localHotspot); 
+      onUpdateHotspot(normalizeHotspotPosition(localHotspot));
     }
     onClose(); 
   };

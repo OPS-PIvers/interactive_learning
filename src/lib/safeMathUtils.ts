@@ -111,3 +111,18 @@ export function hasValidDimensions(rect: any): rect is { width: number; height: 
          isFinite(rect.width) && 
          isFinite(rect.height);
 }
+
+import { HotspotData } from '../../shared/types';
+
+/**
+ * Normalize hotspot position to ensure compatibility between legacy and enhanced systems
+ */
+export const normalizeHotspotPosition = (hotspot: HotspotData): HotspotData => {
+  return {
+    ...hotspot,
+    positioningVersion: 'enhanced',
+    constraintsApplied: true,
+    x: Math.max(0, Math.min(100, hotspot.x)),
+    y: Math.max(0, Math.min(100, hotspot.y))
+  };
+};

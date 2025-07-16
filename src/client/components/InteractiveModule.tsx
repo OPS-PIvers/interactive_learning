@@ -21,6 +21,7 @@ import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
+import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
 // Constants for cross-device sync
 const CROSS_DEVICE_SYNC_DEBOUNCE_MS = 2000;
@@ -314,6 +315,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Refs for Agent 4 (Touch Handling) - As per AGENTS.md
   const viewerImageContainerRef = useRef<HTMLDivElement>(null); // Specifically for mobile viewer image area
   const viewerTimelineRef = useRef<HTMLDivElement>(null); // Specifically for mobile viewer timeline area
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   // New refs for the img-based system (editing mode only)
   const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
@@ -1037,6 +1039,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const handleWheelZoom = useCallback((event: WheelEvent) => {
     if (!event.ctrlKey || !isEditing) return;
     
+    if (timelineRef.current?.contains(event.target as Node)) {
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
@@ -1415,7 +1421,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       size: 'medium',
     };
 
-    setHotspots(prevHotspots => [...prevHotspots, newHotspotData]);
+    setHotspots(prevHotspots => [...prevHotspots, normalizeHotspotPosition(newHotspotData)]);
     setSelectedHotspotForModal(newHotspotData.id);
     setIsHotspotModalOpen(true);
 
@@ -1479,21 +1485,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       return;
     }
     
-    // Clamp coordinates to valid range (0-100)
-    const clampedX = Math.max(0, Math.min(100, x));
-    const clampedY = Math.max(0, Math.min(100, y));
-    
-    console.log('Debug [InteractiveModule]: Position change received', {
-      hotspotId,
-      originalPosition: { x, y },
-      clampedPosition: { x: clampedX, y: clampedY },
-      wasClamped: x !== clampedX || y !== clampedY,
-      timestamp: Date.now()
-    });
-    
     setHotspots(prevHotspots => {
       const updatedHotspots = prevHotspots.map(h => 
-        h.id === hotspotId ? { ...h, x: clampedX, y: clampedY } : h
+        h.id === hotspotId ? normalizeHotspotPosition({ ...h, x, y }) : h
       );
       
       // Verify the update was applied
@@ -3136,7 +3130,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           </div>
           
           {/* Fixed Bottom Timeline */}
-          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
+          <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }} ref={timelineRef}>
             {backgroundImage && (
               <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
                 <HorizontalTimeline
