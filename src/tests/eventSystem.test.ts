@@ -9,20 +9,14 @@ describe('Event System', () => {
       const expectedTypes = [
         'HIDE_HOTSPOT', 
         'PULSE_HOTSPOT',
-        'SHOW_MESSAGE',
-        'PAN_ZOOM_TO_HOTSPOT',
-        'HIGHLIGHT_HOTSPOT',
+        'PAN_ZOOM',
         'SHOW_TEXT',
         'SHOW_IMAGE',
-        'PAN_ZOOM',
         'SPOTLIGHT',
         'QUIZ',
-        'PULSE_HIGHLIGHT',
         'PLAY_AUDIO',
-        'SHOW_VIDEO',
-        'SHOW_AUDIO_MODAL',
-        'SHOW_IMAGE_MODAL',
-        'SHOW_YOUTUBE'
+        'PLAY_VIDEO',
+        'SHOW_IMAGE_MODAL'
       ]
 
       expectedTypes.forEach(type => {
@@ -42,32 +36,32 @@ describe('Event System', () => {
   })
 
   describe('TimelineEventData Validation', () => {
-    test('should create valid timeline event for SHOW_MESSAGE', () => {
+    test('should create valid timeline event for SHOW_TEXT', () => {
       const event: TimelineEventData = {
         id: 'test-1',
         step: 1,
         name: 'Show Welcome Message',
-        type: InteractionType.SHOW_MESSAGE,
-        message: 'Welcome to the interactive module!'
+        type: InteractionType.SHOW_TEXT,
+        textContent: 'Welcome to the interactive module!'
       }
 
-      expect(event.type).toBe(InteractionType.SHOW_MESSAGE)
-      expect(event.message).toBe('Welcome to the interactive module!')
+      expect(event.type).toBe(InteractionType.SHOW_TEXT)
+      expect(event.textContent).toBe('Welcome to the interactive module!')
     })
 
-    test('should create valid timeline event for PAN_ZOOM_TO_HOTSPOT', () => {
+    test('should create valid timeline event for PAN_ZOOM', () => {
       const event: TimelineEventData = {
         id: 'test-2',
         step: 2,
         name: 'Zoom to Important Area',
-        type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+        type: InteractionType.PAN_ZOOM,
         targetId: 'hotspot-1',
-        zoomFactor: 3
+        zoomLevel: 3
       }
 
-      expect(event.type).toBe(InteractionType.PAN_ZOOM_TO_HOTSPOT)
+      expect(event.type).toBe(InteractionType.PAN_ZOOM)
       expect(event.targetId).toBe('hotspot-1')
-      expect(event.zoomFactor).toBe(3)
+      expect(event.zoomLevel).toBe(3)
     })
 
     test('should create valid timeline event for QUIZ', () => {
@@ -102,57 +96,57 @@ describe('Event System', () => {
       expect(event.volume).toBe(75)
     })
 
-    test('should create valid timeline event for SHOW_VIDEO', () => {
+    test('should create valid timeline event for PLAY_VIDEO', () => {
       const event: TimelineEventData = {
         id: 'test-5',
         step: 5,
         name: 'Show Tutorial Video',
-        type: InteractionType.SHOW_VIDEO,
+        type: InteractionType.PLAY_VIDEO,
         videoUrl: 'https://example.com/video.mp4',
         poster: 'https://example.com/poster.jpg',
         autoplay: true,
         loop: false
       }
 
-      expect(event.type).toBe(InteractionType.SHOW_VIDEO)
+      expect(event.type).toBe(InteractionType.PLAY_VIDEO)
       expect(event.videoUrl).toBe('https://example.com/video.mp4')
       expect(event.poster).toBe('https://example.com/poster.jpg')
       expect(event.autoplay).toBe(true)
       expect(event.loop).toBe(false)
     })
 
-    test('should create valid timeline event for SHOW_YOUTUBE', () => {
+    test('should create valid timeline event for PLAY_VIDEO', () => {
       const event: TimelineEventData = {
         id: 'test-6',
         step: 6,
         name: 'Show YouTube Explanation',
-        type: InteractionType.SHOW_YOUTUBE,
+        type: InteractionType.PLAY_VIDEO,
         youtubeVideoId: 'dQw4w9WgXcQ',
         youtubeStartTime: 30,
         youtubeEndTime: 120,
         autoplay: false
       }
 
-      expect(event.type).toBe(InteractionType.SHOW_YOUTUBE)
+      expect(event.type).toBe(InteractionType.PLAY_VIDEO)
       expect(event.youtubeVideoId).toBe('dQw4w9WgXcQ')
       expect(event.youtubeStartTime).toBe(30)
       expect(event.youtubeEndTime).toBe(120)
       expect(event.autoplay).toBe(false)
     })
 
-    test('should create valid timeline event for SHOW_AUDIO_MODAL', () => {
+    test('should create valid timeline event for PLAY_AUDIO', () => {
       const event: TimelineEventData = {
         id: 'test-7',
         step: 7,
         name: 'Play Background Music',
-        type: InteractionType.SHOW_AUDIO_MODAL,
+        type: InteractionType.PLAY_AUDIO,
         audioUrl: 'https://example.com/music.mp3',
         artist: 'Test Artist',
         autoplay: true,
         loop: true
       }
 
-      expect(event.type).toBe(InteractionType.SHOW_AUDIO_MODAL)
+      expect(event.type).toBe(InteractionType.PLAY_AUDIO)
       expect(event.audioUrl).toBe('https://example.com/music.mp3')
       expect(event.artist).toBe('Test Artist')
       expect(event.autoplay).toBe(true)
@@ -178,47 +172,47 @@ describe('Event System', () => {
   })
 
   describe('Event Parameter Validation', () => {
-    test('should validate required parameters for SHOW_MESSAGE', () => {
+    test('should validate required parameters for SHOW_TEXT', () => {
       const validEvent: TimelineEventData = {
         id: 'test-1',
         step: 1,
         name: 'Test Message',
-        type: InteractionType.SHOW_MESSAGE,
-        message: 'Test message content'
+        type: InteractionType.SHOW_TEXT,
+        textContent: 'Test message content'
       }
 
       const invalidEvent: TimelineEventData = {
         id: 'test-2',
         step: 1,
         name: 'Test Message',
-        type: InteractionType.SHOW_MESSAGE
+        type: InteractionType.SHOW_TEXT
         // Missing message parameter
       }
 
-      expect(validEvent.message).toBeTruthy()
-      expect(invalidEvent.message).toBeUndefined()
+      expect(validEvent.textContent).toBeTruthy()
+      expect(invalidEvent.textContent).toBeUndefined()
     })
 
-    test('should validate required parameters for PAN_ZOOM_TO_HOTSPOT', () => {
+    test('should validate required parameters for PAN_ZOOM', () => {
       const validEvent: TimelineEventData = {
         id: 'test-1',
         step: 1,
         name: 'Test Pan Zoom',
-        type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+        type: InteractionType.PAN_ZOOM,
         targetId: 'hotspot-1',
-        zoomFactor: 2
+        zoomLevel: 2
       }
 
       const invalidEvent: TimelineEventData = {
         id: 'test-2',
         step: 1,
         name: 'Test Pan Zoom',
-        type: InteractionType.PAN_ZOOM_TO_HOTSPOT
+        type: InteractionType.PAN_ZOOM
         // Missing targetId parameter
       }
 
       expect(validEvent.targetId).toBeTruthy()
-      expect(validEvent.zoomFactor).toBe(2)
+      expect(validEvent.zoomLevel).toBe(2)
       expect(invalidEvent.targetId).toBeUndefined()
     })
 
@@ -255,16 +249,16 @@ describe('Event System', () => {
           id: 'event-2',
           step: 2,
           name: 'Display Message',
-          type: InteractionType.SHOW_MESSAGE,
-          message: 'Look at this important area'
+          type: InteractionType.SHOW_TEXT,
+          textContent: 'Look at this important area'
         },
         {
           id: 'event-3', 
           step: 3,
           name: 'Zoom to Hotspot',
-          type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+          type: InteractionType.PAN_ZOOM,
           targetId: 'hotspot-1',
-          zoomFactor: 2.5
+          zoomLevel: 2.5
         }
       ]
 
@@ -297,13 +291,13 @@ describe('Event System', () => {
         id: 'incomplete-1',
         step: 1,
         name: 'Incomplete Event',
-        type: InteractionType.SHOW_MESSAGE
+        type: InteractionType.SHOW_TEXT
         // Missing message property
       } as TimelineEventData
 
       // Should not throw when accessing undefined properties
       expect(() => {
-        const message = incompleteEvent.message || 'Default message'
+        const message = incompleteEvent.textContent || 'Default message'
         expect(message).toBe('Default message')
       }).not.toThrow()
     })

@@ -29,14 +29,14 @@ describe('Timeline Event Execution', () => {
         id: 'event-2',
         step: 2,
         name: 'Show Message',
-        type: InteractionType.SHOW_MESSAGE,
+        type: InteractionType.SHOW_TEXT,
         message: 'Welcome to the interactive learning module'
       },
       {
         id: 'event-3',
         step: 3,
         name: 'Zoom to Second Hotspot',
-        type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+        type: InteractionType.PAN_ZOOM,
         targetId: 'hotspot-2',
         zoomFactor: 3
       }
@@ -59,10 +59,10 @@ describe('Timeline Event Execution', () => {
       const step3Events = mockTimelineEvents.filter(event => event.step === 3)
 
       expect(step2Events).toHaveLength(1)
-      expect(step2Events[0].type).toBe(InteractionType.SHOW_MESSAGE)
+      expect(step2Events[0].type).toBe(InteractionType.SHOW_TEXT)
 
       expect(step3Events).toHaveLength(1)
-      expect(step3Events[0].type).toBe(InteractionType.PAN_ZOOM_TO_HOTSPOT)
+      expect(step3Events[0].type).toBe(InteractionType.PAN_ZOOM)
     })
 
     test('should handle steps with multiple events', () => {
@@ -79,7 +79,7 @@ describe('Timeline Event Execution', () => {
           id: 'event-3',
           step: 1,
           name: 'Show Message',
-          type: InteractionType.SHOW_MESSAGE,
+          type: InteractionType.SHOW_TEXT,
           message: 'Multiple actions happening simultaneously'
         }
       ]
@@ -124,7 +124,7 @@ describe('Timeline Event Execution', () => {
     })
 
     test('should calculate pan zoom transform correctly', () => {
-      const panZoomEvent = mockTimelineEvents.find(e => e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
+      const panZoomEvent = mockTimelineEvents.find(e => e.type === InteractionType.PAN_ZOOM)
       const targetHotspot = mockHotspots.find(h => h.id === panZoomEvent?.targetId)
 
       expect(panZoomEvent).toBeDefined()
@@ -135,7 +135,7 @@ describe('Timeline Event Execution', () => {
         const viewportCenter = mockGetSafeViewportCenter()
         const divDimensions = mockGetScaledImageDivDimensions()
 
-        const scale = panZoomEvent.zoomFactor || 2
+        const scale = panZoomEvent.zoomLevel || 2
         const hotspotX = (targetHotspot.x / 100) * imageBounds.width
         const hotspotY = (targetHotspot.y / 100) * imageBounds.height
 
@@ -168,25 +168,25 @@ describe('Timeline Event Execution', () => {
         id: 'default-zoom',
         step: 1,
         name: 'Default Zoom',
-        type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+        type: InteractionType.PAN_ZOOM,
         targetId: 'hotspot-1'
         // No zoomFactor specified
       }
 
-      const defaultZoom = eventWithoutZoom.zoomFactor || 2
+      const defaultZoom = eventWithoutZoom.zoomLevel || 2
       expect(defaultZoom).toBe(2)
     })
   })
 
   describe('Message Event Processing', () => {
-    test('should handle SHOW_MESSAGE events', () => {
-      const messageEvent = mockTimelineEvents.find(e => e.type === InteractionType.SHOW_MESSAGE)
-      expect(messageEvent?.message).toBe('Welcome to the interactive learning module')
+    test('should handle SHOW_TEXT events', () => {
+      const messageEvent = mockTimelineEvents.find(e => e.type === InteractionType.SHOW_TEXT)
+      expect(messageEvent?.textContent).toBe('Welcome to the interactive learning module')
 
       // Simulate message display state
       let currentMessage: string | null = null
-      if (messageEvent?.message) {
-        currentMessage = messageEvent.message
+      if (messageEvent?.textContent) {
+        currentMessage = messageEvent.textContent
       }
 
       expect(currentMessage).toBe('Welcome to the interactive learning module')
@@ -230,18 +230,18 @@ describe('Timeline Event Execution', () => {
       expect(pulsingHotspotId).toBe('hotspot-1')
     })
 
-    test('should handle PULSE_HIGHLIGHT events', () => {
+    test('should handle PULSE_HOTSPOT events', () => {
       const pulseHighlightEvent: TimelineEventData = {
         id: 'pulse-highlight-event',
         step: 1,
         name: 'Pulse with Highlight',
-        type: InteractionType.PULSE_HIGHLIGHT,
+        type: InteractionType.PULSE_HOTSPOT,
         targetId: 'hotspot-2',
         duration: 2500,
         intensity: 80
       }
 
-      expect(pulseHighlightEvent.type).toBe(InteractionType.PULSE_HIGHLIGHT)
+      expect(pulseHighlightEvent.type).toBe(InteractionType.PULSE_HOTSPOT)
       expect(pulseHighlightEvent.intensity).toBe(80)
     })
   })
@@ -364,11 +364,11 @@ describe('Timeline Event Execution', () => {
         id: 'highlight-event',
         step: 1,
         name: 'Highlight Important Area',
-        type: InteractionType.HIGHLIGHT_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         targetId: 'hotspot-2'
       }
 
-      if (highlightEvent.type === InteractionType.HIGHLIGHT_HOTSPOT && highlightEvent.targetId) {
+      if (highlightEvent.type === InteractionType.SPOTLIGHT && highlightEvent.targetId) {
         highlightedHotspotId = highlightEvent.targetId
       }
 
