@@ -26,6 +26,7 @@ import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
+import { MobileMediaModal } from './mobile/MobileMediaModal';
 
 // Helper function to extract YouTube Video ID from various URL formats
 const extractYouTubeVideoId = (url: string): string | null => {
@@ -284,6 +285,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     type: null,
     title: '',
     data: null
+  });
+
+  const [mobileMediaModal, setMobileMediaModal] = useState<{
+    isOpen: boolean;
+    type: 'video' | 'audio' | null;
+    src: string;
+  }>({
+    isOpen: false,
+    type: null,
+    src: ''
   });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
@@ -663,13 +674,21 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     title: string,
     data: any
   ) => {
-    setMediaModal({
-      isOpen: true,
-      type,
-      title,
-      data
-    });
-  }, []);
+    if (isMobile && (type === 'video' || type === 'audio')) {
+      setMobileMediaModal({
+        isOpen: true,
+        type: type,
+        src: data.src,
+      });
+    } else {
+      setMediaModal({
+        isOpen: true,
+        type,
+        title,
+        data
+      });
+    }
+  }, [isMobile]);
 
   const closeMediaModal = useCallback(() => {
     setMediaModal({
@@ -677,6 +696,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       type: null,
       title: '',
       data: null
+    });
+    setMobileMediaModal({
+      isOpen: false,
+      type: null,
+      src: ''
     });
   }, []);
 
@@ -3338,6 +3362,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       )}
 
       {/* Media Modal */}
+      {mobileMediaModal.isOpen && mobileMediaModal.type && (
+        <MobileMediaModal
+          mediaType={mobileMediaModal.type}
+          src={mobileMediaModal.src}
+          onClose={closeMediaModal}
+        />
+      )}
       {mediaModal.isOpen && (
         <MediaModal
           isOpen={mediaModal.isOpen}
