@@ -195,7 +195,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
-  const [hasUserChosenMode, setHasUserChosenMode] = useState<boolean>(false);
+  // Tracks whether user has made an initial mode selection to control modal visibility
+  const [hasUserChosenMode, setHasUserChosenMode] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [imageLoading, setImageLoading] = useState(false);
   const [positionCalculating, setPositionCalculating] = useState(false);
@@ -2266,6 +2267,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       const newInitialModuleState = isEditing ? 'learning' : 'idle';
       setModuleState(newInitialModuleState);
+      // Reset mode selection state when reinitializing
+      setHasUserChosenMode(isEditing); // True if editing (skip modal), false if viewing
 
       const safeTimelineEvents = initialData.timelineEvents || [];
       const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
