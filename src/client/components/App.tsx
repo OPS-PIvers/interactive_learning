@@ -84,9 +84,22 @@ const MainApp: React.FC = () => {
     setIsProjectDetailsLoading(true);
     setError(null);
     try {
-      if (!project.interactiveData.hotspots || !project.interactiveData.timelineEvents) {
-        console.log(`Fetching details for project: ${project.id}`);
+      // Enhanced condition to properly detect when details need loading
+      const needsDetailLoad = !project.interactiveData.hotspots || 
+                             !project.interactiveData.timelineEvents ||
+                             project.interactiveData.hotspots.length === 0 || 
+                             project.interactiveData.timelineEvents.length === 0 ||
+                             (project as any).interactiveData._needsDetailLoad;
+
+      if (needsDetailLoad) {
+        console.log(`Fetching details for project: ${project.id} (${project.title})`);
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
+        
+        // Validate that we actually got data
+        if (!details.hotspots && !details.timelineEvents) {
+          console.warn(`No details returned for project ${project.id}, using empty data`);
+        }
+        
         const updatedProject = {
           ...project,
           interactiveData: {
@@ -97,9 +110,14 @@ const MainApp: React.FC = () => {
             imageFitMode: details.imageFitMode || project.interactiveData.imageFitMode,
           }
         };
+        
+        // Remove the loading flag
+        delete (updatedProject as any).interactiveData._needsDetailLoad;
+        
         setSelectedProject(updatedProject);
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
+        console.log(`Project ${project.id} already has details loaded`);
         setSelectedProject(project);
       }
       setIsEditingMode(editingMode);

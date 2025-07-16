@@ -73,8 +73,9 @@ export class FirebaseProjectAPI {
             backgroundImage: projectData.backgroundImage,
             imageFitMode: projectData.imageFitMode || 'cover',
             viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            hotspots: [], // Will be loaded on demand
-            timelineEvents: [] // Will be loaded on demand
+            hotspots: [], // Will be loaded on demand - explicitly empty for loading detection
+            timelineEvents: [], // Will be loaded on demand - explicitly empty for loading detection
+            _needsDetailLoad: true // Flag to indicate this project needs detail loading
           }
         } as Project
       })
@@ -273,21 +274,13 @@ export class FirebaseProjectAPI {
         const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
         const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');
 
-        // For atomicity in subcollections, ideally, reads (like getDocs) should also be transactional
-        // if the write logic depends on them. Firestore transactions have limits on operations.
-        // A common pattern for full replacement is to delete all then add all.
-        // This means querying for existing docs *outside* the transaction (as getDocs on a query isn't a transaction.get)
-        // and then using their refs for deletion *inside* the transaction.
-        // This has a small risk if items are added/removed between the getDocs and the transaction start.
-
-        const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
-            getDocs(query(hotspotsColRef)),
-            getDocs(query(eventsColRef))
-        ]);
-
-        existingHotspotsSnap.docs.forEach(docSnap => transaction.delete(docSnap.ref));
-        existingEventsSnap.docs.forEach(docSnap => transaction.delete(docSnap.ref));
-
+        // NEW APPROACH: Use upsert logic instead of delete-then-recreate
+        // This prevents data loss if the transaction fails partway through
+        
+        const currentHotspotIds = new Set(sanitizedHotspots.map(h => h.id));
+        const currentEventIds = new Set(sanitizedEvents.map(e => e.id));
+        
+        // Upsert current hotspots and events
         for (const hotspot of sanitizedHotspots) {
           const hotspotRef = doc(hotspotsColRef, hotspot.id!);
           transaction.set(hotspotRef, { ...hotspot, updatedAt: serverTimestamp() });
@@ -300,6 +293,18 @@ export class FirebaseProjectAPI {
       });
 
       console.log(`Transaction for project ${project.id} committed successfully.`);
+
+      // Clean up orphaned documents in a separate transaction (after main save succeeds)
+      // This is safer than doing it in the same transaction
+      try {
+        await this.cleanupOrphanedSubcollectionDocs(project.id, 
+          sanitizedHotspots.map(h => h.id!), 
+          sanitizedEvents.map(e => e.id!)
+        );
+      } catch (cleanupError) {
+        console.warn('Cleanup of orphaned documents failed, but main save succeeded:', cleanupError);
+        // Don't throw - main save was successful
+      }
 
       if (oldThumbnailUrlToDeleteAfterCommit) {
         console.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
@@ -538,6 +543,64 @@ export class FirebaseProjectAPI {
     } catch (error) {
       console.error(`Error getting timeline events for project ${projectId}:`, error)
       return []
+    }
+  }
+
+  /**
+   * Clean up orphaned subcollection documents that are no longer needed
+   * This runs as a separate transaction after the main save to prevent data loss
+   */
+  private async cleanupOrphanedSubcollectionDocs(
+    projectId: string, 
+    currentHotspotIds: string[], 
+    currentEventIds: string[]
+  ): Promise<void> {
+    try {
+      const hotspotsColRef = collection(db, 'projects', projectId, 'hotspots');
+      const eventsColRef = collection(db, 'projects', projectId, 'timeline_events');
+      
+      // Get all existing documents
+      const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
+        getDocs(query(hotspotsColRef)),
+        getDocs(query(eventsColRef))
+      ]);
+      
+      const currentHotspotIdSet = new Set(currentHotspotIds);
+      const currentEventIdSet = new Set(currentEventIds);
+      
+      // Find orphaned documents
+      const orphanedHotspotRefs = existingHotspotsSnap.docs
+        .filter(doc => !currentHotspotIdSet.has(doc.id))
+        .map(doc => doc.ref);
+        
+      const orphanedEventRefs = existingEventsSnap.docs
+        .filter(doc => !currentEventIdSet.has(doc.id))
+        .map(doc => doc.ref);
+      
+      // Delete orphans in batches (Firestore has a 500 operation limit per transaction)
+      const allOrphanedRefs = [...orphanedHotspotRefs, ...orphanedEventRefs];
+      
+      if (allOrphanedRefs.length === 0) {
+        return; // No cleanup needed
+      }
+      
+      console.log(`Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
+      
+      // Process in batches of 400 to stay under Firestore's 500 operation limit
+      const batchSize = 400;
+      for (let i = 0; i < allOrphanedRefs.length; i += batchSize) {
+        const batch = allOrphanedRefs.slice(i, i + batchSize);
+        
+        await runTransaction(db, async (transaction) => {
+          batch.forEach(ref => transaction.delete(ref));
+        });
+      }
+      
+      console.log(`Successfully cleaned up orphaned documents for project ${projectId}`);
+      
+    } catch (error) {
+      console.error(`Error cleaning up orphaned documents for project ${projectId}:`, error);
+      // Don't throw - this is cleanup, not critical for data integrity
     }
   }
 

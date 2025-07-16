@@ -1193,8 +1193,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setIsSaving(true);
     console.log('=== SAVE DEBUG ===');
     
-    // await new Promise(resolve => setTimeout(resolve, 100)); // REMOVED
-    
     const currentData = {
       backgroundImage,
       backgroundType,
@@ -1204,7 +1202,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       imageFitMode
     };
     
-    // Validate data before saving
+    // Enhanced validation
     if (!Array.isArray(currentData.hotspots)) {
       console.error('Invalid hotspots data:', currentData.hotspots);
       alert('Invalid hotspot data detected. Please refresh and try again.');
@@ -1219,10 +1217,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       return;
     }
     
+    // NEW: Validate hotspot data integrity
+    const invalidHotspots = currentData.hotspots.filter(h => 
+      !h.id || typeof h.x !== 'number' || typeof h.y !== 'number' || !h.title
+    );
+    
+    if (invalidHotspots.length > 0) {
+      console.error('Found invalid hotspots:', invalidHotspots);
+      alert(`Found ${invalidHotspots.length} invalid hotspot(s). Please check your hotspot data and try again.`);
+      setIsSaving(false);
+      return;
+    }
+    
     console.log('Saving data:', {
       hotspotsCount: currentData.hotspots.length,
       timelineEventsCount: currentData.timelineEvents.length,
       hotspotIds: currentData.hotspots.map(h => h.id),
+      hotspotPositions: currentData.hotspots.map(h => ({ id: h.id, x: h.x, y: h.y })),
       backgroundImagePresent: !!currentData.backgroundImage
     });
     
