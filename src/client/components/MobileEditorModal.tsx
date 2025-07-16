@@ -4,6 +4,8 @@ import { useSwipeable } from 'react-swipeable';
 import ReactPullToRefresh from 'react-pull-to-refresh';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
+import { useViewportHeight } from '../hooks/useViewportHeight';
+import { mobileStateManager } from '../utils/mobileStateManager';
 
 const MobileTextSettings = lazy(() => import('./mobile/MobileTextSettings'));
 const MobileEventEditor = lazy(() => import('./mobile/MobileEventEditor'));
@@ -93,13 +95,12 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   onDeleteHotspot,
   onAddTimelineEvent,
   onUpdateTimelineEvent,
-  onDeleteTimelineEvent
+  onDeleteTimelineEvent,
+  onInteractionStart,
+  onInteractionEnd
 }) => {
-  const [keyboard, setKeyboard] = useState<KeyboardState>({
-    isVisible: false,
-    height: 0,
-    animating: false
-  });
+  const viewportHeight = useViewportHeight();
+  const [isEditingHotspot, setIsEditingHotspot] = useState(false);
 
   const [tabState, setTabState] = useState<TabState>({
     activeTab: 'basic',
@@ -154,46 +155,43 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
 
   useEffect(() => {
     if (hotspot) {
-      setLocalHotspot({ ...hotspot });
+      const savedState = mobileStateManager.loadState();
+      if (savedState && savedState.selectedHotspotId === hotspot.id) {
+        // Restore state if it matches the current hotspot
+        setLocalHotspot({ ...hotspot, ...savedState.hotspots.find(h => h.id === hotspot.id) });
+      } else {
+        setLocalHotspot({ ...hotspot });
+      }
       setHasUnsavedChanges(false);
     }
   }, [hotspot]);
 
-  // Enhanced keyboard detection for mobile
   useEffect(() => {
-    if (!isOpen) return;
-
-    const visualViewport = window.visualViewport;
-
-    const handleResize = () => {
-      if (visualViewport) {
-        const { height } = visualViewport;
-        if (modalRef.current) {
-          if (initialModalHeight.current === 0) {
-            initialModalHeight.current = modalRef.current.offsetHeight;
-          }
-          const newHeight = height < initialModalHeight.current
-            ? height
-            : initialModalHeight.current;
-          modalRef.current.style.height = `${newHeight}px`;
-
-          if (document.activeElement) {
-            document.activeElement.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-      }
-    };
-
-    if (visualViewport) {
-      visualViewport.addEventListener('resize', handleResize);
+    if (isEditingHotspot) {
+      onInteractionStart?.();
+    } else {
+      onInteractionEnd?.();
     }
+  }, [isEditingHotspot, onInteractionStart, onInteractionEnd]);
 
-    return () => {
-      if (visualViewport) {
-        visualViewport.removeEventListener('resize', handleResize);
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        setIsEditingHotspot(true);
       }
     };
-  }, [isOpen]);
+    const handleFocusOut = (e: FocusEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        setIsEditingHotspot(false);
+      }
+    };
+    document.addEventListener('focusin', handleFocusIn);
+    document.addEventListener('focusout', handleFocusOut);
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn);
+      document.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
 
   // Auto-save functionality with debouncing
   const autoSaveTimeoutRef = useRef<number>();
@@ -212,7 +210,16 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   }, [saveChanges]);
 
   const updateLocalHotspot = useCallback((updates: Partial<HotspotData>) => {
-    setLocalHotspot(prev => prev ? { ...prev, ...updates } : null);
+    setLocalHotspot(prev => {
+      const newState = prev ? { ...prev, ...updates } : null;
+      if (newState) {
+        mobileStateManager.saveState({
+          hotspots: [newState],
+          selectedHotspotId: newState.id,
+        });
+      }
+      return newState;
+    });
     setHasUnsavedChanges(true);
     scheduleAutoSave();
   }, [scheduleAutoSave]);
@@ -222,6 +229,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     if (hasUnsavedChanges) {
       saveChanges();
     }
+    mobileStateManager.clearState();
     onClose();
   }, [hasUnsavedChanges, saveChanges, onClose]);
 
@@ -527,7 +535,8 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
       {/* Modal */}
       <div
         ref={modalRef}
-        className="bg-slate-800 flex flex-col h-full"
+        className="bg-slate-800 flex flex-col"
+        style={{ height: viewportHeight }}
       >
         {/* Header */}
         <div className="flex-shrink-0 bg-slate-900 border-b border-slate-700">
@@ -596,14 +605,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
           </ReactPullToRefresh>
         </div>
 
-        {/* Keyboard spacer */}
-        <div
-          style={{
-            height: keyboard.isVisible ? `${keyboard.height}px` : '0px',
-            transition: keyboard.animating ? 'height 0.3s ease' : 'none',
-            flexShrink: 0,
-          }}
-        />
       </div>
 
       {showEventTypeSelector && (
