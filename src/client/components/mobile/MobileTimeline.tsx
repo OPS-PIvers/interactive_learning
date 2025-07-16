@@ -42,6 +42,29 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [templates, setTemplates] = useState<{ name: string; events: TimelineEventData[] }[]>([]);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ canScrollLeft: false, canScrollRight: false });
+
+  const updateScrollState = useCallback(() => {
+    const el = timelineContainerRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 0;
+      const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+      setScrollState({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = timelineContainerRef.current;
+    if (el) {
+      updateScrollState();
+      el.addEventListener('scroll', updateScrollState);
+      window.addEventListener('resize', updateScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateScrollState);
+        window.removeEventListener('resize', updateScrollState);
+      };
+    }
+  }, [uniqueSortedSteps, updateScrollState]);
 
   const validationErrors = useMemo(() => {
     const errors: { [key: number]: string } = {};
@@ -209,7 +232,10 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
           </div>
         )}
 
-        <div className="p-2 bg-slate-900 rounded">
+        <div className={`p-2 bg-slate-900 rounded relative
+          ${scrollState.canScrollLeft ? 'scroll-indicator-left' : ''}
+          ${scrollState.canScrollRight ? 'scroll-indicator-right' : ''}
+        `}>
           {uniqueSortedSteps.length < 10 ? (
             <div
               ref={timelineContainerRef}

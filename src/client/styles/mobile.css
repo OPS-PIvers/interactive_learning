@@ -491,6 +491,38 @@
   }
 }
 
+/* Scroll indicators for mobile timeline */
+.scroll-indicator-left::before,
+.scroll-indicator-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0;
+  z-index: 10;
+}
+
+.scroll-indicator-left::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.scroll-indicator-right::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.scroll-indicator-left.scroll-indicator-left::before {
+  opacity: 1;
+}
+
+.scroll-indicator-right.scroll-indicator-right::after {
+  opacity: 1;
+}
+
 /* ===== UTILITY CLASSES ===== */
 
 @media screen and (max-width: 768px) {
