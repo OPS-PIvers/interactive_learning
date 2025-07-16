@@ -185,8 +185,8 @@ interface MobileEditCapabilities {
 - Native share sheet integration
 - Remote control from mobile
 
-### Task 3.2 - Cross-Device Experience
-**Files to create:**
+### Task 3.2 - Cross-Device Experience [COMPLETED]
+**Files created:**
 - `src/client/hooks/useCrossDeviceSync.ts`
 - `src/client/utils/deviceHandoff.ts`
 
