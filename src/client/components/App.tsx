@@ -276,10 +276,26 @@ const MainApp: React.FC = () => {
                 <PlusCircleIcon className="w-6 h-6" />
               </button>
               <div className="flex items-center space-x-2">
-                <button className="p-2 rounded-full hover:bg-slate-700 transition-colors">
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                  onClick={() => {
+                    // TODO: Implement settings functionality
+                    console.log('Settings clicked');
+                  }}
+                  aria-label="Settings"
+                >
                   <SettingsIcon className="w-6 h-6 text-slate-300" />
                 </button>
-                <button className="p-2 rounded-full hover:bg-slate-700 transition-colors">
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                  onClick={() => {
+                    // TODO: Implement profile functionality
+                    console.log('Profile clicked');
+                  }}
+                  aria-label="Profile"
+                >
                   <UserIcon className="w-6 h-6 text-slate-300" />
                 </button>
               </div>
@@ -320,10 +336,26 @@ const MainApp: React.FC = () => {
               >
                 <PlusCircleIcon className="w-7 h-7" />
               </button>
-              <button className="p-2 rounded-full hover:bg-slate-700 transition-colors">
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                onClick={() => {
+                  // TODO: Implement settings functionality
+                  console.log('Settings clicked');
+                }}
+                aria-label="Settings"
+              >
                 <SettingsIcon className="w-7 h-7 text-slate-300" />
               </button>
-              <button className="p-2 rounded-full hover:bg-slate-700 transition-colors">
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                onClick={() => {
+                  // TODO: Implement profile functionality
+                  console.log('Profile clicked');
+                }}
+                aria-label="Profile"
+              >
                 <UserIcon className="w-7 h-7 text-slate-300" />
               </button>
             </div>
