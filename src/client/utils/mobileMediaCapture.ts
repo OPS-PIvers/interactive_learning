@@ -1,4 +1,4 @@
-import { imageCompression } from './imageCompression';
+import { compressImage } from './imageCompression';
 
 /**
  * Options for capturing media from the device.
@@ -38,7 +38,7 @@ export const captureMedia = async (options: MediaCaptureOptions): Promise<File |
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
         try {
-          const compressedFile = await imageCompression(file, {
+          const compressedFile = await compressImage(file, {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
             useWebWorker: true,
