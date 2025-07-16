@@ -26,6 +26,7 @@ import VideoPlayer from './VideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
+import { MobileMediaModal } from './mobile/MobileMediaModal';
 
 // Helper function to extract YouTube Video ID from various URL formats
 const extractYouTubeVideoId = (url: string): string | null => {
@@ -284,6 +285,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     type: null,
     title: '',
     data: null
+  });
+
+  const [mobileMediaModal, setMobileMediaModal] = useState<{
+    isOpen: boolean;
+    type: 'video' | 'audio' | null;
+    src: string;
+  }>({
+    isOpen: false,
+    type: null,
+    src: ''
   });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
@@ -656,20 +667,57 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     debugLog('Cache', 'Cleared image bounds cache');
   }, [debugLog]);
 
+  // Media data interfaces for type safety
+  interface VideoMediaData {
+    src: string;
+    poster?: string;
+    autoplay?: boolean;
+  }
+  
+  interface AudioMediaData {
+    src: string;
+    title?: string;
+    artist?: string;
+  }
+  
+  interface ImageMediaData {
+    src: string;
+    alt?: string;
+    title?: string;
+  }
+  
+  interface YouTubeMediaData {
+    videoId: string;
+    startTime?: number;
+    endTime?: number;
+  }
+  
+  type MediaData = VideoMediaData | AudioMediaData | ImageMediaData | YouTubeMediaData;
 
   // Helper to show media modals
   const showMediaModal = useCallback((
     type: 'video' | 'audio' | 'image' | 'youtube',
     title: string,
-    data: any
+    data: MediaData
   ) => {
-    setMediaModal({
-      isOpen: true,
-      type,
-      title,
-      data
-    });
-  }, []);
+    if (isMobile && (type === 'video' || type === 'audio')) {
+      // Type guard to ensure data has src property for video/audio
+      if ('src' in data) {
+        setMobileMediaModal({
+          isOpen: true,
+          type: type,
+          src: data.src,
+        });
+      }
+    } else {
+      setMediaModal({
+        isOpen: true,
+        type,
+        title,
+        data
+      });
+    }
+  }, [isMobile]);
 
   const closeMediaModal = useCallback(() => {
     setMediaModal({
@@ -677,6 +725,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       type: null,
       title: '',
       data: null
+    });
+    setMobileMediaModal({
+      isOpen: false,
+      type: null,
+      src: ''
     });
   }, []);
 
@@ -3338,6 +3391,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       )}
 
       {/* Media Modal */}
+      {mobileMediaModal.isOpen && mobileMediaModal.type && (
+        <MobileMediaModal
+          mediaType={mobileMediaModal.type}
+          src={mobileMediaModal.src}
+          onClose={closeMediaModal}
+        />
+      )}
       {mediaModal.isOpen && (
         <MediaModal
           isOpen={mediaModal.isOpen}
