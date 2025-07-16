@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { AuthModal } from './AuthModal';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
+import { demoModuleData } from '../../shared/demoModuleData';
 import ProjectCard from './ProjectCard';
 import Modal from './Modal';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
@@ -145,22 +146,45 @@ const MainApp: React.FC = () => {
       return;
     }
 
-    const title = prompt("Enter new project title:");
-    if (!title) return;
-    const description = prompt("Enter project description (optional):") || "";
+    const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
 
-    setIsLoading(true);
-    try {
-      const newProject = await appScriptProxy.createProject(title, description);
-      setProjects(prevProjects => [...prevProjects, newProject]);
-      setSelectedProject(newProject);
-      setIsEditingMode(true);
-      setIsModalOpen(true);
-    } catch (err: any) {
-      console.error("Failed to create project:", err);
-      setError(`Failed to create new project: ${err.message || ''}`);
-    } finally {
-      setIsLoading(false);
+    if (createDemo) {
+      setIsLoading(true);
+      try {
+        const newProject = await appScriptProxy.createProject("Demo Module", "A module demonstrating all features.");
+        const projectWithDemoData = {
+          ...newProject,
+          interactiveData: demoModuleData,
+        };
+        await appScriptProxy.saveProject(projectWithDemoData);
+        setProjects(prevProjects => [...prevProjects, projectWithDemoData]);
+        setSelectedProject(projectWithDemoData);
+        setIsEditingMode(true);
+        setIsModalOpen(true);
+      } catch (err: any) {
+        console.error("Failed to create demo project:", err);
+        setError(`Failed to create demo project: ${err.message || ''}`);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      const title = prompt("Enter new project title:");
+      if (!title) return;
+      const description = prompt("Enter project description (optional):") || "";
+
+      setIsLoading(true);
+      try {
+        const newProject = await appScriptProxy.createProject(title, description);
+        setProjects(prevProjects => [...prevProjects, newProject]);
+        setSelectedProject(newProject);
+        setIsEditingMode(true);
+        setIsModalOpen(true);
+      } catch (err: any) {
+        console.error("Failed to create project:", err);
+        setError(`Failed to create new project: ${err.message || ''}`);
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, [user]);
 
