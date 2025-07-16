@@ -19,7 +19,6 @@ interface HotspotViewerProps {
   onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
   dragContainerRef?: React.RefObject<HTMLElement>; // Added new prop
   isActive?: boolean; // New prop to indicate if the hotspot is active
-  isExploreMode?: boolean; // New prop to indicate if the module is in explore mode
   /**
    * Callback triggered when a hotspot is double-tapped on a mobile device (and not in editing mode).
    * Used to initiate auto-focusing on the hotspot.
@@ -56,8 +55,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // imageElement, // Not directly used
     onDragStateChange,
     dragContainerRef,
-    isActive,
-    isExploreMode
+    isActive
   } = props;
 
   const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();

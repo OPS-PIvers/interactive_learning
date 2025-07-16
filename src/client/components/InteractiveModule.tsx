@@ -2390,6 +2390,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
 
     const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
+    
+    // Helper function to get visible hotspot IDs in idle mode
+    const getIdleVisibleHotspotIds = (
+      hotspots: HotspotData[],
+      eventsForCurrentStep: TimelineEventData[]
+    ): Set<string> => {
+      const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
+      const visibleIds = new Set<string>();
+      hotspots.forEach(h => {
+        if (!activeEventHotspotIds.has(h.id) || h.displayHotspotInEvent) {
+          visibleIds.add(h.id);
+        }
+      });
+      return visibleIds;
+    };
+    
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();
       let newMessage: string | null = null;
@@ -2408,23 +2424,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       });
       let stepHasPanZoomEvent = false;
 
-      if (moduleState === 'idle') {
-        const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
-        hotspots.forEach(h => {
-            if (!activeEventHotspotIds.has(h.id) || h.displayHotspotInEvent) {
-                newActiveDisplayIds.add(h.id);
-            }
-        });
-      } else { // learning mode
-        eventsForCurrentStep.forEach(event => {
-            if (event.targetId) {
-                const hotspot = hotspots.find(h => h.id === event.targetId);
-                if (hotspot && hotspot.displayHotspotInEvent) {
-                    newActiveDisplayIds.add(event.targetId);
-                }
-            }
-        });
-      }
+      // In learning mode, a hotspot is visible if it has an event that implies visibility
+      // (like pulsing or highlighting), or if its `displayHotspotInEvent` flag is true.
+      eventsForCurrentStep.forEach(event => {
+          if (event.targetId) {
+              const hotspot = hotspots.find(h => h.id === event.targetId);
+              const forcesVisibility =
+                  event.type === InteractionType.PULSE_HOTSPOT ||
+                  event.type === InteractionType.HIGHLIGHT_HOTSPOT ||
+                  event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
+                  event.type === InteractionType.SPOTLIGHT ||
+                  event.type === InteractionType.PULSE_HIGHLIGHT;
+
+              if (forcesVisibility || (hotspot && hotspot.displayHotspotInEvent)) {
+                  newActiveDisplayIds.add(event.targetId);
+              }
+          }
+      });
 
       eventsForCurrentStep.forEach(event => {
         switch (event.type) {
@@ -2671,13 +2687,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       });
 
     } else if (moduleState === 'idle' && !isEditing) {
-      const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
-      const newActiveDisplayIds = new Set<string>();
-      hotspots.forEach(h => {
-        if (!activeEventHotspotIds.has(h.id) || h.displayHotspotInEvent) {
-            newActiveDisplayIds.add(h.id);
-        }
-      });
+      const newActiveDisplayIds = getIdleVisibleHotspotIds(hotspots, eventsForCurrentStep);
       setActiveHotspotDisplayIds(newActiveDisplayIds);
       setCurrentMessage(null);
       setPulsingHotspotId(null);
@@ -3265,7 +3275,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                               isMobile={isMobile}
                               onDragStateChange={setIsHotspotDragging}
                               isActive={activeHotspotDisplayIds.has(hotspot.id)}
-                              isExploreMode={moduleState === 'idle'}
                             />
                           );
                         })}
