@@ -116,6 +116,14 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
       );
     }
 
+    if (event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
+      return (
+        <div className="mobile-spotlight-highlight">
+          <div className="highlight-indicator" />
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -177,6 +185,24 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
           left: -30px;
         }
         
+        .mobile-spotlight-highlight {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        
+        .highlight-indicator {
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          border: 3px solid rgba(255, 193, 7, 0.9);
+          border-radius: 50%;
+          animation: highlightGlow 1.5s ease-in-out infinite alternate;
+          top: -40px;
+          left: -40px;
+        }
+        
         @keyframes pulse {
           0% {
             transform: scale(0.8);
@@ -185,6 +211,17 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
           100% {
             transform: scale(2.5);
             opacity: 0;
+          }
+        }
+        
+        @keyframes highlightGlow {
+          0% {
+            opacity: 0.6;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
+          }
+          100% {
+            opacity: 1;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.8);
           }
         }
         

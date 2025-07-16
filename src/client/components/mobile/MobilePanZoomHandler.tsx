@@ -31,6 +31,24 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
 
   useEventCleanup(cleanup);
 
+  const handleComplete = useCallback(() => {
+    setIsActive(false);
+    triggerHapticFeedback('light');
+    
+    // Reset image transform
+    const container = containerRef.current;
+    if (container) {
+      const imageElement = container.querySelector('img') as HTMLImageElement;
+      if (imageElement) {
+        imageElement.style.transition = 'transform 0.5s ease-in-out';
+        imageElement.style.transform = '';
+        imageElement.style.transformOrigin = '';
+      }
+    }
+    
+    setTimeout(onComplete, 500); // Allow reset animation
+  }, [onComplete, containerRef]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -83,24 +101,6 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
       clearTimeout(completionTimer);
     };
   }, [event, containerRef, handleComplete]);
-
-  const handleComplete = useCallback(() => {
-    setIsActive(false);
-    triggerHapticFeedback('light');
-    
-    // Reset image transform
-    const container = containerRef.current;
-    if (container) {
-      const imageElement = container.querySelector('img') as HTMLImageElement;
-      if (imageElement) {
-        imageElement.style.transition = 'transform 0.5s ease-in-out';
-        imageElement.style.transform = '';
-        imageElement.style.transformOrigin = '';
-      }
-    }
-    
-    setTimeout(onComplete, 500); // Allow reset animation
-  }, [onComplete, containerRef]);
 
   const handleOverlayClick = useCallback(() => {
     handleComplete();

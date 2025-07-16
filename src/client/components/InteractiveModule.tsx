@@ -1623,9 +1623,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleMobileEventComplete = useCallback((eventId: string) => {
     console.log('🎯 Mobile event completed:', eventId);
+    
+    // Find the completed event to sync state
+    const completedEvent = mobileActiveEvents.find(event => event.id === eventId);
+    if (completedEvent) {
+      // Sync with desktop state for highlight events
+      if (completedEvent.type === InteractionType.HIGHLIGHT_HOTSPOT && completedEvent.targetId) {
+        setHighlightedHotspotId(null); // Clear highlight when event completes
+      }
+    }
+    
     // Remove the completed event from active events
     setMobileActiveEvents(prev => prev.filter(event => event.id !== eventId));
-  }, []);
+  }, [mobileActiveEvents]);
 
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
@@ -2444,9 +2454,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
            InteractionType.SHOW_IMAGE, InteractionType.SHOW_IMAGE_MODAL, InteractionType.SHOW_VIDEO,
            InteractionType.SHOW_YOUTUBE, InteractionType.SHOW_AUDIO_MODAL, InteractionType.PLAY_VIDEO,
            InteractionType.PLAY_AUDIO, InteractionType.PULSE_HOTSPOT, InteractionType.HIGHLIGHT_HOTSPOT,
-           InteractionType.PULSE_HIGHLIGHT].includes(event.type)
+           InteractionType.PULSE_HIGHLIGHT, InteractionType.HIDE_HOTSPOT].includes(event.type)
         );
         setMobileActiveEvents(mobileCompatibleEvents);
+        
+        // Sync highlight state for mobile events
+        const highlightEvent = mobileCompatibleEvents.find(event => 
+          event.type === InteractionType.HIGHLIGHT_HOTSPOT && event.targetId
+        );
+        if (highlightEvent) {
+          setHighlightedHotspotId(highlightEvent.targetId);
+        }
       } else {
         // Clear mobile events for desktop
         setMobileActiveEvents([]);
