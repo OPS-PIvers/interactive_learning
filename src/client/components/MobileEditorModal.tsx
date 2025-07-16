@@ -10,6 +10,8 @@ const MobileEventEditor = lazy(() => import('./mobile/MobileEventEditor'));
 const MobileEventPreview = lazy(() => import('./mobile/MobileEventPreview'));
 const MobilePreviewOverlay = lazy(() => import('./mobile/MobilePreviewOverlay'));
 const MobileEventTypeSelector = lazy(() => import('./mobile/MobileEventTypeSelector'));
+const MobileCameraCapture = lazy(() => import('./mobile/MobileCameraCapture'));
+const MobileVoiceRecorder = lazy(() => import('./mobile/MobileVoiceRecorder'));
 
 interface MobileEditorModalProps {
   isOpen: boolean;
@@ -113,6 +115,8 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   const [eventToPreview, setEventToPreview] = useState<TimelineEventData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -302,6 +306,34 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
             placeholder="Enter hotspot description"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Media
+          </label>
+          <div className="space-y-4">
+            <Suspense fallback={<div>Loading...</div>}>
+              <MobileCameraCapture
+                onCapture={(file) => {
+                  setMediaFile(file);
+                  // Here you would typically trigger an upload process
+                  // For now, we'll just log it.
+                  console.log('Captured file:', file);
+                }}
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <MobileVoiceRecorder
+                onRecord={(file) => {
+                  setMediaFile(file);
+                  // Here you would typically trigger an upload process
+                  // For now, we'll just log it.
+                  console.log('Recorded file:', file);
+                }}
+              />
+            </Suspense>
+          </div>
         </div>
 
         <div>

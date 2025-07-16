@@ -154,8 +154,8 @@ interface MobileEditCapabilities {
 }
 ```
 
-### Task 2.2 - Mobile Media Upload & Replacement
-**Files to create:**
+### Task 2.2 - Mobile Media Upload & Replacement [COMPLETED]
+**Files created:**
 - `src/client/components/mobile/MobileCameraCapture.tsx`
 - `src/client/components/mobile/MobileVoiceRecorder.tsx`
 - `src/client/utils/mobileMediaCapture.ts`
