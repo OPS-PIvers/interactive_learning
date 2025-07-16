@@ -13,50 +13,39 @@ export const MobileVideoPlayer: React.FC<MobileVideoPlayerProps> = ({ src, onClo
     const video = videoRef.current;
     if (!video) return;
 
-    const handlePictureInPicture = () => {
-      if (document.pictureInPictureElement) {
-        document.exitPictureInPicture();
-      } else {
-        video.requestPictureInPicture();
-      }
-    };
-
-    video.addEventListener('play', () => setIsPlaying(true));
-    video.addEventListener('pause', () => setIsPlaying(false));
+    // Stable event listener functions
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
 
     // This is a basic implementation. A more robust solution would
     // involve a library for gesture controls.
     let touchstartY = 0;
-    let touchendY = 0;
-
-    const handleGesture = () => {
-      if (touchendY < touchstartY) {
-        // Swiped up
-      }
-      if (touchendY > touchstartY) {
-        // Swiped down
-        onClose();
-      }
-    }
+    const swipeThreshold = 50; // Minimum pixels to be considered a swipe
 
     const handleTouchStart = (e: TouchEvent) => {
       touchstartY = e.changedTouches[0].screenY;
-    }
+    };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      touchendY = e.changedTouches[0].screenY;
-      handleGesture();
-    }
+      const touchendY = e.changedTouches[0].screenY;
+      if (touchendY > touchstartY + swipeThreshold) {
+        // Swiped down
+        onClose();
+      }
+    };
 
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
     video.addEventListener('touchstart', handleTouchStart);
     video.addEventListener('touchend', handleTouchEnd);
 
-
     return () => {
-      video.removeEventListener('play', () => setIsPlaying(true));
-      video.removeEventListener('pause', () => setIsPlaying(false));
-      video.removeEventListener('touchstart', handleTouchStart);
-      video.removeEventListener('touchend', handleTouchEnd);
+      if (video) {
+        video.removeEventListener('play', onPlay);
+        video.removeEventListener('pause', onPause);
+        video.removeEventListener('touchstart', handleTouchStart);
+        video.removeEventListener('touchend', handleTouchEnd);
+      }
     };
   }, [onClose]);
 

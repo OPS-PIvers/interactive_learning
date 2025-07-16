@@ -13,13 +13,17 @@ export const MobileAudioPlayer: React.FC<MobileAudioPlayerProps> = ({ src, onClo
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.addEventListener('play', () => setIsPlaying(true));
-    audio.addEventListener('pause', () => setIsPlaying(false));
+    // Stable event listener functions
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
 
     // Background playback is handled by the browser and OS, but we can
     // use the Page Visibility API to pause when the app is not in the foreground.
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden && audio) {
         audio.pause();
       }
     };
@@ -27,8 +31,10 @@ export const MobileAudioPlayer: React.FC<MobileAudioPlayerProps> = ({ src, onClo
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      audio.removeEventListener('play', () => setIsPlaying(true));
-      audio.removeEventListener('pause', () => setIsPlaying(false));
+      if (audio) {
+        audio.removeEventListener('play', onPlay);
+        audio.removeEventListener('pause', onPause);
+      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);

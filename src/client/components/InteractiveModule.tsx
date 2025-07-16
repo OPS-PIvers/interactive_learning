@@ -667,19 +667,48 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     debugLog('Cache', 'Cleared image bounds cache');
   }, [debugLog]);
 
+  // Media data interfaces for type safety
+  interface VideoMediaData {
+    src: string;
+    poster?: string;
+    autoplay?: boolean;
+  }
+  
+  interface AudioMediaData {
+    src: string;
+    title?: string;
+    artist?: string;
+  }
+  
+  interface ImageMediaData {
+    src: string;
+    alt?: string;
+    title?: string;
+  }
+  
+  interface YouTubeMediaData {
+    videoId: string;
+    startTime?: number;
+    endTime?: number;
+  }
+  
+  type MediaData = VideoMediaData | AudioMediaData | ImageMediaData | YouTubeMediaData;
 
   // Helper to show media modals
   const showMediaModal = useCallback((
     type: 'video' | 'audio' | 'image' | 'youtube',
     title: string,
-    data: any
+    data: MediaData
   ) => {
     if (isMobile && (type === 'video' || type === 'audio')) {
-      setMobileMediaModal({
-        isOpen: true,
-        type: type,
-        src: data.src,
-      });
+      // Type guard to ensure data has src property for video/audio
+      if ('src' in data) {
+        setMobileMediaModal({
+          isOpen: true,
+          type: type,
+          src: data.src,
+        });
+      }
     } else {
       setMediaModal({
         isOpen: true,
