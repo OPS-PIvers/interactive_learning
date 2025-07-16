@@ -7,9 +7,10 @@ import ProjectCard from './ProjectCard';
 import Modal from './Modal';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import HookErrorBoundary from './HookErrorBoundary';
-import AdminToggle from './AdminToggle';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
+import { UserIcon } from './icons/UserIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import SharedModuleViewer from './SharedModuleViewer';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
@@ -28,7 +29,6 @@ const LoadingScreen: React.FC = () => (
 const MainApp: React.FC = () => {
   const { user, loading, logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -172,11 +172,8 @@ const MainApp: React.FC = () => {
     setIsModalOpen(false);
     setSelectedProject(null);
     setIsEditingMode(false);
-
-    if (isAdmin) {
-      loadProjects();
-    }
-  }, [isAdmin, loadProjects]);
+    loadProjects();
+  }, [loadProjects]);
 
   const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => {
     if (!user) {
@@ -269,18 +266,39 @@ const MainApp: React.FC = () => {
       <header className="mb-6 sm:mb-8 text-center">
         <div className="max-w-6xl mx-auto">
           <div className="block sm:hidden">
-            <div className="flex justify-end items-center mb-3 px-2">
-              {isAdmin && (
+            <div className="flex justify-between items-center mb-3 px-2">
+              <button
+                onClick={handleCreateNewProject}
+                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
+                title="Create New Project"
+                aria-label="Create New Project"
+              >
+                <PlusCircleIcon className="w-6 h-6" />
+              </button>
+              <div className="flex items-center space-x-2">
                 <button
-                  onClick={handleCreateNewProject}
-                  className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors mr-3"
-                  title="Create New Project"
-                  aria-label="Create New Project"
+                  type="button"
+                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                  onClick={() => {
+                    // TODO: Implement settings functionality
+                    console.log('Settings clicked');
+                  }}
+                  aria-label="Settings"
                 >
-                  <PlusCircleIcon className="w-6 h-6" />
+                  <SettingsIcon className="w-6 h-6 text-slate-300" />
                 </button>
-              )}
-              <AdminToggle isAdmin={isAdmin} onToggle={() => setIsAdmin(prev => !prev)} />
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                  onClick={() => {
+                    // TODO: Implement profile functionality
+                    console.log('Profile clicked');
+                  }}
+                  aria-label="Profile"
+                >
+                  <UserIcon className="w-6 h-6 text-slate-300" />
+                </button>
+              </div>
             </div>
             <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4">
               Interactive Learning Hub
@@ -310,17 +328,36 @@ const MainApp: React.FC = () => {
               Interactive Learning Hub
             </h1>
             <div className="flex-1 flex justify-end items-center space-x-4">
-              {isAdmin && (
-                <button
-                  onClick={handleCreateNewProject}
-                  className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
-                  title="Create New Project"
-                  aria-label="Create New Project"
-                >
-                  <PlusCircleIcon className="w-7 h-7" />
-                </button>
-              )}
-              <AdminToggle isAdmin={isAdmin} onToggle={() => setIsAdmin(prev => !prev)} />
+              <button
+                onClick={handleCreateNewProject}
+                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
+                title="Create New Project"
+                aria-label="Create New Project"
+              >
+                <PlusCircleIcon className="w-7 h-7" />
+              </button>
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                onClick={() => {
+                  // TODO: Implement settings functionality
+                  console.log('Settings clicked');
+                }}
+                aria-label="Settings"
+              >
+                <SettingsIcon className="w-7 h-7 text-slate-300" />
+              </button>
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+                onClick={() => {
+                  // TODO: Implement profile functionality
+                  console.log('Profile clicked');
+                }}
+                aria-label="Profile"
+              >
+                <UserIcon className="w-7 h-7 text-slate-300" />
+              </button>
             </div>
           </div>
         </div>
@@ -351,7 +388,7 @@ const MainApp: React.FC = () => {
         )}
         {!isLoading && !error && projects.length === 0 && !isProjectDetailsLoading && (
           <div className="text-center py-10">
-            <p className="text-slate-500 text-xl">No projects yet. {isAdmin ? "Try creating one!" : "Check back later."}</p>
+            <p className="text-slate-500 text-xl">No projects yet. Try creating one!</p>
           </div>
         )}
         {!isLoading && !error && projects.length > 0 && (
@@ -360,7 +397,6 @@ const MainApp: React.FC = () => {
               <ProjectCard
                 key={project.id}
                 project={project}
-                isAdmin={isAdmin}
                 onView={() => handleViewProject(project)}
                 onEdit={() => handleEditProject(project)}
                 onDelete={handleDeleteProject}

@@ -7,13 +7,12 @@ import { TrashIcon } from './icons/TrashIcon'; // Assuming you'll create this
 
 interface ProjectCardProps {
   project: Project;
-  isAdmin: boolean;
   onView: () => void;
   onEdit: () => void;
   onDelete: (projectId: string) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, isAdmin, onView, onEdit, onDelete }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDelete }) => {
   return (
     <div className="bg-slate-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out hover:shadow-purple-500/30 hover:scale-105 flex flex-col">
       <img 
@@ -34,25 +33,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isAdmin, onView, onE
             <EyeIcon className="w-5 h-5" />
             <span>View</span>
           </button>
-          {isAdmin && (
-            <>
-              <button
-                onClick={onEdit}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center space-x-2"
-                aria-label={`Edit ${project.title}`}
-              >
-                <PencilIcon className="w-5 h-5" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => onDelete(project.id)}
-                className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md transition-colors duration-200"
-                aria-label={`Delete ${project.title}`}
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
-            </>
-          )}
+          <button
+            onClick={onEdit}
+            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center space-x-2"
+            aria-label={`Edit ${project.title}`}
+          >
+            <PencilIcon className="w-5 h-5" />
+            <span>Edit</span>
+          </button>
+          <button
+            onClick={() => onDelete(project.id)}
+            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md transition-colors duration-200"
+            aria-label={`Delete ${project.title}`}
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
