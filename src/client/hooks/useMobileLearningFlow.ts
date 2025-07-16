@@ -15,16 +15,19 @@ export const useMobileLearningFlow = ({ module, autoAdvance = false }: MobileLea
   useEffect(() => {
     if (autoAdvance) {
       const timer = setInterval(() => {
-        if (currentStep < totalSteps - 1) {
-          setCurrentStep(prev => prev + 1);
-        } else {
-          setIsComplete(true);
-        }
+        setCurrentStep(prev => {
+          if (prev < totalSteps - 1) {
+            return prev + 1;
+          } else {
+            setIsComplete(true);
+            return prev;
+          }
+        });
       }, 5000); // Auto-advance every 5 seconds
 
       return () => clearInterval(timer);
     }
-  }, [autoAdvance, currentStep, totalSteps]);
+  }, [autoAdvance, totalSteps]); // Removed currentStep from dependencies
 
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {

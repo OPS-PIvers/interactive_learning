@@ -250,13 +250,25 @@ export class FirebaseProjectAPI {
           throw new Error('Project not found. Cannot update a non-existent project.');
         }
 
-        const updateData: any = {
+        interface ProjectUpdateData {
+          title: string;
+          description: string;
+          thumbnailUrl: string;
+          backgroundImage: string | null;
+          imageFitMode: string;
+          viewerModes: { explore: boolean; selfPaced: boolean; timed: boolean };
+          updatedAt: any; // Firestore serverTimestamp
+          createdBy: string;
+          createdAt?: any; // Optional, only for new projects
+        }
+
+        const updateData: ProjectUpdateData = {
           title: project.title,
           description: project.description,
           thumbnailUrl: finalThumbnailUrl,
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
-          viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
+          viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy
         };

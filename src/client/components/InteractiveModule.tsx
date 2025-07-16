@@ -2142,19 +2142,28 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [hotspots, getSafeImageBounds, getSafeViewportCenter, throttledRecalculatePositions, moduleState]);
 
   // Add wheel event listener for Ctrl+scroll zoom
+  // Use ref to store the latest handler to avoid re-adding listeners
+  const wheelZoomHandlerRef = useRef(handleWheelZoom);
+  wheelZoomHandlerRef.current = handleWheelZoom;
+
   useEffect(() => {
     const container = scrollableContainerRef.current;
     if (!container || !isEditing) return; // Only add when editing
 
+    // Wrapper function that uses the latest handler from ref
+    const wheelHandler = (event: WheelEvent) => {
+      wheelZoomHandlerRef.current(event);
+    };
+
     // Add event listener with passive: false to allow preventDefault
-    container.addEventListener('wheel', handleWheelZoom, { passive: false });
+    container.addEventListener('wheel', wheelHandler, { passive: false });
 
     return () => {
       if (container) {
-        container.removeEventListener('wheel', handleWheelZoom);
+        container.removeEventListener('wheel', wheelHandler);
       }
     };
-  }, [handleWheelZoom, isEditing]);
+  }, [isEditing]); // Removed handleWheelZoom from dependencies
 
 
   // Effect to handle viewer mode initialization and ensure proper image display
@@ -2393,9 +2402,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    // Use a wrapper to avoid re-adding listeners when handleKeyDown changes
+    const keyDownHandler = (e: KeyboardEvent) => {
+      handleKeyDown(e);
+    };
+
+    window.addEventListener('keydown', keyDownHandler);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', keyDownHandler);
     };
   }, [debugLog, stableKeyboardHandlers]); // Stable dependency
 

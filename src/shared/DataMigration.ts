@@ -34,14 +34,40 @@ export class DataMigration {
   /**
    * Safely migrate project data
    */
-  static migrateProjectData(projectData: any): any {
-    if (!projectData || !projectData.timelineEvents || !Array.isArray(projectData.timelineEvents)) {
-      // Return original data if it's not in the expected format
-      return projectData;
+  static migrateProjectData(projectData: unknown): InteractiveModuleState {
+    // Type guard to ensure we have the expected structure
+    if (!projectData || typeof projectData !== 'object' || projectData === null) {
+      throw new Error('Invalid project data: must be an object');
     }
-    return {
-      ...projectData,
-      timelineEvents: projectData.timelineEvents.map(this.convertLegacyEvent)
+    
+    const data = projectData as Record<string, unknown>;
+    
+    if (!data.timelineEvents || !Array.isArray(data.timelineEvents)) {
+      throw new Error('Invalid project data: missing or invalid timelineEvents');
+    }
+    
+    // Ensure we have a valid InteractiveModuleState structure
+    const migratedData: InteractiveModuleState = {
+      hotspots: Array.isArray(data.hotspots) ? data.hotspots as HotspotData[] : [],
+      timelineEvents: data.timelineEvents.map(this.convertLegacyEvent),
+      currentStep: typeof data.currentStep === 'number' ? data.currentStep : 0,
+      backgroundImage: typeof data.backgroundImage === 'string' ? data.backgroundImage : null,
+      // Add other required properties with defaults
+      isEditing: false,
+      isPlaying: false,
+      isDragging: false,
+      draggedHotspot: null,
+      selectedHotspot: null,
+      placementMode: false,
+      pendingHotspotType: null,
+      pendingHotspotData: null,
+      imageTransform: { scale: 1, translateX: 0, translateY: 0 },
+      isTransforming: false,
+      autoPlay: false,
+      previewMode: false,
+      ...(data as Partial<InteractiveModuleState>)
     };
+    
+    return migratedData;
   }
 }
