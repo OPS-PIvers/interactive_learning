@@ -82,29 +82,6 @@ jobs:
               core.setOutput('has_feedback', 'false');
             }
 
-      - name: Manual approval for bash operations
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ secrets.GITHUB_TOKEN }}
-          approvers: ${{ github.repository_owner }}
-          minimum-approvals: 1
-          issue-title: "Manual approval required for Claude Code bash operations"
-          issue-body: |
-            Please review the PR changes and approve bash command execution:
-            
-            **PR**: #${{ github.event.pull_request.number }}
-            **Branch**: ${{ github.head_ref }}
-            **Author**: ${{ github.event.pull_request.user.login }}
-            
-            Claude Code will execute bash commands for:
-            - Running tests and builds
-            - Making code fixes and commits
-            - Potentially modifying project files
-            
-            **Security Note**: Only approve if you trust the PR changes and Claude's automated actions.
-            
-            Gemini feedback available: ${{ steps.gemini-feedback.outputs.has_feedback }}
-
       - name: Claude Code Review and Fix
         uses: anthropics/claude-code-action@beta
         with:
@@ -123,8 +100,6 @@ jobs:
             5. Proper error handling
             6. Accessibility requirements met
             7. Mobile responsiveness maintained
-            
-            IMPORTANT: You have been approved to execute bash commands. Use them responsibly for testing, building, and making necessary code fixes.
             
             Fix any issues found and commit the changes directly to this PR branch.
           
