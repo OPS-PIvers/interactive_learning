@@ -38,11 +38,11 @@ const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) =
     { type: InteractionType.SPOTLIGHT, label: 'Spotlight' },
     { type: InteractionType.PAN_ZOOM, label: 'Pan & Zoom' },
     { type: InteractionType.SHOW_TEXT, label: 'Text Display' },
+    { type: InteractionType.PLAY_VIDEO, label: 'Video' },
+    { type: InteractionType.PLAY_AUDIO, label: 'Audio' },
     { type: InteractionType.SHOW_IMAGE_MODAL, label: 'Image Modal' },
-    { type: InteractionType.SHOW_VIDEO, label: 'Video Modal' },
-    { type: InteractionType.SHOW_AUDIO_MODAL, label: 'Audio Modal' },
-    { type: InteractionType.SHOW_YOUTUBE, label: 'YouTube Modal' },
     { type: InteractionType.QUIZ, label: 'Quiz Question' },
+    { type: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
   ];
 
   return (
@@ -167,67 +167,69 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       step: currentStep,
       type,
       targetId: localHotspot.id,
-      // Add default properties based on type with smart positioning
-      ...(type === InteractionType.SPOTLIGHT && { 
-        shape: 'circle', 
-        size: { width: 20, height: 20 }, 
-        position: { x: 50, y: 50 }, 
-        opacity: 0.7,
-        highlightShape: 'circle',
-        dimPercentage: 70,
-        // Position spotlight to the right of hotspot
-        spotlightX: Math.min(85, localHotspot.x + 15),
-        spotlightY: localHotspot.y,
+      
+      // === UNIFIED VIDEO PROPERTIES ===
+      ...(type === InteractionType.PLAY_VIDEO && {
+        videoSource: undefined, // User will select
+        videoDisplayMode: 'inline',
+        videoShowControls: true,
+        autoplay: false,
+        loop: false,
+      }),
+      
+      // === UNIFIED AUDIO PROPERTIES ===
+      ...(type === InteractionType.PLAY_AUDIO && {
+        audioUrl: '',
+        audioDisplayMode: 'background',
+        audioShowControls: false,
+        autoplay: true,
+        volume: 80,
+      }),
+      
+      // === UNIFIED TEXT PROPERTIES ===
+      ...(type === InteractionType.SHOW_TEXT && {
+        textContent: 'Enter your text here',
+        textPosition: 'center',
+        textX: 50,
+        textY: 50,
+        textWidth: 300,
+        textHeight: 100,
+      }),
+      
+      // === UNIFIED SPOTLIGHT PROPERTIES ===
+      ...(type === InteractionType.SPOTLIGHT && {
+        spotlightShape: 'circle',
+        spotlightX: localHotspot.x,
+        spotlightY: localHotspot.y, 
         spotlightWidth: 120,
-        spotlightHeight: 120
+        spotlightHeight: 120,
+        backgroundDimPercentage: 70,
+        spotlightOpacity: 0, // Always bright
       }),
-      ...(type === InteractionType.PAN_ZOOM && { 
-        zoom: 2, 
-        // Position pan-zoom area to the right of hotspot
-        targetX: Math.min(85, localHotspot.x + 20),
-        targetY: localHotspot.y,
+      
+      // === UNIFIED PAN_ZOOM PROPERTIES ===
+      ...(type === InteractionType.PAN_ZOOM && {
         zoomLevel: 2,
-        zoomFactor: 2
+        smooth: true,
       }),
-      ...(type === InteractionType.SHOW_TEXT && { 
-        content: 'Some text', 
-        textContent: 'Some text',
-        // Position text box to the right of hotspot
-        textX: Math.min(80, localHotspot.x + 15),
-        textY: localHotspot.y,
-        textWidth: 200,
-        textHeight: 60
+      
+      // === PULSE PROPERTIES ===
+      ...(type === InteractionType.PULSE_HOTSPOT && {
+        duration: 2000,
+        intensity: 80,
       }),
+      
+      // === OTHER PROPERTIES ===
       ...(type === InteractionType.SHOW_IMAGE_MODAL && {
-        imageUrl: '', // Correct field for SHOW_IMAGE_MODAL
-        mediaType: 'image', // Keep for clarity, though InteractiveModule uses the main type
-        name: 'New Image Modal',
+        imageUrl: '',
+        caption: '',
       }),
-      ...(type === InteractionType.SHOW_VIDEO && {
-        videoUrl: '', // Correct field for SHOW_VIDEO
-        mediaType: 'mp4',
-        name: 'New Video Modal',
-        autoplay: false,
-        loop: false,
-      }),
-      ...(type === InteractionType.SHOW_AUDIO_MODAL && {
-        audioUrl: '', // Correct field for SHOW_AUDIO_MODAL
-        mediaType: 'audio',
-        name: 'New Audio Modal',
-        autoplay: false,
-        loop: false,
-      }),
-      ...(type === InteractionType.SHOW_YOUTUBE && {
-        youtubeVideoId: '', // Correct field for SHOW_YOUTUBE
-        mediaType: 'youtube',
-        name: 'New YouTube Modal',
-        autoplay: false,
-        loop: false,
-      }),
+      
       ...(type === InteractionType.QUIZ && {
-        question: 'Enter question',
-        quizQuestion: 'Enter question',
-        targetHotspotId: '' 
+        quizQuestion: 'Enter your question',
+        quizOptions: ['Option 1', 'Option 2', 'Option 3'],
+        quizCorrectAnswer: 0,
+        quizExplanation: '',
       }),
     };
     onAddEvent(newEvent);

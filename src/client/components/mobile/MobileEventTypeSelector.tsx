@@ -2,30 +2,26 @@ import React from 'react';
 import { InteractionType } from '../../../shared/types';
 
 const MOBILE_INTERACTION_TYPES = [
-  // Visual Effects
   {
     category: 'Visual Effects',
     types: [
-      { value: InteractionType.SPOTLIGHT, label: 'Spotlight', icon: '💡', description: 'Highlight specific area' },
+      { value: InteractionType.SPOTLIGHT, label: 'Spotlight', icon: '💡', description: 'Focus attention on area' },
       { value: InteractionType.PAN_ZOOM, label: 'Pan & Zoom', icon: '🔍', description: 'Focus on area' },
       { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse', icon: '💓', description: 'Animate hotspot' },
     ]
   },
-  // Media Content
   {
     category: 'Media',
     types: [
-      { value: InteractionType.SHOW_VIDEO, label: 'Video', icon: '🎥', description: 'Play video file' },
-      { value: InteractionType.SHOW_AUDIO_MODAL, label: 'Audio', icon: '🎵', description: 'Play audio' },
+      { value: InteractionType.PLAY_VIDEO, label: 'Video', icon: '🎥', description: 'File, YouTube, or record video' },
+      { value: InteractionType.PLAY_AUDIO, label: 'Audio', icon: '🔊', description: 'File or record audio' },
       { value: InteractionType.SHOW_IMAGE_MODAL, label: 'Image', icon: '🖼️', description: 'Show image' },
-      { value: InteractionType.SHOW_YOUTUBE, label: 'YouTube', icon: '📺', description: 'Play YouTube video' },
     ]
   },
-  // Interactive
   {
     category: 'Interactive',
     types: [
-      { value: InteractionType.SHOW_TEXT, label: 'Text Modal', icon: '💬', description: 'Show text popup' },
+      { value: InteractionType.SHOW_TEXT, label: 'Text', icon: '💬', description: 'Show text content' },
       { value: InteractionType.QUIZ, label: 'Quiz', icon: '❓', description: 'Ask question' },
     ]
   }

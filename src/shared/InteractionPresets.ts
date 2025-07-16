@@ -10,14 +10,7 @@ export interface InteractionPreset {
 }
 
 export const interactionPresets: Record<InteractionType, InteractionPreset> = {
-  // Legacy types - keep for compatibility
-  [InteractionType.SHOW_HOTSPOT]: {
-    icon: '👁️',
-    name: 'Show Hotspot',
-    color: 'bg-green-500',
-    settings: [],
-    description: 'Make hotspot visible'
-  },
+  // Essential interaction types
   [InteractionType.HIDE_HOTSPOT]: {
     icon: '🚫',
     name: 'Hide Hotspot',
@@ -29,38 +22,15 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '💓',
     name: 'Pulse Hotspot',
     color: 'bg-blue-500',
-    settings: ['duration'],
-    description: 'Animate hotspot with pulse'
+    settings: ['duration', 'intensity'],
+    description: 'Animate hotspot with pulse effect'
   },
-  [InteractionType.SHOW_MESSAGE]: {
-    icon: '💬',
-    name: 'Show Message',
-    color: 'bg-blue-500',
-    settings: ['message'],
-    description: 'Display text message'
-  },
-  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: {
+  [InteractionType.PAN_ZOOM]: {
     icon: '🔍',
-    name: 'Pan & Zoom to Hotspot',
-    color: 'bg-purple-500',
-    settings: ['zoomFactor'],
+    name: 'Pan & Zoom',
+    color: 'bg-green-500',
+    settings: ['zoomLevel', 'smooth'],
     description: 'Focus on hotspot with zoom'
-  },
-  [InteractionType.HIGHLIGHT_HOTSPOT]: {
-    icon: '✨',
-    name: 'Highlight Hotspot',
-    color: 'bg-yellow-500',
-    settings: ['highlightRadius'],
-    description: 'Spotlight effect on hotspot'
-  },
-  
-  // New enhanced types
-  [InteractionType.SHOW_TEXT]: {
-    icon: '💬',
-    name: 'Show Text',
-    color: 'bg-blue-500',
-    settings: ['content'],
-    description: 'Display rich text content'
   },
   [InteractionType.SHOW_IMAGE]: {
     icon: '🖼️',
@@ -69,76 +39,85 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     settings: ['imageUrl', 'caption'],
     description: 'Display image with optional caption'
   },
-  [InteractionType.PAN_ZOOM]: {
-    icon: '🔍',
-    name: 'Pan & Zoom',
-    color: 'bg-green-500',
-    settings: ['zoomLevel', 'smooth'],
-    description: 'Zoom to hotspot location'
-  },
-  [InteractionType.SPOTLIGHT]: {
-    icon: '💡',
-    name: 'Spotlight',
-    color: 'bg-yellow-500',
-    settings: ['radius', 'intensity'],
-    description: 'Focus attention with spotlight'
+  [InteractionType.SHOW_IMAGE_MODAL]: {
+    icon: '🖼️',
+    name: 'Show Image Modal',
+    color: 'bg-cyan-600',
+    settings: ['imageUrl', 'caption'],
+    description: 'Display image in zoomable modal'
   },
   [InteractionType.QUIZ]: {
     icon: '❓',
     name: 'Quiz Question',
     color: 'bg-red-500',
-    settings: ['question', 'options', 'correctAnswer'],
+    settings: ['quizQuestion', 'quizOptions', 'quizCorrectAnswer', 'quizExplanation'],
     description: 'Interactive quiz question'
   },
-  [InteractionType.PULSE_HIGHLIGHT]: {
-    icon: '💓',
-    name: 'Pulse Highlight',
-    color: 'bg-pink-500',
-    settings: ['duration', 'intensity'],
-    description: 'Animated highlight effect'
+  
+  // === UNIFIED MEDIA TYPES ===
+  [InteractionType.PLAY_VIDEO]: {
+    icon: '🎥',
+    name: 'Play Video',
+    color: 'bg-red-500',
+    settings: [
+      'videoSource',
+      'videoUrl', 
+      'videoDisplayMode', 
+      'videoShowControls', 
+      'videoPoster', 
+      'autoplay', 
+      'loop',
+      'youtubeStartTime',
+      'youtubeEndTime'
+    ],
+    description: 'Play video from any source (file, YouTube, device recording, URL)'
   },
+  
   [InteractionType.PLAY_AUDIO]: {
     icon: '🔊',
     name: 'Play Audio',
     color: 'bg-indigo-500',
-    settings: ['audioUrl', 'volume'],
-    description: 'Play audio narration'
-  },
-  [InteractionType.PLAY_VIDEO]: {
-    icon: '🎞️',
-    name: 'Play Video Inline',
-    color: 'bg-orange-500',
-    settings: ['videoUrl', 'autoplay', 'loop'],
-    description: 'Play video directly in content (not modal)'
+    settings: [
+      'audioUrl', 
+      'audioDisplayMode', 
+      'audioShowControls', 
+      'volume', 
+      'autoplay', 
+      'loop',
+      'audioTitle',
+      'audioArtist'
+    ],
+    description: 'Play audio from any source with flexible display options'
   },
   
-  // Media modal interaction types
-  [InteractionType.SHOW_VIDEO]: {
-    icon: '📹',
-    name: 'Show Video',
-    color: 'bg-red-600',
-    settings: ['videoUrl', 'poster', 'autoplay', 'loop'],
-    description: 'Display video in modal with controls'
+  // === UNIFIED TEXT AND SPOTLIGHT ===
+  [InteractionType.SHOW_TEXT]: {
+    icon: '💬',
+    name: 'Show Text',
+    color: 'bg-blue-500',
+    settings: [
+      'textContent',
+      'textPosition',
+      'textX',
+      'textY', 
+      'textWidth',
+      'textHeight'
+    ],
+    description: 'Display text content with flexible positioning'
   },
-  [InteractionType.SHOW_AUDIO_MODAL]: {
-    icon: '🎵',
-    name: 'Show Audio Player',
-    color: 'bg-green-600',
-    settings: ['audioUrl', 'title', 'artist', 'autoplay'],
-    description: 'Display audio player in modal'
-  },
-  [InteractionType.SHOW_IMAGE_MODAL]: {
-    icon: '🖼️',
-    name: 'Show Image Modal',
-    color: 'bg-cyan-600',
-    settings: ['imageUrl', 'title', 'caption'],
-    description: 'Display image in zoomable modal'
-  },
-  [InteractionType.SHOW_YOUTUBE]: {
-    icon: '📺',
-    name: 'Show YouTube Video',
-    color: 'bg-red-500',
-    settings: ['youtubeVideoId', 'youtubeStartTime', 'youtubeEndTime', 'autoplay'],
-    description: 'Display YouTube video in modal'
+  
+  [InteractionType.SPOTLIGHT]: {
+    icon: '💡',
+    name: 'Spotlight',
+    color: 'bg-yellow-500',
+    settings: [
+      'spotlightShape',
+      'spotlightX',
+      'spotlightY',
+      'spotlightWidth', 
+      'spotlightHeight',
+      'backgroundDimPercentage'
+    ],
+    description: 'Focus attention with customizable spotlight effect'
   }
 };

@@ -2,32 +2,34 @@
 import { Timestamp } from 'firebase/firestore';
 
 export enum InteractionType {
-  // Existing types
+  // Essential interaction types
   HIDE_HOTSPOT = 'HIDE_HOTSPOT',
   PULSE_HOTSPOT = 'PULSE_HOTSPOT',
-  SHOW_MESSAGE = 'SHOW_MESSAGE',
-  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
-  HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT',
-  
-  // Enhanced types
-  SHOW_TEXT = 'SHOW_TEXT',
-  SHOW_IMAGE = 'SHOW_IMAGE',
   PAN_ZOOM = 'PAN_ZOOM',
-  SPOTLIGHT = 'SPOTLIGHT',
-  QUIZ = 'QUIZ',
-  PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT',
-  PLAY_AUDIO = 'PLAY_AUDIO',
-  PLAY_VIDEO = 'PLAY_VIDEO',
-  
-  // Media interaction types
-  SHOW_VIDEO = 'SHOW_VIDEO',
-  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
+  SHOW_IMAGE = 'SHOW_IMAGE',
   SHOW_IMAGE_MODAL = 'SHOW_IMAGE_MODAL',
-  SHOW_YOUTUBE = 'SHOW_YOUTUBE'
+  QUIZ = 'QUIZ',
+  
+  // === UNIFIED EVENT TYPES ===
+  PLAY_VIDEO = 'PLAY_VIDEO',
+  PLAY_AUDIO = 'PLAY_AUDIO',
+  SHOW_TEXT = 'SHOW_TEXT',
+  SPOTLIGHT = 'SPOTLIGHT',
+  
+  // DEPRECATED - These will be migrated to unified types:
+  // PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT', // merge into PAN_ZOOM
+  // PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT', // merge into PULSE_HOTSPOT
+  // SHOW_VIDEO = 'SHOW_VIDEO', // merge into PLAY_VIDEO
+  // SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL', // merge into PLAY_AUDIO
+  // SHOW_YOUTUBE = 'SHOW_YOUTUBE', // merge into PLAY_VIDEO
+  // SHOW_MESSAGE = 'SHOW_MESSAGE', // merge into SHOW_TEXT
+  // HIGHLIGHT_HOTSPOT = 'HIGHLIGHT_HOTSPOT', // merge into SPOTLIGHT
 }
 
 
 export type HotspotSize = 'small' | 'medium' | 'large';
+export type VideoSourceType = 'file' | 'youtube' | 'device' | 'url';
+export type SpotlightShape = 'circle' | 'rectangle' | 'oval';
 
 export interface HotspotData {
   id: string;
@@ -115,55 +117,64 @@ export interface TimelineEventData {
   type: InteractionType;
   
   targetId?: string; // ID of HotspotData
-  message?: string;
   duration?: number; // in ms, for timed events like pulse
   
-  // Enhanced zoom properties
-  zoomFactor?: number; // For PAN_ZOOM_TO_HOTSPOT, e.g., 2 for 2x zoom, defaults to 2
+  // === UNIFIED VIDEO PROPERTIES ===
+  videoSource?: VideoSourceType;
+  videoUrl?: string;
+  videoFile?: File;
+  videoBlob?: Blob;
+  youtubeVideoId?: string;
+  youtubeStartTime?: number;
+  youtubeEndTime?: number;
+  videoDisplayMode?: 'inline' | 'modal' | 'overlay';
+  videoShowControls?: boolean;
+  videoPoster?: string;
   
-  // Enhanced spotlight properties
-  highlightRadius?: number; // For HIGHLIGHT_HOTSPOT, in pixels on original image for clear area, defaults to 60
-  highlightShape?: 'circle' | 'rectangle' | 'oval'; // Shape of the highlight area, defaults to 'circle'
-  dimPercentage?: number; // Percentage of dimming for highlight overlay (0-100), defaults to 70
-  spotlightX?: number; // Percentage position
-  spotlightY?: number; // Percentage position
-  spotlightWidth?: number; // Pixels
-  spotlightHeight?: number; // Pixels
+  // === UNIFIED AUDIO PROPERTIES ===
+  audioUrl?: string;
+  audioDisplayMode?: 'background' | 'modal' | 'mini-player';
+  audioShowControls?: boolean;
+  audioTitle?: string;
+  audioArtist?: string;
   
-  // New properties for enhanced events
+  // === UNIFIED TEXT PROPERTIES ===
   textContent?: string;
-  textPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  textX?: number; // Text box X position (percentage)
-  textY?: number; // Text box Y position (percentage)
-  textWidth?: number; // Text box width (pixels)
-  textHeight?: number; // Text box height (pixels)
+  textX?: number;        // Position X (percentage)
+  textY?: number;        // Position Y (percentage)
+  textWidth?: number;    // Width in pixels
+  textHeight?: number;   // Height in pixels
+  textPosition?: 'center' | 'custom';
+  
+  // === UNIFIED SPOTLIGHT PROPERTIES ===
+  spotlightShape?: SpotlightShape;
+  spotlightX?: number;           // Center X (percentage)
+  spotlightY?: number;           // Center Y (percentage)
+  spotlightWidth?: number;       // Width in pixels
+  spotlightHeight?: number;      // Height in pixels
+  backgroundDimPercentage?: number; // 0-100 (how much to dim background)
+  spotlightOpacity?: number;     // Always 0 for spotlighted area
+  
+  // === UNIFIED PAN_ZOOM PROPERTIES ===
+  zoomLevel?: number;    // Unified zoom level (consolidates zoomFactor and zoomLevel)
+  smooth?: boolean;      // Smooth zoom animation
+  
+  // === COMMON PROPERTIES ===
+  autoplay?: boolean;
+  loop?: boolean;
+  volume?: number;
+  intensity?: number;    // For pulse effects
+  
+  // Quiz properties
   quizQuestion?: string;
   quizOptions?: string[];
   quizCorrectAnswer?: number;
   quizExplanation?: string;
   quizShuffleOptions?: boolean;
-  mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
-  mediaUrl?: string;
   
-  // Additional properties for new interaction types
+  // Image properties
   imageUrl?: string;
   caption?: string;
-  zoomLevel?: number;
-  smooth?: boolean;
-  radius?: number;
-  intensity?: number;
-  audioUrl?: string;
-  volume?: number;
-  
-  // Media modal properties
-  videoUrl?: string;
-  youtubeVideoId?: string;
-  youtubeStartTime?: number;
-  youtubeEndTime?: number;
-  autoplay?: boolean;
-  loop?: boolean;
-  poster?: string;
-  artist?: string;
   
   // Reference code integration properties
   shape?: 'circle' | 'rectangle';
@@ -182,9 +193,22 @@ export interface TimelineEventData {
   options?: string[];
   correctAnswer?: number;
   
-  // ADD these new properties for enhanced positioning system
-  positioningVersion?: 'enhanced' | 'legacy'; // Track which positioning system was used
-  constraintsApplied?: boolean; // Whether positioning constraints were applied
+  // Enhanced positioning system
+  positioningVersion?: 'enhanced' | 'legacy';
+  constraintsApplied?: boolean;
+  
+  // Legacy fields (keep for migration compatibility)
+  message?: string;
+  mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
+  mediaUrl?: string;
+  videoUrl?: string;
+  poster?: string;
+  artist?: string;
+  zoomFactor?: number;   // Legacy - use zoomLevel instead
+  highlightRadius?: number; // Legacy - use spotlightWidth/Height instead
+  highlightShape?: 'circle' | 'rectangle' | 'oval'; // Legacy - use spotlightShape instead
+  dimPercentage?: number; // Legacy - use backgroundDimPercentage instead
+  radius?: number;       // Legacy pulse radius
 }
 
 // New interface for managing multiple simultaneous events
@@ -216,6 +240,7 @@ export interface StoredInteractiveModuleData {
   timelineEvents: TimelineEventData[];
   backgroundImageFileId?: string; // Reference to the image file in simulated Drive
   imageFitMode?: 'cover' | 'contain' | 'fill'; // Image display mode
+  schemaVersion?: string; // Track data schema version for migrations
 }
 
 export type UserId = string;
@@ -246,3 +271,36 @@ export interface ImageTransformState {
   translateY: number;
   targetHotspotId?: string;
 }
+
+// === UTILITY FUNCTIONS ===
+
+// Video source detection utility
+export const detectVideoSource = (input: string): VideoSourceType => {
+  const youtubePatterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/ // Direct video ID
+  ];
+  
+  for (const pattern of youtubePatterns) {
+    if (pattern.test(input)) return 'youtube';
+  }
+  
+  const videoExtensions = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i;
+  if (videoExtensions.test(input)) return 'file';
+  
+  return 'url';
+};
+
+// Extract YouTube video ID from various URL formats
+export const extractYouTubeVideoId = (input: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/ // Direct video ID
+  ];
+
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};

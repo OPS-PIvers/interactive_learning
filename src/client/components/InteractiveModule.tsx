@@ -3,7 +3,8 @@ import { useIsMobile } from '../hooks/useIsMobile';
 // import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
 import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/deviceHandoff';
 import { useTouchGestures } from '../hooks/useTouchGestures';
-import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType, extractYouTubeVideoId } from '../../shared/types';
+import { migrateEventTypes } from '../../shared/migration';
 import FileUpload from './FileUpload';
 import HorizontalTimeline from './HorizontalTimeline';
 import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
@@ -194,7 +195,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(undefined);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(
+    migrateEventTypes(initialData.timelineEvents || [])
+  );
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
   // Tracks whether user has made an initial mode selection to control modal visibility
@@ -1250,7 +1253,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       const firstEventForHotspot = timelineEvents
         .filter(e => e.targetId === hotspotId)
         .sort((a, b) => a.step - b.step)[0];
-      setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM_TO_HOTSPOT));
+      setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM));
     }
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
   }, [isEditing, moduleState, timelineEvents, hotspots, effectiveIsMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
@@ -1628,7 +1631,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     const completedEvent = mobileActiveEvents.find(event => event.id === eventId);
     if (completedEvent) {
       // Sync with desktop state for highlight events
-      if (completedEvent.type === InteractionType.HIGHLIGHT_HOTSPOT && completedEvent.targetId) {
+      if (completedEvent.type === InteractionType.SPOTLIGHT && completedEvent.targetId) {
         setHighlightedHotspotId(null); // Clear highlight when event completes
       }
     }
@@ -1766,7 +1769,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     const currentEvents = timelineEvents.filter(e => e.step === currentStep);
     const eventData = currentEvents.find(e =>
-      e.type === InteractionType.HIGHLIGHT_HOTSPOT &&
+      e.type === InteractionType.SPOTLIGHT &&
       e.targetId === highlightedHotspotId
     );
 
@@ -2277,7 +2280,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setBackgroundType(initialData.backgroundType || 'image');
       setBackgroundVideoType(initialData.backgroundVideoType || 'mp4');
       setHotspots(initialData.hotspots || []);
-      setTimelineEvents(initialData.timelineEvents || []);
+      setTimelineEvents(migrateEventTypes(initialData.timelineEvents || []));
       setImageFitMode(initialData.imageFitMode || 'cover');
 
       const newInitialModuleState = isEditing ? 'learning' : 'idle';
@@ -2463,18 +2466,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // Set mobile active events for mobile-specific event types
       if (effectiveIsMobile) {
         const mobileCompatibleEvents = eventsForCurrentStep.filter(event => 
-          [InteractionType.SPOTLIGHT, InteractionType.PAN_ZOOM, InteractionType.PAN_ZOOM_TO_HOTSPOT,
-           InteractionType.SHOW_TEXT, InteractionType.SHOW_MESSAGE, InteractionType.QUIZ,
-           InteractionType.SHOW_IMAGE, InteractionType.SHOW_IMAGE_MODAL, InteractionType.SHOW_VIDEO,
-           InteractionType.SHOW_YOUTUBE, InteractionType.SHOW_AUDIO_MODAL, InteractionType.PLAY_VIDEO,
-           InteractionType.PLAY_AUDIO, InteractionType.PULSE_HOTSPOT, InteractionType.HIGHLIGHT_HOTSPOT,
-           InteractionType.PULSE_HIGHLIGHT, InteractionType.HIDE_HOTSPOT].includes(event.type)
+          [InteractionType.SPOTLIGHT, InteractionType.PAN_ZOOM,
+           InteractionType.SHOW_TEXT, InteractionType.QUIZ,
+           InteractionType.SHOW_IMAGE, InteractionType.SHOW_IMAGE_MODAL,
+           InteractionType.PLAY_VIDEO, InteractionType.PLAY_AUDIO,
+           InteractionType.PULSE_HOTSPOT, InteractionType.HIDE_HOTSPOT].includes(event.type)
         );
         setMobileActiveEvents(mobileCompatibleEvents);
         
         // Sync highlight state for mobile events
         const highlightEvent = mobileCompatibleEvents.find(event => 
-          event.type === InteractionType.HIGHLIGHT_HOTSPOT && event.targetId
+          event.type === InteractionType.SPOTLIGHT && event.targetId
         );
         if (highlightEvent) {
           setHighlightedHotspotId(highlightEvent.targetId);
@@ -2492,10 +2494,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               const hotspot = hotspots.find(h => h.id === event.targetId);
               const forcesVisibility =
                   event.type === InteractionType.PULSE_HOTSPOT ||
-                  event.type === InteractionType.HIGHLIGHT_HOTSPOT ||
-                  event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
                   event.type === InteractionType.SPOTLIGHT ||
-                  event.type === InteractionType.PULSE_HIGHLIGHT;
+                  event.type === InteractionType.PAN_ZOOM;
 
               if (forcesVisibility || (hotspot && hotspot.displayHotspotInEvent)) {
                   newActiveDisplayIds.add(event.targetId);
@@ -2505,7 +2505,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       eventsForCurrentStep.forEach(event => {
         switch (event.type) {
-          case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
           case InteractionType.PULSE_HOTSPOT:
             if (event.targetId) {
               newPulsingHotspotId = event.targetId;
@@ -2514,7 +2513,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               }
             }
             break;
-          case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+          case InteractionType.PAN_ZOOM:
             stepHasPanZoomEvent = true;
             if (event.targetId) {
               const targetHotspot = hotspots.find(h => h.id === event.targetId);
@@ -2525,7 +2524,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               const viewportCenter = getSafeViewportCenter();
 
               if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomFactor || 2;
+                const scale = event.zoomLevel || event.zoomFactor || 2;
 
                 // Calculate hotspot position on the unscaled image, relative to imageBounds content area
                 const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
@@ -2597,9 +2596,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               }
             }
             break;
-          case InteractionType.HIGHLIGHT_HOTSPOT:
-            if (event.targetId) { newHighlightedHotspotId = event.targetId; }
-            break;
           case InteractionType.SHOW_TEXT:
             if (event.textContent) {
               newMessage = event.textContent;
@@ -2611,40 +2607,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
             }
             break;
-          case InteractionType.PAN_ZOOM:
-            if (event.targetId) {
-              stepHasPanZoomEvent = true;
-              const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
-
-              if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomLevel || 2;
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
-
-                const hotspotOriginalX = imageBounds.left + hotspotX;
-                const hotspotOriginalY = imageBounds.top + hotspotY;
-
-                const translateX = viewportCenter.centerX - hotspotOriginalX * scale;
-                const translateY = viewportCenter.centerY - hotspotOriginalY * scale;
-
-                let newTransform: ImageTransformState = {
-                  scale,
-                  translateX,
-                  translateY,
-                  targetHotspotId: event.targetId
-                };
-
-                newTransform = constrainTransform(newTransform);
-                newImageTransform = newTransform;
-              }
-            }
-            break;
           case InteractionType.SPOTLIGHT:
             if (event.targetId) {
               newHighlightedHotspotId = event.targetId;
-              // Could be enhanced with intensity and radius parameters
+              // Enhanced with spotlight shape, size, and dimming controls
             }
             break;
           case InteractionType.QUIZ:
@@ -2653,47 +2619,67 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               // Could be enhanced with modal for quiz interaction
             }
             break;
-          case InteractionType.PULSE_HIGHLIGHT:
-            if (event.targetId) {
-              newPulsingHotspotId = event.targetId;
-              newHighlightedHotspotId = event.targetId;
-              if (event.duration) {
-                pulseTimeoutRef.current = window.setTimeout(() => {
-                  setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId);
-                  setHighlightedHotspotId(prevId => prevId === event.targetId ? null : prevId);
-                }, event.duration);
-              }
-            }
-            break;
           case InteractionType.PLAY_AUDIO:
             if (event.audioUrl) {
-              // Basic audio playback - could be enhanced with volume control
-              const audio = new Audio(event.audioUrl);
-              if (event.volume !== undefined) {
-                audio.volume = Math.max(0, Math.min(1, event.volume / 100));
+              const displayMode = event.audioDisplayMode || 'background';
+              
+              switch (displayMode) {
+                case 'background':
+                  // Simple background audio playback
+                  const audio = new Audio(event.audioUrl);
+                  if (event.volume !== undefined) {
+                    audio.volume = Math.max(0, Math.min(1, event.volume / 100));
+                  }
+                  audio.play().catch(error => console.warn('Audio playback failed:', error));
+                  break;
+                case 'modal':
+                  // Modal audio player
+                  showMediaModal('audio', event.name || 'Audio', {
+                    src: event.audioUrl,
+                    title: event.audioTitle || event.textContent,
+                    artist: event.audioArtist || event.artist,
+                    autoplay: event.autoplay || false,
+                    loop: event.loop || false
+                  });
+                  break;
+                case 'mini-player':
+                  // TODO: Implement mini-player mode
+                  console.warn('Mini-player mode not yet implemented');
+                  break;
               }
-              audio.play().catch(error => console.warn('Audio playback failed:', error));
             }
             break;
-          case InteractionType.SHOW_VIDEO:
-            if (event.videoUrl) {
-              showMediaModal('video', event.name || 'Video', {
-                src: event.videoUrl,
-                poster: event.poster,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
-              });
-            }
-            break;
-          case InteractionType.SHOW_AUDIO_MODAL:
-            if (event.audioUrl) {
-              showMediaModal('audio', event.name || 'Audio', {
-                src: event.audioUrl,
-                title: event.textContent,
-                artist: event.artist,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
-              });
+          case InteractionType.PLAY_VIDEO:
+            if (event.videoUrl || event.youtubeVideoId) {
+              const displayMode = event.videoDisplayMode || 'inline';
+              const videoSource = event.videoSource || 'url';
+              
+              switch (displayMode) {
+                case 'modal':
+                case 'overlay':
+                  if (videoSource === 'youtube' && event.youtubeVideoId) {
+                    showMediaModal('youtube', event.name || 'YouTube Video', {
+                      videoId: event.youtubeVideoId,
+                      startTime: event.youtubeStartTime,
+                      endTime: event.youtubeEndTime,
+                      autoplay: event.autoplay || false,
+                      loop: event.loop || false
+                    });
+                  } else if (event.videoUrl) {
+                    showMediaModal('video', event.name || 'Video', {
+                      src: event.videoUrl,
+                      poster: event.videoPoster || event.poster,
+                      autoplay: event.autoplay || false,
+                      loop: event.loop || false
+                    });
+                  }
+                  break;
+                case 'inline':
+                default:
+                  // TODO: Implement inline video playback
+                  console.warn('Inline video playback not yet implemented');
+                  break;
+              }
             }
             break;
           case InteractionType.SHOW_IMAGE_MODAL:
@@ -2703,17 +2689,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 alt: event.caption || '',
                 title: event.textContent,
                 caption: event.caption
-              });
-            }
-            break;
-          case InteractionType.SHOW_YOUTUBE:
-            if (event.youtubeVideoId) {
-              showMediaModal('youtube', event.name || 'YouTube Video', {
-                videoId: event.youtubeVideoId,
-                startTime: event.youtubeStartTime,
-                endTime: event.youtubeEndTime,
-                autoplay: event.autoplay || false,
-                loop: event.loop || false
               });
             }
             break;
@@ -2758,10 +2733,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       if (exploredHotspotId && exploredHotspotPanZoomActive) {
         const hotspot = hotspots.find(h => h.id === exploredHotspotId);
-        // Attempt to find a PAN_ZOOM_TO_HOTSPOT event. If not found, PAN_ZOOM could also be used.
+        // Attempt to find a PAN_ZOOM event.
         const panZoomEvent = timelineEvents
           .filter(e => e.targetId === exploredHotspotId &&
-                       (e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || e.type === InteractionType.PAN_ZOOM))
+                       e.type === InteractionType.PAN_ZOOM))
           .sort((a, b) => a.step - b.step)[0];
 
         if (hotspot && panZoomEvent) {
@@ -2769,7 +2744,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           const viewportCenter = getSafeViewportCenter();
 
           if (imageBounds && viewportCenter) {
-            const scale = panZoomEvent.zoomFactor || (panZoomEvent.type === InteractionType.PAN_ZOOM ? panZoomEvent.zoomLevel : undefined) || 2;
+            const scale = panZoomEvent.zoomLevel || panZoomEvent.zoomFactor || 2;
             const hotspotX = (hotspot.x / 100) * imageBounds.width;
             const hotspotY = (hotspot.y / 100) * imageBounds.height;
 
