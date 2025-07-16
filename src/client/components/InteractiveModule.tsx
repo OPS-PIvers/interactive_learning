@@ -2944,7 +2944,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <div
               ref={imageContainerRef}
               className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
-              {...(effectiveIsMobile && isEditing ? touchGestureHandlers : {})}
+              onTouchStart={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchStart : undefined}
+              onTouchMove={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchMove : undefined}
+              onTouchEnd={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
             >
               <ImageEditCanvas
                 backgroundImage={backgroundImage}
@@ -3184,7 +3186,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
               onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
-              {...(effectiveIsMobile && !isEditing ? touchGestureHandlers : {})} // Apply gesture handlers for mobile viewer
+              onTouchStart={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchStart : undefined}
+              onTouchMove={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchMove : undefined}
+              onTouchEnd={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
             >
               <div
                 className="w-full h-full flex items-center justify-center"

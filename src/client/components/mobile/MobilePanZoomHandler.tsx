@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { useEventCleanup } from '../../hooks/useEventCleanup';
 
 interface MobilePanZoomHandlerProps {
   event: TimelineEventData;
@@ -15,6 +16,20 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+
+  const cleanup = useCallback(() => {
+    const container = containerRef.current;
+    if (container) {
+      const imageElement = container.querySelector('img') as HTMLImageElement;
+      if (imageElement) {
+        imageElement.style.transform = '';
+        imageElement.style.transition = '';
+        imageElement.style.transformOrigin = '';
+      }
+    }
+  }, [containerRef]);
+
+  useEventCleanup(cleanup);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -53,7 +68,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     imageElement.style.transformOrigin = 'top left';
 
     // Hide instructions after animation starts
-    setTimeout(() => {
+    const instructionTimer = setTimeout(() => {
       setShowInstructions(false);
     }, 1000);
 
@@ -64,15 +79,10 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     }, duration);
 
     return () => {
+      clearTimeout(instructionTimer);
       clearTimeout(completionTimer);
-      // Reset transform when component unmounts
-      if (imageElement) {
-        imageElement.style.transform = '';
-        imageElement.style.transition = '';
-        imageElement.style.transformOrigin = '';
-      }
     };
-  }, [event, containerRef]);
+  }, [event, containerRef, handleComplete]);
 
   const handleComplete = useCallback(() => {
     setIsActive(false);

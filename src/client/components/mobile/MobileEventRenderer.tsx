@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobilePanZoomHandler from './MobilePanZoomHandler';
@@ -15,14 +15,53 @@ interface MobileEventRendererProps {
   isActive: boolean;
 }
 
+const MODAL_INTERACTIONS = new Set([
+  InteractionType.SHOW_TEXT,
+  InteractionType.SHOW_MESSAGE,
+  InteractionType.QUIZ,
+  InteractionType.SHOW_IMAGE,
+  InteractionType.SHOW_IMAGE_MODAL,
+  InteractionType.SHOW_VIDEO,
+  InteractionType.SHOW_YOUTUBE,
+  InteractionType.PLAY_VIDEO,
+  InteractionType.SHOW_AUDIO_MODAL,
+  InteractionType.PLAY_AUDIO,
+]);
+
 export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   events,
   onEventComplete,
   imageContainerRef,
   isActive
 }) => {
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  const activeEvents = useMemo(() => {
+    if (!isActive) return [];
+
+    const modalEvent = events.find(e => MODAL_INTERACTIONS.has(e.type));
+    if (modalEvent) {
+      if (activeModal !== modalEvent.id) {
+        setActiveModal(modalEvent.id);
+      }
+      return [modalEvent];
+    }
+
+    // If no modal events, allow all non-modal events to be active
+    setActiveModal(null);
+    return events.filter(e => !MODAL_INTERACTIONS.has(e.type));
+  }, [events, isActive, activeModal]);
+
   const renderEventType = (event: TimelineEventData) => {
-    if (!isActive) return null;
+    const isEventActive = activeEvents.some(e => e.id === event.id);
+    if (!isEventActive) return null;
+
+    const handleComplete = () => {
+      onEventComplete?.(event.id);
+      if (MODAL_INTERACTIONS.has(event.type)) {
+        setActiveModal(null);
+      }
+    };
     
     switch (event.type) {
       case InteractionType.SPOTLIGHT:
@@ -31,7 +70,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`spotlight-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -42,7 +81,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`pan-zoom-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -52,7 +91,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           <MobileTextModal
             key={`text-${event.id}`}
             event={event}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -61,7 +100,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           <MobileQuizModal
             key={`quiz-${event.id}`}
             event={event}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -71,7 +110,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           <MobileImageModal
             key={`image-${event.id}`}
             event={event}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -82,7 +121,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           <MobileVideoModal
             key={`video-${event.id}`}
             event={event}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -92,7 +131,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           <MobileAudioModal
             key={`audio-${event.id}`}
             event={event}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -104,7 +143,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`highlight-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
-            onComplete={() => onEventComplete?.(event.id)}
+            onComplete={handleComplete}
           />
         );
       
@@ -116,11 +155,22 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
   return (
     <div className="mobile-event-renderer">
-      {events.map(event => (
-        <div key={event.id} className="mobile-event-wrapper">
-          {renderEventType(event)}
-        </div>
-      ))}
+      {events.map((event, index) => {
+        const isModal = MODAL_INTERACTIONS.has(event.type);
+        const zIndex = 100 + index;
+        return (
+          <div
+            key={event.id}
+            className="mobile-event-wrapper"
+            style={{
+              zIndex: isModal ? 1000 : zIndex,
+              position: 'relative',
+            }}
+          >
+            {renderEventType(event)}
+          </div>
+        );
+      })}
     </div>
   );
 };
