@@ -2344,6 +2344,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       let newHighlightedHotspotId: string | null = null;
 
       const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
+      
+      // Debug logging for mobile event execution
+      console.log('🎯 Event Execution Debug:', {
+        moduleState,
+        currentStep,
+        totalTimelineEvents: timelineEvents.length,
+        eventsForCurrentStep: eventsForCurrentStep.length,
+        eventTypes: eventsForCurrentStep.map(e => e.type),
+        isMobile: effectiveIsMobile
+      });
       let stepHasPanZoomEvent = false;
 
       eventsForCurrentStep.forEach(event => {
@@ -2583,6 +2593,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setCurrentMessage(newMessage);
       setPulsingHotspotId(newPulsingHotspotId);
       setHighlightedHotspotId(newHighlightedHotspotId);
+      
+      // Debug logging for state changes
+      console.log('🎯 Setting Event States:', {
+        activeDisplayIds: Array.from(newActiveDisplayIds),
+        message: newMessage,
+        pulsingHotspot: newPulsingHotspotId,
+        highlightedHotspot: newHighlightedHotspotId
+      });
 
     } else if (moduleState === 'idle' && !isEditing) {
       setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id)));
