@@ -1,9 +1,9 @@
-import { Hotspot } from '../../types/hotspot';
+import { HotspotData } from '../../shared/types';
 
 const STATE_KEY = 'mobileEditorState';
 
 export interface MobileEditorState {
-  hotspots: Hotspot[];
+  hotspots: HotspotData[];
   selectedHotspotId?: string;
 }
 

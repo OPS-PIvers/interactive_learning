@@ -26,6 +26,8 @@ interface MobileEditorModalProps {
   onAddTimelineEvent: (event: TimelineEventData) => void;
   onUpdateTimelineEvent: (event: TimelineEventData) => void;
   onDeleteTimelineEvent: (eventId: string) => void;
+  onInteractionStart?: () => void;
+  onInteractionEnd?: () => void;
 }
 
 interface KeyboardState {
@@ -175,23 +177,26 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
   }, [isEditingHotspot, onInteractionStart, onInteractionEnd]);
 
   useEffect(() => {
-    const handleFocusIn = (e: FocusEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        setIsEditingHotspot(true);
-      }
-    };
-    const handleFocusOut = (e: FocusEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        setIsEditingHotspot(false);
-      }
-    };
-    document.addEventListener('focusin', handleFocusIn);
-    document.addEventListener('focusout', handleFocusOut);
-    return () => {
-      document.removeEventListener('focusin', handleFocusIn);
-      document.removeEventListener('focusout', handleFocusOut);
-    };
-  }, []);
+    const modal = modalRef.current;
+    if (modal) {
+      const handleFocusIn = (e: FocusEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          setIsEditingHotspot(true);
+        }
+      };
+      const handleFocusOut = (e: FocusEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          setIsEditingHotspot(false);
+        }
+      };
+      modal.addEventListener('focusin', handleFocusIn);
+      modal.addEventListener('focusout', handleFocusOut);
+      return () => {
+        modal.removeEventListener('focusin', handleFocusIn);
+        modal.removeEventListener('focusout', handleFocusOut);
+      };
+    }
+  }, [modalRef]);
 
   // Auto-save functionality with debouncing
   const autoSaveTimeoutRef = useRef<number>();

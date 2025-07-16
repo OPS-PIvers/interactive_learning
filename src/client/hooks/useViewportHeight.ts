@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 function getViewportHeight() {
-  return window.innerHeight;
+  return window.visualViewport ? window.visualViewport.height : window.innerHeight;
 }
 
 export function useViewportHeight() {
@@ -10,6 +10,13 @@ export function useViewportHeight() {
   useEffect(() => {
     function handleResize() {
       setHeight(getViewportHeight());
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      };
     }
 
     window.addEventListener('resize', handleResize);
