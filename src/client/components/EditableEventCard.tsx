@@ -46,7 +46,6 @@ const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
       case InteractionType.SHOW_AUDIO_MODAL:
         return 'audio';
       default:
-        // Fallback for other types like SHOW_HOTSPOT, HIDE_HOTSPOT, PULSE_HOTSPOT etc.
         return type.toLowerCase().replace(/_/g, ' ').replace('hotspot', '').trim();
     }
   };

@@ -48,7 +48,6 @@ const HOTSPOT_SIZES = [
 
 // Simplified interaction types for mobile, can be expanded later
 const INTERACTION_TYPE_OPTIONS = [
-  { value: InteractionType.SHOW_HOTSPOT, label: 'Show Hotspot' },
   { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
   // { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' }, // More complex, defer if needed
   // { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' }, // More complex, defer if needed

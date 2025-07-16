@@ -3,7 +3,6 @@ import { Timestamp } from 'firebase/firestore';
 
 export enum InteractionType {
   // Existing types
-  SHOW_HOTSPOT = 'SHOW_HOTSPOT',
   HIDE_HOTSPOT = 'HIDE_HOTSPOT',
   PULSE_HOTSPOT = 'PULSE_HOTSPOT',
   SHOW_MESSAGE = 'SHOW_MESSAGE',

@@ -1412,19 +1412,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setSelectedHotspotForModal(newHotspotData.id);
     setIsHotspotModalOpen(true);
 
-    // Optional: Create a default "SHOW_HOTSPOT" timeline event
-    const newEventStep = timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) + 1 : 1;
-    const newShowEvent: TimelineEventData = {
-      id: `te_show_${newHotspotData.id}_${Date.now()}`,
-      step: newEventStep,
-      name: `Show ${newHotspotData.title}`,
-      type: InteractionType.SHOW_HOTSPOT,
-      targetId: newHotspotData.id,
-      message: ''
-    };
-    setTimelineEvents(prevEvents => [...prevEvents, newShowEvent].sort((a,b) => a.step - b.step));
-    
     if (isEditing) {
+      const newEventStep = timelineEvents.length > 0 ? Math.max(...timelineEvents.map(e => e.step), 0) + 1 : 1;
       setCurrentStep(newEventStep);
     }
 
@@ -2400,13 +2389,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Removed newActiveHotspotInfoId - using modal now
     let newImageTransform: ImageTransformState = lastAppliedTransformRef.current || { scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined };
 
+    const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();
       let newMessage: string | null = null;
       let newPulsingHotspotId: string | null = null;
       let newHighlightedHotspotId: string | null = null;
 
-      const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
       
       // Debug logging for mobile event execution
       console.log('🎯 Event Execution Debug:', {
@@ -2419,11 +2408,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       });
       let stepHasPanZoomEvent = false;
 
+      if (moduleState === 'idle') {
+        const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
+        hotspots.forEach(h => {
+            if (!activeEventHotspotIds.has(h.id) || h.displayHotspotInEvent) {
+                newActiveDisplayIds.add(h.id);
+            }
+        });
+      } else { // learning mode
+        eventsForCurrentStep.forEach(event => {
+            if (event.targetId) {
+                const hotspot = hotspots.find(h => h.id === event.targetId);
+                if (hotspot && hotspot.displayHotspotInEvent) {
+                    newActiveDisplayIds.add(event.targetId);
+                }
+            }
+        });
+      }
+
       eventsForCurrentStep.forEach(event => {
-        if (event.targetId) newActiveDisplayIds.add(event.targetId);
         switch (event.type) {
           case InteractionType.SHOW_MESSAGE: if (event.message) newMessage = event.message; break;
-          case InteractionType.SHOW_HOTSPOT: if (event.targetId) { /* Show in modal instead */ } break;
           case InteractionType.PULSE_HOTSPOT:
             if (event.targetId) {
               newPulsingHotspotId = event.targetId;
@@ -2666,7 +2671,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       });
 
     } else if (moduleState === 'idle' && !isEditing) {
-      setActiveHotspotDisplayIds(new Set(hotspots.map(h => h.id)));
+      const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
+      const newActiveDisplayIds = new Set<string>();
+      hotspots.forEach(h => {
+        if (!activeEventHotspotIds.has(h.id) || h.displayHotspotInEvent) {
+            newActiveDisplayIds.add(h.id);
+        }
+      });
+      setActiveHotspotDisplayIds(newActiveDisplayIds);
       setCurrentMessage(null);
       setPulsingHotspotId(null);
       setHighlightedHotspotId(null);
@@ -3036,22 +3048,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         ))}
                       </div>
                       <div className="mt-2">
-                        <strong>Show Events:</strong>
-                        {timelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT).map(e => (
-                          <div key={e.id} className="ml-2">Step {e.step}: {e.targetId}</div>
-                        ))}
-                      </div>
-                      <div className="mt-2">
                         <strong>Current Step:</strong> {currentStep}
-                      </div>
-                      <div>
-                        <strong>Visible Hotspots:</strong> {hotspots.filter(h => 
-                          timelineEvents.some(e => 
-                            e.type === InteractionType.SHOW_HOTSPOT && 
-                            e.targetId === h.id && 
-                            e.step <= currentStep
-                          )
-                        ).length}
                       </div>
                     </div>
                   )}
@@ -3268,6 +3265,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                               isMobile={isMobile}
                               onDragStateChange={setIsHotspotDragging}
                               isActive={activeHotspotDisplayIds.has(hotspot.id)}
+                              isExploreMode={moduleState === 'idle'}
                             />
                           );
                         })}

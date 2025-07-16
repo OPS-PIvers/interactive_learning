@@ -7,7 +7,6 @@ describe('Event System', () => {
   describe('InteractionType Enum', () => {
     test('should have all required interaction types', () => {
       const expectedTypes = [
-        'SHOW_HOTSPOT',
         'HIDE_HOTSPOT', 
         'PULSE_HOTSPOT',
         'SHOW_MESSAGE',
@@ -253,13 +252,6 @@ describe('Event System', () => {
     test('should handle multiple events in sequence', () => {
       const events: TimelineEventData[] = [
         {
-          id: 'event-1',
-          step: 1,
-          name: 'Show First Hotspot',
-          type: InteractionType.SHOW_HOTSPOT,
-          targetId: 'hotspot-1'
-        },
-        {
           id: 'event-2',
           step: 2,
           name: 'Display Message',
@@ -276,21 +268,13 @@ describe('Event System', () => {
         }
       ]
 
-      expect(events).toHaveLength(3)
-      expect(events[0].step).toBe(1)
-      expect(events[1].step).toBe(2)
-      expect(events[2].step).toBe(3)
+      expect(events).toHaveLength(2)
+      expect(events[0].step).toBe(2)
+      expect(events[1].step).toBe(3)
     })
 
     test('should handle multiple events in the same step', () => {
       const events: TimelineEventData[] = [
-        {
-          id: 'event-1',
-          step: 1,
-          name: 'Show Hotspot',
-          type: InteractionType.SHOW_HOTSPOT,
-          targetId: 'hotspot-1'
-        },
         {
           id: 'event-2',
           step: 1,
@@ -302,7 +286,7 @@ describe('Event System', () => {
       ]
 
       const step1Events = events.filter(e => e.step === 1)
-      expect(step1Events).toHaveLength(2)
+      expect(step1Events).toHaveLength(1)
       expect(step1Events.every(e => e.targetId === 'hotspot-1')).toBe(true)
     })
   })
@@ -329,7 +313,7 @@ describe('Event System', () => {
         id: 'test-1',
         step: 1,
         name: 'Invalid Target',
-        type: InteractionType.SHOW_HOTSPOT,
+        type: InteractionType.PULSE_HOTSPOT,
         targetId: 'non-existent-hotspot'
       }
 

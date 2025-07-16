@@ -15,11 +15,6 @@ interface EventTypeSelectorProps {
 
 const eventTypeOptions: EventTypeOption[] = [
   {
-    value: InteractionType.SHOW_HOTSPOT,
-    label: 'Show Hotspot',
-    description: 'Make the hotspot visible'
-  },
-  {
     value: InteractionType.HIDE_HOTSPOT,
     label: 'Hide Hotspot',
     description: 'Hide the hotspot from view'
