@@ -10,20 +10,36 @@ interface MobileQuickEditorProps {
 }
 
 const MobileQuickEditor: React.FC<MobileQuickEditorProps> = ({ hotspot, onHotspotChange, onClose }) => {
+  const [editedHotspot, setEditedHotspot] = React.useState(hotspot);
+
+  // Sync with external changes to the hotspot prop
+  React.useEffect(() => {
+    setEditedHotspot(hotspot);
+  }, [hotspot]);
+
+  const handlePropertyChange = (updates: Partial<HotspotData>) => {
+    setEditedHotspot(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleDone = () => {
+    onHotspotChange(editedHotspot);
+    onClose();
+  };
+
   return (
     <div className="mobile-quick-editor">
       <h2>Edit Hotspot</h2>
       <MobileTextEditor
-        title={hotspot.title}
-        description={hotspot.description}
-        onTitleChange={(newTitle) => onHotspotChange({ ...hotspot, title: newTitle })}
-        onDescriptionChange={(newDescription) => onHotspotChange({ ...hotspot, description: newDescription })}
+        title={editedHotspot.title}
+        description={editedHotspot.description}
+        onTitleChange={(newTitle) => handlePropertyChange({ title: newTitle })}
+        onDescriptionChange={(newDescription) => handlePropertyChange({ description: newDescription })}
       />
       <MobileColorPicker
-        currentColor={hotspot.color}
-        onColorChange={(newColor) => onHotspotChange({ ...hotspot, color: newColor })}
+        currentColor={editedHotspot.color}
+        onColorChange={(newColor) => handlePropertyChange({ color: newColor })}
       />
-      <button onClick={onClose}>Done</button>
+      <button onClick={handleDone}>Done</button>
     </div>
   );
 };

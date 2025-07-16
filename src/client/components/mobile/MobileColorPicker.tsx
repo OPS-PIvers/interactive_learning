@@ -11,11 +11,14 @@ const MobileColorPicker: React.FC<MobileColorPickerProps> = ({ currentColor, onC
   return (
     <div className="mobile-color-picker">
       {COLORS.map((color) => (
-        <div
+        <button
           key={color}
+          type="button"
           className={`color-swatch ${currentColor === color ? 'selected' : ''}`}
           style={{ backgroundColor: color }}
           onClick={() => onColorChange(color)}
+          aria-label={`Select color ${color}`}
+          aria-pressed={currentColor === color}
         />
       ))}
     </div>

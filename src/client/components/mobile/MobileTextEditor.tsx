@@ -15,11 +15,13 @@ const MobileTextEditor: React.FC<MobileTextEditorProps> = ({ title, description,
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Hotspot Title"
+        aria-label="Hotspot Title"
       />
       <textarea
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
         placeholder="Hotspot Description"
+        aria-label="Hotspot Description"
       />
     </div>
   );
