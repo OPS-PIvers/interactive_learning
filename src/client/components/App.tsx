@@ -10,9 +10,9 @@ import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import HookErrorBoundary from './HookErrorBoundary';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
-import { UserIcon } from './icons/UserIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
+import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
 
@@ -317,17 +317,7 @@ const MainApp: React.FC = () => {
                 >
                   <SettingsIcon className="w-6 h-6 text-slate-300" />
                 </button>
-                <button
-                  type="button"
-                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
-                  onClick={() => {
-                    // TODO: Implement profile functionality
-                    console.log('Profile clicked');
-                  }}
-                  aria-label="Profile"
-                >
-                  <UserIcon className="w-6 h-6 text-slate-300" />
-                </button>
+                <AuthButton variant="compact" />
               </div>
             </div>
             <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4">
@@ -377,17 +367,7 @@ const MainApp: React.FC = () => {
               >
                 <SettingsIcon className="w-7 h-7 text-slate-300" />
               </button>
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
-                onClick={() => {
-                  // TODO: Implement profile functionality
-                  console.log('Profile clicked');
-                }}
-                aria-label="Profile"
-              >
-                <UserIcon className="w-7 h-7 text-slate-300" />
-              </button>
+              <AuthButton variant="toolbar" />
             </div>
           </div>
         </div>
