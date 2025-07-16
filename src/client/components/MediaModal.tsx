@@ -60,7 +60,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-all duration-300 ease-in-out"
+      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-40 p-2 transition-all duration-300 ease-in-out mt-16"
       onClick={handleBackdropClick}
     >
       <div className={`bg-slate-900 rounded-xl shadow-2xl w-full ${sizeClasses[size]} ${heightStyles[size]} flex flex-col overflow-hidden border border-slate-700 animate-in zoom-in-95 duration-200`}>
