@@ -174,8 +174,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
     return currentStep > 0 && !timelineEvents.some(e =>
       e.step === currentStep &&
       e.targetId === hotspotId &&
-      (e.type === InteractionType.SHOW_HOTSPOT ||
-       e.type === InteractionType.PULSE_HOTSPOT ||
+      (e.type === InteractionType.PULSE_HOTSPOT ||
        e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
        e.type === InteractionType.HIGHLIGHT_HOTSPOT)
     );

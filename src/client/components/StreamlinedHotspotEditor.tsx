@@ -139,7 +139,6 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
 
   const getEventIcon = (type: InteractionType) => {
     const icons: Record<InteractionType, string> = {
-      [InteractionType.SHOW_HOTSPOT]: 'Show',
       [InteractionType.HIDE_HOTSPOT]: 'Hide',
       [InteractionType.PULSE_HOTSPOT]: 'Pulse',
       [InteractionType.SHOW_MESSAGE]: 'Text',
@@ -397,7 +396,7 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
   const [formData, setFormData] = useState<Partial<TimelineEventData>>(() => ({
     id: event?.id || `event_${Date.now()}`,
     name: event?.name || 'New Event',
-    type: event?.type || InteractionType.SHOW_HOTSPOT,
+    type: event?.type || InteractionType.PULSE_HOTSPOT,
     targetId: hotspotId,
     message: event?.message || '',
     duration: event?.duration || 2000,
@@ -516,7 +515,6 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
             onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as InteractionType }))}
             className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value={InteractionType.SHOW_HOTSPOT}>Show Hotspot</option>
             <option value={InteractionType.HIDE_HOTSPOT}>Hide Hotspot</option>
             <option value={InteractionType.PULSE_HOTSPOT}>Pulse Hotspot</option>
             <option value={InteractionType.SHOW_MESSAGE}>Show Message</option>

@@ -26,13 +26,6 @@ describe('Timeline Event Execution', () => {
 
     mockTimelineEvents = [
       {
-        id: 'event-1',
-        step: 1,
-        name: 'Show First Hotspot',
-        type: InteractionType.SHOW_HOTSPOT,
-        targetId: 'hotspot-1'
-      },
-      {
         id: 'event-2',
         step: 2,
         name: 'Show Message',
@@ -62,12 +55,8 @@ describe('Timeline Event Execution', () => {
 
   describe('Event Filtering by Step', () => {
     test('should filter events for specific step', () => {
-      const step1Events = mockTimelineEvents.filter(event => event.step === 1)
       const step2Events = mockTimelineEvents.filter(event => event.step === 2)
       const step3Events = mockTimelineEvents.filter(event => event.step === 3)
-
-      expect(step1Events).toHaveLength(1)
-      expect(step1Events[0].type).toBe(InteractionType.SHOW_HOTSPOT)
 
       expect(step2Events).toHaveLength(1)
       expect(step2Events[0].type).toBe(InteractionType.SHOW_MESSAGE)
@@ -78,13 +67,6 @@ describe('Timeline Event Execution', () => {
 
     test('should handle steps with multiple events', () => {
       const multiEventTimeline: TimelineEventData[] = [
-        {
-          id: 'event-1',
-          step: 1,
-          name: 'Show Hotspot',
-          type: InteractionType.SHOW_HOTSPOT,
-          targetId: 'hotspot-1'
-        },
         {
           id: 'event-2',
           step: 1,
@@ -103,26 +85,17 @@ describe('Timeline Event Execution', () => {
       ]
 
       const step1Events = multiEventTimeline.filter(event => event.step === 1)
-      expect(step1Events).toHaveLength(3)
+      expect(step1Events).toHaveLength(2)
     })
   })
 
   describe('Event Target Resolution', () => {
-    test('should resolve valid hotspot targets', () => {
-      const event = mockTimelineEvents.find(e => e.type === InteractionType.SHOW_HOTSPOT)
-      expect(event?.targetId).toBe('hotspot-1')
-
-      const targetHotspot = mockHotspots.find(h => h.id === event?.targetId)
-      expect(targetHotspot).toBeDefined()
-      expect(targetHotspot?.id).toBe('hotspot-1')
-    })
-
     test('should handle invalid hotspot targets', () => {
       const invalidEvent: TimelineEventData = {
         id: 'invalid-event',
         step: 1,
         name: 'Invalid Target',
-        type: InteractionType.SHOW_HOTSPOT,
+        type: InteractionType.PULSE_HOTSPOT,
         targetId: 'non-existent-hotspot'
       }
 
@@ -365,20 +338,6 @@ describe('Timeline Event Execution', () => {
   })
 
   describe('Event State Management', () => {
-    test('should track active hotspot display state', () => {
-      const activeDisplayIds = new Set<string>()
-
-      // Process SHOW_HOTSPOT events
-      const showEvents = mockTimelineEvents.filter(e => e.type === InteractionType.SHOW_HOTSPOT)
-      showEvents.forEach(event => {
-        if (event.targetId) {
-          activeDisplayIds.add(event.targetId)
-        }
-      })
-
-      expect(activeDisplayIds.has('hotspot-1')).toBe(true)
-    })
-
     test('should handle HIDE_HOTSPOT events', () => {
       const activeDisplayIds = new Set(['hotspot-1', 'hotspot-2'])
 

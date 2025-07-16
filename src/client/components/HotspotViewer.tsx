@@ -488,10 +488,6 @@ const getActualImageVisibleBounds = (
   const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
     ${(hotspot.size === 'large' || (isMobile && hotspot.size !== 'small')) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`;
 
-  // If an event is active for this hotspot, and the user has not opted to display it, render nothing.
-  if (isActive && !hotspot.displayHotspotInEvent) {
-    return null;
-  }
 
   return (
     <div
