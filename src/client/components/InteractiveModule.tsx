@@ -196,6 +196,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEventData[]>(initialData.timelineEvents || []);
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
+  // Tracks whether user has made an initial mode selection to control modal visibility
+  const [hasUserChosenMode, setHasUserChosenMode] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
   
   // Mobile event rendering state
@@ -1329,6 +1331,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleStartLearning = () => {
     setModuleState('learning');
+    setHasUserChosenMode(true);
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false); 
     setCurrentStep(uniqueSortedSteps[0] || 1);
@@ -1342,6 +1345,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleStartExploring = useCallback(() => {
     setModuleState('idle');
+    setHasUserChosenMode(true);
     setExploredHotspotId(null);
     setExploredHotspotPanZoomActive(false);
     // Clear bounds cache for fresh calculation in new mode
@@ -2265,6 +2269,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       const newInitialModuleState = isEditing ? 'learning' : 'idle';
       setModuleState(newInitialModuleState);
+      // Reset mode selection state when reinitializing
+      setHasUserChosenMode(isEditing); // True if editing (skip modal), false if viewing
 
       const safeTimelineEvents = initialData.timelineEvents || [];
       const newUniqueSortedSteps = [...new Set(safeTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
@@ -3321,7 +3327,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     )}
                     
                     {/* Initial view buttons overlay (common for desktop/mobile idle) */}
-                    {moduleState === 'idle' && !isEditing && backgroundImage && (
+                    {moduleState === 'idle' && !isEditing && backgroundImage && !hasUserChosenMode && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
                         <div className="text-center space-y-4 sm:space-y-6 p-6 sm:p-8 bg-black/60 rounded-lg sm:rounded-2xl border border-white/20 shadow-xl sm:shadow-2xl max-w-xs sm:max-w-md">
                           <div>
