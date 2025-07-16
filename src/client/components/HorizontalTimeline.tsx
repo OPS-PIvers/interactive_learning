@@ -271,45 +271,72 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           </div>
         )}
 
-        <div className="px-4 py-2">
-          <div className="relative w-full h-8 flex items-center">
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
-            <div className="relative w-full flex items-center justify-between">
-              {uniqueSortedSteps.map((step) => {
-                const isActive = step === currentStep;
-                return (
-                  <div key={step} className="relative">
-                    <button
-                      onClick={() => onStepSelect(step)}
-                      className={`relative w-6 h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
-                        ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                        flex items-center justify-center
-                      `}
-                      aria-label={getStepTooltip(step)}
-                      aria-current={isActive ? "step" : undefined}
-                      title={getStepTooltip(step)}
-                    >
-                      {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
-                    </button>
-                    <div className="absolute top-full mt-1 flex space-x-0.5 justify-center w-full">
-                      {timelineEvents
-                        .filter(event => event.step === step && event.targetId)
-                        .map(event => {
-                          const hotspot = hotspots.find(h => h.id === event.targetId);
-                          return hotspot ? (
-                            <div
-                              key={`${event.id}-${hotspot.id}-mobile`}
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ backgroundColor: hotspot.color || '#ccc' }}
-                              title={`Hotspot: ${hotspot.title}`}
-                            />
-                          ) : null;
-                        })}
-                    </div>
+        <div className="mobile-timeline-container">
+          <div 
+            className="mobile-timeline-scroll"
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+              paddingBottom: '2px',
+            }}
+          >
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" 
+                 style={{ minWidth: `${uniqueSortedSteps.length * 68}px` }} />
+            {uniqueSortedSteps.map((step, index) => {
+              const isActive = step === currentStep;
+              const MOBILE_STEP_WIDTH = 60;
+              const MOBILE_STEP_SPACING = 8;
+              
+              return (
+                <div
+                  key={step}
+                  className="mobile-timeline-step"
+                  style={{
+                    minWidth: `${MOBILE_STEP_WIDTH}px`,
+                    width: `${MOBILE_STEP_WIDTH}px`,
+                    height: '44px',
+                    marginRight: index < uniqueSortedSteps.length - 1 ? `${MOBILE_STEP_SPACING}px` : '0',
+                    flexShrink: 0,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <button
+                    onClick={() => onStepSelect(step)}
+                    className={`relative w-6 h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                      flex items-center justify-center
+                    `}
+                    aria-label={getStepTooltip(step)}
+                    aria-current={isActive ? "step" : undefined}
+                    title={getStepTooltip(step)}
+                  >
+                    {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                  </button>
+                  <div className="absolute top-full mt-1 flex space-x-0.5 justify-center w-full">
+                    {timelineEvents
+                      .filter(event => event.step === step && event.targetId)
+                      .map(event => {
+                        const hotspot = hotspots.find(h => h.id === event.targetId);
+                        return hotspot ? (
+                          <div
+                            key={`${event.id}-${hotspot.id}-mobile`}
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: hotspot.color || '#ccc' }}
+                            title={`Hotspot: ${hotspot.title}`}
+                          />
+                        ) : null;
+                      })}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -346,7 +373,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         <div className="relative w-full h-8 flex items-center">
           <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
           <div className="relative w-full flex items-center justify-between">
-            {uniqueSortedSteps.map((step, index) => {
+            {uniqueSortedSteps.map((step) => {
               const isActive = step === currentStep;
               return (
                 <div key={step} className="relative">

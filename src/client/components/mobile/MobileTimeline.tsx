@@ -213,13 +213,53 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
           {uniqueSortedSteps.length < 10 ? (
             <div
               ref={timelineContainerRef}
-              className="flex overflow-x-auto space-x-2"
+              className="mobile-timeline-scroll"
               role="region"
               aria-labelledby="timeline-heading"
               onKeyDown={handleKeyDown}
+              style={{
+                display: 'flex',
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+                paddingBottom: '2px',
+                gap: '8px'
+              }}
             >
-              {uniqueSortedSteps.map((step, index) => renderStep(step, index))}
-              {isEditing && !isSelecting && <MobileStepManager onAddStep={onAddStep} />}
+              {uniqueSortedSteps.map((step, index) => (
+                <div
+                  key={step}
+                  className="mobile-timeline-step"
+                  style={{
+                    minWidth: '112px',
+                    width: '112px',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    touchAction: 'manipulation',
+                  }}
+                >
+                  {renderStep(step, index)}
+                </div>
+              ))}
+              {isEditing && !isSelecting && (
+                <div
+                  className="mobile-timeline-step"
+                  style={{
+                    minWidth: '112px',
+                    width: '112px',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <MobileStepManager onAddStep={onAddStep} />
+                </div>
+              )}
             </div>
           ) : (
             <FixedSizeList

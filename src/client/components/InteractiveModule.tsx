@@ -33,6 +33,7 @@ import AudioPlayer from './AudioPlayer';
 import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
 import { MobileMediaModal } from './mobile/MobileMediaModal';
+import MobileEventRenderer from './mobile/MobileEventRenderer';
 
 // Helper function to extract YouTube Video ID from various URL formats
 const extractYouTubeVideoId = (url: string): string | null => {
@@ -196,6 +197,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   const [moduleState, setModuleState] = useState<'idle' | 'learning'>(isEditing ? 'learning' : 'idle');
   const [currentStep, setCurrentStep] = useState<number>(1);
+  
+  // Mobile event rendering state
+  const [mobileActiveEvents, setMobileActiveEvents] = useState<TimelineEventData[]>([]);
   const [imageLoading, setImageLoading] = useState(false);
   const [positionCalculating, setPositionCalculating] = useState(false);
   const [isModeSwitching, setIsModeSwitching] = useState(false);
@@ -1627,6 +1631,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     handleFocusHotspot(hotspotId);
   }, [handleFocusHotspot]);
 
+  const handleMobileEventComplete = useCallback((eventId: string) => {
+    console.log('🎯 Mobile event completed:', eventId);
+    // Remove the completed event from active events
+    setMobileActiveEvents(prev => prev.filter(event => event.id !== eventId));
+  }, []);
+
   const handleAddTimelineEvent = useCallback((event?: TimelineEventData) => {
     // If an event is passed (from enhanced editor), use it directly
     if (event) {
@@ -2417,6 +2427,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         eventTypes: eventsForCurrentStep.map(e => e.type),
         isMobile: effectiveIsMobile
       });
+
+      // Set mobile active events for mobile-specific event types
+      if (effectiveIsMobile) {
+        const mobileCompatibleEvents = eventsForCurrentStep.filter(event => 
+          [InteractionType.SPOTLIGHT, InteractionType.PAN_ZOOM, InteractionType.PAN_ZOOM_TO_HOTSPOT,
+           InteractionType.SHOW_TEXT, InteractionType.SHOW_MESSAGE, InteractionType.QUIZ,
+           InteractionType.SHOW_IMAGE, InteractionType.SHOW_IMAGE_MODAL, InteractionType.SHOW_VIDEO,
+           InteractionType.SHOW_YOUTUBE, InteractionType.SHOW_AUDIO_MODAL, InteractionType.PLAY_VIDEO,
+           InteractionType.PLAY_AUDIO, InteractionType.PULSE_HOTSPOT, InteractionType.HIGHLIGHT_HOTSPOT,
+           InteractionType.PULSE_HIGHLIGHT].includes(event.type)
+        );
+        setMobileActiveEvents(mobileCompatibleEvents);
+      } else {
+        // Clear mobile events for desktop
+        setMobileActiveEvents([]);
+      }
       let stepHasPanZoomEvent = false;
 
       eventsForCurrentStep.forEach(event => {
@@ -3273,6 +3299,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         })}
                       </div>
                     </div>
+                    
+                    {/* Mobile Event Renderer */}
+                    {effectiveIsMobile && moduleState === 'learning' && (
+                      <MobileEventRenderer
+                        events={mobileActiveEvents}
+                        onEventComplete={handleMobileEventComplete}
+                        imageContainerRef={imageContainerRef}
+                        isActive={moduleState === 'learning'}
+                      />
+                    )}
+                    
                     {/* Initial view buttons overlay (common for desktop/mobile idle) */}
                     {moduleState === 'idle' && !isEditing && backgroundImage && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm" style={{ zIndex: Z_INDEX.MODAL }}>
