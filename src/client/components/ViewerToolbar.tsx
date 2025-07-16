@@ -82,12 +82,6 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
             <AuthButton variant="compact" />
           </div>
         </div>
-        {/* Conditional Message for Learning Mode */}
-        {moduleState === 'learning' && (
-           <div className="px-3 pb-2 text-center bg-slate-700/30"> {/* Adjusted padding and added subtle background */}
-             <p className="text-xs text-sky-300">Using timeline to navigate tour steps.</p> {/* More prominent text color */}
-          </div>
-        )}
       </div>
     );
   }
