@@ -134,10 +134,12 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       const keyboardHeight = Math.max(0, windowHeight - visualViewportHeight);
       const isKeyboardVisible = keyboardHeight > 100; // Threshold for keyboard detection
       
-      // Get safe area insets
+      // Get safe area insets - use CSS custom properties that are properly set
       const style = getComputedStyle(document.documentElement);
-      const safeAreaTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)') || '0');
-      const safeAreaBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)') || '0');
+      const safeAreaTopValue = style.getPropertyValue('--safe-area-inset-top') || '0px';
+      const safeAreaBottomValue = style.getPropertyValue('--safe-area-inset-bottom') || '0px';
+      const safeAreaTop = parseInt(safeAreaTopValue) || 0;
+      const safeAreaBottom = parseInt(safeAreaBottomValue) || 0;
 
       setViewport({
         height: windowHeight,

@@ -17,29 +17,35 @@ class NetworkMonitor {
   private currentState: NetworkState | null = null;
   private monitoringInterval: NodeJS.Timeout | null = null;
   private isMonitoring = false;
+  private boundUpdateNetworkState: () => void;
+  private connection: any = null;
 
   constructor() {
+    this.boundUpdateNetworkState = this.updateNetworkState.bind(this);
     this.initializeNetworkListeners();
   }
 
   private initializeNetworkListeners() {
     // Listen for online/offline events
-    window.addEventListener('online', () => {
-      this.updateNetworkState();
-    });
-
-    window.addEventListener('offline', () => {
-      this.updateNetworkState();
-    });
+    window.addEventListener('online', this.boundUpdateNetworkState);
+    window.addEventListener('offline', this.boundUpdateNetworkState);
 
     // Listen for connection changes (if supported)
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
-      if (connection) {
-        connection.addEventListener('change', () => {
-          this.updateNetworkState();
-        });
+      this.connection = (navigator as any).connection;
+      if (this.connection) {
+        this.connection.addEventListener('change', this.boundUpdateNetworkState);
       }
+    }
+  }
+
+  private cleanupNetworkListeners() {
+    // Remove event listeners to prevent memory leaks
+    window.removeEventListener('online', this.boundUpdateNetworkState);
+    window.removeEventListener('offline', this.boundUpdateNetworkState);
+
+    if (this.connection) {
+      this.connection.removeEventListener('change', this.boundUpdateNetworkState);
     }
   }
 
@@ -147,6 +153,20 @@ class NetworkMonitor {
     console.log('📡 Network monitoring stopped');
   }
 
+  public destroy() {
+    // Stop monitoring first
+    this.stopMonitoring();
+    
+    // Clean up event listeners
+    this.cleanupNetworkListeners();
+    
+    // Clear all listeners
+    this.listeners = [];
+    this.currentState = null;
+    
+    console.log('📡 Network monitor destroyed');
+  }
+
   public addListener(listener: NetworkChangeListener): () => void {
     this.listeners.push(listener);
     
@@ -182,6 +202,7 @@ export const networkMonitor = new NetworkMonitor();
 
 /**
  * Hook for monitoring network state during uploads
+ * Note: This should be used with React useEffect for proper cleanup
  */
 export function useNetworkMonitoring(
   onNetworkChange?: NetworkChangeListener,
@@ -193,12 +214,32 @@ export function useNetworkMonitoring(
     const unsubscribe = networkMonitor.addListener(onNetworkChange);
     networkMonitor.startMonitoring();
     
-    // Cleanup would normally be handled by React useEffect cleanup
-    // This is a simplified version for direct usage
+    // Return cleanup function that should be called in useEffect cleanup
+    // Usage: useEffect(() => { const cleanup = useNetworkMonitoring(...); return cleanup; }, []);
     return currentState;
   }
 
   return currentState;
+}
+
+/**
+ * Utility to create a network monitoring subscription with cleanup
+ */
+export function createNetworkSubscription(
+  onNetworkChange: NetworkChangeListener,
+  enableMonitoring: boolean = true
+): () => void {
+  if (!enableMonitoring) {
+    return () => {};
+  }
+
+  const unsubscribe = networkMonitor.addListener(onNetworkChange);
+  networkMonitor.startMonitoring();
+  
+  return () => {
+    unsubscribe();
+    networkMonitor.stopMonitoring();
+  };
 }
 
 /**

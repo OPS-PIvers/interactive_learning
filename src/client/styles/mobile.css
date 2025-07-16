@@ -21,9 +21,7 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     
-    /* Improve scrolling physics */
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
+    /* Modern scrolling behavior - removed deprecated -webkit-overflow-scrolling */
     
     /* Enhanced font rendering */
     -webkit-font-smoothing: antialiased;
@@ -250,7 +248,7 @@
   .mobile-modal-content {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    /* Modern scrolling - removed deprecated -webkit-overflow-scrolling */
     padding-bottom: var(--safe-area-inset-bottom);
   }
 
@@ -317,7 +315,7 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    /* Modern scrolling - removed deprecated -webkit-overflow-scrolling */
   }
 
   .mobile-editor-tabs,
@@ -360,7 +358,7 @@
   .mobile-editor-panel-content {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    /* Modern scrolling - removed deprecated -webkit-overflow-scrolling */
     padding: 16px;
   }
 }
@@ -370,7 +368,7 @@
 @media screen and (max-width: 768px) {
   .mobile-timeline {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    /* Modern scrolling - removed deprecated -webkit-overflow-scrolling */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }

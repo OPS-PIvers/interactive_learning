@@ -30,8 +30,8 @@ export const getMobileViewportHeight = () => {
   if (window.visualViewport) {
     return window.visualViewport.height;
   }
-  // Fallback to traditional methods
-  return window.innerHeight || document.documentElement.clientHeight;
+  // Fallback to traditional methods with better mobile support
+  return window.innerHeight || document.documentElement.clientHeight || window.screen.height;
 };
 
 export const getActualViewportHeight = () => {
@@ -43,16 +43,24 @@ export const getActualViewportHeight = () => {
   // On mobile, prefer visualViewport when available as it accounts for
   // dynamic toolbar height changes
   if (visualViewport && isMobileDevice()) {
-    return visualViewport.height;
+    // Ensure we have a valid height value
+    const viewportHeight = visualViewport.height;
+    if (viewportHeight > 0) {
+      return viewportHeight;
+    }
   }
   
   // For iOS Safari, use the smaller of window.innerHeight and screen.height
   // to account for the dynamic toolbar
   if (isIOS() && isSafari()) {
-    return Math.min(windowHeight, window.screen.height);
+    const screenHeight = window.screen.height;
+    if (screenHeight > 0) {
+      return Math.min(windowHeight, screenHeight);
+    }
   }
   
-  return windowHeight || documentHeight;
+  // Fallback with validation
+  return Math.max(windowHeight || 0, documentHeight || 0) || window.screen.height || 600;
 };
 
 export const getKeyboardHeight = () => {
@@ -84,18 +92,47 @@ export const getMobileSafeAreaInsets = () => {
 
 export const setDynamicVhProperty = () => {
   const updateVh = () => {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    try {
+      const actualHeight = getActualViewportHeight();
+      if (actualHeight > 0) {
+        const vh = actualHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Also set --actual-vh for components that need precise mobile viewport
+        document.documentElement.style.setProperty('--actual-vh', `${actualHeight}px`);
+      }
+    } catch (error) {
+      console.warn('Failed to update viewport height property:', error);
+      // Fallback to basic calculation
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
   };
 
   updateVh(); // Set initial value
 
-  window.addEventListener('resize', updateVh);
-  window.addEventListener('orientationchange', updateVh);
+  // Use throttling to avoid excessive updates
+  let timeout: NodeJS.Timeout;
+  const throttledUpdateVh = () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(updateVh, 100);
+  };
+
+  window.addEventListener('resize', throttledUpdateVh);
+  window.addEventListener('orientationchange', throttledUpdateVh);
+  
+  // Also listen to visual viewport changes for better mobile support
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', throttledUpdateVh);
+  }
 
   // Return a cleanup function to remove event listeners
   return () => {
-    window.removeEventListener('resize', updateVh);
-    window.removeEventListener('orientationchange', updateVh);
+    clearTimeout(timeout);
+    window.removeEventListener('resize', throttledUpdateVh);
+    window.removeEventListener('orientationchange', throttledUpdateVh);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', throttledUpdateVh);
+    }
   };
 };

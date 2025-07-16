@@ -94,6 +94,7 @@ interface TouchGestureState {
   translateXVelocity: number;
   translateYVelocity: number;
   animationFrameId: number | null;
+  moveAnimationId: number | null; // For throttling move events
 }
 
 export interface TouchGestureHandlers {
@@ -143,6 +144,7 @@ export const useTouchGestures = (
     translateXVelocity: 0,
     translateYVelocity: 0,
     animationFrameId: null,
+    moveAnimationId: null,
   });
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
@@ -165,6 +167,10 @@ export const useTouchGestures = (
     if (gestureState.animationFrameId) {
       cancelAnimationFrame(gestureState.animationFrameId);
       gestureState.animationFrameId = null;
+    }
+    if (gestureState.moveAnimationId) {
+      cancelAnimationFrame(gestureState.moveAnimationId);
+      gestureState.moveAnimationId = null;
     }
   }, []);
 
@@ -237,10 +243,11 @@ export const useTouchGestures = (
       // Double tap detection - optimize with early return
       const timeSinceLastTap = now - gestureState.lastTap;
       if (timeSinceLastTap < DOUBLE_TAP_THRESHOLD) {
-        // This is a double tap - try to claim zoom gesture
-        // Double tap zoom
+        // This is a double tap - atomically claim the gesture
+        // Clear any existing state first
+        cleanupGesture();
         
-        // Mark gesture as active
+        // Mark gesture as active immediately to prevent race conditions
         gestureState.isActive = true;
         
         if (shouldPreventDefault(e.nativeEvent, 'tap')) {
@@ -294,22 +301,24 @@ export const useTouchGestures = (
         return;
       }
       
-      // Single tap - mark gesture as potentially active
+      // Single tap - atomically claim gesture
+      cleanupGesture();
       gestureState.isActive = true;
       // Potential single tap or start of a pan
       gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
       gestureState.startTransform = { ...imageTransform }; // Capture transform at pan start
       gestureState.lastTap = now;
     } else if (touchCount === 2) {
-      // Pinch-to-zoom initialization - try to claim zoom gesture
-      // Start pinch zoom
+      // Pinch-to-zoom initialization - atomically claim zoom gesture
+      // Clear any existing state first
+      cleanupGesture();
       
       if (shouldPreventDefault(e.nativeEvent, 'zoom')) {
         e.preventDefault();
       }
       setIsTransforming(true);
       
-      // Mark gesture as active
+      // Mark gesture as active immediately to prevent race conditions
       gestureState.isActive = true;
       // Cache values for performance
       const touch1 = touches[0];
@@ -457,18 +466,26 @@ export const useTouchGestures = (
     }
   }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, imageTransform]); // Added imageTransform dependency
 
-  // Throttled touch move handler to improve performance (60fps)
-  const throttledTouchMove = useCallback(
-    throttle((e: React.TouchEvent<HTMLDivElement>) => {
+  // Create throttled touch move handler only once
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    // Use requestAnimationFrame for better performance than throttle
+    if (gestureStateRef.current.moveAnimationId) {
+      return; // Already have a pending move update
+    }
+    
+    gestureStateRef.current.moveAnimationId = requestAnimationFrame(() => {
+      gestureStateRef.current.moveAnimationId = null;
       handleTouchMoveInternal(e);
-    }, 16), // ~60fps (1000ms / 60fps ≈ 16ms)
-    [handleTouchMoveInternal]
-  );
+    });
+  }, [handleTouchMoveInternal]);
 
-  // Store the throttled function reference for cleanup
-  throttledTouchMoveRef.current = throttledTouchMove;
-
-  const handleTouchMove = throttledTouchMove;
+  // Store the handler reference for cleanup
+  throttledTouchMoveRef.current = { cancel: () => {
+    if (gestureStateRef.current.moveAnimationId) {
+      cancelAnimationFrame(gestureStateRef.current.moveAnimationId);
+      gestureStateRef.current.moveAnimationId = null;
+    }
+  } } as any;
 
   const animateStep = useCallback(() => {
     const gestureState = gestureStateRef.current;
@@ -572,6 +589,12 @@ export const useTouchGestures = (
     }
     
     const gestureState = gestureStateRef.current;
+    
+    // Only process if we own the gesture
+    if (!gestureState.isActive) {
+      return;
+    }
+    
     const wasPanning = gestureState.isPanning;
     const wasZooming = gestureState.startDistance !== null;
     
@@ -580,8 +603,9 @@ export const useTouchGestures = (
        e.preventDefault();
     }
 
-    // Clean up gesture state - no coordination needed
-
+    // Atomically clean up gesture state
+    const remainingTouches = e.touches.length;
+    
     // Reset gesture state efficiently - batch updates
     gestureState.startDistance = null;
     gestureState.startCenter = null;
@@ -591,7 +615,6 @@ export const useTouchGestures = (
     gestureState.isActive = false; // Mark gesture as inactive
 
     // Optimize transform state updates - only call setIsTransforming if needed
-    const remainingTouches = e.touches.length;
     if (touchEndTimeoutRef.current) {
       clearTimeout(touchEndTimeoutRef.current);
       touchEndTimeoutRef.current = null; // Clear the ref
@@ -630,10 +653,14 @@ export const useTouchGestures = (
         throttledTouchMoveRef.current.cancel();
         throttledTouchMoveRef.current = null;
       }
-      // Cancel any ongoing animation frame
+      // Cancel any ongoing animation frames
       if (gestureStateRef.current.animationFrameId) {
         cancelAnimationFrame(gestureStateRef.current.animationFrameId);
         gestureStateRef.current.animationFrameId = null;
+      }
+      if (gestureStateRef.current.moveAnimationId) {
+        cancelAnimationFrame(gestureStateRef.current.moveAnimationId);
+        gestureStateRef.current.moveAnimationId = null;
       }
       // Reset gesture state
       cleanupGesture();

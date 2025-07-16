@@ -209,11 +209,7 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
         className="text-sm text-slate-300 overflow-y-auto flex-grow custom-scrollbar pr-1 focus:outline-none" // Added focus:outline-none if panel itself is focusable
         tabIndex={0} // Make content area scrollable and focusable for keyboard users
       >
-        {/* Using dangerouslySetInnerHTML for rich text if needed, otherwise simple <p> is fine */}
-        {/* For now, assuming plain text. If HTML content:
-        <div dangerouslySetInnerHTML={{ __html: hotspot.description }} />
-        Ensure hotspot.description is sanitized if using dangerouslySetInnerHTML.
-        */}
+        {/* Safe text rendering - HTML content is escaped by React */}
         <p className="whitespace-pre-wrap break-words">{hotspot.description}</p>
       </div>
     </div>

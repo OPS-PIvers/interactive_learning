@@ -75,6 +75,23 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
 // Helper function to calculate the visible image bounds relative to the drag container
 // This is crucial for correct drag behavior with object-contain
+// Cache for getBoundingClientRect calls to reduce DOM queries
+const boundsCache = new Map<Element, { rect: DOMRect; timestamp: number }>();
+const BOUNDS_CACHE_TTL = 16; // Cache for 16ms (~60fps)
+
+const getCachedBoundingClientRect = (element: Element): DOMRect => {
+  const now = Date.now();
+  const cached = boundsCache.get(element);
+  
+  if (cached && now - cached.timestamp < BOUNDS_CACHE_TTL) {
+    return cached.rect;
+  }
+  
+  const rect = element.getBoundingClientRect();
+  boundsCache.set(element, { rect, timestamp: now });
+  return rect;
+};
+
 const getActualImageVisibleBounds = (
   imageElement: HTMLImageElement | null, // actualImageRef from ImageEditCanvas props
   dragContainer: HTMLElement | null // zoomedImageContainerRef from ImageEditCanvas props
@@ -87,10 +104,9 @@ const getActualImageVisibleBounds = (
   const { naturalWidth, naturalHeight } = imageElement;
   const imgAspectRatio = naturalWidth / naturalHeight;
 
-  // Bounding box of the <img> tag itself, relative to viewport
-  const imgElementVPRect = imageElement.getBoundingClientRect();
-  // Bounding box of the drag container (e.g., zoomedImageContainerRef), relative to viewport
-  const dragContainerVPRect = dragContainer.getBoundingClientRect();
+  // Use cached bounding client rect calls
+  const imgElementVPRect = getCachedBoundingClientRect(imageElement);
+  const dragContainerVPRect = getCachedBoundingClientRect(dragContainer);
 
   if (imgElementVPRect.width === 0 || imgElementVPRect.height === 0) {
     // console.warn("getActualImageVisibleBounds: Image element has no dimensions.");
@@ -263,7 +279,7 @@ const getActualImageVisibleBounds = (
         initialHotspotTop_inContainer = visibleImageBounds.y + hotspotY_relativeToImage;
       } else {
         // Final fallback: use container bounds directly (less accurate but prevents jump to 0,0)
-        const containerRect = containerElement.getBoundingClientRect();
+        const containerRect = getCachedBoundingClientRect(containerElement);
         if (containerRect.width > 0 && containerRect.height > 0) {
           initialHotspotLeft_inContainer = (hotspot.x / 100) * containerRect.width;
           initialHotspotTop_inContainer = (hotspot.y / 100) * containerRect.height;
@@ -345,7 +361,7 @@ const getActualImageVisibleBounds = (
         // Fallback or error handling if bounds are not valid
         // console.warn("Cannot calculate new hotspot position: visibleImageBounds are invalid.");
         // As a fallback, use the old logic (though it has issues)
-        const containerRect = containerElement.getBoundingClientRect();
+        const containerRect = getCachedBoundingClientRect(containerElement);
         if (containerRect.width === 0 || containerRect.height === 0) return; // Avoid division by zero
 
         const percentDeltaX = (deltaX_viewport / containerRect.width) * 100;

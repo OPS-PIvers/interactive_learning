@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 
 export const useMobileTouchGestures = (
@@ -8,6 +8,7 @@ export const useMobileTouchGestures = (
 ) => {
   const lastTapRef = useRef<{ time: number; id: string | null }>({ time: 0, id: null });
   const longPressTimerRef = useRef<NodeJS.Timeout>();
+  const tapDelayTimerRef = useRef<NodeJS.Timeout>();
 
   const handleTouchStart = useCallback((id: string, e: React.TouchEvent) => {
     // Clear any existing long press timer
@@ -42,8 +43,13 @@ export const useMobileTouchGestures = (
       clearTimeout(longPressTimerRef.current);
     }
 
+    // Clear any existing tap delay timer
+    if (tapDelayTimerRef.current) {
+      clearTimeout(tapDelayTimerRef.current);
+    }
+
     // Execute single tap after delay to allow double tap detection
-    setTimeout(() => {
+    tapDelayTimerRef.current = setTimeout(() => {
       if (lastTapRef.current.id === id && lastTapRef.current.time > 0) {
         triggerHapticFeedback('light');
         onTap(id);
@@ -52,5 +58,22 @@ export const useMobileTouchGestures = (
     }, 300);
   }, [onTap]);
 
-  return { handleTouchStart, handleTouchEnd };
+  // Cleanup function to clear all timers
+  const cleanup = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = undefined;
+    }
+    if (tapDelayTimerRef.current) {
+      clearTimeout(tapDelayTimerRef.current);
+      tapDelayTimerRef.current = undefined;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
+
+  return { handleTouchStart, handleTouchEnd, cleanup };
 };
