@@ -1,6 +1,14 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
+// Mock the global window object
+const { JSDOM } = require('jsdom');
+const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
+const { window } = jsdom;
+global.window = window;
+global.document = window.document;
+
+
 // Mock window.matchMedia for mobile detection tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
