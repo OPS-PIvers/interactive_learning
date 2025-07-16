@@ -10,6 +10,7 @@ interface AuthButtonProps {
   showUserName?: boolean;
   onSignIn?: () => void;
   onSignOut?: () => void;
+  size?: 'small' | 'medium' | 'large';
 }
 
 const AuthButton: React.FC<AuthButtonProps> = ({
@@ -17,7 +18,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   className = '',
   showUserName = false,
   onSignIn,
-  onSignOut
+  onSignOut,
+  size = 'large'
 }) => {
   const { user, logout, loading, switchAccount } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -75,6 +77,15 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     }
   };
 
+  const getSizeClasses = () => {
+    switch (size) {
+      case 'small': return 'w-6 h-6';
+      case 'medium': return 'w-7 h-7';
+      case 'large':
+      default: return 'w-8 h-8';
+    }
+  };
+
   const baseButtonStyles = `
     inline-flex items-center gap-2 rounded-md transition-all duration-200 
     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 
@@ -117,7 +128,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     <div className={`relative flex items-center gap-3 ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setDropdownOpen(prev => !prev)}
-        className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500"
+        className={`${getSizeClasses()} bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500`}
         aria-haspopup="true"
         aria-expanded={dropdownOpen}
       >

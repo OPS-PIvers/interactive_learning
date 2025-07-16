@@ -317,7 +317,7 @@ const MainApp: React.FC = () => {
                 >
                   <SettingsIcon className="w-6 h-6 text-slate-300" />
                 </button>
-                <AuthButton variant="compact" />
+                <AuthButton variant="compact" size="small" />
               </div>
             </div>
             <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4">
@@ -367,7 +367,7 @@ const MainApp: React.FC = () => {
               >
                 <SettingsIcon className="w-7 h-7 text-slate-300" />
               </button>
-              <AuthButton variant="toolbar" />
+              <AuthButton variant="toolbar" size="medium" />
             </div>
           </div>
         </div>
