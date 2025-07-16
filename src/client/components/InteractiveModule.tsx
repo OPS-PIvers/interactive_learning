@@ -21,6 +21,9 @@ import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
+
+// Constants for cross-device sync
+const CROSS_DEVICE_SYNC_DEBOUNCE_MS = 2000;
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { createMobileOptimizedUploadHandler } from '../utils/enhancedUploadHandler';
@@ -2765,8 +2768,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   useEffect(() => {
     if (syncData) {
-      // Avoid syncing if the change is very recent (less than 2s) to prevent loops
-      if (Date.now() - syncData.lastUpdated < 2000) return;
+      // Avoid syncing if the change is very recent to prevent loops
+      if (Date.now() - syncData.lastUpdated < CROSS_DEVICE_SYNC_DEBOUNCE_MS) return;
 
       const stepExists = uniqueSortedSteps.includes(syncData.position);
       if (stepExists && syncData.position !== currentStep) {
@@ -2784,7 +2787,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     if (!projectId) return;
     const url = generateDeviceHandoffUrl(projectId, currentStep);
     const dataUrl = await generateQrCodeDataUrl(url);
-    setQrCodeDataUrl(dataUrl);
+    if (dataUrl) {
+      setQrCodeDataUrl(dataUrl);
+    } else {
+      console.error('Failed to generate QR code for device handoff');
+    }
   };
 
   // ✅ IMPORTANT: All hooks must be called before any early returns
