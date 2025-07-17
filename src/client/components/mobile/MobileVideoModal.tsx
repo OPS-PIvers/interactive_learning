@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TimelineEventData } from '../../../shared/types';
+import { TimelineEventData, MediaQuizTrigger } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import VideoPlayer from '../VideoPlayer';
 
 interface MobileVideoModalProps {
   event: TimelineEventData;
@@ -59,18 +60,23 @@ const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ event, onComplete }
 
     if (videoUrl) {
       return (
-        <video
+        <VideoPlayer
           src={videoUrl}
-          controls
-          autoPlay={autoplay}
+          autoplay={autoplay}
           loop={event.loop || false}
           poster={event.poster}
-          style={{
-            width: '100%',
-            height: '100%',
-            borderRadius: '8px',
-            objectFit: 'contain',
+          quizTriggers={event.quizTriggers}
+          allowSeeking={event.allowSeeking}
+          enforceQuizCompletion={event.enforceQuizCompletion}
+          onQuizTrigger={(trigger: MediaQuizTrigger) => {
+            console.log('Mobile Quiz triggered:', trigger);
+            triggerHapticFeedback('medium');
           }}
+          onQuizComplete={(triggerId: string, correct: boolean) => {
+            console.log('Mobile Quiz completed:', triggerId, correct);
+            triggerHapticFeedback(correct ? 'success' : 'error');
+          }}
+          className="rounded-lg"
         />
       );
     }

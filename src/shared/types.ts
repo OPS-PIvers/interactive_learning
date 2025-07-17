@@ -176,6 +176,12 @@ export interface TimelineEventData {
   zoomLevel?: number;    // Unified zoom level (consolidates zoomFactor and zoomLevel)
   smooth?: boolean;      // Smooth zoom animation
   
+  // === ENHANCED MEDIA QUIZ PROPERTIES ===
+  quizTriggers?: MediaQuizTrigger[];
+  allowSeeking?: boolean; // prevent skipping past incomplete quizzes
+  enforceQuizCompletion?: boolean; // must complete all quizzes to continue
+  quizMode?: 'overlay' | 'modal' | 'inline'; // how to display quiz
+  
   // === COMMON PROPERTIES ===
   autoplay?: boolean;
   loop?: boolean;

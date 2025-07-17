@@ -84,6 +84,63 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, [quizTriggers, completedQuizzes, isQuizActive]);
 
+  // Quiz trigger detection logic
+  const checkForQuizTriggers = (currentTime: number) => {
+    const triggerToFire = quizTriggers.find(trigger => {
+      const isTimeToTrigger = currentTime >= trigger.timestamp && 
+                             currentTime < trigger.timestamp + 0.5;
+      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
+      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
+      
+      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
+    });
+
+    if (triggerToFire) {
+      lastTriggerTimeRef.current = triggerToFire.timestamp;
+      
+      if (triggerToFire.pauseMedia && videoRef.current) {
+        videoRef.current.pause();
+      }
+      
+      setActiveQuizTrigger(triggerToFire);
+      setIsQuizActive(true);
+      onQuizTrigger?.(triggerToFire);
+    }
+  };
+
+  // Handle seeking restrictions
+  const handleSeeked = () => {
+    if (!allowSeeking && videoRef.current && enforceQuizCompletion) {
+      const video = videoRef.current;
+      const seekTime = video.currentTime;
+      
+      const skippedQuiz = quizTriggers.find(trigger => 
+        trigger.timestamp < seekTime && !completedQuizzes.has(trigger.id)
+      );
+      
+      if (skippedQuiz) {
+        video.currentTime = Math.max(0, skippedQuiz.timestamp - 1);
+      }
+    }
+  };
+
+  // Quiz completion handler
+  const handleQuizComplete = (correct: boolean) => {
+    if (activeQuizTrigger) {
+      setCompletedQuizzes(prev => new Set([...prev, activeQuizTrigger.id]));
+      onQuizComplete?.(activeQuizTrigger.id, correct);
+      
+      if (activeQuizTrigger.resumeAfterCompletion && videoRef.current) {
+        setTimeout(() => {
+          videoRef.current?.play();
+        }, 500);
+      }
+      
+      setIsQuizActive(false);
+      setActiveQuizTrigger(null);
+    }
+  };
+
   // Handle fullscreen state changes
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -148,63 +205,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  // Quiz trigger detection logic
-  const checkForQuizTriggers = (currentTime: number) => {
-    const triggerToFire = quizTriggers.find(trigger => {
-      const isTimeToTrigger = currentTime >= trigger.timestamp && 
-                             currentTime < trigger.timestamp + 0.5;
-      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
-      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
-      
-      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
-    });
-
-    if (triggerToFire) {
-      lastTriggerTimeRef.current = triggerToFire.timestamp;
-      
-      if (triggerToFire.pauseMedia && videoRef.current) {
-        videoRef.current.pause();
-      }
-      
-      setActiveQuizTrigger(triggerToFire);
-      setIsQuizActive(true);
-      onQuizTrigger?.(triggerToFire);
-    }
-  };
-
-  // Handle seeking restrictions
-  const handleSeeked = () => {
-    if (!allowSeeking && videoRef.current && enforceQuizCompletion) {
-      const video = videoRef.current;
-      const seekTime = video.currentTime;
-      
-      const skippedQuiz = quizTriggers.find(trigger => 
-        trigger.timestamp < seekTime && !completedQuizzes.has(trigger.id)
-      );
-      
-      if (skippedQuiz) {
-        video.currentTime = Math.max(0, skippedQuiz.timestamp - 1);
-      }
-    }
-  };
-
-  // Quiz completion handler
-  const handleQuizComplete = (correct: boolean) => {
-    if (activeQuizTrigger) {
-      setCompletedQuizzes(prev => new Set([...prev, activeQuizTrigger.id]));
-      onQuizComplete?.(activeQuizTrigger.id, correct);
-      
-      if (activeQuizTrigger.resumeAfterCompletion && videoRef.current) {
-        setTimeout(() => {
-          videoRef.current?.play();
-        }, 500);
-      }
-      
-      setIsQuizActive(false);
-      setActiveQuizTrigger(null);
-    }
   };
 
   return (
