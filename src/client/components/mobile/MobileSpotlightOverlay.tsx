@@ -51,18 +51,20 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
   if (!containerRect) return null;
 
   const getSpotlightStyle = () => {
-    const dimPercentage = event.dimPercentage || 70;
-    const radius = event.highlightRadius || 60;
-    const shape = event.highlightShape || 'circle';
-
-    let spotlightX = 50;
-    let spotlightY = 50;
-    let spotlightWidth = radius * 2;
-    let spotlightHeight = radius * 2;
-
-    // Use event-specific spotlight positioning if available
+    // Enhanced property mapping for both new and legacy properties
+    const dimPercentage = event.dimPercentage || event.spotlightDim || 70;
+    const radius = event.highlightRadius || event.spotlightRadius || 60;
+    const shape = event.highlightShape || event.spotlightShape || 'circle';
+    
+    // Handle position mapping with fallbacks
+    let spotlightX = 50, spotlightY = 50;
     if (event.spotlightX !== undefined) spotlightX = event.spotlightX;
     if (event.spotlightY !== undefined) spotlightY = event.spotlightY;
+    if (event.highlightX !== undefined) spotlightX = event.highlightX;
+    if (event.highlightY !== undefined) spotlightY = event.highlightY;
+
+    let spotlightWidth = radius * 2;
+    let spotlightHeight = radius * 2;
     if (event.spotlightWidth !== undefined) spotlightWidth = event.spotlightWidth;
     if (event.spotlightHeight !== undefined) spotlightHeight = event.spotlightHeight;
 
@@ -74,33 +76,13 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
       return {
         background: `radial-gradient(circle at ${centerX}px ${centerY}px, 
           transparent ${radius}px, 
-          rgba(0, 0, 0, ${overlayOpacity}) ${radius + 10}px)`,
+          rgba(0, 0, 0, ${overlayOpacity}) ${radius + 20}px)`,
       };
     } else {
-      // Rectangle spotlight
-      const rectX = centerX - spotlightWidth / 2;
-      const rectY = centerY - spotlightHeight / 2;
-      
+      // Rectangle spotlight logic
       return {
-        background: `
-          linear-gradient(transparent, transparent), 
-          radial-gradient(ellipse ${spotlightWidth}px ${spotlightHeight}px at ${centerX}px ${centerY}px, 
-            transparent 0%, 
-            transparent 40%, 
-            rgba(0, 0, 0, ${overlayOpacity}) 70%)
-        `,
-        maskImage: `
-          radial-gradient(ellipse ${spotlightWidth}px ${spotlightHeight}px at ${centerX}px ${centerY}px, 
-            transparent 0%, 
-            transparent 40%, 
-            black 70%)
-        `,
-        WebkitMaskImage: `
-          radial-gradient(ellipse ${spotlightWidth}px ${spotlightHeight}px at ${centerX}px ${centerY}px, 
-            transparent 0%, 
-            transparent 40%, 
-            black 70%)
-        `,
+        background: `radial-gradient(ellipse ${spotlightWidth}px ${spotlightHeight}px at ${centerX}px ${centerY}px, 
+          transparent 0%, transparent 40%, rgba(0, 0, 0, ${overlayOpacity}) 70%)`,
       };
     }
   };

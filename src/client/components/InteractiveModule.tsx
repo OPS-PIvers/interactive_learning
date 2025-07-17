@@ -315,6 +315,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   });
 
   const imageContainerRef = useRef<HTMLDivElement>(null); // General container for image area
+  const [mobileEventContainerRef, setMobileEventContainerRef] = useState<HTMLElement | null>(null);
   const scrollableContainerRef = useRef<HTMLDivElement>(null); // Ref for the outer scrollable container (editor)
   const scaledImageDivRef = useRef<HTMLDivElement>(null); // Ref for the div with background image (viewer)
   
@@ -2487,20 +2488,42 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         isMobile: effectiveIsMobile
       });
 
-      // Set mobile active events for mobile-specific event types
+      // Enhanced mobile event filtering and logging
       if (effectiveIsMobile) {
-        const mobileCompatibleEvents = eventsForCurrentStep.filter(event => 
-          [InteractionType.SPOTLIGHT, InteractionType.PAN_ZOOM,
-           InteractionType.SHOW_TEXT, InteractionType.QUIZ,
-           InteractionType.SHOW_IMAGE, InteractionType.SHOW_IMAGE_MODAL,
-           InteractionType.PLAY_VIDEO, InteractionType.PLAY_AUDIO,
-           InteractionType.PULSE_HOTSPOT, InteractionType.HIDE_HOTSPOT].includes(event.type)
-        );
+        const mobileCompatibleEvents = eventsForCurrentStep.filter(event => {
+          const isCompatible = [
+            InteractionType.SPOTLIGHT, 
+            InteractionType.HIGHLIGHT_HOTSPOT,
+            InteractionType.PULSE_HOTSPOT,
+            InteractionType.PULSE_HIGHLIGHT,
+            InteractionType.PAN_ZOOM,
+            InteractionType.PAN_ZOOM_TO_HOTSPOT,
+            InteractionType.SHOW_TEXT, 
+            InteractionType.SHOW_MESSAGE,
+            InteractionType.QUIZ,
+            InteractionType.SHOW_IMAGE, 
+            InteractionType.SHOW_IMAGE_MODAL,
+            InteractionType.SHOW_VIDEO,
+            InteractionType.SHOW_YOUTUBE,
+            InteractionType.PLAY_VIDEO, 
+            InteractionType.SHOW_AUDIO_MODAL,
+            InteractionType.PLAY_AUDIO,
+            InteractionType.HIDE_HOTSPOT
+          ].includes(event.type);
+          
+          if (!isCompatible) {
+            console.warn('Event type not compatible with mobile:', event.type);
+          }
+          
+          return isCompatible;
+        });
+
+        console.log('🎯 Mobile compatible events:', mobileCompatibleEvents.map(e => ({ id: e.id, type: e.type })));
         setMobileActiveEvents(mobileCompatibleEvents);
         
         // Sync highlight state for mobile events
         const highlightEvent = mobileCompatibleEvents.find(event => 
-          event.type === InteractionType.SPOTLIGHT && event.targetId
+          (event.type === InteractionType.SPOTLIGHT || event.type === InteractionType.HIGHLIGHT_HOTSPOT) && event.targetId
         );
         if (highlightEvent) {
           setHighlightedHotspotId(highlightEvent.targetId);
@@ -2508,6 +2531,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       } else {
         // Clear mobile events for desktop
         setMobileActiveEvents([]);
+      }
+
+      // Enhanced container ref management
+      if (effectiveIsMobile && imageContainerRef.current) {
+        setMobileEventContainerRef(imageContainerRef.current);
+        console.log('Mobile container ref set:', imageContainerRef.current);
       }
       let stepHasPanZoomEvent = false;
 

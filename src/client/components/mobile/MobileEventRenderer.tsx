@@ -28,6 +28,16 @@ const MODAL_INTERACTIONS = new Set([
   InteractionType.PLAY_AUDIO,
 ]);
 
+// Separate visual overlay events from modal events
+const VISUAL_OVERLAY_EVENTS = new Set([
+  InteractionType.SPOTLIGHT,
+  InteractionType.HIGHLIGHT_HOTSPOT,
+  InteractionType.PULSE_HOTSPOT,
+  InteractionType.PULSE_HIGHLIGHT,
+  InteractionType.PAN_ZOOM,
+  InteractionType.PAN_ZOOM_TO_HOTSPOT,
+]);
+
 export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   events,
   onEventComplete,
@@ -72,8 +82,12 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       return currentModal ? [currentModal] : [];
     }
 
-    // If no modal events, allow all non-modal events to be active
-    return events.filter(e => !MODAL_INTERACTIONS.has(e.type));
+    // Allow visual events to be active simultaneously
+    const visualEvents = events.filter(e => 
+      VISUAL_OVERLAY_EVENTS.has(e.type) || !MODAL_INTERACTIONS.has(e.type)
+    );
+    
+    return visualEvents;
   }, [events, isActive, modalQueue, currentModalIndex]);
 
   const renderEventType = (event: TimelineEventData) => {

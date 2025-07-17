@@ -60,30 +60,41 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     setIsActive(true);
     triggerHapticFeedback('medium');
 
-    const targetX = event.targetX || event.spotlightX || 50;
-    const targetY = event.targetY || event.spotlightY || 50;
-    const zoomLevel = event.zoomLevel || event.zoomFactor || event.zoom || 2;
+    // Enhanced property mapping
+    let targetX = 50, targetY = 50, zoomLevel = 2;
+    if (event.zoomLevel !== undefined) zoomLevel = event.zoomLevel;
+    if (event.zoomFactor !== undefined) zoomLevel = event.zoomFactor;
+    if (event.zoom !== undefined) zoomLevel = event.zoom;
+    if (event.panX !== undefined) targetX = event.panX;
+    if (event.panY !== undefined) targetY = event.panY;
+    if (event.targetX !== undefined) targetX = event.targetX;
+    if (event.targetY !== undefined) targetY = event.targetY;
+    if (event.spotlightX !== undefined) targetX = event.spotlightX;
+    if (event.spotlightY !== undefined) targetY = event.spotlightY;
     const smooth = event.smooth !== false; // Default to true
 
     // Calculate the transform values
     const containerRect = container.getBoundingClientRect();
     const imageRect = imageElement.getBoundingClientRect();
     
-    // Convert percentage to pixels
-    const targetPixelX = (targetX / 100) * imageRect.width;
-    const targetPixelY = (targetY / 100) * imageRect.height;
+    // Convert percentage to pixels based on natural image dimensions
+    const targetPxX = (targetX / 100) * imageRect.width;
+    const targetPxY = (targetY / 100) * imageRect.height;
     
-    // Calculate translation to center the target point
-    const translateX = (containerRect.width / 2) - (targetPixelX * zoomLevel);
-    const translateY = (containerRect.height / 2) - (targetPixelY * zoomLevel);
-
-    // Apply the transformation
-    const transform = `translate(${translateX}px, ${translateY}px) scale(${zoomLevel})`;
+    // Calculate center points
+    const centerX = containerRect.width / 2;
+    const centerY = containerRect.height / 2;
+    
+    // Critical transform fixes - proper translation calculation
+    const translateX = centerX - (targetPxX * zoomLevel);
+    const translateY = centerY - (targetPxY * zoomLevel);
+    const transform = `scale(${zoomLevel}) translate(${translateX / zoomLevel}px, ${translateY / zoomLevel}px)`;
+    
     const transition = smooth ? 'transform 1s ease-in-out' : 'none';
 
     imageElement.style.transition = transition;
+    imageElement.style.transformOrigin = '0 0'; // Critical: set origin to top-left
     imageElement.style.transform = transform;
-    imageElement.style.transformOrigin = 'top left';
 
     // Hide instructions after animation starts
     const instructionTimer = setTimeout(() => {
