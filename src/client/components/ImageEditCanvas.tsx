@@ -8,6 +8,7 @@ import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
 import { Z_INDEX } from '../utils/styleConstants';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
+import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 interface ImageEditCanvasProps {
   backgroundImage: string | undefined;
@@ -211,52 +212,25 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
         if (isPlacingHotspot && onPlaceNewHotspot && actualImageRef.current) {
           const target = e.target as HTMLElement;
           
-          // Don't place hotspot if clicking on an existing hotspot
           const isClickingOnHotspot = target.closest('[data-hotspot-id]') !== null;
           
-          console.log('Debug [ImageEditCanvas]: Placement mode validation', {
-            isClickingOnHotspot,
-            targetTagName: target.tagName,
-            targetClassName: target.className,
-            isImageElement: target === actualImageRef.current,
-            timestamp: Date.now()
-          });
-          
           if (!isClickingOnHotspot) {
-            // More permissive target validation - allow clicks on the image or its containers
-            const imageRect = actualImageRef.current.getBoundingClientRect();
+            const visibleImageBounds = getActualImageVisibleBounds(actualImageRef.current, imageContainerRef.current);
             
-            // Check if click is within image bounds regardless of the exact target
-            if (e.clientX >= imageRect.left && e.clientX <= imageRect.right &&
-                e.clientY >= imageRect.top && e.clientY <= imageRect.bottom) {
+            if (visibleImageBounds && e.clientX >= visibleImageBounds.x && e.clientX <= visibleImageBounds.x + visibleImageBounds.width &&
+                e.clientY >= visibleImageBounds.y && e.clientY <= visibleImageBounds.y + visibleImageBounds.height) {
               
-              const clickXRelativeToImageOrigin = e.clientX - imageRect.left;
-              const clickYRelativeToImageOrigin = e.clientY - imageRect.top;
+              const clickXRelativeToVisibleImage = e.clientX - visibleImageBounds.x;
+              const clickYRelativeToVisibleImage = e.clientY - visibleImageBounds.y;
 
-              // Convert to coordinates on the unzoomed, natural-sized image
-              const xOnNaturalImage = (clickXRelativeToImageOrigin / imageRect.width) * actualImageRef.current.naturalWidth;
-              const yOnNaturalImage = (clickYRelativeToImageOrigin / imageRect.height) * actualImageRef.current.naturalHeight;
+              const xPercent = (clickXRelativeToVisibleImage / visibleImageBounds.width) * 100;
+              const yPercent = (clickYRelativeToVisibleImage / visibleImageBounds.height) * 100;
 
-              // Convert to percentage of the natural image dimensions
-              const xPercent = (xOnNaturalImage / actualImageRef.current.naturalWidth) * 100;
-              const yPercent = (yOnNaturalImage / actualImageRef.current.naturalHeight) * 100;
-
-              // Clamp values between 0 and 100
               const finalXPercent = Math.max(0, Math.min(100, xPercent));
               const finalYPercent = Math.max(0, Math.min(100, yPercent));
 
-              console.log('Debug [ImageEditCanvas]: Creating hotspot', {
-                clickX: clickXRelativeToImageOrigin,
-                clickY: clickYRelativeToImageOrigin,
-                xPercent,
-                yPercent,
-                finalXPercent,
-                finalYPercent,
-                timestamp: Date.now()
-              });
-
               onPlaceNewHotspot(finalXPercent, finalYPercent);
-              e.stopPropagation(); // Prevent other click handlers
+              e.stopPropagation();
               return;
             }
           }
