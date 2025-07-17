@@ -37,3 +37,15 @@
 10. **Bug: `useMobileTouchGestures.ts` does not handle `isDragActive` correctly.**
     - **Issue:** The `isGestureActive` function in `useMobileTouchGestures.ts` does not include `isDragActive` in its check. This means that touch gestures on the container will not be disabled when a hotspot is being dragged.
     - **Impact:** This can lead to unexpected behavior, such as the container panning while a hotspot is being dragged.
+
+11. **Bug: `InteractiveModule.tsx` has multiple sources of truth for `isMobile`.**
+    - **Issue:** The `isMobile` prop is passed in, but the component also calls the `useIsMobile` hook. This can lead to inconsistencies if the prop and the hook return different values.
+    - **Impact:** The component may behave in unexpected ways, rendering a mix of mobile and desktop UI elements.
+
+12. **Potential Bug: `InteractiveModule.tsx` has a potential race condition in `handleSave`**
+    - **Issue:** The `handleSave` function is not debounced, and it is called in a `useEffect` hook that depends on `hotspots` and `timelineEvents`. If these states change in quick succession, `handleSave` could be called multiple times, leading to unnecessary writes to the database.
+    - **Impact:** This can lead to performance issues and potentially inconsistent data if the saves do not complete in the correct order.
+
+13. **Bug: `InteractiveModule.tsx` does not clear all timeouts on unmount.**
+    - **Issue:** The component has multiple `setTimeout` calls (e.g., for the success message), but it does not clear all of them in the `useEffect` cleanup function.
+    - **Impact:** This can lead to memory leaks and unexpected behavior if the component unmounts before the timeouts complete.
