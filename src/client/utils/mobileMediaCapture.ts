@@ -58,13 +58,55 @@ export const captureMedia = async (options: MediaCaptureOptions): Promise<File |
   });
 };
 
-/**
- * A placeholder for voice recording functionality.
- * This will be implemented in a future task.
- */
-export const recordVoice = async (): Promise<File | null> => {
-  console.warn('Voice recording is not yet implemented.');
-  return Promise.resolve(null);
+interface RecordingControls {
+  start: () => void;
+  stop: () => Promise<File>;
+  cancel: () => void;
+}
+
+export const recordVoice = async (): Promise<RecordingControls> => {
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+    throw new Error('Failed to access microphone. Please ensure you have granted microphone permissions in your browser settings.');
+  }
+  
+  const mediaRecorder = new MediaRecorder(stream);
+  let audioChunks: Blob[] = [];
+
+  mediaRecorder.ondataavailable = (event) => {
+    audioChunks.push(event.data);
+  };
+
+  const start = () => {
+    audioChunks = [];
+    mediaRecorder.start();
+  };
+
+  const stop = (): Promise<File> => {
+    return new Promise((resolve) => {
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioFile = new File([audioBlob], 'recording.wav', {
+          type: 'audio/wav',
+        });
+        // Stop all tracks on the stream to release the microphone
+        stream.getTracks().forEach((track) => track.stop());
+        resolve(audioFile);
+      };
+      mediaRecorder.stop();
+    });
+  };
+
+  const cancel = () => {
+    mediaRecorder.stop();
+    // Stop all tracks on the stream to release the microphone
+    stream.getTracks().forEach((track) => track.stop());
+  };
+
+  return { start, stop, cancel };
 };
 
 /**
@@ -77,7 +119,6 @@ export const uploadFileWithProgress = async (
   file: File,
   onProgress: (progress: number) => void
 ): Promise<string> => {
-  console.warn('File upload with progress is not yet implemented.');
   // Simulate upload progress
   for (let progress = 0; progress <= 100; progress += 10) {
     await new Promise((resolve) => setTimeout(resolve, 100));
