@@ -7,16 +7,13 @@ describe('Event System', () => {
   describe('InteractionType Enum', () => {
     test('should have all required interaction types', () => {
       const expectedTypes = [
-        'HIDE_HOTSPOT', 
-        'PULSE_HOTSPOT',
         'PAN_ZOOM',
         'SHOW_TEXT',
         'SHOW_IMAGE',
         'SPOTLIGHT',
         'QUIZ',
         'PLAY_AUDIO',
-        'PLAY_VIDEO',
-        'SHOW_IMAGE_MODAL'
+        'PLAY_VIDEO'
       ]
 
       expectedTypes.forEach(type => {
@@ -153,21 +150,23 @@ describe('Event System', () => {
       expect(event.loop).toBe(true)
     })
 
-    test('should create valid timeline event for SHOW_IMAGE_MODAL', () => {
+    test('should create valid timeline event for SHOW_IMAGE', () => {
       const event: TimelineEventData = {
         id: 'test-8',
         step: 8,
         name: 'Show Detailed Diagram',
-        type: InteractionType.SHOW_IMAGE_MODAL,
+        type: InteractionType.SHOW_IMAGE,
         imageUrl: 'https://example.com/diagram.png',
         textContent: 'Detailed System Architecture',
-        caption: 'This diagram shows the complete system flow'
+        caption: 'This diagram shows the complete system flow',
+        imageDisplayMode: 'modal'
       }
 
-      expect(event.type).toBe(InteractionType.SHOW_IMAGE_MODAL)
+      expect(event.type).toBe(InteractionType.SHOW_IMAGE)
       expect(event.imageUrl).toBe('https://example.com/diagram.png')
       expect(event.textContent).toBe('Detailed System Architecture')
       expect(event.caption).toBe('This diagram shows the complete system flow')
+      expect(event.imageDisplayMode).toBe('modal')
     })
   })
 

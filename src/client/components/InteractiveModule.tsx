@@ -2736,7 +2736,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         // Attempt to find a PAN_ZOOM event.
         const panZoomEvent = timelineEvents
           .filter(e => e.targetId === exploredHotspotId &&
-                       e.type === InteractionType.PAN_ZOOM))
+                       e.type === InteractionType.PAN_ZOOM)
           .sort((a, b) => a.step - b.step)[0];
 
         if (hotspot && panZoomEvent) {

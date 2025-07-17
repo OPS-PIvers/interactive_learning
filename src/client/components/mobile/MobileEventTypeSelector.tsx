@@ -7,7 +7,6 @@ const MOBILE_INTERACTION_TYPES = [
     types: [
       { value: InteractionType.SPOTLIGHT, label: 'Spotlight', icon: '💡', description: 'Focus attention on area' },
       { value: InteractionType.PAN_ZOOM, label: 'Pan & Zoom', icon: '🔍', description: 'Focus on area' },
-      { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse', icon: '💓', description: 'Animate hotspot' },
     ]
   },
   {
@@ -15,7 +14,7 @@ const MOBILE_INTERACTION_TYPES = [
     types: [
       { value: InteractionType.PLAY_VIDEO, label: 'Video', icon: '🎥', description: 'File, YouTube, or record video' },
       { value: InteractionType.PLAY_AUDIO, label: 'Audio', icon: '🔊', description: 'File or record audio' },
-      { value: InteractionType.SHOW_IMAGE_MODAL, label: 'Image', icon: '🖼️', description: 'Show image' },
+      { value: InteractionType.SHOW_IMAGE, label: 'Image', icon: '🖼️', description: 'Show image' },
     ]
   },
   {

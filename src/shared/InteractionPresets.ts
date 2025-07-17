@@ -11,20 +11,6 @@ export interface InteractionPreset {
 
 export const interactionPresets: Record<InteractionType, InteractionPreset> = {
   // Essential interaction types
-  [InteractionType.HIDE_HOTSPOT]: {
-    icon: '🚫',
-    name: 'Hide Hotspot',
-    color: 'bg-red-500',
-    settings: [],
-    description: 'Hide hotspot from view'
-  },
-  [InteractionType.PULSE_HOTSPOT]: {
-    icon: '💓',
-    name: 'Pulse Hotspot',
-    color: 'bg-blue-500',
-    settings: ['duration', 'intensity'],
-    description: 'Animate hotspot with pulse effect'
-  },
   [InteractionType.PAN_ZOOM]: {
     icon: '🔍',
     name: 'Pan & Zoom',
@@ -36,15 +22,8 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '🖼️',
     name: 'Show Image',
     color: 'bg-purple-500',
-    settings: ['imageUrl', 'caption'],
-    description: 'Display image with optional caption'
-  },
-  [InteractionType.SHOW_IMAGE_MODAL]: {
-    icon: '🖼️',
-    name: 'Show Image Modal',
-    color: 'bg-cyan-600',
-    settings: ['imageUrl', 'caption'],
-    description: 'Display image in zoomable modal'
+    settings: ['imageUrl', 'caption', 'displayMode'],
+    description: 'Display image with optional caption and modal option'
   },
   [InteractionType.QUIZ]: {
     icon: '❓',

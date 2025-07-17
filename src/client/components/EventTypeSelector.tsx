@@ -15,49 +15,39 @@ interface EventTypeSelectorProps {
 
 const eventTypeOptions: EventTypeOption[] = [
   {
-    value: InteractionType.HIDE_HOTSPOT,
-    label: 'Hide Hotspot',
-    description: 'Hide the hotspot from view'
-  },
-  {
-    value: InteractionType.PULSE_HOTSPOT,
-    label: 'Pulse Hotspot',
-    description: 'Make the hotspot pulse to attract attention'
-  },
-  {
-    value: InteractionType.SHOW_MESSAGE,
-    label: 'Show Message',
-    description: 'Display a text message'
-  },
-  {
-    value: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+    value: InteractionType.PAN_ZOOM,
     label: 'Pan & Zoom',
     description: 'Pan and zoom the image to focus on the hotspot'
   },
   {
-    value: InteractionType.HIGHLIGHT_HOTSPOT,
-    label: 'Highlight',
-    description: 'Highlight the hotspot while dimming the rest'
+    value: InteractionType.SHOW_IMAGE,
+    label: 'Show Image',
+    description: 'Display an image with optional caption and modal'
   },
   {
-    value: InteractionType.SHOW_VIDEO,
-    label: 'Video',
-    description: 'Play a video file in a modal'
+    value: InteractionType.QUIZ,
+    label: 'Quiz',
+    description: 'Show a quiz question'
   },
   {
-    value: InteractionType.SHOW_AUDIO_MODAL,
-    label: 'Audio',
-    description: 'Play an audio file in a modal'
+    value: InteractionType.PLAY_VIDEO,
+    label: 'Play Video',
+    description: 'Play video from file, YouTube, or URL'
   },
   {
-    value: InteractionType.SHOW_IMAGE_MODAL,
-    label: 'Image',
-    description: 'Show an image in a modal'
+    value: InteractionType.PLAY_AUDIO,
+    label: 'Play Audio',
+    description: 'Play audio file with various display modes'
   },
   {
-    value: InteractionType.SHOW_YOUTUBE,
-    label: 'YouTube',
-    description: 'Play a YouTube video in a modal'
+    value: InteractionType.SHOW_TEXT,
+    label: 'Show Text',
+    description: 'Display text content'
+  },
+  {
+    value: InteractionType.SPOTLIGHT,
+    label: 'Spotlight',
+    description: 'Focus attention on area with spotlight effect'
   }
 ];
 

@@ -30,7 +30,7 @@ describe('Timeline Event Execution', () => {
         step: 2,
         name: 'Show Message',
         type: InteractionType.SHOW_TEXT,
-        message: 'Welcome to the interactive learning module'
+        textContent: 'Welcome to the interactive learning module'
       },
       {
         id: 'event-3',
@@ -38,7 +38,7 @@ describe('Timeline Event Execution', () => {
         name: 'Zoom to Second Hotspot',
         type: InteractionType.PAN_ZOOM,
         targetId: 'hotspot-2',
-        zoomFactor: 3
+        zoomLevel: 3
       }
     ]
 
@@ -80,7 +80,7 @@ describe('Timeline Event Execution', () => {
           step: 1,
           name: 'Show Message',
           type: InteractionType.SHOW_TEXT,
-          message: 'Multiple actions happening simultaneously'
+          textContent: 'Multiple actions happening simultaneously'
         }
       ]
 
@@ -156,7 +156,7 @@ describe('Timeline Event Execution', () => {
           targetHotspotId: panZoomEvent.targetId
         }
 
-        expect(transform.scale).toBe(3) // zoomFactor from event
+        expect(transform.scale).toBe(3) // zoomLevel from event
         expect(transform.targetHotspotId).toBe('hotspot-2')
         expect(typeof transform.translateX).toBe('number')
         expect(typeof transform.translateY).toBe('number')

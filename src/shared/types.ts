@@ -3,11 +3,8 @@ import { Timestamp } from 'firebase/firestore';
 
 export enum InteractionType {
   // Essential interaction types
-  HIDE_HOTSPOT = 'HIDE_HOTSPOT',
-  PULSE_HOTSPOT = 'PULSE_HOTSPOT',
   PAN_ZOOM = 'PAN_ZOOM',
   SHOW_IMAGE = 'SHOW_IMAGE',
-  SHOW_IMAGE_MODAL = 'SHOW_IMAGE_MODAL',
   QUIZ = 'QUIZ',
   
   // === UNIFIED EVENT TYPES ===
@@ -30,6 +27,7 @@ export enum InteractionType {
 export type HotspotSize = 'small' | 'medium' | 'large';
 export type VideoSourceType = 'file' | 'youtube' | 'device' | 'url';
 export type SpotlightShape = 'circle' | 'rectangle' | 'oval';
+export type ImageDisplayMode = 'inline' | 'modal';
 
 export interface HotspotData {
   id: string;
@@ -42,6 +40,7 @@ export interface HotspotData {
   size?: HotspotSize; // Size of the hotspot marker, defaults to 'medium'
   link?: string; // Optional link URL for hotspot
   displayHotspotInEvent?: boolean; // When true, hotspot remains visible when its events are active
+  pulseWhenActive?: boolean; // When true, hotspot pulses when its events are active
 }
 
 // Base Event interface
@@ -175,6 +174,7 @@ export interface TimelineEventData {
   // Image properties
   imageUrl?: string;
   caption?: string;
+  imageDisplayMode?: ImageDisplayMode;
   
   // Reference code integration properties
   shape?: 'circle' | 'rectangle';
