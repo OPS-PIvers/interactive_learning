@@ -109,6 +109,21 @@ export interface QuestionEvent extends BaseEvent {
 
 export type Event = SpotlightEvent | PanZoomEvent | TextEvent | MediaEvent | GoToEvent | QuestionEvent;
 
+// Enhanced media quiz interfaces
+export interface MediaQuizTrigger {
+  id: string;
+  timestamp: number; // seconds into media
+  pauseMedia: boolean; // auto-pause at this point
+  quiz: {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation?: string;
+    showExplanation?: boolean;
+  };
+  resumeAfterCompletion: boolean; // auto-resume when quiz complete
+}
+
 export interface TimelineEventData {
   id: string;
   step: number; // Sequence number, 1-indexed
@@ -163,6 +178,12 @@ export interface TimelineEventData {
   loop?: boolean;
   volume?: number;
   intensity?: number;    // For pulse effects
+  
+  // === ENHANCED MEDIA QUIZ PROPERTIES ===
+  quizTriggers?: MediaQuizTrigger[];
+  allowSeeking?: boolean; // prevent skipping past incomplete quizzes
+  enforceQuizCompletion?: boolean; // must complete all quizzes to continue
+  quizMode?: 'overlay' | 'modal' | 'inline'; // how to display quiz
   
   // Quiz properties
   quizQuestion?: string;

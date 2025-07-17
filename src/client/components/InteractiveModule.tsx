@@ -695,6 +695,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     poster?: string;
     autoplay?: boolean;
     loop?: boolean;
+    // Quiz integration properties
+    quizTriggers?: import('../../shared/types').MediaQuizTrigger[];
+    onQuizTrigger?: (trigger: import('../../shared/types').MediaQuizTrigger) => void;
+    onQuizComplete?: (triggerId: string, correct: boolean) => void;
+    allowSeeking?: boolean;
+    enforceQuizCompletion?: boolean;
   }
   
   interface AudioMediaData {
@@ -702,6 +708,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     title?: string;
     artist?: string;
     loop?: boolean;
+    // Quiz integration properties
+    quizTriggers?: import('../../shared/types').MediaQuizTrigger[];
+    onQuizTrigger?: (trigger: import('../../shared/types').MediaQuizTrigger) => void;
+    onQuizComplete?: (triggerId: string, correct: boolean) => void;
+    allowSeeking?: boolean;
+    enforceQuizCompletion?: boolean;
   }
   
   interface ImageMediaData {
@@ -756,6 +768,17 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       type: null,
       src: ''
     });
+  }, []);
+
+  // Quiz event handlers
+  const handleQuizTrigger = useCallback((trigger: import('../../shared/types').MediaQuizTrigger) => {
+    console.log('Quiz triggered:', trigger);
+    // TODO: Track quiz analytics if needed
+  }, []);
+
+  const handleQuizComplete = useCallback((triggerId: string, correct: boolean) => {
+    console.log('Quiz completed:', triggerId, correct);
+    // TODO: Track quiz results for progress/scoring
   }, []);
 
   // Helper to get viewport center for centering operations
@@ -2686,7 +2709,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     title: event.audioTitle || event.textContent,
                     artist: event.audioArtist || event.artist,
                     autoplay: event.autoplay || false,
-                    loop: event.loop || false
+                    loop: event.loop || false,
+                    // Quiz integration
+                    quizTriggers: event.quizTriggers,
+                    onQuizTrigger: handleQuizTrigger,
+                    onQuizComplete: handleQuizComplete,
+                    allowSeeking: event.allowSeeking,
+                    enforceQuizCompletion: event.enforceQuizCompletion
                   });
                   break;
                 case 'mini-player':
@@ -2717,7 +2746,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                       src: event.videoUrl,
                       poster: event.videoPoster || event.poster,
                       autoplay: event.autoplay || false,
-                      loop: event.loop || false
+                      loop: event.loop || false,
+                      // Quiz integration
+                      quizTriggers: event.quizTriggers,
+                      onQuizTrigger: handleQuizTrigger,
+                      onQuizComplete: handleQuizComplete,
+                      allowSeeking: event.allowSeeking,
+                      enforceQuizCompletion: event.enforceQuizCompletion
                     });
                   }
                   break;
@@ -3562,6 +3597,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               poster={mediaModal.data.poster}
               autoplay={mediaModal.data.autoplay}
               loop={mediaModal.data.loop}
+              // Quiz integration props
+              quizTriggers={mediaModal.data.quizTriggers}
+              onQuizTrigger={mediaModal.data.onQuizTrigger}
+              onQuizComplete={mediaModal.data.onQuizComplete}
+              allowSeeking={mediaModal.data.allowSeeking}
+              enforceQuizCompletion={mediaModal.data.enforceQuizCompletion}
               className="w-full h-full"
             />
           )}
@@ -3576,6 +3617,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 artist={mediaModal.data.artist}
                 autoplay={mediaModal.data.autoplay}
                 loop={mediaModal.data.loop}
+                // Quiz integration props
+                quizTriggers={mediaModal.data.quizTriggers}
+                onQuizTrigger={mediaModal.data.onQuizTrigger}
+                onQuizComplete={mediaModal.data.onQuizComplete}
+                allowSeeking={mediaModal.data.allowSeeking}
+                enforceQuizCompletion={mediaModal.data.enforceQuizCompletion}
                 className="w-full max-w-lg"
               />
             </div>

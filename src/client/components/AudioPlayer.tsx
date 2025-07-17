@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { MediaQuizTrigger } from '../../shared/types';
+import QuizOverlay from './QuizOverlay';
 
 interface AudioPlayerProps {
   src: string;
@@ -7,6 +9,13 @@ interface AudioPlayerProps {
   autoplay?: boolean;
   loop?: boolean;
   className?: string;
+  
+  // Quiz integration props
+  quizTriggers?: MediaQuizTrigger[];
+  onQuizTrigger?: (trigger: MediaQuizTrigger) => void;
+  onQuizComplete?: (triggerId: string, correct: boolean) => void;
+  allowSeeking?: boolean;
+  enforceQuizCompletion?: boolean;
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({
@@ -15,7 +24,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   artist,
   autoplay = false,
   loop = false,
-  className = ''
+  className = '',
+  // Quiz props with defaults
+  quizTriggers = [],
+  onQuizTrigger,
+  onQuizComplete,
+  allowSeeking = true,
+  enforceQuizCompletion = false
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -24,12 +39,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Quiz-related state
+  const [activeQuizTrigger, setActiveQuizTrigger] = useState<MediaQuizTrigger | null>(null);
+  const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set());
+  const [isQuizActive, setIsQuizActive] = useState(false);
+  const lastTriggerTimeRef = useRef<number>(-1);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      
+      // Check for quiz triggers
+      if (quizTriggers.length > 0 && !isQuizActive) {
+        checkForQuizTriggers(audio.currentTime);
+      }
+    };
     const handleDurationChange = () => {
       setDuration(audio.duration);
       setIsLoading(false);
@@ -60,7 +88,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, []);
+  }, [quizTriggers, completedQuizzes, isQuizActive]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -115,6 +143,63 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // Quiz trigger detection logic
+  const checkForQuizTriggers = (currentTime: number) => {
+    const triggerToFire = quizTriggers.find(trigger => {
+      const isTimeToTrigger = currentTime >= trigger.timestamp && 
+                             currentTime < trigger.timestamp + 0.5;
+      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
+      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
+      
+      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
+    });
+
+    if (triggerToFire) {
+      lastTriggerTimeRef.current = triggerToFire.timestamp;
+      
+      if (triggerToFire.pauseMedia && audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      setActiveQuizTrigger(triggerToFire);
+      setIsQuizActive(true);
+      onQuizTrigger?.(triggerToFire);
+    }
+  };
+
+  // Handle seeking restrictions
+  const handleSeeked = () => {
+    if (!allowSeeking && audioRef.current && enforceQuizCompletion) {
+      const audio = audioRef.current;
+      const seekTime = audio.currentTime;
+      
+      const skippedQuiz = quizTriggers.find(trigger => 
+        trigger.timestamp < seekTime && !completedQuizzes.has(trigger.id)
+      );
+      
+      if (skippedQuiz) {
+        audio.currentTime = Math.max(0, skippedQuiz.timestamp - 1);
+      }
+    }
+  };
+
+  // Quiz completion handler
+  const handleQuizComplete = (correct: boolean) => {
+    if (activeQuizTrigger) {
+      setCompletedQuizzes(prev => new Set([...prev, activeQuizTrigger.id]));
+      onQuizComplete?.(activeQuizTrigger.id, correct);
+      
+      if (activeQuizTrigger.resumeAfterCompletion && audioRef.current) {
+        setTimeout(() => {
+          audioRef.current?.play();
+        }, 500);
+      }
+      
+      setIsQuizActive(false);
+      setActiveQuizTrigger(null);
+    }
+  };
+
   return (
     <div className={`bg-slate-800 rounded-lg p-6 ${className}`}>
       <audio
@@ -123,6 +208,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         autoPlay={autoplay}
         loop={loop}
         preload="metadata"
+        onSeeked={handleSeeked}
       />
       
       {/* Track Info */}
@@ -261,6 +347,35 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           {Math.round((isMuted ? 0 : volume) * 100)}%
         </span>
       </div>
+      
+      {/* Quiz progress indicators on progress bar */}
+      {quizTriggers.length > 0 && duration > 0 && (
+        <div className="relative mb-2">
+          <div className="absolute top-0 left-0 right-0 h-2 -mt-1">
+            {quizTriggers.map(trigger => (
+              <div
+                key={trigger.id}
+                className={`absolute top-0 w-2 h-2 rounded-full ${
+                  completedQuizzes.has(trigger.id) ? 'bg-green-500' : 'bg-yellow-500'
+                }`}
+                style={{ left: `${(trigger.timestamp / duration) * 100}%` }}
+                title={`Quiz at ${Math.floor(trigger.timestamp / 60)}:${String(Math.floor(trigger.timestamp % 60)).padStart(2, '0')}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Quiz overlay - full screen for audio */}
+      {isQuizActive && activeQuizTrigger && (
+        <div className="fixed inset-0 z-50">
+          <QuizOverlay
+            quiz={activeQuizTrigger.quiz}
+            onComplete={handleQuizComplete}
+            className="w-full h-full"
+          />
+        </div>
+      )}
     </div>
   );
 };

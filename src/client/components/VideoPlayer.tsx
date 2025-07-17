@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { MediaQuizTrigger } from '../../shared/types';
+import QuizOverlay from './QuizOverlay';
 
 interface VideoPlayerProps {
   src: string;
@@ -8,6 +10,13 @@ interface VideoPlayerProps {
   loop?: boolean;
   muted?: boolean;
   className?: string;
+  
+  // Quiz integration props
+  quizTriggers?: MediaQuizTrigger[];
+  onQuizTrigger?: (trigger: MediaQuizTrigger) => void;
+  onQuizComplete?: (triggerId: string, correct: boolean) => void;
+  allowSeeking?: boolean;
+  enforceQuizCompletion?: boolean;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -17,7 +26,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   autoplay = false,
   loop = false,
   muted = false,
-  className = ''
+  className = '',
+  // Quiz props with defaults
+  quizTriggers = [],
+  onQuizTrigger,
+  onQuizComplete,
+  allowSeeking = true,
+  enforceQuizCompletion = false
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -27,12 +42,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(muted);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  
+  // Quiz-related state
+  const [activeQuizTrigger, setActiveQuizTrigger] = useState<MediaQuizTrigger | null>(null);
+  const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set());
+  const [isQuizActive, setIsQuizActive] = useState(false);
+  const lastTriggerTimeRef = useRef<number>(-1);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      
+      // Check for quiz triggers
+      if (quizTriggers.length > 0 && !isQuizActive) {
+        checkForQuizTriggers(video.currentTime);
+      }
+    };
     const handleDurationChange = () => setDuration(video.duration);
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
@@ -54,7 +82,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, []);
+  }, [quizTriggers, completedQuizzes, isQuizActive]);
 
   // Handle fullscreen state changes
   useEffect(() => {
@@ -122,6 +150,63 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Quiz trigger detection logic
+  const checkForQuizTriggers = (currentTime: number) => {
+    const triggerToFire = quizTriggers.find(trigger => {
+      const isTimeToTrigger = currentTime >= trigger.timestamp && 
+                             currentTime < trigger.timestamp + 0.5;
+      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
+      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
+      
+      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
+    });
+
+    if (triggerToFire) {
+      lastTriggerTimeRef.current = triggerToFire.timestamp;
+      
+      if (triggerToFire.pauseMedia && videoRef.current) {
+        videoRef.current.pause();
+      }
+      
+      setActiveQuizTrigger(triggerToFire);
+      setIsQuizActive(true);
+      onQuizTrigger?.(triggerToFire);
+    }
+  };
+
+  // Handle seeking restrictions
+  const handleSeeked = () => {
+    if (!allowSeeking && videoRef.current && enforceQuizCompletion) {
+      const video = videoRef.current;
+      const seekTime = video.currentTime;
+      
+      const skippedQuiz = quizTriggers.find(trigger => 
+        trigger.timestamp < seekTime && !completedQuizzes.has(trigger.id)
+      );
+      
+      if (skippedQuiz) {
+        video.currentTime = Math.max(0, skippedQuiz.timestamp - 1);
+      }
+    }
+  };
+
+  // Quiz completion handler
+  const handleQuizComplete = (correct: boolean) => {
+    if (activeQuizTrigger) {
+      setCompletedQuizzes(prev => new Set([...prev, activeQuizTrigger.id]));
+      onQuizComplete?.(activeQuizTrigger.id, correct);
+      
+      if (activeQuizTrigger.resumeAfterCompletion && videoRef.current) {
+        setTimeout(() => {
+          videoRef.current?.play();
+        }, 500);
+      }
+      
+      setIsQuizActive(false);
+      setActiveQuizTrigger(null);
+    }
+  };
+
   return (
     <div className={`relative group ${className}`}>
       <video
@@ -131,7 +216,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         autoPlay={autoplay}
         loop={loop}
         muted={muted}
-        className="w-full h-full object-contain bg-black"
+        onSeeked={handleSeeked}
+        className={`w-full h-full object-contain bg-black ${isQuizActive ? 'opacity-75' : ''}`}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
         onClick={togglePlay}
@@ -220,6 +306,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Quiz progress indicators on timeline */}
+      {quizTriggers.length > 0 && duration > 0 && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800 bg-opacity-50">
+          {quizTriggers.map(trigger => (
+            <div
+              key={trigger.id}
+              className={`absolute top-0 w-1 h-full ${
+                completedQuizzes.has(trigger.id) ? 'bg-green-500' : 'bg-yellow-500'
+              }`}
+              style={{ left: `${(trigger.timestamp / duration) * 100}%` }}
+              title={`Quiz at ${Math.floor(trigger.timestamp / 60)}:${String(Math.floor(trigger.timestamp % 60)).padStart(2, '0')}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Quiz overlay */}
+      {isQuizActive && activeQuizTrigger && (
+        <QuizOverlay
+          quiz={activeQuizTrigger.quiz}
+          onComplete={handleQuizComplete}
+          className="absolute inset-0 z-20"
+        />
+      )}
       
       {title && (
         <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-lg text-sm backdrop-blur-sm">

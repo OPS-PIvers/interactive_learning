@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { Identifier, XYCoord } from 'dnd-core';
-import { TimelineEventData, InteractionType, HotspotData } from '../../shared/types';
+import { TimelineEventData, InteractionType, HotspotData, MediaQuizTrigger } from '../../shared/types';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { EyeIcon } from './icons/EyeIcon';
@@ -10,6 +10,7 @@ import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 // import EventTypeSelector from './EventTypeSelector';
 import SliderControl from './SliderControl';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import QuizTriggerEditor from './QuizTriggerEditor';
 interface EditableEventCardProps {
   index: number;
   event: TimelineEventData;
@@ -121,6 +122,36 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   const inputBaseClasses = "w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500 text-sm dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-purple-600 dark:focus:border-purple-600";
   const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-slate-300 dark:text-slate-400";
   const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500 focus:ring-offset-slate-800 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-offset-slate-900";
+
+  // Quiz trigger helper functions
+  const addQuizTrigger = (event: TimelineEventData) => {
+    const newTrigger: MediaQuizTrigger = {
+      id: `quiz-${Date.now()}`,
+      timestamp: 0,
+      pauseMedia: true,
+      quiz: {
+        question: 'Enter your question here',
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctAnswer: 0
+      },
+      resumeAfterCompletion: true
+    };
+    
+    const updatedTriggers = [...(event.quizTriggers || []), newTrigger];
+    onUpdate({ ...event, quizTriggers: updatedTriggers });
+  };
+
+  const updateQuizTrigger = (event: TimelineEventData, index: number, updatedTrigger: MediaQuizTrigger) => {
+    const updatedTriggers = event.quizTriggers?.map((trigger, i) => 
+      i === index ? updatedTrigger : trigger
+    ) || [];
+    onUpdate({ ...event, quizTriggers: updatedTriggers });
+  };
+
+  const deleteQuizTrigger = (event: TimelineEventData, index: number) => {
+    const updatedTriggers = event.quizTriggers?.filter((_, i) => i !== index) || [];
+    onUpdate({ ...event, quizTriggers: updatedTriggers });
+  };
 
   const renderSettings = () => {
     // ... (all the existing renderSettings logic with updated classes as per previous diff)
@@ -274,6 +305,58 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                    <span>Loop</span>
                  </label>
                </div>
+               
+               {/* Quiz Triggers Section */}
+               <div className="border-t border-gray-200 pt-4">
+                 <div className="flex items-center justify-between mb-3">
+                   <label className="block text-xs font-medium text-slate-300">
+                     Interactive Quizzes
+                   </label>
+                   <button
+                     onClick={() => addQuizTrigger(event)}
+                     className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                   >
+                     + Add Quiz
+                   </button>
+                 </div>
+                 
+                 {event.quizTriggers && event.quizTriggers.length > 0 && (
+                   <div className="space-y-2">
+                     {event.quizTriggers.map((trigger, index) => (
+                       <QuizTriggerEditor
+                         key={trigger.id}
+                         trigger={trigger}
+                         index={index}
+                         onUpdate={(updatedTrigger) => updateQuizTrigger(event, index, updatedTrigger)}
+                         onDelete={() => deleteQuizTrigger(event, index)}
+                       />
+                     ))}
+                   </div>
+                 )}
+                 
+                 {event.quizTriggers && event.quizTriggers.length > 0 && (
+                   <div className="mt-3 space-y-2">
+                     <label className="flex items-center">
+                       <input
+                         type="checkbox"
+                         checked={!event.allowSeeking}
+                         onChange={(e) => onUpdate({ ...event, allowSeeking: !e.target.checked })}
+                         className="mr-2"
+                       />
+                       <span className="text-xs text-slate-300">Prevent skipping past incomplete quizzes</span>
+                     </label>
+                     <label className="flex items-center">
+                       <input
+                         type="checkbox"
+                         checked={!!event.enforceQuizCompletion}
+                         onChange={(e) => onUpdate({ ...event, enforceQuizCompletion: e.target.checked })}
+                         className="mr-2"
+                       />
+                       <span className="text-xs text-slate-300">Must complete all quizzes to finish</span>
+                     </label>
+                   </div>
+                 )}
+               </div>
              </div>
            );
          case InteractionType.SHOW_AUDIO_MODAL:
@@ -331,6 +414,58 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                    />
                    <span>Loop</span>
                  </label>
+               </div>
+               
+               {/* Quiz Triggers Section */}
+               <div className="border-t border-gray-200 pt-4">
+                 <div className="flex items-center justify-between mb-3">
+                   <label className="block text-xs font-medium text-slate-300">
+                     Interactive Quizzes
+                   </label>
+                   <button
+                     onClick={() => addQuizTrigger(event)}
+                     className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                   >
+                     + Add Quiz
+                   </button>
+                 </div>
+                 
+                 {event.quizTriggers && event.quizTriggers.length > 0 && (
+                   <div className="space-y-2">
+                     {event.quizTriggers.map((trigger, index) => (
+                       <QuizTriggerEditor
+                         key={trigger.id}
+                         trigger={trigger}
+                         index={index}
+                         onUpdate={(updatedTrigger) => updateQuizTrigger(event, index, updatedTrigger)}
+                         onDelete={() => deleteQuizTrigger(event, index)}
+                       />
+                     ))}
+                   </div>
+                 )}
+                 
+                 {event.quizTriggers && event.quizTriggers.length > 0 && (
+                   <div className="mt-3 space-y-2">
+                     <label className="flex items-center">
+                       <input
+                         type="checkbox"
+                         checked={!event.allowSeeking}
+                         onChange={(e) => onUpdate({ ...event, allowSeeking: !e.target.checked })}
+                         className="mr-2"
+                       />
+                       <span className="text-xs text-slate-300">Prevent skipping past incomplete quizzes</span>
+                     </label>
+                     <label className="flex items-center">
+                       <input
+                         type="checkbox"
+                         checked={!!event.enforceQuizCompletion}
+                         onChange={(e) => onUpdate({ ...event, enforceQuizCompletion: e.target.checked })}
+                         className="mr-2"
+                       />
+                       <span className="text-xs text-slate-300">Must complete all quizzes to finish</span>
+                     </label>
+                   </div>
+                 )}
                </div>
              </div>
            );
