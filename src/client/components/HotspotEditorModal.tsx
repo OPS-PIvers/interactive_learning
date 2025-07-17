@@ -233,6 +233,12 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
     };
     onAddEvent(newEvent);
+
+    // Automatically trigger preview for the new event
+    if (onPreviewOverlay) {
+      onPreviewOverlay(newEvent);
+    }
+    setPreviewingEventIds(prev => [...prev, newEvent.id]);
   };
   
   const handleEventUpdate = (updatedEvent: TimelineEventData) => {

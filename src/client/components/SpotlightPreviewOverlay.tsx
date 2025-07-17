@@ -20,8 +20,8 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
 
   // Get current spotlight properties with defaults
   const spotlight = {
-    x: event.spotlightX || 50,
-    y: event.spotlightY || 50,
+    x: event.spotlightX,
+    y: event.spotlightY,
     width: event.spotlightWidth || 120,
     height: event.spotlightHeight || 120,
     shape: event.shape || event.highlightShape || 'circle',
