@@ -13,7 +13,7 @@ import {
   runTransaction, // Import runTransaction
   Timestamp
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
 import { auth, db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { DataSanitizer } from './dataSanitizer'
@@ -514,6 +514,70 @@ export class FirebaseProjectAPI {
       
       throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Upload a file with progress reporting.
+   * @param file The file to upload.
+   * @param onProgress A callback to report progress.
+   * @param projectId An optional project ID to associate the file with.
+   * @returns A promise that resolves with the download URL of the uploaded file.
+   */
+  async uploadFile(
+    file: File,
+    onProgress: (progress: number) => void,
+    projectId?: string
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!auth.currentUser) {
+        return reject(new Error('auth/user-not-authenticated: User must be authenticated to upload files'));
+      }
+
+      if (!file || file.size === 0) {
+        return reject(new Error('Invalid file: File is empty or corrupted'));
+      }
+
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `uploads/${auth.currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
+
+      const fileRef = ref(storage, fileName);
+
+      const metadata = {
+        contentType: file.type,
+        customMetadata: {
+          projectId: projectId || 'general',
+          uploadedAt: new Date().toISOString(),
+          userId: auth.currentUser.uid,
+          originalName: file.name,
+        },
+      };
+
+      const uploadTask = uploadBytesResumable(fileRef, file, metadata);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress(progress);
+        },
+        (error) => {
+          console.error('Error uploading file:', error);
+          reject(new Error(`Failed to upload file: ${error.message}`));
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log('File uploaded successfully:', downloadURL);
+            resolve(downloadURL);
+          } catch (error) {
+            console.error('Error getting download URL:', error);
+            reject(new Error(`Failed to get download URL: ${error.message}`));
+          }
+        }
+      );
+    });
   }
 
   /**

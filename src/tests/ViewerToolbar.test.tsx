@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import ViewerToolbar from '../client/components/ViewerToolbar';
@@ -31,6 +31,10 @@ describe('ViewerToolbar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   test('renders both Explore and Tour buttons by default', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, within, fireEvent } from '@testing-library/react';
+import { render, screen, within, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import InteractiveModule from '../client/components/InteractiveModule';
@@ -59,6 +59,10 @@ describe('InteractiveModule', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   // Test suite for initial overlay buttons in viewer mode

@@ -1,4 +1,5 @@
 import { compressImage } from './imageCompression';
+import { appScriptProxy } from '../../lib/firebaseProxy';
 
 /**
  * Options for capturing media from the device.
@@ -77,11 +78,11 @@ export const uploadFileWithProgress = async (
   file: File,
   onProgress: (progress: number) => void
 ): Promise<string> => {
-  console.warn('File upload with progress is not yet implemented.');
-  // Simulate upload progress
-  for (let progress = 0; progress <= 100; progress += 10) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    onProgress(progress);
+  try {
+    const downloadUrl = await appScriptProxy.uploadFile(file, onProgress);
+    return downloadUrl;
+  } catch (error) {
+    console.error('Error uploading file with progress:', error);
+    throw error;
   }
-  return `https://fake-url.com/${file.name}`;
 };

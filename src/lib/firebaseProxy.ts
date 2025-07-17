@@ -37,5 +37,10 @@ export const appScriptProxy = {
   uploadImage: async (file: File, projectId?: string): Promise<string> => {
     console.log(`Firebase: Uploading image for project ${projectId}`)
     return await firebaseAPI.uploadImage(file, projectId)
+  },
+
+  uploadFile: async (file: File, onProgress: (progress: number) => void, projectId?: string): Promise<string> => {
+    console.log(`Firebase: Uploading file for project ${projectId}`);
+    return await firebaseAPI.uploadFile(file, onProgress, projectId);
   }
 }
