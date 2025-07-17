@@ -125,3 +125,70 @@ export async function generateThumbnail(
     }
   });
 }
+
+// Cache for getBoundingClientRect calls to reduce DOM queries
+const boundsCache = new Map<Element, { rect: DOMRect; timestamp: number }>();
+const BOUNDS_CACHE_TTL = 16; // Cache for 16ms (~60fps)
+
+const getCachedBoundingClientRect = (element: Element): DOMRect => {
+  const now = Date.now();
+  const cached = boundsCache.get(element);
+
+  if (cached && now - cached.timestamp < BOUNDS_CACHE_TTL) {
+    return cached.rect;
+  }
+
+  const rect = element.getBoundingClientRect();
+  boundsCache.set(element, { rect, timestamp: now });
+  return rect;
+};
+
+export const getActualImageVisibleBounds = (
+  imageElement: HTMLImageElement | null, // actualImageRef from ImageEditCanvas props
+  container: HTMLElement | null // zoomedImageContainerRef from ImageEditCanvas props
+): { x: number, y: number, width: number, height: number } | null => {
+  if (!imageElement || !container || !imageElement.naturalWidth || imageElement.naturalWidth === 0 || !imageElement.naturalHeight || imageElement.naturalHeight === 0) {
+    return null;
+  }
+
+  const { naturalWidth, naturalHeight } = imageElement;
+  const imgAspectRatio = naturalWidth / naturalHeight;
+
+  const imgElementVPRect = getCachedBoundingClientRect(imageElement);
+  const containerVPRect = getCachedBoundingClientRect(container);
+
+  if (imgElementVPRect.width === 0 || imgElementVPRect.height === 0) {
+    return null;
+  }
+
+  let visibleImgWidthInBox = imgElementVPRect.width;
+  let visibleImgHeightInBox = imgElementVPRect.height;
+  let internalOffsetX = 0; // Offset of visible content *within* the imgElementVPRect (letterboxing)
+  let internalOffsetY = 0;
+
+  const boxAspectRatio = imgElementVPRect.width / imgElementVPRect.height;
+
+  const tolerance = 0.001;
+  if (Math.abs(boxAspectRatio - imgAspectRatio) > tolerance) {
+    if (boxAspectRatio > imgAspectRatio) { // Box is wider than image's aspect ratio
+      visibleImgWidthInBox = imgElementVPRect.height * imgAspectRatio;
+      internalOffsetX = (imgElementVPRect.width - visibleImgWidthInBox) / 2;
+    } else { // Box is taller than image's aspect ratio
+      visibleImgHeightInBox = imgElementVPRect.width / imgAspectRatio;
+      internalOffsetY = (imgElementVPRect.height - visibleImgHeightInBox) / 2;
+    }
+  }
+
+  const imgBoxXInContainer = imgElementVPRect.left - containerVPRect.left;
+  const imgBoxYInContainer = imgElementVPRect.top - containerVPRect.top;
+
+  const finalX = imgBoxXInContainer + internalOffsetX;
+  const finalY = imgBoxYInContainer + internalOffsetY;
+
+  return {
+    x: finalX,
+    y: finalY,
+    width: visibleImgWidthInBox,
+    height: visibleImgHeightInBox,
+  };
+};

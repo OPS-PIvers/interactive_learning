@@ -205,7 +205,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         initialHotspotTop_inContainer = visibleImageBounds.y + hotspotY_relativeToImage;
       } else {
         // Final fallback: use container bounds directly (less accurate but prevents jump to 0,0)
-        const containerRect = getCachedBoundingClientRect(containerElement);
+        const containerRect = containerElement.getBoundingClientRect();
         if (containerRect.width > 0 && containerRect.height > 0) {
           initialHotspotLeft_inContainer = (hotspot.x / 100) * containerRect.width;
           initialHotspotTop_inContainer = (hotspot.y / 100) * containerRect.height;
