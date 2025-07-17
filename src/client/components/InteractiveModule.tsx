@@ -36,6 +36,7 @@ import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
 import { MobileMediaModal } from './mobile/MobileMediaModal';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
+import '../styles/mobile-events.css';
 
 // Helper function to extract YouTube Video ID from various URL formats
 const extractYouTubeVideoId = (url: string): string | null => {
@@ -2503,6 +2504,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           }
       });
 
+      // Signal to touch gestures that events are about to control transforms
+      const hasTransformEvents = eventsForCurrentStep.some(event => 
+        event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.SPOTLIGHT
+      );
+      
+      if (hasTransformEvents && isMobile) {
+        console.log('🎯 Mobile Event Coordination: Signaling event control to touch gestures');
+        touchGestureHandlers.setEventActive(true);
+        
+        // Schedule release of event control after a delay
+        setTimeout(() => {
+          touchGestureHandlers.setEventActive(false);
+          console.log('🎯 Mobile Event Coordination: Released event control from touch gestures');
+        }, 500);
+      }
+
       eventsForCurrentStep.forEach(event => {
         switch (event.type) {
           case InteractionType.PULSE_HOTSPOT:
@@ -2525,6 +2542,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
               if (targetHotspot && imageBounds && viewportCenter) {
                 const scale = event.zoomLevel || event.zoomFactor || 2;
+
+                // Mobile-specific pan/zoom logging
+                if (isMobile) {
+                  console.log('🎯 Mobile Event Execution: Pan/Zoom event', {
+                    eventId: event.id,
+                    targetId: event.targetId,
+                    scale: scale,
+                    smooth: event.smooth,
+                    hotspotPosition: { x: targetHotspot.x, y: targetHotspot.y },
+                    imageBounds: imageBounds,
+                    viewportCenter: viewportCenter
+                  });
+                }
 
                 // Calculate hotspot position on the unscaled image, relative to imageBounds content area
                 const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
@@ -2611,6 +2641,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             if (event.targetId) {
               newHighlightedHotspotId = event.targetId;
               // Enhanced with spotlight shape, size, and dimming controls
+              
+              // Mobile-specific spotlight enhancements
+              if (isMobile) {
+                console.log('🎯 Mobile Event Execution: Spotlight event', {
+                  eventId: event.id,
+                  targetId: event.targetId,
+                  spotlightShape: event.spotlightShape,
+                  spotlightWidth: event.spotlightWidth,
+                  spotlightHeight: event.spotlightHeight,
+                  backgroundDimPercentage: event.backgroundDimPercentage
+                });
+                
+                // Add haptic feedback for mobile spotlight
+                if (navigator.vibrate) {
+                  navigator.vibrate(100);
+                }
+              }
             }
             break;
           case InteractionType.QUIZ:
@@ -2809,7 +2856,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform]);
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, isMobile, touchGestureHandlers]);
 
   // Debug effect to track transform changes and detect loops
   useEffect(() => {
@@ -2972,7 +3019,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Pass the existing ImageEditCanvas as children */}
             <div
               ref={imageContainerRef}
-              className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden"
+              className={`flex-1 relative bg-slate-700 min-h-0 overflow-hidden ${
+                effectiveIsMobile ? 'mobile-event-container mobile-transform-container' : ''
+              }`}
               onTouchStart={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchStart : undefined}
               onTouchMove={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchMove : undefined}
               onTouchEnd={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
@@ -3199,7 +3248,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
             <div
               ref={effectiveIsMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
-              className="flex-1 relative bg-slate-900 min-h-0" // min-h-0 is important for flex children that might overflow
+              className={`flex-1 relative bg-slate-900 min-h-0 ${
+                effectiveIsMobile ? 'mobile-event-container mobile-transform-container' : ''
+              }`} // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
               onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
               onTouchStart={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchStart : undefined}

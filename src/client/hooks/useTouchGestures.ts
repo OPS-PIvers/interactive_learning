@@ -87,6 +87,7 @@ interface TouchGestureState {
   isPanning: boolean;
   panStartCoords: { x: number; y: number } | null;
   isActive: boolean; // Track if any gesture is currently active
+  isEventActive: boolean; // Track if events are controlling transforms
 
   // For momentum
   lastMoveTimestamp: number | null;
@@ -102,6 +103,8 @@ export interface TouchGestureHandlers {
   handleTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
   handleTouchEnd: (e: React.TouchEvent<HTMLDivElement>) => void;
   isGestureActive: () => boolean;
+  setEventActive: (active: boolean) => void;
+  isEventActive: () => boolean;
 }
 
 export const useTouchGestures = (
@@ -138,6 +141,7 @@ export const useTouchGestures = (
     isPanning: false,
     panStartCoords: null,
     isActive: false,
+    isEventActive: false,
     // Momentum defaults
     lastMoveTimestamp: null,
     scaleVelocity: 0,
@@ -159,6 +163,7 @@ export const useTouchGestures = (
     gestureState.isPanning = false;
     gestureState.panStartCoords = null;
     gestureState.isActive = false;
+    // Don't reset isEventActive - events control this independently
     // Reset momentum state as well
     gestureState.lastMoveTimestamp = null;
     gestureState.scaleVelocity = 0;
@@ -223,6 +228,12 @@ export const useTouchGestures = (
         isDragActive,
         timestamp: Date.now()
       });
+      return;
+    }
+
+    // Block gestures when events are controlling transforms
+    if (gestureState.isEventActive) {
+      console.log('Debug [useTouchGestures]: Touch start blocked - event is controlling transforms');
       return;
     }
     
@@ -361,6 +372,12 @@ export const useTouchGestures = (
         isDragActive,
         timestamp: Date.now()
       });
+      return;
+    }
+
+    // Block gestures when events are controlling transforms
+    if (gestureStateRef.current.isEventActive) {
+      console.log('Debug [useTouchGestures]: Touch move blocked - event is controlling transforms');
       return;
     }
     
@@ -587,6 +604,12 @@ export const useTouchGestures = (
       });
       return;
     }
+
+    // Block gestures when events are controlling transforms
+    if (gestureStateRef.current.isEventActive) {
+      console.log('Debug [useTouchGestures]: Touch end blocked - event is controlling transforms');
+      return;
+    }
     
     const gestureState = gestureStateRef.current;
     
@@ -672,11 +695,34 @@ export const useTouchGestures = (
     return gestureStateRef.current.isActive || isDragging || isEditing || isDragActive;
   }, [isDragging, isEditing, isDragActive]);
 
+  // Add event control methods
+  const setEventActive = useCallback((active: boolean) => {
+    const gestureState = gestureStateRef.current;
+    gestureState.isEventActive = active;
+    
+    if (active) {
+      // Cancel any ongoing gestures when event takes control
+      cleanupGesture();
+    }
+    
+    console.log('Debug [useTouchGestures]: Event active state changed', {
+      isEventActive: active,
+      wasGestureActive: gestureState.isActive,
+      timestamp: Date.now()
+    });
+  }, [cleanupGesture]);
+
+  const isEventActive = useCallback(() => {
+    return gestureStateRef.current.isEventActive;
+  }, []);
+
   return {
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
     isGestureActive,
+    setEventActive,
+    isEventActive,
     // touchState can be exposed if needed by the component, though internal ref is often enough
     // touchState: gestureStateRef.current
   };
