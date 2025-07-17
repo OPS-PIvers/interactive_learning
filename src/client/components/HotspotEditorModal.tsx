@@ -209,6 +209,8 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       
       // === UNIFIED PAN_ZOOM PROPERTIES ===
       ...(type === InteractionType.PAN_ZOOM && {
+        targetX: localHotspot.x,
+        targetY: localHotspot.y,
         zoomLevel: 2,
         smooth: true,
       }),
