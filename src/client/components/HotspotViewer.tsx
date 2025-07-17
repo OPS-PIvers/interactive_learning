@@ -3,6 +3,7 @@ import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { useMobileTouchGestures } from '../hooks/useMobileTouchGestures';
+import { getActualImageVisibleBounds, getCachedBoundingClientRect } from '../utils/imageBounds';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -73,83 +74,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   } | null>(null);
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-// Helper function to calculate the visible image bounds relative to the drag container
-// This is crucial for correct drag behavior with object-contain
-// Cache for getBoundingClientRect calls to reduce DOM queries
-const boundsCache = new Map<Element, { rect: DOMRect; timestamp: number }>();
-const BOUNDS_CACHE_TTL = 16; // Cache for 16ms (~60fps)
-
-const getCachedBoundingClientRect = (element: Element): DOMRect => {
-  const now = Date.now();
-  const cached = boundsCache.get(element);
-  
-  if (cached && now - cached.timestamp < BOUNDS_CACHE_TTL) {
-    return cached.rect;
-  }
-  
-  const rect = element.getBoundingClientRect();
-  boundsCache.set(element, { rect, timestamp: now });
-  return rect;
-};
-
-const getActualImageVisibleBounds = (
-  imageElement: HTMLImageElement | null, // actualImageRef from ImageEditCanvas props
-  dragContainer: HTMLElement | null // zoomedImageContainerRef from ImageEditCanvas props
-): { x: number, y: number, width: number, height: number } | null => {
-  if (!imageElement || !dragContainer || !imageElement.naturalWidth || imageElement.naturalWidth === 0 || !imageElement.naturalHeight || imageElement.naturalHeight === 0) {
-    // console.warn("getActualImageVisibleBounds: Missing elements or natural dimensions.");
-    return null;
-  }
-
-  const { naturalWidth, naturalHeight } = imageElement;
-  const imgAspectRatio = naturalWidth / naturalHeight;
-
-  // Use cached bounding client rect calls
-  const imgElementVPRect = getCachedBoundingClientRect(imageElement);
-  const dragContainerVPRect = getCachedBoundingClientRect(dragContainer);
-
-  if (imgElementVPRect.width === 0 || imgElementVPRect.height === 0) {
-    // console.warn("getActualImageVisibleBounds: Image element has no dimensions.");
-    return null;
-  }
-
-  let visibleImgWidthInBox = imgElementVPRect.width;
-  let visibleImgHeightInBox = imgElementVPRect.height;
-  let internalOffsetX = 0; // Offset of visible content *within* the imgElementVPRect (letterboxing)
-  let internalOffsetY = 0;
-
-  const boxAspectRatio = imgElementVPRect.width / imgElementVPRect.height;
-
-  // Tolerance for floating point comparisons
-  const tolerance = 0.001;
-  if (Math.abs(boxAspectRatio - imgAspectRatio) > tolerance) {
-    if (boxAspectRatio > imgAspectRatio) { // Box is wider than image's aspect ratio
-      visibleImgHeightInBox = imgElementVPRect.width / imgAspectRatio;
-      internalOffsetY = (imgElementVPRect.height - visibleImgHeightInBox) / 2;
-    } else { // Box is taller than image's aspect ratio
-      visibleImgWidthInBox = imgElementVPRect.height * imgAspectRatio;
-      internalOffsetX = (imgElementVPRect.width - visibleImgWidthInBox) / 2;
-    }
-  }
-
-  // Position of the <img> element's content box relative to drag container's top-left
-  const imgBoxXInDragContainer = imgElementVPRect.left - dragContainerVPRect.left;
-  const imgBoxYInDragContainer = imgElementVPRect.top - dragContainerVPRect.top;
-
-  // Final offset of *visible image content* from drag container's top-left
-  const finalX = imgBoxXInDragContainer + internalOffsetX;
-  const finalY = imgBoxYInDragContainer + internalOffsetY;
-
-  return {
-    x: finalX, // x pos of visible image relative to drag container
-    y: finalY, // y pos of visible image relative to drag container
-    width: visibleImgWidthInBox,
-    height: visibleImgHeightInBox,
-  };
-};
   const lastTapTimeRef = useRef(0);
   const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
-  
   // Mobile touch gestures
   const handleTap = useCallback((id: string) => {
     if (isEditing && onEditRequest) {
