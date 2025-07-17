@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
 
 // Mock Firebase Analytics
 vi.mock('@firebase/analytics', () => ({
@@ -20,4 +21,9 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+// Clean up jsdom after each test
+afterEach(() => {
+  cleanup();
 });
