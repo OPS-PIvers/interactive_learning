@@ -5,9 +5,26 @@ import { triggerHapticFeedback } from '../../utils/hapticUtils';
 interface MobileTextModalProps {
   event: TimelineEventData;
   onComplete: () => void;
+  showNavigation?: boolean;
+  canGoNext?: boolean;
+  canGoPrevious?: boolean;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
-const MobileTextModal: React.FC<MobileTextModalProps> = ({ event, onComplete }) => {
+const MobileTextModal: React.FC<MobileTextModalProps> = ({ 
+  event, 
+  onComplete,
+  showNavigation = false,
+  canGoNext = false,
+  canGoPrevious = false,
+  onNext,
+  onPrevious,
+  currentIndex = 0,
+  totalCount = 1
+}) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -105,6 +122,54 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({ event, onComplete }) 
         </div>
         
         <div className="mobile-text-modal-footer">
+          {showNavigation && totalCount > 1 && (
+            <div className="navigation-controls" style={{ marginTop: '16px', marginBottom: '8px' }}>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={onPrevious}
+                  disabled={!canGoPrevious}
+                  className="mobile-button"
+                  style={{
+                    background: canGoPrevious ? '#64748b' : '#334155',
+                    color: canGoPrevious ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoPrevious ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  ← Previous
+                </button>
+                
+                <span className="text-slate-400 text-sm">
+                  {currentIndex + 1} of {totalCount}
+                </span>
+                
+                <button
+                  onClick={onNext}
+                  disabled={!canGoNext}
+                  className="mobile-button"
+                  style={{
+                    background: canGoNext ? '#64748b' : '#334155',
+                    color: canGoNext ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoNext ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+          
           <button
             onClick={handleClose}
             className="mobile-button"
@@ -122,7 +187,7 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({ event, onComplete }) 
               transition: 'background-color 0.2s ease',
             }}
           >
-            Continue
+            {showNavigation && totalCount > 1 && currentIndex === totalCount - 1 ? 'Finish' : 'Continue'}
           </button>
         </div>
       </div>
@@ -139,6 +204,26 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({ event, onComplete }) 
         .mobile-button:active {
           transform: scale(0.98);
           transition-duration: 0.1s;
+        }
+        
+        .flex {
+          display: flex;
+        }
+        
+        .items-center {
+          align-items: center;
+        }
+        
+        .justify-between {
+          justify-content: space-between;
+        }
+        
+        .text-slate-400 {
+          color: #94a3b8;
+        }
+        
+        .text-sm {
+          font-size: 14px;
         }
         
         @media (max-height: 600px) {

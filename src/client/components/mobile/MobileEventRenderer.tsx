@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobilePanZoomHandler from './MobilePanZoomHandler';
@@ -34,23 +34,47 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   imageContainerRef,
   isActive
 }) => {
-  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
+  const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
+
+  // Update modal queue when events change
+  useEffect(() => {
+    if (!isActive) {
+      setModalQueue([]);
+      setCurrentModalIndex(0);
+      return;
+    }
+
+    const modalEvents = events.filter(e => MODAL_INTERACTIONS.has(e.type));
+    if (modalEvents.length > 0) {
+      setModalQueue(modalEvents);
+      setCurrentModalIndex(0);
+    } else {
+      setModalQueue([]);
+      setCurrentModalIndex(0);
+    }
+  }, [events, isActive]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setModalQueue([]);
+      setCurrentModalIndex(0);
+    };
+  }, []);
 
   const activeEvents = useMemo(() => {
     if (!isActive) return [];
 
-    const modalEvent = events.find(e => MODAL_INTERACTIONS.has(e.type));
-    if (modalEvent) {
-      if (activeModal !== modalEvent.id) {
-        setActiveModal(modalEvent.id);
-      }
-      return [modalEvent];
+    // If we have modal events in queue, return only the current modal
+    if (modalQueue.length > 0) {
+      const currentModal = modalQueue[currentModalIndex];
+      return currentModal ? [currentModal] : [];
     }
 
     // If no modal events, allow all non-modal events to be active
-    setActiveModal(null);
     return events.filter(e => !MODAL_INTERACTIONS.has(e.type));
-  }, [events, isActive, activeModal]);
+  }, [events, isActive, modalQueue, currentModalIndex]);
 
   const renderEventType = (event: TimelineEventData) => {
     const isEventActive = activeEvents.some(e => e.id === event.id);
@@ -59,10 +83,34 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     const handleComplete = () => {
       onEventComplete?.(event.id);
       if (MODAL_INTERACTIONS.has(event.type)) {
-        setActiveModal(null);
+        // Advance to next modal in queue or clear if this was the last one
+        if (currentModalIndex < modalQueue.length - 1) {
+          setCurrentModalIndex(currentModalIndex + 1);
+        } else {
+          // Queue is complete
+          setModalQueue([]);
+          setCurrentModalIndex(0);
+        }
       }
     };
     
+    // Add navigation controls for modal events when there are multiple in queue
+    const isMultiModalQueue = modalQueue.length > 1;
+    const canGoNext = currentModalIndex < modalQueue.length - 1;
+    const canGoPrevious = currentModalIndex > 0;
+
+    const handleNext = () => {
+      if (canGoNext) {
+        setCurrentModalIndex(currentModalIndex + 1);
+      }
+    };
+
+    const handlePrevious = () => {
+      if (canGoPrevious) {
+        setCurrentModalIndex(currentModalIndex - 1);
+      }
+    };
+
     switch (event.type) {
       case InteractionType.SPOTLIGHT:
         return (
@@ -92,6 +140,13 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`text-${event.id}`}
             event={event}
             onComplete={handleComplete}
+            showNavigation={isMultiModalQueue}
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentModalIndex}
+            totalCount={modalQueue.length}
           />
         );
       
@@ -101,6 +156,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`quiz-${event.id}`}
             event={event}
             onComplete={handleComplete}
+            {...(isMultiModalQueue && {
+              showNavigation: true,
+              canGoNext,
+              canGoPrevious,
+              onNext: handleNext,
+              onPrevious: handlePrevious,
+              currentIndex: currentModalIndex,
+              totalCount: modalQueue.length
+            })}
           />
         );
       
@@ -111,6 +175,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`image-${event.id}`}
             event={event}
             onComplete={handleComplete}
+            {...(isMultiModalQueue && {
+              showNavigation: true,
+              canGoNext,
+              canGoPrevious,
+              onNext: handleNext,
+              onPrevious: handlePrevious,
+              currentIndex: currentModalIndex,
+              totalCount: modalQueue.length
+            })}
           />
         );
       
@@ -122,6 +195,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`video-${event.id}`}
             event={event}
             onComplete={handleComplete}
+            {...(isMultiModalQueue && {
+              showNavigation: true,
+              canGoNext,
+              canGoPrevious,
+              onNext: handleNext,
+              onPrevious: handlePrevious,
+              currentIndex: currentModalIndex,
+              totalCount: modalQueue.length
+            })}
           />
         );
       
@@ -132,6 +214,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`audio-${event.id}`}
             event={event}
             onComplete={handleComplete}
+            {...(isMultiModalQueue && {
+              showNavigation: true,
+              canGoNext,
+              canGoPrevious,
+              onNext: handleNext,
+              onPrevious: handlePrevious,
+              currentIndex: currentModalIndex,
+              totalCount: modalQueue.length
+            })}
           />
         );
       
