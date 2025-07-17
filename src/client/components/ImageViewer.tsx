@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { ImageTransformState } from '../../shared/types';
 import { useIsMobile } from '../hooks/useIsMobile'; // For instruction text
+import { getActualImageVisibleBounds } from '../utils/imageUtils';
 
 interface ImageViewerProps {
   src: string;
@@ -248,33 +249,37 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       const img = imageRef.current;
       const container = containerRef.current;
 
-      const imgNaturalWidth = img.naturalWidth;
-      const imgNaturalHeight = img.naturalHeight;
-
-      if (!imgNaturalWidth || !imgNaturalHeight) return;
-
-      // Calculate hotspot position in image's native pixels
-      const hotspotImgX = (xPercent / 100) * imgNaturalWidth;
-      const hotspotImgY = (yPercent / 100) * imgNaturalHeight;
+      const visibleBounds = getActualImageVisibleBounds(img, container);
+      if (!visibleBounds) return;
 
       const focusScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, explicitTargetScale || DEFAULT_HOTSPOT_FOCUS_SCALE));
 
-      // Calculate the translation needed to center the hotspot's pixel coordinates
-      // in the container, considering the new scale.
+      // Calculate the hotspot's position in pixels relative to the *visible* image area.
+      const hotspotVisibleX = (xPercent / 100) * visibleBounds.width;
+      const hotspotVisibleY = (yPercent / 100) * visibleBounds.height;
+
+      // The hotspot's absolute position within the container is its position relative to the
+      // visible image, plus the offset of the visible image itself.
+      const hotspotContainerX = visibleBounds.x + hotspotVisibleX;
+      const hotspotContainerY = visibleBounds.y + hotspotVisibleY;
+
+      // To center this point in the container, we need to translate the image.
+      // The new translation will be the container's center minus the scaled hotspot position.
       const containerCenterX = container.clientWidth / 2;
       const containerCenterY = container.clientHeight / 2;
 
-      // newTranslate = containerCenter - (hotspotPositionInImagePixels * newScale)
-      const newTranslateX = containerCenterX - (hotspotImgX * focusScale);
-      const newTranslateY = containerCenterY - (hotspotImgY * focusScale);
+      // The image's top-left will be moved. The hotspot we want to center is at
+      // (hotspotContainerX, hotspotContainerY) in the unscaled container. After scaling, this
+      // point will be at (hotspotContainerX * focusScale, hotspotContainerY * focusScale).
+      // We want this scaled point to be at the container's center.
+      // So, newTranslate + (hotspotContainerX * focusScale) = containerCenter.
+      // newTranslate = containerCenter - (hotspotContainerX * focusScale).
 
-      // We should ensure isTransformingViaTouch is false so CSS transitions apply
-      // If useTouchGestures's momentum is active, this could conflict.
-      // For now, we assume direct setting will use the CSS transition if not actively touching.
+      const newTranslateX = containerCenterX - (hotspotContainerX * focusScale);
+      const newTranslateY = containerCenterY - (hotspotContainerY * focusScale);
+
       if (isTransformingViaTouch) {
-         // If touch is active, perhaps defer or cancel this focus?
-         // Or, the parent component should avoid setting focusHotspotTarget during active touch.
-         // For now, let's assume parent handles this coordination.
+        // As before, assuming parent component coordinates this.
       }
 
       setImageTransform({
@@ -284,8 +289,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       });
 
       if (onFocusAnimationComplete) {
-        // Call completion callback after transition duration
-        // The transition is 0.2s (200ms)
         setTimeout(() => {
           onFocusAnimationComplete();
         }, 250); // A bit longer than transition to be safe
