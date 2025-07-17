@@ -65,7 +65,14 @@ interface RecordingControls {
 }
 
 export const recordVoice = async (): Promise<RecordingControls> => {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+    throw new Error('Failed to access microphone. Please ensure you have granted microphone permissions in your browser settings.');
+  }
+  
   const mediaRecorder = new MediaRecorder(stream);
   let audioChunks: Blob[] = [];
 
