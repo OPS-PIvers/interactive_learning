@@ -32,7 +32,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 }) => {
   if (isMobile) {
     return (
-      <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0 mobile-toolbar">
+      <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0 mobile-toolbar" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', minHeight: 'calc(48px + env(safe-area-inset-top))' }}>
         {/* Main Toolbar Row */}
         <div className="flex items-center justify-between px-2 h-12"> {/* Reduced height and padding for mobile */}
           {/* Left Section - Back Button and Project Name */}
@@ -88,7 +88,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 
   // Default Desktop Toolbar
   return (
-    <div className="fixed top-0 left-0 right-0 bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 h-16 shadow-lg">
+    <div className="fixed top-0 left-0 right-0 bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 h-16 shadow-lg" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', minHeight: 'calc(64px + env(safe-area-inset-top))' }}>
       <div className="max-w-screen-xl mx-auto flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
         {/* Left Section */}
         <div className="flex items-center gap-4">

@@ -98,18 +98,22 @@ const MobileShareModal: React.FC<MobileShareModalProps> = ({ isOpen, onClose, ti
       aria-modal="true"
       aria-labelledby="modal-title"
       onClick={handleBackdropClick}
+      onTouchMove={(e) => e.preventDefault()}
+      style={{ touchAction: 'none' }}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
         className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] h-auto flex flex-col overflow-hidden border border-slate-700"
         onClick={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        style={{ touchAction: 'pan-y' }}
       >
         <header className="p-4 flex justify-between items-center border-b border-slate-700">
           <h2 id="modal-title" className="text-lg font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-700"
+            className="text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close modal"
           >
             <XMarkIcon className="w-6 h-6" />

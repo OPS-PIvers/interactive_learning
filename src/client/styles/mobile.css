@@ -215,6 +215,61 @@
 
 
 
+/* ===== MODAL IMPROVEMENTS ===== */
+
+@media screen and (max-width: 768px) {
+  /* Enhanced modal positioning for mobile */
+  .mobile-modal-container {
+    min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Keyboard-aware modal height */
+  body.keyboard-open .mobile-modal-container {
+    max-height: var(--content-height);
+  }
+
+  /* Enhanced modal close button */
+  .mobile-modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Modal content touch improvements */
+  .mobile-modal-content {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+  }
+
+  /* Enhanced modal backdrop */
+  .mobile-modal-backdrop {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* Prevent background scroll when modal is open */
+  body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Enhanced modal touch handling */
+  .mobile-modal-overlay {
+    touch-action: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-modal-content {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* ===== KEYBOARD HANDLING IMPROVEMENTS ===== */
 
 @media screen and (max-width: 768px) {
@@ -302,6 +357,19 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+  }
+
+  /* Enhanced toolbar safe area handling */
+  .mobile-toolbar-safe {
+    padding-top: max(env(safe-area-inset-top), 8px);
+    min-height: calc(56px + env(safe-area-inset-top));
+  }
+
+  /* iOS specific toolbar adjustments */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-toolbar-safe {
+      padding-top: max(env(safe-area-inset-top), 44px);
+    }
   }
 
   .mobile-editor-content {

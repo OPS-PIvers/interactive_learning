@@ -70,20 +70,24 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
+      onTouchMove={(e) => e.preventDefault()}
+      style={{ touchAction: 'none' }}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] h-[95vh] flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
+        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] h-[95vh] max-h-[calc(100vh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-2rem)] flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
+        onTouchMove={(e) => e.stopPropagation()}
+        style={{ touchAction: 'pan-y' }}
       >
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">
           <h2 id="modal-title" className="text-xl sm:text-2xl font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-700"
+            className="text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close modal"
           >
-            <XMarkIcon className="w-7 h-7" />
+            <XMarkIcon className="w-6 h-6" />
           </button>
         </header>
         <main className="p-4 sm:p-6 flex-grow overflow-y-auto">
