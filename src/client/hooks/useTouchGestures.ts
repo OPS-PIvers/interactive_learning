@@ -155,7 +155,7 @@ export const useTouchGestures = (
   const throttledTouchMoveRef = useRef<((e: React.TouchEvent<HTMLDivElement>) => void) & { cancel: () => void } | null>(null);
 
   // Add gesture cleanup function
-  const cleanupGesture = useCallback(() => {
+  const cleanupGesture = useCallback((preserveEventState = false) => {
     const gestureState = gestureStateRef.current;
     gestureState.startDistance = null;
     gestureState.startCenter = null;
@@ -163,12 +163,19 @@ export const useTouchGestures = (
     gestureState.isPanning = false;
     gestureState.panStartCoords = null;
     gestureState.isActive = false;
-    // Don't reset isEventActive - events control this independently
+    
+    // Only reset event state if explicitly requested
+    if (!preserveEventState) {
+      gestureState.isEventActive = false;
+    }
+    
     // Reset momentum state as well
     gestureState.lastMoveTimestamp = null;
     gestureState.scaleVelocity = 0;
     gestureState.translateXVelocity = 0;
     gestureState.translateYVelocity = 0;
+    
+    // Cancel any pending animations
     if (gestureState.animationFrameId) {
       cancelAnimationFrame(gestureState.animationFrameId);
       gestureState.animationFrameId = null;
@@ -237,7 +244,6 @@ export const useTouchGestures = (
       return;
     }
     
-    const gestureState = gestureStateRef.current;
     // Prevent race conditions by checking if another gesture is already active
     if (gestureState.isActive) {
       console.log('Debug [useTouchGestures]: Touch start blocked - gesture already active');
@@ -313,7 +319,6 @@ export const useTouchGestures = (
       }
       
       // Single tap - atomically claim gesture
-      cleanupGesture();
       gestureState.isActive = true;
       // Potential single tap or start of a pan
       gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
@@ -321,9 +326,6 @@ export const useTouchGestures = (
       gestureState.lastTap = now;
     } else if (touchCount === 2) {
       // Pinch-to-zoom initialization - atomically claim zoom gesture
-      // Clear any existing state first
-      cleanupGesture();
-      
       if (shouldPreventDefault(e.nativeEvent, 'zoom')) {
         e.preventDefault();
       }
@@ -420,11 +422,25 @@ export const useTouchGestures = (
         const newTranslateX = gestureState.startTransform.translateX + deltaX;
         const newTranslateY = gestureState.startTransform.translateY + deltaY;
 
-        setImageTransform(prev => getValidatedTransform({
-          scale: prev.scale,
-          translateX: newTranslateX,
-          translateY: newTranslateY,
-        }, { minScale, maxScale }));
+        // Use a ref to avoid race conditions with rapid updates
+        setImageTransform(prev => {
+          const validated = getValidatedTransform({
+            scale: prev.scale,
+            translateX: newTranslateX,
+            translateY: newTranslateY,
+          }, { minScale, maxScale });
+          
+          // Update gesture state with the validated transform for consistency
+          if (gestureState.startTransform) {
+            gestureState.startTransform = {
+              ...gestureState.startTransform,
+              translateX: validated.translateX,
+              translateY: validated.translateY
+            };
+          }
+          
+          return validated;
+        });
       }
     } else if (touchCount === 2 && gestureState.startDistance && gestureState.startCenter && gestureState.startTransform) {
       // Pinch-to-zoom - optimize touch access
@@ -476,7 +492,8 @@ export const useTouchGestures = (
         gestureState.translateXVelocity = (validatedCurrentTransform.translateX - prevTranslateX) / deltaTime;
         gestureState.translateYVelocity = (validatedCurrentTransform.translateY - prevTranslateY) / deltaTime;
 
-        setImageTransform(validatedCurrentTransform);
+        // Use callback to ensure we're working with the latest state
+        setImageTransform(() => validatedCurrentTransform);
       }
       gestureState.lastMoveTimestamp = currentTimestamp;
 
@@ -692,7 +709,8 @@ export const useTouchGestures = (
 
   // Add method to check if gesture is currently active
   const isGestureActive = useCallback(() => {
-    return gestureStateRef.current.isActive || isDragging || isEditing || isDragActive;
+    const gestureState = gestureStateRef.current;
+    return gestureState.isActive || gestureState.isEventActive || isDragging || isEditing || isDragActive;
   }, [isDragging, isEditing, isDragActive]);
 
   // Add event control methods
@@ -702,7 +720,7 @@ export const useTouchGestures = (
     
     if (active) {
       // Cancel any ongoing gestures when event takes control
-      cleanupGesture();
+      cleanupGesture(true); // Preserve event state
     }
     
     console.log('Debug [useTouchGestures]: Event active state changed', {

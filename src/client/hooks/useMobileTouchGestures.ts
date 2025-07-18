@@ -43,19 +43,22 @@ export const useMobileTouchGestures = (
       clearTimeout(longPressTimerRef.current);
     }
 
-    // Clear any existing tap delay timer
+    // Clear any existing tap delay timer to prevent race conditions
     if (tapDelayTimerRef.current) {
       clearTimeout(tapDelayTimerRef.current);
     }
 
-    // Execute single tap after delay to allow double tap detection
-    tapDelayTimerRef.current = setTimeout(() => {
-      if (lastTapRef.current.id === id && lastTapRef.current.time > 0) {
-        triggerHapticFeedback('light');
-        onTap(id);
-        lastTapRef.current = { time: 0, id: null };
-      }
-    }, 300);
+    // Only execute single tap if this is still the current tap and not already processed
+    if (lastTapRef.current.id === id && lastTapRef.current.time > 0) {
+      tapDelayTimerRef.current = setTimeout(() => {
+        // Double-check that this tap hasn't been processed by a double-tap
+        if (lastTapRef.current.id === id && lastTapRef.current.time > 0) {
+          triggerHapticFeedback('light');
+          onTap(id);
+          lastTapRef.current = { time: 0, id: null };
+        }
+      }, 300);
+    }
   }, [onTap]);
 
   // Cleanup function to clear all timers

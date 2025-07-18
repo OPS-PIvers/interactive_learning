@@ -1,51 +1,73 @@
-1. **Critical Bug: Single Tap fires on Double Tap in `useMobileTouchGestures.ts`**
-    - **Issue:** The current implementation of `handleTouchEnd` will always fire a single tap (`onTap`) after a 300ms delay, even if a double tap has already been detected and handled in `handleTouchStart`.
-    - **Impact:** This will cause unintended behavior, where both a double-tap and a single-tap action are registered for the same user interaction.
+# Identified Bugs - Interactive Learning Hub
 
-2.  **Potential Bug: Race Condition in Touch Handling in `useMobileTouchGestures.ts`**
-    - **Issue:** The `handleTouchEnd` function has a `setTimeout` to delay the `onTap` execution. If a user starts a new touch event before this timeout completes, it could lead to unpredictable behavior.
-    - **Impact:** Taps might be missed or misattributed.
+## **HIGH PRIORITY BUGS** 🔴 (Impact: Mobile User Experience)
 
-3.  **Bug: `autoAdvance` doesn't stop on completion in `useMobileLearningFlow.ts`**
-    - **Issue:** The `useEffect` for `autoAdvance` does not clear the interval when `isComplete` becomes true.
-    - **Impact:** The timer continues to run in the background, consuming resources, even after the learning module is finished.
+*All high priority mobile bugs have been resolved! 🎉*
 
-4.  **Bug: `onEventComplete` not always called for non-modal events in `MobileEventRenderer.tsx`**
-    - **Issue:** The `activeEvents` logic allows multiple non-modal events to be active at once. However, the `onEventComplete` callback is only called when a specific event's component calls its `onComplete` prop. If a non-modal event doesn't have a natural "completion" (e.g., a `PULSE_HOTSPOT` that just plays an animation), it might never be marked as complete.
-    - **Impact:** The learning flow might get stuck, as the system waits for an event that will never complete.
+## **MEDIUM PRIORITY BUGS** 🟡 (Impact: Reliability & Maintenance)
 
-5.  **Bug: Hardcoded Hotspot Size in `MobileHotspotViewer.tsx`**
-    - **Issue:** The hotspot size is hardcoded to `44px`. This doesn't adapt to different screen sizes or accessibility settings.
-    - **Impact:** Hotspots may be too large or too small on different devices, leading to a poor user experience.
+### 5. **Inconsistent Prop Handling in `EditableEventCard.tsx`**
+   - **Issue:** The component uses multiple, sometimes conflicting, props for the same data (e.g., `event.content` and `event.textContent`, `event.question` and `event.quizQuestion`).
+   - **Impact:** This can cause unexpected behavior and make the component difficult to maintain.
+   - **File:** `src/client/components/EditableEventCard.tsx:224-227, 540-544, 381-382`
 
-6.  **Potential Bug: Memory Leak in `AudioPlayer.tsx` and `VideoPlayer.tsx`**
-    - **Issue:** The `useEffect` hooks in both `AudioPlayer.tsx` and `VideoPlayer.tsx` do not remove the event listeners when the component unmounts.
-    - **Impact:** This can lead to memory leaks, as the event listeners will continue to exist even after the component is no longer in use.
+### 6. **Multiple Sources of Truth for `isMobile` in `InteractiveModule.tsx`**
+   - **Issue:** The component both calls `useIsMobile()` hook and could potentially receive an `isMobile` prop, creating potential inconsistency.
+   - **Impact:** The component may behave in unexpected ways, rendering a mix of mobile and desktop UI elements.
+   - **File:** `src/client/components/InteractiveModule.tsx:251, 256`
 
-7.  **Bug: Inconsistent Prop Handling in `EditableEventCard.tsx`**
-    - **Issue:** The component uses multiple, sometimes conflicting, props for the same data (e.g., `event.content` and `event.textContent`). This makes it difficult to know which prop to use and can lead to inconsistent data.
-    - **Impact:** This can cause unexpected behavior and make the component difficult to maintain.
+### 7. **Race Condition in `handleSave` Function**
+   - **Issue:** The `handleSave` function is not debounced, and it is called in multiple `useEffect` hooks that depend on `hotspots` and `timelineEvents`. Rapid changes can cause multiple saves.
+   - **Impact:** This can lead to performance issues and potentially inconsistent data if saves don't complete in the correct order.
+   - **File:** `src/client/components/InteractiveModule.tsx`
 
-8.  **Bug: Missing `onClose` call in `AuthModal.tsx`**
-    - **Issue:** The `handleSubmit` and `handleGoogleSignIn` functions in `AuthModal.tsx` do not call the `onClose` prop after a successful sign-in or sign-up.
-    - **Impact:** The modal will not close automatically after the user authenticates, leading to a poor user experience.
+### 8. **Incomplete Timeout Cleanup on Unmount**
+   - **Issue:** The component has multiple `setTimeout` calls but doesn't clear all of them in cleanup functions. Some use bare `setTimeout` without ref tracking.
+   - **Impact:** This can lead to memory leaks and unexpected behavior if the component unmounts before timeouts complete.
+   - **File:** `src/client/components/InteractiveModule.tsx:1375, 1388`
 
-9.  **Potential Bug: Unhandled Promise Rejection in `firebaseApi.ts`**
-    - **Issue:** The `deleteProject` function in `firebaseApi.ts` has a `catch` block for the `_deleteImageFromStorage` call, but it only logs the error and doesn't reject the promise. 
-    - **Impact:** If deleting the image fails, the caller of `deleteProject` will not be aware of the failure, which could lead to orphaned images in storage.
+## **LOW PRIORITY BUGS** 🟢 (Impact: Polish & Edge Cases)
 
-10. **Bug: `useMobileTouchGestures.ts` does not handle `isDragActive` correctly.**
-    - **Issue:** The `isGestureActive` function in `useMobileTouchGestures.ts` does not include `isDragActive` in its check. This means that touch gestures on the container will not be disabled when a hotspot is being dragged.
-    - **Impact:** This can lead to unexpected behavior, such as the container panning while a hotspot is being dragged.
+### 9. **Modal Z-Index Issues on Mobile**
+   - **Issue:** Modal z-index in `MobileEventRenderer.tsx` is set to 1000, but other components may have conflicting z-index values.
+   - **Impact:** Mobile modals may appear behind other UI elements in complex layouts.
+   - **File:** `src/client/components/mobile/MobileEventRenderer.tsx:277`
 
-11. **Bug: `InteractiveModule.tsx` has multiple sources of truth for `isMobile`.**
-    - **Issue:** The `isMobile` prop is passed in, but the component also calls the `useIsMobile` hook. This can lead to inconsistencies if the prop and the hook return different values.
-    - **Impact:** The component may behave in unexpected ways, rendering a mix of mobile and desktop UI elements.
+### 10. **Missing Mobile Keyboard Handling**
+   - **Issue:** No specific mobile keyboard event handling found in mobile components.
+   - **Impact:** Mobile keyboard may cover important UI elements without proper viewport adjustments.
+   - **Areas:** Mobile modal and input components
 
-12. **Potential Bug: `InteractiveModule.tsx` has a potential race condition in `handleSave`**
-    - **Issue:** The `handleSave` function is not debounced, and it is called in a `useEffect` hook that depends on `hotspots` and `timelineEvents`. If these states change in quick succession, `handleSave` could be called multiple times, leading to unnecessary writes to the database.
-    - **Impact:** This can lead to performance issues and potentially inconsistent data if the saves do not complete in the correct order.
+## **FIXED BUGS** ✅ (Resolved in Recent Updates)
 
-13. **Bug: `InteractiveModule.tsx` does not clear all timeouts on unmount.**
-    - **Issue:** The component has multiple `setTimeout` calls (e.g., for the success message), but it does not clear all of them in the `useEffect` cleanup function.
-    - **Impact:** This can lead to memory leaks and unexpected behavior if the component unmounts before the timeouts complete.
+### ~~Single Tap fires on Double Tap~~ - **FIXED**
+- **Status:** ✅ Resolved - proper double-tap detection with timeout cleanup
+
+### ~~Memory Leaks in Media Players~~ - **FIXED** 
+- **Status:** ✅ Resolved - event listeners now properly removed in cleanup
+
+### ~~Missing onClose in AuthModal~~ - **FIXED**
+- **Status:** ✅ Resolved - onClose now called after successful authentication
+
+### ~~autoAdvance doesn't stop on completion~~ - **FIXED**
+- **Status:** ✅ Resolved - proper interval cleanup implemented
+
+### ~~Race Condition in Touch Handling~~ - **FIXED**
+- **Status:** ✅ Resolved - improved race condition handling in touch gesture system
+
+### ~~Hardcoded Hotspot Size~~ - **FIXED**
+- **Status:** ✅ Resolved - responsive hotspot sizing with accessibility compliance
+
+### ~~Touch Gesture Conflicts~~ - **FIXED**
+- **Status:** ✅ Resolved - proper coordination between gestures and hotspot interactions
+
+### ~~Transform State Race Conditions~~ - **FIXED**
+- **Status:** ✅ Resolved - improved state synchronization in touch gesture handling
+
+---
+
+## **Bug Priority Guidelines**
+
+- **🔴 HIGH:** Directly impacts mobile user experience, accessibility, or core functionality
+- **🟡 MEDIUM:** Affects reliability, maintainability, or performance
+- **🟢 LOW:** Polish issues or edge cases that don't significantly impact core workflows
