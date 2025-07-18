@@ -84,17 +84,22 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   const activeEvents = useMemo(() => {
     if (!isActive) return [];
 
-    // If we have modal events in queue, return only the current modal
-    if (modalQueue.length > 0) {
-      const currentModal = modalQueue[currentModalIndex];
-      return currentModal ? [currentModal] : [];
-    }
-
-    // Allow visual events to be active simultaneously
+    // Get visual events that should always be active
     const visualEvents = events.filter(e => 
       VISUAL_OVERLAY_EVENTS.has(e.type) || !MODAL_INTERACTIONS.has(e.type)
     );
-    
+
+    // If we have modal events in queue, include both the current modal AND visual events
+    if (modalQueue.length > 0) {
+      const currentModal = modalQueue[currentModalIndex];
+      if (currentModal) {
+        // Return both visual events and the current modal (avoid duplicates)
+        const modalIsAlreadyInVisualEvents = visualEvents.some(e => e.id === currentModal.id);
+        return modalIsAlreadyInVisualEvents ? visualEvents : [...visualEvents, currentModal];
+      }
+    }
+
+    // Return only visual events if no modal is active
     return visualEvents;
   }, [events, isActive, modalQueue, currentModalIndex]);
 
