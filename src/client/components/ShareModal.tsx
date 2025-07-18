@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
+import { firebaseAPI } from '../../lib/firebaseApi';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -26,9 +27,42 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   });
   const [activeTab, setActiveTab] = useState<'url' | 'embed'>('url');
   const [copySuccess, setCopySuccess] = useState<string>('');
+  const [isPublic, setIsPublic] = useState(project.isPublic || false);
+  const [isToggling, setIsToggling] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
   const embedInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handlePublicToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isToggling) return; // Prevent multiple concurrent requests
+    
+    const newPublicStatus = e.target.checked;
+    setIsToggling(true);
+    
+    try {
+      await firebaseAPI.updateProjectPublicStatus(project.id, newPublicStatus);
+      setIsPublic(newPublicStatus);
+      setCopySuccess(`Module is now ${newPublicStatus ? 'public' : 'private'}`);
+    } catch (error) {
+      console.error('Failed to update public status:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('permission')) {
+        setCopySuccess('Permission denied: You cannot modify this project');
+      } else if (errorMessage.includes('not found')) {
+        setCopySuccess('Project not found');
+      } else if (errorMessage.includes('authenticated')) {
+        setCopySuccess('Authentication required');
+      } else {
+        setCopySuccess('Failed to update status');
+      }
+      
+      // Don't change the checkbox state - let it reflect the current state
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   // Generate the shareable URL
   const generateShareUrl = useCallback(() => {
@@ -361,8 +395,46 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         {/* Footer */}
         <div className="p-6 border-t border-slate-700 bg-slate-750">
           <div className="flex justify-between items-center">
-            <div className="text-slate-400 text-sm">
-              Share this interactive learning module with anyone
+            <div className="flex items-center">
+              <label htmlFor="public-toggle" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="public-toggle"
+                    className="sr-only"
+                    checked={isPublic}
+                    onChange={handlePublicToggle}
+                    disabled={isToggling}
+                    aria-describedby="public-toggle-description"
+                  />
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${
+                    isToggling 
+                      ? 'bg-slate-500 opacity-50' 
+                      : isPublic 
+                        ? 'bg-purple-600' 
+                        : 'bg-slate-600'
+                  }`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${
+                    isToggling 
+                      ? 'opacity-50' 
+                      : isPublic 
+                        ? 'transform translate-x-6' 
+                        : ''
+                  }`}></div>
+                  {isToggling && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="ml-3 text-slate-300 text-sm font-medium">
+                  {isToggling ? 'Updating...' : isPublic ? 'Public' : 'Private'}
+                </div>
+              </label>
+              <div id="public-toggle-description" className="sr-only">
+                Toggle to make this module {isPublic ? 'private' : 'public'}. 
+                {isPublic ? 'Private modules can only be accessed by you.' : 'Public modules can be accessed by anyone with the link.'}
+              </div>
             </div>
             <button
               onClick={onClose}
