@@ -1426,7 +1426,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // THEN define useAutoSave after handleSave is defined
   useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
-  const handleStartLearning = () => {
+  const handleStartLearning = useCallback(() => {
     setModuleState('learning');
     setHasUserChosenMode(true);
     setExploredHotspotId(null);
@@ -1441,7 +1441,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
     }, 100);
-  };
+  }, [uniqueSortedSteps, throttledRecalculatePositions]);
 
   const handleStartExploring = useCallback(() => {
     setModuleState('idle');
