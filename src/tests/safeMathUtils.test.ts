@@ -10,6 +10,19 @@ import {
   sanitizeHotspotPosition,
   hasValidDimensions
 } from '../lib/safeMathUtils';
+import { vi } from 'vitest';
+
+// Mock debugLog to prevent warnings in test output
+vi.mock('../client/utils/debugUtils', () => ({
+  debugLog: {
+    warn: vi.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    setDebugEnabled: vi.fn(),
+    isDebugEnabled: vi.fn(),
+  },
+}));
 
 describe('SafeMathUtils', () => {
   describe('safeDivide', () => {

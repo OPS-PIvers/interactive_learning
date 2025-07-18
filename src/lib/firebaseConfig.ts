@@ -3,7 +3,7 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getPerformance } from 'firebase/performance'
-import { getAnalytics } from 'firebase/analytics'
+import { getAnalytics, isSupported } from 'firebase/analytics'
 
 // Debug environment variables (development only)
 if (import.meta.env.DEV) {
@@ -43,9 +43,17 @@ let analytics: any = null
 if (typeof window !== 'undefined') {
   try {
     performance = getPerformance(app)
-    analytics = getAnalytics(app)
+    // Check if analytics is supported before initializing
+    if (isSupported()) {
+      analytics = getAnalytics(app)
+      if (import.meta.env.DEV) {
+        console.log('Firebase Analytics initialized')
+      }
+    } else if (import.meta.env.DEV) {
+      console.log('Firebase Analytics not supported in this environment')
+    }
     if (import.meta.env.DEV) {
-      console.log('Firebase Performance and Analytics initialized')
+      console.log('Firebase Performance initialized')
     }
   } catch (error) {
     if (import.meta.env.DEV) {
