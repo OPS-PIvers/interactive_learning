@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { Component, ReactNode } from 'react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-}
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -20,52 +22,46 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log all errors caught by the boundary for general debugging
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
-
-    // Enhanced TDZ error detection
-    if (
-      error.message.includes('before initialization') ||
-      error.message.includes('Cannot access') ||
-      error.message.includes('temporal dead zone') ||
-      error.name === 'ReferenceError'
-    ) {
-      console.error('🚨 TEMPORAL DEAD ZONE ERROR DETECTED:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString(),
-        possibleCauses: [
-          'Variable used before declaration',
-          'Function called before definition',
-          'Circular dependency in useCallback/useMemo'
-        ]
-      });
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Call the optional onError callback
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
     }
   }
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100">
-          <div className="max-w-md mx-auto text-center">
-            <h1 className="text-2xl font-bold text-red-800 mb-4">Application Error</h1>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <p className="text-red-600 mb-4">
-                The interactive learning application encountered an error during initialization.
-              </p>
-              <p className="text-gray-600 text-sm mb-4">
-                Error: {this.state.error?.message || 'Unknown error'}
-              </p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Reload Application
-              </button>
-            </div>
+        <div className="flex flex-col items-center justify-center p-6 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-600 mb-4">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>
+          <p className="text-red-700 text-center mb-4">
+            An unexpected error occurred. Please try refreshing the page.
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+          {process.env.NODE_ENV === 'development' && this.state.error && (
+            <details className="mt-4 p-4 bg-red-100 rounded text-sm">
+              <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
+              <pre className="mt-2 text-red-800 whitespace-pre-wrap">
+                {this.state.error.message}
+                {this.state.error.stack}
+              </pre>
+            </details>
+          )}
         </div>
       );
     }

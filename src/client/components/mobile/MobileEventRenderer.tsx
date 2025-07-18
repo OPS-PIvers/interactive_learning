@@ -14,6 +14,10 @@ interface MobileEventRendererProps {
   onEventComplete?: (eventId: string) => void;
   imageContainerRef: React.RefObject<HTMLElement>;
   isActive: boolean;
+  // Add these for coordination
+  currentTransform?: { scale: number; translateX: number; translateY: number };
+  onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
+  isGestureActive?: boolean;
 }
 
 const MODAL_INTERACTIONS = new Set([
@@ -43,7 +47,10 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   events,
   onEventComplete,
   imageContainerRef,
-  isActive
+  isActive,
+  currentTransform,
+  onTransformUpdate,
+  isGestureActive
 }) => {
   const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
@@ -145,6 +152,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             event={event}
             containerRef={imageContainerRef}
             onComplete={handleComplete}
+            currentTransform={currentTransform}
+            onTransformUpdate={onTransformUpdate}
           />
         );
       

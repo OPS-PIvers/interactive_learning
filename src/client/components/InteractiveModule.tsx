@@ -37,6 +37,7 @@ import ImageViewer from './ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
 import { MobileMediaModal } from './mobile/MobileMediaModal';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
+import { useToast } from '../hooks/useToast';
 import '../styles/mobile-events.css';
 
 // Helper function to extract YouTube Video ID from various URL formats
@@ -194,6 +195,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   viewerModes = { explore: true, selfPaced: true, timed: true }
 }) => {
 
+  const { showError, showSuccess, showWarning } = useToast();
+  
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(undefined);
   const [hotspots, setHotspots] = useState<HotspotData[]>(initialData.hotspots || []);
@@ -1313,14 +1316,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Enhanced validation
     if (!Array.isArray(currentData.hotspots)) {
       console.error('Invalid hotspots data:', currentData.hotspots);
-      alert('Invalid hotspot data detected. Please refresh and try again.');
+      showError('Invalid Data', 'Invalid hotspot data detected. Please refresh and try again.');
       setIsSaving(false);
       return;
     }
     
     if (!Array.isArray(currentData.timelineEvents)) {
       console.error('Invalid timeline events data:', currentData.timelineEvents);
-      alert('Invalid timeline data detected. Please refresh and try again.');
+      showError('Invalid Data', 'Invalid timeline data detected. Please refresh and try again.');
       setIsSaving(false);
       return;
     }
@@ -1332,7 +1335,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     if (invalidHotspots.length > 0) {
       console.error('Found invalid hotspots:', invalidHotspots);
-      alert(`Found ${invalidHotspots.length} invalid hotspot(s). Please check your hotspot data and try again.`);
+      showError('Invalid Hotspots', `Found ${invalidHotspots.length} invalid hotspot(s). Please check your hotspot data and try again.`);
       setIsSaving(false);
       return;
     }
@@ -1349,6 +1352,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       await onSave(currentData, thumbnailUrl);
       console.log('Save completed successfully');
       setShowSuccessMessage(true);
+      showSuccess('Saved Successfully', 'Your changes have been saved.');
       if (successMessageTimeoutRef.current) {
         clearTimeout(successMessageTimeoutRef.current);
       }
@@ -1356,7 +1360,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     } catch (error) {
       console.error('Save failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert('Save failed: ' + errorMessage);
+      showError('Save Failed', errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -1698,7 +1702,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Check if step already exists
     const stepExists = timelineEvents.some(e => e.step === step);
     if (stepExists) {
-      alert(`Step ${step} already exists. Please choose a different step number.`);
+      showWarning('Step Already Exists', `Step ${step} already exists. Please choose a different step number.`);
       return;
     }
     
@@ -1729,7 +1733,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const handleUpdateStep = useCallback((oldStep: number, newStep: number) => {
     // Check if the new step number already exists (unless it's the same as old)
     if (oldStep !== newStep && timelineEvents.some(e => e.step === newStep)) {
-      alert(`Step ${newStep} already exists. Please choose a different step number.`);
+      showWarning('Step Already Exists', `Step ${newStep} already exists. Please choose a different step number.`);
       return;
     }
     
@@ -3051,6 +3055,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       id="main-content"
       tabIndex={-1}
       className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}
+      role="main"
+      aria-label={isEditing ? 'Interactive module editor' : 'Interactive module viewer'}
+      aria-live="polite"
       // Add outline-none to prevent default focus ring if not desired, or style it appropriately
       // style={{ outline: 'none' }}
     >
@@ -3466,6 +3473,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         onEventComplete={handleMobileEventComplete}
                         imageContainerRef={imageContainerRef}
                         isActive={moduleState === 'learning'}
+                        currentTransform={imageTransform}
+                        onTransformUpdate={setImageTransform}
+                        isGestureActive={touchGestureHandlers.isGestureActive}
                       />
                     )}
                     
