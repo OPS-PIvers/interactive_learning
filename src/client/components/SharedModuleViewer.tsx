@@ -33,11 +33,10 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
     
     try {
       await appScriptProxy.init();
-      const fetchedProjects = await appScriptProxy.listProjects();
-      const targetProject = fetchedProjects.find(p => p.id === moduleId);
+      const targetProject = await appScriptProxy.getPublicProject(moduleId);
       
       if (!targetProject) {
-        setError('Module not found. This link may be invalid or the module may have been removed.');
+        setError('Module not found. This link may be invalid, the module may have been removed, or it may not be public.');
         return;
       }
 

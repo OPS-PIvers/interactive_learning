@@ -18,6 +18,11 @@ export const appScriptProxy = {
     return await firebaseAPI.getProjectDetails(projectId)
   },
 
+  getPublicProject: async (projectId: string): Promise<Project | null> => {
+    console.log(`Firebase: Getting public project ${projectId}...`)
+    return await firebaseAPI.getPublicProject(projectId)
+  },
+
   createProject: async (title: string, description: string): Promise<Project> => {
     console.log(`Firebase: Creating project "${title}"`)
     return await firebaseAPI.createProject(title, description)

@@ -91,6 +91,57 @@ export class FirebaseProjectAPI {
   }
 
   /**
+   * Get a single public project by ID (for shared/public viewing)
+   * This method doesn't require authentication for public projects
+   */
+  async getPublicProject(projectId: string): Promise<Project | null> {
+    try {
+      this.logUsage('READ_OPERATIONS_PUBLIC', 1);
+      const projectDocRef = doc(db, 'projects', projectId);
+      const projectDoc = await getDoc(projectDocRef);
+      
+      if (!projectDoc.exists()) {
+        return null;
+      }
+      
+      const projectData = projectDoc.data();
+      
+      // Only return if the project is marked as public
+      if (!projectData.isPublic) {
+        return null;
+      }
+      
+      // Get hotspots and timeline events directly (bypassing auth requirements)
+      const [hotspots, timelineEvents] = await Promise.all([
+        this.getHotspots(projectId),
+        this.getTimelineEvents(projectId)
+      ]);
+      this.logUsage('READ_OPERATIONS_PUBLIC_SUBCOLLECTIONS', 2);
+      
+      return {
+        id: projectDoc.id,
+        title: projectData.title || 'Untitled Project',
+        description: projectData.description || '',
+        createdBy: projectData.createdBy,
+        createdAt: projectData.createdAt?.toDate?.() || new Date(),
+        updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
+        thumbnailUrl: projectData.thumbnailUrl,
+        isPublic: projectData.isPublic || false,
+        interactiveData: {
+          backgroundImage: projectData.backgroundImage,
+          imageFitMode: projectData.imageFitMode || 'cover',
+          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          hotspots: hotspots || [],
+          timelineEvents: timelineEvents || []
+        }
+      } as Project;
+    } catch (error) {
+      debugLog.error('Error fetching public project:', error);
+      throw new Error(`Failed to load public project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get detailed interactive data (hotspots, timeline events) for a single project.
    * Also fetches backgroundImage and imageFitMode again to ensure consistency, though they might be available from summary.
    */
