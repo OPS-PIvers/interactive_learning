@@ -21,7 +21,8 @@
     "backup": "npx ts-node scripts/backup-data.ts",
     "codespaces:setup": "npm install && npm run dev",
     "codespaces:preview": "npm run build && npm run firebase:serve",
-    "puppeteer:test": "node scripts/test-puppeteer.js"
+    "puppeteer:test": "node scripts/test-puppeteer.js",
+    "puppeteer:analyze": "node scripts/analyze-console.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
