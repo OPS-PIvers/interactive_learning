@@ -12,10 +12,9 @@ interface ProjectCardProps {
   onView: () => void;
   onEdit: () => void;
   onDelete: (projectId: string) => void;
-  onShare: (project: Project) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDelete, onShare }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDelete }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleShare = (e: React.MouseEvent) => {

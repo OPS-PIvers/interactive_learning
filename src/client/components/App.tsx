@@ -410,7 +410,6 @@ const MainApp: React.FC = () => {
                 onView={() => handleViewProject(project)}
                 onEdit={() => handleEditProject(project)}
                 onDelete={handleDeleteProject}
-                onShare={() => {}}
               />
             ))}
           </div>

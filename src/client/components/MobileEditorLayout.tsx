@@ -275,7 +275,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         showSuccessMessage={showSuccessMessage}
         onAddHotspot={onAddHotspot || (() => {})}
         isPlacingHotspot={isPlacingHotspot}
-        onReplaceImage={onReplaceImage || (() => {})}
+        onReplaceImage={onReplaceImage || ((_file: File) => {})}
         onToggleAutoProgression={onToggleAutoProgression}
         isAutoProgression={isAutoProgression}
         autoProgressionDuration={autoProgressionDuration}
@@ -292,9 +292,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         backgroundImage={backgroundImage || undefined}
         backgroundType={backgroundType}
         backgroundVideoType={backgroundVideoType}
-        onBackgroundImageChange={onBackgroundImageChange || (() => {})}
-        onBackgroundTypeChange={onBackgroundTypeChange || (() => {})}
-        onBackgroundVideoTypeChange={onBackgroundVideoTypeChange || (() => {})}
+        onBackgroundImageChange={onBackgroundImageChange || ((_url: string) => {})}
+        onBackgroundTypeChange={onBackgroundTypeChange || ((_type: 'image' | 'video') => {})}
+        onBackgroundVideoTypeChange={onBackgroundVideoTypeChange || ((_type: 'youtube' | 'mp4') => {})}
       />
 
       {/* Content Area */}
