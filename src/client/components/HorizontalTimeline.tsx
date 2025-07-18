@@ -225,7 +225,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     if (isEditing || moduleState !== 'learning') return null;
     
     return (
-      <div className="flex items-center justify-center gap-4 py-2">
+      <div className="flex items-center justify-center gap-4 py-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
         <button
           onClick={onPrevStep}
           disabled={currentStepIndex === 0}
@@ -257,6 +257,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     return (
       <div
         className="w-full bg-slate-800 py-2 border-t border-slate-700"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -348,7 +349,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         </div>
 
         {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
-          <div className="flex items-center justify-between mt-2 px-3">
+          <div className="flex items-center justify-between mt-2 px-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
             <button
               onClick={onPrevStep}
               disabled={currentStepIndex === 0}
@@ -376,7 +377,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   return (
     <div className="w-full" aria-label="Module Timeline">
-      <div className="px-4 py-2">
+      <div className="px-4 py-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
         <div className="relative w-full h-8 flex items-center">
           <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
           <div className="relative w-full flex items-center justify-between">

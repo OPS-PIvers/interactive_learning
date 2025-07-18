@@ -15,7 +15,7 @@ const MobileEditorTabs: React.FC<MobileEditorTabsProps> = ({ activeTab, onTabCha
   ];
 
   return (
-    <div className="flex bg-slate-800 border-b border-slate-700">
+    <div className="flex bg-slate-800 border-b border-slate-700" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
