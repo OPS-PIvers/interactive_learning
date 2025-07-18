@@ -21,3 +21,20 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock window.visualViewport
+Object.defineProperty(window, 'visualViewport', {
+  writable: true,
+  value: {
+    width: 1280,
+    height: 800,
+    scale: 1,
+    offsetTop: 0,
+    offsetLeft: 0,
+    onresize: null,
+    onscroll: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  },
+});
