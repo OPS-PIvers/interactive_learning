@@ -4,6 +4,8 @@ import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 // import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
 import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/deviceHandoff';
 import { useTouchGestures } from '../hooks/useTouchGestures';
+import LoadingScreen from './shared/LoadingScreen';
+import ErrorScreen from './shared/ErrorScreen';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType, extractYouTubeVideoId } from '../../shared/types';
 import { migrateEventTypes } from '../../shared/migration';
 import FileUpload from './FileUpload';
@@ -3107,41 +3109,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     };
   }, []);
 
-  // ✅ Handle all early returns after ALL hooks are called to prevent React 310 errors
-  if (!isInitialized) {
-    return <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
-      <div className="text-white">Initializing module...</div>
-    </div>;
-  }
-
-  if (initError) {
-    return (
-      <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
-        <div className="bg-red-800 text-white p-6 rounded-lg max-w-md">
-          <h2 className="text-xl font-bold mb-2">Initialization Error</h2>
-          <p className="mb-4">{initError.message}</p>
-          <button
-            onClick={onReloadRequest ? onReloadRequest : () => window.location.reload()}
-            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded"
-          >
-            {onReloadRequest ? 'Retry Initialization' : 'Reload Page'}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // ✅ Fixed: Use conditional rendering instead of early returns to prevent React Hook Order violations
   return (
-    <div
-      id="main-content"
-      tabIndex={-1}
-      className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}
-      role="main"
-      aria-label={isEditing ? 'Interactive module editor' : 'Interactive module viewer'}
-      aria-live="polite"
-      // Add outline-none to prevent default focus ring if not desired, or style it appropriately
-      // style={{ outline: 'none' }}
-    >
+    <div className="fixed inset-0 z-50 bg-slate-900">
+      {!isInitialized ? (
+        <LoadingScreen />
+      ) : initError ? (
+        <ErrorScreen error={initError} onReload={onReloadRequest} />
+      ) : (
+        <div
+          id="main-content"
+          tabIndex={-1}
+          className={`text-slate-200 ${isEditing ? 'fixed inset-0 z-50 bg-slate-900' : 'fixed inset-0 z-50 bg-slate-900'}`}
+          role="main"
+          aria-label={isEditing ? 'Interactive module editor' : 'Interactive module viewer'}
+          aria-live="polite"
+          // Add outline-none to prevent default focus ring if not desired, or style it appropriately
+          // style={{ outline: 'none' }}
+        >
       {isEditing ? (
         isMobile ? (
           <MobileEditorLayout
@@ -3804,6 +3789,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <img src={qrCodeDataUrl} alt="QR Code for device handoff" />
           </div>
         </Modal>
+      )}
+        </div>
       )}
     </div>
   );

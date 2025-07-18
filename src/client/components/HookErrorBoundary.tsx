@@ -32,13 +32,20 @@ class HookErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('Hook Error Boundary caught an error:', error, errorInfo);
     
-    // Log specific information for React error #310
-    if (error.message.includes('hooks') || error.message.includes('Rendered more hooks')) {
-      console.error('React Hooks Error #310 - Check component hook order:', {
+    // Enhanced detection for hook-related errors
+    const isHookError = error.message.includes('hooks') || 
+                       error.message.includes('Rendered more hooks') ||
+                       error.message.includes('Rendered fewer hooks') ||
+                       error.message.includes('Invariant');
+    
+    if (isHookError) {
+      console.error('🚨 React Hooks Error Detected:', {
         error: error.message,
         stack: error.stack,
         componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        // Help developers identify the component
+        possibleComponent: errorInfo.componentStack?.split('\n')[1]?.trim()
       });
     }
   }
