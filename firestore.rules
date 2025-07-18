@@ -44,7 +44,7 @@ service cloud.firestore {
     
     // Projects collection - require authentication and ownership
     match /projects/{projectId} {
-      allow read: if isAuthenticated() && isOwner(resource.data.createdBy);
+      allow read: if isAuthenticated() && isOwner(resource.data.createdBy) || resource.data.isPublic == true;
       
       allow create: if isAuthenticated() && 
                        isOwner(request.resource.data.createdBy) &&
@@ -59,13 +59,17 @@ service cloud.firestore {
       
       // Hotspots subcollection
       match /hotspots/{hotspotId} {
-        allow read, write: if isAuthenticated() && 
+        allow read: if (isAuthenticated() && 
+                             isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy)) || (get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true);
+        allow write: if isAuthenticated() && 
                              isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy);
       }
       
       // Timeline events subcollection  
       match /timeline_events/{eventId} {
-        allow read, write: if isAuthenticated() && 
+        allow read: if (isAuthenticated() && 
+                             isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy)) || (get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true);
+        allow write: if isAuthenticated() && 
                              isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.createdBy);
       }
     }

@@ -86,6 +86,14 @@ export async function waitForElement(page, selector, timeout = 10000) {
   }
 }
 
+// Set up console logging for a page
+export function setupConsoleLogger(page) {
+  page.on('console', msg => {
+    const type = msg.type().substr(0, 3).toUpperCase();
+    console.log(`CONSOLE ${type}: ${msg.text()}`);
+  });
+}
+
 // Example usage function
 export async function exampleUsage() {
   let browser;
@@ -95,6 +103,9 @@ export async function exampleUsage() {
     
     // Create page
     const page = await createPage(browser);
+
+    // Set up console logging
+    setupConsoleLogger(page);
     
     // Navigate to URL
     const success = await navigateToUrl(page, 'https://example.com');
