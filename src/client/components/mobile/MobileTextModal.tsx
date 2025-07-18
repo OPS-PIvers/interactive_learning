@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { Z_INDEX } from '../../constants/interactionConstants';
+import { useMobileKeyboard } from '../../hooks/useMobileKeyboard';
 
 interface MobileTextModalProps {
   event: TimelineEventData;
@@ -26,6 +28,9 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
   totalCount = 1
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  
+  // Mobile keyboard handling
+  const keyboardInfo = useMobileKeyboard();
 
   useEffect(() => {
     setIsVisible(true);
@@ -48,7 +53,7 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
 
   return (
     <div
-      className={`mobile-text-modal-overlay ${isVisible ? 'visible' : 'hidden'}`}
+      className={`mobile-text-modal-overlay keyboard-aware-container ${isVisible ? 'visible' : 'hidden'} ${keyboardInfo.isVisible ? 'keyboard-open' : ''}`}
       onClick={handleOverlayClick}
       style={{
         position: 'fixed',
@@ -56,7 +61,7 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1001,
+        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         display: 'flex',
         alignItems: 'center',

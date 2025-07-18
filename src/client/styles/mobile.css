@@ -258,6 +258,67 @@
   }
 }
 
+/* ===== KEYBOARD HANDLING IMPROVEMENTS ===== */
+
+@media screen and (max-width: 768px) {
+  /* Global keyboard-aware adjustments */
+  body.keyboard-open {
+    height: var(--content-height);
+    overflow: hidden;
+  }
+
+  /* Keyboard-aware containers */
+  .keyboard-aware-container {
+    min-height: var(--content-height);
+    transition: min-height 0.3s ease;
+  }
+
+  /* Input containers that should scroll into view when keyboard appears */
+  .keyboard-scroll-container.keyboard-open {
+    max-height: var(--content-height);
+    overflow-y: auto;
+  }
+
+  /* Adjust editor panels when keyboard is visible */
+  body.keyboard-open .mobile-editor-panels,
+  body.keyboard-open .mobile-editor-panel {
+    max-height: calc(var(--content-height) * 0.4);
+  }
+
+  /* Adjust timeline when keyboard is visible */
+  body.keyboard-open .mobile-timeline-container {
+    position: fixed;
+    bottom: var(--keyboard-height);
+    left: 0;
+    right: 0;
+  }
+
+  /* Modal content adjustments */
+  body.keyboard-open .mobile-modal-content {
+    padding-bottom: calc(var(--keyboard-height) + var(--safe-area-inset-bottom));
+  }
+
+  /* Form elements that trigger keyboard */
+  .keyboard-trigger {
+    transition: transform 0.3s ease;
+  }
+
+  body.keyboard-open .keyboard-trigger:focus {
+    transform: translateY(calc(-1 * var(--keyboard-height) / 2));
+  }
+
+  /* Prevent viewport zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
 /* ===== PROFESSIONAL EDITOR LAYOUT ===== */
 
 @media screen and (max-width: 768px) {

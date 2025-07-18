@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 // import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
 import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/deviceHandoff';
 import { useTouchGestures } from '../hooks/useTouchGestures';
@@ -252,6 +253,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
 
   const isMobile = useIsMobile();
+  
+  // Mobile keyboard handling
+  const keyboardInfo = useMobileKeyboard({
+    onKeyboardShow: (height) => {
+      console.log('🔤 Mobile keyboard appeared, height:', height);
+    },
+    onKeyboardHide: () => {
+      console.log('🔤 Mobile keyboard hidden');
+    }
+  });
   
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4

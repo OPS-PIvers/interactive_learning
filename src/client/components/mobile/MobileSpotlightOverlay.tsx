@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { Z_INDEX } from '../../constants/interactionConstants';
 
 interface MobileSpotlightOverlayProps {
   event: TimelineEventData;
@@ -119,7 +120,7 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1000,
+        zIndex: Z_INDEX.MOBILE_MODAL,
         pointerEvents: 'auto',
         transition: 'opacity 0.3s ease',
         opacity: isVisible ? 1 : 0,

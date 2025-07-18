@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData } from '../../shared/types';
 import { throttle } from '../utils/asyncUtils';
+import { Z_INDEX } from '../constants/interactionConstants';
 
 interface PanZoomPreviewOverlayProps {
   event: TimelineEventData;
@@ -198,7 +199,7 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
         top: topPx,
         width: zoomArea.width,
         height: zoomArea.height,
-        zIndex: 1000,
+        zIndex: Z_INDEX.PREVIEW_TEXT,
         transition: isZoomSliding ? 'width 0.1s ease, height 0.1s ease' : 'none'
       }}
       onMouseDown={(e) => {

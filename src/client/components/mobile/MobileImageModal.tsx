@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { Z_INDEX } from '../../constants/interactionConstants';
 
 interface MobileImageModalProps {
   event: TimelineEventData;
@@ -41,7 +42,7 @@ const MobileImageModal: React.FC<MobileImageModalProps> = ({ event, onComplete }
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1001,
+        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
         display: 'flex',
         alignItems: 'center',
@@ -81,7 +82,7 @@ const MobileImageModal: React.FC<MobileImageModalProps> = ({ event, onComplete }
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              zIndex: 1002,
+              zIndex: Z_INDEX.MOBILE_MODAL_CLOSE,
               color: 'white',
             }}
           >

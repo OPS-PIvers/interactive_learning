@@ -4,6 +4,7 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
 import AuthButton from './AuthButton';
+import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 
 interface MobileEditorLayoutProps {
   projectName: string;
@@ -86,6 +87,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewingEventId, setPreviewingEventId] = useState<string | null>(null);
+  
+  // Mobile keyboard handling
+  const keyboardInfo = useMobileKeyboard();
 
   const handlePreviewEvent = useCallback((event: TimelineEventData) => {
     setPreviewingEventId(event.id);
@@ -500,7 +504,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       return (
         <div 
           ref={layoutRef}
-          className="h-full w-full bg-slate-900 relative overflow-hidden"
+          className={`h-full w-full bg-slate-900 relative overflow-hidden keyboard-aware-container ${keyboardInfo.isVisible ? 'keyboard-open' : ''}`}
           style={{ 
             height: `${viewport.availableHeight}px`,
             paddingBottom: `${viewport.safeAreaInsets.bottom}px`

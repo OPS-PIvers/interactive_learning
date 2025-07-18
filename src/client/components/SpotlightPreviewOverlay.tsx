@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData } from '../../shared/types';
 import { throttle } from '../utils/asyncUtils';
+import { Z_INDEX } from '../constants/interactionConstants';
 
 interface SpotlightPreviewOverlayProps {
   event: TimelineEventData;
@@ -141,7 +142,7 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `rgba(0, 0, 0, ${spotlight.opacity})`,
-          zIndex: 998
+          zIndex: Z_INDEX.PREVIEW_OVERLAY
         }}
       />
       
@@ -161,7 +162,7 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
           clipPath: spotlight.shape === 'circle' 
             ? `circle(${Math.min(spotlight.width, spotlight.height) / 2}px at center)`
             : 'none',
-          zIndex: 999
+          zIndex: Z_INDEX.PREVIEW_MODAL
         }}
         onMouseDown={(e) => handleMouseDown(e, 'drag')}
       >

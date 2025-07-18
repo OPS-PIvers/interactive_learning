@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData, MediaQuizTrigger } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import VideoPlayer from '../VideoPlayer';
+import { Z_INDEX } from '../../constants/interactionConstants';
 
 interface MobileVideoModalProps {
   event: TimelineEventData;
@@ -105,7 +106,7 @@ const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ event, onComplete }
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1001,
+        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
         display: 'flex',
         alignItems: 'center',

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
+import { Z_INDEX } from '../../constants/interactionConstants';
 
 interface MobilePanZoomHandlerProps {
   event: TimelineEventData;
@@ -129,7 +130,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 999,
+        zIndex: Z_INDEX.PREVIEW_MODAL,
         pointerEvents: 'auto',
         backgroundColor: 'transparent',
         cursor: 'pointer',

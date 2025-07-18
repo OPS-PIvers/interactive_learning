@@ -10,15 +10,7 @@
 
 ## **LOW PRIORITY BUGS** 🟢 (Impact: Polish & Edge Cases)
 
-### 9. **Modal Z-Index Issues on Mobile**
-   - **Issue:** Modal z-index in `MobileEventRenderer.tsx` is set to 1000, but other components may have conflicting z-index values.
-   - **Impact:** Mobile modals may appear behind other UI elements in complex layouts.
-   - **File:** `src/client/components/mobile/MobileEventRenderer.tsx:277`
-
-### 10. **Missing Mobile Keyboard Handling**
-   - **Issue:** No specific mobile keyboard event handling found in mobile components.
-   - **Impact:** Mobile keyboard may cover important UI elements without proper viewport adjustments.
-   - **Areas:** Mobile modal and input components
+*All low priority bugs have been resolved! 🎉*
 
 ## **FIXED BUGS** ✅ (Resolved in Recent Updates)
 
@@ -57,6 +49,12 @@
 
 ### ~~Incomplete Timeout Cleanup on Unmount~~ - **FIXED**
 - **Status:** ✅ Resolved - added proper ref tracking and cleanup for all setTimeout calls
+
+### ~~Modal Z-Index Issues on Mobile~~ - **FIXED**
+- **Status:** ✅ Resolved - standardized all z-index values using constants from interactionConstants.ts
+
+### ~~Missing Mobile Keyboard Handling~~ - **FIXED**
+- **Status:** ✅ Resolved - added comprehensive keyboard detection hook and viewport adjustments
 
 ---
 

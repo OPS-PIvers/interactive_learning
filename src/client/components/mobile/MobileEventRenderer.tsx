@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { Z_INDEX } from '../../constants/interactionConstants';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobilePanZoomHandler from './MobilePanZoomHandler';
 import MobileTextModal from './MobileTextModal';
@@ -268,13 +269,13 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     <div className="mobile-event-renderer">
       {events.map((event, index) => {
         const isModal = MODAL_INTERACTIONS.has(event.type);
-        const zIndex = 100 + index;
+        const baseZIndex = Z_INDEX.MOBILE_OVERLAY + index;
         return (
           <div
             key={event.id}
             className="mobile-event-wrapper"
             style={{
-              zIndex: isModal ? 1000 : zIndex,
+              zIndex: isModal ? Z_INDEX.MOBILE_MODAL : baseZIndex,
               position: 'relative',
             }}
           >

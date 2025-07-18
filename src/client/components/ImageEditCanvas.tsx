@@ -314,7 +314,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 style={{
                   touchAction: isMobile ? 'none' : 'auto', // Better mobile drag performance
                   pointerEvents: 'auto', // Ensure pointer events are enabled
-                  zIndex: isEditing ? 1000 : 100 // Higher z-index in editing mode for better interaction
+                  zIndex: isEditing ? Z_INDEX.MODAL : Z_INDEX.HOTSPOTS // Higher z-index in editing mode for better interaction
                 }}
               >
                 <HotspotViewer

@@ -6,7 +6,16 @@ export const Z_INDEX = {
   TIMELINE: 40,
   TOOLBAR: 50,
   MODAL: 60,
-  DEBUG: 100
+  DEBUG: 100,
+  // Mobile-specific layers
+  MOBILE_OVERLAY: 900,
+  MOBILE_MODAL: 1000,
+  MOBILE_MODAL_OVERLAY: 1001,
+  MOBILE_MODAL_CLOSE: 1002,
+  // Preview layers
+  PREVIEW_OVERLAY: 998,
+  PREVIEW_MODAL: 999,
+  PREVIEW_TEXT: 1000
 } as const;
 
 export const INTERACTION_DEFAULTS = {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData, MediaQuizTrigger } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import AudioPlayer from '../AudioPlayer';
+import { Z_INDEX } from '../../constants/interactionConstants';
 
 interface MobileAudioModalProps {
   event: TimelineEventData;
@@ -55,7 +56,7 @@ const MobileAudioModal: React.FC<MobileAudioModalProps> = ({ event, onComplete }
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
+        zIndex: Z_INDEX.MOBILE_MODAL,
         padding: '20px',
         opacity: isVisible ? 1 : 0,
         transition: 'opacity 0.3s ease',
