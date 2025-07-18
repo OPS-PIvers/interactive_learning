@@ -50,7 +50,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   }, [isEditingMode, isMobile, isModalOpen, onClose, selectedProject.title]);
   
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900">
+    <div className="fixed inset-0 z-50 bg-slate-900 mobile-viewport-fix">
       <WrapperComponent {...wrapperProps}>
         {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
           <InteractiveModule

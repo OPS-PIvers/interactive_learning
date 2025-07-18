@@ -32,7 +32,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 }) => {
   if (isMobile) {
     return (
-      <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0">
+      <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0 mobile-toolbar">
         {/* Main Toolbar Row */}
         <div className="flex items-center justify-between px-2 h-12"> {/* Reduced height and padding for mobile */}
           {/* Left Section - Back Button and Project Name */}

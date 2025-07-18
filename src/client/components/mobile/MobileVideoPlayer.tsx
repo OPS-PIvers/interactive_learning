@@ -7,15 +7,14 @@ interface MobileVideoPlayerProps {
 
 export const MobileVideoPlayer: React.FC<MobileVideoPlayerProps> = ({ src, onClose }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Stable event listener functions
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+    // Stable event listener functions for potential future use
+    const onPlay = () => {};
+    const onPause = () => {};
 
     // This is a basic implementation. A more robust solution would
     // involve a library for gesture controls.
@@ -51,7 +50,7 @@ export const MobileVideoPlayer: React.FC<MobileVideoPlayerProps> = ({ src, onClo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full flex items-center justify-center">
         <video
           ref={videoRef}
           src={src}

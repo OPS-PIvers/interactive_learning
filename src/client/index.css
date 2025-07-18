@@ -15,6 +15,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   /* Default background/text colors, can be overridden by components like SharedModuleViewer */
   @apply bg-slate-900 text-slate-100;
+  /* Mobile viewport support */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: calc(var(--vh, 1vh) * 100);
+  overscroll-behavior: none;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
 }
 
 

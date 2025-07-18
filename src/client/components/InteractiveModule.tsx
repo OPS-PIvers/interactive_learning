@@ -3321,7 +3321,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         </div>
         )
       ) : (
-        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'mobile-full-height mobile-safe-area' : 'fixed inset-0 z-50 overflow-hidden'}`}>
             {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
             <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
               <ViewerToolbar
@@ -3524,7 +3524,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {backgroundImage && (
               <div
                 ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
-                className={`${isMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
+                className={`${isMobile ? 'flex-shrink-0 relative mobile-timeline-container' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
                 style={{ zIndex: Z_INDEX.TIMELINE }}
               >
                 <HorizontalTimeline

@@ -171,7 +171,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="w-full bg-slate-800 p-2">
+      <div className="w-full bg-slate-800 p-2 mobile-timeline-container">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-white font-semibold" id="timeline-heading">Timeline</h3>
           <div>
