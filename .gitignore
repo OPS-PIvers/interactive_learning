@@ -39,3 +39,8 @@ dev.log
 test-*.md
 *-test.md
 *-verification.md
+
+# Puppeteer test artifacts
+*-screenshot.png
+page_content*.html
+test-screenshot.png
