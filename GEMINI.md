@@ -65,5 +65,16 @@ The Interactive Learning Hub is a web application designed for creating and deli
 *   `npm run dev`: Starts the Vite development server.
 *   `npm run build`: Compiles the application for production.
 *   `npm run test`: Runs the test suite using Vitest.
+*   `npm run test:run`: Runs tests once (for CI/CD).
 *   `npm run deploy`: Builds and deploys the application to Firebase Hosting.
 *   `npm run backup`: Executes the data backup script.
+
+### Critical Testing Commands:
+
+*   `npm run test:run -- ReactErrorDetection`: Runs comprehensive React error detection tests
+    *   Validates no React Hook Error #310 violations
+    *   Checks for Temporal Dead Zone (TDZ) errors  
+    *   Ensures proper component lifecycle management
+    *   Verifies hook order compliance
+    *   Tests memory leak prevention
+*   **Required:** Must pass before any component changes are committed

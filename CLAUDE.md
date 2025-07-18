@@ -65,6 +65,12 @@ src/
 - Run `npm run test:run` before committing
 - All tests must pass for PR approval
 
+### Critical Error Detection Tests
+- `npm run test:run -- ReactErrorDetection` - Run React error detection tests
+- Tests for React Hook Error #310, TDZ errors, and component violations
+- Must pass before any component changes are committed
+- Validates proper hook order and component lifecycle management
+
 ## Firebase Integration
 - Firestore for data storage
 - Firebase Storage for images/media

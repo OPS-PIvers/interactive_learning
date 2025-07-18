@@ -122,6 +122,17 @@ vitest.config.ts  # Vitest test runner configuration
 // Test Firebase integration with mocked services
 // ALWAYS run npm run test:run before committing
 
+### Critical React Error Detection
+// Must run before any component changes are committed
+npm run test:run -- ReactErrorDetection
+
+// This test validates:
+// - No React Hook Error #310 violations
+// - No Temporal Dead Zone (TDZ) errors
+// - No component lifecycle violations
+// - Proper hook order maintenance
+// - Memory leak prevention
+
 ## Security & Performance
 // Never commit API keys or secrets
 // Validate all user inputs
