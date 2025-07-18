@@ -30,9 +30,11 @@ export const useIsMobile = () => {
     };
 
     // Debounce the resize handler to avoid performance issues from frequent re-renders.
-    let timeoutId: ReturnType<typeof setTimeout>;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const debouncedCheckMobile = () => {
-      clearTimeout(timeoutId);
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
       timeoutId = setTimeout(() => {
         checkMobile();
       }, 200); // 200ms debounce delay
@@ -41,7 +43,9 @@ export const useIsMobile = () => {
     window.addEventListener('resize', debouncedCheckMobile);
     return () => {
       window.removeEventListener('resize', debouncedCheckMobile);
-      clearTimeout(timeoutId);
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [isMobile]); // Add isMobile to dependency array for debugging
 

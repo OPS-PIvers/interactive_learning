@@ -1,6 +1,12 @@
 // Debug utility to conditionally log only in development
 
-let debugEnabled = process.env.NODE_ENV === 'development' || localStorage.getItem('debug_enabled') === 'true';
+let debugEnabled: boolean;
+try {
+  debugEnabled = process.env.NODE_ENV === 'development' || 
+    (typeof localStorage !== 'undefined' && localStorage.getItem('debug_enabled') === 'true');
+} catch {
+  debugEnabled = process.env.NODE_ENV === 'development';
+}
 
 export const debugLog = {
   log: (message: string, ...args: any[]) => {
@@ -25,10 +31,16 @@ export const debugLog = {
   // New method to control debug logging dynamically
   setDebugEnabled: (enabled: boolean) => {
     debugEnabled = enabled;
-    if (enabled) {
-      localStorage.setItem('debug_enabled', 'true');
-    } else {
-      localStorage.removeItem('debug_enabled');
+    try {
+      if (typeof localStorage !== 'undefined') {
+        if (enabled) {
+          localStorage.setItem('debug_enabled', 'true');
+        } else {
+          localStorage.removeItem('debug_enabled');
+        }
+      }
+    } catch {
+      // Ignore localStorage errors (e.g., in private browsing mode)
     }
     console.log(`Debug logging ${enabled ? 'enabled' : 'disabled'}.`);
   },

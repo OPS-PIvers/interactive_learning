@@ -459,7 +459,13 @@ const App: React.FC = () => {
       <Router>
         <Routes>
           <Route path="/" element={<AuthenticatedApp />} />
-          <Route path="/view/:moduleId" element={<SharedModuleViewer />} />
+          <Route path="/view/:moduleId" element={
+            <div className="min-h-screen bg-gray-50">
+              <main>
+                <SharedModuleViewer />
+              </main>
+            </div>
+          } />
         </Routes>
       </Router>
     </AuthProvider>

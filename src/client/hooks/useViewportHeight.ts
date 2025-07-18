@@ -12,15 +12,17 @@ export function useViewportHeight() {
       setHeight(getViewportHeight());
     }
 
+    let cleanup: (() => void) | null = null;
+
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
-      return () => {
-        window.visualViewport.removeEventListener('resize', handleResize);
-      };
+      cleanup = () => window.visualViewport?.removeEventListener('resize', handleResize);
+    } else {
+      window.addEventListener('resize', handleResize);
+      cleanup = () => window.removeEventListener('resize', handleResize);
     }
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return cleanup;
   }, []);
 
   return height;

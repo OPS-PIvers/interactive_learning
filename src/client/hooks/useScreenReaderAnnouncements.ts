@@ -83,13 +83,17 @@ const useScreenReaderAnnouncements = () => {
         if (politeRegionSingleton.textContent === message) {
           politeRegionSingleton.textContent = '';
           // Delay needs to be long enough for screen reader to process the change
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             if (politeRegionSingleton) politeRegionSingleton.textContent = message;
           }, 100);
+          
+          // Store timeout for potential cleanup
+          return () => clearTimeout(timeoutId);
         } else {
           politeRegionSingleton.textContent = message;
         }
       }
+      return null;
     };
 
     const updateAssertiveRegion = (message: string) => {
@@ -97,13 +101,17 @@ const useScreenReaderAnnouncements = () => {
         // Hack to force re-announcement
         if (assertiveRegionSingleton.textContent === message) {
           assertiveRegionSingleton.textContent = '';
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             if (assertiveRegionSingleton) assertiveRegionSingleton.textContent = message;
           }, 100);
+          
+          // Store timeout for potential cleanup
+          return () => clearTimeout(timeoutId);
         } else {
           assertiveRegionSingleton.textContent = message;
         }
       }
+      return null;
     };
 
     announcePolitelyRef.current = debounce((message: string) => {

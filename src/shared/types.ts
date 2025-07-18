@@ -188,12 +188,6 @@ export interface TimelineEventData {
   volume?: number;
   intensity?: number;    // For pulse effects
   
-  // === ENHANCED MEDIA QUIZ PROPERTIES ===
-  quizTriggers?: MediaQuizTrigger[];
-  allowSeeking?: boolean; // prevent skipping past incomplete quizzes
-  enforceQuizCompletion?: boolean; // must complete all quizzes to continue
-  quizMode?: 'overlay' | 'modal' | 'inline'; // how to display quiz
-  
   // Quiz properties
   quizQuestion?: string;
   quizOptions?: string[];
@@ -231,7 +225,6 @@ export interface TimelineEventData {
   message?: string;
   mediaType?: 'image' | 'youtube' | 'mp4' | 'audio';
   mediaUrl?: string;
-  videoUrl?: string;
   poster?: string;
   artist?: string;
   zoomFactor?: number;   // Legacy - use zoomLevel instead

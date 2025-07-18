@@ -18,7 +18,8 @@ export const isMobileDevice = () => {
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   
   // Check for small screen even with desktop user agent (some 2-in-1 devices)
-  const isSmallScreen = window.screen.width <= 768 || window.screen.height <= 768;
+  const isSmallScreen = (typeof window !== 'undefined') ? 
+    (window.screen.width <= 768 || window.screen.height <= 768) : false;
   
   // Only consider it mobile if we have positive mobile indicators
   // Don't just rely on touch capability alone
