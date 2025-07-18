@@ -1,5 +1,6 @@
 // src/client/components/MobileBackgroundSettings.tsx
 import React, { useState, useEffect } from 'react';
+import { extractYouTubeVideoId } from '../../shared/types';
 
 interface MobileBackgroundSettingsProps {
   backgroundImage: string | null;
@@ -30,13 +31,6 @@ const MobileBackgroundSettings: React.FC<MobileBackgroundSettingsProps> = ({
     setLocalBackgroundImageUrl(backgroundImage || '');
   }, [backgroundImage]);
 
-  // Helper function to extract YouTube Video ID from various URL formats
-  const extractYouTubeVideoId = (url: string): string | null => {
-    if (!url) return null;
-    const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-    const match = url.match(regExp);
-    return (match && match[1]) ? match[1] : null;
-  };
 
   const handleImageFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {

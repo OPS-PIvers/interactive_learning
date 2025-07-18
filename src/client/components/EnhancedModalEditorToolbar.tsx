@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { extractYouTubeVideoId } from '../../shared/types';
 
 interface ColorScheme {
   name: string;
@@ -167,14 +168,6 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
     }
   };
 
-  // Helper function to extract YouTube Video ID from various URL formats
-  const extractYouTubeVideoId = (url: string): string | null => {
-    if (!url) return null;
-    // Regular expression to cover various YouTube URL formats
-    const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-    const match = url.match(regExp);
-    return (match && match[1]) ? match[1] : null;
-  };
 
   const handleYouTubeUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setYoutubeUrl(event.target.value);

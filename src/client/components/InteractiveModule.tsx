@@ -40,14 +40,6 @@ import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { useToast } from '../hooks/useToast';
 import '../styles/mobile-events.css';
 
-// Helper function to extract YouTube Video ID from various URL formats
-const extractYouTubeVideoId = (url: string): string | null => {
-  if (!url) return null;
-  // Regular expression to cover various YouTube URL formats
-  const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regExp);
-  return (match && match[1]) ? match[1] : null;
-};
 
 import HotspotViewer from './HotspotViewer';
 
@@ -2543,7 +2535,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           (event.type === InteractionType.SPOTLIGHT || event.type === InteractionType.HIGHLIGHT_HOTSPOT) && event.targetId
         );
         if (highlightEvent) {
-          setHighlightedHotspotId(highlightEvent.targetId);
+          setHighlightedHotspotId(highlightEvent.targetId || null);
         }
       } else {
         // Clear mobile events for desktop
@@ -3477,7 +3469,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         isActive={moduleState === 'learning'}
                         currentTransform={imageTransform}
                         onTransformUpdate={setImageTransform}
-                        isGestureActive={touchGestureHandlers.isGestureActive}
+                        isGestureActive={touchGestureHandlers.isGestureActive()}
                       />
                     )}
                     
