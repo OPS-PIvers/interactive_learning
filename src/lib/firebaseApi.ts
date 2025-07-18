@@ -70,6 +70,7 @@ export class FirebaseProjectAPI {
           createdAt: projectData.createdAt?.toDate?.() || new Date(),
           updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
           thumbnailUrl: projectData.thumbnailUrl,
+          isPublic: projectData.isPublic || false,
           interactiveData: {
             backgroundImage: projectData.backgroundImage,
             imageFitMode: projectData.imageFitMode || 'cover',
@@ -156,7 +157,8 @@ export class FirebaseProjectAPI {
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
-          viewerModes: { explore: true, selfPaced: true, timed: true } // Added viewerModes with defaults
+        viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
+        isPublic: false // Default to private
         }
       };
       
@@ -168,6 +170,7 @@ export class FirebaseProjectAPI {
         backgroundImage: null, // New projects start with no background image
         imageFitMode: interactiveData.imageFitMode,
         viewerModes: interactiveData.viewerModes,
+        isPublic: false,
         thumbnailUrl: null, // New projects start with no thumbnail
         createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
         updatedAt: serverTimestamp(),
@@ -258,6 +261,7 @@ export class FirebaseProjectAPI {
           backgroundImage: string | null;
           imageFitMode: string;
           viewerModes: { explore: boolean; selfPaced: boolean; timed: boolean };
+          isPublic: boolean;
           updatedAt: any; // Firestore serverTimestamp
           createdBy: string;
           createdAt?: any; // Optional, only for new projects
@@ -270,6 +274,7 @@ export class FirebaseProjectAPI {
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          isPublic: project.isPublic || false,
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy
         };
@@ -713,6 +718,20 @@ export class FirebaseProjectAPI {
         // Optionally, re-throw if this is critical, but typically for cleanup,
         // we might not want to fail the entire operation.
       }
+    }
+  }
+
+  async updateProjectPublicStatus(projectId: string, isPublic: boolean): Promise<void> {
+    try {
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to update project status');
+      }
+      const projectRef = doc(db, 'projects', projectId);
+      await setDoc(projectRef, { isPublic, updatedAt: serverTimestamp() }, { merge: true });
+      debugLog.log(`Project ${projectId} public status updated to ${isPublic}`);
+    } catch (error) {
+      debugLog.error(`Error updating project public status for ${projectId}:`, error);
+      throw new Error(`Failed to update project public status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

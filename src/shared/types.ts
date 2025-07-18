@@ -283,6 +283,7 @@ export interface Project {
   createdAt?: Date;         // When the project was created
   updatedAt?: Date;         // When the project was last updated
   thumbnailUrl?: string;    // URL for project thumbnail image
+  isPublic?: boolean;       // Whether the module is publicly accessible
   interactiveData: InteractiveModuleState;
 }
 

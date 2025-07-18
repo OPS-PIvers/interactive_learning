@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
+import { firebaseAPI } from '../../lib/firebaseApi';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -26,9 +27,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   });
   const [activeTab, setActiveTab] = useState<'url' | 'embed'>('url');
   const [copySuccess, setCopySuccess] = useState<string>('');
+  const [isPublic, setIsPublic] = useState(project.isPublic || false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
   const embedInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handlePublicToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPublicStatus = e.target.checked;
+    setIsPublic(newPublicStatus);
+    try {
+      await firebaseAPI.updateProjectPublicStatus(project.id, newPublicStatus);
+      setCopySuccess(`Module is now ${newPublicStatus ? 'public' : 'private'}`);
+    } catch (error) {
+      console.error('Failed to update public status:', error);
+      setCopySuccess('Failed to update status');
+      setIsPublic(!newPublicStatus); // Revert on error
+    }
+  };
 
   // Generate the shareable URL
   const generateShareUrl = useCallback(() => {
@@ -361,8 +376,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         {/* Footer */}
         <div className="p-6 border-t border-slate-700 bg-slate-750">
           <div className="flex justify-between items-center">
-            <div className="text-slate-400 text-sm">
-              Share this interactive learning module with anyone
+            <div className="flex items-center">
+              <label htmlFor="public-toggle" className="flex items-center cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="public-toggle"
+                    className="sr-only"
+                    checked={isPublic}
+                    onChange={handlePublicToggle}
+                  />
+                  <div className={`block w-14 h-8 rounded-full ${isPublic ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isPublic ? 'transform translate-x-6' : ''}`}></div>
+                </div>
+                <div className="ml-3 text-slate-300 text-sm font-medium">
+                  {isPublic ? 'Public' : 'Private'}
+                </div>
+              </label>
             </div>
             <button
               onClick={onClose}
