@@ -98,5 +98,77 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
       'backgroundDimPercentage'
     ],
     description: 'Focus attention with customizable spotlight effect'
+  },
+  
+  // === LEGACY INTERACTION TYPES (for compatibility) ===
+  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: {
+    icon: '🔍',
+    name: 'Legacy Pan & Zoom to Hotspot',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Pan and zoom to a specific hotspot.'
+  },
+  [InteractionType.PULSE_HIGHLIGHT]: {
+    icon: '✨',
+    name: 'Legacy Pulse Highlight',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Highlight a hotspot with a pulse effect.'
+  },
+  [InteractionType.PULSE_HOTSPOT]: {
+    icon: '✨',
+    name: 'Legacy Pulse Hotspot',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Make a hotspot pulse.'
+  },
+  [InteractionType.SHOW_VIDEO]: {
+    icon: '🎥',
+    name: 'Legacy Show Video',
+    color: 'bg-gray-4    00',
+    settings: [],
+    description: 'Legacy: Display a video (use Play Video instead).'
+  },
+  [InteractionType.SHOW_AUDIO_MODAL]: {
+    icon: '🔊',
+    name: 'Legacy Show Audio Modal',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Display an audio modal (use Play Audio instead).'
+  },
+  [InteractionType.SHOW_YOUTUBE]: {
+    icon: '▶️',
+    name: 'Legacy Show YouTube',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Display a YouTube video (use Play Video instead).'
+  },
+  [InteractionType.SHOW_MESSAGE]: {
+    icon: '💬',
+    name: 'Legacy Show Message',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Display a message (use Show Text instead).'
+  },
+  [InteractionType.HIGHLIGHT_HOTSPOT]: {
+    icon: '💡',
+    name: 'Legacy Highlight Hotspot',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Highlight a hotspot (use Spotlight instead).'
+  },
+  [InteractionType.SHOW_IMAGE_MODAL]: {
+    icon: '🖼️',
+    name: 'Legacy Show Image Modal',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Display an image in a modal (use Show Image instead).'
+  },
+  [InteractionType.HIDE_HOTSPOT]: {
+    icon: '🚫',
+    name: 'Legacy Hide Hotspot',
+    color: 'bg-gray-400',
+    settings: [],
+    description: 'Legacy: Hide a hotspot.'
   }
 };

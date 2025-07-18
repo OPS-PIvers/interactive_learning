@@ -16,6 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
 import { auth, db, storage } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
+import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
 import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
 
@@ -34,7 +35,7 @@ const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {
-    console.log(`Firebase ${operation}: ${count} operations`)
+    debugLog.log(`Firebase ${operation}: ${count} operations`)
   }
 
   /**
@@ -80,10 +81,10 @@ export class FirebaseProjectAPI {
         } as Project
       })
 
-      console.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
+      debugLog.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
       return projects
     } catch (error) {
-      console.error('Error listing projects (summary):', error)
+      debugLog.error('Error listing projects (summary):', error)
       throw new Error(`Failed to load project summaries: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -120,7 +121,7 @@ export class FirebaseProjectAPI {
         timelineEvents,
       };
     } catch (error) {
-      console.error(`Error getting project details for ${projectId}:`, error);
+      debugLog.error(`Error getting project details for ${projectId}:`, error);
       throw new Error(`Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -174,7 +175,7 @@ export class FirebaseProjectAPI {
       
       return newProjectData;
     } catch (error) {
-      console.error('Error creating project:', error)
+      debugLog.error('Error creating project:', error)
       throw new Error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -221,9 +222,9 @@ export class FirebaseProjectAPI {
         // Use thumbnail URL if provided (generated during upload)
         if (project.thumbnailUrl) {
           finalThumbnailUrl = project.thumbnailUrl;
-          console.log(`Using pre-generated thumbnail: ${finalThumbnailUrl}`);
+          debugLog.log(`Using pre-generated thumbnail: ${finalThumbnailUrl}`);
         } else {
-          console.log('No thumbnail provided, continuing without thumbnail');
+          debugLog.log('No thumbnail provided, continuing without thumbnail');
           finalThumbnailUrl = null;
         }
       } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
@@ -304,7 +305,7 @@ export class FirebaseProjectAPI {
         }
       });
 
-      console.log(`Transaction for project ${project.id} committed successfully.`);
+      debugLog.log(`Transaction for project ${project.id} committed successfully.`);
 
       // Clean up orphaned documents in a separate transaction (after main save succeeds)
       // This is safer than doing it in the same transaction
@@ -314,14 +315,14 @@ export class FirebaseProjectAPI {
           sanitizedEvents.map(e => e.id!)
         );
       } catch (cleanupError) {
-        console.warn('Cleanup of orphaned documents failed, but main save succeeded:', cleanupError);
+        debugLog.warn('Cleanup of orphaned documents failed, but main save succeeded:', cleanupError);
         // Don't throw - main save was successful
       }
 
       if (oldThumbnailUrlToDeleteAfterCommit) {
-        console.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
+        debugLog.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
         this._deleteImageFromStorage(oldThumbnailUrlToDeleteAfterCommit).catch(err => {
-          console.error("Error during fire-and-forget deletion of old thumbnail:", err);
+          debugLog.error("Error during fire-and-forget deletion of old thumbnail:", err);
         });
       }
       
@@ -334,7 +335,7 @@ export class FirebaseProjectAPI {
         }
       };
     } catch (error) {
-      console.error('Error in saveProject (transaction or post-transaction storage deletion):', error);
+      debugLog.error('Error in saveProject (transaction or post-transaction storage deletion):', error);
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -369,7 +370,7 @@ export class FirebaseProjectAPI {
         // For this operation, if it's already gone, our work for the main doc is done.
         const freshProjectSnap = await transaction.get(projectRef); // Good practice to confirm existence within transaction
         if (!freshProjectSnap.exists()) {
-          console.warn(`Project ${projectId} not found during delete transaction (already deleted?).`);
+          debugLog.warn(`Project ${projectId} not found during delete transaction (already deleted?).`);
           return; // Nothing to delete
         }
 
@@ -387,18 +388,18 @@ export class FirebaseProjectAPI {
         transaction.delete(projectRef); // Delete main project document
       });
 
-      console.log(`Project ${projectId} Firestore data deleted successfully via transaction.`);
+      debugLog.log(`Project ${projectId} Firestore data deleted successfully via transaction.`);
 
       if (thumbnailUrlToDelete) {
-        console.log(`Attempting to delete thumbnail for deleted project (fire-and-forget): ${thumbnailUrlToDelete}`);
+        debugLog.log(`Attempting to delete thumbnail for deleted project (fire-and-forget): ${thumbnailUrlToDelete}`);
         this._deleteImageFromStorage(thumbnailUrlToDelete).catch(err => {
-            console.error("Error during fire-and-forget deletion of project thumbnail:", err);
+            debugLog.error("Error during fire-and-forget deletion of project thumbnail:", err);
         });
       }
       
       return { success: true, projectId };
     } catch (error) {
-      console.error('Error deleting project:', error);
+      debugLog.error('Error deleting project:', error);
       throw new Error(`Failed to delete project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -426,7 +427,7 @@ export class FirebaseProjectAPI {
       
       const imageRef = ref(storage, fileName);
       
-      console.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
+      debugLog.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
       
       // Create upload task with metadata for better tracking
       const metadata = {
@@ -471,10 +472,10 @@ export class FirebaseProjectAPI {
         }
       }
       
-      console.log('Image uploaded successfully:', downloadURL);
+      debugLog.log('Image uploaded successfully:', downloadURL);
       return downloadURL!;
     } catch (error) {
-      console.error('Error uploading image:', error);
+      debugLog.error('Error uploading image:', error);
       
       // Enhanced error categorization with Firebase Storage specific errors
       if (error instanceof Error) {
@@ -563,16 +564,16 @@ export class FirebaseProjectAPI {
           onProgress(progress);
         },
         (error) => {
-          console.error('Error uploading file:', error);
+          debugLog.error('Error uploading file:', error);
           reject(new Error(`Failed to upload file: ${error.message}`));
         },
         async () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            console.log('File uploaded successfully:', downloadURL);
+            debugLog.log('File uploaded successfully:', downloadURL);
             resolve(downloadURL);
           } catch (error) {
-            console.error('Error getting download URL:', error);
+            debugLog.error('Error getting download URL:', error);
             reject(new Error(`Failed to get download URL: ${error.message}`));
           }
         }
@@ -596,7 +597,7 @@ export class FirebaseProjectAPI {
         }) as HotspotData
       })
     } catch (error) {
-      console.error(`Error getting hotspots for project ${projectId}:`, error)
+      debugLog.error(`Error getting hotspots for project ${projectId}:`, error)
       return []
     }
   }
@@ -617,7 +618,7 @@ export class FirebaseProjectAPI {
         }) as TimelineEventData
       })
     } catch (error) {
-      console.error(`Error getting timeline events for project ${projectId}:`, error)
+      debugLog.error(`Error getting timeline events for project ${projectId}:`, error)
       return []
     }
   }
@@ -660,7 +661,7 @@ export class FirebaseProjectAPI {
         return; // No cleanup needed
       }
       
-      console.log(`Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
+      debugLog.log(`Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
       
       // Process in batches of 400 to stay under Firestore's 500 operation limit
       const batchSize = 400;
@@ -672,10 +673,10 @@ export class FirebaseProjectAPI {
         });
       }
       
-      console.log(`Successfully cleaned up orphaned documents for project ${projectId}`);
+      debugLog.log(`Successfully cleaned up orphaned documents for project ${projectId}`);
       
     } catch (error) {
-      console.error(`Error cleaning up orphaned documents for project ${projectId}:`, error);
+      debugLog.error(`Error cleaning up orphaned documents for project ${projectId}:`, error);
       // Don't throw - this is cleanup, not critical for data integrity
     }
   }
@@ -685,14 +686,14 @@ export class FirebaseProjectAPI {
    */
   private async clearProjectSubcollections(projectId: string): Promise<void> {
     // This function was causing data loss - it's now handled in saveProject with upsert logic
-    console.log(`Skipping clear operation for project ${projectId} - using upsert instead`)
+    debugLog.log(`Skipping clear operation for project ${projectId} - using upsert instead`)
   }
 
   // Helper function to delete an image from Firebase Storage, callable from methods.
   // Made it private as it's an internal utility for this class.
   private async _deleteImageFromStorage(imageUrl: string): Promise<void> {
     if (!imageUrl) {
-      console.warn('Attempted to delete image with no URL.');
+      debugLog.warn('Attempted to delete image with no URL.');
       return;
     }
 
@@ -701,14 +702,14 @@ export class FirebaseProjectAPI {
       // directly from Firebase Storage.
       const imageRef = ref(storage, imageUrl);
       await deleteObject(imageRef);
-      console.log(`Successfully deleted image from storage: ${imageUrl}`);
+      debugLog.log(`Successfully deleted image from storage: ${imageUrl}`);
     } catch (error: any) {
       // It's common for "object-not-found" errors if the file was already deleted
       // or the URL was incorrect. We can often ignore these.
       if (error.code === 'storage/object-not-found') {
-        console.warn(`Old image not found during deletion attempt, skipping: ${imageUrl}`);
+        debugLog.warn(`Old image not found during deletion attempt, skipping: ${imageUrl}`);
       } else {
-        console.error(`Failed to delete image from storage (${imageUrl}):`, error);
+        debugLog.error(`Failed to delete image from storage (${imageUrl}):`, error);
         // Optionally, re-throw if this is critical, but typically for cleanup,
         // we might not want to fail the entire operation.
       }

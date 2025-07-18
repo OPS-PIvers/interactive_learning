@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, within, fireEvent, cleanup } from '@testing-library/react';
+import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import InteractiveModule from '../client/components/InteractiveModule';
@@ -68,7 +69,7 @@ describe('InteractiveModule', () => {
   // Test suite for initial overlay buttons in viewer mode
   describe('Initial Overlay Buttons (Viewer Mode)', () => {
     test('renders both "Explore Module" and "Start Guided Tour" buttons by default (all modes enabled)', () => {
-      render(<InteractiveModule {...getProps()} />);
+      render(<ToastProvider><InteractiveModule {...getProps()} /></ToastProvider>);
       // The buttons are inside a specific overlay div, let's target that
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
@@ -79,7 +80,7 @@ describe('InteractiveModule', () => {
     });
 
     test('renders only "Explore Module" button if only explore mode is enabled', () => {
-      render(<InteractiveModule {...getProps({ explore: true, selfPaced: false, timed: false })} />);
+      render(<ToastProvider><InteractiveModule {...getProps({ explore: true, selfPaced: false, timed: false })} /></ToastProvider>);
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
@@ -89,7 +90,7 @@ describe('InteractiveModule', () => {
     });
 
     test('renders only "Start Guided Tour" button if only selfPaced mode is enabled', () => {
-      render(<InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: false })} />);
+      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: false })} /></ToastProvider>);
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
@@ -99,7 +100,7 @@ describe('InteractiveModule', () => {
     });
 
     test('renders only "Start Guided Tour" button if only timed mode is enabled', () => {
-      render(<InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: true })} />);
+      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: true })} /></ToastProvider>);
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
@@ -109,7 +110,7 @@ describe('InteractiveModule', () => {
     });
 
     test('renders "Start Guided Tour" button if both selfPaced and timed modes are enabled (explore disabled)', () => {
-      render(<InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: true })} />);
+      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: true })} /></ToastProvider>);
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
@@ -119,7 +120,7 @@ describe('InteractiveModule', () => {
     });
 
     test('renders no mode selection buttons in overlay if all viewer modes are disabled', () => {
-      render(<InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: false })} />);
+      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: false })} /></ToastProvider>);
       const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
@@ -137,7 +138,7 @@ describe('InteractiveModule', () => {
       // A more complex test would involve changing moduleState after initial render.
       // This test might be better as an integration test if moduleState changes are involved.
       // Current component logic initializes to 'idle' when isEditing is false.
-      const { rerender } = render(<InteractiveModule {...getProps()} />);
+      const { rerender } = render(<ToastProvider><InteractiveModule {...getProps()} /></ToastProvider>);
       let overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
       expect(overlay).toBeInTheDocument();
 

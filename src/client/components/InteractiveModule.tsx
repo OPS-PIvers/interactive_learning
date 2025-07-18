@@ -38,6 +38,7 @@ import YouTubePlayer from './YouTubePlayer';
 import { MobileMediaModal } from './mobile/MobileMediaModal';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { useToast } from '../hooks/useToast';
+import { debugLog } from '../utils/debugUtils';
 import '../styles/mobile-events.css';
 
 
@@ -252,10 +253,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Mobile keyboard handling
   const keyboardInfo = useMobileKeyboard({
     onKeyboardShow: (height) => {
-      console.log('🔤 Mobile keyboard appeared, height:', height);
+      debugLog.log('🔤 Mobile keyboard appeared, height:', height);
     },
     onKeyboardHide: () => {
-      console.log('🔤 Mobile keyboard hidden');
+      debugLog.log('🔤 Mobile keyboard hidden');
     }
   });
   
@@ -330,7 +331,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // TEMPORARY: Log imageTransform changes
   useEffect(() => {
-    console.log('🔍 PREVIEW DEBUG: imageTransform state changed', imageTransform);
+    debugLog.log('🔍 PREVIEW DEBUG: imageTransform state changed', imageTransform);
   }, [imageTransform]);
   
   // New state for editing mode
@@ -352,11 +353,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // TEMPORARY: Log state changes
   useEffect(() => {
-    console.log('🔍 PREVIEW DEBUG: highlightedHotspotId state changed', highlightedHotspotId);
+    debugLog.log('🔍 PREVIEW DEBUG: highlightedHotspotId state changed', highlightedHotspotId);
   }, [highlightedHotspotId]);
   
   useEffect(() => {
-    console.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
+    debugLog.log('🔍 PREVIEW DEBUG: previewOverlayEvent state changed', previewOverlayEvent ? { id: previewOverlayEvent.id, type: previewOverlayEvent.type } : null);
   }, [previewOverlayEvent]);
 
   // Comprehensive error boundary function
@@ -559,7 +560,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Handle preview overlay updates
   const handlePreviewOverlayUpdate = useCallback((updatedEvent: TimelineEventData) => {
-    console.log('🔍 PREVIEW DEBUG: handlePreviewOverlayUpdate called', { 
+    debugLog.log('🔍 PREVIEW DEBUG: handlePreviewOverlayUpdate called', { 
       eventId: updatedEvent.id, 
       type: updatedEvent.type 
     });
@@ -613,7 +614,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, []);
 
   // Touch gesture handling
-  const touchGestureHandlers = useTouchGestures(
+  const {
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    setEventActive,
+    isGestureActive,
+  } = useTouchGestures(
     isEditing ? imageContainerRef : viewerImageContainerRef,
     imageTransform,
     setImageTransform,
@@ -630,6 +637,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   );
 
+  const touchHandlers = {
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
+    onTouchEnd: handleTouchEnd,
+  };
+
   const batchedSetState = useCallback((updates: Array<() => void>) => {
     ReactDOM.unstable_batchedUpdates(() => {
       updates.forEach(update => update());
@@ -639,13 +652,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Debug mode for development
   const [debugMode] = useState(() => import.meta.env.DEV && localStorage.getItem('debug_positioning') === 'true');
 
-  const debugLog = useCallback((category: string, message: string, data?: any) => {
+  const componentDebugLog = useCallback((category: string, message: string, data?: any) => {
     if (!debugMode) return;
 
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] [${category}] ${message}`;
 
-    console.log(logEntry, data !== undefined ? data : '');
+    debugLog.log(logEntry, data !== undefined ? data : '');
 
     try {
       const logs = JSON.parse(sessionStorage.getItem('debug_logs') || '[]');
@@ -686,8 +699,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Helper to clear cached bounds when needed
   const clearImageBoundsCache = useCallback(() => {
     originalImageBoundsRef.current = null;
-    debugLog('Cache', 'Cleared image bounds cache');
-  }, [debugLog]);
+    componentDebugLog('Cache', 'Cleared image bounds cache');
+      }, [componentDebugLog]);
 
   // Media data interfaces for type safety
   interface VideoMediaData {
@@ -772,12 +785,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // Quiz event handlers
   const handleQuizTrigger = useCallback((trigger: import('../../shared/types').MediaQuizTrigger) => {
-    console.log('Quiz triggered:', trigger);
+    debugLog.log('Quiz triggered:', trigger);
     // TODO: Track quiz analytics if needed
   }, []);
 
   const handleQuizComplete = useCallback((triggerId: string, correct: boolean) => {
-    console.log('Quiz completed:', triggerId, correct);
+    debugLog.log('Quiz completed:', triggerId, correct);
     // TODO: Track quiz results for progress/scoring
   }, []);
 
@@ -812,7 +825,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Add debug logging
     const debugMode = localStorage.getItem('debug_positioning') === 'true';
     if (!isEditing && debugMode) {
-      console.log('Hotspot positioning debug:', {
+      debugLog.log('Hotspot positioning debug:', {
         hotspotId: hotspot.id,
         hotspotPercentages: { x: hotspot.x, y: hotspot.y },
         imageBounds
@@ -952,11 +965,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const applyTransform = useCallback((newTransform: ImageTransformState) => {
     // Enhanced safety checks to prevent temporal dead zone issues
     if (!newTransform || typeof newTransform.scale !== 'number') {
-      console.warn('applyTransform: Invalid transform data provided', newTransform);
+      debugLog.warn('applyTransform: Invalid transform data provided', newTransform);
       return;
     }
 
-    debugLog('Transform', 'Applying new transform', newTransform);
+    componentDebugLog('Transform', 'Applying new transform', newTransform);
+    setEventActive(true); // Event takes control
     
     // Clear any existing timeout to prevent race conditions
     if (applyTransformTimeoutRef.current) {
@@ -978,24 +992,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         try {
           setIsTransforming(false);
           isApplyingTransformRef.current = false;
+          setEventActive(false); // Event releases control
           applyTransformTimeoutRef.current = null;
         } catch (error) {
-          console.error('Error in applyTransform timeout cleanup:', error);
+          debugLog.error('Error in applyTransform timeout cleanup:', error);
           // Ensure refs are reset even if state updates fail
           isApplyingTransformRef.current = false;
+          setEventActive(false); // Event releases control
           applyTransformTimeoutRef.current = null;
         }
       }, 500);
     } catch (error) {
-      console.error('Error in applyTransform:', error);
+      debugLog.error('Error in applyTransform:', error);
       // Ensure refs are reset in case of error
       isApplyingTransformRef.current = false;
+      setEventActive(false); // Event releases control
       if (applyTransformTimeoutRef.current) {
         clearTimeout(applyTransformTimeoutRef.current);
         applyTransformTimeoutRef.current = null;
       }
     }
-  }, [debugLog]);
+  }, [debugLog, setEventActive]);
 
   // Debounced version of applyTransform for performance optimization
   const debouncedApplyTransform = useMemo(
@@ -1124,7 +1141,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       height: img.naturalHeight
     };
     setImageNaturalDimensions(newDimensions);
-    debugLog('Image', 'Image loaded successfully', newDimensions);
+    componentDebugLog('Image', 'Image loaded successfully', newDimensions);
     setImageLoading(false);
     setPositionCalculating(true);
     // Clear any existing initialization timeout
@@ -1138,7 +1155,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setPositionCalculating(false);
       initTimeoutRef.current = null;
     }, 0);
-  }, [debugLog]);
+  }, [componentDebugLog]);
 
 
   // New zoom handler functions for editing mode
@@ -1196,7 +1213,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const handleEscapeKey = useCallback((): boolean => {
     if (isPlacingHotspot) {
       setIsPlacingHotspot(false);
-      console.log("Hotspot placement cancelled via Escape key.");
+      debugLog.log("Hotspot placement cancelled via Escape key.");
       return true; // Indicate event was handled
     }
     if (imageTransform.scale > 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0) {
@@ -1291,12 +1308,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Define handleSave early, before useAutoSave
   const handleSave = useCallback(async () => {
     if (isSaving) {
-      console.log('Save already in progress, skipping...');
+      debugLog.log('Save already in progress, skipping...');
       return;
     }
     
     setIsSaving(true);
-    console.log('=== SAVE DEBUG ===');
+    debugLog.log('=== SAVE DEBUG ===');
     
     const currentData = {
       backgroundImage,
@@ -1334,7 +1351,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       return;
     }
     
-    console.log('Saving data:', {
+    debugLog.log('Saving data:', {
       hotspotsCount: currentData.hotspots.length,
       timelineEventsCount: currentData.timelineEvents.length,
       hotspotIds: currentData.hotspots.map(h => h.id),
@@ -1344,7 +1361,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     try {
       await onSave(currentData, thumbnailUrl);
-      console.log('Save completed successfully');
+      debugLog.log('Save completed successfully');
       setShowSuccessMessage(true);
       showSuccess('Saved Successfully', 'Your changes have been saved.');
       if (successMessageTimeoutRef.current) {
@@ -1429,19 +1446,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     if (isPlacingHotspot) {
       // If already in placement mode, clicking again cancels it.
       setIsPlacingHotspot(false);
-      console.log("Hotspot placement cancelled by clicking 'Add Hotspot' button again.");
+      debugLog.log("Hotspot placement cancelled by clicking 'Add Hotspot' button again.");
     } else {
       // Enter "placing hotspot" mode.
       setIsPlacingHotspot(true);
       // Potentially show a message to the user, e.g., "Click on the image to place the hotspot."
-      console.log("Add Hotspot clicked, entering placement mode.");
+      debugLog.log("Add Hotspot clicked, entering placement mode.");
     }
   }, [isPlacingHotspot, setIsPlacingHotspot]);
 
   const handleCancelHotspotPlacement = useCallback(() => {
     if (isPlacingHotspot) {
       setIsPlacingHotspot(false);
-      console.log("Hotspot placement cancelled via right-click or other direct cancel action.");
+      debugLog.log("Hotspot placement cancelled via right-click or other direct cancel action.");
     }
   }, [isPlacingHotspot, setIsPlacingHotspot]);
 
@@ -1457,6 +1474,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       description: "Default description",
       color: defaultColor,
       size: 'medium',
+      displayHotspotInEvent: true, // Make hotspots visible by default
     };
 
     setHotspots(prevHotspots => [...prevHotspots, normalizeHotspotPosition(newHotspotData)]);
@@ -1469,14 +1487,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     setIsPlacingHotspot(false); // Exit placement mode
-    console.log(`New hotspot placed at ${x}%, ${y}% and modal opened.`);
+    debugLog.log(`New hotspot placed at ${x}%, ${y}% and modal opened.`);
   }, [colorScheme, hotspots, timelineEvents, isEditing, setCurrentStep, setIsPlacingHotspot, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // Removed the first handleEditHotspotRequest (was for HotspotEditModal)
 
   // Unified handler for opening the HotspotEditorModal for an existing hotspot
   const handleOpenHotspotEditor = useCallback((hotspotId: string) => {
-    console.log('Debug [InteractiveModule]: handleOpenHotspotEditor called', {
+    debugLog.log('Debug [InteractiveModule]: handleOpenHotspotEditor called', {
       hotspotId,
       currentModalState: isHotspotModalOpen,
       selectedHotspot: selectedHotspotForModal,
@@ -1486,7 +1504,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setSelectedHotspotForModal(hotspotId);
     setIsHotspotModalOpen(true);
     
-    console.log('Debug [InteractiveModule]: Modal state updated for hotspot', hotspotId);
+    debugLog.log('Debug [InteractiveModule]: Modal state updated for hotspot', hotspotId);
   }, [setSelectedHotspotForModal, setIsHotspotModalOpen, isHotspotModalOpen, selectedHotspotForModal]);
 
   // Handler for viewer mode changes
@@ -1519,7 +1537,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       
       // Verify the update was applied
       const updatedHotspot = updatedHotspots.find(h => h.id === hotspotId);
-      console.log('Debug [InteractiveModule]: Position update applied', {
+      debugLog.log('Debug [InteractiveModule]: Position update applied', {
         hotspotId,
         newPosition: updatedHotspot ? { x: updatedHotspot.x, y: updatedHotspot.y } : null,
         success: !!updatedHotspot,
@@ -1532,7 +1550,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   
   // Drag state change handler
   const handleDragStateChange = useCallback((isDragging: boolean) => {
-    console.log('Debug [InteractiveModule]: Drag state changed', {
+    debugLog.log('Debug [InteractiveModule]: Drag state changed', {
       isDragging,
       timestamp: Date.now()
     });
@@ -1544,7 +1562,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Updated handleImageOrHotspotClick function
   // This function is now intended to be called by ImageEditCanvas with event and potential hotspotId
   const handleImageOrHotspotClick = useCallback((event: React.MouseEvent<HTMLElement>, hotspotIdFromCanvas?: string) => {
-    console.log('Debug [InteractiveModule]: handleImageOrHotspotClick called', {
+    debugLog.log('Debug [InteractiveModule]: handleImageOrHotspotClick called', {
       target: event.target,
       currentTarget: event.currentTarget,
       hotspotIdFromCanvas,
@@ -1554,7 +1572,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     
     // CRITICAL FIX: Check for placement mode first
     if (isPlacingHotspot) {
-      console.log('Debug [InteractiveModule]: In placement mode, checking if click should create hotspot');
+      debugLog.log('Debug [InteractiveModule]: In placement mode, checking if click should create hotspot');
       
       // If we're in placement mode, we should only handle hotspot creation
       // The ImageEditCanvas should handle the actual placement, but if it reaches here,
@@ -1580,7 +1598,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           const finalXPercent = Math.max(0, Math.min(100, xPercent));
           const finalYPercent = Math.max(0, Math.min(100, yPercent));
           
-          console.log('Debug [InteractiveModule]: Creating hotspot from handleImageOrHotspotClick', {
+          debugLog.log('Debug [InteractiveModule]: Creating hotspot from handleImageOrHotspotClick', {
             clickX, clickY, xPercent, yPercent, finalXPercent, finalYPercent
           });
           
@@ -1591,7 +1609,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       
       // If we're in placement mode but the click wasn't valid for placement,
       // don't treat it as a background click - just return
-      console.log('Debug [InteractiveModule]: In placement mode but click not valid for placement');
+      debugLog.log('Debug [InteractiveModule]: In placement mode but click not valid for placement');
       return;
     }
     
@@ -1613,7 +1631,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     if (foundHotspotId) {
       const clickedHotspot = hotspots.find(h => h.id === foundHotspotId);
       if (clickedHotspot) {
-        console.log('Debug [InteractiveModule]: Hotspot clicked via container', {
+        debugLog.log('Debug [InteractiveModule]: Hotspot clicked via container', {
           hotspotId: foundHotspotId,
           isEditing,
           currentEditingHotspot: editingHotspot?.id,
@@ -1626,7 +1644,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         }
       }
     } else {
-      console.log('Debug [InteractiveModule]: Background clicked via container', {
+      debugLog.log('Debug [InteractiveModule]: Background clicked via container', {
         isEditing,
         currentEditingHotspot: editingHotspot?.id,
         isPlacingHotspot,
@@ -1656,7 +1674,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [handleFocusHotspot]);
 
   const handleMobileEventComplete = useCallback((eventId: string) => {
-    console.log('🎯 Mobile event completed:', eventId);
+    debugLog.log('🎯 Mobile event completed:', eventId);
     
     // Find the completed event to sync state
     const completedEvent = mobileActiveEvents.find(event => event.id === eventId);
@@ -2009,11 +2027,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   const handleAttemptClose = useCallback(() => {
     if (isModeSwitching) {
-      debugLog('ModeSwitch', 'Already switching, aborting close attempt.');
+      componentDebugLog('ModeSwitch', 'Already switching, aborting close attempt.');
       return;
     }
 
-    debugLog('ModeSwitch', 'Starting mode switch / close sequence.');
+    componentDebugLog('ModeSwitch', 'Starting mode switch / close sequence.');
     setIsModeSwitching(true);
 
     // Cancel any pending operations
@@ -2045,19 +2063,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     // Delay the actual close to allow state updates to complete
     closeTimeoutRef.current = setTimeout(() => {
-      debugLog('ModeSwitch', 'Executing actual close action.');
+      componentDebugLog('ModeSwitch', 'Executing actual close action.');
       if (onClose) {
         // Pass a callback that will be executed by App.tsx's handleCloseModal
         onClose(() => {
           // This part is now effectively App.tsx's responsibility,
           // but InteractiveModule ensures its own state is set before this callback is even available to App.tsx
           setIsModeSwitching(false);
-          debugLog('ModeSwitch', 'InteractiveModule internal cleanup finished, App-side callback executed.');
+          componentDebugLog('ModeSwitch', 'InteractiveModule internal cleanup finished, App-side callback executed.');
         });
       } else {
         // If no onClose is provided, finish mode switching here
         setIsModeSwitching(false);
-        debugLog('ModeSwitch', 'InteractiveModule internal cleanup finished (no onClose callback).');
+        componentDebugLog('ModeSwitch', 'InteractiveModule internal cleanup finished (no onClose callback).');
       }
     }, 150); // Delay for internal state updates to settle before calling onClose
   }, [
@@ -2282,7 +2300,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
     // Prevent re-initialization during mode switches or if already initialized for current data
     if (isModeSwitching) {
-      debugLog('Init', 'Skipping initialization: mode switching.');
+      componentDebugLog('Init', 'Skipping initialization: mode switching.');
       return;
     }
     // If we consider isInitialized as a guard against re-running for the *same* initialData,
@@ -2290,7 +2308,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // However, the dependencies array [initialData, isEditing, isModeSwitching] handles actual data changes.
     // The primary role of isInitialized here is for the initial "Initializing..." screen.
 
-    debugLog('Init', 'Starting initialization process...', { isEditing, initialDataProvided: !!initialData });
+    componentDebugLog('Init', 'Starting initialization process...', { isEditing, initialDataProvided: !!initialData });
     if (isMounted) {
       setInitError(null); // Clear previous errors
     }
@@ -2347,12 +2365,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       if (isMounted) {
         setIsInitialized(true);
-        debugLog('Init', 'Initialization complete.');
+        componentDebugLog('Init', 'Initialization complete.');
       }
 
     } catch (error) {
       console.error('Module initialization failed:', error);
-      debugLog('InitError', 'Module initialization failed', error);
+      componentDebugLog('InitError', 'Module initialization failed', error);
       if (isMounted) {
         setInitError(error instanceof Error ? error : new Error(String(error)));
         setIsInitialized(true); // Still mark as initialized to show error UI
@@ -2362,7 +2380,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Cleanup for this effect
     return () => {
       isMounted = false;
-      debugLog('Init', 'Cleanup function for initialization effect called.');
+      componentDebugLog('Init', 'Cleanup function for initialization effect called.');
       // This cleanup runs when initialData or isEditing changes, or on unmount.
       // Setting isInitialized to false here would cause "Initializing..." screen to flash
       // if initialData or isEditing changes. This might be desired if a full re-init feel is wanted.
@@ -2385,7 +2403,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         applyTransformTimeoutRef.current = null;
       }
     };
-  }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, debugLog]); // Added isModeSwitching and debugLog
+  }, [initialData, isEditing, clearImageBoundsCache, isModeSwitching, componentDebugLog]); // Added isModeSwitching and debugLog
 
   // Cleanup for closeTimeoutRef
   useEffect(() => {
@@ -2408,7 +2426,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      debugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
+      componentDebugLog('Keyboard', `Key '${e.key}' pressed`, { ctrl: e.ctrlKey, meta: e.metaKey });
       // Don't interfere with input fields
       if (e.target instanceof HTMLInputElement ||
           e.target instanceof HTMLTextAreaElement ||
@@ -2488,7 +2506,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       
       // Debug logging for mobile event execution
-      console.log('🎯 Event Execution Debug:', {
+      debugLog.log('🎯 Event Execution Debug:', {
         moduleState,
         currentStep,
         totalTimelineEvents: timelineEvents.length,
@@ -2521,13 +2539,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           ].includes(event.type);
           
           if (!isCompatible) {
-            console.warn('Event type not compatible with mobile:', event.type);
+            debugLog.warn('Event type not compatible with mobile:', event.type);
           }
           
           return isCompatible;
         });
 
-        console.log('🎯 Mobile compatible events:', mobileCompatibleEvents.map(e => ({ id: e.id, type: e.type })));
+        debugLog.log('🎯 Mobile compatible events:', mobileCompatibleEvents.map(e => ({ id: e.id, type: e.type })));
         setMobileActiveEvents(mobileCompatibleEvents);
         
         // Sync highlight state for mobile events
@@ -2545,7 +2563,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // Enhanced container ref management
       if (isMobile && imageContainerRef.current) {
         setMobileEventContainerRef(imageContainerRef.current);
-        console.log('Mobile container ref set:', imageContainerRef.current);
+        debugLog.log('Mobile container ref set:', imageContainerRef.current);
       }
       let stepHasPanZoomEvent = false;
 
@@ -2571,7 +2589,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       );
       
       if (hasTransformEvents && isMobile) {
-        console.log('🎯 Mobile Event Coordination: Signaling event control to touch gestures');
+        debugLog.log('🎯 Mobile Event Coordination: Signaling event control to touch gestures');
         touchGestureHandlers.setEventActive(true);
         
         // Schedule release of event control after a delay
@@ -2580,64 +2598,79 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         }
         eventControlTimeoutRef.current = window.setTimeout(() => {
           touchGestureHandlers.setEventActive(false);
-          console.log('🎯 Mobile Event Coordination: Released event control from touch gestures');
+          debugLog.log('🎯 Mobile Event Coordination: Released event control from touch gestures');
         }, 500);
       }
 
       eventsForCurrentStep.forEach(event => {
         switch (event.type) {
           case InteractionType.PULSE_HOTSPOT:
-            if (event.targetId) {
-              newPulsingHotspotId = event.targetId;
-              if (event.duration) {
-                pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
-              }
+            if (!event.targetId) {
+              debugLog.error('PULSE_HOTSPOT event missing targetId', event);
+              break;
+            }
+            newPulsingHotspotId = event.targetId;
+            if (event.duration) {
+              pulseTimeoutRef.current = window.setTimeout(() => setPulsingHotspotId(prevId => prevId === event.targetId ? null : prevId), event.duration);
             }
             break;
           case InteractionType.PAN_ZOOM:
             stepHasPanZoomEvent = true;
-            if (event.targetId) {
-              const targetHotspot = hotspots.find(h => h.id === event.targetId);
-              // Ensure hotspotsWithPositions is used if available, otherwise find in hotspots
-              // const targetHotspot = hotspotsWithPositions.find(h => h.id === event.targetId) || hotspots.find(h => h.id === event.targetId);
+            if (!event.targetId) {
+              debugLog.error('PAN_ZOOM event missing targetId', event);
+              break;
+            }
+            const targetHotspot = hotspots.find(h => h.id === event.targetId);
+            if (!targetHotspot) {
+              debugLog.error(`PAN_ZOOM event target hotspot not found: ${event.targetId}`, event);
+              break;
+            }
 
-              const imageBounds = getSafeImageBounds();
-              const viewportCenter = getSafeViewportCenter();
+            const imageBounds = getSafeImageBounds();
+            const viewportCenter = getSafeViewportCenter();
 
-              if (targetHotspot && imageBounds && viewportCenter) {
-                const scale = event.zoomLevel || event.zoomFactor || 2;
+            if (!imageBounds || !viewportCenter) {
+              debugLog.error('PAN_ZOOM event missing imageBounds or viewportCenter', { imageBounds, viewportCenter, event });
+              break;
+            }
 
-                // Mobile-specific pan/zoom logging
-                if (isMobile) {
-                  console.log('🎯 Mobile Event Execution: Pan/Zoom event', {
-                    eventId: event.id,
-                    targetId: event.targetId,
-                    scale: scale,
-                    smooth: event.smooth,
-                    hotspotPosition: { x: targetHotspot.x, y: targetHotspot.y },
-                    imageBounds: imageBounds,
-                    viewportCenter: viewportCenter
-                  });
-                }
+            const scale = event.zoomLevel || event.zoomFactor || 2;
+            if (typeof scale !== 'number' || scale <= 0) {
+              debugLog.error('PAN_ZOOM event has invalid scale', { scale, event });
+              break;
+            }
 
-                // Calculate hotspot position on the unscaled image, relative to imageBounds content area
-                const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
-                const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
+            // Mobile-specific pan/zoom logging
+            if (isMobile) {
+              debugLog.log('🎯 Mobile Event Execution: Pan/Zoom event', {
+                eventId: event.id,
+                targetId: event.targetId,
+                scale: scale,
+                smooth: event.smooth,
+                hotspotPosition: { x: targetHotspot.x, y: targetHotspot.y },
+                imageBounds: imageBounds,
+                viewportCenter: viewportCenter
+              });
+            }
 
-                // Calculate translation to center the hotspot
-                // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
-                // The hotspot's scaled position without additional translation would be:
-                // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
-                // OR more simply, if thinking about the image content itself:
-                // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
-                // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
-                // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
+            // Calculate hotspot position on the unscaled image, relative to imageBounds content area
+            const hotspotX = (targetHotspot.x / 100) * imageBounds.width;
+            const hotspotY = (targetHotspot.y / 100) * imageBounds.height;
 
-                // The CSS transform `translate(tx, ty) scale(s)` on a div means:
-                // screenX = divOriginalScreenX * s + tx
-                // screenY = divOriginalScreenY * s + ty
-                // If the div has `transform-origin: center center`, it's more complex.
-                // The `scaledImageDivRef` has `transform-origin: center`.
+            // Calculate translation to center the hotspot
+            // The viewportCenter.centerX/Y is the target point on the screen for the hotspot.
+            // The hotspot's scaled position without additional translation would be:
+            // (imageBounds.left + hotspotX) * scale (if transform-origin is top-left of container)
+            // OR more simply, if thinking about the image content itself:
+            // The point (hotspotX, hotspotY) on the image content needs to map to (viewportCenter.centerX, viewportCenter.centerY)
+            // after the full transform `translate(translateX, translateY) scale(scale)` is applied to the div,
+            // and considering the image content starts at `imageBounds.left, imageBounds.top` within that div.
+
+            // The CSS transform `translate(tx, ty) scale(s)` on a div means:
+            // screenX = divOriginalScreenX * s + tx
+            // screenY = divOriginalScreenY * s + ty
+            // If the div has `transform-origin: center center`, it's more complex.
+            // The `scaledImageDivRef` has `transform-origin: center`.
 
                 // Let's use the formula from the issue, as it's specified.
                 // It calculates translateX/Y such that when the `scaledImageDivRef` is translated and scaled,
@@ -2681,74 +2714,118 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   targetHotspotId: event.targetId
                 };
 
-                newTransform = constrainTransform(newTransform);
-
-                newImageTransform = newTransform;
-              } else if (targetHotspot) { // imageBounds or viewportCenter might be null
-                  // Fallback or error? For now, do nothing if critical info is missing.
-                  // Or reset? The default is to reset if no pan/zoom event.
-              }
-            }
+                newImageTransform = constrainTransform(newTransform);
+              
             break;
           case InteractionType.SHOW_TEXT:
-            if (event.textContent) {
-              newMessage = event.textContent;
+            if (!event.textContent) {
+              debugLog.error('SHOW_TEXT event missing textContent', event);
+              break;
             }
+            newMessage = event.textContent;
             break;
           case InteractionType.SHOW_IMAGE:
-            if (event.imageUrl) {
-              // For now, show image URL as message - could be enhanced with modal
-              newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
+            if (!event.imageUrl) {
+              debugLog.error('SHOW_IMAGE event missing imageUrl', event);
+              break;
             }
+            // For now, show image URL as message - could be enhanced with modal
+            newMessage = `Image: ${event.imageUrl}${event.caption ? ` - ${event.caption}` : ''}`;
             break;
           case InteractionType.SPOTLIGHT:
-            if (event.targetId) {
-              newHighlightedHotspotId = event.targetId;
-              // Enhanced with spotlight shape, size, and dimming controls
+            if (!event.targetId) {
+              debugLog.error('SPOTLIGHT event missing targetId', event);
+              break;
+            }
+            newHighlightedHotspotId = event.targetId;
+            // Enhanced with spotlight shape, size, and dimming controls
+            
+            // Mobile-specific spotlight enhancements
+            if (isMobile) {
+              debugLog.log('🎯 Mobile Event Execution: Spotlight event', {
+                eventId: event.id,
+                targetId: event.targetId,
+                spotlightShape: event.spotlightShape,
+                spotlightWidth: event.spotlightWidth,
+                spotlightHeight: event.spotlightHeight,
+                backgroundDimPercentage: event.backgroundDimPercentage
+              });
               
-              // Mobile-specific spotlight enhancements
-              if (isMobile) {
-                console.log('🎯 Mobile Event Execution: Spotlight event', {
-                  eventId: event.id,
-                  targetId: event.targetId,
-                  spotlightShape: event.spotlightShape,
-                  spotlightWidth: event.spotlightWidth,
-                  spotlightHeight: event.spotlightHeight,
-                  backgroundDimPercentage: event.backgroundDimPercentage
-                });
-                
-                // Add haptic feedback for mobile spotlight
-                if (navigator.vibrate) {
-                  navigator.vibrate(100);
-                }
+              // Add haptic feedback for mobile spotlight
+              if (navigator.vibrate) {
+                navigator.vibrate(100);
               }
             }
             break;
           case InteractionType.QUIZ:
-            if (event.quizQuestion) {
-              newMessage = `Quiz: ${event.quizQuestion}`;
-              // Could be enhanced with modal for quiz interaction
+            if (!event.quizQuestion || !event.quizOptions || event.quizOptions.length === 0 || typeof event.quizCorrectAnswer !== 'number') {
+              debugLog.error('QUIZ event missing required quiz data', event);
+              break;
             }
+            newMessage = `Quiz: ${event.quizQuestion}`;
+            // Could be enhanced with modal for quiz interaction
             break;
           case InteractionType.PLAY_AUDIO:
-            if (event.audioUrl) {
-              const displayMode = event.audioDisplayMode || 'background';
-              
-              switch (displayMode) {
-                case 'background':
-                  // Simple background audio playback
-                  const audio = new Audio(event.audioUrl);
-                  if (event.volume !== undefined) {
-                    audio.volume = Math.max(0, Math.min(1, event.volume / 100));
-                  }
-                  audio.play().catch(error => console.warn('Audio playback failed:', error));
-                  break;
-                case 'modal':
-                  // Modal audio player
-                  showMediaModal('audio', event.name || 'Audio', {
-                    src: event.audioUrl,
-                    title: event.audioTitle || event.textContent,
-                    artist: event.audioArtist || event.artist,
+            if (!event.audioUrl) {
+              debugLog.error('PLAY_AUDIO event missing audioUrl', event);
+              break;
+            }
+            const displayMode = event.audioDisplayMode || 'background';
+            
+            switch (displayMode) {
+              case 'background':
+                // Simple background audio playback
+                const audio = new Audio(event.audioUrl);
+                if (event.volume !== undefined) {
+                  audio.volume = Math.max(0, Math.min(1, event.volume / 100));
+                }
+                audio.play().catch(error => debugLog.warn('Audio playback failed:', error));
+                break;
+              case 'modal':
+                // Modal audio player
+                showMediaModal('audio', event.name || 'Audio', {
+                  src: event.audioUrl,
+                  title: event.audioTitle || event.textContent,
+                  artist: event.audioArtist || event.artist,
+                  autoplay: event.autoplay || false,
+                  loop: event.loop || false,
+                  // Quiz integration
+                  quizTriggers: event.quizTriggers,
+                  onQuizTrigger: handleQuizTrigger,
+                  onQuizComplete: handleQuizComplete,
+                  allowSeeking: event.allowSeeking,
+                  enforceQuizCompletion: event.enforceQuizCompletion
+                });
+                break;
+              case 'mini-player':
+                // TODO: Implement mini-player mode
+                debugLog.warn('Mini-player mode not yet implemented');
+                break;
+            }
+            break;
+          case InteractionType.PLAY_VIDEO:
+            if (!event.videoUrl && !event.youtubeVideoId) {
+              debugLog.error('PLAY_VIDEO event missing videoUrl or youtubeVideoId', event);
+              break;
+            }
+            const videoDisplayMode = event.videoDisplayMode || 'inline';
+            const videoSource = event.videoSource || 'url';
+            
+            switch (videoDisplayMode) {
+              case 'modal':
+              case 'overlay':
+                if (videoSource === 'youtube' && event.youtubeVideoId) {
+                  showMediaModal('youtube', event.name || 'YouTube Video', {
+                    videoId: event.youtubeVideoId,
+                    startTime: event.youtubeStartTime,
+                    endTime: event.youtubeEndTime,
+                    autoplay: event.autoplay || false,
+                    loop: event.loop || false
+                  });
+                } else if (event.videoUrl) {
+                  showMediaModal('video', event.name || 'Video', {
+                    src: event.videoUrl,
+                    poster: event.videoPoster || event.poster,
                     autoplay: event.autoplay || false,
                     loop: event.loop || false,
                     // Quiz integration
@@ -2758,62 +2835,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     allowSeeking: event.allowSeeking,
                     enforceQuizCompletion: event.enforceQuizCompletion
                   });
-                  break;
-                case 'mini-player':
-                  // TODO: Implement mini-player mode
-                  console.warn('Mini-player mode not yet implemented');
-                  break;
-              }
-            }
-            break;
-          case InteractionType.PLAY_VIDEO:
-            if (event.videoUrl || event.youtubeVideoId) {
-              const displayMode = event.videoDisplayMode || 'inline';
-              const videoSource = event.videoSource || 'url';
-              
-              switch (displayMode) {
-                case 'modal':
-                case 'overlay':
-                  if (videoSource === 'youtube' && event.youtubeVideoId) {
-                    showMediaModal('youtube', event.name || 'YouTube Video', {
-                      videoId: event.youtubeVideoId,
-                      startTime: event.youtubeStartTime,
-                      endTime: event.youtubeEndTime,
-                      autoplay: event.autoplay || false,
-                      loop: event.loop || false
-                    });
-                  } else if (event.videoUrl) {
-                    showMediaModal('video', event.name || 'Video', {
-                      src: event.videoUrl,
-                      poster: event.videoPoster || event.poster,
-                      autoplay: event.autoplay || false,
-                      loop: event.loop || false,
-                      // Quiz integration
-                      quizTriggers: event.quizTriggers,
-                      onQuizTrigger: handleQuizTrigger,
-                      onQuizComplete: handleQuizComplete,
-                      allowSeeking: event.allowSeeking,
-                      enforceQuizCompletion: event.enforceQuizCompletion
-                    });
-                  }
-                  break;
-                case 'inline':
-                default:
-                  // TODO: Implement inline video playback
-                  console.warn('Inline video playback not yet implemented');
-                  break;
-              }
+                }
+                break;
+              case 'inline':
+              default:
+                // TODO: Implement inline video playback
+                debugLog.warn('Inline video playback not yet implemented');
+                break;
             }
             break;
           case InteractionType.SHOW_IMAGE_MODAL:
-            if (event.imageUrl) {
-              showMediaModal('image', event.name || 'Image', {
-                src: event.imageUrl,
-                alt: event.caption || '',
-                title: event.textContent,
-                caption: event.caption
-              });
+            if (!event.imageUrl) {
+              debugLog.error('SHOW_IMAGE_MODAL event missing imageUrl', event);
+              break;
             }
+            showMediaModal('image', event.name || 'Image', {
+              src: event.imageUrl,
+              alt: event.caption || '',
+              title: event.textContent,
+              caption: event.caption
+            });
             break;
         }
       });
@@ -2838,7 +2879,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setHighlightedHotspotId(newHighlightedHotspotId);
       
       // Debug logging for state changes
-      console.log('🎯 Setting Event States:', {
+      debugLog.log('🎯 Setting Event States:', {
         activeDisplayIds: Array.from(newActiveDisplayIds),
         message: newMessage,
         pulsingHotspot: newPulsingHotspotId,
@@ -2932,12 +2973,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
 
     return () => { if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current); };
-  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, isMobile, touchGestureHandlers]);
+  }, [currentStep, timelineEvents, hotspots, moduleState, exploredHotspotId, exploredHotspotPanZoomActive, isEditing, getSafeImageBounds, getSafeViewportCenter, constrainTransform, applyTransform, isMobile]);
 
   // Debug effect to track transform changes and detect loops
   useEffect(() => {
     if (debugMode) {
-      debugLog('Transform State', 'Transform changed', {
+      componentDebugLog('Transform State', 'Transform changed', {
         scale: imageTransform.scale,
         translateX: imageTransform.translateX.toFixed(2),
         translateY: imageTransform.translateY.toFixed(2),
@@ -2945,7 +2986,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         stack: new Error().stack?.split('\n').slice(1, 4)
       });
     }
-  }, [imageTransform, debugMode, debugLog]);
+  }, [imageTransform, debugMode, componentDebugLog]);
 
   // useEffect(() => {
   //   if (syncData) {
@@ -2971,7 +3012,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     if (dataUrl) {
       setQrCodeDataUrl(dataUrl);
     } else {
-      console.error('Failed to generate QR code for device handoff');
+      debugLog.error('Failed to generate QR code for device handoff');
     }
   };
 
@@ -3110,9 +3151,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               className={`flex-1 relative bg-slate-700 min-h-0 overflow-hidden ${
                 isMobile ? 'mobile-event-container mobile-transform-container' : ''
               }`}
-              onTouchStart={isMobile && isEditing ? touchGestureHandlers.handleTouchStart : undefined}
-              onTouchMove={isMobile && isEditing ? touchGestureHandlers.handleTouchMove : undefined}
-              onTouchEnd={isMobile && isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
+              onTouchStart={isMobile && isEditing ? handleTouchStart : undefined}
+              onTouchMove={isMobile && isEditing ? handleTouchMove : undefined}
+              onTouchEnd={isMobile && isEditing ? handleTouchEnd : undefined}
             >
               <ImageEditCanvas
                 backgroundImage={backgroundImage}
@@ -3258,9 +3299,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                   // This allows ImageEditCanvas to report clicks, which InteractiveModule then uses
                   // to determine if a hotspot or the background was clicked.
                   onImageOrHotspotClick={(e, hotspotId) => handleImageOrHotspotClick(e, hotspotId)}
-                  onTouchStart={touchGestureHandlers.handleTouchStart}
-                    onTouchMove={touchGestureHandlers.handleTouchMove}
-                    onTouchEnd={touchGestureHandlers.handleTouchEnd}
+                  onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     // onFocusHotspot is kept for potential keyboard navigation or other accessibility features
                     // that might directly trigger focus on a hotspot.
                     onFocusHotspot={handleFocusHotspot}
@@ -3334,16 +3375,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
             {/* Image container with mobile-safe sizing */}
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
-            <div
+            <div 
               ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
-              className={`flex-1 relative bg-slate-900 min-h-0 ${
-                isMobile ? 'mobile-event-container mobile-transform-container' : ''
-              }`} // min-h-0 is important for flex children that might overflow
-              style={{ zIndex: Z_INDEX.IMAGE_BASE }}
-              onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
-              onTouchStart={isMobile && !isEditing ? touchGestureHandlers.handleTouchStart : undefined}
-              onTouchMove={isMobile && !isEditing ? touchGestureHandlers.handleTouchMove : undefined}
-              onTouchEnd={isMobile && !isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
+              className={`relative w-full h-full overflow-hidden flex items-center justify-center ${isMobile ? 'mobile-viewer' : ''}`}
+              {...(isMobile ? touchHandlers : {})} // Apply touch handlers only on mobile
             >
               <div
                 className="w-full h-full flex items-center justify-center"
@@ -3394,7 +3429,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                           }
                         }}
                         onError={() => {
-                          console.error('Failed to load background image:', backgroundImage);
+                          debugLog.error('Failed to load background image:', backgroundImage);
                           setImageNaturalDimensions(null);
                           if (backgroundType === 'image' || !backgroundType) {
                             setImageLoading(false);
@@ -3469,7 +3504,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         isActive={moduleState === 'learning'}
                         currentTransform={imageTransform}
                         onTransformUpdate={setImageTransform}
-                        isGestureActive={touchGestureHandlers.isGestureActive()}
+                        isGestureActive={isGestureActive()}
                       />
                     )}
                     
@@ -3550,7 +3585,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         // Enhanced modal selection logic with debugging and fallback
         const shouldUseMobileEditor = isMobile && window.innerWidth <= 768; // Double-check with actual viewport
 
-        console.log('🔍 MODAL DEBUG: Determining which modal to render', {
+        debugLog.log('🔍 MODAL DEBUG: Determining which modal to render', {
           isMobile,
           windowWidth: window.innerWidth,
           shouldUseMobileEditor,
@@ -3618,13 +3653,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           }}
           allHotspots={hotspots}
           onPreviewOverlay={(event) => {
-            console.log('🔍 PREVIEW DEBUG: onPreviewOverlay called in InteractiveModule', { 
+            debugLog.log('🔍 PREVIEW DEBUG: onPreviewOverlay called in InteractiveModule', { 
               event: event ? { id: event.id, type: event.type, name: event.name } : null
             });
             setPreviewOverlayEvent(event);
           }}
           onCollapseChange={(isCollapsed) => {
-            console.log('🔍 COLLAPSE DEBUG: Editor collapse state changed:', isCollapsed);
+            debugLog.log('🔍 COLLAPSE DEBUG: Editor collapse state changed:', isCollapsed);
             setIsEditorCollapsed(isCollapsed);
           }}
         />
@@ -3740,9 +3775,9 @@ const useAutoSave = (
   
   const debouncedAutoSave = useMemo(
     () => throttle(() => {
-      console.log('Auto-saving project...');
+      debugLog.log('Auto-saving project...');
       handleSave().catch(error => {
-        console.error('Auto-save failed:', error);
+        debugLog.error('Auto-save failed:', error);
       });
     }, 10000), // Prevent auto-saves from triggering more than once every 10 seconds
     [handleSave]

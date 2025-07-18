@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimelineEventData, InteractionType } from '../../shared/types';
+import { debugLog } from './debugUtils';
 
 export interface DebugIssue {
   type: 'error' | 'warning' | 'info';
@@ -22,12 +23,12 @@ class MobileEventDebugger {
 
   enable() {
     this.debugEnabled = true;
-    console.log('🐛 Mobile Event Debugger enabled');
+    debugLog.log('🐛 Mobile Event Debugger enabled');
   }
 
   disable() {
     this.debugEnabled = false;
-    console.log('🐛 Mobile Event Debugger disabled');
+    debugLog.log('🐛 Mobile Event Debugger disabled');
   }
 
   logEvent(
@@ -46,17 +47,17 @@ class MobileEventDebugger {
     };
 
     if (this.debugEnabled) {
-      console.group(`🎯 Mobile Event Debug: ${event.type} in ${component}`);
-      console.log('Event Data:', event);
-      console.log('Container Ref:', containerRef?.current);
+      debugLog.log(`🎯 Mobile Event Debug: ${event.type} in ${component}`);
+      debugLog.log('Event Data:', event);
+      debugLog.log('Container Ref:', containerRef?.current);
       
       if (issues.length > 0) {
-        console.warn('Issues detected:', issues);
+        debugLog.warn('Issues detected:', issues);
       } else {
-        console.log('✅ No issues detected');
+        debugLog.log('✅ No issues detected');
       }
       
-      console.groupEnd();
+      // debugLog doesn't support groupEnd, so we'll just add a separator
     }
 
     this.eventLog.push(debugInfo);
@@ -263,7 +264,7 @@ class MobileEventDebugger {
 
   clearLog() {
     this.eventLog = [];
-    console.log('🐛 Mobile Event Debug log cleared');
+    debugLog.log('🐛 Mobile Event Debug log cleared');
   }
 
   exportDebugReport(): string {

@@ -1,5 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 import { ImageTransformState } from '../../shared/types';
+import { debugLog } from '../utils/debugUtils';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
 
@@ -227,13 +228,13 @@ export const useTouchGestures = (
                             target?.classList.contains('hotspot-element');
     
     if (isHotspotElement) {
-      console.log('Debug [useTouchGestures]: Touch on hotspot element - skipping container gestures');
+      debugLog.info('Touch on hotspot element - skipping container gestures');
       return;
     }
 
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragging || isEditing || isDragActive) {
-      console.log('Debug [useTouchGestures]: Touch start blocked', {
+      debugLog.info('Touch start blocked', {
         isDragging,
         isEditing,
         isDragActive,
@@ -244,13 +245,13 @@ export const useTouchGestures = (
 
     // Block gestures when events are controlling transforms
     if (gestureState.isEventActive) {
-      console.log('Debug [useTouchGestures]: Touch start blocked - event is controlling transforms');
+      debugLog.info('Touch start blocked - event is controlling transforms');
       return;
     }
     
     // Prevent race conditions by checking if another gesture is already active
     if (gestureState.isActive) {
-      console.log('Debug [useTouchGestures]: Touch start blocked - gesture already active');
+      debugLog.info('Touch start blocked - gesture already active');
       return;
     }
     
@@ -353,7 +354,7 @@ export const useTouchGestures = (
     }
     handlePinchStart(e);
     } catch (error) {
-      console.warn('Touch start error:', error);
+      debugLog.warn('Touch start error:', error);
       cleanupGesture();
     }
   }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture, disabled]);
@@ -372,7 +373,7 @@ export const useTouchGestures = (
 
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragging || isEditing || isDragActive) {
-      console.log('Debug [useTouchGestures]: Touch move blocked', {
+      debugLog.info('Touch move blocked', {
         isDragging,
         isEditing,
         isDragActive,
@@ -383,7 +384,7 @@ export const useTouchGestures = (
 
     // Block gestures when events are controlling transforms
     if (gestureStateRef.current.isEventActive) {
-      console.log('Debug [useTouchGestures]: Touch move blocked - event is controlling transforms');
+      debugLog.info('Touch move blocked - event is controlling transforms');
       return;
     }
     
@@ -621,7 +622,7 @@ export const useTouchGestures = (
 
     // Early return for better performance - disable container gestures when hotspot is being dragged or in modal editing
     if (isDragActive || isDragging || isEditing) {
-      console.log('Debug [useTouchGestures]: Touch end blocked', {
+      debugLog.info('Touch end blocked', {
         isDragging,
         isEditing,
         isDragActive,
@@ -632,7 +633,7 @@ export const useTouchGestures = (
 
     // Block gestures when events are controlling transforms
     if (gestureStateRef.current.isEventActive) {
-      console.log('Debug [useTouchGestures]: Touch end blocked - event is controlling transforms');
+      debugLog.info('Touch end blocked - event is controlling transforms');
       return;
     }
     
@@ -731,7 +732,7 @@ export const useTouchGestures = (
       cleanupGesture(true); // Preserve event state
     }
     
-    console.log('Debug [useTouchGestures]: Event active state changed', {
+    debugLog.info('Event active state changed', {
       isEventActive: active,
       wasGestureActive: gestureState.isActive,
       timestamp: Date.now()
