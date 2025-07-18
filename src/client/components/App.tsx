@@ -292,11 +292,11 @@ const MainApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-8">
-      <header className="mb-6 sm:mb-8 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white" style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
+      <header className="mb-6 sm:mb-8 text-center" style={{ paddingTop: '16px' }}>
         <div className="max-w-6xl mx-auto">
           <div className="block sm:hidden">
-            <div className="flex justify-between items-center mb-3 px-2">
+            <div className="flex justify-between items-center mb-3 px-2" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
               <button
                 onClick={handleCreateNewProject}
                 className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
@@ -325,7 +325,7 @@ const MainApp: React.FC = () => {
             </h1>
           </div>
           
-          <div className="hidden sm:flex justify-between items-center mb-2">
+          <div className="hidden sm:flex justify-between items-center mb-2" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)' }}>
             <div className="flex-1 flex items-center space-x-4">
               <span className="text-slate-300">
                 Welcome, {user?.displayName || user?.email}
