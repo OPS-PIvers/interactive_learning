@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import ViewerToolbar from '../client/components/ViewerToolbar';
@@ -21,12 +21,14 @@ describe('ViewerToolbar', () => {
   };
 
   // Helper function to render with AuthProvider
-  const renderWithAuth = (component: React.ReactElement) => {
-    return render(
-      <AuthProvider>
-        {component}
-      </AuthProvider>
-    );
+  const renderWithAuth = async (component: React.ReactElement) => {
+    await act(async () => {
+      render(
+        <AuthProvider>
+          {component}
+        </AuthProvider>
+      );
+    });
   };
 
   beforeEach(() => {

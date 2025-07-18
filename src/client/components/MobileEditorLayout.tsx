@@ -1,13 +1,14 @@
 // src/client/components/MobileEditorLayout.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types'; // Added InteractionType
+import { HotspotData, TimelineEventData, InteractionType, Project } from '../../shared/types';
+import EditorToolbar from './EditorToolbar';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
 import AuthButton from './AuthButton';
 import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 
 interface MobileEditorLayoutProps {
-  projectName: string;
+  project: Project;
   backgroundImage: string | null;
   hotspots: HotspotData[];
   timelineEvents: TimelineEventData[];
@@ -41,6 +42,26 @@ interface MobileEditorLayoutProps {
   onBackgroundImageChange?: (url: string) => void;
   onBackgroundTypeChange?: (type: 'image' | 'video') => void;
   onBackgroundVideoTypeChange?: (type: 'youtube' | 'mp4') => void;
+
+  // Props for EditorToolbar
+  isPlacingHotspot?: boolean;
+  onToggleAutoProgression: (enabled: boolean) => void;
+  isAutoProgression: boolean;
+  autoProgressionDuration: number;
+  onAutoProgressionDurationChange: (duration: number) => void;
+  currentZoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onZoomReset: () => void;
+  onCenter: () => void;
+  currentColorScheme: string;
+  onColorSchemeChange: (scheme: string) => void;
+  viewerModes: {
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
+  onViewerModeChange: (mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => void;
 }
 
 interface ViewportState {
@@ -55,7 +76,7 @@ interface ViewportState {
 }
 
 const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
-  projectName,
+  project,
   backgroundImage,
   hotspots,
   timelineEvents,
@@ -83,7 +104,23 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   onReplaceImage,
   onBackgroundImageChange,
   onBackgroundTypeChange,
-  onBackgroundVideoTypeChange
+  onBackgroundVideoTypeChange,
+
+  // EditorToolbar props
+  isPlacingHotspot,
+  onToggleAutoProgression,
+  isAutoProgression,
+  autoProgressionDuration,
+  onAutoProgressionDurationChange,
+  currentZoom,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
+  onCenter,
+  currentColorScheme,
+  onColorSchemeChange,
+  viewerModes,
+  onViewerModeChange
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewingEventId, setPreviewingEventId] = useState<string | null>(null);
@@ -228,65 +265,40 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
   const renderCompactLayout = () => (
     <div className="flex flex-col h-full">
-      {/* Fixed Header */}
-      <div 
-        ref={toolbarRef}
-        className="flex-shrink-0 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700"
-        style={{ 
-          paddingTop: `${viewport.safeAreaInsets.top}px`,
-          height: `${56 + viewport.safeAreaInsets.top}px`
-        }}
-      >
-        <div className="flex items-center justify-between h-14 px-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="p-2 text-slate-300 hover:text-white transition-colors -ml-2"
-              aria-label="Go back"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-lg font-semibold text-white truncate max-w-32">
-              {projectName}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {onAddHotspot && (
-              <button
-                onClick={onAddHotspot}
-                className="p-2 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-md transition-colors"
-                aria-label="Add Hotspot"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            )}
-            
-            <button
-              onClick={onSave}
-              disabled={isSaving}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isSaving
-                  ? 'text-slate-400 cursor-not-allowed'
-                  : showSuccessMessage
-                  ? 'text-green-400'
-                  : 'text-purple-400 hover:text-purple-300'
-              }`}
-            >
-              {isSaving ? 'Saving...' : showSuccessMessage ? 'Saved!' : 'Save'}
-            </button>
-            
-            <AuthButton variant="compact" />
-          </div>
-        </div>
-      </div>
+      <EditorToolbar
+        isMobile={true}
+        project={project}
+        projectName={project.title}
+        onBack={onBack}
+        onSave={onSave}
+        isSaving={isSaving}
+        showSuccessMessage={showSuccessMessage}
+        onAddHotspot={onAddHotspot || (() => {})}
+        isPlacingHotspot={isPlacingHotspot}
+        onReplaceImage={onReplaceImage || ((_file: File) => {})}
+        onToggleAutoProgression={onToggleAutoProgression}
+        isAutoProgression={isAutoProgression}
+        autoProgressionDuration={autoProgressionDuration}
+        onAutoProgressionDurationChange={onAutoProgressionDurationChange}
+        currentZoom={currentZoom}
+        onZoomIn={onZoomIn}
+        onZoomOut={onZoomOut}
+        onZoomReset={onZoomReset}
+        onCenter={onCenter}
+        currentColorScheme={currentColorScheme}
+        onColorSchemeChange={onColorSchemeChange}
+        viewerModes={viewerModes}
+        onViewerModeChange={onViewerModeChange}
+        backgroundImage={backgroundImage || undefined}
+        backgroundType={backgroundType}
+        backgroundVideoType={backgroundVideoType}
+        onBackgroundImageChange={onBackgroundImageChange || ((_url: string) => {})}
+        onBackgroundTypeChange={onBackgroundTypeChange || ((_type: 'image' | 'video') => {})}
+        onBackgroundVideoTypeChange={onBackgroundVideoTypeChange || ((_type: 'youtube' | 'mp4') => {})}
+      />
 
       {/* Content Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 pt-14">
         {/* Conditional Content Based on Active Panel */}
         {activePanel === 'image' ? (
           /* Image Editing Area */
