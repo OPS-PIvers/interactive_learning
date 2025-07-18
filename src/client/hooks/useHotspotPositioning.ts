@@ -39,23 +39,8 @@ export const useHotspotPositioning = (
       }
 
       // 1. Calculate base pixel position on the visible image content area
-      const basePixelX = (hotspot.x / 100) * visibleImageBounds.width;
-      const basePixelY = (hotspot.y / 100) * visibleImageBounds.height;
-
-      // 2. Position relative to the visible image bounds origin (which is relative to the viewport)
-      let positionX = visibleImageBounds.x + basePixelX;
-      let positionY = visibleImageBounds.y + basePixelY;
-
-      // 3. Apply dynamic transform if scale > 1 (zoomed) or translate is active
-      if (containerElement && (currentImageTransform.scale !== 1 || currentImageTransform.translateX !== 0 || currentImageTransform.translateY !== 0)) {
-        const containerRect = containerElement.getBoundingClientRect();
-        const centerX = containerRect.left + containerRect.width / 2;
-        const centerY = containerRect.top + containerRect.height / 2;
-
-        // Apply center-origin scale transform
-        positionX = (positionX - centerX) * currentImageTransform.scale + centerX + currentImageTransform.translateX;
-        positionY = (positionY - centerY) * currentImageTransform.scale + centerY + currentImageTransform.translateY;
-      }
+      const positionX = (hotspot.x / 100) * visibleImageBounds.width;
+      const positionY = (hotspot.y / 100) * visibleImageBounds.height;
 
       return {
         x: positionX,
@@ -65,7 +50,6 @@ export const useHotspotPositioning = (
     []
   );
 
-  // Enhanced position calculation with transition stability
   const getStablePixelPosition = useCallback(
     (
       hotspot: HotspotData,
@@ -76,19 +60,6 @@ export const useHotspotPositioning = (
     ): { x: number; y: number } | null => {
       if (!imageBounds) {
         return null;
-      }
-
-      // During transitions, use more stable calculations to prevent position jumping
-      if (isTransitioning) {
-        // Use percentage-based positioning with minimal transform interference
-        const basePixelX = (hotspot.x / 100) * imageBounds.width;
-        const basePixelY = (hotspot.y / 100) * imageBounds.height;
-        
-        // Apply only the translation component during transitions, not scaling
-        const positionX = imageBounds.left + basePixelX + (currentImageTransform.translateX || 0);
-        const positionY = imageBounds.top + basePixelY + (currentImageTransform.translateY || 0);
-        
-        return { x: positionX, y: positionY };
       }
 
       // Normal calculation - delegate to the existing function

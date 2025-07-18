@@ -440,6 +440,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       style={{
         left: usePixelPositioning && pixelPosition ? `${pixelPosition.x}px` : `${hotspot.x}%`,
         top: usePixelPositioning && pixelPosition ? `${pixelPosition.y}px` : `${hotspot.y}%`,
+        transform: `translate(-50%, -50%) scale(${isActive ? 1.2 : 1})`,
         touchAction: isEditing ? 'none' : 'auto', // Allow native scrolling/gestures if not editing
       }}
       onPointerDown={handlePointerDown}

@@ -213,50 +213,7 @@
   }
 }
 
-/* ===== PROFESSIONAL MODAL SYSTEM ===== */
 
-@media screen and (max-width: 768px) {
-  .mobile-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    background: #0f172a;
-    animation: modal-enter 0.2s ease-out;
-  }
-
-  @keyframes modal-enter {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .mobile-modal-header {
-    flex-shrink: 0;
-    padding: 16px 20px;
-    padding-top: calc(16px + var(--safe-area-inset-top));
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
-  }
-
-  .mobile-modal-content {
-    flex: 1;
-    overflow-y: auto;
-    /* Modern scrolling - removed deprecated -webkit-overflow-scrolling */
-    padding-bottom: var(--safe-area-inset-bottom);
-  }
-
-  /* Keyboard-aware modal */
-  .mobile-modal.keyboard-open .mobile-modal-content {
-    padding-bottom: calc(var(--keyboard-height) + var(--safe-area-inset-bottom));
-  }
-}
 
 /* ===== KEYBOARD HANDLING IMPROVEMENTS ===== */
 
