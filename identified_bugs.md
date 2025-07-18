@@ -6,25 +6,7 @@
 
 ## **MEDIUM PRIORITY BUGS** 🟡 (Impact: Reliability & Maintenance)
 
-### 5. **Inconsistent Prop Handling in `EditableEventCard.tsx`**
-   - **Issue:** The component uses multiple, sometimes conflicting, props for the same data (e.g., `event.content` and `event.textContent`, `event.question` and `event.quizQuestion`).
-   - **Impact:** This can cause unexpected behavior and make the component difficult to maintain.
-   - **File:** `src/client/components/EditableEventCard.tsx:224-227, 540-544, 381-382`
-
-### 6. **Multiple Sources of Truth for `isMobile` in `InteractiveModule.tsx`**
-   - **Issue:** The component both calls `useIsMobile()` hook and could potentially receive an `isMobile` prop, creating potential inconsistency.
-   - **Impact:** The component may behave in unexpected ways, rendering a mix of mobile and desktop UI elements.
-   - **File:** `src/client/components/InteractiveModule.tsx:251, 256`
-
-### 7. **Race Condition in `handleSave` Function**
-   - **Issue:** The `handleSave` function is not debounced, and it is called in multiple `useEffect` hooks that depend on `hotspots` and `timelineEvents`. Rapid changes can cause multiple saves.
-   - **Impact:** This can lead to performance issues and potentially inconsistent data if saves don't complete in the correct order.
-   - **File:** `src/client/components/InteractiveModule.tsx`
-
-### 8. **Incomplete Timeout Cleanup on Unmount**
-   - **Issue:** The component has multiple `setTimeout` calls but doesn't clear all of them in cleanup functions. Some use bare `setTimeout` without ref tracking.
-   - **Impact:** This can lead to memory leaks and unexpected behavior if the component unmounts before timeouts complete.
-   - **File:** `src/client/components/InteractiveModule.tsx:1375, 1388`
+*All medium priority bugs have been resolved! 🎉*
 
 ## **LOW PRIORITY BUGS** 🟢 (Impact: Polish & Edge Cases)
 
@@ -63,6 +45,18 @@
 
 ### ~~Transform State Race Conditions~~ - **FIXED**
 - **Status:** ✅ Resolved - improved state synchronization in touch gesture handling
+
+### ~~Inconsistent Prop Handling in EditableEventCard.tsx~~ - **FIXED**
+- **Status:** ✅ Resolved - standardized on primary properties from TimelineEventData interface
+
+### ~~Multiple Sources of Truth for isMobile~~ - **FIXED**
+- **Status:** ✅ Resolved - removed debug override variables, using single useIsMobile() hook
+
+### ~~Race Condition in handleSave Function~~ - **FIXED**
+- **Status:** ✅ Resolved - implemented proper debouncing with throttle and timeout cleanup
+
+### ~~Incomplete Timeout Cleanup on Unmount~~ - **FIXED**
+- **Status:** ✅ Resolved - added proper ref tracking and cleanup for all setTimeout calls
 
 ---
 

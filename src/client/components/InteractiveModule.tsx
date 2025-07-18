@@ -240,6 +240,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const initTimeoutRef = useRef<number | null>(null);
   const stateChangeTimeoutRef = useRef<number | null>(null);
   const saveAnimationTimeoutRef = useRef<number | null>(null);
+  const recalculateTimeoutRef = useRef<number | null>(null);
+  const transformTimeoutRef = useRef<number | null>(null);
+  const eventControlTimeoutRef = useRef<number | null>(null);
 
   // Transform and bounds refs - also at top to avoid temporal dead zone issues  
   const isApplyingTransformRef = useRef(false);
@@ -249,18 +252,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   const [isPlacingHotspot, setIsPlacingHotspot] = useState<boolean>(false); // For click-to-place new hotspots
 
   const isMobile = useIsMobile();
-  
-  // TEMPORARY: Manual override for mobile detection during debugging
-  // Remove this after confirming the fix works
-  const forceDesktopMode = window.location.search.includes('forceDesktop=true');
-  const effectiveIsMobile = forceDesktopMode ? false : isMobile;
-
-  console.log('🔍 MOBILE OVERRIDE DEBUG:', {
-    originalIsMobile: isMobile,
-    forceDesktopMode,
-    effectiveIsMobile,
-    url: window.location.href
-  });
   
   const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
   const mobileEditorPanelRef = useRef<HTMLDivElement>(null); // Ref for Agent 4
@@ -1281,7 +1272,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM));
     }
     // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-  }, [isEditing, moduleState, timelineEvents, hotspots, effectiveIsMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
+  }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // DUPLICATE REMOVED - Original definition is used (now includes debugLog)
   // const clearImageBoundsCache = useCallback(() => {
@@ -1372,7 +1363,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
     // Force image bounds recalculation after state change
-    setTimeout(() => {
+    if (recalculateTimeoutRef.current) {
+      clearTimeout(recalculateTimeoutRef.current);
+    }
+    recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
     }, 100);
   };
@@ -1385,7 +1379,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
     // Force image bounds recalculation after state change
-    setTimeout(() => {
+    if (recalculateTimeoutRef.current) {
+      clearTimeout(recalculateTimeoutRef.current);
+    }
+    recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
     }, 100);
   }, [throttledRecalculatePositions]);
@@ -2125,7 +2122,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           moduleState === 'idle') { // Only in idle mode for user-initiated zooms
 
         // Use a separate timeout to avoid immediate recalculation
-        setTimeout(() => {
+        if (transformTimeoutRef.current) {
+          clearTimeout(transformTimeoutRef.current);
+        }
+        transformTimeoutRef.current = window.setTimeout(() => {
           if (!isApplyingTransformRef.current) {
             const targetHotspot = hotspots.find(h => h.id === currentTransform.targetHotspotId);
             if (targetHotspot) {
@@ -2204,7 +2204,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useEffect(() => {
     if (!isEditing && backgroundImage && moduleState !== 'idle') {
       // When transitioning to viewer mode, ensure proper container setup
-      const container = effectiveIsMobile ? viewerImageContainerRef.current : imageContainerRef.current;
+      const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
       if (container) {
         // Force a reflow to ensure container has proper dimensions
         container.offsetHeight;
@@ -2485,11 +2485,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         totalTimelineEvents: timelineEvents.length,
         eventsForCurrentStep: eventsForCurrentStep.length,
         eventTypes: eventsForCurrentStep.map(e => e.type),
-        isMobile: effectiveIsMobile
+        isMobile: isMobile
       });
 
       // Enhanced mobile event filtering and logging
-      if (effectiveIsMobile) {
+      if (isMobile) {
         const mobileCompatibleEvents = eventsForCurrentStep.filter(event => {
           const isCompatible = [
             InteractionType.SPOTLIGHT, 
@@ -2534,7 +2534,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       }
 
       // Enhanced container ref management
-      if (effectiveIsMobile && imageContainerRef.current) {
+      if (isMobile && imageContainerRef.current) {
         setMobileEventContainerRef(imageContainerRef.current);
         console.log('Mobile container ref set:', imageContainerRef.current);
       }
@@ -2566,7 +2566,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         touchGestureHandlers.setEventActive(true);
         
         // Schedule release of event control after a delay
-        setTimeout(() => {
+        if (eventControlTimeoutRef.current) {
+          clearTimeout(eventControlTimeoutRef.current);
+        }
+        eventControlTimeoutRef.current = window.setTimeout(() => {
           touchGestureHandlers.setEventActive(false);
           console.log('🎯 Mobile Event Coordination: Released event control from touch gestures');
         }, 500);
@@ -2996,6 +2999,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       if (saveAnimationTimeoutRef.current) {
         clearTimeout(saveAnimationTimeoutRef.current);
       }
+      if (recalculateTimeoutRef.current) {
+        clearTimeout(recalculateTimeoutRef.current);
+      }
+      if (transformTimeoutRef.current) {
+        clearTimeout(transformTimeoutRef.current);
+      }
+      if (eventControlTimeoutRef.current) {
+        clearTimeout(eventControlTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -3032,7 +3044,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // style={{ outline: 'none' }}
     >
       {isEditing ? (
-        effectiveIsMobile ? (
+        isMobile ? (
           <MobileEditorLayout
             projectName={projectName}
             backgroundImage={backgroundImage || null}
@@ -3084,11 +3096,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <div
               ref={imageContainerRef}
               className={`flex-1 relative bg-slate-700 min-h-0 overflow-hidden ${
-                effectiveIsMobile ? 'mobile-event-container mobile-transform-container' : ''
+                isMobile ? 'mobile-event-container mobile-transform-container' : ''
               }`}
-              onTouchStart={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchStart : undefined}
-              onTouchMove={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchMove : undefined}
-              onTouchEnd={effectiveIsMobile && isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
+              onTouchStart={isMobile && isEditing ? touchGestureHandlers.handleTouchStart : undefined}
+              onTouchMove={isMobile && isEditing ? touchGestureHandlers.handleTouchMove : undefined}
+              onTouchEnd={isMobile && isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
             >
               <ImageEditCanvas
                 backgroundImage={backgroundImage}
@@ -3289,9 +3301,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         </div>
         )
       ) : (
-        <div className={`flex flex-col bg-slate-900 ${effectiveIsMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'min-h-screen' : 'fixed inset-0 z-50 overflow-hidden'}`}>
             {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
-            <div className={`${effectiveIsMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
+            <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
               <ViewerToolbar
                 projectName={projectName}
                 onBack={handleAttemptClose}
@@ -3307,30 +3319,30 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             
             {/* Main content area (Image + Timeline for Mobile) */}
             {/* Desktop: This div is part of the fixed layout, for Mobile: it's the flex-1 content area */}
-            <div className={`flex-1 flex flex-col relative ${effectiveIsMobile ? '' : 'h-full'}`}>
+            <div className={`flex-1 flex flex-col relative ${isMobile ? '' : 'h-full'}`}>
             {/* Image container with mobile-safe sizing */}
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
             <div
-              ref={effectiveIsMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
+              ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
               className={`flex-1 relative bg-slate-900 min-h-0 ${
-                effectiveIsMobile ? 'mobile-event-container mobile-transform-container' : ''
+                isMobile ? 'mobile-event-container mobile-transform-container' : ''
               }`} // min-h-0 is important for flex children that might overflow
               style={{ zIndex: Z_INDEX.IMAGE_BASE }}
               onClick={(e) => handleImageOrHotspotClick(e)} // Unified click handling for all devices
-              onTouchStart={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchStart : undefined}
-              onTouchMove={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchMove : undefined}
-              onTouchEnd={effectiveIsMobile && !isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
+              onTouchStart={isMobile && !isEditing ? touchGestureHandlers.handleTouchStart : undefined}
+              onTouchMove={isMobile && !isEditing ? touchGestureHandlers.handleTouchMove : undefined}
+              onTouchEnd={isMobile && !isEditing ? touchGestureHandlers.handleTouchEnd : undefined}
             >
               <div
                 className="w-full h-full flex items-center justify-center"
                 role={backgroundImage ? "button" : undefined}
-                aria-label={backgroundImage ? (effectiveIsMobile ? "Interactive image area" : "Interactive image") : undefined}
+                aria-label={backgroundImage ? (isMobile ? "Interactive image area" : "Interactive image") : undefined}
               >
                 {/* TransformIndicator and Debug can be kept for both, or made conditional */}
                 <TransformIndicator />
                 <PositioningDebugPanel />
                 {debugMode && (
-                  <div className="absolute top-4 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG, marginTop: effectiveIsMobile ? '0' : '56px' /* Adjust for desktop toolbar if needed */ }}>
+                  <div className="absolute top-4 left-4 text-xs text-white bg-black/70 p-2 font-mono space-y-1" style={{ zIndex: Z_INDEX.DEBUG, marginTop: isMobile ? '0' : '56px' /* Adjust for desktop toolbar if needed */ }}>
                     <div>Mode: Viewer (isMobile: {isMobile.toString()})</div>
                     <div>Image Bounds: {JSON.stringify(getSafeImageBounds(), null, 2)}</div>
                     <div>Transform: scale={imageTransform.scale.toFixed(2)}, x={imageTransform.translateX.toFixed(0)}, y={imageTransform.translateY.toFixed(0)}</div>
@@ -3437,7 +3449,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     </div>
                     
                     {/* Mobile Event Renderer */}
-                    {effectiveIsMobile && moduleState === 'learning' && (
+                    {isMobile && moduleState === 'learning' && (
                       <MobileEventRenderer
                         events={mobileActiveEvents}
                         onEventComplete={handleMobileEventComplete}
@@ -3488,8 +3500,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Desktop: timeline is part of fixed layout, Mobile: flex-shrink-0 */}
             {backgroundImage && (
               <div
-                ref={effectiveIsMobile ? viewerTimelineRef : null} // Use specific ref for mobile
-                className={`${effectiveIsMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
+                ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
+                className={`${isMobile ? 'flex-shrink-0 relative' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
                 style={{ zIndex: Z_INDEX.TIMELINE }}
               >
                 <HorizontalTimeline
@@ -3521,10 +3533,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       {/* Enhanced Hotspot Editor Modal - Conditional rendering for mobile vs desktop */}
       {(() => {
         // Enhanced modal selection logic with debugging and fallback
-        const shouldUseMobileEditor = effectiveIsMobile && window.innerWidth <= 768; // Double-check with actual viewport
+        const shouldUseMobileEditor = isMobile && window.innerWidth <= 768; // Double-check with actual viewport
 
         console.log('🔍 MODAL DEBUG: Determining which modal to render', {
-          effectiveIsMobile,
+          isMobile,
           windowWidth: window.innerWidth,
           shouldUseMobileEditor,
           isHotspotModalOpen,
@@ -3638,7 +3650,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
           {mediaModal.type === 'audio' && mediaModal.data && (
             <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
-              minHeight: effectiveIsMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
+              minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
             }}>
               <AudioPlayer
                 src={mediaModal.data.src}
@@ -3709,24 +3721,43 @@ const useAutoSave = (
   handleSave: () => Promise<void>
 ) => {
   const lastDataRef = useRef<string>('');
+  const autoSaveTimerRef = useRef<number | null>(null);
+  
+  const debouncedAutoSave = useMemo(
+    () => throttle(() => {
+      console.log('Auto-saving project...');
+      handleSave().catch(error => {
+        console.error('Auto-save failed:', error);
+      });
+    }, 10000), // Prevent auto-saves from triggering more than once every 10 seconds
+    [handleSave]
+  );
   
   useEffect(() => {
-    if (!isEditing) return; // Remove hotspots.length requirement - auto-save even empty projects
+    if (!isEditing) return;
     
     const currentData = JSON.stringify({ hotspots, timelineEvents });
     if (currentData === lastDataRef.current) return;
     
     lastDataRef.current = currentData;
     
-    const autoSaveTimer = setTimeout(() => {
-      console.log('Auto-saving project...');
-      handleSave().catch(error => {
-        console.error('Auto-save failed:', error);
-      });
-    }, 10000); // Auto-save every 10 seconds (3x faster)
+    // Clear existing timer to debounce rapid changes
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
     
-    return () => clearTimeout(autoSaveTimer);
-  }, [hotspots, timelineEvents, isEditing, handleSave]);
+    // Set new timer
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      debouncedAutoSave();
+    }, 2000); // Wait 2 seconds after the last change before auto-saving
+    
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
+  }, [hotspots, timelineEvents, isEditing, debouncedAutoSave]);
 };
 
 export default InteractiveModule;

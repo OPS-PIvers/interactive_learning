@@ -220,10 +220,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                  <label htmlFor={`textContent-${event.id}`} className="block text-xs font-medium text-slate-300 dark:text-slate-400 mb-1">Text Content</label>
                  <textarea
                    id={`textContent-${event.id}`}
-                   value={event.content || event.textContent || ''}
+                   value={event.textContent || event.content || ''}
                    onChange={(e) => onUpdate({
                      ...event,
-                     content: e.target.value,
                      textContent: e.target.value
                    })}
                    className={`${inputBaseClasses} min-h-[60px]`}
@@ -378,8 +377,8 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                  <input
                    id={`audioTitle-${event.id}`}
                    type="text"
-                   value={event.textContent || ''}
-                   onChange={(e) => onUpdate({ ...event, textContent: e.target.value })}
+                   value={event.audioTitle || event.textContent || ''}
+                   onChange={(e) => onUpdate({ ...event, audioTitle: e.target.value })}
                    className={inputBaseClasses}
                    placeholder="Optional: Track Title"
                  />
@@ -537,10 +536,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               <input
                 id={`quizQuestion-${event.id}`}
                 type="text"
-                value={event.question || event.quizQuestion || ''}
+                value={event.quizQuestion || event.question || ''}
                 onChange={(e) => onUpdate({
                   ...event,
-                  question: e.target.value,
                   quizQuestion: e.target.value
                 })}
                 className={inputBaseClasses}
