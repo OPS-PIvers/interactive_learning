@@ -172,6 +172,52 @@ interface ImageTransformState {
   targetHotspotId?: string; 
 }
 
+// Auto-save functionality for data protection
+const useAutoSave = (
+  isEditing: boolean,
+  hotspots: HotspotData[],
+  timelineEvents: TimelineEventData[],
+  handleSave: () => Promise<void>
+) => {
+  const lastDataRef = useRef<string>('');
+  const autoSaveTimerRef = useRef<number | null>(null);
+  
+  const debouncedAutoSave = useMemo(
+    () => throttle(() => {
+      debugLog.log('Auto-saving project...');
+      handleSave().catch(error => {
+        debugLog.error('Auto-save failed:', error);
+      });
+    }, 10000), // Prevent auto-saves from triggering more than once every 10 seconds
+    [handleSave]
+  );
+  
+  useEffect(() => {
+    if (!isEditing) return;
+    
+    const currentData = JSON.stringify({ hotspots, timelineEvents });
+    if (currentData === lastDataRef.current) return;
+    
+    lastDataRef.current = currentData;
+    
+    // Clear existing timer to debounce rapid changes
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    // Set new timer
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      debouncedAutoSave();
+    }, 2000); // Wait 2 seconds after the last change before auto-saving
+    
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
+  }, [hotspots, timelineEvents, isEditing, debouncedAutoSave]);
+};
 
 const InteractiveModule: React.FC<InteractiveModuleProps> = ({ 
   initialData, 
@@ -3761,53 +3807,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       )}
     </div>
   );
-};
-
-// Auto-save functionality for data protection
-const useAutoSave = (
-  isEditing: boolean,
-  hotspots: HotspotData[],
-  timelineEvents: TimelineEventData[],
-  handleSave: () => Promise<void>
-) => {
-  const lastDataRef = useRef<string>('');
-  const autoSaveTimerRef = useRef<number | null>(null);
-  
-  const debouncedAutoSave = useMemo(
-    () => throttle(() => {
-      debugLog.log('Auto-saving project...');
-      handleSave().catch(error => {
-        debugLog.error('Auto-save failed:', error);
-      });
-    }, 10000), // Prevent auto-saves from triggering more than once every 10 seconds
-    [handleSave]
-  );
-  
-  useEffect(() => {
-    if (!isEditing) return;
-    
-    const currentData = JSON.stringify({ hotspots, timelineEvents });
-    if (currentData === lastDataRef.current) return;
-    
-    lastDataRef.current = currentData;
-    
-    // Clear existing timer to debounce rapid changes
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-    }
-    
-    // Set new timer
-    autoSaveTimerRef.current = window.setTimeout(() => {
-      debouncedAutoSave();
-    }, 2000); // Wait 2 seconds after the last change before auto-saving
-    
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-        autoSaveTimerRef.current = null;
-      }
-    };
-  }, [hotspots, timelineEvents, isEditing, debouncedAutoSave]);
 };
 
 export default InteractiveModule;
