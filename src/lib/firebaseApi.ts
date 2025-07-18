@@ -726,7 +726,19 @@ export class FirebaseProjectAPI {
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to update project status');
       }
+      
       const projectRef = doc(db, 'projects', projectId);
+      const projectSnap = await getDoc(projectRef);
+
+      if (!projectSnap.exists()) {
+        throw new Error('Project not found');
+      }
+
+      const projectData = projectSnap.data();
+      if (projectData.createdBy !== auth.currentUser.uid) {
+        throw new Error('You do not have permission to update this project');
+      }
+
       await setDoc(projectRef, { isPublic, updatedAt: serverTimestamp() }, { merge: true });
       debugLog.log(`Project ${projectId} public status updated to ${isPublic}`);
     } catch (error) {
