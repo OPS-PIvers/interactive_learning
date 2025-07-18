@@ -261,6 +261,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // New state for enhanced features
   const [isTimedMode, setIsTimedMode] = useState<boolean>(false);
   const [colorScheme, setColorScheme] = useState<string>('Default');
+  const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
+  const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
   const [autoProgressionDuration, setAutoProgressionDuration] = useState<number>(3000);
   const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
   
@@ -1123,9 +1125,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     container.scrollLeft = Math.max(0, (imageContentWidth - container.clientWidth) / 2);
     container.scrollTop = Math.max(0, (imageContentHeight - container.clientHeight) / 2);
   }, [editingZoom, imageTransform, hotspots]); // Dependencies as specified in the issue
-
-  const [exploredHotspotId, setExploredHotspotId] = useState<string | null>(null);
-  const [exploredHotspotPanZoomActive, setExploredHotspotPanZoomActive] = useState<boolean>(false);
   
   // Interaction parameter states
 
