@@ -119,6 +119,7 @@ export const useTouchGestures = (
     isDragging?: boolean; // Add isDragging awareness
     isEditing?: boolean; // Add editing mode awareness
     isDragActive?: boolean; // Add drag mode awareness for hotspot dragging
+    disabled?: boolean; // Add option to disable gestures completely
   }
 ) => {
   const {
@@ -128,6 +129,7 @@ export const useTouchGestures = (
     isDragging = false,
     isEditing = false,
     isDragActive = false,
+    disabled = false,
   } = options || {};
 
   const isPinchingRef = useRef(false);
@@ -208,6 +210,8 @@ export const useTouchGestures = (
   };
 
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    
     const gestureState = gestureStateRef.current;
     if (gestureState.animationFrameId) {
       cancelAnimationFrame(gestureState.animationFrameId);
@@ -352,7 +356,7 @@ export const useTouchGestures = (
       console.warn('Touch start error:', error);
       cleanupGesture();
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture]);
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture, disabled]);
 
   const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     handlePinchMove(e);
@@ -498,10 +502,12 @@ export const useTouchGestures = (
       gestureState.lastMoveTimestamp = currentTimestamp;
 
     }
-  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, imageTransform]); // Added imageTransform dependency
+  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, imageTransform, disabled]); // Added imageTransform and disabled dependency
 
   // Create throttled touch move handler only once
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    
     // Use requestAnimationFrame for better performance than throttle
     if (gestureStateRef.current.moveAnimationId) {
       return; // Already have a pending move update
@@ -511,7 +517,7 @@ export const useTouchGestures = (
       gestureStateRef.current.moveAnimationId = null;
       handleTouchMoveInternal(e);
     });
-  }, [handleTouchMoveInternal]);
+  }, [handleTouchMoveInternal, disabled]);
 
   // Store the handler reference for cleanup
   throttledTouchMoveRef.current = { cancel: () => {
@@ -600,6 +606,8 @@ export const useTouchGestures = (
   }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    
     // Check if touch is on a hotspot element - if so, don't interfere
     const target = e.target as HTMLElement;
     const isHotspotElement = target?.closest('[data-hotspot-id]') || 
@@ -676,7 +684,7 @@ export const useTouchGestures = (
     }
     // Double tap transforming is handled in touchStart with its own timeout and setIsTransforming call
     handlePinchEnd();
-  }, [setIsTransforming, isDragging, isEditing, isDragActive, startMomentumAnimation, minScale, maxScale, setImageTransform]);
+  }, [setIsTransforming, isDragging, isEditing, isDragActive, startMomentumAnimation, minScale, maxScale, setImageTransform, disabled]);
 
   useEffect(() => {
     return () => {

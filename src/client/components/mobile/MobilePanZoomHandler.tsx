@@ -36,7 +36,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     
     // Animate back to original position using state
     if (onTransformUpdate) {
-      onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+      onTransformUpdate({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
     }
     
     setTimeout(onComplete, 500);
@@ -69,7 +69,8 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
       onTransformUpdate({
         scale: zoomLevel,
         translateX,
-        translateY
+        translateY,
+        targetHotspotId: event.targetId // Add target hotspot ID for tracking
       });
     }, 100); // Small delay for smooth transition
 

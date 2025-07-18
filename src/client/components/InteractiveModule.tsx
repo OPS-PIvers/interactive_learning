@@ -627,12 +627,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     setImageTransform,
     setIsTransforming,
     {
-      minScale: 0.5,
-      maxScale: 5.0,
+      minScale: isEditing ? 0.5 : 1.0, // In viewer mode, don't allow zooming out below 1.0
+      maxScale: isEditing ? 5.0 : 3.0, // Limited zoom in viewer mode
       doubleTapZoomFactor: 2.0,
       isDragging: isDragModeActive,
       isEditing: isEditing,
-      isDragActive: isDragModeActive, // Add missing isDragActive parameter
+      isDragActive: isDragModeActive,
+      // Disable manual gestures in viewer mode when not in learning state, but allow programmatic transforms
+      disabled: !isEditing && moduleState === 'idle'
     }
   );
 
