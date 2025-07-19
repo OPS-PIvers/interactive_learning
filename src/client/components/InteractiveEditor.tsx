@@ -76,6 +76,11 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
   const [mobilePreviewEvents, setMobilePreviewEvents] = useState<TimelineEventData[]>([]);
   const [isMobilePreviewMode, setIsMobilePreviewMode] = useState(false);
   
+  // Additional state for mobile editor layout props
+  const [isAutoProgression, setIsAutoProgression] = useState(false);
+  const [autoProgressionDuration, setAutoProgressionDuration] = useState(3000);
+  const [currentColorScheme, setCurrentColorScheme] = useState('default');
+  
   // Refs
   const actualImageRef = useRef<HTMLImageElement>(null);
   const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +235,32 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
     setEditingZoom(1);
   }, []);
 
+  // Center handler for mobile
+  const handleCenter = useCallback(() => {
+    // Reset zoom and center the image
+    setEditingZoom(1);
+  }, []);
+
+  // Auto progression handlers
+  const handleToggleAutoProgression = useCallback((enabled: boolean) => {
+    setIsAutoProgression(enabled);
+  }, []);
+
+  const handleAutoProgressionDurationChange = useCallback((duration: number) => {
+    setAutoProgressionDuration(duration);
+  }, []);
+
+  // Color scheme handler
+  const handleColorSchemeChange = useCallback((scheme: string) => {
+    setCurrentColorScheme(scheme);
+  }, []);
+
+  // Viewer mode handlers
+  const handleViewerModeChange = useCallback((mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => {
+    // This would typically update some global viewer mode state
+    console.log(`Viewer mode ${mode} ${enabled ? 'enabled' : 'disabled'}`);
+  }, []);
+
   // Image load handler
   const handleImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
     const img = event.currentTarget;
@@ -284,7 +315,23 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
         {isMobile ? (
           <MobileErrorBoundary key="mobile-editor">
             <MobileEditorLayout
-              projectName={projectName}
+              project={{
+                id: 'temp-id',
+                title: projectName,
+                description: '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId: '',
+                isPublic: false,
+                thumbnailUrl: null,
+                data: {
+                  backgroundImage: backgroundImage || '',
+                  hotspots,
+                  timelineEvents,
+                  backgroundType,
+                  backgroundVideoType
+                }
+              }}
               backgroundImage={backgroundImage}
               hotspots={hotspots}
               timelineEvents={timelineEvents}
@@ -321,14 +368,28 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
               onUpdateTimelineEvent={handleUpdateTimelineEvent}
               onDeleteTimelineEvent={handleDeleteTimelineEvent}
               previewingEvents={mobilePreviewEvents}
-              onPreviewEvent={handleMobilePreviewEvent}
+              onPreviewEvent={(event) => handleMobilePreviewEvent([event])}
               onStopPreview={handleStopMobilePreview}
               backgroundType={backgroundType}
-              backgroundVideoType={backgroundVideoType}
+              backgroundVideoType={backgroundVideoType === 'upload' ? 'youtube' : backgroundVideoType}
               onReplaceImage={onImageUpload}
               onBackgroundImageChange={onBackgroundImageChange}
               onBackgroundTypeChange={onBackgroundTypeChange}
-              onBackgroundVideoTypeChange={onBackgroundVideoTypeChange}
+              onBackgroundVideoTypeChange={(type) => onBackgroundVideoTypeChange(type === 'mp4' ? 'upload' : type)}
+              isPlacingHotspot={isPlacingHotspot}
+              onToggleAutoProgression={handleToggleAutoProgression}
+              isAutoProgression={isAutoProgression}
+              autoProgressionDuration={autoProgressionDuration}
+              onAutoProgressionDurationChange={handleAutoProgressionDurationChange}
+              currentZoom={editingZoom}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onZoomReset={handleZoomReset}
+              onCenter={handleCenter}
+              currentColorScheme={currentColorScheme}
+              onColorSchemeChange={handleColorSchemeChange}
+              viewerModes={{ explore: true, selfPaced: true, timed: true }}
+              onViewerModeChange={handleViewerModeChange}
             >
               {/* Image Canvas */}
               <div
