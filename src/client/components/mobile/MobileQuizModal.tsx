@@ -70,6 +70,10 @@ const MobileQuizModal: React.FC<MobileQuizModalProps> = ({ event, onComplete }) 
         opacity: isVisible ? 1 : 0,
         transition: 'opacity 0.3s ease',
         touchAction: 'manipulation',
+        // Ensure proper viewport handling on mobile
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
       }}
     >
       <div

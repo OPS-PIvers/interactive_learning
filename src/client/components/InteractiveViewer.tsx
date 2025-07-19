@@ -307,19 +307,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                     })}
                   </div>
 
-                  {/* Mobile Event Renderer */}
-                  {isMobile && (
-                    <MobileEventRenderer
-                      events={mobileActiveEvents}
-                      onEventComplete={handleMobileEventComplete}
-                      imageContainerRef={imageContainerRef}
-                      isActive={moduleState === 'learning'}
-                      currentTransform={imageTransform}
-                      onTransformUpdate={setImageTransform}
-                      isGestureActive={isGestureActive()}
-                      isVisible={moduleState === 'learning'}
-                    />
-                  )}
+                  {/* Mobile Event Renderer moved outside to prevent viewport clipping */}
 
                   {/* Mode Selection Overlay */}
                   {moduleState === 'idle' && backgroundImage && !hasUserChosenMode && (
@@ -358,6 +346,20 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
               </div>
             )}
           </div>
+
+          {/* Mobile Event Renderer - positioned outside constrained containers for proper viewport centering */}
+          {isMobile && (
+            <MobileEventRenderer
+              events={mobileActiveEvents}
+              onEventComplete={handleMobileEventComplete}
+              imageContainerRef={imageContainerRef}
+              isActive={moduleState === 'learning'}
+              currentTransform={imageTransform}
+              onTransformUpdate={setImageTransform}
+              isGestureActive={isGestureActive()}
+              isVisible={moduleState === 'learning'}
+            />
+          )}
 
           {/* Timeline Container */}
           <div

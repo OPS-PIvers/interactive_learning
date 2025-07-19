@@ -56,10 +56,14 @@ const MobileAudioModal: React.FC<MobileAudioModalProps> = ({ event, onComplete }
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: Z_INDEX.MOBILE_MODAL,
+        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
         padding: '20px',
         opacity: isVisible ? 1 : 0,
         transition: 'opacity 0.3s ease',
+        // Ensure proper viewport handling on mobile
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
       }}
     >
       <div
