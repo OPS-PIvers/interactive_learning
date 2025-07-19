@@ -3503,7 +3503,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                       <div className="absolute inset-0" style={{ zIndex: Z_INDEX.HOTSPOTS }}>
                         {hotspotsWithPositions.map(hotspot => {
                           const shouldShow = (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id)) || (moduleState === 'idle');
-                          if (!shouldShow) return null;
                           return (
                             <HotspotViewer
                               key={hotspot.id}
@@ -3517,6 +3516,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                               onFocusRequest={handleHotspotClick}
                               isContinuouslyPulsing={(moduleState === 'idle') && !isTransforming && !isHotspotDragging}
                               isMobile={isMobile}
+                              isVisible={shouldShow}
                               onDragStateChange={setIsHotspotDragging}
                               isActive={activeHotspotDisplayIds.has(hotspot.id)}
                             />
@@ -3526,7 +3526,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                     </div>
                     
                     {/* Mobile Event Renderer */}
-                    {isMobile && moduleState === 'learning' && (
+                    {isMobile && (
                       <MobileEventRenderer
                         events={mobileActiveEvents}
                         onEventComplete={handleMobileEventComplete}
@@ -3535,6 +3535,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                         currentTransform={imageTransform}
                         onTransformUpdate={setImageTransform}
                         isGestureActive={isGestureActive()}
+                        isVisible={moduleState === 'learning'}
                       />
                     )}
                     

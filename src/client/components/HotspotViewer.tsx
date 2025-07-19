@@ -21,6 +21,7 @@ interface HotspotViewerProps {
   onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
   dragContainerRef?: React.RefObject<HTMLElement>; // Added new prop
   isActive?: boolean; // New prop to indicate if the hotspot is active
+  isVisible?: boolean; // Controls visibility without affecting hook execution
   /**
    * Callback triggered when a hotspot is double-tapped on a mobile device (and not in editing mode).
    * Used to initiate auto-focusing on the hotspot.
@@ -57,7 +58,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // imageElement, // Not directly used
     onDragStateChange,
     dragContainerRef,
-    isActive
+    isActive,
+    isVisible = true
   } = props;
 
   const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();
@@ -442,6 +444,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         top: usePixelPositioning && pixelPosition ? `${pixelPosition.y}px` : `${hotspot.y}%`,
         transform: `translate(-50%, -50%) scale(${isActive ? 1.2 : 1})`,
         touchAction: isEditing ? 'none' : 'auto', // Allow native scrolling/gestures if not editing
+        display: isVisible ? 'block' : 'none', // Control visibility without affecting hook execution
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}  

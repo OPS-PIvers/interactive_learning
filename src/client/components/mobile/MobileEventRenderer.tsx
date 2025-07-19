@@ -18,6 +18,7 @@ interface MobileEventRendererProps {
   currentTransform?: { scale: number; translateX: number; translateY: number };
   onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
   isGestureActive?: boolean;
+  isVisible?: boolean; // Controls visibility without affecting hook execution
 }
 
 const MODAL_INTERACTIONS = new Set([
