@@ -1,0 +1,477 @@
+import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, lazy } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { useTouchGestures } from '../hooks/useTouchGestures';
+import LazyLoadingFallback from './shared/LazyLoadingFallback';
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import EditorToolbar from './EditorToolbar';
+import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
+import MobileEditorLayout from './MobileEditorLayout';
+import MobileErrorBoundary from './shared/MobileErrorBoundary';
+import ImageEditCanvas from './ImageEditCanvas';
+import Modal from './Modal';
+import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
+import CheckIcon from './icons/CheckIcon';
+import { Z_INDEX, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
+import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
+import { generateId } from '../utils/generateId';
+import { debugLog } from '../utils/debugUtils';
+
+// Lazy load timeline and modal components
+const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
+const HotspotEditorModal = lazy(() => import('./HotspotEditorModal'));
+
+interface InteractiveEditorProps {
+  projectName: string;
+  backgroundImage: string | null;
+  hotspots: HotspotData[];
+  timelineEvents: TimelineEventData[];
+  backgroundType: 'image' | 'video';
+  backgroundVideoType?: 'upload' | 'youtube';
+  onClose: () => void;
+  onSave: () => Promise<void>;
+  onHotspotsChange: (hotspots: HotspotData[]) => void;
+  onTimelineEventsChange: (events: TimelineEventData[]) => void;
+  onBackgroundImageChange: (image: string | null) => void;
+  onBackgroundTypeChange: (type: 'image' | 'video') => void;
+  onBackgroundVideoTypeChange: (type: 'upload' | 'youtube') => void;
+  onImageUpload: (file: File) => Promise<void>;
+}
+
+const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
+  projectName,
+  backgroundImage,
+  hotspots,
+  timelineEvents,
+  backgroundType,
+  backgroundVideoType,
+  onClose,
+  onSave,
+  onHotspotsChange,
+  onTimelineEventsChange,
+  onBackgroundImageChange,
+  onBackgroundTypeChange,
+  onBackgroundVideoTypeChange,
+  onImageUpload
+}) => {
+  const isMobile = useIsMobile();
+  
+  // Editor-specific state
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [editingZoom, setEditingZoom] = useState<number>(1);
+  const [editingHotspot, setEditingHotspot] = useState<HotspotData | null>(null);
+  const [isPlacingHotspot, setIsPlacingHotspot] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  
+  // Image dimensions and positioning
+  const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number, height: number} | null>(null);
+  const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
+  
+  // Modal state
+  const [isHotspotModalOpen, setIsHotspotModalOpen] = useState(false);
+  const [selectedHotspotForModal, setSelectedHotspotForModal] = useState<string | null>(null);
+  
+  // Mobile editor state
+  const [activeMobileEditorTab, setActiveMobileEditorTab] = useState<MobileEditorActiveTab>('properties');
+  const [mobilePreviewEvents, setMobilePreviewEvents] = useState<TimelineEventData[]>([]);
+  const [isMobilePreviewMode, setIsMobilePreviewMode] = useState(false);
+  
+  // Refs
+  const actualImageRef = useRef<HTMLImageElement>(null);
+  const zoomedImageContainerRef = useRef<HTMLDivElement>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const mobileEditorPanelRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Touch gesture handling for editing
+  const {
+    panZoomEnabled,
+    setPanZoomEnabled,
+    isGestureActive,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd
+  } = useTouchGestures({
+    imageContainerRef,
+    imageTransform: { scale: editingZoom, translateX: 0, translateY: 0 },
+    onTransformUpdate: () => {}, // Editor uses different zoom system
+    enabled: isMobile
+  });
+
+  const editingTouchHandlers = useMemo(() => ({
+    onTouchStart: isMobile ? handleTouchStart : undefined,
+    onTouchMove: isMobile ? handleTouchMove : undefined,
+    onTouchEnd: isMobile ? handleTouchEnd : undefined,
+  }), [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+  // Timeline management
+  const uniqueSortedSteps = useMemo(() => {
+    return [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+  }, [timelineEvents]);
+
+  const currentStepIndex = useMemo(() => {
+    return uniqueSortedSteps.indexOf(currentStep);
+  }, [uniqueSortedSteps, currentStep]);
+
+  // Hotspot positioning calculations
+  const hotspotsWithPositions = useMemo(() => {
+    if (!backgroundImage || !imageNaturalDimensions) return [];
+    
+    return hotspots.map(hotspot => {
+      const pixelX = (hotspot.x / 100) * imageNaturalDimensions.width;
+      const pixelY = (hotspot.y / 100) * imageNaturalDimensions.height;
+      
+      return {
+        ...hotspot,
+        pixelPosition: {
+          left: `${pixelX}px`,
+          top: `${pixelY}px`
+        }
+      };
+    });
+  }, [hotspots, backgroundImage, imageNaturalDimensions]);
+
+  // Event handlers
+  const handleAddHotspot = useCallback(() => {
+    setIsPlacingHotspot(true);
+  }, []);
+
+  const handlePlaceNewHotspot = useCallback((x: number, y: number) => {
+    const normalizedPosition = normalizeHotspotPosition({ x, y });
+    const newHotspot: HotspotData = {
+      id: generateId(),
+      x: normalizedPosition.x,
+      y: normalizedPosition.y,
+      title: 'New Hotspot',
+      content: '',
+      interactionType: InteractionType.INFO_POPUP,
+      ...INTERACTION_DEFAULTS[InteractionType.INFO_POPUP]
+    };
+    
+    onHotspotsChange([...hotspots, newHotspot]);
+    setEditingHotspot(newHotspot);
+    setIsPlacingHotspot(false);
+    
+    if (isMobile) {
+      setActiveMobileEditorTab('properties');
+    } else {
+      setSelectedHotspotForModal(newHotspot.id);
+      setIsHotspotModalOpen(true);
+    }
+  }, [hotspots, onHotspotsChange, isMobile]);
+
+  const handleRemoveHotspot = useCallback((hotspotId: string) => {
+    onHotspotsChange(hotspots.filter(h => h.id !== hotspotId));
+    onTimelineEventsChange(timelineEvents.filter(e => e.hotspotId !== hotspotId));
+  }, [hotspots, timelineEvents, onHotspotsChange, onTimelineEventsChange]);
+
+  const handleHotspotPositionChange = useCallback((hotspotId: string, newX: number, newY: number) => {
+    const normalizedPosition = normalizeHotspotPosition({ x: newX, y: newY });
+    onHotspotsChange(hotspots.map(h => 
+      h.id === hotspotId 
+        ? { ...h, x: normalizedPosition.x, y: normalizedPosition.y }
+        : h
+    ));
+  }, [hotspots, onHotspotsChange]);
+
+  const handleFocusHotspot = useCallback((hotspotId: string) => {
+    setSelectedHotspotForModal(hotspotId);
+    if (isMobile) {
+      setActiveMobileEditorTab('properties');
+      const hotspot = hotspots.find(h => h.id === hotspotId);
+      if (hotspot) {
+        setEditingHotspot(hotspot);
+      }
+    } else {
+      setIsHotspotModalOpen(true);
+    }
+  }, [isMobile, hotspots]);
+
+  const handleOpenHotspotEditor = useCallback((hotspotId: string) => {
+    handleFocusHotspot(hotspotId);
+  }, [handleFocusHotspot]);
+
+  // Timeline event handlers
+  const handleAddTimelineEvent = useCallback((event: TimelineEventData) => {
+    onTimelineEventsChange([...timelineEvents.filter(e => e.id !== event.id), event].sort((a, b) => a.step - b.step));
+    setCurrentStep(event.step);
+  }, [timelineEvents, onTimelineEventsChange]);
+
+  const handleUpdateTimelineEvent = useCallback((event: TimelineEventData) => {
+    onTimelineEventsChange(timelineEvents.map(e => e.id === event.id ? event : e));
+  }, [timelineEvents, onTimelineEventsChange]);
+
+  const handleDeleteTimelineEvent = useCallback((eventId: string) => {
+    onTimelineEventsChange(timelineEvents.filter(e => e.id !== eventId));
+  }, [timelineEvents, onTimelineEventsChange]);
+
+  // Mobile preview handlers
+  const handleMobilePreviewEvent = useCallback((events: TimelineEventData[]) => {
+    setMobilePreviewEvents(events);
+    setIsMobilePreviewMode(true);
+  }, []);
+
+  const handleStopMobilePreview = useCallback(() => {
+    setMobilePreviewEvents([]);
+    setIsMobilePreviewMode(false);
+  }, []);
+
+  // Zoom handlers
+  const handleZoomIn = useCallback(() => {
+    setEditingZoom(prev => Math.min(5, prev + 0.05));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setEditingZoom(prev => Math.max(0.25, prev - 0.05));
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    setEditingZoom(1);
+  }, []);
+
+  // Image load handler
+  const handleImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    const newDimensions = {
+      width: img.naturalWidth,
+      height: img.naturalHeight
+    };
+    setImageNaturalDimensions(newDimensions);
+  }, []);
+
+  // Save handler
+  const handleSaveClick = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      await onSave();
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 2000);
+    } catch (error) {
+      console.error('Save failed:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [onSave]);
+
+  // Image or hotspot click handler
+  const handleImageOrHotspotClick = useCallback((e: React.MouseEvent, hotspotId?: string) => {
+    if (isPlacingHotspot && !hotspotId) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      handlePlaceNewHotspot(x, y);
+    } else if (hotspotId) {
+      const clickedHotspot = hotspots.find(h => h.id === hotspotId);
+      if (clickedHotspot && editingHotspot?.id !== clickedHotspot.id) {
+        setEditingHotspot(clickedHotspot);
+      }
+    } else if (!isPlacingHotspot && editingHotspot !== null) {
+      setEditingHotspot(null);
+    }
+  }, [isPlacingHotspot, hotspots, editingHotspot, handlePlaceNewHotspot]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900">
+      <div
+        id="editor-content"
+        tabIndex={-1}
+        className="text-slate-200 fixed inset-0 z-50 bg-slate-900"
+        role="main"
+        aria-label="Interactive module editor"
+        aria-live="polite"
+      >
+        {isMobile ? (
+          <MobileErrorBoundary key="mobile-editor">
+            <MobileEditorLayout
+              projectName={projectName}
+              backgroundImage={backgroundImage}
+              hotspots={hotspots}
+              timelineEvents={timelineEvents}
+              currentStep={currentStep}
+              isEditing={true}
+              onBack={onClose}
+              onSave={handleSaveClick}
+              isSaving={isSaving}
+              showSuccessMessage={showSuccessMessage}
+              onAddHotspot={isPlacingHotspot ? undefined : handleAddHotspot}
+              selectedHotspot={editingHotspot}
+              onUpdateHotspot={(updates) => {
+                if (editingHotspot) {
+                  const updatedHotspot = { ...editingHotspot, ...updates };
+                  onHotspotsChange(hotspots.map(h => h.id === editingHotspot.id ? updatedHotspot : h));
+                  setEditingHotspot(updatedHotspot);
+                }
+              }}
+              onDeleteHotspot={(hotspotId) => {
+                handleRemoveHotspot(hotspotId);
+                setEditingHotspot(null);
+              }}
+              activePanelOverride={activeMobileEditorTab === 'properties' ? 'properties' : activeMobileEditorTab === 'timeline' ? 'timeline' : activeMobileEditorTab === 'background' ? 'background' : 'image'}
+              onActivePanelChange={(panel) => {
+                if (panel === 'properties') {
+                  setActiveMobileEditorTab('properties');
+                } else if (panel === 'timeline') {
+                  setActiveMobileEditorTab('timeline');
+                } else if (panel === 'background') {
+                  setActiveMobileEditorTab('background');
+                }
+              }}
+              onAddTimelineEvent={handleAddTimelineEvent}
+              onUpdateTimelineEvent={handleUpdateTimelineEvent}
+              onDeleteTimelineEvent={handleDeleteTimelineEvent}
+              previewingEvents={mobilePreviewEvents}
+              onPreviewEvent={handleMobilePreviewEvent}
+              onStopPreview={handleStopMobilePreview}
+              backgroundType={backgroundType}
+              backgroundVideoType={backgroundVideoType}
+              onReplaceImage={onImageUpload}
+              onBackgroundImageChange={onBackgroundImageChange}
+              onBackgroundTypeChange={onBackgroundTypeChange}
+              onBackgroundVideoTypeChange={onBackgroundVideoTypeChange}
+            >
+              {/* Image Canvas */}
+              <div
+                ref={imageContainerRef}
+                className="flex-1 relative bg-slate-700 min-h-0 overflow-hidden mobile-event-container mobile-transform-container"
+                {...editingTouchHandlers}
+              >
+                <ImageEditCanvas
+                  backgroundImage={backgroundImage}
+                  editingZoom={editingZoom}
+                  actualImageRef={actualImageRef}
+                  zoomedImageContainerRef={zoomedImageContainerRef}
+                  scrollableContainerRef={scrollableContainerRef}
+                  imageContainerRef={imageContainerRef}
+                  hotspotsWithPositions={hotspotsWithPositions}
+                  pulsingHotspotId={null}
+                  activeHotspotDisplayIds={new Set()}
+                  isPlacingHotspot={isPlacingHotspot}
+                  onPlaceNewHotspot={handlePlaceNewHotspot}
+                  highlightedHotspotId={highlightedHotspotId}
+                  getHighlightGradientStyle={() => ({})}
+                  onImageLoad={handleImageLoad}
+                  onImageOrHotspotClick={handleImageOrHotspotClick}
+                  onFocusHotspot={handleFocusHotspot}
+                  onEditHotspotRequest={handleOpenHotspotEditor}
+                  onHotspotPositionChange={handleHotspotPositionChange}
+                  getImageBounds={() => null}
+                  imageNaturalDimensions={imageNaturalDimensions}
+                  imageFitMode="contain"
+                  previewingEvents={mobilePreviewEvents}
+                  isPreviewMode={isMobilePreviewMode}
+                />
+              </div>
+            </MobileEditorLayout>
+          </MobileErrorBoundary>
+        ) : (
+          <>
+            {/* Desktop Editor Toolbar */}
+            <div className="bg-slate-800 border-b border-slate-700">
+              <EditorToolbar
+                projectName={projectName}
+                onBack={onClose}
+                onSave={handleSaveClick}
+                isSaving={isSaving}
+                showSuccessMessage={showSuccessMessage}
+                onAddHotspot={handleAddHotspot}
+                isPlacingHotspot={isPlacingHotspot}
+                onCancelPlacement={() => setIsPlacingHotspot(false)}
+                currentZoom={editingZoom}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+              />
+            </div>
+
+            {/* Main editing content */}
+            <div className="h-full">
+              <div className="relative bg-slate-900 h-full" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+                <ImageEditCanvas
+                  backgroundImage={backgroundImage}
+                  editingZoom={editingZoom}
+                  actualImageRef={actualImageRef}
+                  zoomedImageContainerRef={zoomedImageContainerRef}
+                  scrollableContainerRef={scrollableContainerRef}
+                  imageContainerRef={imageContainerRef}
+                  hotspotsWithPositions={hotspotsWithPositions}
+                  pulsingHotspotId={null}
+                  activeHotspotDisplayIds={new Set()}
+                  isPlacingHotspot={isPlacingHotspot}
+                  onPlaceNewHotspot={handlePlaceNewHotspot}
+                  highlightedHotspotId={highlightedHotspotId}
+                  getHighlightGradientStyle={() => ({})}
+                  onImageLoad={handleImageLoad}
+                  onImageOrHotspotClick={handleImageOrHotspotClick}
+                  onFocusHotspot={handleFocusHotspot}
+                  onEditHotspotRequest={handleOpenHotspotEditor}
+                  onHotspotPositionChange={handleHotspotPositionChange}
+                  getImageBounds={() => null}
+                  imageNaturalDimensions={imageNaturalDimensions}
+                  imageFitMode="contain"
+                  previewingEvents={[]}
+                  isPreviewMode={false}
+                />
+
+                {/* Desktop Timeline */}
+                <div className="bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE }}>
+                  <Suspense fallback={<LazyLoadingFallback type="component" message="Loading timeline..." />}>
+                    <HorizontalTimeline
+                      uniqueSortedSteps={uniqueSortedSteps}
+                      currentStep={currentStep}
+                      onStepSelect={setCurrentStep}
+                      isEditing={true}
+                      timelineEvents={timelineEvents}
+                      setTimelineEvents={onTimelineEventsChange}
+                      hotspots={hotspots}
+                      moduleState="idle"
+                      onPrevStep={() => {}}
+                      onNextStep={() => {}}
+                      currentStepIndex={currentStepIndex}
+                      totalSteps={uniqueSortedSteps.length}
+                      isMobile={false}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Hotspot Editor Modal */}
+            {isHotspotModalOpen && selectedHotspotForModal && (
+              <Suspense fallback={<LazyLoadingFallback type="modal" message="Loading editor..." />}>
+                <HotspotEditorModal
+                  isOpen={isHotspotModalOpen}
+                  onClose={() => {
+                    setIsHotspotModalOpen(false);
+                    setSelectedHotspotForModal(null);
+                  }}
+                  hotspot={hotspots.find(h => h.id === selectedHotspotForModal) || null}
+                  onUpdate={(updates) => {
+                    if (selectedHotspotForModal) {
+                      onHotspotsChange(hotspots.map(h => 
+                        h.id === selectedHotspotForModal ? { ...h, ...updates } : h
+                      ));
+                    }
+                  }}
+                  onDelete={() => {
+                    if (selectedHotspotForModal) {
+                      handleRemoveHotspot(selectedHotspotForModal);
+                      setIsHotspotModalOpen(false);
+                      setSelectedHotspotForModal(null);
+                    }
+                  }}
+                  timelineEvents={timelineEvents}
+                  onAddTimelineEvent={handleAddTimelineEvent}
+                  onUpdateTimelineEvent={handleUpdateTimelineEvent}
+                  onDeleteTimelineEvent={handleDeleteTimelineEvent}
+                />
+              </Suspense>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default InteractiveEditor;
