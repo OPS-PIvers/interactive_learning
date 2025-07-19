@@ -10,25 +10,25 @@ import { InteractiveModuleState } from '../shared/types';
 vi.mock('../client/components/ViewerToolbar', () => ({
   default: () => <div data-testid="viewer-toolbar">ViewerToolbar</div>
 }));
-vi.mock('../client/components/EditorToolbar', () => ({
+vi.mock('../client/components/editor/EditorToolbar', () => ({
   default: () => <div data-testid="editor-toolbar">EditorToolbar</div>
 }));
-vi.mock('../client/components/HotspotViewer', () => ({
+vi.mock('../client/components/viewer/HotspotViewer', () => ({
   default: () => <div data-testid="hotspot-viewer">HotspotViewer</div>
 }));
-vi.mock('../client/components/HorizontalTimeline', () => ({
+vi.mock('../client/components/viewer/HorizontalTimeline', () => ({
   default: () => <div data-testid="horizontal-timeline">HorizontalTimeline</div>
 }));
-vi.mock('../client/components/ImageEditCanvas', () => ({
+vi.mock('../client/components/editor/ImageEditCanvas', () => ({
   default: () => <div data-testid="image-edit-canvas">ImageEditCanvas</div>
 }));
-vi.mock('../client/components/HotspotEditorModal', () => ({
+vi.mock('../client/components/editor/HotspotEditorModal', () => ({
   default: () => <div data-testid="hotspot-editor-modal">HotspotEditorModal</div>
 }));
-vi.mock('../client/components/MobileEditorModal', () => ({
+vi.mock('../client/components/editor/mobile/MobileEditorModal', () => ({
   default: () => <div data-testid="mobile-editor-modal">MobileEditorModal</div>
 }));
-vi.mock('../client/components/MobileEditorLayout', () => ({
+vi.mock('../client/components/editor/mobile/MobileEditorLayout', () => ({
   default: () => <div data-testid="mobile-editor-layout">MobileEditorLayout</div>
 }));
 vi.mock('../client/hooks/useIsMobile', () => ({

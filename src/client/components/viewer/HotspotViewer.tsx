@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { HotspotData, HotspotSize } from '../../shared/types';
-import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
-import { triggerHapticFeedback } from '../utils/hapticUtils';
-import { useMobileTouchGestures } from '../hooks/useMobileTouchGestures';
-import { getActualImageVisibleBounds, getCachedBoundingClientRect } from '../utils/imageBounds';
+import { HotspotData, HotspotSize } from '../../../shared/types';
+import useScreenReaderAnnouncements from '../../hooks/useScreenReaderAnnouncements';
+import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { useMobileTouchGestures } from '../../hooks/useMobileTouchGestures';
+import { getActualImageVisibleBounds, getCachedBoundingClientRect } from '../../utils/imageBounds';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;

@@ -2,14 +2,14 @@ import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { Identifier, XYCoord } from 'dnd-core';
 import { TimelineEventData, InteractionType, HotspotData, MediaQuizTrigger } from '../../shared/types';
-import { PencilIcon } from './icons/PencilIcon';
-import { TrashIcon } from './icons/TrashIcon';
-import { EyeIcon } from './icons/EyeIcon';
-import { EyeSlashIcon } from './icons/EyeSlashIcon';
-import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
+import { PencilIcon } from '../icons/PencilIcon';
+import { TrashIcon } from '../icons/TrashIcon';
+import { EyeIcon } from '../icons/EyeIcon';
+import { EyeSlashIcon } from '../icons/EyeSlashIcon';
+import DragHandle from '../shared/DragHandle'; // Assuming DragHandle.tsx exists
 // import EventTypeSelector from './EventTypeSelector';
 import SliderControl from './SliderControl';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { triggerHapticFeedback } from '../../utils/hapticUtils'; // Import haptic utility
 import QuizTriggerEditor from './QuizTriggerEditor';
 interface EditableEventCardProps {
   index: number;

@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
-import { PlusIcon } from './icons/PlusIcon';
-import { TrashIcon } from './icons/TrashIcon';
-import { PencilIcon } from './icons/PencilIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import DragHandle from './DragHandle';
+import { PlusIcon } from '../icons/PlusIcon';
+import { TrashIcon } from '../icons/TrashIcon';
+import { PencilIcon } from '../icons/PencilIcon';
+import { ChevronRightIcon } from '../icons/ChevronRightIcon';
+import DragHandle from '../shared/DragHandle';
 
 interface StreamlinedHotspotEditorProps {
   selectedHotspot: HotspotData;

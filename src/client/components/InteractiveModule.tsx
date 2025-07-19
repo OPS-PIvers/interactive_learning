@@ -8,20 +8,20 @@ import LoadingScreen from './shared/LoadingScreen';
 import ErrorScreen from './shared/ErrorScreen';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType, extractYouTubeVideoId } from '../../shared/types';
 import { migrateEventTypes } from '../../shared/migration';
-import FileUpload from './FileUpload';
-import HorizontalTimeline from './HorizontalTimeline';
-import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
-import MobileEditorModal from './MobileEditorModal';
-import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
+import FileUpload from './editor/FileUpload';
+import HorizontalTimeline from './viewer/HorizontalTimeline';
+import HotspotEditorModal from './editor/HotspotEditorModal'; // This will be the single source of truth
+import MobileEditorModal from './editor/mobile/MobileEditorModal';
+import EditorToolbar, { COLOR_SCHEMES } from './editor/EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon'; // Already imported
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
-import MobileHotspotEditor from './MobileHotspotEditor';
-import MobileEditorLayout from './MobileEditorLayout';
-import ImageEditCanvas from './ImageEditCanvas';
-import Modal from './Modal';
+import MobileEditorTabs from './editor/mobile/MobileEditorTabs';
+import MobileHotspotEditor from './editor/mobile/MobileHotspotEditor';
+import MobileEditorLayout from './editor/mobile/MobileEditorLayout';
+import ImageEditCanvas from './editor/ImageEditCanvas';
+import Modal from './shared/Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS, ZOOM_LIMITS } from '../constants/interactionConstants';
@@ -32,19 +32,19 @@ const CROSS_DEVICE_SYNC_DEBOUNCE_MS = 2000;
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { createMobileOptimizedUploadHandler } from '../utils/enhancedUploadHandler';
-import MediaModal from './MediaModal';
+import MediaModal from './editor/MediaModal';
 import VideoPlayer from './VideoPlayer';
-import AudioPlayer from './AudioPlayer';
-import ImageViewer from './ImageViewer';
+import AudioPlayer from './viewer/AudioPlayer';
+import ImageViewer from './viewer/ImageViewer';
 import YouTubePlayer from './YouTubePlayer';
-import { MobileMediaModal } from './mobile/MobileMediaModal';
-import MobileEventRenderer from './mobile/MobileEventRenderer';
+import { MobileMediaModal } from './viewer/mobile/MobileMediaModal';
+import MobileEventRenderer from './viewer/mobile/MobileEventRenderer';
 import { useToast } from '../hooks/useToast';
 import { debugLog } from '../utils/debugUtils';
 import '../styles/mobile-events.css';
 
 
-import HotspotViewer from './HotspotViewer';
+import HotspotViewer from './viewer/HotspotViewer';
 
 // Using default memo export from HotspotViewer
 

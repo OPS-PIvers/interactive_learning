@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import debounce from 'lodash.debounce';
 import { DndProvider } from 'react-dnd'; // Import DndProvider
 import { HTML5Backend } from 'react-dnd-html5-backend'; // Import HTML5Backend
-import { HotspotData, HotspotSize, TimelineEventData, InteractionType } from '../../shared/types';
-import { interactionPresets } from '../../shared/InteractionPresets';
-import EventTypeSelectorButtonGrid from './EventTypeSelectorButtonGrid';
-import EditableEventCard from './EditableEventCard';
-import { PlusIcon } from './icons/PlusIcon';
-import { XMarkIcon } from './icons/XMarkIcon';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { HotspotData, HotspotSize, TimelineEventData, InteractionType } from '../../../../shared/types';
+import { interactionPresets } from '../../../../shared/InteractionPresets';
+import EventTypeSelectorButtonGrid from '../EventTypeSelectorButtonGrid';
+import EditableEventCard from '../EditableEventCard';
+import { PlusIcon } from '../../../icons/PlusIcon';
+import { XMarkIcon } from '../../../icons/XMarkIcon';
+import { triggerHapticFeedback } from '../../../utils/hapticUtils'; // Import haptic utility
 
 
 interface MobileHotspotEditorProps {

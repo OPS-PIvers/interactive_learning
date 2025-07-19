@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
-import { MenuIcon } from './icons/MenuIcon';
-import { GearIcon } from './icons/GearIcon';
-import { ZoomInIcon } from './icons/ZoomInIcon';
-import { ZoomOutIcon } from './icons/ZoomOutIcon';
-import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
-import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
-import { PlusCircleIcon } from './icons/PlusCircleIcon';
+import { MenuIcon } from '../icons/MenuIcon';
+import { GearIcon } from '../icons/GearIcon';
+import { ZoomInIcon } from '../icons/ZoomInIcon';
+import { ZoomOutIcon } from '../icons/ZoomOutIcon';
+import { SaveIcon } from '../icons/SaveIcon'; // For mobile save button
+import { CheckIcon } from '../icons/CheckIcon'; // Import CheckIcon
+import { PlusCircleIcon } from '../icons/PlusCircleIcon';
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
-import ShareModal from './ShareModal';
-import AuthButton from './AuthButton';
-import { Project } from '../../shared/types';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import ShareModal from '../shared/ShareModal';
+import AuthButton from '../shared/AuthButton';
+import { Project } from '../../../shared/types';
+import { triggerHapticFeedback } from '../../utils/hapticUtils'; // Import haptic utility
 
 interface EditorToolbarProps {
   projectName: string;

@@ -14,19 +14,19 @@ vi.mock('../client/components/ViewerToolbar', () => ({
     </div>
   )
 }));
-vi.mock('../client/components/EditorToolbar', () => ({
+vi.mock('../client/components/editor/EditorToolbar', () => ({
   default: () => <div data-testid="editor-toolbar">EditorToolbar</div>
 }));
-vi.mock('../client/components/HotspotViewer', () => ({
+vi.mock('../client/components/viewer/HotspotViewer', () => ({
   default: () => <div data-testid="hotspot-viewer">HotspotViewer</div>
 }));
-vi.mock('../client/components/HorizontalTimeline', () => ({
+vi.mock('../client/components/viewer/HorizontalTimeline', () => ({
   default: () => <div data-testid="horizontal-timeline">HorizontalTimeline</div>
 }));
-vi.mock('../client/components/ImageEditCanvas', () => ({
+vi.mock('../client/components/editor/ImageEditCanvas', () => ({
   default: () => <div data-testid="image-edit-canvas">ImageEditCanvas</div>
 }));
-vi.mock('../client/components/HotspotEditorModal', () => ({
+vi.mock('../client/components/editor/HotspotEditorModal', () => ({
   default: () => <div data-testid="hotspot-editor-modal">HotspotEditorModal</div>
 }));
 vi.mock('../lib/firebaseProxy', () => ({

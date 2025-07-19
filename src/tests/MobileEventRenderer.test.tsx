@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import MobileEventRenderer from '../client/components/mobile/MobileEventRenderer';
+import MobileEventRenderer from '../client/components/viewer/mobile/MobileEventRenderer';
 import { TimelineEventData, InteractionType } from '../shared/types';
 
 // Mock the modal components
-vi.mock('../client/components/mobile/MobileTextModal', () => ({
+vi.mock('../client/components/viewer/mobile/MobileTextModal', () => ({
   default: ({ event, onComplete, showNavigation, currentIndex, totalCount }: any) => (
     <div data-testid="text-modal">
       <h3>{event.name}</h3>
@@ -20,7 +20,7 @@ vi.mock('../client/components/mobile/MobileTextModal', () => ({
   )
 }));
 
-vi.mock('../client/components/mobile/MobileImageModal', () => ({
+vi.mock('../client/components/viewer/mobile/MobileImageModal', () => ({
   default: ({ event, onComplete, showNavigation, currentIndex, totalCount }: any) => (
     <div data-testid="image-modal">
       <h3>{event.name}</h3>

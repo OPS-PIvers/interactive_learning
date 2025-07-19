@@ -1,11 +1,11 @@
 // src/client/components/MobileEditorLayout.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { HotspotData, TimelineEventData, InteractionType, Project } from '../../shared/types';
-import EditorToolbar from './EditorToolbar';
+import { HotspotData, TimelineEventData, InteractionType, Project } from '../../../../shared/types';
+import EditorToolbar from '../EditorToolbar';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
-import AuthButton from './AuthButton';
-import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
+import AuthButton from '../../shared/AuthButton';
+import { useMobileKeyboard } from '../../../hooks/useMobileKeyboard';
 
 interface MobileEditorLayoutProps {
   project: Project;
