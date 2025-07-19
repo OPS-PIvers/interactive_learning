@@ -197,7 +197,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
       
       // === UNIFIED SPOTLIGHT PROPERTIES ===
-      ...(type === InteractionType.SPOTLIGHT && {
+      ...((type === InteractionType.SPOTLIGHT || type === InteractionType.HIGHLIGHT_HOTSPOT) && {
         spotlightShape: 'circle',
         spotlightX: localHotspot.x,
         spotlightY: localHotspot.y, 
@@ -208,7 +208,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
       
       // === UNIFIED PAN_ZOOM PROPERTIES ===
-      ...(type === InteractionType.PAN_ZOOM && {
+      ...((type === InteractionType.PAN_ZOOM || type === InteractionType.PAN_ZOOM_TO_HOTSPOT) && {
         targetX: localHotspot.x,
         targetY: localHotspot.y,
         zoomLevel: 2,

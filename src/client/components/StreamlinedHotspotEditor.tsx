@@ -349,6 +349,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
         <EventEditorForm
           event={editingEvent}
           hotspotId={selectedHotspot.id}
+          hotspot={selectedHotspot}
           onSave={handleEventSave}
           onCancel={() => {
             setShowEventForm(false);
@@ -387,12 +388,13 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
 interface EventEditorFormProps {
   event: TimelineEventData | null;
   hotspotId: string;
+  hotspot: HotspotData; // Add full hotspot data for target positioning
   onSave: (event: TimelineEventData) => void;
   onCancel: () => void;
   isMobile?: boolean;
 }
 
-const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onSave, onCancel, isMobile }) => {
+const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hotspot, onSave, onCancel, isMobile }) => {
   const [formData, setFormData] = useState<Partial<TimelineEventData>>(() => ({
     id: event?.id || `event_${Date.now()}`,
     name: event?.name || 'New Event',
@@ -402,6 +404,16 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
     duration: event?.duration || 2000,
     zoomFactor: event?.zoomFactor || 2.0,
     highlightRadius: event?.highlightRadius || 60,
+    // Set target coordinates for pan & zoom events based on hotspot position
+    ...((event?.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || event?.type === InteractionType.PAN_ZOOM) && {
+      targetX: hotspot.x,
+      targetY: hotspot.y,
+    }),
+    // Set spotlight coordinates for spotlight/highlight events based on hotspot position
+    ...((event?.type === InteractionType.SPOTLIGHT || event?.type === InteractionType.HIGHLIGHT_HOTSPOT) && {
+      spotlightX: hotspot.x,
+      spotlightY: hotspot.y,
+    }),
     ...event
   }));
 
@@ -512,7 +524,28 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, onS
           <label className="block text-xs text-slate-400 mb-1">Event Type</label>
           <select
             value={formData.type}
-            onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as InteractionType }))}
+            onChange={(e) => {
+              const newType = e.target.value as InteractionType;
+              setFormData(prev => ({
+                ...prev,
+                type: newType,
+                // Set target coordinates when switching to pan & zoom events
+                ...((newType === InteractionType.PAN_ZOOM_TO_HOTSPOT || newType === InteractionType.PAN_ZOOM) && {
+                  targetX: hotspot.x,
+                  targetY: hotspot.y,
+                  zoomLevel: 2,
+                  smooth: true,
+                }),
+                // Set spotlight coordinates when switching to spotlight/highlight events
+                ...((newType === InteractionType.SPOTLIGHT || newType === InteractionType.HIGHLIGHT_HOTSPOT) && {
+                  spotlightX: hotspot.x,
+                  spotlightY: hotspot.y,
+                  spotlightShape: 'circle',
+                  backgroundDimPercentage: 70,
+                  spotlightOpacity: 0,
+                })
+              }));
+            }}
             className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value={InteractionType.HIDE_HOTSPOT}>Hide Hotspot</option>

@@ -121,7 +121,21 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
 
   // Hotspot positioning calculations
   const hotspotsWithPositions = useMemo(() => {
-    if (!backgroundImage || !imageNaturalDimensions) return [];
+    if (!backgroundImage) return hotspots.map(h => ({ ...h, pixelPosition: null }));
+    
+    // For mobile, we should use percentage positioning to let CSS handle the scaling
+    // Only provide pixel positioning for desktop or when we have accurate container dimensions
+    if (isMobile) {
+      return hotspots.map(hotspot => ({
+        ...hotspot,
+        pixelPosition: null // Let HotspotViewer use percentage positioning for mobile
+      }));
+    }
+    
+    // Desktop pixel positioning (only when we have accurate dimensions)
+    if (!imageNaturalDimensions) {
+      return hotspots.map(h => ({ ...h, pixelPosition: null }));
+    }
     
     return hotspots.map(hotspot => {
       const pixelX = (hotspot.x / 100) * imageNaturalDimensions.width;
@@ -130,12 +144,12 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
       return {
         ...hotspot,
         pixelPosition: {
-          left: `${pixelX}px`,
-          top: `${pixelY}px`
+          x: pixelX,
+          y: pixelY
         }
       };
     });
-  }, [hotspots, backgroundImage, imageNaturalDimensions]);
+  }, [hotspots, backgroundImage, imageNaturalDimensions, isMobile]);
 
   // Event handlers
   const handleAddHotspot = useCallback(() => {

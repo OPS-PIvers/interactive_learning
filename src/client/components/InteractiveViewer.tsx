@@ -207,12 +207,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const hotspotsWithPositions = useMemo(() => {
     if (!backgroundImage) return [];
     
+    // For viewer mode, always use percentage positioning for consistent behavior
+    // across different screen sizes and zoom levels
     return hotspots.map(hotspot => ({
       ...hotspot,
-      pixelPosition: {
-        left: `${hotspot.x}%`,
-        top: `${hotspot.y}%`
-      }
+      pixelPosition: null // Use percentage positioning
     }));
   }, [hotspots, backgroundImage]);
 
@@ -284,7 +283,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                           <HotspotViewer
                             hotspot={hotspot}
                             pixelPosition={hotspot.pixelPosition}
-                            usePixelPositioning={true}
+                            usePixelPositioning={false}
                             isPulsing={moduleState === 'learning' && pulsingHotspotId === hotspot.id}
                             isDimmedInEditMode={false}
                             isEditing={false}

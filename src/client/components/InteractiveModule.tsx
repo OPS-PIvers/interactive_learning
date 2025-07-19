@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { InteractiveModuleState } from '../../shared/types';
 import { ViewerModes, EditorCallbacks } from '../../shared/interactiveTypes';
-import { migrateEventTypes } from '../../shared/migration';
+import { migrateEventTypesWithHotspots } from '../../shared/migration';
 import LoadingScreen from './shared/LoadingScreen';
 import ErrorScreen from './shared/ErrorScreen';
 import InteractiveViewer from './InteractiveViewer';
@@ -42,8 +42,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // Initialize component
   useEffect(() => {
     try {
-      // Migrate event types if needed
-      const migratedEvents = migrateEventTypes(initialData.timelineEvents || []);
+      // Migrate event types if needed, including setting target coordinates for pan & zoom events
+      const migratedEvents = migrateEventTypesWithHotspots(
+        initialData.timelineEvents || [], 
+        initialData.hotspots || []
+      );
       
       const processedData: InteractiveModuleState = {
         ...initialData,

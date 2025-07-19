@@ -1,5 +1,5 @@
 // src/shared/migration.ts
-import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId } from './types';
+import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData } from './types';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map(event => {
@@ -10,6 +10,9 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         type: InteractionType.PAN_ZOOM,
         zoomLevel: event.zoomFactor || 2, // Use zoomFactor as zoomLevel
         smooth: true,
+        // Note: targetX and targetY should be set based on the target hotspot's position
+        // This is now handled in the editor components when creating new events
+        // Existing events without targetX/targetY will fall back to default center position (50, 50)
       };
     }
     
@@ -192,6 +195,53 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
 // Helper function to migrate a single event
 export const migrateSingleEvent = (event: TimelineEventData): TimelineEventData => {
   return migrateEventTypes([event])[0];
+};
+
+// Enhanced migration function that can set target coordinates for pan & zoom events
+export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotspots: HotspotData[]): TimelineEventData[] => {
+  return events.map(event => {
+    // First apply the standard migration
+    const migratedEvent = migrateEventTypes([event])[0];
+    
+    // Additional processing for pan & zoom events that might be missing target coordinates
+    if ((migratedEvent.type === InteractionType.PAN_ZOOM || migratedEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
+        (!migratedEvent.targetX || !migratedEvent.targetY) &&
+        migratedEvent.targetId) {
+      
+      // Find the target hotspot to get its coordinates
+      const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
+      if (targetHotspot) {
+        return {
+          ...migratedEvent,
+          targetX: targetHotspot.x,
+          targetY: targetHotspot.y,
+          zoomLevel: migratedEvent.zoomLevel || 2,
+          smooth: migratedEvent.smooth !== false,
+        };
+      }
+    }
+    
+    // Additional processing for spotlight events that might be missing spotlight coordinates
+    if ((migratedEvent.type === InteractionType.SPOTLIGHT || migratedEvent.type === InteractionType.HIGHLIGHT_HOTSPOT) &&
+        (!migratedEvent.spotlightX || !migratedEvent.spotlightY) &&
+        migratedEvent.targetId) {
+      
+      // Find the target hotspot to get its coordinates
+      const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
+      if (targetHotspot) {
+        return {
+          ...migratedEvent,
+          spotlightX: targetHotspot.x,
+          spotlightY: targetHotspot.y,
+          spotlightShape: migratedEvent.spotlightShape || 'circle',
+          backgroundDimPercentage: migratedEvent.backgroundDimPercentage || 70,
+          spotlightOpacity: 0,
+        };
+      }
+    }
+    
+    return migratedEvent;
+  });
 };
 
 // Check if an event needs migration

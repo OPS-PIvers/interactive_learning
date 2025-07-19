@@ -320,7 +320,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 <HotspotViewer
                   hotspot={hotspot}
                   pixelPosition={hotspot.pixelPosition}
-                  usePixelPositioning={true}
+                  usePixelPositioning={!!hotspot.pixelPosition && !isMobile}
                   imageElement={actualImageRef.current}
                   isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
                   isDimmedInEditMode={getIsHotspotDimmed(hotspot.id)}
