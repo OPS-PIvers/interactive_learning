@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
-import { useMobileTouchGestures } from '../hooks/useMobileTouchGestures';
 import { getActualImageVisibleBounds, getCachedBoundingClientRect } from '../utils/imageBounds';
 
 interface HotspotViewerProps {
@@ -78,40 +77,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   const lastTapTimeRef = useRef(0);
   const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
-  // Mobile touch gestures
-  const handleTap = useCallback((id: string) => {
-    if (isEditing && onEditRequest) {
-      onEditRequest(id);
-    } else {
-      onFocusRequest(id);
-    }
-  }, [isEditing, onEditRequest, onFocusRequest]);
-
-  const handleDoubleTap = useCallback((id: string) => {
-    if (isMobile && !isEditing && props.onHotspotDoubleClick) {
-      // Create a synthetic pointer event for compatibility
-      const syntheticEvent = new PointerEvent('pointermove', {
-        pointerId: 1,
-        clientX: 0,
-        clientY: 0,
-        bubbles: true,
-        cancelable: true
-      }) as unknown as React.PointerEvent;
-      props.onHotspotDoubleClick(id, syntheticEvent);
-    }
-  }, [isMobile, isEditing, props.onHotspotDoubleClick]);
-
-  const handleLongPress = useCallback((id: string) => {
-    if (isEditing && onEditRequest) {
-      onEditRequest(id);
-    }
-  }, [isEditing, onEditRequest]);
-
-  const { handleTouchStart, handleTouchEnd } = useMobileTouchGestures(
-    handleTap,
-    handleDoubleTap,
-    handleLongPress
-  );
   
   // Cleanup effect for timeout
   useEffect(() => {
@@ -324,16 +289,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    console.log('Debug [HotspotViewer]: handlePointerUp called', {
-      hotspotId: hotspot.id,
-      isEditing,
-      isDragging,
-      isHolding,
-      isDimmed: isDimmedInEditMode,
-      hasDragDataRef: !!dragDataRef.current,
-      timestamp: Date.now()
-    });
-    
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
       holdTimeoutRef.current = undefined;
@@ -341,71 +296,44 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // If it was just a tap (no drag), open editor in editing mode or show focus in viewing mode
     if (!isDragging && dragDataRef.current) {
-      console.log('Debug [HotspotViewer]: Hotspot clicked', {
-        hotspotId: hotspot.id,
-        isEditing,
-        hasOnEditRequest: !!onEditRequest,
-        timestamp: Date.now()
-      });
-      
-      const currentTime = Date.now();
-      if (isMobile && !isEditing && props.onHotspotDoubleClick) {
-        if (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS) {
-          // This is a double tap
-          props.onHotspotDoubleClick(hotspot.id, e);
-          e.stopPropagation(); // Prevent image viewer's double tap
-          lastTapTimeRef.current = 0; // Reset to prevent triple tap issues
-          triggerHapticFeedback('heavy'); // Heavier feedback for focus
-          // onFocusRequest is likely also desired here, or handled by the parent managing the focus
-        } else {
-          // This is a single tap
-          lastTapTimeRef.current = currentTime;
-          onFocusRequest(hotspot.id);
-          triggerHapticFeedback('hotspotDiscovery');
-        }
-      } else if (isEditing && onEditRequest) {
-        // Editing mode: tap calls onEditRequest
-        console.log('Debug [HotspotViewer]: Calling onEditRequest for hotspot', hotspot.id);
+      if (isEditing && onEditRequest) {
         onEditRequest(hotspot.id);
-        e.stopPropagation(); // Prevent container click handler from firing
-        lastTapTimeRef.current = 0; // Reset tap tracking when entering edit
+        e.stopPropagation();
       } else {
-        // Non-mobile, or no double tap handler, or isEditing without onEditRequest: standard focus
-        onFocusRequest(hotspot.id);
-        lastTapTimeRef.current = 0; // Reset tap tracking
-        if (isMobile && !isEditing) {
+        // Handle non-editing taps (including double tap)
+        const currentTime = Date.now();
+        if (isMobile && !isEditing && props.onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
+          props.onHotspotDoubleClick(hotspot.id, e);
+          e.stopPropagation();
+          lastTapTimeRef.current = 0;
+          triggerHapticFeedback('heavy');
+        } else {
+          onFocusRequest(hotspot.id);
+          lastTapTimeRef.current = currentTime;
+          if (isMobile && !isEditing) {
             triggerHapticFeedback('hotspotDiscovery');
+          }
         }
       }
-    } else {
-      console.log('Debug [HotspotViewer]: Click not processed - condition not met', {
-        isDragging,
-        hasDragDataRef: !!dragDataRef.current,
-        hotspotId: hotspot.id
-      });
     }
 
-    // Clean up
-    const wasDragging = isDragging;
-    if (wasDragging) {
-      announceDragStop(`hotspot ${hotspot.title}`); // Announce drag stop
+    // Clean up drag state
+    if (isDragging) {
+      announceDragStop(`hotspot ${hotspot.title}`);
     }
-    
-    // Always reset drag state to parent regardless of whether we were dragging
-    // This ensures the parent touch handlers are re-enabled
-    if (onDragStateChange) onDragStateChange(false);
-    
+    if (onDragStateChange) {
+      onDragStateChange(false);
+    }
     setIsDragging(false);
     setIsHolding(false);
     dragDataRef.current = null;
 
-    // Release pointer capture
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch (error) {
-      console.warn('Failed to release pointer capture:', error);
+      // Ignore errors, pointer might not be captured.
     }
-  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop]);
+  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, isMobile, props.onHotspotDoubleClick]);
 
   // Style classes
   const baseColor = hotspot.color || 'bg-sky-500'; // Default to sky blue
@@ -449,8 +377,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}  
       onPointerUp={handlePointerUp}
-      onTouchStart={isMobile ? (e) => handleTouchStart(hotspot.id, e) : undefined}
-      onTouchEnd={isMobile ? (e) => handleTouchEnd(hotspot.id) : undefined}
       onClick={isEditing ? (e) => {
         console.log('Debug [HotspotViewer]: onClick called, stopping propagation');
         e.stopPropagation();
