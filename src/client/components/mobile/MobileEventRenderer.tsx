@@ -19,6 +19,16 @@ interface MobileEventRendererProps {
   onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
   isGestureActive?: boolean;
   isVisible?: boolean; // Controls visibility without affecting hook execution
+  // New props for enhanced timeline navigation
+  moduleState?: 'idle' | 'exploring' | 'learning';
+  currentStep?: number;
+  totalSteps?: number;
+  currentStepIndex?: number;
+  isTimedMode?: boolean;
+  autoProgressionDuration?: number;
+  onPrevStep?: () => void;
+  onNextStep?: () => void;
+  onCompleteAllEvents?: () => void; // For explore mode
 }
 
 const MODAL_INTERACTIONS = new Set([
@@ -51,7 +61,16 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   isActive,
   currentTransform,
   onTransformUpdate,
-  isGestureActive
+  isGestureActive,
+  moduleState = 'learning',
+  currentStep = 1,
+  totalSteps = 1,
+  currentStepIndex = 0,
+  isTimedMode = false,
+  autoProgressionDuration = 3000,
+  onPrevStep,
+  onNextStep,
+  onCompleteAllEvents
 }) => {
   const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
@@ -115,9 +134,26 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
         if (currentModalIndex < modalQueue.length - 1) {
           setCurrentModalIndex(currentModalIndex + 1);
         } else {
-          // Queue is complete
+          // Queue is complete - handle based on viewer mode
           setModalQueue([]);
           setCurrentModalIndex(0);
+          
+          // Auto-progression for timed mode
+          if (isTimedMode && moduleState === 'learning' && onNextStep) {
+            setTimeout(() => {
+              if (currentStepIndex < totalSteps - 1) {
+                onNextStep();
+              } else {
+                // End of timeline in timed mode
+                onCompleteAllEvents?.();
+              }
+            }, autoProgressionDuration);
+          }
+          // For explore mode, call completion handler
+          else if (moduleState === 'exploring') {
+            onCompleteAllEvents?.();
+          }
+          // For guided learning mode (non-timed), modal just closes and user can navigate manually
         }
       }
     };
@@ -126,6 +162,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     const isMultiModalQueue = modalQueue.length > 1;
     const canGoNext = currentModalIndex < modalQueue.length - 1;
     const canGoPrevious = currentModalIndex > 0;
+
+    // Timeline step navigation (for guided learning mode)
+    const canGoToNextStep = moduleState === 'learning' && !isTimedMode && currentStepIndex < totalSteps - 1;
+    const canGoToPrevStep = moduleState === 'learning' && !isTimedMode && currentStepIndex > 0;
+    
+    // Determine what navigation to show
+    const showTimelineNavigation = moduleState === 'learning' && !isTimedMode && !isMultiModalQueue;
+    const showExploreButton = moduleState === 'exploring';
+    const showMultiModalNavigation = isMultiModalQueue;
 
     const handleNext = () => {
       if (canGoNext) {
@@ -137,6 +182,22 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       if (canGoPrevious) {
         setCurrentModalIndex(currentModalIndex - 1);
       }
+    };
+
+    const handleTimelineNext = () => {
+      if (canGoToNextStep && onNextStep) {
+        onNextStep();
+      }
+    };
+
+    const handleTimelinePrevious = () => {
+      if (canGoToPrevStep && onPrevStep) {
+        onPrevStep();
+      }
+    };
+
+    const handleExploreComplete = () => {
+      onCompleteAllEvents?.();
     };
 
     switch (event.type) {
@@ -170,13 +231,28 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`text-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            showNavigation={isMultiModalQueue}
+            // Multi-modal navigation (within same step)
+            showNavigation={showMultiModalNavigation}
             canGoNext={canGoNext}
             canGoPrevious={canGoPrevious}
             onNext={handleNext}
             onPrevious={handlePrevious}
             currentIndex={currentModalIndex}
             totalCount={modalQueue.length}
+            // Timeline step navigation
+            showTimelineNavigation={showTimelineNavigation}
+            canGoToNextStep={canGoToNextStep}
+            canGoToPrevStep={canGoToPrevStep}
+            onTimelineNext={handleTimelineNext}
+            onTimelinePrevious={handleTimelinePrevious}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            // Explore mode
+            showExploreButton={showExploreButton}
+            onExploreComplete={handleExploreComplete}
+            // Timed mode indicator
+            isTimedMode={isTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
           />
         );
       
@@ -225,15 +301,28 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`video-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            {...(isMultiModalQueue && {
-              showNavigation: true,
-              canGoNext,
-              canGoPrevious,
-              onNext: handleNext,
-              onPrevious: handlePrevious,
-              currentIndex: currentModalIndex,
-              totalCount: modalQueue.length
-            })}
+            // Multi-modal navigation (within same step)
+            showNavigation={showMultiModalNavigation}
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentModalIndex}
+            totalCount={modalQueue.length}
+            // Timeline step navigation
+            showTimelineNavigation={showTimelineNavigation}
+            canGoToNextStep={canGoToNextStep}
+            canGoToPrevStep={canGoToPrevStep}
+            onTimelineNext={handleTimelineNext}
+            onTimelinePrevious={handleTimelinePrevious}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            // Explore mode
+            showExploreButton={showExploreButton}
+            onExploreComplete={handleExploreComplete}
+            // Timed mode indicator
+            isTimedMode={isTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
           />
         );
       

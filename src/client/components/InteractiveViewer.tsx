@@ -122,8 +122,16 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const handleHotspotClick = useCallback((hotspotId: string) => {
     if (moduleState === 'exploring') {
       setExploredHotspotId(hotspotId);
+      
+      // For mobile, trigger events associated with this hotspot
+      if (isMobile) {
+        const hotspotEvents = timelineEvents.filter(event => event.targetId === hotspotId);
+        if (hotspotEvents.length > 0) {
+          setMobileActiveEvents(hotspotEvents);
+        }
+      }
     }
-  }, [moduleState]);
+  }, [moduleState, isMobile, timelineEvents]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
     setCurrentStep(step);
@@ -353,11 +361,30 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
               events={mobileActiveEvents}
               onEventComplete={handleMobileEventComplete}
               imageContainerRef={imageContainerRef}
-              isActive={moduleState === 'learning'}
+              isActive={moduleState === 'learning' || moduleState === 'exploring'}
               currentTransform={imageTransform}
               onTransformUpdate={setImageTransform}
               isGestureActive={isGestureActive()}
-              isVisible={moduleState === 'learning'}
+              isVisible={moduleState === 'learning' || moduleState === 'exploring'}
+              // New timeline navigation props
+              moduleState={moduleState}
+              currentStep={currentStep}
+              totalSteps={totalTimelineInteractionPoints}
+              currentStepIndex={currentStepIndex}
+              isTimedMode={isTimedMode}
+              autoProgressionDuration={autoProgressionDuration}
+              onPrevStep={handlePrevStep}
+              onNextStep={handleNextStep}
+              onCompleteAllEvents={() => {
+                if (moduleState === 'exploring') {
+                  // Reset to idle state for explore mode
+                  setModuleState('idle');
+                  setHasUserChosenMode(false);
+                } else {
+                  // For learning mode, just clear active events
+                  setMobileActiveEvents([]);
+                }
+              }}
             />
           )}
 

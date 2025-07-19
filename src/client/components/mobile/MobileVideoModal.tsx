@@ -7,15 +7,71 @@ import { Z_INDEX } from '../../constants/interactionConstants';
 interface MobileVideoModalProps {
   event: TimelineEventData;
   onComplete: () => void;
+  // Multi-modal navigation (within same step)
+  showNavigation?: boolean;
+  canGoNext?: boolean;
+  canGoPrevious?: boolean;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  currentIndex?: number;
+  totalCount?: number;
+  // Timeline step navigation (between steps)
+  showTimelineNavigation?: boolean;
+  canGoToNextStep?: boolean;
+  canGoToPrevStep?: boolean;
+  onTimelineNext?: () => void;
+  onTimelinePrevious?: () => void;
+  currentStep?: number;
+  totalSteps?: number;
+  // Explore mode
+  showExploreButton?: boolean;
+  onExploreComplete?: () => void;
+  // Timed mode
+  isTimedMode?: boolean;
+  autoProgressionDuration?: number;
 }
 
-const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ event, onComplete }) => {
+const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ 
+  event, 
+  onComplete,
+  // Multi-modal navigation
+  showNavigation = false,
+  canGoNext = false,
+  canGoPrevious = false,
+  onNext,
+  onPrevious,
+  currentIndex = 0,
+  totalCount = 1,
+  // Timeline navigation
+  showTimelineNavigation = false,
+  canGoToNextStep = false,
+  canGoToPrevStep = false,
+  onTimelineNext,
+  onTimelinePrevious,
+  currentStep = 1,
+  totalSteps = 1,
+  // Explore mode
+  showExploreButton = false,
+  onExploreComplete,
+  // Timed mode
+  isTimedMode = false,
+  autoProgressionDuration = 3000
+}) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
     triggerHapticFeedback('light');
-  }, []);
+    
+    // Auto-progression for timed mode
+    if (isTimedMode) {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, autoProgressionDuration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isTimedMode, autoProgressionDuration]);
 
   const handleClose = useCallback(() => {
     setIsVisible(false);
@@ -187,13 +243,121 @@ const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ event, onComplete }
         )}
         
         <div className="mobile-video-footer">
+          {/* Multi-modal navigation (within same step) */}
+          {showNavigation && totalCount > 1 && (
+            <div className="navigation-controls" style={{ marginTop: '16px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  onClick={onPrevious}
+                  disabled={!canGoPrevious}
+                  className="mobile-button"
+                  style={{
+                    background: canGoPrevious ? '#64748b' : '#334155',
+                    color: canGoPrevious ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoPrevious ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  ← Previous
+                </button>
+                
+                <span style={{ color: '#94a3b8', fontSize: '14px' }}>
+                  {currentIndex + 1} of {totalCount}
+                </span>
+                
+                <button
+                  onClick={onNext}
+                  disabled={!canGoNext}
+                  className="mobile-button"
+                  style={{
+                    background: canGoNext ? '#64748b' : '#334155',
+                    color: canGoNext ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoNext ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Timeline step navigation (for guided learning) */}
+          {showTimelineNavigation && (
+            <div className="timeline-navigation" style={{ marginTop: '16px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  onClick={onTimelinePrevious}
+                  disabled={!canGoToPrevStep}
+                  className="mobile-button"
+                  style={{
+                    background: canGoToPrevStep ? '#3b82f6' : '#334155',
+                    color: canGoToPrevStep ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoToPrevStep ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  ← Previous Step
+                </button>
+                
+                <span style={{ color: '#94a3b8', fontSize: '14px' }}>
+                  Step {currentStep} of {totalSteps}
+                </span>
+                
+                <button
+                  onClick={onTimelineNext}
+                  disabled={!canGoToNextStep}
+                  className="mobile-button"
+                  style={{
+                    background: canGoToNextStep ? '#3b82f6' : '#334155',
+                    color: canGoToNextStep ? 'white' : '#64748b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: canGoToNextStep ? 'pointer' : 'not-allowed',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  Next Step →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Timed mode indicator */}
+          {isTimedMode && (
+            <div className="timed-mode-indicator" style={{ marginTop: '16px', marginBottom: '8px', textAlign: 'center' }}>
+              <span style={{ color: '#94a3b8', fontSize: '14px' }}>
+                Auto-advancing in {Math.ceil(autoProgressionDuration / 1000)} seconds...
+              </span>
+            </div>
+          )}
+          
+          {/* Main action button */}
           <button
-            onClick={handleClose}
+            onClick={showExploreButton ? onExploreComplete : handleClose}
             className="mobile-button"
             style={{
               marginTop: '16px',
               width: '100%',
-              background: '#8b5cf6',
+              background: showExploreButton ? '#059669' : '#8b5cf6',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -204,7 +368,13 @@ const MobileVideoModal: React.FC<MobileVideoModalProps> = ({ event, onComplete }
               transition: 'background-color 0.2s ease',
             }}
           >
-            Close
+            {showExploreButton 
+              ? 'Continue Exploring' 
+              : showNavigation && totalCount > 1 && currentIndex === totalCount - 1 
+                ? 'Finish' 
+                : isTimedMode 
+                  ? 'Skip' 
+                  : 'Close'}
           </button>
         </div>
       </div>
