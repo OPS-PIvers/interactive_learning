@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
 import { firebaseAPI } from '../../lib/firebaseApi';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -32,6 +33,19 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
   const embedInputRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   const handlePublicToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isToggling) return; // Prevent multiple concurrent requests
@@ -156,6 +170,134 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   const shareUrl = generateShareUrl();
   const embedCode = generateEmbedCode();
+
+  if (isMobile) {
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-end z-50" onClick={onClose}>
+        <div className="bg-slate-800 rounded-t-2xl shadow-xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className="p-4 border-b border-slate-700">
+            <div className="w-12 h-1.5 bg-slate-600 rounded-full mx-auto"></div>
+            <h2 className="text-xl font-semibold text-white text-center mt-3">Share Module</h2>
+            <p className="text-slate-400 text-sm text-center truncate">{project.title}</p>
+          </div>
+
+           {/* Mobile Content */}
+           <div className="p-4 space-y-4">
+            {/* Share URL */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Shareable URL</label>
+              <div className="flex">
+                <input
+                  ref={urlInputRef}
+                  type="text"
+                  value={shareUrl}
+                  onFocus={handleInputFocus}
+                  readOnly
+                  className="flex-1 bg-slate-700 border border-slate-600 rounded-l-md px-3 py-2 text-white text-sm"
+                />
+                <button
+                  onClick={() => copyToClipboard(shareUrl, 'URL')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-md transition-colors text-sm"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            {/* Publish & Share Toggle */}
+            <div className="border-t border-slate-700 pt-4">
+              <label htmlFor="publish-toggle" className="flex items-center justify-between cursor-pointer">
+                <span className="font-medium text-white">Publish & Share Options</span>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="publish-toggle"
+                    className="sr-only"
+                    checked={isExpanded}
+                    onChange={() => setIsExpanded(!isExpanded)}
+                  />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${isExpanded ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isExpanded ? 'transform translate-x-4' : ''}`}></div>
+                </div>
+              </label>
+            </div>
+
+            {/* Collapsible Options */}
+            {isExpanded && (
+              <div className="space-y-4 pt-2">
+                {/* Public/Private Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300">Public Access</span>
+                  <label htmlFor="public-toggle-mobile" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="public-toggle-mobile"
+                        className="sr-only"
+                        checked={isPublic}
+                        onChange={handlePublicToggle}
+                        disabled={isToggling}
+                      />
+                      <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublic ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                      <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublic ? 'transform translate-x-6' : ''}`}></div>
+                    </div>
+                  </label>
+                </div>
+                {/* Theme */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Theme</label>
+                  <select
+                    value={shareOptions.theme}
+                    onChange={(e) => setShareOptions(prev => ({ ...prev, theme: e.target.value as 'light' | 'dark' }))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                  </select>
+                </div>
+                {/* Auto Start */}
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={shareOptions.autoStart}
+                    onChange={(e) => setShareOptions(prev => ({ ...prev, autoStart: e.target.checked }))}
+                    className="h-5 w-5 rounded border-slate-600 text-purple-600 shadow-sm focus:ring-purple-500"
+                  />
+                  <span className="ml-2 text-sm text-slate-300">Auto-start interaction</span>
+                </label>
+                {/* Show Branding */}
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={shareOptions.showBranding}
+                    onChange={(e) => setShareOptions(prev => ({ ...prev, showBranding: e.target.checked }))}
+                    className="h-5 w-5 rounded border-slate-600 text-purple-600 shadow-sm focus:ring-purple-500"
+                  />
+                  <span className="ml-2 text-sm text-slate-300">Show branding</span>
+                </label>
+              </div>
+            )}
+            {/* Success Message */}
+            {copySuccess && (
+              <div className="mt-4 p-3 bg-green-800/50 border border-green-600 rounded-md text-center">
+                <span className="text-green-300 text-sm">{copySuccess}</span>
+              </div>
+            )}
+          </div>
+          {/* Close Button */}
+          <div className="p-4 border-t border-slate-700">
+              <button
+                onClick={onClose}
+                className="w-full bg-slate-600 hover:bg-slate-700 text-white px-4 py-3 rounded-md transition-colors font-semibold"
+              >
+                Done
+              </button>
+            </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
