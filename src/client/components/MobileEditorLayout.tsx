@@ -158,10 +158,14 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   );
 
   useEffect(() => {
-    if (activePanelOverride) {
-      setActivePanel(activePanelOverride);
+    if (activePanelOverride && activePanelOverride !== activePanel) {
+      // Add a small delay to prevent race conditions during rapid panel switches
+      const timeout = setTimeout(() => {
+        setActivePanel(activePanelOverride);
+      }, 0);
+      return () => clearTimeout(timeout);
     }
-  }, [activePanelOverride]);
+  }, [activePanelOverride, activePanel]);
   
   const layoutRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -423,9 +427,13 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
               <button
                 key={panel.id}
                 onClick={() => {
-                  const newPanel = panel.id as 'image' | 'properties' | 'timeline' | 'background';
-                  setActivePanel(newPanel);
-                  onActivePanelChange?.(newPanel);
+                  try {
+                    const newPanel = panel.id as 'image' | 'properties' | 'timeline' | 'background';
+                    setActivePanel(newPanel);
+                    onActivePanelChange?.(newPanel);
+                  } catch (error) {
+                    console.warn('Error switching mobile panel:', error);
+                  }
                 }}
                 className={`flex-1 py-3 px-2 text-center text-sm font-medium transition-colors ${
                   activePanel === panel.id

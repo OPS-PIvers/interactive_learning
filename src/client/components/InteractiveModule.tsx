@@ -20,6 +20,7 @@ import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileEditorLayout from './MobileEditorLayout';
+import MobileErrorBoundary from './shared/MobileErrorBoundary';
 import ImageEditCanvas from './ImageEditCanvas';
 import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
@@ -687,11 +688,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   );
 
-  const touchHandlers = {
-    onTouchStart: handleTouchStart,
-    onTouchMove: handleTouchMove,
-    onTouchEnd: handleTouchEnd,
-  };
+  // Stable touch handlers - always defined to prevent conditional prop issues
+  const touchHandlers = useMemo(() => ({
+    onTouchStart: isMobile ? handleTouchStart : undefined,
+    onTouchMove: isMobile ? handleTouchMove : undefined,
+    onTouchEnd: isMobile ? handleTouchEnd : undefined,
+  }), [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+  // Stable touch handlers for editing mode
+  const editingTouchHandlers = useMemo(() => ({
+    onTouchStart: isMobile && isEditing ? handleTouchStart : undefined,
+    onTouchMove: isMobile && isEditing ? handleTouchMove : undefined,
+    onTouchEnd: isMobile && isEditing ? handleTouchEnd : undefined,
+  }), [isMobile, isEditing, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const batchedSetState = useCallback((updates: Array<() => void>) => {
     ReactDOM.unstable_batchedUpdates(() => {
@@ -1428,13 +1437,18 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
   const handleStartLearning = useCallback(() => {
-    setModuleState('learning');
-    setHasUserChosenMode(true);
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false); 
-    setCurrentStep(uniqueSortedSteps[0] || 1);
+    // Batch all state updates to prevent rendering issues
+    batchedSetState([
+      () => setModuleState('learning'),
+      () => setHasUserChosenMode(true),
+      () => setExploredHotspotId(null),
+      () => setExploredHotspotPanZoomActive(false),
+      () => setCurrentStep(uniqueSortedSteps[0] || 1)
+    ]);
+    
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
+    
     // Force image bounds recalculation after state change
     if (recalculateTimeoutRef.current) {
       clearTimeout(recalculateTimeoutRef.current);
@@ -1442,15 +1456,20 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
     }, 100);
-  }, [uniqueSortedSteps, throttledRecalculatePositions]);
+  }, [uniqueSortedSteps, throttledRecalculatePositions, batchedSetState]);
 
   const handleStartExploring = useCallback(() => {
-    setModuleState('idle');
-    setHasUserChosenMode(true);
-    setExploredHotspotId(null);
-    setExploredHotspotPanZoomActive(false);
+    // Batch all state updates to prevent rendering issues
+    batchedSetState([
+      () => setModuleState('idle'),
+      () => setHasUserChosenMode(true),
+      () => setExploredHotspotId(null),
+      () => setExploredHotspotPanZoomActive(false)
+    ]);
+    
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
+    
     // Force image bounds recalculation after state change
     if (recalculateTimeoutRef.current) {
       clearTimeout(recalculateTimeoutRef.current);
@@ -1458,7 +1477,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
     }, 100);
-  }, [throttledRecalculatePositions]);
+  }, [throttledRecalculatePositions, batchedSetState]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
     if (moduleState === 'idle' && !isEditing) {
@@ -2280,30 +2299,34 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       // When transitioning to viewer mode, ensure proper container setup
       const container = isMobile ? viewerImageContainerRef.current : imageContainerRef.current;
       if (container) {
-        // Force a reflow to ensure container has proper dimensions
-        container.offsetHeight;
+        try {
+          // Force a reflow to ensure container has proper dimensions
+          container.offsetHeight;
 
-        // Clear any cached bounds to force fresh calculation
-        originalImageBoundsRef.current = null;
+          // Clear any cached bounds to force fresh calculation
+          originalImageBoundsRef.current = null;
 
-        // Recalculate positions after container is ready - staggered for reliability
-        if (animationTimeoutRef.current) {
-          clearTimeout(animationTimeoutRef.current);
-        }
-        animationTimeoutRef.current = window.setTimeout(() => {
-          throttledRecalculatePositions();
-          animationTimeoutRef.current = null;
-        }, 50);
-
-        // Additional recalculation for mobile devices with dynamic viewports
-        if (isMobile) {
-          if (stateChangeTimeoutRef.current) {
-            clearTimeout(stateChangeTimeoutRef.current);
+          // Recalculate positions after container is ready - staggered for reliability
+          if (animationTimeoutRef.current) {
+            clearTimeout(animationTimeoutRef.current);
           }
-          stateChangeTimeoutRef.current = window.setTimeout(() => {
+          animationTimeoutRef.current = window.setTimeout(() => {
             throttledRecalculatePositions();
-            stateChangeTimeoutRef.current = null;
-          }, 150);
+            animationTimeoutRef.current = null;
+          }, 50);
+
+          // Additional recalculation for mobile devices with dynamic viewports
+          if (isMobile) {
+            if (stateChangeTimeoutRef.current) {
+              clearTimeout(stateChangeTimeoutRef.current);
+            }
+            stateChangeTimeoutRef.current = window.setTimeout(() => {
+              throttledRecalculatePositions();
+              stateChangeTimeoutRef.current = null;
+            }, 150);
+          }
+        } catch (error) {
+          debugLog.warn('Container setup error during mode transition:', error);
         }
       }
     }
@@ -3128,7 +3151,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         >
       {isEditing ? (
         isMobile ? (
-          <MobileEditorLayout
+          <MobileErrorBoundary>
+            <MobileEditorLayout
             projectName={projectName}
             backgroundImage={backgroundImage || null}
             hotspots={hotspots}
@@ -3181,9 +3205,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               className={`flex-1 relative bg-slate-700 min-h-0 overflow-hidden ${
                 isMobile ? 'mobile-event-container mobile-transform-container' : ''
               }`}
-              onTouchStart={isMobile && isEditing ? handleTouchStart : undefined}
-              onTouchMove={isMobile && isEditing ? handleTouchMove : undefined}
-              onTouchEnd={isMobile && isEditing ? handleTouchEnd : undefined}
+              {...editingTouchHandlers}
             >
               <ImageEditCanvas
                 backgroundImage={backgroundImage}
@@ -3219,6 +3241,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               />
             </div>
           </MobileEditorLayout>
+          </MobileErrorBoundary>
         ) : (
           <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
             {/* Add Toolbar */}
@@ -3408,7 +3431,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             <div 
               ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
               className={`relative w-full h-full overflow-hidden flex items-center justify-center ${isMobile ? 'mobile-viewer' : ''}`}
-              {...(isMobile ? touchHandlers : {})} // Apply touch handlers only on mobile
+              {...touchHandlers} // Touch handlers are now stable and conditionally defined
             >
               <div
                 className="w-full h-full flex items-center justify-center"

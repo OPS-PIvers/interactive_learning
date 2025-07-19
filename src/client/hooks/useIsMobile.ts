@@ -47,7 +47,7 @@ export const useIsMobile = () => {
         clearTimeout(timeoutId);
       }
     };
-  }, [isMobile]); // Add isMobile to dependency array for debugging
+  }, []); // Remove isMobile dependency to prevent re-render loops
 
   return isMobile;
 };
