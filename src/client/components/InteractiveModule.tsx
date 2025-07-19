@@ -42,7 +42,6 @@ import { MobileMediaModal } from './mobile/MobileMediaModal';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { useToast } from '../hooks/useToast';
 import { debugLog } from '../utils/debugUtils';
-import { useAppSignal } from '../hooks/useAppSignal';
 import '../styles/mobile-events.css';
 
 
@@ -239,7 +238,6 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 }) => {
 
   const { showError, showSuccess, showWarning } = useToast();
-  const { reportError, setAction, addBreadcrumb, createSpan } = useAppSignal();
   
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(initialData.backgroundImage);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(undefined);
@@ -424,20 +422,10 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     // Log to console for debugging
     console.error(`[InteractiveModule] ${context}:`, error);
 
-    // Report to AppSignal
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    reportError(errorObj, {
-      component: 'InteractiveModule',
-      context,
-      projectId: projectId || 'unknown',
-      isEditing: String(isEditing),
-      isSharedView: String(isSharedView),
-    });
-
     // Add to error log (keep only last 10 errors)
     errorLogRef.current = [...errorLogRef.current.slice(-9), errorEntry];
     setErrorLog(errorLogRef.current);
-  }, [reportError, projectId, isEditing, isSharedView]);
+  }, []);
 
   // Enhanced safe execution wrapper with error tracking
   const safeExecuteWithLogging = useCallback(<T,>(
@@ -1344,42 +1332,28 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   // The eye icon preview now shows interactive editing overlays instead of executing events
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
-    const span = createSpan('hotspot.focus');
-    span.setTags({
-      hotspotId,
-      isEditing: String(isEditing),
-      moduleState,
-      isMobile: String(isMobile),
-    });
-
-    try {
-      addBreadcrumb('user_interaction', 'Hotspot focused', { hotspotId, mode: isEditing ? 'editing' : 'viewing' });
-
-      if (isEditing) {
-        setSelectedHotspotForModal(hotspotId);
-        if (isMobile) {
-          // On mobile, focusing a hotspot should also switch to the properties tab and set editingHotspot
-          setActiveMobileEditorTab('properties');
-          const hotspot = hotspots.find(h => h.id === hotspotId);
-          if (hotspot) {
-            setEditingHotspot(hotspot);
-          }
-        } else {
-          // On desktop, open the modal for editing
-          setIsHotspotModalOpen(true);
+    if (isEditing) {
+      setSelectedHotspotForModal(hotspotId);
+      if (isMobile) {
+        // On mobile, focusing a hotspot should also switch to the properties tab and set editingHotspot
+        setActiveMobileEditorTab('properties');
+        const hotspot = hotspots.find(h => h.id === hotspotId);
+        if (hotspot) {
+          setEditingHotspot(hotspot);
         }
-      } else if (moduleState === 'idle') {
-        setExploredHotspotId(hotspotId);
-        const firstEventForHotspot = timelineEvents
-          .filter(e => e.targetId === hotspotId)
-          .sort((a, b) => a.step - b.step)[0];
-        setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM));
+      } else {
+        // On desktop, open the modal for editing
+        setIsHotspotModalOpen(true);
       }
-      // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
-    } finally {
-      span.close();
+    } else if (moduleState === 'idle') {
+      setExploredHotspotId(hotspotId);
+      const firstEventForHotspot = timelineEvents
+        .filter(e => e.targetId === hotspotId)
+        .sort((a, b) => a.step - b.step)[0];
+      setExploredHotspotPanZoomActive(!!(firstEventForHotspot && firstEventForHotspot.type === InteractionType.PAN_ZOOM));
     }
-  }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen, addBreadcrumb]);
+    // In learning mode, clicks on dots don't typically change the active info panel unless it's a timeline driven change
+  }, [isEditing, moduleState, timelineEvents, hotspots, isMobile, setActiveMobileEditorTab, setSelectedHotspotForModal, setIsHotspotModalOpen]);
 
   // DUPLICATE REMOVED - Original definition is used (now includes debugLog)
   // const clearImageBoundsCache = useCallback(() => {
