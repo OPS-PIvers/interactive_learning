@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, laz
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import LazyLoadingFallback from './shared/LazyLoadingFallback';
-import { InteractiveModuleState, HotspotData, TimelineEventData } from '../../shared/types';
-import ViewerToolbar from './ViewerToolbar';
+import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
-import { debugLog } from '../utils/debugUtils';
 import '../styles/mobile-events.css';
 
 // Lazy load timeline component
@@ -37,7 +35,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const isMobile = useIsMobile();
   
   // Viewer-specific state
-  const [moduleState, setModuleState] = useState<InteractiveModuleState>('idle');
+  const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [hasUserChosenMode, setHasUserChosenMode] = useState(false);
   const [isTimedMode, setIsTimedMode] = useState(false);
@@ -72,18 +70,22 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   // Touch gesture handling
   const {
-    panZoomEnabled,
-    setPanZoomEnabled,
     isGestureActive,
+    setEventActive,
+    isEventActive,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd
-  } = useTouchGestures({
+  } = useTouchGestures(
     imageContainerRef,
     imageTransform,
-    onTransformUpdate: setImageTransform,
-    enabled: !isMobile || moduleState !== 'learning'
-  });
+    (transform) => setImageTransform(prev => ({ ...prev, ...transform })),
+    () => {}, // setIsTransforming - not needed for viewer
+    {
+      isDragging: false,
+      isEditing: false
+    }
+  );
 
   const touchHandlers = useMemo(() => ({
     onTouchStart: isMobile ? handleTouchStart : undefined,
@@ -111,7 +113,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const handleStartLearning = useCallback(() => {
     setModuleState('learning');
     setHasUserChosenMode(true);
-  }, []);
+    // Automatically start with the first available timeline step
+    if (uniqueSortedSteps.length > 0) {
+      setCurrentStep(uniqueSortedSteps[0]);
+    }
+  }, [uniqueSortedSteps]);
 
   const handleHotspotClick = useCallback((hotspotId: string) => {
     if (moduleState === 'exploring') {
@@ -148,6 +154,54 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     setModuleState('idle');
     setHasUserChosenMode(false);
   }, []);
+
+  // Process timeline events and activate hotspots based on current step
+  useEffect(() => {
+    const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
+    
+    if (moduleState === 'learning') {
+      const newActiveDisplayIds = new Set<string>();
+      let newPulsingHotspotId: string | null = null;
+      
+      // Process events for the current step
+      eventsForCurrentStep.forEach(event => {
+        // Show hotspot if it has an event or if displayHotspotInEvent is true
+        if (event.targetId) {
+          const targetHotspot = hotspots.find(h => h.id === event.targetId);
+          if (targetHotspot && (targetHotspot.displayHotspotInEvent !== false)) {
+            newActiveDisplayIds.add(event.targetId);
+          }
+          
+          // Set pulsing for pulse events
+          if (event.type === InteractionType.PULSE_HOTSPOT || event.type === InteractionType.PULSE_HIGHLIGHT) {
+            newPulsingHotspotId = event.targetId;
+          }
+        }
+      });
+      
+      // For mobile, set active events
+      if (isMobile) {
+        setMobileActiveEvents(eventsForCurrentStep);
+      }
+      
+      setActiveHotspotDisplayIds(newActiveDisplayIds);
+      setPulsingHotspotId(newPulsingHotspotId);
+    } else if (moduleState === 'idle' || moduleState === 'exploring') {
+      // In idle/exploring mode, show all hotspots that don't have events or have displayHotspotInEvent = true
+      const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
+      const visibleIds = new Set<string>();
+      
+      hotspots.forEach(hotspot => {
+        if (!activeEventHotspotIds.has(hotspot.id) || hotspot.displayHotspotInEvent !== false) {
+          visibleIds.add(hotspot.id);
+        }
+      });
+      
+      setActiveHotspotDisplayIds(visibleIds);
+      setPulsingHotspotId(null);
+      setMobileActiveEvents([]);
+    }
+  }, [currentStep, timelineEvents, moduleState, hotspots, isMobile]);
 
   // Hotspot positioning calculations
   const hotspotsWithPositions = useMemo(() => {
@@ -219,7 +273,8 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                   {/* Hotspots */}
                   <div className="absolute inset-0 pointer-events-none">
                     {hotspotsWithPositions.map((hotspot) => {
-                      const shouldShow = moduleState === 'exploring' || 
+                      const shouldShow = moduleState === 'idle' ||
+                        moduleState === 'exploring' || 
                         (moduleState === 'learning' && activeHotspotDisplayIds.has(hotspot.id));
                       
                       if (!shouldShow) return null;
@@ -318,16 +373,12 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 timelineEvents={timelineEvents}
                 setTimelineEvents={() => {}} // Read-only in viewer
                 hotspots={hotspots}
-                moduleState={moduleState}
+                moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
                 onPrevStep={handlePrevStep}
                 onNextStep={handleNextStep}
                 currentStepIndex={currentStepIndex}
                 totalSteps={totalTimelineInteractionPoints}
                 isMobile={isMobile}
-                isTimedMode={isTimedMode}
-                onToggleAutoProgression={setIsTimedMode}
-                autoProgressionDuration={autoProgressionDuration}
-                onAutoProgressionDurationChange={setAutoProgressionDuration}
                 onAddStep={() => {}} // No-op in viewer mode
                 onDeleteStep={() => {}} // No-op in viewer mode
                 onUpdateStep={() => {}} // No-op in viewer mode
