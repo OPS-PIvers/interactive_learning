@@ -6,6 +6,7 @@ import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
 import AuthButton from './AuthButton';
 import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
+import HorizontalTimeline from './HorizontalTimeline';
 
 interface MobileEditorLayoutProps {
   project: Project;
@@ -62,6 +63,13 @@ interface MobileEditorLayoutProps {
     timed?: boolean;
   };
   onViewerModeChange: (mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => void;
+  onAddStep: (step: number) => void;
+  onDeleteStep: (step: number) => void;
+  onUpdateStep: (oldStep: number, newStep: number) => void;
+  onMoveStep: (dragIndex: number, hoverIndex: number) => void;
+  uniqueSortedSteps: number[];
+  onStepSelect: (step: number) => void;
+  setTimelineEvents: (events: TimelineEventData[]) => void;
 }
 
 interface ViewportState {
@@ -120,7 +128,14 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   currentColorScheme,
   onColorSchemeChange,
   viewerModes,
-  onViewerModeChange
+  onViewerModeChange,
+  onAddStep,
+  onDeleteStep,
+  onUpdateStep,
+  onMoveStep,
+  uniqueSortedSteps,
+  onStepSelect,
+  setTimelineEvents,
 }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewingEventId, setPreviewingEventId] = useState<string | null>(null);
@@ -457,10 +472,20 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
       {/* Timeline at the bottom */}
       <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700">
-        {/* We'll implement a simplified mobile timeline here later */}
-        <div className="p-2 text-center text-slate-400 text-sm">
-          Timeline: Step {currentStep} • {timelineEvents.length} events
-        </div>
+      <HorizontalTimeline
+        uniqueSortedSteps={uniqueSortedSteps}
+        currentStep={currentStep}
+        onStepSelect={onStepSelect}
+        isEditing={true}
+        timelineEvents={timelineEvents}
+        setTimelineEvents={setTimelineEvents}
+        hotspots={hotspots}
+        onAddStep={onAddStep}
+        onDeleteStep={onDeleteStep}
+        onUpdateStep={onUpdateStep}
+        onMoveStep={onMoveStep}
+        isMobile={true}
+      />
       </div>
     </div>
   );

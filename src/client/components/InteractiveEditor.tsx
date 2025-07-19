@@ -213,6 +213,48 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
     handleFocusHotspot(hotspotId);
   }, [handleFocusHotspot]);
 
+  const handleAddStep = (step: number) => {
+    // Add a default event at the new step
+    const newEvent: TimelineEventData = {
+      id: generateId(),
+      step,
+      type: InteractionType.INFO_POPUP,
+      name: `Step ${step} Event`,
+      message: '',
+      targetId: '',
+      hotspotId: ''
+    };
+    handleAddTimelineEvent(newEvent);
+  };
+
+  const handleDeleteStep = (step: number) => {
+    // Remove all events at this step
+    const eventsToDelete = timelineEvents.filter(e => e.step === step);
+    eventsToDelete.forEach(event => handleDeleteTimelineEvent(event.id));
+  };
+
+  const handleUpdateStep = (oldStep: number, newStep: number) => {
+    // Update all events from oldStep to newStep
+    const updatedEvents = timelineEvents.map(event =>
+      event.step === oldStep ? { ...event, step: newStep } : event
+    );
+    onTimelineEventsChange(updatedEvents);
+  };
+
+  const handleMoveStep = (dragIndex: number, hoverIndex: number) => {
+    // Swap the steps of events at these indices
+    const sortedSteps = [...uniqueSortedSteps].sort((a, b) => a - b);
+    const dragStep = sortedSteps[dragIndex];
+    const hoverStep = sortedSteps[hoverIndex];
+
+    const updatedEvents = timelineEvents.map(event => {
+      if (event.step === dragStep) return { ...event, step: hoverStep };
+      if (event.step === hoverStep) return { ...event, step: dragStep };
+      return event;
+    });
+    onTimelineEventsChange(updatedEvents);
+  };
+
   // Timeline event handlers
   const handleAddTimelineEvent = useCallback((event: TimelineEventData) => {
     onTimelineEventsChange([...timelineEvents.filter(e => e.id !== event.id), event].sort((a, b) => a.step - b.step));
@@ -411,6 +453,13 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
               onColorSchemeChange={handleColorSchemeChange}
               viewerModes={{ explore: true, selfPaced: true, timed: true }}
               onViewerModeChange={handleViewerModeChange}
+              onAddStep={handleAddStep}
+              onDeleteStep={handleDeleteStep}
+              onUpdateStep={handleUpdateStep}
+              onMoveStep={handleMoveStep}
+              uniqueSortedSteps={uniqueSortedSteps}
+              onStepSelect={setCurrentStep}
+              setTimelineEvents={onTimelineEventsChange}
             >
               {/* Image Canvas */}
               <div

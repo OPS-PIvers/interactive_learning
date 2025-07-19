@@ -58,6 +58,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   
   // Mobile event handling
   const [mobileActiveEvents, setMobileActiveEvents] = useState<TimelineEventData[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
   // Refs
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -141,9 +142,10 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
+      setCompletedSteps(prev => new Set(prev).add(currentStep));
       setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps]);
+  }, [currentStep, currentStepIndex, uniqueSortedSteps]);
 
   const handleMobileEventComplete = useCallback(() => {
     setMobileActiveEvents([]);
@@ -247,7 +249,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`} style={{ paddingBottom: '80px' /* Adjust as needed for timeline height */ }}>
           {/* Image Display Area */}
           <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
             {backgroundImage ? (
@@ -353,14 +355,10 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
           {/* Timeline Container */}
           <div
             ref={viewerTimelineRef}
-            className={`${
-              isMobile 
-                ? 'flex-shrink-0 relative' 
-                : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'
-            }`}
+            className="bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0"
             style={{ 
               zIndex: Z_INDEX.TIMELINE, 
-              paddingBottom: isMobile ? '0px' : 'max(env(safe-area-inset-bottom), 0px)' 
+              paddingBottom: 'max(env(safe-area-inset-bottom), 0px)'
             }}
           >
             <Suspense fallback={<LazyLoadingFallback type="component" message="Loading timeline..." />}>
@@ -382,6 +380,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 onDeleteStep={() => {}} // No-op in viewer mode
                 onUpdateStep={() => {}} // No-op in viewer mode
                 onMoveStep={() => {}} // No-op in viewer mode
+                completedSteps={completedSteps}
               />
             </Suspense>
           </div>
