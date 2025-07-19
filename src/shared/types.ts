@@ -113,6 +113,18 @@ export interface QuestionEvent extends BaseEvent {
 export type Event = SpotlightEvent | PanZoomEvent | TextEvent | MediaEvent | GoToEvent | QuestionEvent;
 
 // Enhanced media quiz interfaces
+export type QuestionType = 'multiple-choice' | 'fill-in-the-blank';
+
+export interface QuizQuestion {
+  id: string;
+  timestamp: number;
+  questionType: QuestionType;
+  questionText: string;
+  options?: string[];
+  correctAnswer?: number | string; // index for multiple-choice, string for fill-in-the-blank
+  showCorrectAnswer?: boolean;
+}
+
 export interface MediaQuizTrigger {
   id: string;
   timestamp: number; // seconds into media
@@ -154,6 +166,11 @@ export interface TimelineEventData {
   audioShowControls?: boolean;
   audioTitle?: string;
   audioArtist?: string;
+  autoStartPlayback?: boolean;
+  allowPlaybackSpeedAdjustment?: boolean;
+  showSubtitles?: boolean;
+  includeQuiz?: boolean;
+  questions?: QuizQuestion[];
   
   // === UNIFIED TEXT PROPERTIES ===
   textContent?: string;
