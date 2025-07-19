@@ -5,6 +5,7 @@ import EditorToolbar from './EditorToolbar';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
 import AuthButton from './AuthButton';
+import HorizontalTimeline from './HorizontalTimeline';
 import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 
 interface MobileEditorLayoutProps {
@@ -457,10 +458,35 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
       {/* Timeline at the bottom */}
       <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700">
-        {/* We'll implement a simplified mobile timeline here later */}
-        <div className="p-2 text-center text-slate-400 text-sm">
-          Timeline: Step {currentStep} • {timelineEvents.length} events
-        </div>
+        <HorizontalTimeline
+          uniqueSortedSteps={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b)}
+          currentStep={currentStep}
+          onStepSelect={(step) => {
+            // In editing mode, just change the current step
+            console.log('Timeline step selected:', step);
+          }}
+          isEditing={true}
+          timelineEvents={timelineEvents}
+          setTimelineEvents={() => {}} // Read-only in this context, events managed by parent
+          hotspots={hotspots}
+          isMobile={true}
+          onAddStep={(step) => {
+            // Add step functionality would be handled by parent
+            console.log('Add step requested:', step);
+          }}
+          onDeleteStep={(step) => {
+            // Delete step functionality would be handled by parent
+            console.log('Delete step requested:', step);
+          }}
+          onUpdateStep={(oldStep, newStep) => {
+            // Update step functionality would be handled by parent
+            console.log('Update step requested:', oldStep, newStep);
+          }}
+          onMoveStep={(dragIndex, hoverIndex) => {
+            // Move step functionality would be handled by parent
+            console.log('Move step requested:', dragIndex, hoverIndex);
+          }}
+        />
       </div>
     </div>
   );

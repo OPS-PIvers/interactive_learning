@@ -179,6 +179,15 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         }
       });
       
+      // FIXED: Also show hotspots that don't have any timeline events for all learning steps
+      // This ensures hotspots without timeline events are visible in learning mode
+      hotspots.forEach(hotspot => {
+        const hasAnyTimelineEvents = timelineEvents.some(event => event.targetId === hotspot.id);
+        if (!hasAnyTimelineEvents && hotspot.displayHotspotInEvent !== false) {
+          newActiveDisplayIds.add(hotspot.id);
+        }
+      });
+      
       // For mobile, set active events
       if (isMobile) {
         setMobileActiveEvents(eventsForCurrentStep);
