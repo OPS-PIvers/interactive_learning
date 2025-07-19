@@ -262,15 +262,28 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`quiz-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            {...(isMultiModalQueue && {
-              showNavigation: true,
-              canGoNext,
-              canGoPrevious,
-              onNext: handleNext,
-              onPrevious: handlePrevious,
-              currentIndex: currentModalIndex,
-              totalCount: modalQueue.length
-            })}
+            // Multi-modal navigation (within same step)
+            showNavigation={showMultiModalNavigation}
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentModalIndex}
+            totalCount={modalQueue.length}
+            // Timeline step navigation
+            showTimelineNavigation={showTimelineNavigation}
+            canGoToNextStep={canGoToNextStep}
+            canGoToPrevStep={canGoToPrevStep}
+            onTimelineNext={handleTimelineNext}
+            onTimelinePrevious={handleTimelinePrevious}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            // Explore mode
+            showExploreButton={showExploreButton}
+            onExploreComplete={handleExploreComplete}
+            // Timed mode indicator
+            isTimedMode={isTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
           />
         );
       
@@ -281,15 +294,28 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`image-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            {...(isMultiModalQueue && {
-              showNavigation: true,
-              canGoNext,
-              canGoPrevious,
-              onNext: handleNext,
-              onPrevious: handlePrevious,
-              currentIndex: currentModalIndex,
-              totalCount: modalQueue.length
-            })}
+            // Multi-modal navigation (within same step)
+            showNavigation={showMultiModalNavigation}
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentModalIndex}
+            totalCount={modalQueue.length}
+            // Timeline step navigation
+            showTimelineNavigation={showTimelineNavigation}
+            canGoToNextStep={canGoToNextStep}
+            canGoToPrevStep={canGoToPrevStep}
+            onTimelineNext={handleTimelineNext}
+            onTimelinePrevious={handleTimelinePrevious}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            // Explore mode
+            showExploreButton={showExploreButton}
+            onExploreComplete={handleExploreComplete}
+            // Timed mode indicator
+            isTimedMode={isTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
           />
         );
       
@@ -333,15 +359,28 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`audio-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            {...(isMultiModalQueue && {
-              showNavigation: true,
-              canGoNext,
-              canGoPrevious,
-              onNext: handleNext,
-              onPrevious: handlePrevious,
-              currentIndex: currentModalIndex,
-              totalCount: modalQueue.length
-            })}
+            // Multi-modal navigation (within same step)
+            showNavigation={showMultiModalNavigation}
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentIndex={currentModalIndex}
+            totalCount={modalQueue.length}
+            // Timeline step navigation
+            showTimelineNavigation={showTimelineNavigation}
+            canGoToNextStep={canGoToNextStep}
+            canGoToPrevStep={canGoToPrevStep}
+            onTimelineNext={handleTimelineNext}
+            onTimelinePrevious={handleTimelinePrevious}
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            // Explore mode
+            showExploreButton={showExploreButton}
+            onExploreComplete={handleExploreComplete}
+            // Timed mode indicator
+            isTimedMode={isTimedMode}
+            autoProgressionDuration={autoProgressionDuration}
           />
         );
       
