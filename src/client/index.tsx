@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './components/App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './hooks/useToast';
+import appsignal from '../lib/appsignal';
 import './styles.css';
 import './index.css';
 
