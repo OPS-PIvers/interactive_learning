@@ -130,12 +130,19 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         videoShowControls: true,
         autoplay: false,
       }),
+      ...(type === InteractionType.PLAY_AUDIO && {
+        audioSource: undefined,
+        audioShowControls: true,
+        autoplay: false,
+        allowSpeedAdjustment: false,
+        showSubtitles: false,
+      }),
       ...(type === InteractionType.SHOW_TEXT && {
         textContent: 'Enter your text here',
       }),
     };
     onAddTimelineEvent(newEvent);
-    if (type === InteractionType.PLAY_VIDEO) {
+    if (type === InteractionType.PLAY_VIDEO || type === InteractionType.PLAY_AUDIO) {
       setEditingEvent(newEvent);
     }
     setShowEventTypeSelector(false);
@@ -298,10 +305,23 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         </div>
 
         {showEventTypeSelector && (
-          <EventTypeSelectorButtonGrid
-            onSelectEventType={handleAddNewEvent}
-            onClose={() => setShowEventTypeSelector(false)}
-          />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-md font-medium text-white">Select Event Type</h4>
+              <button
+                onClick={() => setShowEventTypeSelector(false)}
+                className="text-slate-400 hover:text-white"
+                aria-label="Close event type selector"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <EventTypeSelectorButtonGrid
+              onSelectEventType={handleAddNewEvent}
+            />
+          </div>
         )}
 
         {!showEventTypeSelector && hotspotEvents.length === 0 ? (
