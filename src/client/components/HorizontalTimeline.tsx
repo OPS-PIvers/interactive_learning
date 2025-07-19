@@ -263,7 +263,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           <div 
             className="absolute top-1/2 left-0 h-1 bg-purple-500 rounded-full transform -translate-y-1/2"
             style={{
-              width: `${(completedSteps.size / uniqueSortedSteps.length) * 100}%`,
+              width: `${uniqueSortedSteps.length > 0 ? (completedSteps.size / uniqueSortedSteps.length) * 100 : 0}%`,
               transition: 'width 0.3s ease-in-out',
             }}
           />

@@ -4,7 +4,7 @@ import { useTouchGestures } from '../hooks/useTouchGestures';
 import LazyLoadingFallback from './shared/LazyLoadingFallback';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
-import { Z_INDEX } from '../constants/interactionConstants';
+import { Z_INDEX, TIMELINE_CONSTANTS } from '../constants/interactionConstants';
 import '../styles/mobile-events.css';
 
 // Lazy load timeline component
@@ -249,7 +249,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`} style={{ paddingBottom: '80px' /* Adjust as needed for timeline height */ }}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`} style={{ paddingBottom: TIMELINE_CONSTANTS.HEIGHT }}>
           {/* Image Display Area */}
           <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
             {backgroundImage ? (

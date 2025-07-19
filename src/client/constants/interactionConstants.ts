@@ -46,3 +46,7 @@ export const PREVIEW_DEFAULTS = {
   ZOOM_PREVIEW_WIDTH_PERCENT: 20,
   ZOOM_PREVIEW_HEIGHT_PERCENT: 20,
 } as const;
+
+export const TIMELINE_CONSTANTS = {
+  HEIGHT: '80px',
+} as const;

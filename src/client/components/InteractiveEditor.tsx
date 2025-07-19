@@ -561,44 +561,10 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                       currentStepIndex={currentStepIndex}
                       totalSteps={uniqueSortedSteps.length}
                       isMobile={false}
-                      onAddStep={(step) => {
-                        // Add a default event at the new step
-                        const newEvent: TimelineEventData = {
-                          id: generateId(),
-                          step,
-                          type: InteractionType.INFO_POPUP,
-                          name: `Step ${step} Event`,
-                          message: '',
-                          targetId: '',
-                          hotspotId: ''
-                        };
-                        handleAddTimelineEvent(newEvent);
-                      }}
-                      onDeleteStep={(step) => {
-                        // Remove all events at this step
-                        const eventsToDelete = timelineEvents.filter(e => e.step === step);
-                        eventsToDelete.forEach(event => handleDeleteTimelineEvent(event.id));
-                      }}
-                      onUpdateStep={(oldStep, newStep) => {
-                        // Update all events from oldStep to newStep
-                        const updatedEvents = timelineEvents.map(event => 
-                          event.step === oldStep ? { ...event, step: newStep } : event
-                        );
-                        onTimelineEventsChange(updatedEvents);
-                      }}
-                      onMoveStep={(dragIndex, hoverIndex) => {
-                        // Swap the steps of events at these indices
-                        const sortedSteps = [...uniqueSortedSteps].sort((a, b) => a - b);
-                        const dragStep = sortedSteps[dragIndex];
-                        const hoverStep = sortedSteps[hoverIndex];
-                        
-                        const updatedEvents = timelineEvents.map(event => {
-                          if (event.step === dragStep) return { ...event, step: hoverStep };
-                          if (event.step === hoverStep) return { ...event, step: dragStep };
-                          return event;
-                        });
-                        onTimelineEventsChange(updatedEvents);
-                      }}
+                      onAddStep={handleAddStep}
+                      onDeleteStep={handleDeleteStep}
+                      onUpdateStep={handleUpdateStep}
+                      onMoveStep={handleMoveStep}
                     />
                   </Suspense>
                 </div>
