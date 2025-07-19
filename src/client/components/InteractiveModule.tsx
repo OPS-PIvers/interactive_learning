@@ -1437,14 +1437,19 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   useAutoSave(isEditing, hotspots, timelineEvents, handleSave);
 
   const handleStartLearning = useCallback(() => {
-    // Batch all state updates to prevent rendering issues
-    batchedSetState([
-      () => setModuleState('learning'),
-      () => setHasUserChosenMode(true),
-      () => setExploredHotspotId(null),
-      () => setExploredHotspotPanZoomActive(false),
-      () => setCurrentStep(uniqueSortedSteps[0] || 1)
-    ]);
+    // Add transition state for mobile to prevent component mounting issues
+    if (isMobile) {
+      setIsModeSwitching(true);
+    }
+    
+    // Use React's automatic batching for state updates
+    ReactDOM.flushSync(() => {
+      setModuleState('learning');
+      setHasUserChosenMode(true);
+      setExploredHotspotId(null);
+      setExploredHotspotPanZoomActive(false);
+      setCurrentStep(uniqueSortedSteps[0] || 1);
+    });
     
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
@@ -1455,17 +1460,26 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
     recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
-    }, 100);
-  }, [uniqueSortedSteps, throttledRecalculatePositions, batchedSetState]);
+      // Reset transition state after positioning is complete
+      if (isMobile) {
+        setIsModeSwitching(false);
+      }
+    }, 150); // Slightly longer delay for mobile
+  }, [uniqueSortedSteps, throttledRecalculatePositions, isMobile]);
 
   const handleStartExploring = useCallback(() => {
-    // Batch all state updates to prevent rendering issues
-    batchedSetState([
-      () => setModuleState('idle'),
-      () => setHasUserChosenMode(true),
-      () => setExploredHotspotId(null),
-      () => setExploredHotspotPanZoomActive(false)
-    ]);
+    // Add transition state for mobile to prevent component mounting issues
+    if (isMobile) {
+      setIsModeSwitching(true);
+    }
+    
+    // Use React's automatic batching for state updates
+    ReactDOM.flushSync(() => {
+      setModuleState('idle');
+      setHasUserChosenMode(true);
+      setExploredHotspotId(null);
+      setExploredHotspotPanZoomActive(false);
+    });
     
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
@@ -1476,8 +1490,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
     recalculateTimeoutRef.current = window.setTimeout(() => {
       throttledRecalculatePositions();
-    }, 100);
-  }, [throttledRecalculatePositions, batchedSetState]);
+      // Reset transition state after positioning is complete
+      if (isMobile) {
+        setIsModeSwitching(false);
+      }
+    }, 150); // Slightly longer delay for mobile
+  }, [throttledRecalculatePositions, isMobile]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
     if (moduleState === 'idle' && !isEditing) {
@@ -3138,6 +3156,13 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         <LoadingScreen />
       ) : initError ? (
         <ErrorScreen error={initError} onReload={onReloadRequest} />
+      ) : (isMobile && isModeSwitching) ? (
+        <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-white">Switching modes...</p>
+          </div>
+        </div>
       ) : (
         <div
           id="main-content"
