@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, lazy } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
 // import { useCrossDeviceSync } from '../hooks/useCrossDeviceSync';
@@ -6,12 +6,15 @@ import { generateDeviceHandoffUrl, generateQrCodeDataUrl } from '../utils/device
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import LoadingScreen from './shared/LoadingScreen';
 import ErrorScreen from './shared/ErrorScreen';
+import LazyLoadingFallback from './shared/LazyLoadingFallback';
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType, extractYouTubeVideoId } from '../../shared/types';
 import { migrateEventTypes } from '../../shared/migration';
 import FileUpload from './FileUpload';
-import HorizontalTimeline from './HorizontalTimeline';
-import HotspotEditorModal from './HotspotEditorModal'; // This will be the single source of truth
-import MobileEditorModal from './MobileEditorModal';
+// Lazy load timeline component for better code splitting
+const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
+// Lazy load large modal components
+const HotspotEditorModal = lazy(() => import('./HotspotEditorModal'));
+const MobileEditorModal = lazy(() => import('./MobileEditorModal'));
 import EditorToolbar, { COLOR_SCHEMES } from './EditorToolbar';
 import ViewerToolbar from './ViewerToolbar';
 import { PlusIcon } from './icons/PlusIcon'; // Already imported
@@ -33,12 +36,13 @@ const CROSS_DEVICE_SYNC_DEBOUNCE_MS = 2000;
 import ReactDOM from 'react-dom';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { createMobileOptimizedUploadHandler } from '../utils/enhancedUploadHandler';
-import MediaModal from './MediaModal';
-import VideoPlayer from './VideoPlayer';
-import AudioPlayer from './AudioPlayer';
-import ImageViewer from './ImageViewer';
-import YouTubePlayer from './YouTubePlayer';
-import { MobileMediaModal } from './mobile/MobileMediaModal';
+// Lazy load media components
+const MediaModal = lazy(() => import('./MediaModal'));
+const VideoPlayer = lazy(() => import('./VideoPlayer'));
+const AudioPlayer = lazy(() => import('./AudioPlayer'));
+const ImageViewer = lazy(() => import('./ImageViewer'));
+const YouTubePlayer = lazy(() => import('./YouTubePlayer'));
+const MobileMediaModal = lazy(() => import('./mobile/MobileMediaModal').then(module => ({ default: module.MobileMediaModal })));
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { useToast } from '../hooks/useToast';
 import { debugLog } from '../utils/debugUtils';
@@ -3408,7 +3412,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           {/* Fixed Bottom Timeline */}
           <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }} ref={timelineRef}>
             <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-              <HorizontalTimeline
+              <Suspense fallback={<LazyLoadingFallback type="component" message="Loading timeline..." />}>
+                <HorizontalTimeline
                 uniqueSortedSteps={uniqueSortedSteps}
                 currentStep={currentStep}
                 onStepSelect={handleTimelineDotClick}
@@ -3421,7 +3426,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 onDeleteStep={handleDeleteStep}
                 onUpdateStep={handleUpdateStep}
                 onMoveStep={handleMoveStep}
-              />
+                />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -3639,7 +3645,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               className={`${isMobile ? 'flex-shrink-0 relative mobile-timeline-container' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
               style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: isMobile ? '0px' : 'max(env(safe-area-inset-bottom), 0px)' }}
             >
-              <HorizontalTimeline
+              <Suspense fallback={<LazyLoadingFallback type="component" message="Loading timeline..." />}>
+                <HorizontalTimeline
                 uniqueSortedSteps={uniqueSortedSteps}
                 currentStep={currentStep}
                 onStepSelect={handleTimelineDotClick}
@@ -3657,7 +3664,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 onDeleteStep={handleDeleteStep}
                 onUpdateStep={handleUpdateStep}
                 onMoveStep={handleMoveStep}
-              />
+                />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -3666,8 +3674,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
       {/* Enhanced Hotspot Editor Modal - Conditional rendering for mobile vs desktop */}
       {isHotspotModalOpen && (
-        isMobile ? (
-          <MobileEditorModal
+        <Suspense fallback={<LazyLoadingFallback type="modal" />}>
+          {isMobile ? (
+            <MobileEditorModal
             isOpen={isHotspotModalOpen}
             hotspot={selectedHotspotForModal ? hotspots.find(h => h.id === selectedHotspotForModal) || null : null}
             timelineEvents={selectedHotspotForModal ? timelineEvents.filter(e => e.targetId === selectedHotspotForModal) : []}
@@ -3734,19 +3743,23 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               setIsEditorCollapsed(isCollapsed);
             }}
           />
-        )
+          )}
+        </Suspense>
       )}
 
       {/* Media Modal */}
       {mobileMediaModal.isOpen && mobileMediaModal.type && (
-        <MobileMediaModal
-          mediaType={mobileMediaModal.type}
-          src={mobileMediaModal.src}
-          onClose={closeMediaModal}
-        />
+        <Suspense fallback={<LazyLoadingFallback type="media" />}>
+          <MobileMediaModal
+            mediaType={mobileMediaModal.type}
+            src={mobileMediaModal.src}
+            onClose={closeMediaModal}
+          />
+        </Suspense>
       )}
       {mediaModal.isOpen && (
-        <MediaModal
+        <Suspense fallback={<LazyLoadingFallback type="media" />}>
+          <MediaModal
           isOpen={mediaModal.isOpen}
           onClose={closeMediaModal}
           title={mediaModal.title}
@@ -3754,7 +3767,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           disableTouch={mediaModal.type === 'image'}
         >
           {mediaModal.type === 'video' && mediaModal.data && (
-            <VideoPlayer
+            <Suspense fallback={<LazyLoadingFallback type="media" message="Loading video player..." />}>
+              <VideoPlayer
               src={mediaModal.data.src}
               title={mediaModal.title}
               poster={mediaModal.data.poster}
@@ -3767,14 +3781,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
               allowSeeking={mediaModal.data.allowSeeking}
               enforceQuizCompletion={mediaModal.data.enforceQuizCompletion}
               className="w-full h-full"
-            />
+              />
+            </Suspense>
           )}
 
           {mediaModal.type === 'audio' && mediaModal.data && (
             <div className="p-4 flex items-center justify-center min-h-0 flex-1" style={{
               minHeight: isMobile ? 'max(300px, calc(100vh - env(keyboard-inset-height, 0px) - 200px))' : '400px'
             }}>
-              <AudioPlayer
+              <Suspense fallback={<LazyLoadingFallback type="media" message="Loading audio player..." />}>
+                <AudioPlayer
                 src={mediaModal.data.src}
                 title={mediaModal.data.title}
                 artist={mediaModal.data.artist}
@@ -3787,23 +3803,27 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 allowSeeking={mediaModal.data.allowSeeking}
                 enforceQuizCompletion={mediaModal.data.enforceQuizCompletion}
                 className="w-full max-w-lg"
-              />
+                />
+              </Suspense>
             </div>
           )}
 
           {mediaModal.type === 'image' && mediaModal.data && (
-            <ImageViewer
+            <Suspense fallback={<LazyLoadingFallback type="media" message="Loading image viewer..." />}>
+              <ImageViewer
               src={mediaModal.data.src}
               alt={mediaModal.data.alt}
               title={mediaModal.data.title}
               caption={mediaModal.data.caption}
               className="w-full h-full min-h-[500px]"
-            />
+              />
+            </Suspense>
           )}
 
           {mediaModal.type === 'youtube' && mediaModal.data && (
             <div className="p-4">
-              <YouTubePlayer
+              <Suspense fallback={<LazyLoadingFallback type="media" message="Loading YouTube player..." />}>
+                <YouTubePlayer
                 videoId={mediaModal.data.videoId}
                 title={mediaModal.title}
                 startTime={mediaModal.data.startTime}
@@ -3811,10 +3831,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
                 autoplay={mediaModal.data.autoplay}
                 loop={mediaModal.data.loop}
                 className="w-full"
-              />
+                />
+              </Suspense>
             </div>
           )}
         </MediaModal>
+        </Suspense>
       )}
 
       {qrCodeDataUrl && (
