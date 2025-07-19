@@ -9,6 +9,7 @@ import EditableEventCard from './EditableEventCard';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import MobilePlayVideoEditor from './MobilePlayVideoEditor';
 
 
 interface MobileHotspotEditorProps {
@@ -72,6 +73,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
   const [activeTab, setActiveTab] = useState<ActiveTab>('basic');
   const [internalHotspot, setInternalHotspot] = useState<HotspotData>(hotspot);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
 
   // Filter events related to the current hotspot
   const hotspotEvents = useMemo(() => {
@@ -113,19 +115,29 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
   }, [debouncedOnUpdate]);
 
 
-  const handleAddNewEvent = () => {
-    // For simplicity, default to SHOW_TEXT or a common event type.
-    // A proper type selector can be added in step 2.
+  const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
+
+  const handleAddNewEvent = (type: InteractionType) => {
     const newEvent: TimelineEventData = {
       id: `event_${Date.now()}_${hotspot.id}`,
-      type: InteractionType.SHOW_TEXT, // Default, can be changed later
-      name: `New Event for ${hotspot.title}`,
+      type: type,
+      name: `New ${type.toLowerCase().replace('_', ' ')} event`,
       targetId: hotspot.id,
       step: currentStep + 1, // Or derive from existing events
-      duration: 2000, // Default duration
-      message: "Default message", // Example property for SHOW_TEXT
+      ...(type === InteractionType.PLAY_VIDEO && {
+        videoSource: undefined,
+        videoShowControls: true,
+        autoplay: false,
+      }),
+      ...(type === InteractionType.SHOW_TEXT && {
+        textContent: 'Enter your text here',
+      }),
     };
     onAddTimelineEvent(newEvent);
+    if (type === InteractionType.PLAY_VIDEO) {
+      setEditingEvent(newEvent);
+    }
+    setShowEventTypeSelector(false);
   };
 
 
@@ -241,52 +253,86 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     </div>
   );
 
-  const renderTimelineTab = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-white">Associated Events</h3>
-        <button
-          onClick={handleAddNewEvent}
-          className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
-          Add Event
-        </button>
-      </div>
-      {hotspotEvents.length === 0 ? (
-        <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
-      ) : (
-        <div className="space-y-3">
-          {hotspotEvents.map((event) => (
-            <div key={event.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-white truncate pr-2" title={event.name}>
-                  {event.name || `Event at step ${event.step}`}
-                </span>
-                <button
-                  onClick={() => onDeleteTimelineEvent(event.id)}
-                  className="text-red-400 hover:text-red-300 p-1"
-                  aria-label="Delete event"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-              <div className="text-xs text-slate-400">
-                Step {event.step} • Type: {INTERACTION_TYPE_OPTIONS.find(t => t.value === event.type)?.label || event.type.replace(/_/g, ' ')}
-              </div>
-              {/* Basic event editing (name, step, duration) can be added here later */}
-              {/* For now, focusing on add/delete and structure */}
-            </div>
-          ))}
+  const renderTimelineTab = () => {
+    if (editingEvent) {
+      if (editingEvent.type === InteractionType.PLAY_VIDEO) {
+        return (
+          <MobilePlayVideoEditor
+            event={editingEvent}
+            onUpdate={(updatedEvent) => {
+              onUpdateTimelineEvent(updatedEvent);
+              setEditingEvent(null);
+            }}
+            onClose={() => setEditingEvent(null)}
+          />
+        );
+      }
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-white">Associated Events</h3>
+          <button
+            onClick={() => setShowEventTypeSelector(true)}
+            className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
+            Add Event
+          </button>
         </div>
-      )}
-      <p className="text-xs text-slate-500 mt-2 text-center">
-        Full event configuration and reordering will be enhanced in the next steps.
-      </p>
-    </div>
-  );
+
+        {showEventTypeSelector && (
+          <EventTypeSelectorButtonGrid
+            onSelectEventType={handleAddNewEvent}
+            onClose={() => setShowEventTypeSelector(false)}
+          />
+        )}
+
+        {!showEventTypeSelector && hotspotEvents.length === 0 ? (
+          <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {hotspotEvents.map((event) => (
+              <div key={event.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-white truncate pr-2" title={event.name}>
+                    {event.name || `Event at step ${event.step}`}
+                  </span>
+                  <div>
+                    {event.type === InteractionType.PLAY_VIDEO && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-blue-400 hover:text-blue-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onDeleteTimelineEvent(event.id)}
+                      className="text-red-400 hover:text-red-300 p-1"
+                      aria-label="Delete event"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="text-xs text-slate-400">
+                  Step {event.step} • Type: {INTERACTION_TYPE_OPTIONS.find(t => t.value === event.type)?.label || event.type.replace(/_/g, ' ')}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-slate-500 mt-2 text-center">
+          Full event configuration and reordering will be enhanced in the next steps.
+        </p>
+      </div>
+    );
+  };
 
 
   return (
