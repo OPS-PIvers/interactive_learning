@@ -10,6 +10,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
+import MobilePlayVideoEditor from './MobilePlayVideoEditor';
 
 
 interface MobileHotspotEditorProps {
@@ -115,19 +116,29 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
   }, [debouncedOnUpdate]);
 
 
-  const handleAddNewEvent = () => {
-    // For simplicity, default to SHOW_TEXT or a common event type.
-    // A proper type selector can be added in step 2.
+  const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
+
+  const handleAddNewEvent = (type: InteractionType) => {
     const newEvent: TimelineEventData = {
       id: `event_${Date.now()}_${hotspot.id}`,
-      type: InteractionType.SHOW_TEXT, // Default, can be changed later
-      name: `New Event for ${hotspot.title}`,
+      type: type,
+      name: `New ${type.toLowerCase().replace('_', ' ')} event`,
       targetId: hotspot.id,
       step: currentStep + 1, // Or derive from existing events
-      duration: 2000, // Default duration
-      message: "Default message", // Example property for SHOW_TEXT
+      ...(type === InteractionType.PLAY_VIDEO && {
+        videoSource: undefined,
+        videoShowControls: true,
+        autoplay: false,
+      }),
+      ...(type === InteractionType.SHOW_TEXT && {
+        textContent: 'Enter your text here',
+      }),
     };
     onAddTimelineEvent(newEvent);
+    if (type === InteractionType.PLAY_VIDEO) {
+      setEditingEvent(newEvent);
+    }
+    setShowEventTypeSelector(false);
   };
 
 
@@ -259,7 +270,18 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
           />
         );
       }
-      // Add other event editors here
+      if (editingEvent.type === InteractionType.PLAY_VIDEO) {
+        return (
+          <MobilePlayVideoEditor
+            event={editingEvent}
+            onUpdate={(updatedEvent) => {
+              onUpdateTimelineEvent(updatedEvent);
+              setEditingEvent(null);
+            }}
+            onClose={() => setEditingEvent(null)}
+          />
+        );
+      }
     }
 
     return (
@@ -267,14 +289,22 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-white">Associated Events</h3>
           <button
-            onClick={handleAddNewEvent}
+            onClick={() => setShowEventTypeSelector(true)}
             className="px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-1"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
             Add Event
           </button>
         </div>
-        {hotspotEvents.length === 0 ? (
+
+        {showEventTypeSelector && (
+          <EventTypeSelectorButtonGrid
+            onSelectEventType={handleAddNewEvent}
+            onClose={() => setShowEventTypeSelector(false)}
+          />
+        )}
+
+        {!showEventTypeSelector && hotspotEvents.length === 0 ? (
           <p className="text-slate-400 text-sm text-center py-4">No timeline events associated with this hotspot yet.</p>
         ) : (
           <div className="space-y-3">
@@ -293,6 +323,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                         >
                             Edit
                         </button>
+                    )}
+                    {event.type === InteractionType.PLAY_VIDEO && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-blue-400 hover:text-blue-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
                     )}
                     <button
                       onClick={() => onDeleteTimelineEvent(event.id)}

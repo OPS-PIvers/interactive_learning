@@ -132,9 +132,10 @@ export interface MediaQuizTrigger {
   quiz: {
     question: string;
     options: string[];
-    correctAnswer: number;
+    correctAnswer: number | string;
     explanation?: string;
     showExplanation?: boolean;
+    questionType?: 'multiple-choice' | 'fill-in-the-blank';
   };
   resumeAfterCompletion: boolean; // auto-resume when quiz complete
 }
