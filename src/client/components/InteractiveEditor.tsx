@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, laz
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import LazyLoadingFallback from './shared/LazyLoadingFallback';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { HotspotData, TimelineEventData, InteractionType, ImageTransformState } from '../../shared/types';
 import EditorToolbar from './EditorToolbar';
 import MobileEditorTabs, { MobileEditorActiveTab } from './MobileEditorTabs';
 import MobileEditorLayout from './MobileEditorLayout';
@@ -90,19 +90,32 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
   const timelineRef = useRef<HTMLDivElement>(null);
 
   // Touch gesture handling for editing
+  const [editorIsTransforming, setEditorIsTransforming] = useState(false);
+  const [editorImageTransform, setEditorImageTransform] = useState<ImageTransformState>({
+    scale: editingZoom,
+    translateX: 0,
+    translateY: 0
+  });
+
+  // Track drag state for better touch coordination
+  const [isDragActive, setIsDragActive] = useState(false);
+
   const {
-    panZoomEnabled,
-    setPanZoomEnabled,
     isGestureActive,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd
-  } = useTouchGestures({
+  } = useTouchGestures(
     imageContainerRef,
-    imageTransform: { scale: editingZoom, translateX: 0, translateY: 0 },
-    onTransformUpdate: () => {}, // Editor uses different zoom system
-    enabled: isMobile
-  });
+    editorImageTransform,
+    setEditorImageTransform,
+    setEditorIsTransforming,
+    {
+      isEditing: true,
+      isDragActive,
+      disabled: !isMobile
+    }
+  );
 
   const editingTouchHandlers = useMemo(() => ({
     onTouchStart: isMobile ? handleTouchStart : undefined,
@@ -437,11 +450,14 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                   onFocusHotspot={handleFocusHotspot}
                   onEditHotspotRequest={handleOpenHotspotEditor}
                   onHotspotPositionChange={handleHotspotPositionChange}
+                  onDragStateChange={setIsDragActive}
                   getImageBounds={() => null}
                   imageNaturalDimensions={imageNaturalDimensions}
                   imageFitMode="contain"
                   previewingEvents={mobilePreviewEvents}
                   isPreviewMode={isMobilePreviewMode}
+                  isEditing={true}
+                  isMobile={isMobile}
                 />
               </div>
             </MobileEditorLayout>
@@ -488,11 +504,14 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                   onFocusHotspot={handleFocusHotspot}
                   onEditHotspotRequest={handleOpenHotspotEditor}
                   onHotspotPositionChange={handleHotspotPositionChange}
+                  onDragStateChange={setIsDragActive}
                   getImageBounds={() => null}
                   imageNaturalDimensions={imageNaturalDimensions}
                   imageFitMode="contain"
                   previewingEvents={[]}
                   isPreviewMode={false}
+                  isEditing={true}
+                  isMobile={isMobile}
                 />
 
                 {/* Desktop Timeline */}
