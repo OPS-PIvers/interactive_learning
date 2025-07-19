@@ -3407,24 +3407,22 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           
           {/* Fixed Bottom Timeline */}
           <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }} ref={timelineRef}>
-            {backgroundImage && (
-              <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
-                <HorizontalTimeline
-                  uniqueSortedSteps={uniqueSortedSteps}
-                  currentStep={currentStep}
-                  onStepSelect={handleTimelineDotClick}
-                  isEditing={isEditing}
-                  timelineEvents={timelineEvents}
-                  setTimelineEvents={setTimelineEvents}
-                  hotspots={hotspots}
-                  isMobile={isMobile}
-                  onAddStep={handleAddStep}
-                  onDeleteStep={handleDeleteStep}
-                  onUpdateStep={handleUpdateStep}
-                  onMoveStep={handleMoveStep}
-                />
-              </div>
-            )}
+            <div className="bg-slate-800/95 backdrop-blur-sm shadow-lg">
+              <HorizontalTimeline
+                uniqueSortedSteps={uniqueSortedSteps}
+                currentStep={currentStep}
+                onStepSelect={handleTimelineDotClick}
+                isEditing={isEditing}
+                timelineEvents={timelineEvents}
+                setTimelineEvents={setTimelineEvents}
+                hotspots={hotspots}
+                isMobile={isMobile}
+                onAddStep={handleAddStep}
+                onDeleteStep={handleDeleteStep}
+                onUpdateStep={handleUpdateStep}
+                onMoveStep={handleMoveStep}
+              />
+            </div>
           </div>
         </div>
         )
@@ -3631,38 +3629,36 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             
             {/* Mobile timeline / Desktop timeline container */}
             {/* Desktop: timeline is part of fixed layout, Mobile: flex-shrink-0 */}
-            {backgroundImage && (
-              <div
-                ref={(el) => {
-                  // Only assign to mobile ref to avoid conditional ref issues
-                  if (isMobile) {
-                    viewerTimelineRef.current = el;
-                  }
-                }}
-                className={`${isMobile ? 'flex-shrink-0 relative mobile-timeline-container' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
-                style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: isMobile ? '0px' : 'max(env(safe-area-inset-bottom), 0px)' }}
-              >
-                <HorizontalTimeline
-                  uniqueSortedSteps={uniqueSortedSteps}
-                  currentStep={currentStep}
-                  onStepSelect={handleTimelineDotClick}
-                  isEditing={isEditing}
-                  timelineEvents={timelineEvents}
-                  setTimelineEvents={setTimelineEvents}
-                  hotspots={hotspots}
-                  moduleState={moduleState}
-                  onPrevStep={handlePrevStep}
-                  onNextStep={handleNextStep}
-                  currentStepIndex={currentStepIndex}
-                  totalSteps={totalTimelineInteractionPoints}
-                  isMobile={isMobile}
-                  onAddStep={handleAddStep}
-                  onDeleteStep={handleDeleteStep}
-                  onUpdateStep={handleUpdateStep}
-                  onMoveStep={handleMoveStep}
-                />
-              </div>
-            )}
+            <div
+              ref={(el) => {
+                // Only assign to mobile ref to avoid conditional ref issues
+                if (isMobile) {
+                  viewerTimelineRef.current = el;
+                }
+              }}
+              className={`${isMobile ? 'flex-shrink-0 relative mobile-timeline-container' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
+              style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: isMobile ? '0px' : 'max(env(safe-area-inset-bottom), 0px)' }}
+            >
+              <HorizontalTimeline
+                uniqueSortedSteps={uniqueSortedSteps}
+                currentStep={currentStep}
+                onStepSelect={handleTimelineDotClick}
+                isEditing={isEditing}
+                timelineEvents={timelineEvents}
+                setTimelineEvents={setTimelineEvents}
+                hotspots={hotspots}
+                moduleState={moduleState}
+                onPrevStep={handlePrevStep}
+                onNextStep={handleNextStep}
+                currentStepIndex={currentStepIndex}
+                totalSteps={totalTimelineInteractionPoints}
+                isMobile={isMobile}
+                onAddStep={handleAddStep}
+                onDeleteStep={handleDeleteStep}
+                onUpdateStep={handleUpdateStep}
+                onMoveStep={handleMoveStep}
+              />
+            </div>
           </div>
         </div>
       )}

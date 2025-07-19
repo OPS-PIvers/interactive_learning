@@ -105,7 +105,8 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     touchStartYRef.current = null;
   }, [onPrevStep, onNextStep]);
 
-  if (isMobile && isEditing) {
+  // Always use MobileTimeline for mobile devices, regardless of editing mode
+  if (isMobile) {
     return (
       <MobileTimeline
         uniqueSortedSteps={uniqueSortedSteps}
@@ -118,6 +119,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         onDeleteStep={onDeleteStep}
         onUpdateStep={onUpdateStep}
         onMoveStep={onMoveStep}
+        isEditing={isEditing}
       />
     );
   }

@@ -20,6 +20,7 @@ interface MobileTimelineProps {
   onDeleteStep: (step: number) => void;
   onUpdateStep: (oldStep: number, newStep: number) => void;
   onMoveStep: (dragIndex: number, hoverIndex: number) => void;
+  isEditing?: boolean; // Optional prop from parent component
 }
 
 const MobileTimeline: React.FC<MobileTimelineProps> = ({
@@ -33,8 +34,9 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   onDeleteStep,
   onUpdateStep,
   onMoveStep,
+  isEditing: parentIsEditing = false,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(parentIsEditing);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedSteps, setSelectedSteps] = useState<number[]>([]);
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
@@ -43,6 +45,11 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   const [templates, setTemplates] = useState<{ name: string; events: TimelineEventData[] }[]>([]);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({ canScrollLeft: false, canScrollRight: false });
+
+  // Sync internal editing state with parent prop
+  useEffect(() => {
+    setIsEditing(parentIsEditing);
+  }, [parentIsEditing]);
 
   const updateScrollState = useCallback(() => {
     const el = timelineContainerRef.current;
