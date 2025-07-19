@@ -178,19 +178,24 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
   const renderStyleTab = () => (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label id="display-hotspot-label" className="block text-sm font-medium text-slate-300 mb-2">
           Display hotspot during event
         </label>
-        <div
+        <button
+          type="button"
+          id="display-hotspot-in-event"
+          role="switch"
+          aria-checked={!!internalHotspot.displayHotspotInEvent}
+          aria-labelledby="display-hotspot-label"
           onClick={() => handleChange('displayHotspotInEvent', !internalHotspot.displayHotspotInEvent)}
-          className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+          className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500
                       ${internalHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}
         >
           <span
             className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
                         ${internalHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`}
           />
-        </div>
+        </button>
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-2">

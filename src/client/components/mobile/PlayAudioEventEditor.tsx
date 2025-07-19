@@ -5,20 +5,20 @@ import { TrashIcon } from '../icons/TrashIcon';
 
 interface PlayAudioEventEditorProps {
   event: TimelineEventData;
-  onUpdate: (updates: Partial<TimelineEventData>) => void;
+  onUpdate: (event: TimelineEventData) => void;
   onClose: () => void;
 }
 
 const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUpdate, onClose }) => {
   const [internalEvent, setInternalEvent] = useState<TimelineEventData>(event);
 
-  const handleUpdate = (field: keyof TimelineEventData, value: any) => {
+  const handleUpdate = (field: keyof TimelineEventData, value: TimelineEventData[keyof TimelineEventData]) => {
     const newEvent = { ...internalEvent, [field]: value };
     setInternalEvent(newEvent);
-    onUpdate({ [field]: value });
+    // Don't call onUpdate here - only save on "Save and close"
   };
 
-  const handleQuestionChange = (questionId: string, field: keyof QuizQuestion, value: any) => {
+  const handleQuestionChange = (questionId: string, field: keyof QuizQuestion, value: QuizQuestion[keyof QuizQuestion]) => {
     const newQuestions = (internalEvent.questions || []).map(q => {
       if (q.id === questionId) {
         return { ...q, [field]: value };
@@ -74,7 +74,19 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
       if (q.id === questionId) {
         const newOptions = [...(q.options || [])];
         newOptions.splice(optionIndex, 1);
-        return { ...q, options: newOptions };
+
+        let newCorrectAnswer = q.correctAnswer;
+        if (q.questionType === 'multiple-choice' && typeof newCorrectAnswer === 'number') {
+          if (newCorrectAnswer === optionIndex) {
+            // Reset if the correct answer was deleted. Defaulting to the first option.
+            newCorrectAnswer = 0;
+          } else if (newCorrectAnswer > optionIndex) {
+            // Adjust index if an option before it was deleted
+            newCorrectAnswer -= 1;
+          }
+        }
+
+        return { ...q, options: newOptions, correctAnswer: newCorrectAnswer };
       }
       return q;
     });
@@ -100,7 +112,10 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
                 type="number"
                 placeholder="Timestamp (seconds)"
                 value={q.timestamp}
-                onChange={e => handleQuestionChange(q.id, 'timestamp', parseInt(e.target.value, 10))}
+                onChange={e => {
+                  const value = parseInt(e.target.value, 10);
+                  handleQuestionChange(q.id, 'timestamp', isNaN(value) ? 0 : value);
+                }}
                 className="w-full p-2 bg-slate-600 rounded"
               />
               <select
@@ -136,7 +151,11 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
                         onChange={e => handleOptionChange(q.id, i, e.target.value)}
                         className="flex-grow p-2 bg-slate-500 rounded"
                       />
-                      <button onClick={() => removeOption(q.id, i)} className="text-red-400 hover:text-red-300 p-1">
+                      <button 
+                        onClick={() => removeOption(q.id, i)} 
+                        disabled={(q.options || []).length <= 1}
+                        className={`p-1 ${(q.options || []).length <= 1 ? 'text-gray-500 cursor-not-allowed' : 'text-red-400 hover:text-red-300'}`}
+                      >
                         <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
@@ -156,13 +175,17 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
                 />
               )}
                <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Show correct answer</label>
-                <div
+                <label htmlFor={`show-correct-${q.id}`} className="text-sm text-slate-300">Show correct answer</label>
+                <button
+                    type="button"
+                    id={`show-correct-${q.id}`}
+                    role="switch"
+                    aria-checked={!!q.showCorrectAnswer}
                     onClick={() => handleQuestionChange(q.id, 'showCorrectAnswer', !q.showCorrectAnswer)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${q.showCorrectAnswer ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${q.showCorrectAnswer ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${q.showCorrectAnswer ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -185,7 +208,7 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
             <button className="p-2 bg-slate-700 rounded text-center">URL</button>
           </div>
           <input
-            type="text"
+            type="url"
             placeholder="Paste audio URL"
             value={internalEvent.audioUrl || ''}
             onChange={e => handleUpdate('audioUrl', e.target.value)}
@@ -195,49 +218,69 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
 
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Auto start playback</label>
-                <div
+                <label htmlFor="auto-start-playback" className="text-sm text-slate-300">Auto start playback</label>
+                <button
+                    type="button"
+                    id="auto-start-playback"
+                    role="switch"
+                    aria-checked={!!internalEvent.autoStartPlayback}
                     onClick={() => handleUpdate('autoStartPlayback', !internalEvent.autoStartPlayback)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${internalEvent.autoStartPlayback ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${internalEvent.autoStartPlayback ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${internalEvent.autoStartPlayback ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
             </div>
             <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Show player controls</label>
-                <div
+                <label htmlFor="show-player-controls" className="text-sm text-slate-300">Show player controls</label>
+                <button
+                    type="button"
+                    id="show-player-controls"
+                    role="switch"
+                    aria-checked={!!internalEvent.audioShowControls}
                     onClick={() => handleUpdate('audioShowControls', !internalEvent.audioShowControls)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${internalEvent.audioShowControls ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${internalEvent.audioShowControls ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${internalEvent.audioShowControls ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
             </div>
             <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Allow playback speed adjustment</label>
-                <div
+                <label htmlFor="allow-speed-adjustment" className="text-sm text-slate-300">Allow playback speed adjustment</label>
+                <button
+                    type="button"
+                    id="allow-speed-adjustment"
+                    role="switch"
+                    aria-checked={!!internalEvent.allowPlaybackSpeedAdjustment}
                     onClick={() => handleUpdate('allowPlaybackSpeedAdjustment', !internalEvent.allowPlaybackSpeedAdjustment)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${internalEvent.allowPlaybackSpeedAdjustment ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${internalEvent.allowPlaybackSpeedAdjustment ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${internalEvent.allowPlaybackSpeedAdjustment ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
             </div>
             <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Show subtitles</label>
-                <div
+                <label htmlFor="show-subtitles" className="text-sm text-slate-300">Show subtitles</label>
+                <button
+                    type="button"
+                    id="show-subtitles"
+                    role="switch"
+                    aria-checked={!!internalEvent.showSubtitles}
                     onClick={() => handleUpdate('showSubtitles', !internalEvent.showSubtitles)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${internalEvent.showSubtitles ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${internalEvent.showSubtitles ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${internalEvent.showSubtitles ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
             </div>
             <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-300">Include quiz questions</label>
-                <div
+                <label htmlFor="include-quiz" className="text-sm text-slate-300">Include quiz questions</label>
+                <button
+                    type="button"
+                    id="include-quiz"
+                    role="switch"
+                    aria-checked={!!internalEvent.includeQuiz}
                     onClick={() => handleUpdate('includeQuiz', !internalEvent.includeQuiz)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${internalEvent.includeQuiz ? 'bg-green-500' : 'bg-gray-600'}`}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${internalEvent.includeQuiz ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${internalEvent.includeQuiz ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+                </button>
             </div>
         </div>
 
@@ -246,7 +289,10 @@ const PlayAudioEventEditor: React.FC<PlayAudioEventEditorProps> = ({ event, onUp
 
       <div className="p-4 border-t border-slate-700">
         <button
-          onClick={onClose}
+          onClick={() => {
+            onUpdate(internalEvent);
+            onClose();
+          }}
           className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 rounded-md text-white font-semibold transition-colors"
         >
           Save and close
