@@ -18,9 +18,8 @@ const defaultMobileEventTypes: InteractionType[] = [
   InteractionType.SPOTLIGHT,
   InteractionType.PAN_ZOOM,
   InteractionType.SHOW_IMAGE_MODAL,
-  InteractionType.SHOW_VIDEO, // Corresponds to SHOW_VIDEO_MODAL or similar if presets distinguish
-  InteractionType.SHOW_AUDIO_MODAL,
-  InteractionType.SHOW_YOUTUBE,
+  InteractionType.PLAY_VIDEO, // Use the modern video player instead of legacy SHOW_VIDEO
+  InteractionType.PLAY_AUDIO, // Use the modern audio player instead of legacy SHOW_AUDIO_MODAL
   // InteractionType.QUIZ, // Quiz might be too complex for initial mobile integration
 ];
 
