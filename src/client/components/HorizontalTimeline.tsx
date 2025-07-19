@@ -105,8 +105,8 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     touchStartYRef.current = null;
   }, [onPrevStep, onNextStep]);
 
-  // Always use MobileTimeline for mobile devices, regardless of editing mode
-  if (isMobile) {
+  // Use MobileTimeline only for mobile editing mode
+  if (isMobile && isEditing) {
     return (
       <MobileTimeline
         uniqueSortedSteps={uniqueSortedSteps}
@@ -253,6 +253,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     );
   };
 
+  // Mobile viewer timeline with visual markers and horizontal scrolling
   if (isMobile) {
     const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
 
@@ -281,7 +282,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           </div>
         )}
 
-        <div className="mobile-timeline-container">
+        <div className="mobile-timeline-container px-3">
           <div 
             className="mobile-timeline-scroll"
             style={{
@@ -292,10 +293,17 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch',
               paddingBottom: '2px',
+              position: 'relative',
             }}
           >
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" 
-                 style={{ minWidth: `${uniqueSortedSteps.length * 68}px` }} />
+            {/* Timeline base line */}
+            <div 
+              className="absolute top-1/2 left-0 h-1 bg-slate-600 rounded-full transform -translate-y-1/2" 
+              style={{ 
+                width: `${Math.max(uniqueSortedSteps.length * 68, window.innerWidth - 48)}px`,
+                minWidth: '100%'
+              }} 
+            />
             {uniqueSortedSteps.map((step, index) => {
               const isActive = step === currentStep;
               const MOBILE_STEP_WIDTH = 60;
@@ -308,7 +316,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                   style={{
                     minWidth: `${MOBILE_STEP_WIDTH}px`,
                     width: `${MOBILE_STEP_WIDTH}px`,
-                    height: '44px',
+                    height: '48px',
                     marginRight: index < uniqueSortedSteps.length - 1 ? `${MOBILE_STEP_SPACING}px` : '0',
                     flexShrink: 0,
                     position: 'relative',
@@ -319,30 +327,41 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                 >
                   <button
                     onClick={() => onStepSelect(step)}
-                    className={`relative w-6 h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                    className={`relative w-7 h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out z-10
                       ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                      flex items-center justify-center
+                      flex items-center justify-center shadow-lg
                     `}
                     aria-label={getStepTooltip(step)}
                     aria-current={isActive ? "step" : undefined}
                     title={getStepTooltip(step)}
                   >
-                    {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                    {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full"></span>}
                   </button>
+                  {/* Hotspot markers below timeline step */}
                   <div className="absolute top-full mt-1 flex space-x-0.5 justify-center w-full">
                     {timelineEvents
                       .filter(event => event.step === step && event.targetId)
+                      .slice(0, 4) // Limit to 4 markers to avoid overflow
                       .map(event => {
                         const hotspot = hotspots.find(h => h.id === event.targetId);
                         return hotspot ? (
                           <div
                             key={`${event.id}-${hotspot.id}-mobile`}
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: hotspot.color || '#ccc' }}
+                            className="w-2 h-2 rounded-full border border-white/20"
+                            style={{ backgroundColor: hotspot.color || '#64748b' }}
                             title={`Hotspot: ${hotspot.title}`}
                           />
                         ) : null;
                       })}
+                    {/* Show overflow indicator if more than 4 hotspots */}
+                    {timelineEvents.filter(event => event.step === step && event.targetId).length > 4 && (
+                      <div
+                        className="w-2 h-2 rounded-full bg-slate-500 border border-white/20 flex items-center justify-center"
+                        title={`+${timelineEvents.filter(event => event.step === step && event.targetId).length - 4} more hotspots`}
+                      >
+                        <span className="text-xs text-white leading-none">•</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -351,7 +370,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         </div>
 
         {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
-          <div className="flex items-center justify-between mt-2 px-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+          <div className="flex items-center justify-between mt-3 px-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
             <button
               onClick={onPrevStep}
               disabled={currentStepIndex === 0}

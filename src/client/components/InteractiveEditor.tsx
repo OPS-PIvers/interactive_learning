@@ -182,12 +182,14 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     setSelectedHotspotForModal(hotspotId);
+    const hotspot = hotspots.find(h => h.id === hotspotId);
+    if (hotspot) {
+      setEditingHotspot(hotspot);
+    }
+    
     if (isMobile) {
-      setActiveMobileEditorTab('properties');
-      const hotspot = hotspots.find(h => h.id === hotspotId);
-      if (hotspot) {
-        setEditingHotspot(hotspot);
-      }
+      // For mobile, we'll let the MobileEditorLayout handle the modal
+      // The hotspot selection will trigger the modal through selectedHotspot prop
     } else {
       setIsHotspotModalOpen(true);
     }
@@ -362,6 +364,11 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                   setActiveMobileEditorTab('timeline');
                 } else if (panel === 'background') {
                   setActiveMobileEditorTab('background');
+                } else if (panel === 'image') {
+                  setActiveMobileEditorTab('properties');
+                  // Clear selected hotspot when going back to image
+                  setEditingHotspot(null);
+                  setSelectedHotspotForModal(null);
                 }
               }}
               onAddTimelineEvent={handleAddTimelineEvent}
@@ -491,6 +498,44 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                       currentStepIndex={currentStepIndex}
                       totalSteps={uniqueSortedSteps.length}
                       isMobile={false}
+                      onAddStep={(step) => {
+                        // Add a default event at the new step
+                        const newEvent: TimelineEventData = {
+                          id: generateId(),
+                          step,
+                          type: InteractionType.INFO_POPUP,
+                          name: `Step ${step} Event`,
+                          message: '',
+                          targetId: '',
+                          hotspotId: ''
+                        };
+                        handleAddTimelineEvent(newEvent);
+                      }}
+                      onDeleteStep={(step) => {
+                        // Remove all events at this step
+                        const eventsToDelete = timelineEvents.filter(e => e.step === step);
+                        eventsToDelete.forEach(event => handleDeleteTimelineEvent(event.id));
+                      }}
+                      onUpdateStep={(oldStep, newStep) => {
+                        // Update all events from oldStep to newStep
+                        const updatedEvents = timelineEvents.map(event => 
+                          event.step === oldStep ? { ...event, step: newStep } : event
+                        );
+                        onTimelineEventsChange(updatedEvents);
+                      }}
+                      onMoveStep={(dragIndex, hoverIndex) => {
+                        // Swap the steps of events at these indices
+                        const sortedSteps = [...uniqueSortedSteps].sort((a, b) => a - b);
+                        const dragStep = sortedSteps[dragIndex];
+                        const hoverStep = sortedSteps[hoverIndex];
+                        
+                        const updatedEvents = timelineEvents.map(event => {
+                          if (event.step === dragStep) return { ...event, step: hoverStep };
+                          if (event.step === hoverStep) return { ...event, step: dragStep };
+                          return event;
+                        });
+                        onTimelineEventsChange(updatedEvents);
+                      }}
                     />
                   </Suspense>
                 </div>

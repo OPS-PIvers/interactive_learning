@@ -328,6 +328,10 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 onToggleAutoProgression={setIsTimedMode}
                 autoProgressionDuration={autoProgressionDuration}
                 onAutoProgressionDurationChange={setAutoProgressionDuration}
+                onAddStep={() => {}} // No-op in viewer mode
+                onDeleteStep={() => {}} // No-op in viewer mode
+                onUpdateStep={() => {}} // No-op in viewer mode
+                onMoveStep={() => {}} // No-op in viewer mode
               />
             </Suspense>
           </div>
