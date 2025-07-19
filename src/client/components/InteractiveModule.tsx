@@ -1442,14 +1442,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setIsModeSwitching(true);
     }
     
-    // Use React's automatic batching for state updates
-    ReactDOM.flushSync(() => {
-      setModuleState('learning');
-      setHasUserChosenMode(true);
-      setExploredHotspotId(null);
-      setExploredHotspotPanZoomActive(false);
-      setCurrentStep(uniqueSortedSteps[0] || 1);
-    });
+    // Use React's built-in batching for state updates - safer than flushSync
+    setModuleState('learning');
+    setHasUserChosenMode(true);
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
+    setCurrentStep(uniqueSortedSteps[0] || 1);
     
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
@@ -1473,13 +1471,11 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
       setIsModeSwitching(true);
     }
     
-    // Use React's automatic batching for state updates
-    ReactDOM.flushSync(() => {
-      setModuleState('idle');
-      setHasUserChosenMode(true);
-      setExploredHotspotId(null);
-      setExploredHotspotPanZoomActive(false);
-    });
+    // Use React's built-in batching for state updates - safer than flushSync
+    setModuleState('idle');
+    setHasUserChosenMode(true);
+    setExploredHotspotId(null);
+    setExploredHotspotPanZoomActive(false);
     
     // Clear bounds cache for fresh calculation in new mode
     originalImageBoundsRef.current = null;
@@ -3176,8 +3172,9 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         >
       {isEditing ? (
         isMobile ? (
-          <MobileErrorBoundary>
+          <MobileErrorBoundary key="mobile-editor">
             <MobileEditorLayout
+              key="mobile-editor-layout"
             projectName={projectName}
             backgroundImage={backgroundImage || null}
             hotspots={hotspots}
@@ -3268,7 +3265,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
           </MobileEditorLayout>
           </MobileErrorBoundary>
         ) : (
-          <div className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
+          <div key="desktop-editor" className="fixed inset-0 z-50 bg-slate-900 pt-14 overflow-hidden"> {/* Add pt-14 for toolbar space */}
             {/* Add Toolbar */}
             <div style={{ position: 'relative', zIndex: Z_INDEX.TOOLBAR }}>
             <EditorToolbar
@@ -3432,7 +3429,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         </div>
         )
       ) : (
-        <div className={`flex flex-col bg-slate-900 ${isMobile ? 'mobile-full-height mobile-safe-area' : 'fixed inset-0 z-50 overflow-hidden'}`}>
+        <div key={`viewer-${isMobile ? 'mobile' : 'desktop'}`} className={`flex flex-col bg-slate-900 ${isMobile ? 'mobile-full-height mobile-safe-area' : 'fixed inset-0 z-50 overflow-hidden'}`}>
             {/* Toolbar (Mobile: flex-shrink-0, Desktop: fixed positioning handled by ViewerToolbar itself) */}
             <div className={`${isMobile ? 'flex-shrink-0' : ''}`} style={{ zIndex: Z_INDEX.TOOLBAR }}>
               <ViewerToolbar
@@ -3454,7 +3451,14 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Image container with mobile-safe sizing */}
             {/* Desktop: flex-1 to take available space above timeline, Mobile: flex-1 and min-h-0 for proper flex behavior */}
             <div 
-              ref={isMobile ? viewerImageContainerRef : imageContainerRef} // Use specific ref for mobile
+              ref={(el) => {
+                // Assign to both refs to avoid conditional ref issues
+                if (isMobile) {
+                  viewerImageContainerRef.current = el;
+                } else {
+                  imageContainerRef.current = el;
+                }
+              }}
               className={`relative w-full h-full overflow-hidden flex items-center justify-center ${isMobile ? 'mobile-viewer' : ''}`}
               {...touchHandlers} // Touch handlers are now stable and conditionally defined
             >
@@ -3629,7 +3633,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
             {/* Desktop: timeline is part of fixed layout, Mobile: flex-shrink-0 */}
             {backgroundImage && (
               <div
-                ref={isMobile ? viewerTimelineRef : null} // Use specific ref for mobile
+                ref={(el) => {
+                  // Only assign to mobile ref to avoid conditional ref issues
+                  if (isMobile) {
+                    viewerTimelineRef.current = el;
+                  }
+                }}
                 className={`${isMobile ? 'flex-shrink-0 relative mobile-timeline-container' : 'bg-slate-800 border-t border-slate-700 absolute bottom-0 left-0 right-0'}`}
                 style={{ zIndex: Z_INDEX.TIMELINE, paddingBottom: isMobile ? '0px' : 'max(env(safe-area-inset-bottom), 0px)' }}
               >
