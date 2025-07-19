@@ -33,19 +33,39 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
   const embedInputRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Handle body scroll lock and focus management
   useEffect(() => {
     if (isOpen) {
+      previouslyFocusedElement.current = document.activeElement as HTMLElement;
       document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
+      modalRef.current?.focus();
+      return () => {
+        document.body.classList.remove('modal-open');
+        previouslyFocusedElement.current?.focus();
+      };
     }
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
   }, [isOpen]);
+
+  // Handle keyboard events
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
 
   const handlePublicToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isToggling) return; // Prevent multiple concurrent requests
@@ -173,12 +193,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   if (isMobile) {
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-end z-50" onClick={onClose}>
-        <div className="bg-slate-800 rounded-t-2xl shadow-xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div 
+        className="fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-end z-50" 
+        onClick={onClose}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-modal-title"
+      >
+        <div 
+          ref={modalRef}
+          tabIndex={-1}
+          className="bg-slate-800 rounded-t-2xl shadow-xl w-full max-h-[90vh] overflow-y-auto" 
+          onClick={e => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="p-4 border-b border-slate-700">
             <div className="w-12 h-1.5 bg-slate-600 rounded-full mx-auto"></div>
-            <h2 className="text-xl font-semibold text-white text-center mt-3">Share Module</h2>
+            <h2 id="mobile-modal-title" className="text-xl font-semibold text-white text-center mt-3">Share Project</h2>
             <p className="text-slate-400 text-sm text-center truncate">{project.title}</p>
           </div>
 
@@ -300,12 +331,21 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="desktop-modal-title"
+    >
+      <div 
+        ref={!isMobile ? modalRef : undefined}
+        tabIndex={-1}
+        className="bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div>
-            <h2 className="text-xl font-semibold text-white">Share Module</h2>
+            <h2 id="desktop-modal-title" className="text-xl font-semibold text-white">Share Project</h2>
             <p className="text-slate-400 text-sm mt-1">{project.title}</p>
           </div>
           <button
