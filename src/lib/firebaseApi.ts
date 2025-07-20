@@ -708,7 +708,7 @@ export class FirebaseProjectAPI {
    * Get hotspots for a project
    */
   private async getHotspots(projectId: string): Promise<HotspotData[]> {
-    try {
+    return this.withMobileErrorHandling(async () => {
       const db = firebaseManager.getFirestore();
       const hotspotsRef = collection(db, 'projects', projectId, 'hotspots')
       const snapshot = await getDocs(hotspotsRef)
@@ -720,17 +720,14 @@ export class FirebaseProjectAPI {
           ...data
         }) as HotspotData
       })
-    } catch (error) {
-      debugLog.error(`Error getting hotspots for project ${projectId}:`, error)
-      return []
-    }
+    }, 'getHotspots');
   }
 
   /**
    * Get timeline events for a project
    */
   private async getTimelineEvents(projectId: string): Promise<TimelineEventData[]> {
-    try {
+    return this.withMobileErrorHandling(async () => {
       const db = firebaseManager.getFirestore();
       const eventsRef = collection(db, 'projects', projectId, 'timeline_events')
       const snapshot = await getDocs(query(eventsRef, orderBy('step', 'asc')))
@@ -742,10 +739,7 @@ export class FirebaseProjectAPI {
           ...data
         }) as TimelineEventData
       })
-    } catch (error) {
-      debugLog.error(`Error getting timeline events for project ${projectId}:`, error)
-      return []
-    }
+    }, 'getTimelineEvents');
   }
 
   /**
