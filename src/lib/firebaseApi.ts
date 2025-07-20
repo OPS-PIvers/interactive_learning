@@ -169,7 +169,7 @@ export class FirebaseProjectAPI {
 
       debugLog.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
       return projects
-    }, 'listProjects')
+    }, 'listProjects');
   }
 
   /**
