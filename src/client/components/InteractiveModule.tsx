@@ -67,6 +67,16 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
     }
   }, [initialData]);
 
+  // Sync moduleData when initialData changes (including backgroundImage updates)
+  useEffect(() => {
+    if (isInitialized && initialData.backgroundImage !== moduleData.backgroundImage) {
+      setModuleData(prev => ({
+        ...prev,
+        backgroundImage: initialData.backgroundImage || null
+      }));
+    }
+  }, [initialData.backgroundImage, isInitialized, moduleData.backgroundImage]);
+
   // Editor callbacks
   const handleSave = useCallback(async () => {
     await onSave(moduleData);
@@ -93,7 +103,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, []);
 
   const handleImageUpload = useCallback(async (file: File) => {
-    onImageUpload(file);
+    await onImageUpload(file);
   }, [onImageUpload]);
 
   const handleClose = useCallback(() => {

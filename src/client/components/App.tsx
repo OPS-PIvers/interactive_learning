@@ -257,6 +257,17 @@ const MainApp: React.FC = () => {
         ...selectedProject.interactiveData,
         backgroundImage: imageUrl,
       };
+      
+      // Update local project state first to ensure React state is current
+      setProjects(prev => prev.map(p => 
+        p.id === selectedProject.id 
+          ? { ...p, interactiveData: updatedData }
+          : p
+      ));
+      
+      // Use a small delay to ensure React state has propagated before saving
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       await handleSaveProjectData(selectedProject.id, updatedData);
     } catch (err: any) {
       console.error("Failed to upload image:", err);
