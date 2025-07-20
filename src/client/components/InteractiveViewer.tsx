@@ -5,6 +5,7 @@ import LazyLoadingFallback from './shared/LazyLoadingFallback';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
+import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
 import '../styles/mobile-events.css';
 
 // Lazy load timeline component
@@ -279,9 +280,18 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 >
                   {/* Background Image */}
                   <img
-                    src={backgroundImage}
+                    src={getCleanFirebaseUrl(backgroundImage)}
                     alt="Interactive content background"
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error('Mobile image load error:', e.currentTarget.src);
+                      console.error('Background image value:', backgroundImage);
+                      logFirebaseImageLoad(backgroundImage, false, 'mobile viewer');
+                    }}
+                    onLoad={() => {
+                      console.log('Mobile image loaded successfully:', backgroundImage);
+                      logFirebaseImageLoad(backgroundImage, true, 'mobile viewer');
+                    }}
                     style={{
                       transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,
                       transformOrigin: 'center center',
@@ -366,7 +376,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
               imageContainerRef={imageContainerRef}
               isActive={moduleState === 'learning' || moduleState === 'exploring'}
               currentTransform={imageTransform}
-              onTransformUpdate={setImageTransform}
+              onTransformUpdate={(transform) => setImageTransform(prev => ({ ...prev, ...transform }))}
               isGestureActive={isGestureActive()}
               isVisible={moduleState === 'learning' || moduleState === 'exploring'}
               // New timeline navigation props

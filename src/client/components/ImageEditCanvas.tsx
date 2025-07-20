@@ -8,6 +8,7 @@ import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
 import { Z_INDEX } from '../utils/styleConstants';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
+import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
 import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 interface ImageEditCanvasProps {
@@ -279,7 +280,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           >
             <img
               ref={actualImageRef}
-              src={backgroundImage}
+              src={getCleanFirebaseUrl(backgroundImage || '')}
               alt="Interactive module background"
               className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
               style={!isMobile ? { // Desktop specific styles from original
@@ -287,6 +288,11 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 height: 'auto',
               } : {}}
               onLoad={onImageLoad}
+              onError={(e) => {
+                console.error('Mobile editor image load error:', e.currentTarget.src);
+                console.error('Background image value:', backgroundImage);
+                logFirebaseImageLoad(backgroundImage || '', false, 'mobile editor');
+              }}
               draggable={false}
             />
 

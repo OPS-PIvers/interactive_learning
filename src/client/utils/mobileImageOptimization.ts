@@ -44,14 +44,45 @@ export const getProgressiveImageUrl = (imageUrl: string) => {
 };
 
 export const optimizeImageForMobile = (imageUrl: string): string => {
-  // Add mobile-specific image optimization
-  const params = new URLSearchParams({
-    w: '800', // Max width for mobile
-    q: '85',  // Quality
-    f: 'webp' // Format
-  });
-  
-  return `${imageUrl}?${params.toString()}`;
+  // Validate input
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return imageUrl;
+  }
+
+  try {
+    const url = new URL(imageUrl);
+    
+    // NEVER optimize Firebase Storage URLs - they need specific CORS handling
+    if (url.hostname.includes('firebasestorage.googleapis.com') || 
+        url.hostname.includes('firebase.com') ||
+        url.hostname.includes('appspot.com')) {
+      console.log('Skipping optimization for Firebase Storage URL:', imageUrl);
+      return imageUrl; // Return original URL unchanged
+    }
+    
+    // Check if URL already has optimization parameters
+    if (url.searchParams.has('w') || url.searchParams.has('q')) {
+      return imageUrl; // Return as-is if already optimized
+    }
+    
+    // Only optimize for proven compatible domains
+    const compatibleDomains = ['cloudinary.com', 'imgix.com'];
+    const isCompatible = compatibleDomains.some(domain => url.hostname.includes(domain));
+    
+    if (!isCompatible) {
+      return imageUrl; // Return original for unknown domains
+    }
+    
+    // Add mobile optimization parameters only for compatible services
+    url.searchParams.set('w', '800');  // Max width
+    url.searchParams.set('q', '85');   // Quality
+    
+    return url.toString();
+  } catch (error) {
+    // If URL parsing fails, return original
+    console.warn('Failed to parse image URL:', error);
+    return imageUrl;
+  }
 };
 
 export const preloadNextStepContent = (

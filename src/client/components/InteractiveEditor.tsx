@@ -530,7 +530,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                       onNextStep={() => {}}
                       currentStepIndex={currentStepIndex}
                       totalSteps={uniqueSortedSteps.length}
-                      isMobile={false}
+                      isMobile={isMobile}
                       onAddStep={(step) => {
                         // Add a default event at the new step
                         const newEvent: TimelineEventData = {

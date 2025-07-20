@@ -456,36 +456,41 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         {children}
       </div>
 
-      {/* Timeline at the bottom */}
+      {/* Timeline at the bottom - Using simple viewer-style timeline for consistency */}
       <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700">
         <HorizontalTimeline
           uniqueSortedSteps={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b)}
           currentStep={currentStep}
           onStepSelect={(step) => {
-            // In editing mode, just change the current step
+            // In editing mode, just change the current step for preview
             console.log('Timeline step selected:', step);
           }}
-          isEditing={true}
+          isEditing={false} // Use viewer-style timeline (simpler interface)
           timelineEvents={timelineEvents}
           setTimelineEvents={() => {}} // Read-only in this context, events managed by parent
           hotspots={hotspots}
+          moduleState="learning" // Use learning mode to show navigation buttons
+          onPrevStep={() => {
+            const uniqueSteps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+            const currentIndex = uniqueSteps.indexOf(currentStep);
+            if (currentIndex > 0) {
+              console.log('Previous step:', uniqueSteps[currentIndex - 1]);
+            }
+          }}
+          onNextStep={() => {
+            const uniqueSteps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
+            const currentIndex = uniqueSteps.indexOf(currentStep);
+            if (currentIndex < uniqueSteps.length - 1) {
+              console.log('Next step:', uniqueSteps[currentIndex + 1]);
+            }
+          }}
+          currentStepIndex={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b).indexOf(currentStep)}
+          totalSteps={[...new Set(timelineEvents.map(e => e.step))].length}
           isMobile={true}
-          onAddStep={(step) => {
-            // Add step functionality would be handled by parent
-            console.log('Add step requested:', step);
-          }}
-          onDeleteStep={(step) => {
-            // Delete step functionality would be handled by parent
-            console.log('Delete step requested:', step);
-          }}
-          onUpdateStep={(oldStep, newStep) => {
-            // Update step functionality would be handled by parent
-            console.log('Update step requested:', oldStep, newStep);
-          }}
-          onMoveStep={(dragIndex, hoverIndex) => {
-            // Move step functionality would be handled by parent
-            console.log('Move step requested:', dragIndex, hoverIndex);
-          }}
+          onAddStep={() => {}} // No-op in viewer-style mode
+          onDeleteStep={() => {}} // No-op in viewer-style mode
+          onUpdateStep={() => {}} // No-op in viewer-style mode
+          onMoveStep={() => {}} // No-op in viewer-style mode
         />
       </div>
     </div>
