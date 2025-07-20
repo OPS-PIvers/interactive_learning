@@ -2,6 +2,7 @@
 // For now, it's a placeholder.
 
 import { TimelineEventData } from '../../shared/types';
+import { loadImageSafely } from './imageLoadingManager';
 
 interface ImageOptimizationOptions {
   quality?: number;
@@ -105,7 +106,7 @@ export const preloadCriticalImages = (
   timelineEvents: TimelineEventData[],
   currentStep: number = 1
 ): void => {
-  // Preload images for current step and next 2 steps
+  // Preload images for current step and next 2 steps using deduplication
   const stepsToPreload = [currentStep, currentStep + 1, currentStep + 2];
   
   stepsToPreload.forEach(step => {
@@ -113,13 +114,19 @@ export const preloadCriticalImages = (
     stepEvents.forEach(event => {
       if (event.imageUrl) {
         const optimizedUrl = optimizeImageForMobile(event.imageUrl);
-        const img = new Image();
-        img.src = optimizedUrl;
+        // Use loadImageSafely to prevent duplicate requests
+        loadImageSafely(optimizedUrl, { timeout: 8000, retryAttempts: 1 })
+          .catch(error => {
+            console.warn(`Failed to preload image for step ${step}:`, error.message);
+          });
       }
       if (event.mediaUrl && event.mediaType === 'image') {
         const optimizedUrl = optimizeImageForMobile(event.mediaUrl);
-        const img = new Image();
-        img.src = optimizedUrl;
+        // Use loadImageSafely to prevent duplicate requests
+        loadImageSafely(optimizedUrl, { timeout: 8000, retryAttempts: 1 })
+          .catch(error => {
+            console.warn(`Failed to preload media for step ${step}:`, error.message);
+          });
       }
     });
   });

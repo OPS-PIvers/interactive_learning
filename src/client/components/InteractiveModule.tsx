@@ -68,14 +68,15 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, [initialData]);
 
   // Sync moduleData when initialData changes (including backgroundImage updates)
+  // Remove moduleData.backgroundImage from dependencies to prevent infinite loop
   useEffect(() => {
-    if (isInitialized && initialData.backgroundImage !== moduleData.backgroundImage) {
+    if (isInitialized) {
       setModuleData(prev => ({
         ...prev,
         backgroundImage: initialData.backgroundImage || null
       }));
     }
-  }, [initialData.backgroundImage, isInitialized, moduleData.backgroundImage]);
+  }, [initialData.backgroundImage, isInitialized]);
 
   // Editor callbacks
   const handleSave = useCallback(async () => {

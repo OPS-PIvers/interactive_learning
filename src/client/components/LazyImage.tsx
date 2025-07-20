@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import { optimizeImageForMobile, getProgressiveImageUrl } from '../utils/mobileImageOptimization';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { loadImageSafely } from '../utils/imageLoadingManager';
 
 interface LazyImageProps {
   src: string;
@@ -38,44 +39,44 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       const optimizedSrc = isMobile ? optimizeImageForMobile(src) : src;
       
       if (isMobile && !placeholder) {
-        // Use progressive loading for mobile
+        // Use progressive loading for mobile with deduplication
         const { placeholder: placeholderSrc, full: fullSrc } = getProgressiveImageUrl(src);
         
-        // Load placeholder first
-        const placeholderImg = new Image();
-        placeholderImg.onload = () => {
-          setImageSrc(placeholderSrc);
-          setShowPlaceholder(false);
-          
-          // Then load full image
-          const fullImg = new Image();
-          fullImg.onload = () => {
+        // Load placeholder first using the image loading manager
+        loadImageSafely(placeholderSrc, { timeout: 5000, retryAttempts: 1 })
+          .then(() => {
+            setImageSrc(placeholderSrc);
+            setShowPlaceholder(false);
+            
+            // Then load full image
+            return loadImageSafely(fullSrc, { timeout: 10000, retryAttempts: 2 });
+          })
+          .then(() => {
             setImageSrc(fullSrc);
             setImageStatus('loaded');
             onLoad?.();
-          };
-          fullImg.onerror = () => {
+          })
+          .catch((error) => {
+            console.warn('Progressive image loading failed:', error.message);
             setImageStatus('error');
+            setShowPlaceholder(false);
             onError?.();
-          };
-          fullImg.src = fullSrc;
-        };
-        placeholderImg.src = placeholderSrc;
+          });
       } else {
-        // Standard loading
-        const img = new Image();
-        img.onload = () => {
-          setImageSrc(optimizedSrc);
-          setImageStatus('loaded');
-          setShowPlaceholder(false);
-          onLoad?.();
-        };
-        img.onerror = () => {
-          setImageStatus('error');
-          setShowPlaceholder(false);
-          onError?.();
-        };
-        img.src = optimizedSrc;
+        // Standard loading with deduplication
+        loadImageSafely(optimizedSrc, { timeout: 10000, retryAttempts: 2 })
+          .then(() => {
+            setImageSrc(optimizedSrc);
+            setImageStatus('loaded');
+            setShowPlaceholder(false);
+            onLoad?.();
+          })
+          .catch((error) => {
+            console.warn('Image loading failed:', error.message);
+            setImageStatus('error');
+            setShowPlaceholder(false);
+            onError?.();
+          });
       }
     }
   }, [isIntersecting, hasIntersected, src, isMobile, placeholder, onLoad, onError]);
