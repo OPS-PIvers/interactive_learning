@@ -11,6 +11,7 @@ interface InteractiveModuleProps {
   initialData: InteractiveModuleState;
   isEditing: boolean;
   onSave: (data: InteractiveModuleState, thumbnailUrl?: string) => void;
+  onImageUpload: (file: File) => Promise<void>;
   onClose?: (callback?: () => void) => void;
   projectName: string;
   projectId?: string;
@@ -25,6 +26,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   initialData,
   isEditing,
   onSave,
+  onImageUpload,
   onClose,
   projectName,
   projectId,
@@ -91,11 +93,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   }, []);
 
   const handleImageUpload = useCallback(async (file: File) => {
-    // This would typically upload to Firebase Storage
-    // For now, we'll create a temporary URL
-    const url = URL.createObjectURL(file);
-    handleBackgroundImageChange(url);
-  }, [handleBackgroundImageChange]);
+    onImageUpload(file);
+  }, [onImageUpload]);
 
   const handleClose = useCallback(() => {
     if (onClose) {
@@ -130,7 +129,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         onBackgroundImageChange={handleBackgroundImageChange}
         onBackgroundTypeChange={handleBackgroundTypeChange}
         onBackgroundVideoTypeChange={handleBackgroundVideoTypeChange}
-        onImageUpload={handleImageUpload}
+        onImageUpload={onImageUpload}
       />
     );
   } else {

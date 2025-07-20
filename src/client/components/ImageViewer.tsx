@@ -356,18 +356,11 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               onClick={() => {
                 setImageError(false);
                 setImageLoaded(false); // Ensure loading state is shown again
-                if (imageRef.current && src) { // Check if src is available
-                  const currentSrc = src; // Use the prop src
-                  // Force reload by briefly setting to empty then back to original
-                  // This is a common trick if the browser caches the error state for the URL
-                  if (imageRef.current) imageRef.current.src = '';
-                  // Use a timeout to ensure the src change is picked up by the browser
-                  setTimeout(() => {
-                    if (imageRef.current) imageRef.current.src = currentSrc;
-                  }, 50);
-                } else if (src) {
-                  // If imageRef is not yet available but src is, just reset state and let useEffect handle it
-                  // This might happen if error occurs very early
+                if (imageRef.current) {
+                  // Force reload by adding a cache-busting query parameter
+                  const currentSrc = new URL(src);
+                  currentSrc.searchParams.set('retry', Date.now().toString());
+                  imageRef.current.src = currentSrc.toString();
                 }
               }}
               className="mt-3 px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-all duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-slate-900"
