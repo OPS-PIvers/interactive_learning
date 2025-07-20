@@ -9,6 +9,7 @@ interface InteractiveModuleWrapperProps {
   isMobile: boolean;
   onClose: () => void;
   onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => void;
+  onImageUpload: (file: File) => Promise<void>;
   onReloadRequest?: () => void;
 }
 
@@ -18,6 +19,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   isMobile,
   onClose,
   onSave,
+  onImageUpload,
   onReloadRequest
 }) => {
   // ✅ ALWAYS call the same hooks in the same order
@@ -58,6 +60,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             initialData={selectedProject.interactiveData}
             isEditing={isEditingMode}
             onSave={(data, thumbnailUrl) => onSave(selectedProject.id, data, thumbnailUrl)}
+            onImageUpload={onImageUpload}
             onClose={onClose}
             projectName={selectedProject.title}
             projectId={selectedProject.id}
