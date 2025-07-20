@@ -266,7 +266,10 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         {/* Main Content Area */}
         <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>
           {/* Image Display Area */}
-          <div className="flex-1 relative bg-slate-900" style={{ zIndex: Z_INDEX.IMAGE_BASE }}>
+          <div
+            className={`flex-1 relative bg-slate-900 ${isMobile ? 'pb-24' : ''}`}
+            style={{ zIndex: Z_INDEX.IMAGE_BASE }}
+          >
             {backgroundImage ? (
               <>
                 <div
