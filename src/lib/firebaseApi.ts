@@ -97,42 +97,18 @@ export class FirebaseProjectAPI {
         throw new Error('Invalid authentication state - missing user ID');
       }
 
-      // Wait for auth state to be fully established on mobile
-      if (isMobileDevice() && !auth.currentUser.emailVerified && auth.currentUser.isAnonymous === false) {
-        // Give mobile browsers extra time for auth state synchronization
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
 
       this.logUsage('READ_OPERATIONS', 1);
       const projectsRef = collection(db, 'projects');
       
-      // Try the optimized query first, with fallback for mobile browsers
-      let snapshot;
-      try {
-        // Query with composite index (createdBy + updatedAt)
-        const userProjectsQuery = query(
-          projectsRef, 
-          where('createdBy', '==', auth.currentUser.uid),
-          orderBy('updatedAt', 'desc')
-        );
-        
-        snapshot = await getDocs(userProjectsQuery);
-      } catch (error) {
-        if (isMobileDevice() && error instanceof Error && error.message.includes('invalid-argument')) {
-          debugLog.log('Composite query failed on mobile, trying fallback...');
-          
-          // Fallback: Simple query without orderBy, then sort in memory
-          const simpleQuery = query(
-            projectsRef,
-            where('createdBy', '==', auth.currentUser.uid)
-          );
-          
-          snapshot = await getDocs(simpleQuery);
-          debugLog.log('Fallback query succeeded, will sort results in memory');
-        } else {
-          throw error;
-        }
-      }
+      // Query projects created by the current user
+      const userProjectsQuery = query(
+        projectsRef, 
+        where('createdBy', '==', auth.currentUser.uid),
+        orderBy('updatedAt', 'desc')
+      );
+      
+      const snapshot = await getDocs(userProjectsQuery);
       
       const projects: Project[] = snapshot.docs.map((docSnap) => {
         const projectData = docSnap.data()
@@ -156,16 +132,6 @@ export class FirebaseProjectAPI {
         } as Project
       })
 
-      // Sort by updatedAt descending if using fallback query (which doesn't have orderBy)
-      const needsSorting = isMobileDevice() && projects.length > 1;
-      if (needsSorting) {
-        projects.sort((a, b) => {
-          const aTime = a.updatedAt?.getTime() || 0;
-          const bTime = b.updatedAt?.getTime() || 0;
-          return bTime - aTime; // Descending order (newest first)
-        });
-        debugLog.log('Applied in-memory sorting for mobile fallback query');
-      }
 
       debugLog.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
       return projects

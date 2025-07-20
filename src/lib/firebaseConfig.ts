@@ -74,19 +74,8 @@ class FirebaseConnectionManager {
       // Initialize Firebase app
       this.app = initializeApp(firebaseConfig)
 
-      // Initialize Firestore with mobile-specific settings
-      if (typeof window !== 'undefined' && isMobileDevice()) {
-        // Mobile-optimized Firestore settings
-        this.db = initializeFirestore(this.app, {
-          cacheSizeBytes: 1048576, // 1MB cache for mobile
-          experimentalForceLongPolling: true, // Better for mobile browsers
-        })
-        if (import.meta.env.DEV) {
-          console.log('Firebase: Initialized with mobile-optimized settings')
-        }
-      } else {
-        this.db = getFirestore(this.app)
-      }
+      // Initialize Firestore with standard settings for all devices
+      this.db = getFirestore(this.app)
 
       // Initialize other services
       this.storage = getStorage(this.app)
