@@ -347,7 +347,7 @@ export class FirebaseProjectAPI {
       }
       // --- End of Thumbnail logic ---
 
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
         const projectSnap = await transaction.get(projectRef);
@@ -479,7 +479,7 @@ export class FirebaseProjectAPI {
         thumbnailUrlToDelete = projectData.thumbnailUrl || null;
       }
 
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
         this.logUsage('TRANSACTION_DELETE_PROJECT', 1);
 
         // Optional: Re-read project document with transaction.get(projectRef) to ensure it still exists
@@ -709,6 +709,7 @@ export class FirebaseProjectAPI {
    */
   private async getHotspots(projectId: string): Promise<HotspotData[]> {
     try {
+      const db = firebaseManager.getFirestore();
       const hotspotsRef = collection(db, 'projects', projectId, 'hotspots')
       const snapshot = await getDocs(hotspotsRef)
       
@@ -730,6 +731,7 @@ export class FirebaseProjectAPI {
    */
   private async getTimelineEvents(projectId: string): Promise<TimelineEventData[]> {
     try {
+      const db = firebaseManager.getFirestore();
       const eventsRef = collection(db, 'projects', projectId, 'timeline_events')
       const snapshot = await getDocs(query(eventsRef, orderBy('step', 'asc')))
       
@@ -756,6 +758,7 @@ export class FirebaseProjectAPI {
     currentEventIds: string[]
   ): Promise<void> {
     try {
+      const db = firebaseManager.getFirestore();
       const hotspotsColRef = collection(db, 'projects', projectId, 'hotspots');
       const eventsColRef = collection(db, 'projects', projectId, 'timeline_events');
       
@@ -791,7 +794,7 @@ export class FirebaseProjectAPI {
       for (let i = 0; i < allOrphanedRefs.length; i += batchSize) {
         const batch = allOrphanedRefs.slice(i, i + batchSize);
         
-        await runTransaction(db, async (transaction) => {
+        await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
           batch.forEach(ref => transaction.delete(ref));
         });
       }
