@@ -280,7 +280,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           >
             <img
               ref={actualImageRef}
-              src={getCleanFirebaseUrl(backgroundImage || '')}
+              src={backgroundImage || ''}
               alt="Interactive module background"
               className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
               style={!isMobile ? { // Desktop specific styles from original

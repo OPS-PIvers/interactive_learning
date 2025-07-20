@@ -34,13 +34,15 @@ export function getCleanFirebaseUrl(url: string): string {
     const cleanUrl = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
     
     // Keep essential Firebase Storage parameters
-    if (urlObj.searchParams.has('alt')) {
-      return `${cleanUrl}?alt=${urlObj.searchParams.get('alt')}`;
-    }
-    if (urlObj.searchParams.has('token')) {
-      const alt = urlObj.searchParams.get('alt') || 'media';
-      const token = urlObj.searchParams.get('token');
+    const alt = urlObj.searchParams.get('alt');
+    const token = urlObj.searchParams.get('token');
+    
+    if (alt && token) {
       return `${cleanUrl}?alt=${alt}&token=${token}`;
+    } else if (alt) {
+      return `${cleanUrl}?alt=${alt}`;
+    } else if (token) {
+      return `${cleanUrl}?token=${token}`;
     }
     
     return cleanUrl;

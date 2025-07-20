@@ -280,7 +280,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 >
                   {/* Background Image */}
                   <img
-                    src={getCleanFirebaseUrl(backgroundImage)}
+                    src={backgroundImage}
                     alt="Interactive content background"
                     className="w-full h-full object-contain"
                     onError={(e) => {
