@@ -57,7 +57,8 @@ const MainApp: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await appScriptProxy.init();
+      // Firebase connection manager handles initialization automatically
+      // Only call init once during app lifecycle, not on every project load
       const fetchedProjects = await appScriptProxy.listProjects();
       setProjects(fetchedProjects);
     } catch (err: any) {
@@ -68,6 +69,18 @@ const MainApp: React.FC = () => {
       setIsLoading(false);
     }
   }, [user]);
+
+  // Initialize Firebase once when app starts
+  useEffect(() => {
+    const initializeFirebase = async () => {
+      try {
+        await appScriptProxy.init();
+      } catch (error) {
+        console.error('Failed to initialize Firebase:', error);
+      }
+    };
+    initializeFirebase();
+  }, []);
 
   // Load projects when user authentication state changes
   useEffect(() => {

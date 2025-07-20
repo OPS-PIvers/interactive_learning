@@ -1,10 +1,18 @@
 import { Project, InteractiveModuleState } from '../shared/types'
 import { firebaseAPI } from './firebaseApi'
+import { firebaseManager } from './firebaseConfig'
 
 // Firebase proxy that matches the existing GoogleAppScriptProxy interface
 export const appScriptProxy = {
   init: async (): Promise<void> => {
-    console.log("Firebase proxy initialized")
+    // Ensure Firebase is properly initialized instead of just logging
+    if (!firebaseManager.isReady()) {
+      console.log("Firebase proxy: Initializing Firebase connection...")
+      await firebaseManager.initialize()
+      console.log("Firebase proxy: Initialization complete")
+    } else {
+      console.log("Firebase proxy: Already initialized")
+    }
     return Promise.resolve()
   },
 

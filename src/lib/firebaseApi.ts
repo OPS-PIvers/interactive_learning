@@ -14,11 +14,13 @@ import {
   Timestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
-import { auth, db, storage } from './firebaseConfig'
+import { auth, db, storage, firebaseManager } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
-import { generateThumbnail } from '../client/utils/imageUtils' // Import the new utility
+import { generateThumbnail } from '../client/utils/imageUtils'
+import { isMobileDevice } from '../client/utils/mobileUtils'
+import { networkMonitor } from '../client/utils/networkMonitor'
 
 // Thumbnail Parameters
 const THUMBNAIL_WIDTH = 400;
@@ -38,11 +40,54 @@ export class FirebaseProjectAPI {
     debugLog.log(`Firebase ${operation}: ${count} operations`)
   }
 
+  private async ensureFirebaseReady(): Promise<void> {
+    if (!firebaseManager.isReady()) {
+      debugLog.log('Firebase not ready, initializing...')
+      await firebaseManager.initialize()
+    }
+  }
+
+  private async withMobileErrorHandling<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
+    try {
+      await this.ensureFirebaseReady()
+      return await operation()
+    } catch (error) {
+      debugLog.error(`Mobile Firebase operation failed (${operationName}):`, error)
+      
+      if (isMobileDevice()) {
+        // Enhanced mobile-specific error handling
+        const errorMessage = error instanceof Error ? error.message.toLowerCase() : ''
+        
+        if (errorMessage.includes('network') || errorMessage.includes('offline')) {
+          // Network-related error on mobile
+          const networkState = networkMonitor.getState()
+          debugLog.log('Network state during error:', networkState)
+          
+          if (!networkState.online) {
+            throw new Error('No internet connection. Please check your network and try again.')
+          } else if (networkState.effectiveType === 'slow-2g' || networkState.effectiveType === '2g') {
+            throw new Error('Slow network connection detected. Please try again or move to a better network area.')
+          }
+        }
+        
+        if (errorMessage.includes('webchannelconnection') || errorMessage.includes('rpc')) {
+          throw new Error('Connection to server failed. This may be due to network issues on mobile. Please try again.')
+        }
+        
+        if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+          throw new Error('Service temporarily unavailable. Please try again in a few moments.')
+        }
+      }
+      
+      throw error
+    }
+  }
+
   /**
    * List all projects with their hotspots and timeline events
    */
   async listProjects(): Promise<Project[]> {
-    try {
+    return this.withMobileErrorHandling(async () => {
       // Check authentication first
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to access projects');
@@ -84,10 +129,7 @@ export class FirebaseProjectAPI {
 
       debugLog.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
       return projects
-    } catch (error) {
-      debugLog.error('Error listing projects (summary):', error)
-      throw new Error(`Failed to load project summaries: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
+    }, 'listProjects')
   }
 
   /**

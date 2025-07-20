@@ -32,7 +32,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
     setError(null);
     
     try {
-      await appScriptProxy.init();
+      // Firebase connection manager handles initialization automatically
       const targetProject = await appScriptProxy.getPublicProject(moduleId);
       
       if (!targetProject) {

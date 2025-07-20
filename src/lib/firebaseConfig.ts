@@ -1,9 +1,10 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getFirestore, connectFirestoreEmulator, initializeFirestore } from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getPerformance } from 'firebase/performance'
 import { getAnalytics, isSupported } from 'firebase/analytics'
+import { isMobileDevice } from '../client/utils/mobileUtils'
 
 // Debug environment variables (development only)
 if (import.meta.env.DEV) {
@@ -30,50 +31,180 @@ if (import.meta.env.DEV) {
   console.log('Firebase config:', firebaseConfig);
 }
 
-const app = initializeApp(firebaseConfig)
+// Firebase Connection Manager with singleton pattern and mobile optimization
+class FirebaseConnectionManager {
+  private static instance: FirebaseConnectionManager
+  private app: any = null
+  private db: any = null
+  private storage: any = null
+  private auth: any = null
+  private performance: any = null
+  private analytics: any = null
+  private isInitialized = false
+  private initPromise: Promise<void> | null = null
 
-export const db = getFirestore(app)
-export const storage = getStorage(app)
-export const auth = getAuth(app)
+  private constructor() {}
 
-// Add performance monitoring and analytics
-let performance: any = null
-let analytics: any = null
+  static getInstance(): FirebaseConnectionManager {
+    if (!FirebaseConnectionManager.instance) {
+      FirebaseConnectionManager.instance = new FirebaseConnectionManager()
+    }
+    return FirebaseConnectionManager.instance
+  }
 
-if (typeof window !== 'undefined') {
-  try {
-    performance = getPerformance(app)
-    // Check if analytics is supported before initializing
-    if (isSupported()) {
-      analytics = getAnalytics(app)
+  async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return Promise.resolve()
+    }
+
+    if (this.initPromise) {
+      return this.initPromise
+    }
+
+    this.initPromise = this._doInitialize()
+    return this.initPromise
+  }
+
+  private async _doInitialize(): Promise<void> {
+    try {
       if (import.meta.env.DEV) {
-        console.log('Firebase Analytics initialized')
+        console.log('Firebase Connection Manager: Starting initialization...')
       }
-    } else if (import.meta.env.DEV) {
-      console.log('Firebase Analytics not supported in this environment')
+
+      // Initialize Firebase app
+      this.app = initializeApp(firebaseConfig)
+
+      // Initialize Firestore with mobile-specific settings
+      if (typeof window !== 'undefined' && isMobileDevice()) {
+        // Mobile-optimized Firestore settings
+        this.db = initializeFirestore(this.app, {
+          cacheSizeBytes: 1048576, // 1MB cache for mobile
+          experimentalForceLongPolling: true, // Better for mobile browsers
+        })
+        if (import.meta.env.DEV) {
+          console.log('Firebase: Initialized with mobile-optimized settings')
+        }
+      } else {
+        this.db = getFirestore(this.app)
+      }
+
+      // Initialize other services
+      this.storage = getStorage(this.app)
+      this.auth = getAuth(this.app)
+
+      // Initialize performance and analytics (non-blocking)
+      if (typeof window !== 'undefined') {
+        try {
+          this.performance = getPerformance(this.app)
+          if (isSupported()) {
+            this.analytics = getAnalytics(this.app)
+            if (import.meta.env.DEV) {
+              console.log('Firebase Analytics initialized')
+            }
+          }
+          if (import.meta.env.DEV) {
+            console.log('Firebase Performance initialized')
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.log('Analytics/Performance not available:', error)
+          }
+        }
+      }
+
+      // Setup emulators for development
+      if (import.meta.env.DEV && typeof window !== 'undefined' && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
+        try {
+          connectFirestoreEmulator(this.db, 'localhost', 8080)
+          connectStorageEmulator(this.storage, 'localhost', 9199)
+          connectAuthEmulator(this.auth, 'http://localhost:9099')
+          console.log('Connected to Firebase emulators')
+        } catch (error) {
+          console.log('Emulators not available or already connected:', error)
+        }
+      }
+
+      this.isInitialized = true
+      if (import.meta.env.DEV) {
+        console.log('Firebase Connection Manager: Initialization complete')
+      }
+    } catch (error) {
+      console.error('Firebase Connection Manager: Initialization failed:', error)
+      this.initPromise = null
+      throw error
     }
-    if (import.meta.env.DEV) {
-      console.log('Firebase Performance initialized')
+  }
+
+  getFirestore() {
+    if (!this.isInitialized) {
+      throw new Error('Firebase not initialized. Call initialize() first.')
     }
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.log('Analytics/Performance not available:', error)
+    return this.db
+  }
+
+  getStorage() {
+    if (!this.isInitialized) {
+      throw new Error('Firebase not initialized. Call initialize() first.')
     }
+    return this.storage
+  }
+
+  getAuth() {
+    if (!this.isInitialized) {
+      throw new Error('Firebase not initialized. Call initialize() first.')
+    }
+    return this.auth
+  }
+
+  getPerformance() {
+    return this.performance
+  }
+
+  getAnalytics() {
+    return this.analytics
+  }
+
+  getApp() {
+    return this.app
+  }
+
+  isReady(): boolean {
+    return this.isInitialized
   }
 }
 
-export { performance, analytics }
+// Create singleton instance
+const firebaseManager = FirebaseConnectionManager.getInstance()
 
-// For local development with emulators (optional)
-if (import.meta.env.DEV && typeof window !== 'undefined' && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
-  try {
-    connectFirestoreEmulator(db, 'localhost', 8080)
-    connectStorageEmulator(storage, 'localhost', 9199)
-    connectAuthEmulator(auth, 'http://localhost:9099')
-    console.log('Connected to Firebase emulators')
-  } catch (error) {
-    console.log('Emulators not available or already connected:', error)
+// Legacy exports for backward compatibility - these will throw if not initialized
+export const db = new Proxy({} as any, {
+  get(target, prop) {
+    return firebaseManager.getFirestore()[prop]
   }
-}
+})
 
-export default app
+export const storage = new Proxy({} as any, {
+  get(target, prop) {
+    return firebaseManager.getStorage()[prop]
+  }
+})
+
+export const auth = new Proxy({} as any, {
+  get(target, prop) {
+    return firebaseManager.getAuth()[prop]
+  }
+})
+
+// Initialize Firebase immediately but non-blocking
+firebaseManager.initialize().catch(error => {
+  console.error('Firebase initialization failed:', error)
+})
+
+// Export the manager for explicit initialization control
+export { firebaseManager }
+
+// Legacy exports for performance and analytics
+export const performance = firebaseManager.getPerformance()
+export const analytics = firebaseManager.getAnalytics()
+
+export default firebaseManager.getApp()
