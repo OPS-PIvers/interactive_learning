@@ -278,6 +278,11 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               zIndex: !isMobile && editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
             }}
           >
+            {(() => {
+              console.log('Debug ImageEditCanvas: About to render img with src:', backgroundImage);
+              console.log('Debug ImageEditCanvas: backgroundImage has token:', backgroundImage?.includes('token='));
+              return null;
+            })()}
             <img
               ref={actualImageRef}
               src={backgroundImage || ''}
@@ -289,8 +294,13 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               } : {}}
               onLoad={onImageLoad}
               onError={(e) => {
-                console.error('Mobile editor image load error:', e.currentTarget.src);
-                console.error('Background image value:', backgroundImage);
+                console.error('=== IMAGE EDIT CANVAS ERROR DEBUG ===');
+                console.error('Mobile editor image load error URL (e.currentTarget.src):', e.currentTarget.src);
+                console.error('Original backgroundImage value:', backgroundImage);
+                console.error('URLs match:', e.currentTarget.src === backgroundImage);
+                console.error('Error URL has token:', e.currentTarget.src.includes('token='));
+                console.error('Original URL has token:', backgroundImage?.includes('token='));
+                console.error('====================================');
                 logFirebaseImageLoad(backgroundImage || '', false, 'mobile editor');
               }}
               draggable={false}

@@ -279,13 +279,23 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                   {...touchHandlers}
                 >
                   {/* Background Image */}
+                  {(() => {
+                    console.log('Debug InteractiveViewer: About to render img with src:', backgroundImage);
+                    console.log('Debug InteractiveViewer: backgroundImage has token:', backgroundImage?.includes('token='));
+                    return null;
+                  })()}
                   <img
                     src={backgroundImage}
                     alt="Interactive content background"
                     className="w-full h-full object-contain"
                     onError={(e) => {
-                      console.error('Mobile image load error:', e.currentTarget.src);
-                      console.error('Background image value:', backgroundImage);
+                      console.error('=== IMAGE LOAD ERROR DEBUG ===');
+                      console.error('Mobile image load error URL (e.currentTarget.src):', e.currentTarget.src);
+                      console.error('Original backgroundImage value:', backgroundImage);
+                      console.error('URLs match:', e.currentTarget.src === backgroundImage);
+                      console.error('Error URL has token:', e.currentTarget.src.includes('token='));
+                      console.error('Original URL has token:', backgroundImage?.includes('token='));
+                      console.error('================================');
                       logFirebaseImageLoad(backgroundImage, false, 'mobile viewer');
                     }}
                     onLoad={() => {

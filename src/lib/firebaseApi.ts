@@ -709,9 +709,18 @@ export class FirebaseProjectAPI {
    */
   private async getHotspots(projectId: string): Promise<HotspotData[]> {
     return this.withMobileErrorHandling(async () => {
+      console.log('Debug getHotspots: Starting, projectId:', projectId);
+      console.log('Debug getHotspots: firebaseManager exists:', !!firebaseManager);
+      console.log('Debug getHotspots: collection function exists:', !!collection);
+      
       const db = firebaseManager.getFirestore();
+      console.log('Debug getHotspots: Got db:', !!db);
+      
       const hotspotsRef = collection(db, 'projects', projectId, 'hotspots')
+      console.log('Debug getHotspots: Got hotspotsRef:', !!hotspotsRef);
+      
       const snapshot = await getDocs(hotspotsRef)
+      console.log('Debug getHotspots: Got snapshot:', !!snapshot);
       
       return snapshot.docs.map(doc => {
         const data = doc.data()
@@ -728,9 +737,18 @@ export class FirebaseProjectAPI {
    */
   private async getTimelineEvents(projectId: string): Promise<TimelineEventData[]> {
     return this.withMobileErrorHandling(async () => {
+      console.log('Debug getTimelineEvents: Starting, projectId:', projectId);
+      console.log('Debug getTimelineEvents: firebaseManager exists:', !!firebaseManager);
+      console.log('Debug getTimelineEvents: collection function exists:', !!collection);
+      
       const db = firebaseManager.getFirestore();
+      console.log('Debug getTimelineEvents: Got db:', !!db);
+      
       const eventsRef = collection(db, 'projects', projectId, 'timeline_events')
+      console.log('Debug getTimelineEvents: Got eventsRef:', !!eventsRef);
+      
       const snapshot = await getDocs(query(eventsRef, orderBy('step', 'asc')))
+      console.log('Debug getTimelineEvents: Got snapshot:', !!snapshot);
       
       return snapshot.docs.map(doc => {
         const data = doc.data()
