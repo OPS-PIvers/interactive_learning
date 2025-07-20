@@ -14,7 +14,7 @@ import {
   Timestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
-import { auth, db, storage, firebaseManager } from './firebaseConfig'
+import { firebaseManager } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
 import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
@@ -88,6 +88,8 @@ export class FirebaseProjectAPI {
    */
   async listProjects(): Promise<Project[]> {
     return this.withMobileErrorHandling(async () => {
+      const auth = firebaseManager.getAuth();
+      
       // Enhanced authentication validation for mobile browsers
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to access projects');
@@ -99,6 +101,7 @@ export class FirebaseProjectAPI {
 
 
       this.logUsage('READ_OPERATIONS', 1);
+      const db = firebaseManager.getFirestore();
       const projectsRef = collection(db, 'projects');
       
       // Query projects created by the current user
@@ -144,6 +147,7 @@ export class FirebaseProjectAPI {
    */
   async getPublicProject(projectId: string): Promise<Project | null> {
     try {
+      const db = firebaseManager.getFirestore();
       this.logUsage('READ_OPERATIONS_PUBLIC', 1);
       const projectDocRef = doc(db, 'projects', projectId);
       const projectDoc = await getDoc(projectDocRef);
@@ -195,6 +199,7 @@ export class FirebaseProjectAPI {
    */
   async getProjectDetails(projectId: string): Promise<Partial<InteractiveModuleState>> {
     try {
+      const db = firebaseManager.getFirestore();
       this.logUsage('READ_OPERATIONS_DETAILS', 1); // For project document read
       const projectDocRef = doc(db, 'projects', projectId);
       const projectDocSnap = await getDoc(projectDocRef);
@@ -236,6 +241,9 @@ export class FirebaseProjectAPI {
 
   async createProject(title: string, description: string): Promise<Project> {
     try {
+      const auth = firebaseManager.getAuth();
+      const db = firebaseManager.getFirestore();
+      
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to create projects');
       }
@@ -529,6 +537,7 @@ export class FirebaseProjectAPI {
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `images/${auth.currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
       
+      const storage = firebaseManager.getStorage();
       const imageRef = ref(storage, fileName);
       
       debugLog.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
@@ -647,6 +656,7 @@ export class FirebaseProjectAPI {
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `uploads/${auth.currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
 
+      const storage = firebaseManager.getStorage();
       const fileRef = ref(storage, fileName);
 
       const metadata = {
@@ -804,6 +814,7 @@ export class FirebaseProjectAPI {
     try {
       // Firebase SDK's ref() can take a gs:// URL or an https:// URL
       // directly from Firebase Storage.
+      const storage = firebaseManager.getStorage();
       const imageRef = ref(storage, imageUrl);
       await deleteObject(imageRef);
       debugLog.log(`Successfully deleted image from storage: ${imageUrl}`);
