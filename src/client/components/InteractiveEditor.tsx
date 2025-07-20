@@ -176,9 +176,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
       x: normalizedPosition.x,
       y: normalizedPosition.y,
       title: 'New Hotspot',
-      content: '',
-      interactionType: InteractionType.INFO_POPUP,
-      ...INTERACTION_DEFAULTS[InteractionType.INFO_POPUP]
+      description: ''
     };
     
     onHotspotsChange([...hotspots, newHotspot]);
@@ -195,7 +193,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
 
   const handleRemoveHotspot = useCallback((hotspotId: string) => {
     onHotspotsChange(hotspots.filter(h => h.id !== hotspotId));
-    onTimelineEventsChange(timelineEvents.filter(e => e.hotspotId !== hotspotId));
+    onTimelineEventsChange(timelineEvents.filter(e => e.targetId !== hotspotId));
   }, [hotspots, timelineEvents, onHotspotsChange, onTimelineEventsChange]);
 
   const handleHotspotPositionChange = useCallback((hotspotId: string, newX: number, newY: number) => {
@@ -536,11 +534,10 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                         const newEvent: TimelineEventData = {
                           id: generateId(),
                           step,
-                          type: InteractionType.INFO_POPUP,
+                          type: InteractionType.SHOW_TEXT,
                           name: `Step ${step} Event`,
                           message: '',
-                          targetId: '',
-                          hotspotId: ''
+                          targetId: ''
                         };
                         handleAddTimelineEvent(newEvent);
                       }}

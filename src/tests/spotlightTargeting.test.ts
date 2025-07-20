@@ -8,7 +8,7 @@ const mockHotspot = {
   y: 60, // 60% from top
   title: 'Test Hotspot',
   content: 'Test content',
-  interactionType: InteractionType.INFO_POPUP,
+  interactionType: InteractionType.SHOW_TEXT,
   color: 'bg-red-500',
   size: 'medium' as const
 };

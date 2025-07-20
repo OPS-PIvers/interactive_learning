@@ -205,28 +205,6 @@ const MainApp: React.FC = () => {
     loadProjects();
   }, [loadProjects]);
 
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!user || !selectedProject) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const imageUrl = await appScriptProxy.uploadImage(file, selectedProject.id);
-      const updatedData = {
-        ...selectedProject.interactiveData,
-        backgroundImage: imageUrl,
-      };
-      await handleSaveProjectData(selectedProject.id, updatedData);
-    } catch (err: any) {
-      console.error("Failed to upload image:", err);
-      setError(`Failed to upload image: ${err.message || ''}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, selectedProject, handleSaveProjectData]);
-
   const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => {
     if (!user) {
       setShowAuthModal(true);
@@ -265,6 +243,28 @@ const MainApp: React.FC = () => {
       setIsLoading(false);
     }
   }, [user, projects, selectedProject]);
+
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (!user || !selectedProject) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const imageUrl = await appScriptProxy.uploadImage(file, selectedProject.id);
+      const updatedData = {
+        ...selectedProject.interactiveData,
+        backgroundImage: imageUrl,
+      };
+      await handleSaveProjectData(selectedProject.id, updatedData);
+    } catch (err: any) {
+      console.error("Failed to upload image:", err);
+      setError(`Failed to upload image: ${err.message || ''}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, selectedProject, handleSaveProjectData]);
 
   const handleDeleteProject = useCallback(async (projectId: string) => {
     if (!user) {
