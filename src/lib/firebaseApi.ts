@@ -295,6 +295,9 @@ export class FirebaseProjectAPI {
    */
   async saveProject(project: Project): Promise<Project> {
     try {
+      const auth = firebaseManager.getAuth();
+      const db = firebaseManager.getFirestore();
+      
       const user = auth.currentUser;
       if (!user) {
         throw new Error('User must be authenticated to save projects');
@@ -308,7 +311,6 @@ export class FirebaseProjectAPI {
         project.id = this.generateProjectId();
         project.createdBy = user.uid;
       }
-
 
       projectCache.clear();
       const projectRef = doc(db, 'projects', project.id);
@@ -457,6 +459,9 @@ export class FirebaseProjectAPI {
    */
   async deleteProject(projectId: string): Promise<{ success: boolean; projectId: string }> {
     try {
+      const auth = firebaseManager.getAuth();
+      const db = firebaseManager.getFirestore();
+      
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to delete projects');
       }
@@ -521,6 +526,8 @@ export class FirebaseProjectAPI {
    */
   async uploadImage(file: File, projectId?: string): Promise<string> {
     try {
+      const auth = firebaseManager.getAuth();
+      
       // Verify authentication before upload
       if (!auth.currentUser) {
         throw new Error('auth/user-not-authenticated: User must be authenticated to upload images');
@@ -643,6 +650,8 @@ export class FirebaseProjectAPI {
     projectId?: string
   ): Promise<string> {
     return new Promise((resolve, reject) => {
+      const auth = firebaseManager.getAuth();
+      
       if (!auth.currentUser) {
         return reject(new Error('auth/user-not-authenticated: User must be authenticated to upload files'));
       }
@@ -833,6 +842,9 @@ export class FirebaseProjectAPI {
 
   async updateProjectPublicStatus(projectId: string, isPublic: boolean): Promise<void> {
     try {
+      const auth = firebaseManager.getAuth();
+      const db = firebaseManager.getFirestore();
+      
       if (!auth.currentUser) {
         throw new Error('User must be authenticated to update project status');
       }
