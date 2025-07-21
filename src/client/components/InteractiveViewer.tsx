@@ -154,29 +154,37 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
-      // Reset pan & zoom when moving to previous step
-      setImageTransform(prev => ({
-        scale: 1,
-        translateX: 0,
-        translateY: 0,
-        targetHotspotId: undefined
-      }));
+      const currentEvents = timelineEvents.filter(event => event.step === currentStep);
+      const isPanZoomEvent = currentEvents.some(event => event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT);
+
+      if (isPanZoomEvent || isTransforming) {
+        setImageTransform({
+          scale: 1,
+          translateX: 0,
+          translateY: 0,
+          targetHotspotId: undefined
+        });
+      }
       setCurrentStep(uniqueSortedSteps[currentStepIndex - 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps]);
+  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, currentStep, isTransforming]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
-      // Reset pan & zoom when moving to next step
-      setImageTransform(prev => ({
-        scale: 1,
-        translateX: 0,
-        translateY: 0,
-        targetHotspotId: undefined
-      }));
+      const currentEvents = timelineEvents.filter(event => event.step === currentStep);
+      const isPanZoomEvent = currentEvents.some(event => event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT);
+
+      if (isPanZoomEvent || isTransforming) {
+        setImageTransform({
+          scale: 1,
+          translateX: 0,
+          translateY: 0,
+          targetHotspotId: undefined
+        });
+      }
       setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps]);
+  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, currentStep, isTransforming]);
 
   const handleMobileEventComplete = useCallback(() => {
     setMobileActiveEvents([]);
