@@ -12,7 +12,7 @@ import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
-import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
+import { normalizeHotspotPosition, sanitizeHotspotPosition } from '../../lib/safeMathUtils';
 import { generateId } from '../utils/generateId';
 import { debugLog } from '../utils/debugUtils';
 
@@ -196,14 +196,36 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
     onTimelineEventsChange(timelineEvents.filter(e => e.targetId !== hotspotId));
   }, [hotspots, timelineEvents, onHotspotsChange, onTimelineEventsChange]);
 
+  // Helper function to update timeline event coordinates
+  const updateEventCoordinates = useCallback((hotspotId: string, position: { x: number; y: number }) => {
+    const updatedEvents = timelineEvents.map(event => {
+      if (event.targetId !== hotspotId) {
+        return event;
+      }
+
+      if (event.type === InteractionType.SPOTLIGHT) {
+        return { ...event, spotlightX: position.x, spotlightY: position.y };
+      }
+
+      if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+        return { ...event, targetX: position.x, targetY: position.y };
+      }
+
+      return event;
+    });
+    onTimelineEventsChange(updatedEvents);
+  }, [timelineEvents, onTimelineEventsChange]);
+
   const handleHotspotPositionChange = useCallback((hotspotId: string, newX: number, newY: number) => {
-    const normalizedPosition = normalizeHotspotPosition({ x: newX, y: newY });
-    onHotspotsChange(hotspots.map(h => 
-      h.id === hotspotId 
-        ? { ...h, x: normalizedPosition.x, y: normalizedPosition.y }
+    const sanitizedPosition = sanitizeHotspotPosition({ x: newX, y: newY });
+    onHotspotsChange(hotspots.map(h =>
+      h.id === hotspotId
+        ? { ...h, x: sanitizedPosition.x, y: sanitizedPosition.y }
         : h
     ));
-  }, [hotspots, onHotspotsChange]);
+
+    updateEventCoordinates(hotspotId, sanitizedPosition);
+  }, [hotspots, onHotspotsChange, updateEventCoordinates]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     setSelectedHotspotForModal(hotspotId);
@@ -375,6 +397,16 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                   const updatedHotspot = { ...editingHotspot, ...updates };
                   onHotspotsChange(hotspots.map(h => h.id === editingHotspot.id ? updatedHotspot : h));
                   setEditingHotspot(updatedHotspot);
+
+                  // Also update associated timeline events
+                  if (updates.x !== undefined || updates.y !== undefined) {
+                    const { x: newX, y: newY } = sanitizeHotspotPosition({
+                      x: updates.x !== undefined ? updates.x : editingHotspot.x,
+                      y: updates.y !== undefined ? updates.y : editingHotspot.y,
+                    });
+
+                    updateEventCoordinates(editingHotspot.id, { x: newX, y: newY });
+                  }
                 }
               }}
               onDeleteHotspot={(hotspotId) => {
