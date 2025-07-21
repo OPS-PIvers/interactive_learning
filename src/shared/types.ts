@@ -203,6 +203,7 @@ export interface TimelineEventData {
   quizMode?: 'overlay' | 'modal' | 'inline'; // how to display quiz
   
   // === COMMON PROPERTIES ===
+  showTextBanner?: boolean; // New: Toggle for text banner display
   autoplay?: boolean;
   loop?: boolean;
   volume?: number;

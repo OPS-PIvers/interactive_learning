@@ -64,6 +64,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   // Event handling
   const [mobileActiveEvents, setMobileActiveEvents] = useState<TimelineEventData[]>([]);
   const [desktopActiveEvents, setDesktopActiveEvents] = useState<TimelineEventData[]>([]);
+  const [textBannerContent, setTextBannerContent] = useState<string | null>(null);
   
   // Refs
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -199,9 +200,17 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     if (moduleState === 'learning') {
       const newActiveDisplayIds = new Set<string>();
       let newPulsingHotspotId: string | null = null;
+      let newTextBannerContent: string | null = null;
       
       // Process events for the current step
       eventsForCurrentStep.forEach(event => {
+        if (event.showTextBanner && event.targetId) {
+          const targetHotspot = hotspots.find(h => h.id === event.targetId);
+          if (targetHotspot) {
+            newTextBannerContent = `${targetHotspot.title}: ${targetHotspot.description}`;
+          }
+        }
+
         // Show hotspot if it has an event or if displayHotspotInEvent is true
         if (event.targetId) {
           const targetHotspot = hotspots.find(h => h.id === event.targetId);
@@ -234,6 +243,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
       
       setActiveHotspotDisplayIds(newActiveDisplayIds);
       setPulsingHotspotId(newPulsingHotspotId);
+      setTextBannerContent(newTextBannerContent);
     } else if (moduleState === 'idle' || moduleState === 'exploring') {
       // In idle/exploring mode, show all hotspots that don't have events or have displayHotspotInEvent = true
       const activeEventHotspotIds = new Set(eventsForCurrentStep.map(e => e.targetId));
@@ -249,6 +259,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
       setPulsingHotspotId(null);
       setMobileActiveEvents([]);
       setDesktopActiveEvents([]);
+      setTextBannerContent(null);
     }
   }, [currentStep, timelineEvents, moduleState, hotspots, isMobile]);
 
@@ -294,6 +305,12 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
           </h1>
           <div className="w-16"></div> {/* Spacer for centering */}
         </div>
+
+        {textBannerContent && (
+          <div className="bg-blue-600 text-white p-2 text-center text-sm">
+            {textBannerContent}
+          </div>
+        )}
 
         {/* Main Content Area */}
         <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} h-full`}>

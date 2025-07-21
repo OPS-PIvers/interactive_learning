@@ -194,6 +194,18 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                 dimPercentage: val * 100
               })}
             />
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id={`showTextBanner-spotlight-${event.id}`}
+                checked={!!event.showTextBanner}
+                onChange={(e) => onUpdate({ ...event, showTextBanner: e.target.checked })}
+                className={checkboxInputClasses}
+              />
+              <label htmlFor={`showTextBanner-spotlight-${event.id}`} className="ml-2 text-sm text-slate-300">
+                Show Text Banner
+              </label>
+            </div>
           </div>
         );
          case InteractionType.PAN_ZOOM:
@@ -214,6 +226,18 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                    zoomFactor: val
                  })}
                />
+               <div className="flex items-center">
+                 <input
+                   type="checkbox"
+                   id={`showTextBanner-panzoom-${event.id}`}
+                   checked={!!event.showTextBanner}
+                   onChange={(e) => onUpdate({ ...event, showTextBanner: e.target.checked })}
+                   className={checkboxInputClasses}
+                 />
+                 <label htmlFor={`showTextBanner-panzoom-${event.id}`} className="ml-2 text-sm text-slate-300">
+                   Show Text Banner
+                 </label>
+               </div>
              </div>
            );
          case InteractionType.SHOW_TEXT:
