@@ -12,6 +12,7 @@ import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
+import MobilePlayAudioEditor from './MobilePlayAudioEditor';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
 interface EnhancedHotspotEditorModalProps {
@@ -118,17 +119,21 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onPreviewOverlay,
   onCollapseChange
 }) => {
+  const eventIdCounter = useRef(0);
+  const timestampCounter = useRef(0);
+
   // Debug logging to understand modal rendering
   console.log('🔍 HOTSPOT EDITOR MODAL DEBUG:', {
     isOpen,
     selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
     relatedEventsCount: relatedEvents.length,
     component: 'HotspotEditorModal',
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
+  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
   const [isCollapsed, setIsCollapsed] = useState(false); // New state for collapse/expand
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
@@ -162,7 +167,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     if (!localHotspot) return;
     
     const newEvent: TimelineEventData = { 
-      id: `event_${Date.now()}`, 
+      id: `event_${++eventIdCounter.current}`, 
       name: `New ${type.toLowerCase().replace('_', ' ')} event`,
       step: currentStep,
       type,
@@ -299,7 +304,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
     selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
     willReturn: (!isOpen || !localHotspot),
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
 
   if (!isOpen || !localHotspot) {
@@ -317,7 +322,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     isOpen,
     localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
     className: `fixed top-0 right-0 z-60 h-screen transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`,
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
 
   return (
@@ -438,22 +443,33 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     No events for this hotspot. Click "Add Event" to create one.
                   </div>
                 )}
-                {localHotspotEvents?.map((event, index) => 
-                  <EditableEventCard 
-                    key={event.id} 
-                    index={index} 
-                    event={event} 
-                    onUpdate={handleEventUpdate} 
-                    onDelete={handleEventDelete} 
-                    moveCard={moveEvent} 
-                    onTogglePreview={() => handleTogglePreview(event.id)} 
-                    isPreviewing={previewingEventIds.includes(event.id)} 
-                    allHotspots={allHotspots} 
+                {localHotspotEvents?.map((event, index) => (
+                  <EditableEventCard
+                    key={event.id}
+                    index={index}
+                    event={event}
+                    onUpdate={handleEventUpdate}
+                    onDelete={handleEventDelete}
+                    moveCard={moveEvent}
+                    onTogglePreview={() => handleTogglePreview(event.id)}
+                    onEdit={() => setEditingEvent(event)}
+                    isPreviewing={previewingEventIds.includes(event.id)}
+                    allHotspots={allHotspots}
                   />
-                )}
+                ))}
               </div>
             </div>
           </div>
+          )}
+          {editingEvent && editingEvent.type === InteractionType.PLAY_AUDIO && (
+            <MobilePlayAudioEditor
+              event={editingEvent}
+              onUpdate={(updatedEvent) => {
+                handleEventUpdate(updatedEvent);
+                setEditingEvent(null);
+              }}
+              onClose={() => setEditingEvent(null)}
+            />
           )}
         </div>
       </div>
