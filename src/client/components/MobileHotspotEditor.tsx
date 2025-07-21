@@ -11,6 +11,7 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
+import MobileQuizEditor from './mobile/MobileQuizEditor';
 
 
 interface MobileHotspotEditorProps {
@@ -140,9 +141,17 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
       ...(type === InteractionType.SHOW_TEXT && {
         textContent: 'Enter your text here',
       }),
+      ...(type === InteractionType.QUIZ && {
+        questionType: 'multiple-choice',
+        quizQuestion: '',
+        quizOptions: ['', ''],
+        quizCorrectAnswer: 0,
+        isSubjective: false,
+        quizShuffleOptions: false,
+      }),
     };
     onAddTimelineEvent(newEvent);
-    if (type === InteractionType.PLAY_VIDEO || type === InteractionType.PLAY_AUDIO) {
+    if (type === InteractionType.PLAY_VIDEO || type === InteractionType.PLAY_AUDIO || type === InteractionType.QUIZ) {
       setEditingEvent(newEvent);
     }
     setShowEventTypeSelector(false);
@@ -289,6 +298,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
           />
         );
       }
+      if (editingEvent.type === InteractionType.QUIZ) {
+        return (
+          <MobileQuizEditor
+            event={editingEvent}
+            onUpdate={onUpdateTimelineEvent}
+            onClose={() => setEditingEvent(null)}
+          />
+        );
+      }
     }
 
     return (
@@ -348,6 +366,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                       <button
                         onClick={() => setEditingEvent(event)}
                         className="text-blue-400 hover:text-blue-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {event.type === InteractionType.QUIZ && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-yellow-400 hover:text-yellow-300 p-1"
                         aria-label="Edit event"
                       >
                         Edit

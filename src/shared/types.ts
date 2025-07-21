@@ -212,6 +212,8 @@ export interface TimelineEventData {
   quizCorrectAnswer?: number;
   quizExplanation?: string;
   quizShuffleOptions?: boolean;
+  questionType?: 'multiple-choice' | 'fill-in-the-blank';
+  isSubjective?: boolean;
   
   // Image properties
   imageUrl?: string;
