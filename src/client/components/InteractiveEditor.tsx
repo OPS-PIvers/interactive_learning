@@ -577,29 +577,28 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
               <Suspense fallback={<LazyLoadingFallback type="modal" message="Loading editor..." />}>
                 <HotspotEditorModal
                   isOpen={isHotspotModalOpen}
+                  selectedHotspot={hotspots.find(h => h.id === selectedHotspotForModal) || null}
+                  relatedEvents={timelineEvents.filter(event => event.targetId === selectedHotspotForModal)}
+                  currentStep={currentStep}
+                  backgroundImage={backgroundImage || ''}
+                  onUpdateHotspot={(hotspot) => {
+                    onHotspotsChange(hotspots.map(h => 
+                      h.id === hotspot.id ? hotspot : h
+                    ));
+                  }}
+                  onDeleteHotspot={(hotspotId) => {
+                    handleRemoveHotspot(hotspotId);
+                    setIsHotspotModalOpen(false);
+                    setSelectedHotspotForModal(null);
+                  }}
+                  onAddEvent={handleAddTimelineEvent}
+                  onUpdateEvent={handleUpdateTimelineEvent}
+                  onDeleteEvent={handleDeleteTimelineEvent}
                   onClose={() => {
                     setIsHotspotModalOpen(false);
                     setSelectedHotspotForModal(null);
                   }}
-                  hotspot={hotspots.find(h => h.id === selectedHotspotForModal) || null}
-                  onUpdate={(updates) => {
-                    if (selectedHotspotForModal) {
-                      onHotspotsChange(hotspots.map(h => 
-                        h.id === selectedHotspotForModal ? { ...h, ...updates } : h
-                      ));
-                    }
-                  }}
-                  onDelete={() => {
-                    if (selectedHotspotForModal) {
-                      handleRemoveHotspot(selectedHotspotForModal);
-                      setIsHotspotModalOpen(false);
-                      setSelectedHotspotForModal(null);
-                    }
-                  }}
-                  timelineEvents={timelineEvents}
-                  onAddTimelineEvent={handleAddTimelineEvent}
-                  onUpdateTimelineEvent={handleUpdateTimelineEvent}
-                  onDeleteTimelineEvent={handleDeleteTimelineEvent}
+                  allHotspots={hotspots}
                 />
               </Suspense>
             )}
