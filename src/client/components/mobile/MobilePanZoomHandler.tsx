@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { TimelineEventData } from '../../../shared/types';
+import { TimelineEventData, ImageTransformState } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
-import { Z_INDEX } from '../../constants/interactionConstants';
+import { Z_INDEX, PREVIEW_DEFAULTS, INTERACTION_DEFAULTS } from '../../constants/interactionConstants';
 
 // Moved calculation logic to a separate function for clarity and reuse
 const calculatePanZoomTransform = (
   event: TimelineEventData,
   containerRect: DOMRect
 ) => {
-  const targetX = event.targetX ?? event.spotlightX ?? 50;
-  const targetY = event.targetY ?? event.spotlightY ?? 50;
-  const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? 2;
+  const targetX = event.targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
+  const targetY = event.targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
+  const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
 
   // Convert percentage-based target coordinates to pixel values
   const targetPixelX = (targetX / 100) * containerRect.width;
@@ -38,12 +38,7 @@ interface MobilePanZoomHandlerProps {
   containerRef: React.RefObject<HTMLElement>;
   onComplete: () => void;
   currentTransform?: { scale: number; translateX: number; translateY: number };
-  onTransformUpdate?: (transform: {
-    scale: number;
-    translateX: number;
-    translateY: number;
-    targetHotspotId?: string;
-  }) => void;
+  onTransformUpdate?: (transform: ImageTransformState) => void;
 }
 
 const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
@@ -74,7 +69,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
       });
     }
 
-    setTimeout(onComplete, 300); // Reduced delay for snappier feel
+    setTimeout(onComplete, 250); // Reduced delay for snappier feel
   }, [onComplete, onTransformUpdate]);
 
   useEffect(() => {
