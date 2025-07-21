@@ -61,8 +61,10 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     const targetPixelY = (targetY / 100) * containerRect.height;
     
     // Calculate translation to center the target point
-    const translateX = (containerRect.width / 2) - (targetPixelX * zoomLevel);
-    const translateY = (containerRect.height / 2) - (targetPixelY * zoomLevel);
+    // Note: Since CSS uses transform-origin: center center, scaling happens from center
+    // We need to translate the center point to align the target with the viewport center
+    const translateX = (containerRect.width / 2) - targetPixelX;
+    const translateY = (containerRect.height / 2) - targetPixelY;
 
     // Update transform through state management
     setTimeout(() => {

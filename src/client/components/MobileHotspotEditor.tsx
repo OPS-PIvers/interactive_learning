@@ -13,6 +13,7 @@ import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
 import MobileQuizEditor from './mobile/MobileQuizEditor';
 import MobilePanZoomEditor from './mobile/MobilePanZoomEditor';
+import MobileShowTextEditor from './mobile/MobileShowTextEditor';
 
 
 interface MobileHotspotEditorProps {
@@ -317,6 +318,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
           />
         );
       }
+      if (editingEvent.type === InteractionType.SHOW_TEXT) {
+        return (
+          <MobileShowTextEditor
+            event={editingEvent}
+            onUpdate={onUpdateTimelineEvent}
+            onClose={() => setEditingEvent(null)}
+          />
+        );
+      }
     }
 
     return (
@@ -394,6 +404,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                       <button
                         onClick={() => setEditingEvent(event)}
                         className="text-green-400 hover:text-green-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {event.type === InteractionType.SHOW_TEXT && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-blue-400 hover:text-blue-300 p-1"
                         aria-label="Edit event"
                       >
                         Edit
