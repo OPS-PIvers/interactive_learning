@@ -550,7 +550,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
               timelineEvents={timelineEvents}
               currentStep={currentStep}
               onUpdate={onUpdateHotspot}
-              onDelete={onDeleteHotspot ? () => onDeleteHotspot(selectedHotspot.id) : undefined}
+              onDelete={onDeleteHotspot}
               onAddTimelineEvent={onAddTimelineEvent}
               onUpdateTimelineEvent={onUpdateTimelineEvent}
               onDeleteTimelineEvent={onDeleteTimelineEvent}
