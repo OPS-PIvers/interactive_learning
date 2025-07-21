@@ -6,6 +6,7 @@ import { HotspotData, TimelineEventData, InteractionType } from '../../shared/ty
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
 import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
+import { useSecureImage } from '../utils/secureImageLoader';
 import '../styles/mobile-events.css';
 
 // Lazy load timeline component
@@ -34,6 +35,18 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   onClose
 }) => {
   const isMobile = useIsMobile();
+  
+  // Secure image loading to preserve Firebase tokens
+  const { secureUrl: secureBackgroundImage, loading: imageLoading, error: imageError } = useSecureImage(backgroundImage, {
+    onLoad: () => {
+      console.log('✅ Secure image loaded successfully:', backgroundImage);
+      logFirebaseImageLoad(backgroundImage, true, 'mobile viewer');
+    },
+    onError: (error) => {
+      console.error('❌ Secure image load failed:', error);
+      logFirebaseImageLoad(backgroundImage, false, 'mobile viewer');
+    }
+  });
   
   // Viewer-specific state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
@@ -278,36 +291,36 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                   className="w-full h-full relative overflow-hidden"
                   {...touchHandlers}
                 >
-                  {/* Background Image */}
-                  {(() => {
-                    console.log('Debug InteractiveViewer: About to render img with src:', backgroundImage);
-                    console.log('Debug InteractiveViewer: backgroundImage has token:', backgroundImage?.includes('token='));
-                    return null;
-                  })()}
-                  <img
-                    src={backgroundImage}
+                  {/* Background Image with Secure Loading */}
+                  {imageLoading && (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                      <div className="text-slate-600">Loading image...</div>
+                    </div>
+                  )}
+                  {imageError && (
+                    <div className="w-full h-full flex items-center justify-center bg-red-100">
+                      <div className="text-red-600">Failed to load image</div>
+                    </div>
+                  )}
+                  {secureBackgroundImage && (
+                    <img
+                      src={secureBackgroundImage}
                     alt="Interactive content background"
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                      console.error('=== IMAGE LOAD ERROR DEBUG ===');
-                      console.error('Mobile image load error URL (e.currentTarget.src):', e.currentTarget.src);
-                      console.error('Original backgroundImage value:', backgroundImage);
-                      console.error('URLs match:', e.currentTarget.src === backgroundImage);
-                      console.error('Error URL has token:', e.currentTarget.src.includes('token='));
-                      console.error('Original URL has token:', backgroundImage?.includes('token='));
-                      console.error('================================');
-                      logFirebaseImageLoad(backgroundImage, false, 'mobile viewer');
-                    }}
-                    onLoad={() => {
-                      console.log('Mobile image loaded successfully:', backgroundImage);
-                      logFirebaseImageLoad(backgroundImage, true, 'mobile viewer');
-                    }}
-                    style={{
-                      transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,
-                      transformOrigin: 'center center',
-                      transition: 'transform 0.3s ease-out'
-                    }}
-                  />
+                      onError={() => {
+                        console.error('🚨 Secure image still failed to load after blob conversion');
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Secure blob image loaded successfully');
+                      }}
+                      style={{
+                        transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,
+                        transformOrigin: 'center center',
+                        transition: 'transform 0.3s ease-out'
+                      }}
+                      draggable={false}
+                    />
+                  )}
 
                   {/* Hotspots */}
                   <div className="absolute inset-0 pointer-events-none">

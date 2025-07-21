@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import HotspotViewer from './HotspotViewer';
 import FileUpload from './FileUpload';
@@ -9,6 +10,7 @@ import TextPreviewOverlay from './TextPreviewOverlay';
 import { Z_INDEX } from '../utils/styleConstants';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
 import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
+import { useSecureImage } from '../utils/secureImageLoader';
 import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 interface ImageEditCanvasProps {
@@ -104,6 +106,20 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   previewingEvents = [],
   isPreviewMode = false
 }) => {
+  const isMobile = useIsMobile();
+  
+  // Secure image loading to preserve Firebase tokens
+  const { secureUrl: secureBackgroundImage, loading: imageLoading, error: imageError } = useSecureImage(backgroundImage, {
+    onLoad: () => {
+      console.log('✅ Secure image loaded successfully in editor:', backgroundImage);
+      logFirebaseImageLoad(backgroundImage || '', true, 'mobile editor');
+    },
+    onError: (error) => {
+      console.error('❌ Secure image load failed in editor:', error);
+      logFirebaseImageLoad(backgroundImage || '', false, 'mobile editor');
+    }
+  });
+  
   const renderPreviewOverlays = () => {
     if (!isPreviewMode || previewingEvents.length === 0) return null;
 
@@ -278,33 +294,34 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               zIndex: !isMobile && editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
             }}
           >
-            {(() => {
-              console.log('Debug ImageEditCanvas: About to render img with src:', backgroundImage);
-              console.log('Debug ImageEditCanvas: backgroundImage has token:', backgroundImage?.includes('token='));
-              return null;
-            })()}
-            <img
-              ref={actualImageRef}
-              src={backgroundImage || ''}
+            {/* Secure Image Loading */}
+            {imageLoading && (
+              <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                <div className="text-slate-600">Loading image...</div>
+              </div>
+            )}
+            {imageError && (
+              <div className="w-full h-full flex items-center justify-center bg-red-100">
+                <div className="text-red-600">Failed to load image</div>
+              </div>
+            )}
+            {secureBackgroundImage && (
+              <img
+                ref={actualImageRef}
+                src={secureBackgroundImage}
               alt="Interactive module background"
               className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
               style={!isMobile ? { // Desktop specific styles from original
                 width: scrollableContainerRef.current?.clientWidth || 'auto',
                 height: 'auto',
               } : {}}
-              onLoad={onImageLoad}
-              onError={(e) => {
-                console.error('=== IMAGE EDIT CANVAS ERROR DEBUG ===');
-                console.error('Mobile editor image load error URL (e.currentTarget.src):', e.currentTarget.src);
-                console.error('Original backgroundImage value:', backgroundImage);
-                console.error('URLs match:', e.currentTarget.src === backgroundImage);
-                console.error('Error URL has token:', e.currentTarget.src.includes('token='));
-                console.error('Original URL has token:', backgroundImage?.includes('token='));
-                console.error('====================================');
-                logFirebaseImageLoad(backgroundImage || '', false, 'mobile editor');
-              }}
-              draggable={false}
-            />
+                onLoad={onImageLoad}
+                onError={() => {
+                  console.error('🚨 Secure image still failed to load after blob conversion in editor');
+                }}
+                draggable={false}
+              />
+            )}
 
             {/* Highlight overlay - ensure it's within the scaled container */}
             {highlightedHotspotId && backgroundImage && activeHotspotDisplayIds.has(highlightedHotspotId) && (
