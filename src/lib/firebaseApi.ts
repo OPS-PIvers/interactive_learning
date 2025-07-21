@@ -325,20 +325,13 @@ export class FirebaseProjectAPI {
       let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
       let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
 
-      // Check if background image changed and use provided thumbnail URL
-      if (newBackgroundImageForUpdate && newBackgroundImageForUpdate !== existingBackgroundImage) {
+      // Always use the new thumbnail if it's provided
+      if (project.thumbnailUrl && project.thumbnailUrl !== existingThumbnailUrl) {
+        finalThumbnailUrl = project.thumbnailUrl;
         if (existingThumbnailUrl) {
           oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
         }
-        
-        // Use thumbnail URL if provided (generated during upload)
-        if (project.thumbnailUrl) {
-          finalThumbnailUrl = project.thumbnailUrl;
-          debugLog.log(`Using pre-generated thumbnail: ${finalThumbnailUrl}`);
-        } else {
-          debugLog.log('No thumbnail provided, continuing without thumbnail');
-          finalThumbnailUrl = null;
-        }
+        debugLog.log(`Using new or updated thumbnail: ${finalThumbnailUrl}`);
       } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
         if (existingThumbnailUrl) {
           oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
