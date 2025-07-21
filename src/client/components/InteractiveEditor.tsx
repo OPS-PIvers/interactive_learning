@@ -198,12 +198,29 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
 
   const handleHotspotPositionChange = useCallback((hotspotId: string, newX: number, newY: number) => {
     const normalizedPosition = normalizeHotspotPosition({ x: newX, y: newY });
-    onHotspotsChange(hotspots.map(h => 
-      h.id === hotspotId 
+    onHotspotsChange(hotspots.map(h =>
+      h.id === hotspotId
         ? { ...h, x: normalizedPosition.x, y: normalizedPosition.y }
         : h
     ));
-  }, [hotspots, onHotspotsChange]);
+
+    const updatedEvents = timelineEvents.map(event => {
+      if (event.targetId === hotspotId) {
+        const newEvent = { ...event };
+        if (newEvent.type === InteractionType.SPOTLIGHT) {
+          newEvent.spotlightX = normalizedPosition.x;
+          newEvent.spotlightY = normalizedPosition.y;
+        }
+        if (newEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+          newEvent.targetX = normalizedPosition.x;
+          newEvent.targetY = normalizedPosition.y;
+        }
+        return newEvent;
+      }
+      return event;
+    });
+    onTimelineEventsChange(updatedEvents);
+  }, [hotspots, onHotspotsChange, timelineEvents, onTimelineEventsChange]);
 
   const handleFocusHotspot = useCallback((hotspotId: string) => {
     setSelectedHotspotForModal(hotspotId);
@@ -375,6 +392,29 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                   const updatedHotspot = { ...editingHotspot, ...updates };
                   onHotspotsChange(hotspots.map(h => h.id === editingHotspot.id ? updatedHotspot : h));
                   setEditingHotspot(updatedHotspot);
+
+                  // Also update associated timeline events
+                  if (updates.x !== undefined || updates.y !== undefined) {
+                    const newX = updates.x !== undefined ? updates.x : editingHotspot.x;
+                    const newY = updates.y !== undefined ? updates.y : editingHotspot.y;
+
+                    const updatedEvents = timelineEvents.map(event => {
+                      if (event.targetId === editingHotspot.id) {
+                        const newEvent = { ...event };
+                        if (newEvent.type === InteractionType.SPOTLIGHT) {
+                          newEvent.spotlightX = newX;
+                          newEvent.spotlightY = newY;
+                        }
+                        if (newEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+                          newEvent.targetX = newX;
+                          newEvent.targetY = newY;
+                        }
+                        return newEvent;
+                      }
+                      return event;
+                    });
+                    onTimelineEventsChange(updatedEvents);
+                  }
                 }
               }}
               onDeleteHotspot={(hotspotId) => {
