@@ -1,4 +1,5 @@
 import React from 'react';
+import TextBannerCheckbox from './TextBannerCheckbox';
 
 interface SpotlightSettingsProps {
   shape: 'circle' | 'rectangle' | 'oval';
@@ -76,22 +77,14 @@ const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
           />
           <div className="flex justify-between text-xs text-slate-400 mt-1">
             <span>0% (No dimming)</span>
-.
             <span>100% (Completely dark)</span>
           </div>
         </div>
 
-        <div>
-          <label className="flex items-center text-sm font-medium text-slate-300">
-            <input
-              type="checkbox"
-              checked={showTextBanner}
-              onChange={(e) => onShowTextBannerChange(e.target.checked)}
-              className="mr-2"
-            />
-            Show Text Banner
-          </label>
-        </div>
+        <TextBannerCheckbox
+          checked={showTextBanner}
+          onChange={onShowTextBannerChange}
+        />
       </div>
     </div>
   );

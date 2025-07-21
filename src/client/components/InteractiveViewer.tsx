@@ -307,7 +307,12 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         </div>
 
         {textBannerContent && (
-          <div className="bg-blue-600 text-white p-2 text-center text-sm">
+          <div 
+            className="bg-blue-600 text-white p-2 text-center text-sm" 
+            role="banner" 
+            aria-live="polite"
+            aria-label="Contextual information banner"
+          >
             {textBannerContent}
           </div>
         )}

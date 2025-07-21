@@ -1,4 +1,5 @@
 import React from 'react';
+import TextBannerCheckbox from './TextBannerCheckbox';
 
 interface PanZoomSettingsProps {
   zoomLevel: number;
@@ -55,17 +56,10 @@ const PanZoomSettings: React.FC<PanZoomSettingsProps> = ({
             </button>
           ))}
         </div>
-        <div>
-          <label className="flex items-center text-sm font-medium text-slate-300">
-            <input
-              type="checkbox"
-              checked={showTextBanner}
-              onChange={(e) => onShowTextBannerChange(e.target.checked)}
-              className="mr-2"
-            />
-            Show Text Banner
-          </label>
-        </div>
+        <TextBannerCheckbox
+          checked={showTextBanner}
+          onChange={onShowTextBannerChange}
+        />
       </div>
     </div>
   );
