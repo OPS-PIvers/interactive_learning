@@ -55,7 +55,6 @@ const MOBILE_INTERACTION_TYPES = [
     types: [
       { value: InteractionType.SHOW_VIDEO, label: 'Video', icon: '🎥', description: 'Play video file' },
       { value: InteractionType.SHOW_AUDIO_MODAL, label: 'Audio', icon: '🎵', description: 'Play audio' },
-      { value: InteractionType.SHOW_IMAGE_MODAL, label: 'Image', icon: '🖼️', description: 'Show image' },
       { value: InteractionType.SHOW_YOUTUBE, label: 'YouTube', icon: '📺', description: 'Play YouTube video' },
     ]
   },
