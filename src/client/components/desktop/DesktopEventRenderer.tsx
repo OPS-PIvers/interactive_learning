@@ -1,34 +1,26 @@
-import React, { useState, useMemo, useEffect, Fragment } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
-import MobileSpotlightOverlay from './MobileSpotlightOverlay';
-import MobilePanZoomHandler from './MobilePanZoomHandler';
-import MobileTextModal from './MobileTextModal';
-import MobileQuizModal from './MobileQuizModal';
-import MobileImageModal from './MobileImageModal';
-import MobileVideoModal from './MobileVideoModal';
-import MobileAudioModal from './MobileAudioModal';
+import DesktopTextModal from './DesktopTextModal';
+import DesktopQuizModal from './DesktopQuizModal';
+import DesktopImageModal from './DesktopImageModal';
+import DesktopVideoModal from './DesktopVideoModal';
+import DesktopAudioModal from './DesktopAudioModal';
 
-interface MobileEventRendererProps {
+interface DesktopEventRendererProps {
   events: TimelineEventData[];
   onEventComplete?: (eventId: string) => void;
   imageContainerRef: React.RefObject<HTMLElement>;
   isActive: boolean;
-  // Add these for coordination
   currentTransform?: { scale: number; translateX: number; translateY: number };
   onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
-  isGestureActive?: boolean;
-  isVisible?: boolean; // Controls visibility without affecting hook execution
-  // New props for enhanced timeline navigation
   moduleState?: 'idle' | 'exploring' | 'learning';
   currentStep?: number;
   totalSteps?: number;
   currentStepIndex?: number;
-  isTimedMode?: boolean;
-  autoProgressionDuration?: number;
   onPrevStep?: () => void;
   onNextStep?: () => void;
-  onCompleteAllEvents?: () => void; // For explore mode
+  onCompleteAllEvents?: () => void;
 }
 
 const MODAL_INTERACTIONS = new Set([
@@ -44,7 +36,6 @@ const MODAL_INTERACTIONS = new Set([
   InteractionType.PLAY_AUDIO,
 ]);
 
-// Separate visual overlay events from modal events
 const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.SPOTLIGHT,
   InteractionType.HIGHLIGHT_HOTSPOT,
@@ -54,20 +45,17 @@ const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.PAN_ZOOM_TO_HOTSPOT,
 ]);
 
-export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
+export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
   events,
   onEventComplete,
   imageContainerRef,
   isActive,
   currentTransform,
   onTransformUpdate,
-  isGestureActive,
   moduleState = 'learning',
   currentStep = 1,
   totalSteps = 1,
   currentStepIndex = 0,
-  isTimedMode = false,
-  autoProgressionDuration = 3000,
   onPrevStep,
   onNextStep,
   onCompleteAllEvents
@@ -77,33 +65,19 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
   // Update modal queue when events change
   useEffect(() => {
-    console.log('[MobileEventRenderer] Events changed:', {
-      isActive,
-      events: events.map(e => ({ id: e.id, type: e.type, name: e.name })),
-      eventsLength: events.length
-    });
-
     if (!isActive) {
-      console.log('[MobileEventRenderer] Not active - clearing queue');
       setModalQueue([]);
       setCurrentModalIndex(0);
       return;
     }
 
     const modalEvents = events.filter(e => MODAL_INTERACTIONS.has(e.type));
-    console.log('[MobileEventRenderer] Modal events found:', {
-      modalEvents: modalEvents.map(e => ({ id: e.id, type: e.type, name: e.name })),
-      modalEventsLength: modalEvents.length
-    });
-    
     if (modalEvents.length > 0) {
       setModalQueue(modalEvents);
       setCurrentModalIndex(0);
-      console.log('[MobileEventRenderer] Set modal queue:', modalEvents.length, 'events');
     } else {
       setModalQueue([]);
       setCurrentModalIndex(0);
-      console.log('[MobileEventRenderer] No modal events - clearing queue');
     }
   }, [events, isActive]);
 
@@ -116,22 +90,12 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   }, []);
 
   const activeEvents = useMemo(() => {
-    if (!isActive) {
-      console.log('[MobileEventRenderer] Not active - no active events');
-      return [];
-    }
+    if (!isActive) return [];
 
     // Get visual events that should always be active
     const visualEvents = events.filter(e => 
       VISUAL_OVERLAY_EVENTS.has(e.type) || !MODAL_INTERACTIONS.has(e.type)
     );
-
-    console.log('[MobileEventRenderer] activeEvents calculation:', {
-      visualEvents: visualEvents.map(e => ({ id: e.id, type: e.type })),
-      modalQueueLength: modalQueue.length,
-      currentModalIndex,
-      currentModal: modalQueue[currentModalIndex] ? { id: modalQueue[currentModalIndex].id, type: modalQueue[currentModalIndex].type } : null
-    });
 
     // If we have modal events in queue, include both the current modal AND visual events
     if (modalQueue.length > 0) {
@@ -139,61 +103,16 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       if (currentModal) {
         // Return both visual events and the current modal (avoid duplicates)
         const modalIsAlreadyInVisualEvents = visualEvents.some(e => e.id === currentModal.id);
-        const result = modalIsAlreadyInVisualEvents ? visualEvents : [...visualEvents, currentModal];
-        console.log('[MobileEventRenderer] Including modal in active events:', {
-          currentModal: { id: currentModal.id, type: currentModal.type },
-          modalIsAlreadyInVisualEvents,
-          result: result.map(e => ({ id: e.id, type: e.type }))
-        });
-        return result;
+        return modalIsAlreadyInVisualEvents ? visualEvents : [...visualEvents, currentModal];
       }
     }
 
-    console.log('[MobileEventRenderer] Only visual events active:', visualEvents.map(e => ({ id: e.id, type: e.type })));
     // Return only visual events if no modal is active
     return visualEvents;
   }, [events, isActive, modalQueue, currentModalIndex]);
 
-  // Check if there's an active pan & zoom event for modal positioning
-  const activePanZoomEvent = useMemo(() => {
-    return activeEvents.find(e => 
-      e.type === InteractionType.PAN_ZOOM || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT
-    );
-  }, [activeEvents]);
-
-  // Calculate modal positioning based on current transform
-  const modalPositioning = useMemo(() => {
-    if (!activePanZoomEvent || !currentTransform || !imageContainerRef.current) {
-      return null; // Use default modal positioning
-    }
-
-    // If we're in a pan & zoom state, calculate the visible viewport center
-    const container = imageContainerRef.current.getBoundingClientRect();
-    const { scale, translateX, translateY } = currentTransform;
-
-    // Calculate the center of the current visible viewport in screen coordinates
-    const viewportCenterX = container.left + container.width / 2;
-    const viewportCenterY = container.top + container.height / 2;
-
-    return {
-      isPanZoomActive: true,
-      viewportCenterX,
-      viewportCenterY,
-      scale,
-      translateX,
-      translateY,
-      containerRect: container
-    };
-  }, [activePanZoomEvent, currentTransform, imageContainerRef]);
-
   const renderEventType = (event: TimelineEventData) => {
     const isEventActive = activeEvents.some(e => e.id === event.id);
-    console.log('[MobileEventRenderer] renderEventType:', {
-      eventId: event.id,
-      eventType: event.type,
-      isEventActive,
-      activeEventsIds: activeEvents.map(e => e.id)
-    });
     if (!isEventActive) return null;
 
     const handleComplete = () => {
@@ -207,22 +126,11 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           setModalQueue([]);
           setCurrentModalIndex(0);
           
-          // Auto-progression for timed mode
-          if (isTimedMode && moduleState === 'learning' && onNextStep) {
-            setTimeout(() => {
-              if (currentStepIndex < totalSteps - 1) {
-                onNextStep();
-              } else {
-                // End of timeline in timed mode
-                onCompleteAllEvents?.();
-              }
-            }, autoProgressionDuration);
-          }
           // For explore mode, call completion handler
-          else if (moduleState === 'exploring') {
+          if (moduleState === 'exploring') {
             onCompleteAllEvents?.();
           }
-          // For guided learning mode (non-timed), modal just closes and user can navigate manually
+          // For guided learning mode, modal just closes and user can navigate manually
         }
       }
     };
@@ -233,11 +141,11 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     const canGoPrevious = currentModalIndex > 0;
 
     // Timeline step navigation (for guided learning mode)
-    const canGoToNextStep = moduleState === 'learning' && !isTimedMode && currentStepIndex < totalSteps - 1;
-    const canGoToPrevStep = moduleState === 'learning' && !isTimedMode && currentStepIndex > 0;
+    const canGoToNextStep = moduleState === 'learning' && currentStepIndex < totalSteps - 1;
+    const canGoToPrevStep = moduleState === 'learning' && currentStepIndex > 0;
     
     // Determine what navigation to show
-    const showTimelineNavigation = moduleState === 'learning' && !isTimedMode && !isMultiModalQueue;
+    const showTimelineNavigation = moduleState === 'learning' && !isMultiModalQueue;
     const showExploreButton = moduleState === 'exploring';
     const showMultiModalNavigation = isMultiModalQueue;
 
@@ -256,7 +164,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     const handleTimelineNext = () => {
       if (canGoToNextStep && onNextStep) {
         // Reset pan & zoom when moving to next step if currently active
-        if (activePanZoomEvent && onTransformUpdate) {
+        if (currentTransform && onTransformUpdate) {
           onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
         }
         onNextStep();
@@ -266,7 +174,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     const handleTimelinePrevious = () => {
       if (canGoToPrevStep && onPrevStep) {
         // Reset pan & zoom when moving to previous step if currently active
-        if (activePanZoomEvent && onTransformUpdate) {
+        if (currentTransform && onTransformUpdate) {
           onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
         }
         onPrevStep();
@@ -278,33 +186,10 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     };
 
     switch (event.type) {
-      case InteractionType.SPOTLIGHT:
-        return (
-          <MobileSpotlightOverlay
-            key={`spotlight-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-          />
-        );
-      
-      case InteractionType.PAN_ZOOM:
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <MobilePanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-          />
-        );
-      
       case InteractionType.SHOW_TEXT:
       case InteractionType.SHOW_MESSAGE:
         return (
-          <MobileTextModal
+          <DesktopTextModal
             key={`text-${event.id}`}
             event={event}
             onComplete={handleComplete}
@@ -327,21 +212,15 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
-            // Timed mode indicator
-            isTimedMode={isTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            // Pan & zoom positioning
-            modalPositioning={modalPositioning}
           />
         );
       
       case InteractionType.QUIZ:
         return (
-          <MobileQuizModal
+          <DesktopQuizModal
             key={`quiz-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            // Multi-modal navigation (within same step)
             showNavigation={showMultiModalNavigation}
             canGoNext={canGoNext}
             canGoPrevious={canGoPrevious}
@@ -349,7 +228,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onPrevious={handlePrevious}
             currentIndex={currentModalIndex}
             totalCount={modalQueue.length}
-            // Timeline step navigation
             showTimelineNavigation={showTimelineNavigation}
             canGoToNextStep={canGoToNextStep}
             canGoToPrevStep={canGoToPrevStep}
@@ -357,25 +235,18 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onTimelinePrevious={handleTimelinePrevious}
             currentStep={currentStep}
             totalSteps={totalSteps}
-            // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
-            // Timed mode indicator
-            isTimedMode={isTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            // Pan & zoom positioning
-            modalPositioning={modalPositioning}
           />
         );
       
       case InteractionType.SHOW_IMAGE:
       case InteractionType.SHOW_IMAGE_MODAL:
         return (
-          <MobileImageModal
+          <DesktopImageModal
             key={`image-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            // Multi-modal navigation (within same step)
             showNavigation={showMultiModalNavigation}
             canGoNext={canGoNext}
             canGoPrevious={canGoPrevious}
@@ -383,7 +254,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onPrevious={handlePrevious}
             currentIndex={currentModalIndex}
             totalCount={modalQueue.length}
-            // Timeline step navigation
             showTimelineNavigation={showTimelineNavigation}
             canGoToNextStep={canGoToNextStep}
             canGoToPrevStep={canGoToPrevStep}
@@ -391,14 +261,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onTimelinePrevious={handleTimelinePrevious}
             currentStep={currentStep}
             totalSteps={totalSteps}
-            // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
-            // Timed mode indicator
-            isTimedMode={isTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            // Pan & zoom positioning
-            modalPositioning={modalPositioning}
           />
         );
       
@@ -406,11 +270,10 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       case InteractionType.SHOW_YOUTUBE:
       case InteractionType.PLAY_VIDEO:
         return (
-          <MobileVideoModal
+          <DesktopVideoModal
             key={`video-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            // Multi-modal navigation (within same step)
             showNavigation={showMultiModalNavigation}
             canGoNext={canGoNext}
             canGoPrevious={canGoPrevious}
@@ -418,7 +281,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onPrevious={handlePrevious}
             currentIndex={currentModalIndex}
             totalCount={modalQueue.length}
-            // Timeline step navigation
             showTimelineNavigation={showTimelineNavigation}
             canGoToNextStep={canGoToNextStep}
             canGoToPrevStep={canGoToPrevStep}
@@ -426,25 +288,18 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onTimelinePrevious={handleTimelinePrevious}
             currentStep={currentStep}
             totalSteps={totalSteps}
-            // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
-            // Timed mode indicator
-            isTimedMode={isTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            // Pan & zoom positioning
-            modalPositioning={modalPositioning}
           />
         );
       
       case InteractionType.SHOW_AUDIO_MODAL:
       case InteractionType.PLAY_AUDIO:
         return (
-          <MobileAudioModal
+          <DesktopAudioModal
             key={`audio-${event.id}`}
             event={event}
             onComplete={handleComplete}
-            // Multi-modal navigation (within same step)
             showNavigation={showMultiModalNavigation}
             canGoNext={canGoNext}
             canGoPrevious={canGoPrevious}
@@ -452,7 +307,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onPrevious={handlePrevious}
             currentIndex={currentModalIndex}
             totalCount={modalQueue.length}
-            // Timeline step navigation
             showTimelineNavigation={showTimelineNavigation}
             canGoToNextStep={canGoToNextStep}
             canGoToPrevStep={canGoToPrevStep}
@@ -460,63 +314,47 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onTimelinePrevious={handleTimelinePrevious}
             currentStep={currentStep}
             totalSteps={totalSteps}
-            // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
-            // Timed mode indicator
-            isTimedMode={isTimedMode}
-            autoProgressionDuration={autoProgressionDuration}
-            // Pan & zoom positioning
-            modalPositioning={modalPositioning}
           />
         );
-      
+
+      // For now, visual overlay events are not implemented for desktop
+      // These would require more complex positioning logic
+      case InteractionType.SPOTLIGHT:
+      case InteractionType.PAN_ZOOM:
+      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
       case InteractionType.PULSE_HOTSPOT:
       case InteractionType.HIGHLIGHT_HOTSPOT:
       case InteractionType.PULSE_HIGHLIGHT:
-        return (
-          <MobileSpotlightOverlay
-            key={`highlight-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-          />
-        );
+        // For desktop, we'll just complete these events immediately
+        // TODO: Implement desktop visual overlays in future
+        setTimeout(handleComplete, 0); // Avoid setState during render
+        return null;
       
       case InteractionType.HIDE_HOTSPOT:
-        // For mobile, hide hotspot events are handled automatically by the parent component
+        // Hide hotspot events are handled automatically by the parent component
         // Just complete the event immediately
-        handleComplete();
+        setTimeout(handleComplete, 0); // Avoid setState during render
         return null;
       
       default:
-        console.warn(`Unsupported mobile event type: ${event.type}`);
+        console.warn(`Unsupported desktop event type: ${event.type}`);
         return null;
     }
   };
 
   return (
-    <>
+    <div className="desktop-event-renderer">
       {events.map((event, index) => {
         const isModal = MODAL_INTERACTIONS.has(event.type);
-        const baseZIndex = Z_INDEX.MOBILE_OVERLAY + index;
-        
-        // For modal events, render directly without wrapper to avoid positioning issues
-        if (isModal) {
-          return (
-            <React.Fragment key={event.id}>
-              {renderEventType(event)}
-            </React.Fragment>
-          );
-        }
-        
-        // For non-modal events (overlays), use wrapper with relative positioning
+        const baseZIndex = Z_INDEX.MODAL + index;
         return (
           <div
             key={event.id}
-            className="mobile-event-wrapper"
+            className="desktop-event-wrapper"
             style={{
-              zIndex: baseZIndex,
+              zIndex: isModal ? baseZIndex : Z_INDEX.MOBILE_OVERLAY + index,
               position: 'relative',
             }}
           >
@@ -524,8 +362,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           </div>
         );
       })}
-    </>
+    </div>
   );
 };
 
-export default MobileEventRenderer;
+export default DesktopEventRenderer;

@@ -281,12 +281,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               zIndex: !isMobile && editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
             }}
           >
-            {/* Secure Image Loading */}
-            {imageLoading && (
-              <div className="w-full h-full flex items-center justify-center bg-slate-200">
-                <div className="text-slate-600">Loading image...</div>
-              </div>
-            )}
             {backgroundImage && (
               <img
                 ref={actualImageRef}

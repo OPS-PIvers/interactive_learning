@@ -165,6 +165,8 @@ export interface TimelineEventData {
   audioUrl?: string;
   audioDisplayMode?: 'background' | 'modal' | 'mini-player';
   audioShowControls?: boolean;
+  audioStartTime?: number;
+  audioEndTime?: number;
   audioTitle?: string;
   audioArtist?: string;
   autoStartPlayback?: boolean;
