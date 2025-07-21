@@ -1,10 +1,28 @@
 import React, { Suspense } from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../../shared/types';
+import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../../shared/types';
 
 const MobileTextSettings = React.lazy(() => import('./MobileTextSettings'));
 const MobileEventEditor = React.lazy(() => import('./MobileEventEditor'));
 const MobileCameraCapture = React.lazy(() => import('./MobileCameraCapture'));
 const MobileVoiceRecorder = React.lazy(() => import('./MobileVoiceRecorder'));
+
+// Constants moved from parent component for better encapsulation
+const MOBILE_COLORS = [
+  { name: 'Purple', value: 'bg-purple-500', color: '#a855f7' },
+  { name: 'Blue', value: 'bg-blue-500', color: '#3b82f6' },
+  { name: 'Green', value: 'bg-green-500', color: '#22c55e' },
+  { name: 'Red', value: 'bg-red-500', color: '#ef4444' },
+  { name: 'Yellow', value: 'bg-yellow-500', color: '#eab308' },
+  { name: 'Pink', value: 'bg-pink-500', color: '#ec4899' },
+  { name: 'Indigo', value: 'bg-indigo-500', color: '#6366f1' },
+  { name: 'Gray', value: 'bg-gray-500', color: '#6b7280' },
+];
+
+const SIZE_OPTIONS = [
+  { value: 'small' as HotspotSize, label: 'Small', size: '32px' },
+  { value: 'medium' as HotspotSize, label: 'Medium', size: '40px' },
+  { value: 'large' as HotspotSize, label: 'Large', size: '48px' }
+];
 
 interface TabContentProps {
   activeTab: 'basic' | 'style' | 'timeline' | 'advanced';
@@ -18,7 +36,6 @@ interface TabContentProps {
   setShowEventTypeSelector: (show: boolean) => void;
   handlePreviewEvent: (event: TimelineEventData) => void;
   setMediaFile: (file: File | null) => void;
-  MOBILE_COLORS: { name: string; value: string; color: string }[];
 }
 
 const TabContent: React.FC<TabContentProps> = ({
@@ -33,7 +50,6 @@ const TabContent: React.FC<TabContentProps> = ({
   setShowEventTypeSelector,
   handlePreviewEvent,
   setMediaFile,
-  MOBILE_COLORS,
 }) => {
   if (!localHotspot) return null;
 
@@ -147,14 +163,10 @@ const TabContent: React.FC<TabContentProps> = ({
             Size
           </label>
           <div className="flex space-x-3">
-            {[
-              { value: 'small', label: 'Small', size: '32px' },
-              { value: 'medium', label: 'Medium', size: '40px' },
-              { value: 'large', label: 'Large', size: '48px' }
-            ].map((size) => (
+            {SIZE_OPTIONS.map((size) => (
               <button
                 key={size.value}
-                onClick={() => updateLocalHotspot({ size: size.value as any })}
+                onClick={() => updateLocalHotspot({ size: size.value })}
                 className={`flex-1 p-4 border-2 rounded-lg transition-all duration-200 ${
                   localHotspot?.size === size.value
                     ? 'border-purple-500 bg-purple-500 bg-opacity-20'
@@ -181,7 +193,11 @@ const TabContent: React.FC<TabContentProps> = ({
       const handleBack = () => setEditingEvent(null);
       return (
         <div className="p-4">
-          <button onClick={handleBack} className="text-purple-400 hover:text-purple-300 mb-4">
+          <button 
+            onClick={handleBack} 
+            className="text-purple-400 hover:text-purple-300 mb-4"
+            aria-label="Back to Events list"
+          >
             &larr; Back to Events
           </button>
           {editingEvent.type === InteractionType.SHOW_TEXT && (

@@ -38,16 +38,6 @@ interface TabState {
   canSwitchTabs: boolean;
 }
 
-const MOBILE_COLORS = [
-  { name: 'Purple', value: 'bg-purple-500', color: '#a855f7' },
-  { name: 'Blue', value: 'bg-blue-500', color: '#3b82f6' },
-  { name: 'Green', value: 'bg-green-500', color: '#22c55e' },
-  { name: 'Red', value: 'bg-red-500', color: '#ef4444' },
-  { name: 'Yellow', value: 'bg-yellow-500', color: '#eab308' },
-  { name: 'Pink', value: 'bg-pink-500', color: '#ec4899' },
-  { name: 'Indigo', value: 'bg-indigo-500', color: '#6366f1' },
-  { name: 'Gray', value: 'bg-gray-500', color: '#6b7280' },
-];
 
 const MOBILE_INTERACTION_TYPES = [
   // Visual Effects
@@ -417,7 +407,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
                 setShowEventTypeSelector={setShowEventTypeSelector}
                 handlePreviewEvent={handlePreviewEvent}
                 setMediaFile={setMediaFile}
-                MOBILE_COLORS={MOBILE_COLORS}
               />
             </Suspense>
           </ReactPullToRefresh>
