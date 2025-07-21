@@ -5,8 +5,6 @@ import LazyLoadingFallback from './shared/LazyLoadingFallback';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
-import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
-import { useSecureImage } from '../utils/secureImageLoader';
 import '../styles/mobile-events.css';
 
 // Lazy load timeline component
@@ -36,17 +34,9 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  // Secure image loading to preserve Firebase tokens
-  const { secureUrl: secureBackgroundImage, loading: imageLoading, error: imageError } = useSecureImage(backgroundImage, {
-    onLoad: () => {
-      console.log('✅ Secure image loaded successfully:', backgroundImage);
-      logFirebaseImageLoad(backgroundImage, true, 'mobile viewer');
-    },
-    onError: (error) => {
-      console.error('❌ Secure image load failed:', error);
-      logFirebaseImageLoad(backgroundImage, false, 'mobile viewer');
-    }
-  });
+  // Simple image loading like the working version
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageNaturalDimensions, setImageNaturalDimensions] = useState<{width: number; height: number} | null>(null);
   
   // Viewer-specific state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
@@ -297,21 +287,22 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                       <div className="text-slate-600">Loading image...</div>
                     </div>
                   )}
-                  {imageError && (
-                    <div className="w-full h-full flex items-center justify-center bg-red-100">
-                      <div className="text-red-600">Failed to load image</div>
-                    </div>
-                  )}
-                  {secureBackgroundImage && (
+                  {backgroundImage && (
                     <img
-                      src={secureBackgroundImage}
-                    alt="Interactive content background"
-                    className="w-full h-full object-contain"
-                      onError={() => {
-                        console.error('🚨 Secure image still failed to load after blob conversion');
+                      src={backgroundImage}
+                      alt="Interactive content background"
+                      className="w-full h-full object-contain"
+                      onLoad={(e) => {
+                        setImageNaturalDimensions({
+                          width: e.currentTarget.naturalWidth,
+                          height: e.currentTarget.naturalHeight
+                        });
+                        setImageLoading(false);
                       }}
-                      onLoad={() => {
-                        console.log('✅ Secure blob image loaded successfully');
+                      onError={() => {
+                        console.error('Failed to load background image:', backgroundImage);
+                        setImageNaturalDimensions(null);
+                        setImageLoading(false);
                       }}
                       style={{
                         transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,

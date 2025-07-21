@@ -9,8 +9,6 @@ import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
 import { Z_INDEX } from '../utils/styleConstants';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
-import { getCleanFirebaseUrl, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
-import { useSecureImage } from '../utils/secureImageLoader';
 import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 interface ImageEditCanvasProps {
@@ -106,19 +104,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   previewingEvents = [],
   isPreviewMode = false
 }) => {
-  const isMobile = useIsMobile();
   
-  // Secure image loading to preserve Firebase tokens
-  const { secureUrl: secureBackgroundImage, loading: imageLoading, error: imageError } = useSecureImage(backgroundImage, {
-    onLoad: () => {
-      console.log('✅ Secure image loaded successfully in editor:', backgroundImage);
-      logFirebaseImageLoad(backgroundImage || '', true, 'mobile editor');
-    },
-    onError: (error) => {
-      console.error('❌ Secure image load failed in editor:', error);
-      logFirebaseImageLoad(backgroundImage || '', false, 'mobile editor');
-    }
-  });
+  // Simple image loading like the working version
   
   const renderPreviewOverlays = () => {
     if (!isPreviewMode || previewingEvents.length === 0) return null;
@@ -300,24 +287,19 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 <div className="text-slate-600">Loading image...</div>
               </div>
             )}
-            {imageError && (
-              <div className="w-full h-full flex items-center justify-center bg-red-100">
-                <div className="text-red-600">Failed to load image</div>
-              </div>
-            )}
-            {secureBackgroundImage && (
+            {backgroundImage && (
               <img
                 ref={actualImageRef}
-                src={secureBackgroundImage}
-              alt="Interactive module background"
-              className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
-              style={!isMobile ? { // Desktop specific styles from original
-                width: scrollableContainerRef.current?.clientWidth || 'auto',
-                height: 'auto',
-              } : {}}
+                src={backgroundImage}
+                alt="Interactive module background"
+                className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
+                style={!isMobile ? { // Desktop specific styles from original
+                  width: scrollableContainerRef.current?.clientWidth || 'auto',
+                  height: 'auto',
+                } : {}}
                 onLoad={onImageLoad}
                 onError={() => {
-                  console.error('🚨 Secure image still failed to load after blob conversion in editor');
+                  console.error('Failed to load background image in editor:', backgroundImage);
                 }}
                 draggable={false}
               />
