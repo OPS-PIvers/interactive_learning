@@ -21,33 +21,20 @@ export function isFirebaseStorageUrl(url: string): boolean {
 }
 
 /**
- * Get Firebase Storage URL without any modifications that might interfere with CORS
+ * Normalize Firebase Storage URL by ensuring it's properly formatted
+ * Preserves all existing query parameters as they are required for the URL to work
  */
-export function getCleanFirebaseUrl(url: string): string {
+export function normalizeFirebaseUrl(url: string): string {
   if (!url || !isFirebaseStorageUrl(url)) {
     return url;
   }
   
   try {
     const urlObj = new URL(url);
-    // Remove any query parameters that might interfere with CORS
-    const cleanUrl = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
-    
-    // Keep essential Firebase Storage parameters
-    const alt = urlObj.searchParams.get('alt');
-    const token = urlObj.searchParams.get('token');
-    
-    if (alt && token) {
-      return `${cleanUrl}?alt=${alt}&token=${token}`;
-    } else if (alt) {
-      return `${cleanUrl}?alt=${alt}`;
-    } else if (token) {
-      return `${cleanUrl}?token=${token}`;
-    }
-    
-    return cleanUrl;
+    // Keep all existing query parameters, as they are all needed for the URL to work
+    return urlObj.toString();
   } catch (error) {
-    console.warn('Failed to clean Firebase URL:', error);
+    console.warn('Failed to process Firebase URL:', error);
     return url;
   }
 }
@@ -95,7 +82,7 @@ export function validateFirebaseUrl(url: string): {
     if (result.isFirebase) {
       result.hasToken = urlObj.searchParams.has('token');
       result.hasAlt = urlObj.searchParams.has('alt');
-      result.cleanUrl = getCleanFirebaseUrl(url);
+      result.cleanUrl = normalizeFirebaseUrl(url);
       
       if (!result.hasAlt && !result.hasToken) {
         result.issues.push('Firebase Storage URL missing alt and token parameters');
