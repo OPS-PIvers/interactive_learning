@@ -363,6 +363,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                         Edit
                       </button>
                     )}
+                    {event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-green-400 hover:text-green-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
+                    )}
                     <button
                       onClick={() => onDeleteTimelineEvent(event.id)}
                       className="text-red-400 hover:text-red-300 p-1"

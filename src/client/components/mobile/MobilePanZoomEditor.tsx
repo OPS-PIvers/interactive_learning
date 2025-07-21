@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import { XMarkIcon } from '../icons/XMarkIcon';
 
@@ -11,14 +11,9 @@ interface MobilePanZoomEditorProps {
 const ZOOM_PRESETS = [1.0, 1.5, 2.5, 4.0];
 
 const MobilePanZoomEditor: React.FC<MobilePanZoomEditorProps> = ({ event, onUpdate, onClose }) => {
-  const [zoomLevel, setZoomLevel] = useState(event.zoomLevel || 1.0);
-
-  useEffect(() => {
-    setZoomLevel(event.zoomLevel || 1.0);
-  }, [event]);
+  const zoomLevel = event.zoomLevel || 1.0;
 
   const handleZoomChange = (newZoom: number) => {
-    setZoomLevel(newZoom);
     onUpdate({ ...event, zoomLevel: newZoom });
   };
 
@@ -37,10 +32,11 @@ const MobilePanZoomEditor: React.FC<MobilePanZoomEditorProps> = ({ event, onUpda
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="zoom-level-slider" className="block text-sm font-medium text-slate-300 mb-2">
             Zoom Level: <span className="text-blue-400 font-mono">{zoomLevel.toFixed(1)}x</span>
           </label>
           <input
+            id="zoom-level-slider"
             type="range"
             min="0.1"
             max="5"
