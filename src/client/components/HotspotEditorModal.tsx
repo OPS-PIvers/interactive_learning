@@ -461,14 +461,27 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
           )}
-          {editingEvent && editingEvent.type === InteractionType.PLAY_AUDIO && (
-            <MobilePlayAudioEditor
-              event={editingEvent}
-              onUpdate={(updatedEvent) => {
-                handleEventUpdate(updatedEvent);
-                setEditingEvent(null);
-              }}
-              onClose={() => setEditingEvent(null)}
+          {editingEvent &&
+            editingEvent.type === InteractionType.PLAY_AUDIO && (
+              <MobilePlayAudioEditor
+                event={editingEvent}
+                onUpdate={(updatedEvent) => {
+                  handleEventUpdate(updatedEvent);
+                  setEditingEvent(null);
+                }}
+                onClose={() => setEditingEvent(null)}
+              />
+            )}
+          {editingEvent && editingEvent.type === InteractionType.PAN_ZOOM && (
+            <PanZoomSettings
+              zoomLevel={editingEvent.zoomLevel || 2}
+              onZoomChange={(zoom) =>
+                handleEventUpdate({ ...editingEvent, zoomLevel: zoom })
+              }
+              showTextBanner={!!editingEvent.showTextBanner}
+              onShowTextBannerChange={(value) =>
+                handleEventUpdate({ ...editingEvent, showTextBanner: value })
+              }
             />
           )}
         </div>
