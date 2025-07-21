@@ -466,13 +466,15 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
               &larr; Back to Events
             </button>
             {editingEvent.type === InteractionType.SHOW_TEXT && (
-              <MobileTextSettings
-                event={editingEvent}
-                onUpdate={(updatedEvent) => {
-                  onUpdateTimelineEvent(updatedEvent);
-                  setEditingEvent(updatedEvent);
-                }}
-              />
+              <Suspense fallback={<div>Loading...</div>}>
+                <MobileTextSettings
+                  event={editingEvent}
+                  onUpdate={(updatedEvent) => {
+                    onUpdateTimelineEvent(updatedEvent);
+                    setEditingEvent(updatedEvent);
+                  }}
+                />
+              </Suspense>
             )}
             {/* Add other event settings components here */}
           </div>
