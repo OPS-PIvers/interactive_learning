@@ -68,9 +68,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const viewerTimelineRef = useRef<HTMLDivElement>(null);
   
   // Transform constraints and utilities
+  const [isTransformingFromGestures, setIsTransformingFromGestures] = useState(false);
   const isTransforming = useMemo(() => {
-    return imageTransform.scale !== 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0;
-  }, [imageTransform]);
+    const isProgrammaticTransform = imageTransform.scale !== 1 || imageTransform.translateX !== 0 || imageTransform.translateY !== 0;
+    return isProgrammaticTransform || isTransformingFromGestures;
+  }, [imageTransform, isTransformingFromGestures]);
 
   // Touch gesture handling
   const {
@@ -84,7 +86,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     imageContainerRef,
     imageTransform,
     (transform) => setImageTransform(prev => ({ ...prev, ...transform })),
-    () => {}, // setIsTransforming - not needed for viewer
+    setIsTransformingFromGestures, // Correctly pass the setter
     {
       isDragging: false,
       isEditing: false
@@ -137,54 +139,40 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     }
   }, [moduleState, isMobile, timelineEvents]);
 
-  const handleTimelineDotClick = useCallback((step: number) => {
-    // Reset pan & zoom when moving to a different step
-    setImageTransform(prev => ({
+  // Helper function to reset transform state - extracted to reduce duplication
+  const resetTransform = useCallback(() => {
+    setImageTransform({
       scale: 1,
       translateX: 0,
       translateY: 0,
       targetHotspotId: undefined
-    }));
+    });
+    setIsTransformingFromGestures(false);
+  }, []);
+
+  const handleTimelineDotClick = useCallback((step: number) => {
+    // Reset pan & zoom when moving to a different step
+    resetTransform();
     setCurrentStep(step);
     if (moduleState === 'idle') {
       setModuleState('learning');
       setHasUserChosenMode(true);
     }
-  }, [moduleState]);
+  }, [moduleState, resetTransform]);
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
-      const currentEvents = timelineEvents.filter(event => event.step === currentStep);
-      const isPanZoomEvent = currentEvents.some(event => event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT);
-
-      if (isPanZoomEvent || isTransforming) {
-        setImageTransform({
-          scale: 1,
-          translateX: 0,
-          translateY: 0,
-          targetHotspotId: undefined
-        });
-      }
+      resetTransform();
       setCurrentStep(uniqueSortedSteps[currentStepIndex - 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, currentStep, isTransforming]);
+  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
-      const currentEvents = timelineEvents.filter(event => event.step === currentStep);
-      const isPanZoomEvent = currentEvents.some(event => event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT);
-
-      if (isPanZoomEvent || isTransforming) {
-        setImageTransform({
-          scale: 1,
-          translateX: 0,
-          translateY: 0,
-          targetHotspotId: undefined
-        });
-      }
+      resetTransform();
       setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, currentStep, isTransforming]);
+  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
 
   const handleMobileEventComplete = useCallback(() => {
     setMobileActiveEvents([]);
