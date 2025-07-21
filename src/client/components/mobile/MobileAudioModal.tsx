@@ -29,6 +29,16 @@ interface MobileAudioModalProps {
   // Timed mode
   isTimedMode?: boolean;
   autoProgressionDuration?: number;
+  // Pan & zoom positioning
+  modalPositioning?: {
+    isPanZoomActive: boolean;
+    viewportCenterX: number;
+    viewportCenterY: number;
+    scale: number;
+    translateX: number;
+    translateY: number;
+    containerRect: DOMRect;
+  } | null;
 }
 
 const MobileAudioModal: React.FC<MobileAudioModalProps> = ({ 
@@ -55,7 +65,9 @@ const MobileAudioModal: React.FC<MobileAudioModalProps> = ({
   onExploreComplete,
   // Timed mode
   isTimedMode = false,
-  autoProgressionDuration = 3000
+  autoProgressionDuration = 3000,
+  // Pan & zoom positioning
+  modalPositioning = null
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -89,6 +101,47 @@ const MobileAudioModal: React.FC<MobileAudioModalProps> = ({
   const title = event.textContent || event.name || 'Audio';
   const artist = event.artist || 'Unknown Artist';
 
+  // Calculate modal positioning based on pan & zoom state
+  const getModalStyles = () => {
+    const baseStyles = {
+      position: 'fixed' as const,
+      zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      opacity: isVisible ? 1 : 0,
+      transition: 'opacity 0.3s ease',
+    };
+
+    if (modalPositioning?.isPanZoomActive) {
+      // Position modal relative to the current pan & zoom viewport
+      return {
+        ...baseStyles,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+      };
+    } else {
+      // Default fullscreen positioning
+      return {
+        ...baseStyles,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+      };
+    }
+  };
+
   if (!audioUrl) {
     return (
       <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>
@@ -102,25 +155,7 @@ const MobileAudioModal: React.FC<MobileAudioModalProps> = ({
     <div
       className="mobile-audio-modal-overlay"
       onClick={handleOverlayClick}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
-        padding: '20px',
-        opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.3s ease',
-        // Ensure proper viewport handling on mobile
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
-      }}
+      style={getModalStyles()}
     >
       <div
         className="mobile-audio-modal-content"

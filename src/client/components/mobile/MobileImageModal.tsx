@@ -28,6 +28,16 @@ interface MobileImageModalProps {
   // Timed mode
   isTimedMode?: boolean;
   autoProgressionDuration?: number;
+  // Pan & zoom positioning
+  modalPositioning?: {
+    isPanZoomActive: boolean;
+    viewportCenterX: number;
+    viewportCenterY: number;
+    scale: number;
+    translateX: number;
+    translateY: number;
+    containerRect: DOMRect;
+  } | null;
 }
 
 const MobileImageModal: React.FC<MobileImageModalProps> = ({ 
@@ -54,7 +64,9 @@ const MobileImageModal: React.FC<MobileImageModalProps> = ({
   onExploreComplete,
   // Timed mode
   isTimedMode = false,
-  autoProgressionDuration = 3000
+  autoProgressionDuration = 3000,
+  // Pan & zoom positioning
+  modalPositioning = null
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -88,30 +100,53 @@ const MobileImageModal: React.FC<MobileImageModalProps> = ({
   const imageUrl = event.imageUrl || event.url || event.mediaUrl;
   const caption = event.caption || event.message;
 
-  return (
-    <div
-      className={`mobile-image-modal-overlay ${isVisible ? 'visible' : 'hidden'}`}
-      onClick={handleOverlayClick}
-      style={{
-        position: 'fixed',
+  // Calculate modal positioning based on pan & zoom state
+  const getModalStyles = () => {
+    const baseStyles = {
+      position: 'fixed' as const,
+      zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
+      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      opacity: isVisible ? 1 : 0,
+      transition: 'opacity 0.3s ease',
+      touchAction: 'manipulation' as const,
+    };
+
+    if (modalPositioning?.isPanZoomActive) {
+      // Position modal relative to the current pan & zoom viewport
+      return {
+        ...baseStyles,
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: Z_INDEX.MOBILE_MODAL_OVERLAY,
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.3s ease',
-        touchAction: 'manipulation',
-        // Ensure proper viewport handling on mobile
         width: '100vw',
         height: '100vh',
         minHeight: '100vh',
-      }}
+      };
+    } else {
+      // Default fullscreen positioning
+      return {
+        ...baseStyles,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+      };
+    }
+  };
+
+  return (
+    <div
+      className={`mobile-image-modal-overlay ${isVisible ? 'visible' : 'hidden'}`}
+      onClick={handleOverlayClick}
+      style={getModalStyles()}
     >
       <div
         className="mobile-image-modal-content"

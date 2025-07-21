@@ -138,6 +138,13 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   }, [moduleState, isMobile, timelineEvents]);
 
   const handleTimelineDotClick = useCallback((step: number) => {
+    // Reset pan & zoom when moving to a different step
+    setImageTransform(prev => ({
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+      targetHotspotId: undefined
+    }));
     setCurrentStep(step);
     if (moduleState === 'idle') {
       setModuleState('learning');
@@ -147,12 +154,26 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
+      // Reset pan & zoom when moving to previous step
+      setImageTransform(prev => ({
+        scale: 1,
+        translateX: 0,
+        translateY: 0,
+        targetHotspotId: undefined
+      }));
       setCurrentStep(uniqueSortedSteps[currentStepIndex - 1]);
     }
   }, [currentStepIndex, uniqueSortedSteps]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
+      // Reset pan & zoom when moving to next step
+      setImageTransform(prev => ({
+        scale: 1,
+        translateX: 0,
+        translateY: 0,
+        targetHotspotId: undefined
+      }));
       setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
     }
   }, [currentStepIndex, uniqueSortedSteps]);

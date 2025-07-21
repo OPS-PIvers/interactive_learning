@@ -123,6 +123,38 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     return visualEvents;
   }, [events, isActive, modalQueue, currentModalIndex]);
 
+  // Check if there's an active pan & zoom event for modal positioning
+  const activePanZoomEvent = useMemo(() => {
+    return activeEvents.find(e => 
+      e.type === InteractionType.PAN_ZOOM || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT
+    );
+  }, [activeEvents]);
+
+  // Calculate modal positioning based on current transform
+  const modalPositioning = useMemo(() => {
+    if (!activePanZoomEvent || !currentTransform || !imageContainerRef.current) {
+      return null; // Use default modal positioning
+    }
+
+    // If we're in a pan & zoom state, calculate the visible viewport center
+    const container = imageContainerRef.current.getBoundingClientRect();
+    const { scale, translateX, translateY } = currentTransform;
+
+    // Calculate the center of the current visible viewport in screen coordinates
+    const viewportCenterX = container.left + container.width / 2;
+    const viewportCenterY = container.top + container.height / 2;
+
+    return {
+      isPanZoomActive: true,
+      viewportCenterX,
+      viewportCenterY,
+      scale,
+      translateX,
+      translateY,
+      containerRect: container
+    };
+  }, [activePanZoomEvent, currentTransform, imageContainerRef]);
+
   const renderEventType = (event: TimelineEventData) => {
     const isEventActive = activeEvents.some(e => e.id === event.id);
     if (!isEventActive) return null;
@@ -186,12 +218,20 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
     const handleTimelineNext = () => {
       if (canGoToNextStep && onNextStep) {
+        // Reset pan & zoom when moving to next step if currently active
+        if (activePanZoomEvent && onTransformUpdate) {
+          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+        }
         onNextStep();
       }
     };
 
     const handleTimelinePrevious = () => {
       if (canGoToPrevStep && onPrevStep) {
+        // Reset pan & zoom when moving to previous step if currently active
+        if (activePanZoomEvent && onTransformUpdate) {
+          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+        }
         onPrevStep();
       }
     };
@@ -253,6 +293,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Pan & zoom positioning
+            modalPositioning={modalPositioning}
           />
         );
       
@@ -284,6 +326,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Pan & zoom positioning
+            modalPositioning={modalPositioning}
           />
         );
       
@@ -316,6 +360,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Pan & zoom positioning
+            modalPositioning={modalPositioning}
           />
         );
       
@@ -349,6 +395,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Pan & zoom positioning
+            modalPositioning={modalPositioning}
           />
         );
       
@@ -381,6 +429,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Pan & zoom positioning
+            modalPositioning={modalPositioning}
           />
         );
       
