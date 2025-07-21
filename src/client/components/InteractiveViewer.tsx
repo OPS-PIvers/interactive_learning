@@ -139,48 +139,40 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     }
   }, [moduleState, isMobile, timelineEvents]);
 
-  const handleTimelineDotClick = useCallback((step: number) => {
-    // Reset pan & zoom when moving to a different step
-    setImageTransform(prev => ({
+  // Helper function to reset transform state - extracted to reduce duplication
+  const resetTransform = useCallback(() => {
+    setImageTransform({
       scale: 1,
       translateX: 0,
       translateY: 0,
       targetHotspotId: undefined
-    }));
+    });
+    setIsTransformingFromGestures(false);
+  }, []);
+
+  const handleTimelineDotClick = useCallback((step: number) => {
+    // Reset pan & zoom when moving to a different step
+    resetTransform();
     setCurrentStep(step);
     if (moduleState === 'idle') {
       setModuleState('learning');
       setHasUserChosenMode(true);
     }
-  }, [moduleState]);
+  }, [moduleState, resetTransform]);
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
-      // Always reset transform when navigating steps
-      setImageTransform({
-        scale: 1,
-        translateX: 0,
-        translateY: 0,
-        targetHotspotId: undefined
-      });
-      setIsTransformingFromGestures(false); // Reset gesture state as well
+      resetTransform();
       setCurrentStep(uniqueSortedSteps[currentStepIndex - 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps]);
+  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
-      // Always reset transform when navigating steps
-      setImageTransform({
-        scale: 1,
-        translateX: 0,
-        translateY: 0,
-        targetHotspotId: undefined
-      });
-      setIsTransformingFromGestures(false); // Reset gesture state as well
+      resetTransform();
       setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
     }
-  }, [currentStepIndex, uniqueSortedSteps]);
+  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
 
   const handleMobileEventComplete = useCallback(() => {
     setMobileActiveEvents([]);
