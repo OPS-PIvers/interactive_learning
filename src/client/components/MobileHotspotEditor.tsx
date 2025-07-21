@@ -12,6 +12,7 @@ import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic u
 import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
 import MobileQuizEditor from './mobile/MobileQuizEditor';
+import MobilePanZoomEditor from './mobile/MobilePanZoomEditor';
 
 
 interface MobileHotspotEditorProps {
@@ -53,7 +54,7 @@ const HOTSPOT_SIZES = [
 const INTERACTION_TYPE_OPTIONS = [
   { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
   // { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' }, // More complex, defer if needed
-  // { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' }, // More complex, defer if needed
+  { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' },
   { value: InteractionType.SHOW_TEXT, label: 'Show Text' }, // Assumes simple text, not rich text editor
   { value: InteractionType.PLAY_VIDEO, label: 'Play Video (URL)' }, // Assumes direct video URL
   { value: InteractionType.PLAY_AUDIO, label: 'Play Audio (URL)' }, // Assumes direct audio URL
@@ -307,6 +308,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
           />
         );
       }
+      if (editingEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+        return (
+          <MobilePanZoomEditor
+            event={editingEvent}
+            onUpdate={onUpdateTimelineEvent}
+            onClose={() => setEditingEvent(null)}
+          />
+        );
+      }
     }
 
     return (
@@ -375,6 +385,15 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                       <button
                         onClick={() => setEditingEvent(event)}
                         className="text-yellow-400 hover:text-yellow-300 p-1"
+                        aria-label="Edit event"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && (
+                      <button
+                        onClick={() => setEditingEvent(event)}
+                        className="text-green-400 hover:text-green-300 p-1"
                         aria-label="Edit event"
                       >
                         Edit

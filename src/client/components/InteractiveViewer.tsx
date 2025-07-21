@@ -4,6 +4,7 @@ import { useTouchGestures } from '../hooks/useTouchGestures';
 import LazyLoadingFallback from './shared/LazyLoadingFallback';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import MobileEventRenderer from './mobile/MobileEventRenderer';
+import DesktopEventRenderer from './desktop/DesktopEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
 import '../styles/mobile-events.css';
 
@@ -60,8 +61,9 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const [focusedHotspot, setFocusedHotspot] = useState<HotspotData | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
   
-  // Mobile event handling
+  // Event handling
   const [mobileActiveEvents, setMobileActiveEvents] = useState<TimelineEventData[]>([]);
+  const [desktopActiveEvents, setDesktopActiveEvents] = useState<TimelineEventData[]>([]);
   
   // Refs
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -129,11 +131,13 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     if (moduleState === 'exploring') {
       setExploredHotspotId(hotspotId);
       
-      // For mobile, trigger events associated with this hotspot
-      if (isMobile) {
-        const hotspotEvents = timelineEvents.filter(event => event.targetId === hotspotId);
-        if (hotspotEvents.length > 0) {
+      // Trigger events associated with this hotspot
+      const hotspotEvents = timelineEvents.filter(event => event.targetId === hotspotId);
+      if (hotspotEvents.length > 0) {
+        if (isMobile) {
           setMobileActiveEvents(hotspotEvents);
+        } else {
+          setDesktopActiveEvents(hotspotEvents);
         }
       }
     }
@@ -178,6 +182,10 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     setMobileActiveEvents([]);
   }, []);
 
+  const handleDesktopEventComplete = useCallback(() => {
+    setDesktopActiveEvents([]);
+  }, []);
+
   // Initialize viewer
   useEffect(() => {
     setModuleState('idle');
@@ -217,9 +225,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         }
       });
       
-      // For mobile, set active events
+      // Set active events for current platform
       if (isMobile) {
         setMobileActiveEvents(eventsForCurrentStep);
+      } else {
+        setDesktopActiveEvents(eventsForCurrentStep);
       }
       
       setActiveHotspotDisplayIds(newActiveDisplayIds);
@@ -238,6 +248,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
       setActiveHotspotDisplayIds(visibleIds);
       setPulsingHotspotId(null);
       setMobileActiveEvents([]);
+      setDesktopActiveEvents([]);
     }
   }, [currentStep, timelineEvents, moduleState, hotspots, isMobile]);
 
@@ -427,6 +438,34 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 } else {
                   // For learning mode, just clear active events
                   setMobileActiveEvents([]);
+                }
+              }}
+            />
+          )}
+          
+          {/* Desktop Event Renderer */}
+          {!isMobile && (
+            <DesktopEventRenderer
+              events={desktopActiveEvents}
+              onEventComplete={handleDesktopEventComplete}
+              imageContainerRef={imageContainerRef}
+              isActive={moduleState === 'learning' || moduleState === 'exploring'}
+              currentTransform={imageTransform}
+              onTransformUpdate={(transform) => setImageTransform(prev => ({ ...prev, ...transform }))}
+              moduleState={moduleState}
+              currentStep={currentStep}
+              totalSteps={totalTimelineInteractionPoints}
+              currentStepIndex={currentStepIndex}
+              onPrevStep={handlePrevStep}
+              onNextStep={handleNextStep}
+              onCompleteAllEvents={() => {
+                if (moduleState === 'exploring') {
+                  // Reset to idle state for explore mode
+                  setModuleState('idle');
+                  setHasUserChosenMode(false);
+                } else {
+                  // For learning mode, just clear active events
+                  setDesktopActiveEvents([]);
                 }
               }}
             />

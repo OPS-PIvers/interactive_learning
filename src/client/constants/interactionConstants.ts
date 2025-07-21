@@ -9,12 +9,13 @@ export const Z_INDEX = {
   DEBUG: 100,
   // Mobile-specific layers
   MOBILE_OVERLAY: 900,
-  MOBILE_MODAL: 1000,
-  MOBILE_MODAL_OVERLAY: 1001,
-  MOBILE_MODAL_CLOSE: 1002,
-  // Preview layers
+  MOBILE_HOTSPOT_DRAGGING: 950, // For dragging hotspots
   PREVIEW_OVERLAY: 998,
   PREVIEW_MODAL: 999,
+  // Mobile modals should be highest priority
+  MOBILE_MODAL: 1100,
+  MOBILE_MODAL_OVERLAY: 1101,
+  MOBILE_MODAL_CLOSE: 1102,
   PREVIEW_TEXT: 1000
 } as const;
 
