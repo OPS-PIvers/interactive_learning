@@ -301,7 +301,6 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
       }
     });
   };
-
   if (!isOpen || !hotspot || !localHotspot) return null;
 
   if (isPreviewing && eventToPreview) {
