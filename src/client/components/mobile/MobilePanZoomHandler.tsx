@@ -1,30 +1,56 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { TimelineEventData } from '../../../shared/types';
+import { TimelineEventData, ImageTransformState } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
-import { Z_INDEX } from '../../constants/interactionConstants';
+import { Z_INDEX, PREVIEW_DEFAULTS, INTERACTION_DEFAULTS } from '../../constants/interactionConstants';
+
+// Moved calculation logic to a separate function for clarity and reuse
+const calculatePanZoomTransform = (
+  event: TimelineEventData,
+  containerRect: DOMRect
+) => {
+  const targetX = event.targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
+  const targetY = event.targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
+  const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
+
+  // Convert percentage-based target coordinates to pixel values
+  const targetPixelX = (targetX / 100) * containerRect.width;
+  const targetPixelY = (targetY / 100) * containerRect.height;
+
+  // Calculate the translation needed to center the target point in the viewport.
+  // The formula is: `(viewportCenter - targetPixel) * zoomLevel`.
+  // This works because the CSS `transform-origin` is `center center`.
+  // We first find the distance from the viewport center to the target,
+  // and then we scale that distance by the zoom level to get the correct translation.
+  const translateX = (containerRect.width / 2 - targetPixelX) * zoomLevel;
+  const translateY = (containerRect.height / 2 - targetPixelY) * zoomLevel;
+
+  return {
+    scale: zoomLevel,
+    translateX,
+    translateY,
+    targetHotspotId: event.targetId,
+  };
+};
 
 interface MobilePanZoomHandlerProps {
   event: TimelineEventData;
   containerRef: React.RefObject<HTMLElement>;
   onComplete: () => void;
-  // Add these new props to coordinate with touch gestures
   currentTransform?: { scale: number; translateX: number; translateY: number };
-  onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
+  onTransformUpdate?: (transform: ImageTransformState) => void;
 }
 
 const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   event,
   containerRef,
   onComplete,
-  currentTransform,
-  onTransformUpdate
+  onTransformUpdate,
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
 
   const cleanup = useCallback(() => {
-    // Don't manipulate DOM directly anymore
     setIsActive(false);
   }, []);
 
@@ -33,13 +59,17 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   const handleComplete = useCallback(() => {
     setIsActive(false);
     triggerHapticFeedback('light');
-    
-    // Animate back to original position using state
+
     if (onTransformUpdate) {
-      onTransformUpdate({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+      onTransformUpdate({
+        scale: 1,
+        translateX: 0,
+        translateY: 0,
+        targetHotspotId: undefined,
+      });
     }
-    
-    setTimeout(onComplete, 500);
+
+    setTimeout(onComplete, 250); // Reduced delay for snappier feel
   }, [onComplete, onTransformUpdate]);
 
   useEffect(() => {
@@ -48,44 +78,22 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     setIsActive(true);
     triggerHapticFeedback('medium');
 
-    const targetX = event.targetX || event.spotlightX || 50;
-    const targetY = event.targetY || event.spotlightY || 50;
-    const zoomLevel = event.zoomLevel || event.zoomFactor || event.zoom || 2;
-    const smooth = event.smooth !== false;
-
-    // Calculate transform values based on container size
     const containerRect = containerRef.current.getBoundingClientRect();
-    
-    // Convert percentage to actual coordinates
-    const targetPixelX = (targetX / 100) * containerRect.width;
-    const targetPixelY = (targetY / 100) * containerRect.height;
-    
-    // Calculate translation to center the target point
-    // Note: Since CSS uses transform-origin: center center, scaling happens from center
-    // We need to translate the center point to align the target with the viewport center
-    const translateX = (containerRect.width / 2) - targetPixelX;
-    const translateY = (containerRect.height / 2) - targetPixelY;
+    const newTransform = calculatePanZoomTransform(event, containerRect);
 
-    // Update transform through state management
+    // Apply the new transform
     setTimeout(() => {
-      onTransformUpdate({
-        scale: zoomLevel,
-        translateX,
-        translateY,
-        targetHotspotId: event.targetId // Add target hotspot ID for tracking
-      });
-    }, 100); // Small delay for smooth transition
+      onTransformUpdate(newTransform);
+    }, 100);
 
-    // Hide instructions
+    // Hide instructions after a delay
     const instructionTimer = setTimeout(() => {
       setShowInstructions(false);
-    }, 1000);
+    }, 1500);
 
-    // Auto-complete
+    // Auto-complete the event after its duration
     const duration = event.duration || 3000;
-    const completionTimer = setTimeout(() => {
-      handleComplete();
-    }, duration);
+    const completionTimer = setTimeout(handleComplete, duration);
 
     return () => {
       clearTimeout(instructionTimer);
@@ -102,7 +110,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   return (
     <>
       {showInstructions && (
-        <div 
+        <div
           className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[1001] pointer-events-none"
           style={{ animation: 'fadeInDown 0.5s ease-out' }}
         >
@@ -111,7 +119,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
           </p>
         </div>
       )}
-      
+
       {/* Overlay to capture taps for early completion */}
       <div
         className="fixed inset-0 z-[999]"
@@ -122,7 +130,6 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
           cursor: 'pointer',
         }}
       />
-
     </>
   );
 };
