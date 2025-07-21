@@ -99,7 +99,7 @@ const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDe
               />
             </div>
 
-            <MobileEventSettings event={event} onUpdate={onUpdate} />
+            <MobileEventSettings event={event} onUpdate={(update) => onUpdate({ ...event, ...update })} />
 
             <button
               onClick={onDelete}

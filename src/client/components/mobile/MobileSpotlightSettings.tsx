@@ -29,10 +29,16 @@ export const MobileSpotlightSettings: React.FC<MobileSpotlightSettingsProps> = (
         min={50}
         max={500}
         value={event.spotlightWidth || 150}
-        onChange={(value) => onUpdate({ spotlightWidth: value })}
+        onChange={(value) => {
+          if (isCircle) {
+            onUpdate({ spotlightWidth: value, spotlightHeight: value });
+          } else {
+            onUpdate({ spotlightWidth: value });
+          }
+        }}
         unit="px"
       />
-      {isCircle && (
+      {!isCircle && (
          <MobileSlider
          label="Height"
          min={50}
