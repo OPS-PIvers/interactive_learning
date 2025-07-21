@@ -119,13 +119,16 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onPreviewOverlay,
   onCollapseChange
 }) => {
+  const eventIdCounter = useRef(0);
+  const timestampCounter = useRef(0);
+
   // Debug logging to understand modal rendering
   console.log('🔍 HOTSPOT EDITOR MODAL DEBUG:', {
     isOpen,
     selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
     relatedEventsCount: relatedEvents.length,
     component: 'HotspotEditorModal',
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
@@ -164,7 +167,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     if (!localHotspot) return;
     
     const newEvent: TimelineEventData = { 
-      id: `event_${Date.now()}`, 
+      id: `event_${++eventIdCounter.current}`, 
       name: `New ${type.toLowerCase().replace('_', ' ')} event`,
       step: currentStep,
       type,
@@ -301,7 +304,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
     selectedHotspot: selectedHotspot ? { id: selectedHotspot.id, title: selectedHotspot.title } : null,
     willReturn: (!isOpen || !localHotspot),
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
 
   if (!isOpen || !localHotspot) {
@@ -319,7 +322,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     isOpen,
     localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
     className: `fixed top-0 right-0 z-60 h-screen transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`,
-    timestamp: Date.now()
+    timestamp: ++timestampCounter.current
   });
 
   return (

@@ -77,6 +77,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   const [title, setTitle] = useState(event.name || '');
   const cardRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
+  const quizIdCounter = useRef(0);
 
   const [{ handlerId }, drop] = useDrop<
     { id: string; index: number; type: string }, // item object type from useDrag
@@ -128,7 +129,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   // Quiz trigger helper functions
   const addQuizTrigger = (event: TimelineEventData) => {
     const newTrigger: MediaQuizTrigger = {
-      id: `quiz-${Date.now()}`,
+      id: `quiz-${++quizIdCounter.current}`,
       timestamp: 0,
       pauseMedia: true,
       quiz: {

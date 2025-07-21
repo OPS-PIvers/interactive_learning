@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { TimelineEventData, InteractionType, MediaQuizTrigger } from '../../shared/types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -12,7 +12,7 @@ interface MobilePlayAudioEditorProps {
 const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, onUpdate, onClose }) => {
   const [internalEvent, setInternalEvent] = useState<TimelineEventData>(event);
 
-  const handleUpdate = (field: keyof TimelineEventData, value: any) => {
+  const handleUpdate = <K extends keyof TimelineEventData>(field: K, value: TimelineEventData[K]) => {
     setInternalEvent(prev => ({ ...prev, [field]: value }));
   };
 
@@ -22,9 +22,11 @@ const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, on
     handleUpdate('quizTriggers', newQuizTriggers);
   };
 
+  const quizIdCounter = useRef(0);
+
   const addQuizQuestion = () => {
     const newQuestion: MediaQuizTrigger = {
-      id: `quiz_${Date.now()}`,
+      id: `quiz_${++quizIdCounter.current}`,
       timestamp: 0,
       pauseMedia: true,
       quiz: {
@@ -93,8 +95,11 @@ const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, on
               type="number"
               placeholder="0"
               className="w-full mt-1 p-2 bg-gray-700 rounded"
-              value={internalEvent.audioStartTime || ''}
-              onChange={(e) => handleUpdate('audioStartTime', parseInt(e.target.value))}
+              value={internalEvent.audioStartTime ?? ''}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                handleUpdate('audioStartTime', isNaN(value) ? undefined : value);
+              }}
             />
           </div>
           <div>
@@ -103,8 +108,11 @@ const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, on
               type="number"
               placeholder="End of audio"
               className="w-full mt-1 p-2 bg-gray-700 rounded"
-              value={internalEvent.audioEndTime || ''}
-              onChange={(e) => handleUpdate('audioEndTime', parseInt(e.target.value))}
+              value={internalEvent.audioEndTime ?? ''}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                handleUpdate('audioEndTime', isNaN(value) ? undefined : value);
+              }}
             />
           </div>
         </div>
@@ -139,7 +147,11 @@ const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, on
                   <select
                     className="w-full p-2 bg-gray-600 rounded"
                     value={quiz.quiz.questionType || 'multiple-choice'}
-                    onChange={(e) => handleQuizChange(index, 'quiz', { ...quiz.quiz, questionType: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const newCorrectAnswer = newType === 'multiple-choice' ? 0 : '';
+                      handleQuizChange(index, 'quiz', { ...quiz.quiz, questionType: newType, correctAnswer: newCorrectAnswer });
+                    }}
                   >
                     <option value="multiple-choice">Multiple Choice</option>
                     <option value="fill-in-the-blank">Fill in the Blank</option>
@@ -156,9 +168,11 @@ const MobilePlayAudioEditor: React.FC<MobilePlayAudioEditorProps> = ({ event, on
                       {quiz.quiz.options.map((option, optionIndex) => (
                         <div key={optionIndex} className="flex items-center space-x-2">
                           <input
-                            type="checkbox"
+                            type="radio"
+                            name={`quiz-correct-answer-${index}`}
                             checked={quiz.quiz.correctAnswer === optionIndex}
                             onChange={() => handleQuizChange(index, 'quiz', { ...quiz.quiz, correctAnswer: optionIndex })}
+                            aria-label={`Select option ${optionIndex + 1} as correct answer`}
                           />
                           <input
                             type="text"
