@@ -1,13 +1,21 @@
 import React from 'react';
+import TextBannerCheckbox from './TextBannerCheckbox';
 
 interface PanZoomSettingsProps {
   zoomLevel: number;
   onZoomChange: (zoom: number) => void;
+  showTextBanner: boolean;
+  onShowTextBannerChange: (value: boolean) => void;
 }
 
 const ZOOM_PRESETS = [1.0, 1.5, 2.5, 4.0];
 
-const PanZoomSettings: React.FC<PanZoomSettingsProps> = ({ zoomLevel, onZoomChange }) => {
+const PanZoomSettings: React.FC<PanZoomSettingsProps> = ({
+  zoomLevel,
+  onZoomChange,
+  showTextBanner,
+  onShowTextBannerChange,
+}) => {
   return (
     <div className="mb-6 bg-slate-700 rounded-lg p-4">
       <h4 className="text-md font-medium text-white mb-4 flex items-center">
@@ -18,14 +26,14 @@ const PanZoomSettings: React.FC<PanZoomSettingsProps> = ({ zoomLevel, onZoomChan
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Zoom Level: <span className="text-blue-400 font-mono">{zoomLevel.toFixed(1)}x</span>
           </label>
-          <input 
-            type="range" 
-            min="0.1" 
-            max="5" 
-            step="0.1" 
+          <input
+            type="range"
+            min="0.1"
+            max="5"
+            step="0.1"
             value={zoomLevel}
             onChange={(e) => onZoomChange(parseFloat(e.target.value))}
-            className="slider w-full" 
+            className="slider w-full"
             aria-label="Zoom level"
           />
           <div className="flex justify-between text-xs text-slate-400 mt-1">
@@ -48,6 +56,10 @@ const PanZoomSettings: React.FC<PanZoomSettingsProps> = ({ zoomLevel, onZoomChan
             </button>
           ))}
         </div>
+        <TextBannerCheckbox
+          checked={showTextBanner}
+          onChange={onShowTextBannerChange}
+        />
       </div>
     </div>
   );

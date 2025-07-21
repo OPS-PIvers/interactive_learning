@@ -1,17 +1,22 @@
 import React from 'react';
+import TextBannerCheckbox from './TextBannerCheckbox';
 
 interface SpotlightSettingsProps {
   shape: 'circle' | 'rectangle' | 'oval';
   dimPercentage: number;
   onShapeChange: (shape: 'circle' | 'rectangle' | 'oval') => void;
   onDimPercentageChange: (percentage: number) => void;
+  showTextBanner: boolean;
+  onShowTextBannerChange: (value: boolean) => void;
 }
 
 const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
   shape,
   dimPercentage,
   onShapeChange,
-  onDimPercentageChange
+  onDimPercentageChange,
+  showTextBanner,
+  onShowTextBannerChange,
 }) => {
   return (
     <div className="mb-6 bg-slate-700 rounded-lg p-4">
@@ -55,19 +60,19 @@ const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
             </button>
           </div>
         </div>
-        
+
         {/* Dimming Control */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Background Dimming: <span className="text-yellow-400 font-mono">{dimPercentage}%</span>
           </label>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
+          <input
+            type="range"
+            min="0"
+            max="100"
             value={dimPercentage}
             onChange={(e) => onDimPercentageChange(parseInt(e.target.value))}
-            className="slider w-full" 
+            className="slider w-full"
             aria-label="Background dimming percentage"
           />
           <div className="flex justify-between text-xs text-slate-400 mt-1">
@@ -75,6 +80,11 @@ const SpotlightSettings: React.FC<SpotlightSettingsProps> = ({
             <span>100% (Completely dark)</span>
           </div>
         </div>
+
+        <TextBannerCheckbox
+          checked={showTextBanner}
+          onChange={onShowTextBannerChange}
+        />
       </div>
     </div>
   );

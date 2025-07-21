@@ -11,6 +11,7 @@ import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import SliderControl from './SliderControl';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import QuizTriggerEditor from './QuizTriggerEditor';
+import TextBannerCheckbox from './TextBannerCheckbox';
 interface EditableEventCardProps {
   index: number;
   event: TimelineEventData;
@@ -194,6 +195,11 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                 dimPercentage: val * 100
               })}
             />
+            <TextBannerCheckbox
+              checked={!!event.showTextBanner}
+              onChange={(checked) => onUpdate({ ...event, showTextBanner: checked })}
+              id={`showTextBanner-spotlight-${event.id}`}
+            />
           </div>
         );
          case InteractionType.PAN_ZOOM:
@@ -213,6 +219,11 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                    zoomLevel: val,
                    zoomFactor: val
                  })}
+               />
+               <TextBannerCheckbox
+                 checked={!!event.showTextBanner}
+                 onChange={(checked) => onUpdate({ ...event, showTextBanner: checked })}
+                 id={`showTextBanner-panzoom-${event.id}`}
                />
              </div>
            );
