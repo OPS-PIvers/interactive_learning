@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Fragment } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
@@ -77,19 +77,33 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
   // Update modal queue when events change
   useEffect(() => {
+    console.log('[MobileEventRenderer] Events changed:', {
+      isActive,
+      events: events.map(e => ({ id: e.id, type: e.type, name: e.name })),
+      eventsLength: events.length
+    });
+
     if (!isActive) {
+      console.log('[MobileEventRenderer] Not active - clearing queue');
       setModalQueue([]);
       setCurrentModalIndex(0);
       return;
     }
 
     const modalEvents = events.filter(e => MODAL_INTERACTIONS.has(e.type));
+    console.log('[MobileEventRenderer] Modal events found:', {
+      modalEvents: modalEvents.map(e => ({ id: e.id, type: e.type, name: e.name })),
+      modalEventsLength: modalEvents.length
+    });
+    
     if (modalEvents.length > 0) {
       setModalQueue(modalEvents);
       setCurrentModalIndex(0);
+      console.log('[MobileEventRenderer] Set modal queue:', modalEvents.length, 'events');
     } else {
       setModalQueue([]);
       setCurrentModalIndex(0);
+      console.log('[MobileEventRenderer] No modal events - clearing queue');
     }
   }, [events, isActive]);
 
@@ -102,12 +116,22 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   }, []);
 
   const activeEvents = useMemo(() => {
-    if (!isActive) return [];
+    if (!isActive) {
+      console.log('[MobileEventRenderer] Not active - no active events');
+      return [];
+    }
 
     // Get visual events that should always be active
     const visualEvents = events.filter(e => 
       VISUAL_OVERLAY_EVENTS.has(e.type) || !MODAL_INTERACTIONS.has(e.type)
     );
+
+    console.log('[MobileEventRenderer] activeEvents calculation:', {
+      visualEvents: visualEvents.map(e => ({ id: e.id, type: e.type })),
+      modalQueueLength: modalQueue.length,
+      currentModalIndex,
+      currentModal: modalQueue[currentModalIndex] ? { id: modalQueue[currentModalIndex].id, type: modalQueue[currentModalIndex].type } : null
+    });
 
     // If we have modal events in queue, include both the current modal AND visual events
     if (modalQueue.length > 0) {
@@ -115,10 +139,17 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       if (currentModal) {
         // Return both visual events and the current modal (avoid duplicates)
         const modalIsAlreadyInVisualEvents = visualEvents.some(e => e.id === currentModal.id);
-        return modalIsAlreadyInVisualEvents ? visualEvents : [...visualEvents, currentModal];
+        const result = modalIsAlreadyInVisualEvents ? visualEvents : [...visualEvents, currentModal];
+        console.log('[MobileEventRenderer] Including modal in active events:', {
+          currentModal: { id: currentModal.id, type: currentModal.type },
+          modalIsAlreadyInVisualEvents,
+          result: result.map(e => ({ id: e.id, type: e.type }))
+        });
+        return result;
       }
     }
 
+    console.log('[MobileEventRenderer] Only visual events active:', visualEvents.map(e => ({ id: e.id, type: e.type })));
     // Return only visual events if no modal is active
     return visualEvents;
   }, [events, isActive, modalQueue, currentModalIndex]);
@@ -157,6 +188,12 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
   const renderEventType = (event: TimelineEventData) => {
     const isEventActive = activeEvents.some(e => e.id === event.id);
+    console.log('[MobileEventRenderer] renderEventType:', {
+      eventId: event.id,
+      eventType: event.type,
+      isEventActive,
+      activeEventsIds: activeEvents.map(e => e.id)
+    });
     if (!isEventActive) return null;
 
     const handleComplete = () => {
@@ -459,16 +496,27 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   };
 
   return (
-    <div className="mobile-event-renderer">
+    <>
       {events.map((event, index) => {
         const isModal = MODAL_INTERACTIONS.has(event.type);
         const baseZIndex = Z_INDEX.MOBILE_OVERLAY + index;
+        
+        // For modal events, render directly without wrapper to avoid positioning issues
+        if (isModal) {
+          return (
+            <React.Fragment key={event.id}>
+              {renderEventType(event)}
+            </React.Fragment>
+          );
+        }
+        
+        // For non-modal events (overlays), use wrapper with relative positioning
         return (
           <div
             key={event.id}
             className="mobile-event-wrapper"
             style={{
-              zIndex: isModal ? Z_INDEX.MOBILE_MODAL : baseZIndex,
+              zIndex: baseZIndex,
               position: 'relative',
             }}
           >
@@ -476,7 +524,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           </div>
         );
       })}
-    </div>
+    </>
   );
 };
 
