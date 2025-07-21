@@ -8,6 +8,8 @@ import EventTypeSelectorButtonGrid from './EventTypeSelectorButtonGrid';
 import EditableEventCard from './EditableEventCard';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
@@ -373,59 +375,19 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
                     {event.name || `Event at step ${event.step}`}
                   </span>
                   <div>
-                    {event.type === InteractionType.PLAY_AUDIO && (
-                        <button
-                            onClick={() => setEditingEvent(event)}
-                            className="text-purple-400 hover:text-purple-300 p-1"
-                            aria-label="Edit event"
-                        >
-                            Edit
-                        </button>
-                    )}
-                    {event.type === InteractionType.PLAY_VIDEO && (
-                      <button
-                        onClick={() => setEditingEvent(event)}
-                        className="text-blue-400 hover:text-blue-300 p-1"
-                        aria-label="Edit event"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {event.type === InteractionType.QUIZ && (
-                      <button
-                        onClick={() => setEditingEvent(event)}
-                        className="text-yellow-400 hover:text-yellow-300 p-1"
-                        aria-label="Edit event"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && (
-                      <button
-                        onClick={() => setEditingEvent(event)}
-                        className="text-green-400 hover:text-green-300 p-1"
-                        aria-label="Edit event"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {event.type === InteractionType.SHOW_TEXT && (
-                      <button
-                        onClick={() => setEditingEvent(event)}
-                        className="text-blue-400 hover:text-blue-300 p-1"
-                        aria-label="Edit event"
-                      >
-                        Edit
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setEditingEvent(event)}
+                      className="text-purple-400 hover:text-purple-300 p-1"
+                      aria-label="Edit event"
+                    >
+                      <SettingsIcon className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => onDeleteTimelineEvent(event.id)}
                       className="text-red-400 hover:text-red-300 p-1"
                       aria-label="Delete event"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
