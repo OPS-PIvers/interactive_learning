@@ -14,36 +14,54 @@ export const MobileSpotlightSettings: React.FC<MobileSpotlightSettingsProps> = (
     { value: 'rectangle', label: 'Rectangle', icon: <div className="w-10 h-10 bg-white" /> },
   ];
 
+  const isCircle = (event.spotlightShape || 'circle') === 'circle';
+
   return (
     <div className="space-y-4">
       <MobileShapeSelector
         label="Spotlight Shape"
         shapes={shapes}
-        selectedShape={event.highlightShape || 'circle'}
-        onChange={(shape) => onUpdate({ highlightShape: shape })}
+        selectedShape={event.spotlightShape || 'circle'}
+        onChange={(shape) => onUpdate({ spotlightShape: shape as 'circle' | 'rectangle' })}
       />
       <MobileSlider
-        label="Size"
+        label={isCircle ? "Radius" : "Width"}
         min={50}
-        max={300}
-        value={event.highlightRadius || 120}
-        onChange={(value) => onUpdate({ highlightRadius: value })}
+        max={500}
+        value={event.spotlightWidth || 150}
+        onChange={(value) => {
+          if (isCircle) {
+            onUpdate({ spotlightWidth: value, spotlightHeight: value });
+          } else {
+            onUpdate({ spotlightWidth: value });
+          }
+        }}
         unit="px"
       />
+      {!isCircle && (
+         <MobileSlider
+         label="Height"
+         min={50}
+         max={500}
+         value={event.spotlightHeight || 150}
+         onChange={(value) => onUpdate({ spotlightHeight: value })}
+         unit="px"
+       />
+      )}
       <MobileSlider
         label="Opacity"
         min={0.1}
         max={1.0}
         step={0.1}
-        value={event.opacity || 0.5}
-        onChange={(value) => onUpdate({ opacity: value })}
+        value={event.spotlightOpacity || 0.5}
+        onChange={(value) => onUpdate({ spotlightOpacity: value })}
       />
       <MobileSlider
-        label="Dimming"
+        label="Background Dim"
         min={0}
-        max={90}
-        value={event.dimPercentage || 70}
-        onChange={(value) => onUpdate({ dimPercentage: value })}
+        max={100}
+        value={event.backgroundDimPercentage || 70}
+        onChange={(value) => onUpdate({ backgroundDimPercentage: value })}
         unit="%"
       />
     </div>

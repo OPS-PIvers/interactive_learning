@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { MobileEventSettings } from './MobileEventSettings';
 import { DragHandleDots2Icon } from '@radix-ui/react-icons';
 
 interface MobileEventCardProps {
@@ -97,6 +98,9 @@ const MobileEventCard: React.FC<MobileEventCardProps> = ({ event, onUpdate, onDe
                 placeholder="Enter event name"
               />
             </div>
+
+            <MobileEventSettings event={event} onUpdate={(update) => onUpdate({ ...event, ...update })} />
+
             <button
               onClick={onDelete}
               className="w-full py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
