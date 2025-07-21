@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEventData } from '../../../shared/types';
 import Modal from '../Modal';
 
@@ -24,6 +24,10 @@ interface DesktopTextModalProps {
   // Explore mode
   showExploreButton?: boolean;
   onExploreComplete?: () => void;
+  // Text event specific settings
+  autoDismiss?: boolean;
+  dismissDelay?: number;
+  allowClickToClose?: boolean;
 }
 
 const DesktopTextModal: React.FC<DesktopTextModalProps> = ({ 
@@ -47,113 +51,79 @@ const DesktopTextModal: React.FC<DesktopTextModalProps> = ({
   totalSteps = 1,
   // Explore mode
   showExploreButton = false,
-  onExploreComplete
+  onExploreComplete,
+  // Text event specific settings
+  autoDismiss = false,
+  dismissDelay = 5,
+  allowClickToClose = true
 }) => {
+  const [countdown, setCountdown] = useState(0);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onComplete();
-  };
+  }, [onComplete]);
+
+  useEffect(() => {
+    // Auto-dismiss for text events with countdown
+    if (autoDismiss && dismissDelay > 0) {
+      setCountdown(dismissDelay);
+      
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            handleClose();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [autoDismiss, dismissDelay, handleClose]);
 
   const title = event.title || event.text || 'Text Message';
 
   return (
-    <Modal isOpen={true} onClose={handleClose} title={title}>
+    <Modal 
+      isOpen={true} 
+      onClose={allowClickToClose && !autoDismiss ? handleClose : undefined} 
+      title={title}
+    >
       <div className="space-y-6">
+        {/* Auto-dismiss countdown display */}
+        {autoDismiss && countdown > 0 && (
+          <div className="bg-slate-700 rounded-lg p-3 text-center">
+            <span className="text-slate-300 text-sm font-medium">
+              Closing automatically in {countdown} second{countdown !== 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
+
         {/* Main content */}
         <div className="text-gray-300 leading-relaxed">
-          <div className="whitespace-pre-wrap">{event.text}</div>
+          <div className="whitespace-pre-wrap">{event.textContent || event.content || event.message || event.text || 'No content available'}</div>
         </div>
 
-        {/* Navigation buttons */}
-        <div className="flex flex-col gap-4">
-          {/* Multi-modal navigation (within same step) */}
-          {showNavigation && (
-            <div className="flex justify-between items-center">
-              <button
-                onClick={onPrevious}
-                disabled={!canGoPrevious}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  canGoPrevious
-                    ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Previous
-              </button>
-              
-              <span className="text-slate-400 text-sm">
-                {currentIndex + 1} of {totalCount}
-              </span>
-              
-              <button
-                onClick={onNext}
-                disabled={!canGoNext}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  canGoNext
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          )}
-
-          {/* Timeline navigation (between steps) */}
-          {showTimelineNavigation && (
-            <div className="flex justify-between items-center">
-              <button
-                onClick={onTimelinePrevious}
-                disabled={!canGoToPrevStep}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  canGoToPrevStep
-                    ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Previous Step
-              </button>
-              
-              <span className="text-slate-400 text-sm">
-                Step {currentStep} of {totalSteps}
-              </span>
-              
-              <button
-                onClick={onTimelineNext}
-                disabled={!canGoToNextStep}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  canGoToNextStep
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                Next Step
-              </button>
-            </div>
-          )}
-
-          {/* Explore mode completion */}
+        {/* Simplified footer - navigation handled by timeline */}
+        <div className="flex justify-center gap-4">
           {showExploreButton && (
-            <div className="flex justify-center">
-              <button
-                onClick={onExploreComplete}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Complete Exploration
-              </button>
-            </div>
+            <button
+              onClick={onExploreComplete}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Continue Exploring
+            </button>
           )}
 
-          {/* Default close button when no special navigation is needed */}
-          {!showNavigation && !showTimelineNavigation && !showExploreButton && (
-            <div className="flex justify-end">
-              <button
-                onClick={handleClose}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
+          {allowClickToClose && !autoDismiss && !showExploreButton && (
+            <button
+              onClick={handleClose}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Continue
+            </button>
           )}
         </div>
       </div>

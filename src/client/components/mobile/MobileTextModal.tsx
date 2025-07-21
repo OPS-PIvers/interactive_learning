@@ -29,6 +29,10 @@ interface MobileTextModalProps {
   // Timed mode
   isTimedMode?: boolean;
   autoProgressionDuration?: number;
+  // Text event specific settings
+  autoDismiss?: boolean;
+  dismissDelay?: number;
+  allowClickToClose?: boolean;
   // Pan & zoom positioning
   modalPositioning?: {
     isPanZoomActive: boolean;
@@ -66,10 +70,15 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
   // Timed mode
   isTimedMode = false,
   autoProgressionDuration = 3000,
+  // Text event specific settings
+  autoDismiss = false,
+  dismissDelay = 5,
+  allowClickToClose = true,
   // Pan & zoom positioning
   modalPositioning = null
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   
   // Mobile keyboard handling
   const keyboardInfo = useMobileKeyboard();
@@ -78,7 +87,7 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
     setIsVisible(true);
     triggerHapticFeedback('light');
     
-    // Auto-progression for timed mode
+    // Auto-progression for timed mode (legacy behavior)
     if (isTimedMode) {
       const timer = setTimeout(() => {
         handleClose();
@@ -86,7 +95,25 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [isTimedMode, autoProgressionDuration]);
+    
+    // Auto-dismiss for text events with countdown
+    if (autoDismiss && dismissDelay > 0) {
+      setCountdown(dismissDelay);
+      
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            handleClose();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [isTimedMode, autoProgressionDuration, autoDismiss, dismissDelay]);
 
   const handleClose = useCallback(() => {
     setIsVisible(false);
@@ -95,10 +122,10 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
   }, [onComplete]);
 
   const handleOverlayClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && allowClickToClose) {
       handleClose();
     }
-  }, [handleClose]);
+  }, [handleClose, allowClickToClose]);
 
   const textContent = event.textContent || event.content || event.message || 'No content available';
 
@@ -172,25 +199,44 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
           <h3 className="text-lg font-semibold text-white mb-4">
             {event.name || 'Information'}
           </h3>
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '8px',
-              borderRadius: '4px',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+          {allowClickToClose && !autoDismiss && (
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '4px',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
+          {autoDismiss && countdown > 0 && (
+            <div
+              className="absolute top-4 right-4 text-slate-300 text-sm font-medium"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'rgba(0, 0, 0, 0.7)',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                pointerEvents: 'none',
+              }}
+            >
+              Closing in {countdown}s
+            </div>
+          )}
         </div>
         
         <div className="mobile-text-modal-body">
@@ -207,139 +253,28 @@ const MobileTextModal: React.FC<MobileTextModalProps> = ({
         </div>
         
         <div className="mobile-text-modal-footer">
-          {/* Multi-modal navigation (within same step) */}
-          {showNavigation && totalCount > 1 && (
-            <div className="navigation-controls" style={{ marginTop: '16px', marginBottom: '8px' }}>
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={onPrevious}
-                  disabled={!canGoPrevious}
-                  className="mobile-button"
-                  style={{
-                    background: canGoPrevious ? '#64748b' : '#334155',
-                    color: canGoPrevious ? 'white' : '#64748b',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: canGoPrevious ? 'pointer' : 'not-allowed',
-                    transition: 'background-color 0.2s ease',
-                  }}
-                >
-                  ← Previous
-                </button>
-                
-                <span className="text-slate-400 text-sm">
-                  {currentIndex + 1} of {totalCount}
-                </span>
-                
-                <button
-                  onClick={onNext}
-                  disabled={!canGoNext}
-                  className="mobile-button"
-                  style={{
-                    background: canGoNext ? '#64748b' : '#334155',
-                    color: canGoNext ? 'white' : '#64748b',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: canGoNext ? 'pointer' : 'not-allowed',
-                    transition: 'background-color 0.2s ease',
-                  }}
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
+          {/* Simplified footer - navigation handled by timeline */}
+          {(allowClickToClose || showExploreButton) && !autoDismiss && (
+            <button
+              onClick={showExploreButton ? onExploreComplete : handleClose}
+              className="mobile-button"
+              style={{
+                marginTop: '20px',
+                width: '100%',
+                background: showExploreButton ? '#059669' : '#8b5cf6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+              }}
+            >
+              {showExploreButton ? 'Continue Exploring' : 'Continue'}
+            </button>
           )}
-
-          {/* Timeline step navigation (for guided learning) */}
-          {showTimelineNavigation && (
-            <div className="timeline-navigation" style={{ marginTop: '16px', marginBottom: '8px' }}>
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={onTimelinePrevious}
-                  disabled={!canGoToPrevStep}
-                  className="mobile-button"
-                  style={{
-                    background: canGoToPrevStep ? '#3b82f6' : '#334155',
-                    color: canGoToPrevStep ? 'white' : '#64748b',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: canGoToPrevStep ? 'pointer' : 'not-allowed',
-                    transition: 'background-color 0.2s ease',
-                  }}
-                >
-                  ← Previous Step
-                </button>
-                
-                <span className="text-slate-400 text-sm">
-                  Step {currentStep} of {totalSteps}
-                </span>
-                
-                <button
-                  onClick={onTimelineNext}
-                  disabled={!canGoToNextStep}
-                  className="mobile-button"
-                  style={{
-                    background: canGoToNextStep ? '#3b82f6' : '#334155',
-                    color: canGoToNextStep ? 'white' : '#64748b',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: canGoToNextStep ? 'pointer' : 'not-allowed',
-                    transition: 'background-color 0.2s ease',
-                  }}
-                >
-                  Next Step →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Timed mode indicator */}
-          {isTimedMode && (
-            <div className="timed-mode-indicator" style={{ marginTop: '16px', marginBottom: '8px', textAlign: 'center' }}>
-              <span className="text-slate-400 text-sm">
-                Auto-advancing in {Math.ceil(autoProgressionDuration / 1000)} seconds...
-              </span>
-            </div>
-          )}
-          
-          {/* Main action button */}
-          <button
-            onClick={showExploreButton ? onExploreComplete : handleClose}
-            className="mobile-button"
-            style={{
-              marginTop: '20px',
-              width: '100%',
-              background: showExploreButton ? '#059669' : '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 24px',
-              fontSize: '16px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s ease',
-            }}
-          >
-            {showExploreButton 
-              ? 'Continue Exploring' 
-              : showNavigation && totalCount > 1 && currentIndex === totalCount - 1 
-                ? 'Finish' 
-                : isTimedMode 
-                  ? 'Skip' 
-                  : 'Continue'}
-          </button>
         </div>
       </div>
 

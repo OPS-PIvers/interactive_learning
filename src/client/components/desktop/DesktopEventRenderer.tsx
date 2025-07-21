@@ -212,6 +212,10 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
             // Explore mode
             showExploreButton={showExploreButton}
             onExploreComplete={handleExploreComplete}
+            // Text event specific settings
+            autoDismiss={event.autoDismiss}
+            dismissDelay={event.dismissDelay}
+            allowClickToClose={event.allowClickToClose}
           />
         );
       

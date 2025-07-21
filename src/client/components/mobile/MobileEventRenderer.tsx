@@ -330,6 +330,10 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             // Timed mode indicator
             isTimedMode={isTimedMode}
             autoProgressionDuration={autoProgressionDuration}
+            // Text event specific settings
+            autoDismiss={event.autoDismiss}
+            dismissDelay={event.dismissDelay}
+            allowClickToClose={event.allowClickToClose}
             // Pan & zoom positioning
             modalPositioning={modalPositioning}
           />
