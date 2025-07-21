@@ -102,10 +102,15 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     onTouchEnd: isMobile ? handleTouchEnd : undefined,
   }), [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  // Timeline management
+  // Timeline management - Memoize filtered events for reuse
+  const filteredTimelineEvents = useMemo(() => {
+    const hotspotIds = new Set(hotspots.map(h => h.id));
+    return timelineEvents.filter(e => e.targetId && hotspotIds.has(e.targetId));
+  }, [timelineEvents, hotspots]);
+
   const uniqueSortedSteps = useMemo(() => {
-    return [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-  }, [timelineEvents]);
+    return [...new Set(filteredTimelineEvents.map(e => e.step))].sort((a, b) => a - b);
+  }, [filteredTimelineEvents]);
 
   const currentStepIndex = useMemo(() => {
     return uniqueSortedSteps.indexOf(currentStep);
@@ -512,7 +517,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                 currentStep={currentStep}
                 onStepSelect={handleTimelineDotClick}
                 isEditing={false}
-                timelineEvents={timelineEvents}
+                timelineEvents={filteredTimelineEvents}
                 setTimelineEvents={() => {}} // Read-only in viewer
                 hotspots={hotspots}
                 moduleState={moduleState === 'exploring' ? 'idle' : moduleState}

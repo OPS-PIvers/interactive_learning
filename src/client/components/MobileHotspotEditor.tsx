@@ -24,7 +24,7 @@ interface MobileHotspotEditorProps {
   timelineEvents: TimelineEventData[]; // All timeline events for the project
   currentStep: number; // Current step in the main timeline
   onUpdate: (updates: Partial<HotspotData>) => void;
-  onDelete?: () => void;
+  onDelete?: (hotspotId: string) => void;
   onAddTimelineEvent: (event: TimelineEventData) => void;
   onUpdateTimelineEvent: (event: TimelineEventData) => void;
   onDeleteTimelineEvent: (eventId: string) => void;
@@ -461,7 +461,7 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
               </button>
               <button
                 onClick={() => {
-                  if(onDelete) onDelete();
+                  if(onDelete) onDelete(hotspot.id);
                   setShowDeleteConfirm(false);
                 }}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
