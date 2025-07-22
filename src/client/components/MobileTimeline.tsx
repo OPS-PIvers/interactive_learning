@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData, HotspotData } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -47,6 +47,12 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   const SWIPE_THRESHOLD = 50;
   const VERTICAL_SWIPE_THRESHOLD = 30;
   const prevCurrentStepIndexRef = useRef<number | undefined>(currentStepIndex);
+  
+  // Filter timeline events to only include events for existing hotspots
+  const filteredTimelineEvents = useMemo(() => {
+    const hotspotIds = new Set(hotspots.map(h => h.id));
+    return timelineEvents.filter(e => e.targetId && hotspotIds.has(e.targetId));
+  }, [timelineEvents, hotspots]);
   useEffect(() => {
     if (typeof prevCurrentStepIndexRef.current !== 'undefined' && prevCurrentStepIndexRef.current !== currentStepIndex) {
       triggerHapticFeedback('milestone');
@@ -86,7 +92,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
     touchStartYRef.current = null;
   }, [onPrevStep, onNextStep]);
   const getStepTooltip = (step: number): string => {
-    const eventsAtStep = timelineEvents.filter(e => e.step === step);
+    const eventsAtStep = filteredTimelineEvents.filter(e => e.step === step);
     if (eventsAtStep.length === 0) return `Step ${step}`;
     const eventSummaries = eventsAtStep.map(event => {
       let summary = event.name || event.type;
@@ -101,7 +107,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
     if (eventsAtStep.length > 3) tooltipText += '...';
     return tooltipText;
   };
-  const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
+  const currentEvent = filteredTimelineEvents.find(event => event.step === currentStep && event.name);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20">
       <div
@@ -196,10 +202,10 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
                         />
                       ) : null;
                     })}
-                  {timelineEvents.filter(event => event.step === step && event.targetId).length > 4 && (
+                  {filteredTimelineEvents.filter(event => event.step === step && event.targetId).length > 4 && (
                     <div
                       className="w-2 h-2 rounded-full bg-slate-500 border border-white/20 flex items-center justify-center"
-                      title={`+${timelineEvents.filter(event => event.step === step && event.targetId).length - 4} more hotspots`}
+                      title={`+${filteredTimelineEvents.filter(event => event.step === step && event.targetId).length - 4} more hotspots`}
                     >
                       <span className="text-xs text-white leading-none">•</span>
                     </div>

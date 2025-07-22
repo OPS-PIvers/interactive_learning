@@ -73,12 +73,18 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
     }
   }, [uniqueSortedSteps, updateScrollState]);
 
+  // Filter timeline events to only include events for existing hotspots
+  const filteredTimelineEvents = useMemo(() => {
+    const hotspotIds = new Set(hotspots.map(h => h.id));
+    return timelineEvents.filter(e => e.targetId && hotspotIds.has(e.targetId));
+  }, [timelineEvents, hotspots]);
+
   const validationErrors = useMemo(() => {
     const errors: { [key: number]: string } = {};
     const stepCounts: { [key: number]: number } = {};
 
     uniqueSortedSteps.forEach(step => {
-      const eventsAtStep = timelineEvents.filter(e => e.step === step);
+      const eventsAtStep = filteredTimelineEvents.filter(e => e.step === step);
       if (eventsAtStep.length === 0) {
         errors[step] = 'This step has no events.';
       }
@@ -92,7 +98,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
     }
 
     return errors;
-  }, [timelineEvents, uniqueSortedSteps]);
+  }, [filteredTimelineEvents, uniqueSortedSteps]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (isEditing) return;
@@ -133,7 +139,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   };
 
   const handleSaveTemplate = (name: string) => {
-    const newTemplate = { name, events: timelineEvents };
+    const newTemplate = { name, events: filteredTimelineEvents };
     setTemplates(prev => [...prev, newTemplate]);
     setShowTemplatesModal(false);
   };
@@ -149,7 +155,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
   };
 
   const renderStep = (step: number, index: number) => {
-    const eventsAtStep = timelineEvents.filter(e => e.step === step);
+    const eventsAtStep = filteredTimelineEvents.filter(e => e.step === step);
     const error = validationErrors[step];
     return (
       <MobileTimelineStep
@@ -333,7 +339,7 @@ const MobileTimeline: React.FC<MobileTimelineProps> = ({
       {showAnalyticsModal && (
         <TimelineAnalyticsModal
           onClose={() => setShowAnalyticsModal(false)}
-          timelineEvents={timelineEvents}
+          timelineEvents={filteredTimelineEvents}
         />
       )}
     </DndProvider>
