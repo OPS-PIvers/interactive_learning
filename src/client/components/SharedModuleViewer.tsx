@@ -43,7 +43,23 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
       setProject(targetProject);
     } catch (err: any) {
       console.error("Failed to load shared module:", err);
-      setError(`Failed to load module: ${err.message || 'Please try again later.'}`);
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = 'Please try again later.';
+      
+      if (err.message?.includes('Missing or insufficient permissions')) {
+        errorMessage = 'This module is not publicly available. It may be private, deleted, or the link may be incorrect.';
+      } else if (err.message?.includes('not found')) {
+        errorMessage = 'Module not found. The link may be invalid or the module may have been removed.';
+      } else if (err.message?.includes('network')) {
+        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (err.code === 'unavailable') {
+        errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(`Failed to load module: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

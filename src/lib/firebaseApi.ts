@@ -188,7 +188,13 @@ export class FirebaseProjectAPI {
         }
       } as Project;
     } catch (error) {
-      debugLog.error('Error fetching public project:', error);
+      // Only log as error for unexpected errors, not permission/not-found errors
+      if (error instanceof Error && 
+          (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions'))) {
+        debugLog.warn('Public project access denied:', projectId);
+      } else {
+        debugLog.error('Error fetching public project:', error);
+      }
       throw new Error(`Failed to load public project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
