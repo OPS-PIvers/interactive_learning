@@ -36,6 +36,7 @@ The Interactive Learning Hub is a web application designed for creating and deli
 *   **Testing Framework:** Vitest
 *   **Type Checking:** TypeScript
 *   **Linting:** ESLint (based on project configuration)
+*   **Browser Automation:** Puppeteer MCP integration for automated testing
 
 ## Project Structure
 
@@ -78,3 +79,24 @@ The Interactive Learning Hub is a web application designed for creating and deli
     *   Verifies hook order compliance
     *   Tests memory leak prevention
 *   **Required:** Must pass before any component changes are committed
+
+## Browser Automation & MCP Integration
+
+The project includes Puppeteer Model Context Protocol (MCP) integration for automated browser testing and interaction.
+
+### Available MCP Tools:
+*   **Navigation:** `puppeteer_navigate` - Navigate to URLs
+*   **Interaction:** `puppeteer_click`, `puppeteer_fill` - Interact with page elements
+*   **Capture:** `puppeteer_screenshot` - Take page screenshots
+*   **Authentication:** `puppeteer_login`, `puppeteer_logout` - Handle user authentication
+*   **Evaluation:** `puppeteer_evaluate` - Execute JavaScript in browser context
+
+### Authentication Methods:
+*   **Development Bypass:** Set `VITE_DEV_AUTH_BYPASS=true` for instant authentication during testing
+*   **Test Credentials:** Pre-configured test user accounts for realistic testing scenarios
+*   **MCP Commands:** Automated authentication through MCP tools
+
+### Testing Scripts:
+*   `npm run mcp:validate` - Validate MCP server configuration
+*   `npm run auth:test` - Test authentication workflows
+*   `npm run mcp:demo` - Run demonstration of MCP capabilities

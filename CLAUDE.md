@@ -126,22 +126,69 @@ src/
 - **Bundle Size**: Use direct imports for better tree-shaking
 
 ## Puppeteer MCP Integration
-- **Authentication**: Use bypass method for reliable automated testing
-- **Bypass Setup**: Set `VITE_DEV_AUTH_BYPASS=true` in `.env.local` for development
-- **MCP Usage**: Use `mcp__puppeteer-*__puppeteer_login` with `method: "bypass"` parameter
+The project includes comprehensive Puppeteer MCP integration for automated browser testing and interaction. The system provides multiple authentication methods and robust error handling for reliable automated testing.
+
+### MCP Servers Available
+- **puppeteer-hisma**: Professional-grade Puppeteer MCP server (v0.6.5)
+- **puppeteer-custom**: Project-specific custom server with enhanced utilities
+- **MCP Tools**: `puppeteer_navigate`, `puppeteer_screenshot`, `puppeteer_click`, `puppeteer_fill`, `puppeteer_evaluate`, `puppeteer_login`, `puppeteer_logout`, `puppeteer_auth_status`
+
+### Authentication Methods
+- **Development Bypass**: Set `VITE_DEV_AUTH_BYPASS=true` in `.env.local` for instant authentication
+- **Test Credentials**: Use `TEST_USER_EMAIL=test@localhost.dev` and `TEST_USER_PASSWORD=TestPassword123!`
+- **MCP Login**: Use `mcp__puppeteer-*__puppeteer_login` with `method: "bypass"` parameter
 - **Session Management**: Bypass injects mock user data into browser session storage
+
+### Environment Configuration
+```bash
+# Development Bypass
+VITE_DEV_AUTH_BYPASS=true
+VITE_DEV_USER_EMAIL=dev@localhost
+VITE_DEV_USER_NAME=Development User
+
+# Test Credentials  
+TEST_USER_EMAIL=test@localhost.dev
+TEST_USER_PASSWORD=TestPassword123!
+TEST_USER_DISPLAY_NAME=Test User
+
+# Puppeteer Settings
+PUPPETEER_TEST_URL=http://localhost:3000
+PUPPETEER_HEADLESS=true
+```
+
+### Development Scripts
+- `npm run mcp:workflow test` - Run comprehensive MCP tests
+- `npm run mcp:validate` - Validate MCP configuration
+- `npm run mcp:demo` - Run demonstration workflow
+- `npm run auth:test` - Test authentication system
+- `npm run auth:demo` - Run authentication demo
+
+### Puppeteer MCP Best Practices
+- **Single Action Per Call**: Limit each MCP call to one specific action (navigate, click, fill, etc.)
+- **State Verification**: Always verify expected state after each action before proceeding  
+- **Timeout Management**: Set appropriate timeouts (5-30 seconds) for each operation
+- **Loop Prevention**: Avoid recursive task chains; use explicit step-by-step workflows
+- **Auth First**: Always establish bypass authentication before attempting other actions
 - **Work Chunking**: Break Puppeteer tasks into small, discrete steps to avoid infinite loops
 - **Error Recovery**: Implement timeouts and fallbacks for each Puppeteer action
 - **Screenshot Verification**: Take screenshots between major steps to verify progress
 - **Task Isolation**: Complete one specific task before moving to the next
-
-### Puppeteer MCP Best Practices
-- **Single Action Per Call**: Limit each MCP call to one specific action (navigate, click, fill, etc.)
-- **State Verification**: Always verify expected state after each action before proceeding
-- **Timeout Management**: Set appropriate timeouts (5-30 seconds) for each operation
-- **Loop Prevention**: Avoid recursive task chains; use explicit step-by-step workflows
-- **Auth First**: Always establish bypass authentication before attempting other actions
 - **Error Boundaries**: Wrap Puppeteer sequences in try-catch blocks with recovery strategies
+
+### Common Usage Patterns
+```bash
+# Basic testing workflow
+claude "Navigate to localhost:3000, authenticate with bypass method, screenshot the dashboard, and test main features"
+
+# Authentication flow testing  
+claude "Test complete auth flow: check status, login with test credentials, verify authentication, then logout"
+
+# Feature testing with screenshots
+claude "Login to app, navigate to interactive module editor, test creating hotspots, screenshot each step"
+
+# Mobile responsive testing
+claude "Set mobile viewport, navigate to app, authenticate, test touch interactions, screenshot mobile view"
+```
 
 ## Known Limitations & Architecture Notes
 - **Large Datasets**: Image files and large hotspot collections may impact performance

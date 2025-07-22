@@ -24,6 +24,11 @@ npm run dev
 // Production build  
 npm run build
 
+// MCP testing and validation
+npm run mcp:workflow test
+npm run mcp:validate
+npm run auth:test
+
 ## Before Making Changes
 // Read CLAUDE.md first - contains essential project architecture
 // Check existing patterns in similar components
@@ -108,6 +113,44 @@ vitest.config.ts  # Vitest test runner configuration
 // Implement transactions for data consistency
 // Always include proper error handling for network operations
 // Use Firebase emulator for local development
+
+## MCP Integration & Browser Automation
+// Puppeteer MCP servers configured: puppeteer-hisma and puppeteer-custom
+// Authentication bypass available: VITE_DEV_AUTH_BYPASS=true
+// Test credentials: TEST_USER_EMAIL=test@localhost.dev
+
+### MCP Development Workflow
+// Validate MCP configuration before testing
+npm run mcp:validate
+
+// Test authentication system 
+npm run auth:test
+
+// Run MCP demonstration
+npm run mcp:demo
+
+// Debug MCP server issues
+npm run mcp:workflow debug-hisma
+
+### Authentication Setup for Testing
+// Quick development bypass in .env.local:
+VITE_DEV_AUTH_BYPASS=true
+VITE_DEV_USER_EMAIL=dev@localhost
+VITE_DEV_USER_NAME=Development User
+
+// Test user credentials:
+TEST_USER_EMAIL=test@localhost.dev
+TEST_USER_PASSWORD=TestPassword123!
+
+### MCP Usage Patterns
+// Claude can use these MCP tools for browser automation:
+// puppeteer_navigate, puppeteer_screenshot, puppeteer_click, 
+// puppeteer_fill, puppeteer_login, puppeteer_logout, puppeteer_auth_status
+
+// Example Claude commands:
+// "Navigate to localhost:3000, login with bypass method, test hotspots"
+// "Screenshot the mobile version after setting mobile viewport"
+// "Test authentication flow: login, verify, logout"
 
 ## Event System
 // Follow InteractionType enum for hotspot events
