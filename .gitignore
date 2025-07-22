@@ -40,7 +40,18 @@ test-*.md
 *-test.md
 *-verification.md
 
+# Environment and credentials files
+.env.local
+.env.*.local
+.env.test
+.env.development
+test-credentials.json
+
 # Puppeteer test artifacts
 *-screenshot.png
 page_content*.html
 test-screenshot.png
+authenticated-session.png
+screenshots/
+test-screenshots/
+puppeteer-*.png

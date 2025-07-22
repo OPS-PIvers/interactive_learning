@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@hisma/server-puppeteer"],
+      "env": {
+        "PUPPETEER_LAUNCH_OPTIONS": "{\"headless\": true, \"args\": [\"--no-sandbox\", \"--disable-dev-shm-usage\", \"--disable-setuid-sandbox\"]}",
+        "ALLOW_DANGEROUS": "true"
+      }
+    }
+  }
+}

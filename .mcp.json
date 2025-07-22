@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "puppeteer-custom": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "scripts/mcp-puppeteer-server.js"
+      ],
+      "env": {}
+    }
+  }
+}

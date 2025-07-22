@@ -34,19 +34,46 @@ export async function createPage(browser, viewport = defaultViewport) {
   return page;
 }
 
-// Navigate to URL with error handling
+// Navigate to URL with enhanced error handling
 export async function navigateToUrl(page, url, options = {}) {
   const defaultOptions = {
-    waitUntil: 'networkidle2',
+    waitUntil: 'networkidle0',
     timeout: 30000
   };
   
   try {
-    await page.goto(url, { ...defaultOptions, ...options });
-    return true;
+    const response = await page.goto(url, { ...defaultOptions, ...options });
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
+    
+    if (!response.ok()) {
+      throw new Error(`HTTP ${response.status()}: ${response.statusText()}`);
+    }
+    
+    return { success: true, status: response.status(), url: response.url() };
   } catch (error) {
+    const errorInfo = {
+      success: false,
+      error: error.message,
+      type: error.name,
+      url: url
+    };
+    
+    // Classify error types for better handling
+    if (error.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+      errorInfo.category = 'DNS_ERROR';
+    } else if (error.message.includes('Navigation timeout')) {
+      errorInfo.category = 'TIMEOUT_ERROR';
+    } else if (error.message.includes('HTTP')) {
+      errorInfo.category = 'HTTP_ERROR';
+    } else {
+      errorInfo.category = 'UNKNOWN_ERROR';
+    }
+    
     console.error(`Navigation failed: ${error.message}`);
-    return false;
+    return errorInfo;
   }
 }
 
@@ -75,14 +102,108 @@ export async function getPageInfo(page) {
   }
 }
 
-// Wait for element with timeout
-export async function waitForElement(page, selector, timeout = 10000) {
+// Enhanced element waiting with better error handling
+export async function waitForElement(page, selector, options = {}) {
+  const defaultOptions = {
+    timeout: 10000,
+    visible: true
+  };
+  
+  const waitOptions = { ...defaultOptions, ...options };
+  
   try {
-    await page.waitForSelector(selector, { timeout });
-    return true;
+    await page.waitForSelector(selector, waitOptions);
+    return { success: true, selector, found: true };
   } catch (error) {
-    console.error(`Element ${selector} not found: ${error.message}`);
-    return false;
+    // Check if element exists but is not visible
+    const elementExists = await page.$(selector) !== null;
+    
+    const result = {
+      success: false,
+      selector,
+      found: elementExists,
+      error: error.message,
+      category: 'ELEMENT_NOT_FOUND'
+    };
+    
+    if (elementExists && error.message.includes('visible')) {
+      result.category = 'ELEMENT_NOT_VISIBLE';
+    } else if (error.message.includes('timeout')) {
+      result.category = 'TIMEOUT_ERROR';
+    }
+    
+    console.error(`Element ${selector} wait failed: ${error.message}`);
+    return result;
+  }
+}
+
+// Enhanced click function with element detection
+export async function clickElement(page, selector, options = {}) {
+  const defaultOptions = {
+    timeout: 10000,
+    delay: 100
+  };
+  
+  const clickOptions = { ...defaultOptions, ...options };
+  
+  try {
+    // Wait for element to be present and visible
+    const waitResult = await waitForElement(page, selector, { timeout: clickOptions.timeout });
+    if (!waitResult.success) {
+      return waitResult;
+    }
+    
+    // Perform the click
+    await page.click(selector, { delay: clickOptions.delay });
+    
+    return { success: true, selector, action: 'clicked' };
+  } catch (error) {
+    console.error(`Click failed for ${selector}: ${error.message}`);
+    return {
+      success: false,
+      selector,
+      error: error.message,
+      category: 'CLICK_ERROR'
+    };
+  }
+}
+
+// Enhanced form filling function
+export async function fillInput(page, selector, value, options = {}) {
+  const defaultOptions = {
+    timeout: 10000,
+    clearFirst: true
+  };
+  
+  const fillOptions = { ...defaultOptions, ...options };
+  
+  try {
+    // Wait for input element
+    const waitResult = await waitForElement(page, selector, { timeout: fillOptions.timeout });
+    if (!waitResult.success) {
+      return waitResult;
+    }
+    
+    // Clear existing content if requested
+    if (fillOptions.clearFirst) {
+      await page.focus(selector);
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyA');
+      await page.keyboard.up('Control');
+    }
+    
+    // Type the new value
+    await page.type(selector, value);
+    
+    return { success: true, selector, value, action: 'filled' };
+  } catch (error) {
+    console.error(`Fill failed for ${selector}: ${error.message}`);
+    return {
+      success: false,
+      selector,
+      error: error.message,
+      category: 'FILL_ERROR'
+    };
   }
 }
 

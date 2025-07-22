@@ -11,6 +11,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import { DevAuthBypass } from './testAuthUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -42,6 +43,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for development bypass first
+    const devBypass = DevAuthBypass.getInstance();
+    if (devBypass.isEnabled()) {
+      const bypassUser = devBypass.getBypassUser();
+      setUser(bypassUser);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
