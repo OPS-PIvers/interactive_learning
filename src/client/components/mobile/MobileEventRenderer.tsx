@@ -38,7 +38,6 @@ const MODAL_INTERACTIONS = new Set([
   InteractionType.SHOW_MESSAGE,
   InteractionType.QUIZ,
   InteractionType.SHOW_IMAGE,
-  InteractionType.SHOW_IMAGE_MODAL,
   InteractionType.SHOW_VIDEO,
   InteractionType.SHOW_YOUTUBE,
   InteractionType.PLAY_VIDEO,
@@ -379,7 +378,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
         );
       
       case InteractionType.SHOW_IMAGE:
-      case InteractionType.SHOW_IMAGE_MODAL:
         return (
           <MobileImageModal
             key={`image-${event.id}`}

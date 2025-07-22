@@ -65,14 +65,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     textColor: 'text-blue-200'
   },
   {
-    type: InteractionType.SHOW_IMAGE_MODAL,
-    label: 'Image',
-    description: 'Show image modal',
-    color: 'bg-purple-600',
-    hoverColor: 'hover:bg-purple-700',
-    textColor: 'text-purple-200'
-  },
-  {
     type: InteractionType.SHOW_YOUTUBE,
     label: 'YouTube',
     description: 'Play YouTube video',

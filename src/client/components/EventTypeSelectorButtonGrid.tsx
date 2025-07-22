@@ -17,7 +17,6 @@ const defaultMobileEventTypes: InteractionType[] = [
   InteractionType.SHOW_TEXT,
   InteractionType.SPOTLIGHT,
   InteractionType.PAN_ZOOM,
-  InteractionType.SHOW_IMAGE_MODAL,
   InteractionType.PLAY_VIDEO, // Use the modern video player instead of legacy SHOW_VIDEO
   InteractionType.PLAY_AUDIO, // Use the modern audio player instead of legacy SHOW_AUDIO_MODAL
   InteractionType.QUIZ,

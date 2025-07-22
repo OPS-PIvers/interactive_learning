@@ -69,13 +69,24 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
       type: newEventType,
       targetId: selectedHotspot.id,
       // Set default values based on event type
-      ...(newEventType === InteractionType.PAN_ZOOM_TO_HOTSPOT && { zoomFactor: 2.0 }),
+      ...(newEventType === InteractionType.PAN_ZOOM_TO_HOTSPOT && { 
+        zoomFactor: 2.0,
+        targetX: selectedHotspot.x,
+        targetY: selectedHotspot.y
+      }),
+      ...(newEventType === InteractionType.PAN_ZOOM && { 
+        targetX: selectedHotspot.x,
+        targetY: selectedHotspot.y
+      }),
+      ...(newEventType === InteractionType.SPOTLIGHT && { 
+        spotlightX: selectedHotspot.x,
+        spotlightY: selectedHotspot.y
+      }),
       ...(newEventType === InteractionType.HIGHLIGHT_HOTSPOT && { highlightRadius: 60 }),
       ...(newEventType === InteractionType.PULSE_HOTSPOT && { duration: 2000 }),
       ...(newEventType === InteractionType.SHOW_MESSAGE && { message: '' }),
       ...(newEventType === InteractionType.SHOW_VIDEO && { videoUrl: '', autoplay: false }),
       ...(newEventType === InteractionType.SHOW_AUDIO_MODAL && { audioUrl: '', autoplay: false }),
-      ...(newEventType === InteractionType.SHOW_IMAGE_MODAL && { imageUrl: '' }),
       ...(newEventType === InteractionType.SHOW_YOUTUBE && { youtubeVideoId: '', autoplay: false })
     };
 

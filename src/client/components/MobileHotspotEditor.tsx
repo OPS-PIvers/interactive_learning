@@ -153,6 +153,20 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         isSubjective: false,
         quizShuffleOptions: false,
       }),
+      // Initialize coordinates for positioning events
+      ...(type === InteractionType.PAN_ZOOM_TO_HOTSPOT && { 
+        zoomFactor: 2.0,
+        targetX: hotspot.x,
+        targetY: hotspot.y
+      }),
+      ...(type === InteractionType.PAN_ZOOM && { 
+        targetX: hotspot.x,
+        targetY: hotspot.y
+      }),
+      ...(type === InteractionType.SPOTLIGHT && { 
+        spotlightX: hotspot.x,
+        spotlightY: hotspot.y
+      }),
     };
     onAddTimelineEvent(newEvent);
     if (type === InteractionType.PLAY_VIDEO || type === InteractionType.PLAY_AUDIO || type === InteractionType.QUIZ) {

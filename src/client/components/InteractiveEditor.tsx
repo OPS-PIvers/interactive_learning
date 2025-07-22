@@ -203,12 +203,19 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
         return event;
       }
 
-      if (event.type === InteractionType.SPOTLIGHT) {
+      // Update spotlight coordinates for spotlight-based events
+      if (event.type === InteractionType.SPOTLIGHT || event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
         return { ...event, spotlightX: position.x, spotlightY: position.y };
       }
 
-      if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+      // Update target coordinates for pan-zoom events
+      if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT || event.type === InteractionType.PAN_ZOOM) {
         return { ...event, targetX: position.x, targetY: position.y };
+      }
+
+      // Update text position for text-based events
+      if (event.type === InteractionType.SHOW_TEXT || event.type === InteractionType.SHOW_MESSAGE) {
+        return { ...event, textX: position.x, textY: position.y };
       }
 
       return event;

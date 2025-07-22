@@ -423,7 +423,21 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
                 type,
                 targetId: hotspot?.id || '',
                 step: currentStep,
-                duration: 2000
+                duration: 2000,
+                // Initialize coordinates for positioning events
+                ...(type === InteractionType.PAN_ZOOM_TO_HOTSPOT && { 
+                  zoomFactor: 2.0,
+                  targetX: hotspot?.x || 50,
+                  targetY: hotspot?.y || 50
+                }),
+                ...(type === InteractionType.PAN_ZOOM && { 
+                  targetX: hotspot?.x || 50,
+                  targetY: hotspot?.y || 50
+                }),
+                ...(type === InteractionType.SPOTLIGHT && { 
+                  spotlightX: hotspot?.x || 50,
+                  spotlightY: hotspot?.y || 50
+                })
               };
               onAddTimelineEvent(newEvent);
               setShowEventTypeSelector(false);

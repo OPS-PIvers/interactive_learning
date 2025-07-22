@@ -41,7 +41,6 @@ const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) =
     { type: InteractionType.SHOW_TEXT, label: 'Text Display' },
     { type: InteractionType.PLAY_VIDEO, label: 'Video' },
     { type: InteractionType.PLAY_AUDIO, label: 'Audio' },
-    { type: InteractionType.SHOW_IMAGE_MODAL, label: 'Image Modal' },
     { type: InteractionType.QUIZ, label: 'Quiz Question' },
     { type: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
   ];
@@ -227,10 +226,6 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
       
       // === OTHER PROPERTIES ===
-      ...(type === InteractionType.SHOW_IMAGE_MODAL && {
-        imageUrl: '',
-        caption: '',
-      }),
       
       ...(type === InteractionType.QUIZ && {
         quizQuestion: 'Enter your question',

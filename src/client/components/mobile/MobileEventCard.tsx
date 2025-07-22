@@ -14,7 +14,6 @@ interface MobileEventCardProps {
 const getEventIcon = (type: InteractionType) => {
   const iconMap: Record<InteractionType, string> = {
     [InteractionType.SHOW_TEXT]: '💬',
-    [InteractionType.SHOW_IMAGE_MODAL]: '🖼️',
     [InteractionType.SHOW_VIDEO]: '🎥',
     [InteractionType.SHOW_AUDIO_MODAL]: '🎵',
     [InteractionType.SHOW_YOUTUBE]: '📺',
