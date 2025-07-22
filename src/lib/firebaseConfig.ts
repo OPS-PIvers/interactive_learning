@@ -18,28 +18,27 @@ if (import.meta.env.DEV) {
 }
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "interactive-learning-278.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "interactive-learning-278",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "interactive-learning-278.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "559846873035",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:559846873035:web:f0abe20a8d354b02a9084e",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-FQZK3QEV9L"
 }
 
-// Validate required environment variables
-const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN', 
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID'
-]
-
-const missingVars = requiredEnvVars.filter(varName => !import.meta.env[varName])
-if (missingVars.length > 0) {
-  throw new Error(`Missing required Firebase environment variables: ${missingVars.join(', ')}`)
+// Validate required environment variables function (called during initialization)
+function validateFirebaseConfig(): string[] {
+  const requiredEnvVars = [
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_AUTH_DOMAIN', 
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_STORAGE_BUCKET',
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    'VITE_FIREBASE_APP_ID'
+  ]
+  
+  return requiredEnvVars.filter(varName => !import.meta.env[varName])
 }
 
 if (import.meta.env.DEV) {

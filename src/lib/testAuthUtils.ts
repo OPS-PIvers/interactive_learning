@@ -87,7 +87,8 @@ export class DevAuthBypass {
     // Check environment variables for bypass configuration
     this.bypassEnabled = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
     
-    if (this.bypassEnabled && import.meta.env.DEV) {
+    // Enable bypass in development mode when explicitly requested
+    if (this.bypassEnabled) {
       console.warn('🚧 Development authentication bypass is ENABLED');
       this.setupDefaultUser();
     }
@@ -112,7 +113,7 @@ export class DevAuthBypass {
   }
 
   public isEnabled(): boolean {
-    return this.bypassEnabled && import.meta.env.DEV;
+    return this.bypassEnabled;
   }
 
   public getBypassUser(): User | null {

@@ -10,7 +10,7 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { auth, firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
 
 interface AuthContextType {
