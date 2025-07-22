@@ -87,10 +87,23 @@ export class DevAuthBypass {
     // Check environment variables for bypass configuration
     this.bypassEnabled = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
     
+    // Also check session storage for runtime bypass (set by Puppeteer)
+    if (typeof window !== 'undefined') {
+      const sessionBypass = sessionStorage.getItem('dev-auth-bypass') === 'true';
+      if (sessionBypass) {
+        this.bypassEnabled = true;
+      }
+    }
+    
     // Enable bypass in development mode when explicitly requested
     if (this.bypassEnabled) {
       console.warn('🚧 Development authentication bypass is ENABLED');
       this.setupDefaultUser();
+      
+      // Listen for Puppeteer bypass events
+      if (typeof window !== 'undefined') {
+        window.addEventListener('dev-auth-bypass', this.handleBypassEvent.bind(this));
+      }
     }
   }
 
@@ -102,14 +115,38 @@ export class DevAuthBypass {
   }
 
   private setupDefaultUser(): void {
-    const userData = {
-      uid: import.meta.env.VITE_DEV_USER_ID || TEST_USERS.DEVELOPER.uid,
-      email: import.meta.env.VITE_DEV_USER_EMAIL || TEST_USERS.DEVELOPER.email,
-      displayName: import.meta.env.VITE_DEV_USER_NAME || TEST_USERS.DEVELOPER.displayName,
-      emailVerified: true
-    };
+    // Check session storage first (for Puppeteer-injected user)
+    let userData;
+    if (typeof window !== 'undefined') {
+      const sessionUser = sessionStorage.getItem('dev-user');
+      if (sessionUser) {
+        try {
+          userData = JSON.parse(sessionUser);
+        } catch (e) {
+          console.warn('Failed to parse session user data');
+        }
+      }
+    }
+    
+    // Fall back to environment variables
+    if (!userData) {
+      userData = {
+        uid: import.meta.env.VITE_DEV_USER_ID || TEST_USERS.DEVELOPER.uid,
+        email: import.meta.env.VITE_DEV_USER_EMAIL || TEST_USERS.DEVELOPER.email,
+        displayName: import.meta.env.VITE_DEV_USER_NAME || TEST_USERS.DEVELOPER.displayName,
+        emailVerified: true
+      };
+    }
     
     this.currentUser = createMockUser(userData);
+  }
+
+  private handleBypassEvent(event: CustomEvent): void {
+    if (event.detail?.enabled && event.detail?.user) {
+      this.bypassEnabled = true;
+      this.currentUser = createMockUser(event.detail.user);
+      console.warn('🔧 Dev bypass activated by Puppeteer:', this.currentUser.email);
+    }
   }
 
   public isEnabled(): boolean {

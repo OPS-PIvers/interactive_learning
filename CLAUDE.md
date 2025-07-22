@@ -125,9 +125,28 @@ src/
 - **Touch Events**: Coordinate between user gestures and automated events
 - **Bundle Size**: Use direct imports for better tree-shaking
 
+## Puppeteer MCP Integration
+- **Authentication**: Use bypass method for reliable automated testing
+- **Bypass Setup**: Set `VITE_DEV_AUTH_BYPASS=true` in `.env.local` for development
+- **MCP Usage**: Use `mcp__puppeteer-*__puppeteer_login` with `method: "bypass"` parameter
+- **Session Management**: Bypass injects mock user data into browser session storage
+- **Work Chunking**: Break Puppeteer tasks into small, discrete steps to avoid infinite loops
+- **Error Recovery**: Implement timeouts and fallbacks for each Puppeteer action
+- **Screenshot Verification**: Take screenshots between major steps to verify progress
+- **Task Isolation**: Complete one specific task before moving to the next
+
+### Puppeteer MCP Best Practices
+- **Single Action Per Call**: Limit each MCP call to one specific action (navigate, click, fill, etc.)
+- **State Verification**: Always verify expected state after each action before proceeding
+- **Timeout Management**: Set appropriate timeouts (5-30 seconds) for each operation
+- **Loop Prevention**: Avoid recursive task chains; use explicit step-by-step workflows
+- **Auth First**: Always establish bypass authentication before attempting other actions
+- **Error Boundaries**: Wrap Puppeteer sequences in try-catch blocks with recovery strategies
+
 ## Known Limitations & Architecture Notes
 - **Large Datasets**: Image files and large hotspot collections may impact performance
 - **Touch Coordination**: Complex gesture coordination between pan/zoom and hotspot interaction
 - **Firebase Setup**: Firebase emulator setup required for local development and testing
 - **Legacy Support**: Maintaining backward compatibility while evolving the event system
 - **Mobile Viewport**: iOS Safari viewport quirks require specialized handling
+- **Puppeteer Stability**: Complex automation sequences can become unstable; chunk work appropriately
