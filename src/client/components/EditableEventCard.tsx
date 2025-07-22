@@ -699,7 +699,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               if (
                 event.type === InteractionType.PLAY_AUDIO ||
                 event.type === InteractionType.PLAY_VIDEO ||
-                event.type === InteractionType.PAN_ZOOM
+                event.type === InteractionType.PAN_ZOOM ||
+                event.type === InteractionType.SPOTLIGHT ||
+                event.type === InteractionType.HIGHLIGHT_HOTSPOT
               ) {
                 onEdit();
               } else {
@@ -710,14 +712,18 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
             aria-label={
               event.type === InteractionType.PLAY_AUDIO ||
               event.type === InteractionType.PLAY_VIDEO ||
-              event.type === InteractionType.PAN_ZOOM
+              event.type === InteractionType.PAN_ZOOM ||
+              event.type === InteractionType.SPOTLIGHT ||
+              event.type === InteractionType.HIGHLIGHT_HOTSPOT
                 ? 'Edit Event Settings'
                 : 'Edit Title'
             }
           >
             {event.type === InteractionType.PLAY_AUDIO ||
             event.type === InteractionType.PLAY_VIDEO ||
-            event.type === InteractionType.PAN_ZOOM ? (
+            event.type === InteractionType.PAN_ZOOM ||
+            event.type === InteractionType.SPOTLIGHT ||
+            event.type === InteractionType.HIGHLIGHT_HOTSPOT ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4"
