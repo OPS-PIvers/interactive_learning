@@ -6,6 +6,7 @@ import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { ShareIcon } from './icons/ShareIcon';
 import ShareModal from './ShareModal';
+import { normalizeFirebaseUrl, addFirebaseImageCORS, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
 
 interface ProjectCardProps {
   project: Project;
@@ -22,14 +23,32 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDe
     setIsShareModalOpen(true);
   };
 
+  const handleThumbnailLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    addFirebaseImageCORS(img);
+    logFirebaseImageLoad(img.src, true, `ProjectCard thumbnail for ${project.title}`);
+  };
+
+  const handleThumbnailError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    logFirebaseImageLoad(img.src, false, `ProjectCard thumbnail for ${project.title}`);
+    img.src = 'https://picsum.photos/400/250?grayscale';
+  };
+
+  // Normalize the thumbnail URL if it exists
+  const thumbnailSrc = project.thumbnailUrl 
+    ? normalizeFirebaseUrl(project.thumbnailUrl)
+    : 'https://picsum.photos/400/250?grayscale&blur=1';
+
   return (
     <>
       <div className="bg-slate-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ease-in-out hover:shadow-purple-500/30 hover:scale-105 flex flex-col">
         <img
-          src={project.thumbnailUrl || 'https://picsum.photos/400/250?grayscale&blur=1'}
+          src={thumbnailSrc}
           alt={project.title}
           className="w-full h-48 object-cover bg-slate-700"
-          onError={(e) => (e.currentTarget.src = 'https://picsum.photos/400/250?grayscale')}
+          onLoad={handleThumbnailLoad}
+          onError={handleThumbnailError}
         />
         <div className="p-5 flex flex-col flex-grow">
           <h3 className="text-xl font-semibold text-white mb-2 truncate" title={project.title}>{project.title}</h3>
