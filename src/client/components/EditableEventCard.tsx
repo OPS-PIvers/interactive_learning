@@ -40,7 +40,6 @@ const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
         return 'pan-zoom';
       case InteractionType.SHOW_TEXT:
         return 'text';
-      case InteractionType.SHOW_IMAGE_MODAL:
       case InteractionType.SHOW_VIDEO: // Covers SHOW_VIDEO and SHOW_VIDEO_MODAL conceptually for the toggle
       case InteractionType.SHOW_YOUTUBE:
         return 'media';
@@ -242,33 +241,6 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                    className={`${inputBaseClasses} min-h-[60px]`}
                    placeholder="Enter text content..."
                    rows={3}
-                 />
-               </div>
-             </div>
-           );
-         case InteractionType.SHOW_IMAGE_MODAL:
-           return (
-             <div className="space-y-3 mt-2">
-               <div>
-                 <label htmlFor={`imageUrl-${event.id}`} className="block text-xs font-medium text-slate-300 dark:text-slate-400 mb-1">Image URL</label>
-                 <input
-                   id={`imageUrl-${event.id}`}
-                   type="url"
-                   value={event.imageUrl || ''}
-                   onChange={(e) => onUpdate({ ...event, imageUrl: e.target.value })}
-                   className={inputBaseClasses}
-                   placeholder="https://example.com/image.jpg"
-                 />
-               </div>
-               <div>
-                 <label htmlFor={`caption-${event.id}`} className="block text-xs font-medium text-slate-300 dark:text-slate-400 mb-1">Caption (Optional)</label>
-                 <input
-                   id={`caption-${event.id}`}
-                   type="text"
-                   value={event.caption || ''}
-                   onChange={(e) => onUpdate({ ...event, caption: e.target.value })}
-                   className={inputBaseClasses}
-                   placeholder="Optional: Image caption"
                  />
                </div>
              </div>
