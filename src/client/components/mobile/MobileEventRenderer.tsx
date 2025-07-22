@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, Fragment } from 'react';
-import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobilePanZoomHandler from './MobilePanZoomHandler';
@@ -11,12 +11,14 @@ import MobileAudioModal from './MobileAudioModal';
 
 interface MobileEventRendererProps {
   events: TimelineEventData[];
+  hotspots: HotspotData[]; // ADD: hotspots prop for unified positioning
+  imageElement: HTMLImageElement | null; // ADD: image element for positioning
   onEventComplete?: (eventId: string) => void;
   imageContainerRef: React.RefObject<HTMLElement>;
   isActive: boolean;
-  // Add these for coordination
-  currentTransform?: { scale: number; translateX: number; translateY: number };
-  onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
+  // Transform coordination
+  currentTransform?: ImageTransformState;
+  onTransformUpdate?: (transform: ImageTransformState) => void;
   isGestureActive?: boolean;
   isVisible?: boolean; // Controls visibility without affecting hook execution
   // New props for enhanced timeline navigation
@@ -56,6 +58,8 @@ const VISUAL_OVERLAY_EVENTS = new Set([
 
 export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
   events,
+  hotspots, // ADD
+  imageElement, // ADD
   onEventComplete,
   imageContainerRef,
   isActive,
@@ -284,6 +288,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`spotlight-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
+            hotspots={hotspots} // ADD: Pass hotspots for unified positioning
+            imageElement={imageElement} // ADD: Pass image element for positioning
             onComplete={handleComplete}
           />
         );
@@ -483,6 +489,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`highlight-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
+            hotspots={hotspots} // ADD: Pass hotspots for unified positioning
+            imageElement={imageElement} // ADD: Pass image element for positioning
             onComplete={handleComplete}
           />
         );

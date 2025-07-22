@@ -1,17 +1,22 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { TimelineEventData, InteractionType, HotspotData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
+import { getSpotlightPosition, debugMobilePositioning } from '../../utils/unifiedMobilePositioning';
 
 interface MobileSpotlightOverlayProps {
   event: TimelineEventData;
   containerRef: React.RefObject<HTMLElement>;
   onComplete: () => void;
+  hotspots?: HotspotData[]; // ADD: hotspots prop to get target hotspot
+  imageElement?: HTMLImageElement | null; // ADD: image element ref
 }
 
 const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
   event,
   containerRef,
-  onComplete
+  onComplete,
+  hotspots = [], // ADD
+  imageElement // ADD
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -46,22 +51,51 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
+    // Find the target hotspot
+    const targetHotspot = hotspots.find(h => h.id === event.targetId);
+    if (!targetHotspot) {
+      console.error('MobileSpotlightOverlay: Target hotspot not found:', event.targetId);
+      handleComplete();
+      return;
+    }
+
     setIsVisible(true);
     triggerHapticFeedback('light');
 
     // Animation parameters
-    const dimPercentage = event.dimPercentage || 70;
-    const radius = event.highlightRadius || 80;
-    const shape = event.highlightShape || 'circle';
+    const spotlightWidth = event.spotlightWidth || 150;
+    const spotlightHeight = event.spotlightHeight || 150;
+    const shape = event.spotlightShape || 'circle';
+    const dimPercentage = event.backgroundDimPercentage || 70;
     
-    let spotlightX = event.spotlightX || 50;
-    let spotlightY = event.spotlightY || 50;
-    let spotlightWidth = event.spotlightWidth || radius * 2;
-    let spotlightHeight = event.spotlightHeight || radius * 2;
+    // USE UNIFIED POSITIONING - This ensures perfect alignment with hotspots
+    const positionResult = getSpotlightPosition(
+      targetHotspot,
+      imageElement || null,
+      container,
+      {
+        customX: event.spotlightX, // Allow custom positioning if specified
+        customY: event.spotlightY,
+        width: spotlightWidth,
+        height: spotlightHeight
+      }
+    );
+
+    if (!positionResult.isValid) {
+      console.error('MobileSpotlightOverlay: Could not calculate valid position');
+      handleComplete();
+      return;
+    }
+
+    // Debug logging
+    if (localStorage.getItem('debug_mobile_positioning') === 'true') {
+      debugMobilePositioning(targetHotspot, imageElement || null, container, 'MobileSpotlight');
+    }
+
+    const { spotlightRect } = positionResult;
 
     // Animation state
     let currentOpacity = 0;
-    let currentRadius = 0;
     const targetOpacity = dimPercentage / 100;
     const animationDuration = 500; // ms
     const startTime = Date.now();
@@ -74,7 +108,6 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
       const easeOutCubic = 1 - Math.pow(1 - progress, 3);
       
       currentOpacity = targetOpacity * easeOutCubic;
-      currentRadius = radius * easeOutCubic;
 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -83,38 +116,64 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
       ctx.fillStyle = `rgba(0, 0, 0, ${currentOpacity})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Calculate spotlight position relative to container
-      const containerRect = container.getBoundingClientRect();
-      const centerX = containerRect.left + (spotlightX / 100) * containerRect.width;
-      const centerY = containerRect.top + (spotlightY / 100) * containerRect.height;
-
-      // Create spotlight cutout
+      // Create spotlight cutout using UNIFIED POSITIONING
       ctx.save();
       ctx.globalCompositeOperation = 'destination-out';
       
       if (shape === 'circle') {
+        const radius = Math.min(spotlightWidth, spotlightHeight) / 2;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2);
+        ctx.arc(
+          spotlightRect.x + spotlightWidth / 2,
+          spotlightRect.y + spotlightHeight / 2,
+          radius * easeOutCubic,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
       } else {
-        // Rectangle spotlight
-        const rectX = centerX - spotlightWidth / 2;
-        const rectY = centerY - spotlightHeight / 2;
-        ctx.fillRect(rectX, rectY, spotlightWidth, spotlightHeight);
+        // Rectangle or oval spotlight
+        const currentWidth = spotlightWidth * easeOutCubic;
+        const currentHeight = spotlightHeight * easeOutCubic;
+        const rectX = spotlightRect.x + (spotlightWidth - currentWidth) / 2;
+        const rectY = spotlightRect.y + (spotlightHeight - currentHeight) / 2;
+        
+        if (shape === 'oval') {
+          ctx.beginPath();
+          ctx.ellipse(
+            spotlightRect.x + spotlightWidth / 2,
+            spotlightRect.y + spotlightHeight / 2,
+            currentWidth / 2,
+            currentHeight / 2,
+            0,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+        } else {
+          ctx.fillRect(rectX, rectY, currentWidth, currentHeight);
+        }
       }
       
       ctx.restore();
 
-      // Add soft edge
-      ctx.globalCompositeOperation = 'source-over';
-      const gradient = ctx.createRadialGradient(
-        centerX, centerY, currentRadius * 0.8,
-        centerX, centerY, currentRadius * 1.2
-      );
-      gradient.addColorStop(0, 'transparent');
-      gradient.addColorStop(1, `rgba(0, 0, 0, ${currentOpacity})`);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Add soft edge for circle shape
+      if (shape === 'circle') {
+        ctx.globalCompositeOperation = 'source-over';
+        const radius = Math.min(spotlightWidth, spotlightHeight) / 2;
+        const centerX = spotlightRect.x + spotlightWidth / 2;
+        const centerY = spotlightRect.y + spotlightHeight / 2;
+        const currentRadius = radius * easeOutCubic;
+        
+        const gradient = ctx.createRadialGradient(
+          centerX, centerY, currentRadius * 0.8,
+          centerX, centerY, currentRadius * 1.2
+        );
+        gradient.addColorStop(0, 'transparent');
+        gradient.addColorStop(1, `rgba(0, 0, 0, ${currentOpacity})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);

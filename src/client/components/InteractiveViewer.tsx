@@ -7,6 +7,7 @@ import MobileEventRenderer from './mobile/MobileEventRenderer';
 import DesktopEventRenderer from './desktop/DesktopEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
 import '../styles/mobile-events.css';
+import { debugMobilePositioning } from '../utils/unifiedMobilePositioning';
 
 // Lazy load timeline component
 const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
@@ -68,6 +69,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   
   // Refs
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const imageElementRef = useRef<HTMLImageElement>(null);
   const viewerTimelineRef = useRef<HTMLDivElement>(null);
   
   // Transform constraints and utilities
@@ -344,6 +346,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                   )}
                   {backgroundImage && (
                     <img
+                      ref={imageElementRef}
                       src={backgroundImage}
                       alt="Interactive content background"
                       className="w-full h-full object-contain"
@@ -441,6 +444,8 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
           {isMobile && (
             <MobileEventRenderer
               events={mobileActiveEvents}
+              hotspots={hotspots}
+              imageElement={imageElementRef.current}
               onEventComplete={handleMobileEventComplete}
               imageContainerRef={imageContainerRef}
               isActive={moduleState === 'learning' || moduleState === 'exploring'}
