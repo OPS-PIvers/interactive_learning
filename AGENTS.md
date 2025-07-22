@@ -143,11 +143,11 @@ TEST_USER_EMAIL=test@localhost.dev
 TEST_USER_PASSWORD=TestPassword123!
 
 ### MCP Usage Patterns
-// Claude can use these MCP tools for browser automation:
+// Agent can use these MCP tools for browser automation:
 // puppeteer_navigate, puppeteer_screenshot, puppeteer_click, 
 // puppeteer_fill, puppeteer_login, puppeteer_logout, puppeteer_auth_status
 
-// Example Claude commands:
+// Example commands:
 // "Navigate to localhost:3000, login with bypass method, test hotspots"
 // "Screenshot the mobile version after setting mobile viewport"
 // "Test authentication flow: login, verify, logout"
