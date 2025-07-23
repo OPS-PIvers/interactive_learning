@@ -201,7 +201,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
       
       // === UNIFIED SPOTLIGHT PROPERTIES ===
-      ...((type === InteractionType.SPOTLIGHT || type === InteractionType.HIGHLIGHT_HOTSPOT) && {
+      ...(type === InteractionType.SPOTLIGHT && {
         spotlightShape: 'circle',
         spotlightX: localHotspot.x,
         spotlightY: localHotspot.y, 

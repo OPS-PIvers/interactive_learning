@@ -222,7 +222,7 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
     }
     
     // Additional processing for spotlight events that might be missing spotlight coordinates
-    if ((migratedEvent.type === InteractionType.SPOTLIGHT || migratedEvent.type === InteractionType.HIGHLIGHT_HOTSPOT) &&
+    if (migratedEvent.type === InteractionType.SPOTLIGHT &&
         (!migratedEvent.spotlightX || !migratedEvent.spotlightY) &&
         migratedEvent.targetId) {
       
@@ -252,8 +252,7 @@ export const eventNeedsMigration = (event: TimelineEventData): boolean => {
     'SHOW_YOUTUBE',
     'SHOW_VIDEO',
     'SHOW_AUDIO_MODAL',
-    'SHOW_MESSAGE',
-    'HIGHLIGHT_HOTSPOT'
+    'SHOW_MESSAGE'
   ];
   
   return deprecatedTypes.includes(event.type as string);
@@ -275,8 +274,6 @@ export const getMigrationInfo = (event: TimelineEventData): { needsMigration: bo
       return { needsMigration: true, targetType: InteractionType.PLAY_AUDIO, description: 'Unified audio playback with display options' };
     case 'SHOW_MESSAGE':
       return { needsMigration: true, targetType: InteractionType.SHOW_TEXT, description: 'Unified text display with positioning' };
-    case 'HIGHLIGHT_HOTSPOT':
-      return { needsMigration: true, targetType: InteractionType.SPOTLIGHT, description: 'Unified spotlight with shape and dimming controls' };
     default:
       return { needsMigration: false };
   }

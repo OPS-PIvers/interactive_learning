@@ -49,7 +49,6 @@ const MODAL_INTERACTIONS = new Set([
 // Separate visual overlay events from modal events
 const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.SPOTLIGHT,
-  InteractionType.HIGHLIGHT_HOTSPOT,
   InteractionType.PULSE_HOTSPOT,
   InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
@@ -473,7 +472,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
         );
       
       case InteractionType.PULSE_HOTSPOT:
-      case InteractionType.HIGHLIGHT_HOTSPOT:
       case InteractionType.PULSE_HIGHLIGHT:
         return (
           <MobileSpotlightOverlay

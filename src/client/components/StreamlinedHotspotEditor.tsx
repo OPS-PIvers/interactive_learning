@@ -139,11 +139,10 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
 
   const getEventIcon = (type: InteractionType) => {
     const icons: Record<InteractionType, string> = {
-      [InteractionType.HIDE_HOTSPOT]: 'Hide',
       [InteractionType.PULSE_HOTSPOT]: 'Pulse',
       [InteractionType.SHOW_MESSAGE]: 'Text',
       [InteractionType.PAN_ZOOM_TO_HOTSPOT]: 'Zoom',
-      [InteractionType.HIGHLIGHT_HOTSPOT]: 'Spotlight'
+      [InteractionType.SPOTLIGHT]: 'Spotlight'
     };
     return icons[type] || 'Event';
   };
@@ -409,8 +408,8 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
       targetX: hotspot.x,
       targetY: hotspot.y,
     }),
-    // Set spotlight coordinates for spotlight/highlight events based on hotspot position
-    ...((event?.type === InteractionType.SPOTLIGHT || event?.type === InteractionType.HIGHLIGHT_HOTSPOT) && {
+    // Set spotlight coordinates for spotlight events based on hotspot position
+    ...(event?.type === InteractionType.SPOTLIGHT && {
       spotlightX: hotspot.x,
       spotlightY: hotspot.y,
     }),
@@ -471,23 +470,6 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
           </div>
         );
       
-      case InteractionType.HIGHLIGHT_HOTSPOT:
-        return (
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Highlight Radius (px)</label>
-            <input
-              type="range"
-              min="20"
-              max="200"
-              step="5"
-              value={formData.highlightRadius || 60}
-              onChange={(e) => setFormData(prev => ({ ...prev, highlightRadius: parseInt(e.target.value) }))}
-              className="w-full event-slider"
-            />
-            <div className="text-xs text-slate-400 mt-1">{formData.highlightRadius || 60}px</div>
-          </div>
-        );
-      
       default:
         return null;
     }
@@ -536,8 +518,8 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
                   zoomLevel: 2,
                   smooth: true,
                 }),
-                // Set spotlight coordinates when switching to spotlight/highlight events
-                ...((newType === InteractionType.SPOTLIGHT || newType === InteractionType.HIGHLIGHT_HOTSPOT) && {
+                // Set spotlight coordinates when switching to spotlight events
+                ...(newType === InteractionType.SPOTLIGHT && {
                   spotlightX: hotspot.x,
                   spotlightY: hotspot.y,
                   spotlightShape: 'circle',
@@ -552,7 +534,7 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
             <option value={InteractionType.PULSE_HOTSPOT}>Pulse Hotspot</option>
             <option value={InteractionType.SHOW_MESSAGE}>Show Message</option>
             <option value={InteractionType.PAN_ZOOM_TO_HOTSPOT}>Pan & Zoom</option>
-            <option value={InteractionType.HIGHLIGHT_HOTSPOT}>Highlight</option>
+            <option value={InteractionType.SPOTLIGHT}>Spotlight</option>
           </select>
         </div>
 

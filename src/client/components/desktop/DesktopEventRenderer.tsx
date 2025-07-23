@@ -40,7 +40,6 @@ const MODAL_INTERACTIONS = new Set([
 
 const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.SPOTLIGHT,
-  InteractionType.HIGHLIGHT_HOTSPOT,
   InteractionType.PULSE_HOTSPOT,
   InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
@@ -342,7 +341,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
       // These would require more complex positioning logic
       case InteractionType.SPOTLIGHT:
       case InteractionType.PULSE_HOTSPOT:
-      case InteractionType.HIGHLIGHT_HOTSPOT:
       case InteractionType.PULSE_HIGHLIGHT:
         // For desktop, we'll just complete these events immediately
         // TODO: Implement desktop visual overlays in future

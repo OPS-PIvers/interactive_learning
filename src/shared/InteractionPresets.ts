@@ -149,26 +149,5 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     color: 'bg-gray-400',
     settings: [],
     description: 'Legacy: Display a message (use Show Text instead).'
-  },
-  [InteractionType.HIGHLIGHT_HOTSPOT]: {
-    icon: '💡',
-    name: 'Legacy Highlight Hotspot',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Legacy: Highlight a hotspot (use Spotlight instead).'
-  },
-  [InteractionType.SHOW_IMAGE_MODAL]: {
-    icon: '🖼️',
-    name: 'Legacy Show Image Modal',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Legacy: Display an image in a modal (use Show Image instead).'
-  },
-  [InteractionType.HIDE_HOTSPOT]: {
-    icon: '🚫',
-    name: 'Legacy Hide Hotspot',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Legacy: Hide a hotspot.'
   }
 };
