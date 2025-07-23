@@ -329,9 +329,6 @@ export async function createAuthenticatedSession(options = {}) {
   try {
     // Navigate to the app
     console.log(`🌐 Navigating to ${url}`);
-    page.on('request', request => console.log(`Request: ${request.method()} ${request.url()}`));
-    page.on('response', response => console.log(`Response: ${response.status()} ${response.url()}`));
-    page.on('requestfailed', request => console.log(`Request failed: ${request.method()} ${request.url()}`));
     const navResult = await navigateToUrl(page, url);
     if (!navResult.success) {
       throw new Error(`Navigation failed: ${navResult.error}`);

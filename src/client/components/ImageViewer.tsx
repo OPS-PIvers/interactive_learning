@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTouchGestures } from '../hooks/useTouchGestures';
-import { ImageTransformState, TimelineEvent, TimelineEventData } from '../../shared/types';
+import { ImageTransformState, TimelineEventData } from '../../shared/types';
 import { useIsMobile } from '../hooks/useIsMobile'; // For instruction text
-import { getActualImageVisibleBounds } from '../utils/imageUtils';
 import { calculatePanZoomTransform } from '../utils/panZoomUtils';
 
 interface ImageViewerProps {
