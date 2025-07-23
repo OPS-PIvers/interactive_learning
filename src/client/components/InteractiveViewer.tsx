@@ -8,6 +8,7 @@ import DesktopEventRenderer from './desktop/DesktopEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
 import '../styles/mobile-events.css';
 import { debugMobilePositioning } from '../utils/unifiedMobilePositioning';
+import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 // Lazy load timeline component
 const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
@@ -362,13 +363,37 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   const hotspotsWithPositions = useMemo(() => {
     if (!backgroundImage) return [];
     
-    // For viewer mode, always use percentage positioning for consistent behavior
-    // across different screen sizes and zoom levels
-    return hotspots.map(hotspot => ({
-      ...hotspot,
-      pixelPosition: null // Use percentage positioning
-    }));
-  }, [hotspots, backgroundImage]);
+    // For viewer mode, use pixel positioning to ensure perfect alignment
+    // with pan/zoom and spotlight events
+    return hotspots.map(hotspot => {
+      // Calculate pixel position using the same system as events
+      let pixelPosition = null;
+      
+      if (imageElementRef.current && imageContainerRef.current) {
+        const visibleImageBounds = getActualImageVisibleBounds(
+          imageElementRef.current, 
+          imageContainerRef.current
+        );
+        
+        if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
+          // Convert percentage to pixel position within visible image area
+          const imageContentX = (hotspot.x / 100) * visibleImageBounds.width;
+          const imageContentY = (hotspot.y / 100) * visibleImageBounds.height;
+          
+          // Add image offset within container to get container-relative coordinates
+          pixelPosition = {
+            x: visibleImageBounds.x + imageContentX,
+            y: visibleImageBounds.y + imageContentY
+          };
+        }
+      }
+      
+      return {
+        ...hotspot,
+        pixelPosition
+      };
+    });
+  }, [hotspots, backgroundImage, imageElementRef.current, imageContainerRef.current]);
 
   // Current viewer modes state
   const [currentViewerModes] = useState(() => ({
@@ -473,7 +498,8 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                           <HotspotViewer
                             hotspot={hotspot}
                             pixelPosition={hotspot.pixelPosition}
-                            usePixelPositioning={false}
+                            usePixelPositioning={true}
+                            imageElement={imageElementRef.current}
                             isPulsing={moduleState === 'learning' && pulsingHotspotId === hotspot.id}
                             isDimmedInEditMode={false}
                             isEditing={false}

@@ -1,0 +1,5 @@
+The coordinates (x, y, targetX, spotlightX) appear to consistently represent the center of the object relative to the image's actual content. The discrepancy arises because the hotspot elements are positioned as percentages of their parent container, which might include empty space due to the <img> tag's object-contain property. The pan/zoom animation, on the other hand, correctly calculates its target based on the actual visible image content.
+
+To fix this, the HotspotViewer in viewer mode should also calculate its exact pixel position relative to the imageContainerRef (the parent holding the <img>) by first determining the image's visibleImageBounds and then converting hotspot.x and hotspot.y (content percentages) into pixel values within that container, and then apply those pixel values using left: ...px and top: ...px while retaining the transform: translate(-50%, -50%).
+
+You have the necessary utility (getActualImageVisibleBounds) and the pixelPosition prop on HotspotViewer to implement this more accurate positioning in viewer mode.
