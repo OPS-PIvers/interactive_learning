@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTouchGestures } from '../hooks/useTouchGestures';
-import { ImageTransformState } from '../../shared/types';
+import { ImageTransformState, TimelineEventData } from '../../shared/types';
 import { useIsMobile } from '../hooks/useIsMobile'; // For instruction text
-import { getActualImageVisibleBounds } from '../utils/imageUtils';
+import { calculatePanZoomTransform } from '../utils/panZoomUtils';
 
 interface ImageViewerProps {
   src: string;
@@ -246,47 +246,27 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     if (focusHotspotTarget && imageRef.current && containerRef.current && imageLoaded) {
       const { xPercent, yPercent, targetScale: explicitTargetScale } = focusHotspotTarget;
 
-      const img = imageRef.current;
       const container = containerRef.current;
-
-      const visibleBounds = getActualImageVisibleBounds(img, container);
-      if (!visibleBounds) return;
+      const containerRect = container.getBoundingClientRect();
 
       const focusScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, explicitTargetScale || DEFAULT_HOTSPOT_FOCUS_SCALE));
 
-      // Calculate the hotspot's position in pixels relative to the *visible* image area.
-      const hotspotVisibleX = (xPercent / 100) * visibleBounds.width;
-      const hotspotVisibleY = (yPercent / 100) * visibleBounds.height;
+      // Create a mock event to pass to the calculation utility
+      const mockEvent: Partial<TimelineEventData> = {
+        targetX: xPercent,
+        targetY: yPercent,
+        zoomLevel: focusScale,
+      };
 
-      // The hotspot's absolute position within the container is its position relative to the
-      // visible image, plus the offset of the visible image itself.
-      const hotspotContainerX = visibleBounds.x + hotspotVisibleX;
-      const hotspotContainerY = visibleBounds.y + hotspotVisibleY;
+      const newTransform = calculatePanZoomTransform(mockEvent as TimelineEventData, containerRect);
 
-      // To center this point in the container, we need to translate the image.
-      // The new translation will be the container's center minus the scaled hotspot position.
-      const containerCenterX = container.clientWidth / 2;
-      const containerCenterY = container.clientHeight / 2;
-
-      // The image's top-left will be moved. The hotspot we want to center is at
-      // (hotspotContainerX, hotspotContainerY) in the unscaled container. After scaling, this
-      // point will be at (hotspotContainerX * focusScale, hotspotContainerY * focusScale).
-      // We want this scaled point to be at the container's center.
-      // So, newTranslate + (hotspotContainerX * focusScale) = containerCenter.
-      // newTranslate = containerCenter - (hotspotContainerX * focusScale).
-
-      const newTranslateX = containerCenterX - (hotspotContainerX * focusScale);
-      const newTranslateY = containerCenterY - (hotspotContainerY * focusScale);
-
-      if (isTransformingViaTouch) {
-        // As before, assuming parent component coordinates this.
+      if (!isTransformingViaTouch) {
+        setImageTransform({
+          scale: newTransform.scale,
+          translateX: newTransform.translateX,
+          translateY: newTransform.translateY,
+        });
       }
-
-      setImageTransform({
-        scale: focusScale,
-        translateX: newTranslateX,
-        translateY: newTranslateY,
-      });
 
       if (onFocusAnimationComplete) {
         setTimeout(() => {

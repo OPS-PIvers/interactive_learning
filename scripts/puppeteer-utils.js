@@ -38,7 +38,7 @@ export async function createPage(browser, viewport = defaultViewport) {
 export async function navigateToUrl(page, url, options = {}) {
   const defaultOptions = {
     waitUntil: 'networkidle0',
-    timeout: 30000
+    timeout: 60000
   };
   
   try {
