@@ -199,18 +199,38 @@ export const migrateSingleEvent = (event: TimelineEventData): TimelineEventData 
 
 // Enhanced migration function that can set target coordinates for pan & zoom events
 export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotspots: HotspotData[]): TimelineEventData[] => {
+  console.log('[migrateEventTypesWithHotspots] Starting migration:', {
+    eventsCount: events.length,
+    hotspotsCount: hotspots.length,
+    events: events.map(e => ({ id: e.id, type: e.type, targetId: e.targetId, hasCoords: !!(e.targetX || e.targetY || e.spotlightX || e.spotlightY) }))
+  });
+
   return events.map(event => {
     // First apply the standard migration
     const migratedEvent = migrateEventTypes([event])[0];
     
     // Additional processing for pan & zoom events that might be missing target coordinates
     if ((migratedEvent.type === InteractionType.PAN_ZOOM || migratedEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
-        (!migratedEvent.targetX || !migratedEvent.targetY) &&
+        (migratedEvent.targetX === undefined || migratedEvent.targetY === undefined) &&
         migratedEvent.targetId) {
+      
+      console.log('[migrateEventTypesWithHotspots] Processing PAN_ZOOM event:', {
+        eventId: migratedEvent.id,
+        eventType: migratedEvent.type,
+        targetId: migratedEvent.targetId,
+        currentTargetX: migratedEvent.targetX,
+        currentTargetY: migratedEvent.targetY
+      });
       
       // Find the target hotspot to get its coordinates
       const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
       if (targetHotspot) {
+        console.log('[migrateEventTypesWithHotspots] Found target hotspot, assigning coordinates:', {
+          hotspotId: targetHotspot.id,
+          hotspotX: targetHotspot.x,
+          hotspotY: targetHotspot.y
+        });
+        
         return {
           ...migratedEvent,
           targetX: targetHotspot.x,
@@ -218,17 +238,36 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
           zoomLevel: migratedEvent.zoomLevel || 2,
           smooth: migratedEvent.smooth !== false,
         };
+      } else {
+        console.warn('[migrateEventTypesWithHotspots] Target hotspot not found:', {
+          targetId: migratedEvent.targetId,
+          availableHotspots: hotspots.map(h => h.id)
+        });
       }
     }
     
     // Additional processing for spotlight events that might be missing spotlight coordinates
     if (migratedEvent.type === InteractionType.SPOTLIGHT &&
-        (!migratedEvent.spotlightX || !migratedEvent.spotlightY) &&
+        (migratedEvent.spotlightX === undefined || migratedEvent.spotlightY === undefined) &&
         migratedEvent.targetId) {
+      
+      console.log('[migrateEventTypesWithHotspots] Processing SPOTLIGHT event:', {
+        eventId: migratedEvent.id,
+        eventType: migratedEvent.type,
+        targetId: migratedEvent.targetId,
+        currentSpotlightX: migratedEvent.spotlightX,
+        currentSpotlightY: migratedEvent.spotlightY
+      });
       
       // Find the target hotspot to get its coordinates
       const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
       if (targetHotspot) {
+        console.log('[migrateEventTypesWithHotspots] Found target hotspot, assigning spotlight coordinates:', {
+          hotspotId: targetHotspot.id,
+          hotspotX: targetHotspot.x,
+          hotspotY: targetHotspot.y
+        });
+        
         return {
           ...migratedEvent,
           spotlightX: targetHotspot.x,
@@ -237,6 +276,11 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
           backgroundDimPercentage: migratedEvent.backgroundDimPercentage || 70,
           spotlightOpacity: 0,
         };
+      } else {
+        console.warn('[migrateEventTypesWithHotspots] Target hotspot not found for spotlight:', {
+          targetId: migratedEvent.targetId,
+          availableHotspots: hotspots.map(h => h.id)
+        });
       }
     }
     
