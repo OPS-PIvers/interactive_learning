@@ -54,21 +54,78 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
 
     let targetX = event.targetX;
     let targetY = event.targetY;
+    
+    console.log('[MobilePanZoomHandler] Initial coordinates from event:', {
+      eventId: event.id,
+      eventType: event.type,
+      targetX,
+      targetY,
+      hasTargetId: !!event.targetId,
+      targetId: event.targetId
+    });
 
-    if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && hotspots && imageElement) {
+    // For PAN_ZOOM_TO_HOTSPOT, use unified positioning system
+    if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && event.targetId && hotspots && imageElement) {
       const targetHotspot = hotspots.find(h => h.id === event.targetId);
+      console.log('[MobilePanZoomHandler] Looking for target hotspot:', {
+        targetId: event.targetId,
+        hotspotFound: !!targetHotspot,
+        availableHotspots: hotspots.map(h => ({ id: h.id, x: h.x, y: h.y }))
+      });
+      
       if (targetHotspot) {
         const position = getUnifiedMobilePosition({
           hotspot: targetHotspot,
           imageElement,
           containerElement: containerRef.current,
         });
-        if (position.isValid) {
-          targetX = (position.imageX / position.imageBounds.width) * 100;
-          targetY = (position.imageY / position.imageBounds.height) * 100;
+        
+        console.log('[MobilePanZoomHandler] Unified positioning result:', {
+          isValid: position.isValid,
+          hotspotCoords: { x: targetHotspot.x, y: targetHotspot.y },
+          unifiedPosition: position.isValid ? {
+            imageX: position.imageX,
+            imageY: position.imageY,
+            imageBounds: position.imageBounds
+          } : 'INVALID'
+        });
+        
+        if (position.isValid && position.imageBounds.width > 0 && position.imageBounds.height > 0) {
+          const newTargetX = (position.imageX / position.imageBounds.width) * 100;
+          const newTargetY = (position.imageY / position.imageBounds.height) * 100;
+          
+          console.log('[MobilePanZoomHandler] Coordinate conversion:', {
+            before: { targetX, targetY },
+            after: { targetX: newTargetX, targetY: newTargetY },
+            imageBounds: position.imageBounds
+          });
+          
+          targetX = newTargetX;
+          targetY = newTargetY;
+        } else {
+          console.warn('[MobilePanZoomHandler] Invalid unified position or zero image bounds, using fallback coordinates');
         }
+      } else {
+        console.warn('[MobilePanZoomHandler] Target hotspot not found, using event coordinates as fallback');
       }
     }
+    
+    // Safety check for undefined coordinates
+    if (targetX === undefined || targetY === undefined) {
+      console.warn('[MobilePanZoomHandler] Undefined coordinates detected, using center as fallback:', {
+        originalX: targetX,
+        originalY: targetY,
+        eventId: event.id
+      });
+      targetX = targetX ?? 50;
+      targetY = targetY ?? 50;
+    }
+    
+    console.log('[MobilePanZoomHandler] Final coordinates for pan/zoom:', {
+      eventId: event.id,
+      finalX: targetX,
+      finalY: targetY
+    });
 
     const newTransform = calculatePanZoomTransform(
       { ...event, targetX, targetY }, 

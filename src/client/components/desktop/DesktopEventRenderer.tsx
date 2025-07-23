@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { TimelineEventData, InteractionType, HotspotData } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
 import { createResetTransform } from '../../utils/panZoomUtils';
 import DesktopTextModal from './DesktopTextModal';
@@ -8,9 +8,11 @@ import DesktopImageModal from './DesktopImageModal';
 import DesktopVideoModal from './DesktopVideoModal';
 import DesktopAudioModal from './DesktopAudioModal';
 import DesktopPanZoomHandler from './DesktopPanZoomHandler';
+import DesktopSpotlightOverlay from './DesktopSpotlightOverlay';
 
 interface DesktopEventRendererProps {
   events: TimelineEventData[];
+  hotspots?: HotspotData[];
   imageElement?: HTMLImageElement | null;
   onEventComplete?: (eventId: string) => void;
   imageContainerRef: React.RefObject<HTMLElement>;
@@ -49,6 +51,7 @@ const VISUAL_OVERLAY_EVENTS = new Set([
 
 export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
   events,
+  hotspots = [],
   imageElement,
   onEventComplete,
   imageContainerRef,
@@ -350,15 +353,33 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
 
-      // For now, other visual overlay events are not implemented for desktop
-      // These would require more complex positioning logic
       case InteractionType.SPOTLIGHT:
+        return (
+          <DesktopSpotlightOverlay
+            key={`spotlight-${event.id}`}
+            event={event}
+            containerRef={imageContainerRef}
+            hotspots={hotspots}
+            imageElement={imageElement}
+            onComplete={handleComplete}
+          />
+        );
+      
       case InteractionType.PULSE_HOTSPOT:
       case InteractionType.PULSE_HIGHLIGHT:
-        // For desktop, we'll just complete these events immediately
-        // TODO: Implement desktop visual overlays in future
-        setTimeout(handleComplete, 0); // Avoid setState during render
-        return null;
+        // Use spotlight overlay for pulse effects on desktop
+        return (
+          <DesktopSpotlightOverlay
+            key={`pulse-${event.id}`}
+            event={event}
+            containerRef={imageContainerRef}
+            hotspots={hotspots}
+            imageElement={imageElement}
+            onComplete={handleComplete}
+          />
+        );
+        
+        // TODO: Implement dedicated pulse effects in future
       
       case InteractionType.HIDE_HOTSPOT:
         // Hide hotspot events are handled automatically by the parent component

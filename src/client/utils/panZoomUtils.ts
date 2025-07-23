@@ -17,6 +17,21 @@ export const calculatePanZoomTransform = (
   const targetX = event.targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
   const targetY = event.targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
   const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
+  
+  console.log('[calculatePanZoomTransform] Input parameters:', {
+    eventId: event.id,
+    eventType: event.type,
+    rawTargetX: event.targetX,
+    rawTargetY: event.targetY,
+    rawSpotlightX: event.spotlightX,
+    rawSpotlightY: event.spotlightY,
+    resolvedTargetX: targetX,
+    resolvedTargetY: targetY,
+    zoomLevel,
+    hasImageElement: !!imageElement,
+    hasContainerElement: !!containerElement,
+    containerRect: { width: containerRect.width, height: containerRect.height }
+  });
 
   let targetPixelX: number;
   let targetPixelY: number;
@@ -25,6 +40,12 @@ export const calculatePanZoomTransform = (
   // This ensures perfect alignment with hotspot positions (same as spotlight effect)
   if (imageElement && containerElement) {
     const imageBounds = getActualImageVisibleBounds(imageElement, containerElement);
+    
+    console.log('[calculatePanZoomTransform] Image bounds calculation:', {
+      hasImageBounds: !!imageBounds,
+      imageBounds: imageBounds || 'NULL'
+    });
+    
     if (imageBounds) {
       // Convert percentage to pixel position within image content area
       const imageContentX = (targetX / 100) * imageBounds.width;
@@ -33,15 +54,34 @@ export const calculatePanZoomTransform = (
       // Add image offset within container to get container-relative coordinates
       targetPixelX = imageBounds.x + imageContentX;
       targetPixelY = imageBounds.y + imageContentY;
+      
+      console.log('[calculatePanZoomTransform] Image-based positioning:', {
+        percentageCoords: { targetX, targetY },
+        imageBounds,
+        imageContentCoords: { imageContentX, imageContentY },
+        finalPixelCoords: { targetPixelX, targetPixelY }
+      });
     } else {
       // Fallback to container-relative positioning
       targetPixelX = (targetX / 100) * containerRect.width;
       targetPixelY = (targetY / 100) * containerRect.height;
+      
+      console.log('[calculatePanZoomTransform] Container fallback positioning (no image bounds):', {
+        percentageCoords: { targetX, targetY },
+        containerRect: { width: containerRect.width, height: containerRect.height },
+        finalPixelCoords: { targetPixelX, targetPixelY }
+      });
     }
   } else {
     // Fallback to container-relative positioning when image elements not available
     targetPixelX = (targetX / 100) * containerRect.width;
     targetPixelY = (targetY / 100) * containerRect.height;
+    
+    console.log('[calculatePanZoomTransform] Container-only positioning (no image/container elements):', {
+      percentageCoords: { targetX, targetY },
+      containerRect: { width: containerRect.width, height: containerRect.height },
+      finalPixelCoords: { targetPixelX, targetPixelY }
+    });
   }
 
   // Calculate the translation needed to center the target point in the viewport.
@@ -51,13 +91,23 @@ export const calculatePanZoomTransform = (
   // This accounts for how the target coordinates scale when the image is zoomed.
   const translateX = containerRect.width / 2 - targetPixelX * zoomLevel;
   const translateY = containerRect.height / 2 - targetPixelY * zoomLevel;
-
-  return {
+  
+  const result = {
     scale: zoomLevel,
     translateX,
     translateY,
     targetHotspotId: event.targetId,
   };
+  
+  console.log('[calculatePanZoomTransform] Final transform calculation:', {
+    eventId: event.id,
+    targetPixelCoords: { targetPixelX, targetPixelY },
+    viewportCenter: { x: containerRect.width / 2, y: containerRect.height / 2 },
+    zoomLevel,
+    finalTransform: result
+  });
+
+  return result;
 };
 
 /**

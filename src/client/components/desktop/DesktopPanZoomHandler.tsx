@@ -44,12 +44,27 @@ const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
     setIsActive(true);
 
     const containerRect = containerRef.current.getBoundingClientRect();
+    
+    console.log('[DesktopPanZoomHandler] Starting pan/zoom calculation:', {
+      eventId: event.id,
+      eventType: event.type,
+      targetX: event.targetX,
+      targetY: event.targetY,
+      hasImageElement: !!imageElement,
+      containerRect: { width: containerRect.width, height: containerRect.height }
+    });
+    
     const newTransform = calculatePanZoomTransform(
       event, 
       containerRect, 
       imageElement, 
       containerRef.current
     );
+    
+    console.log('[DesktopPanZoomHandler] Transform calculated:', {
+      eventId: event.id,
+      newTransform
+    });
 
     // Apply the new transform
     setTimeout(() => {

@@ -529,6 +529,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
           {!isMobile && (
             <DesktopEventRenderer
               events={desktopActiveEvents}
+              hotspots={hotspots}
               imageElement={imageElementRef.current}
               onEventComplete={handleDesktopEventComplete}
               imageContainerRef={imageContainerRef}
