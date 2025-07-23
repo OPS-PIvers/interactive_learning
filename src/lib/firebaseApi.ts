@@ -346,6 +346,10 @@ export class FirebaseProjectAPI {
       }
       // --- End of Thumbnail logic ---
 
+      // Sanitize data before transaction to make it accessible in cleanup
+      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
+      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
+
       await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
@@ -393,9 +397,6 @@ export class FirebaseProjectAPI {
         }
         
         transaction.set(projectRef, updateData, { merge: true });
-
-        const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
-        const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
 
         const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
         const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');

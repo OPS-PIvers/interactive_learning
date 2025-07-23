@@ -8,7 +8,8 @@ import DesktopEventRenderer from './desktop/DesktopEventRenderer';
 import { Z_INDEX } from '../constants/interactionConstants';
 import '../styles/mobile-events.css';
 import { debugMobilePositioning } from '../utils/unifiedMobilePositioning';
-import { getActualImageVisibleBounds } from '../utils/imageBounds';
+import { getActualImageVisibleBounds, getActualImageVisibleBoundsRelative } from '../utils/imageBounds';
+import { clampToImageBounds, percentageToPixelImageBounds } from '../../lib/safeMathUtils';
 
 // Lazy load timeline component
 const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
@@ -359,41 +360,59 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     }
   }, [currentStep, timelineEvents, moduleState, hotspots, isMobile]);
 
-  // Hotspot positioning calculations
+  // Hotspot positioning calculations - mobile vs desktop aware
   const hotspotsWithPositions = useMemo(() => {
     if (!backgroundImage) return [];
     
-    // For viewer mode, use pixel positioning to ensure perfect alignment
-    // with pan/zoom and spotlight events
     return hotspots.map(hotspot => {
-      // Calculate pixel position using the same system as events
+      // Apply boundary validation to percentage coordinates
+      const clampedPercentage = clampToImageBounds(
+        { x: hotspot.x, y: hotspot.y },
+        { width: 100, height: 100 }, // Not used for percentage clamping
+        'percentage'
+      );
+      
+      const clampedHotspot = {
+        ...hotspot,
+        x: clampedPercentage.x,
+        y: clampedPercentage.y
+      };
+      
       let pixelPosition = null;
       
-      if (imageElementRef.current && imageContainerRef.current) {
-        const visibleImageBounds = getActualImageVisibleBounds(
-          imageElementRef.current, 
-          imageContainerRef.current
-        );
-        
-        if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
-          // Convert percentage to pixel position within visible image area
-          const imageContentX = (hotspot.x / 100) * visibleImageBounds.width;
-          const imageContentY = (hotspot.y / 100) * visibleImageBounds.height;
+      if (isMobile) {
+        // Mobile: Use percentage positioning for consistency across screen sizes
+        // No pixel position needed - will use CSS percentage positioning
+      } else {
+        // Desktop: Use pixel positioning for perfect alignment with events
+        if (imageElementRef.current && imageContainerRef.current) {
+          const visibleImageBounds = getActualImageVisibleBoundsRelative(
+            imageElementRef.current, 
+            imageContainerRef.current
+          );
           
-          // Add image offset within container to get container-relative coordinates
-          pixelPosition = {
-            x: visibleImageBounds.x + imageContentX,
-            y: visibleImageBounds.y + imageContentY
-          };
+          if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
+            // Convert percentage to pixel position within image content area
+            const imagePixelPosition = percentageToPixelImageBounds(
+              { x: clampedHotspot.x, y: clampedHotspot.y },
+              visibleImageBounds
+            );
+            
+            // Add image offset within container to get final container-relative coordinates
+            pixelPosition = {
+              x: visibleImageBounds.x + imagePixelPosition.x,
+              y: visibleImageBounds.y + imagePixelPosition.y
+            };
+          }
         }
       }
       
       return {
-        ...hotspot,
+        ...clampedHotspot,
         pixelPosition
       };
     });
-  }, [hotspots, backgroundImage, imageElementRef.current, imageContainerRef.current]);
+  }, [hotspots, backgroundImage, isMobile, imageElementRef.current, imageContainerRef.current]);
 
   // Current viewer modes state
   const [currentViewerModes] = useState(() => ({
@@ -498,7 +517,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                           <HotspotViewer
                             hotspot={hotspot}
                             pixelPosition={hotspot.pixelPosition}
-                            usePixelPositioning={true}
+                            usePixelPositioning={!isMobile && !!hotspot.pixelPosition}
                             imageElement={imageElementRef.current}
                             isPulsing={moduleState === 'learning' && pulsingHotspotId === hotspot.id}
                             isDimmedInEditMode={false}

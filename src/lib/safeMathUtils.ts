@@ -126,3 +126,83 @@ export const normalizeHotspotPosition = (hotspot: HotspotData): HotspotData => {
     y: Math.max(0, Math.min(100, hotspot.y))
   };
 };
+
+/**
+ * Enhanced coordinate validation and clamping to keep hotspots within image bounds
+ */
+export function clampToImageBounds(
+  position: { x: number; y: number },
+  imageBounds: { width: number; height: number },
+  coordinateType: 'percentage' | 'pixel'
+): { x: number; y: number } {
+  if (coordinateType === 'percentage') {
+    return {
+      x: clamp(position.x, 0, 100),
+      y: clamp(position.y, 0, 100)
+    };
+  } else {
+    return {
+      x: clamp(position.x, 0, imageBounds.width),
+      y: clamp(position.y, 0, imageBounds.height)
+    };
+  }
+}
+
+/**
+ * Validate position and provide clamped fallback if outside image bounds
+ */
+export function validateImageRelativePosition(
+  position: { x: number; y: number },
+  imageBounds: { width: number; height: number },
+  coordinateType: 'percentage' | 'pixel'
+): { isValid: boolean; clampedPosition: { x: number; y: number } } {
+  const clampedPosition = clampToImageBounds(position, imageBounds, coordinateType);
+  
+  const isValid = coordinateType === 'percentage' 
+    ? (position.x >= 0 && position.x <= 100 && position.y >= 0 && position.y <= 100)
+    : (position.x >= 0 && position.x <= imageBounds.width && position.y >= 0 && position.y <= imageBounds.height);
+    
+  return { isValid, clampedPosition };
+}
+
+/**
+ * Convert container-relative pixel coordinates to percentage coordinates 
+ * while ensuring they stay within image bounds
+ */
+export function pixelToPercentageImageBounds(
+  pixelPosition: { x: number; y: number },
+  imageBounds: { width: number; height: number }
+): { x: number; y: number } {
+  if (!isValidImageBounds(imageBounds)) {
+    console.warn('Invalid image bounds provided to pixelToPercentageImageBounds');
+    return { x: 50, y: 50 }; // Default to center
+  }
+
+  const percentagePosition = {
+    x: (pixelPosition.x / imageBounds.width) * 100,
+    y: (pixelPosition.y / imageBounds.height) * 100
+  };
+
+  return clampToImageBounds(percentagePosition, imageBounds, 'percentage');
+}
+
+/**
+ * Convert percentage coordinates to container-relative pixel coordinates
+ * while ensuring they stay within image bounds
+ */
+export function percentageToPixelImageBounds(
+  percentagePosition: { x: number; y: number },
+  imageBounds: { width: number; height: number }
+): { x: number; y: number } {
+  if (!isValidImageBounds(imageBounds)) {
+    console.warn('Invalid image bounds provided to percentageToPixelImageBounds');
+    return { x: 0, y: 0 };
+  }
+
+  const clampedPercentage = clampToImageBounds(percentagePosition, imageBounds, 'percentage');
+  
+  return {
+    x: (clampedPercentage.x / 100) * imageBounds.width,
+    y: (clampedPercentage.y / 100) * imageBounds.height
+  };
+}

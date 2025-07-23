@@ -57,3 +57,55 @@ export const getActualImageVisibleBounds = (
     height: visibleImgHeight,
   };
 };
+
+/**
+ * Gets the actual visible image bounds relative to the container (not viewport).
+ * This is used for image-relative positioning that doesn't change with viewport size.
+ * 
+ * @param imageElement - The image element
+ * @param containerElement - The container element
+ * @returns Image bounds relative to container, or null if invalid
+ */
+export const getActualImageVisibleBoundsRelative = (
+  imageElement: HTMLImageElement | null,
+  containerElement: HTMLElement | null
+): { x: number, y: number, width: number, height: number } | null => {
+  if (!imageElement || !containerElement || !imageElement.naturalWidth || imageElement.naturalWidth === 0 || !imageElement.naturalHeight || imageElement.naturalHeight === 0) {
+    return null;
+  }
+
+  const { naturalWidth, naturalHeight } = imageElement;
+  const imgAspectRatio = naturalWidth / naturalHeight;
+
+  const containerRect = getCachedBoundingClientRect(containerElement);
+
+  if (containerRect.width === 0 || containerRect.height === 0) {
+    return null;
+  }
+
+  let visibleImgWidth = containerRect.width;
+  let visibleImgHeight = containerRect.height;
+
+  const containerAspectRatio = containerRect.width / containerRect.height;
+
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (containerAspectRatio > imgAspectRatio) {
+    // Container is wider than the image, so there will be letterboxing on the sides
+    visibleImgWidth = containerRect.height * imgAspectRatio;
+    offsetX = (containerRect.width - visibleImgWidth) / 2;
+  } else {
+    // Container is taller than the image, so there will be letterboxing on the top and bottom
+    visibleImgHeight = containerRect.width / imgAspectRatio;
+    offsetY = (containerRect.height - visibleImgHeight) / 2;
+  }
+
+  // Return container-relative coordinates (NOT viewport coordinates)
+  return {
+    x: offsetX,  // Offset within container, not including container's viewport position
+    y: offsetY,  // Offset within container, not including container's viewport position
+    width: visibleImgWidth,
+    height: visibleImgHeight,
+  };
+};
