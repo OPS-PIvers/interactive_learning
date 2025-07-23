@@ -259,20 +259,12 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
     const handleTimelineNext = () => {
       if (canGoToNextStep && onNextStep) {
-        // Reset pan & zoom when moving to next step if currently active
-        if (activePanZoomEvent && onTransformUpdate) {
-          onTransformUpdate(createResetTransform());
-        }
         onNextStep();
       }
     };
 
     const handleTimelinePrevious = () => {
       if (canGoToPrevStep && onPrevStep) {
-        // Reset pan & zoom when moving to previous step if currently active
-        if (activePanZoomEvent && onTransformUpdate) {
-          onTransformUpdate(createResetTransform());
-        }
         onPrevStep();
       }
     };
