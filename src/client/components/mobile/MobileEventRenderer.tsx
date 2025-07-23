@@ -310,10 +310,11 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`pan-zoom-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
-            imageElement={imageElement}
             onComplete={handleComplete}
             currentTransform={currentTransform}
             onTransformUpdate={onTransformUpdate}
+            hotspots={hotspots}
+            imageElement={imageElement}
           />
         );
       

@@ -262,7 +262,7 @@ export class PuppeteerAuthHelper {
         timeout: 5000 
       }).catch(() => {
         // If navigation doesn't happen, just wait for DOM to be stable
-        return this.page.waitForTimeout(2000);
+        return new Promise(resolve => setTimeout(resolve, 2000));
       });
       
       // Check if bypass is working by looking for auth indicators
