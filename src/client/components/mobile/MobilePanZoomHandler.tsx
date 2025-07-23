@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { TimelineEventData, ImageTransformState } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
@@ -44,8 +44,35 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     setTimeout(onComplete, 250); // Reduced delay for snappier feel
   }, [onComplete, onTransformUpdate]);
 
+  // Add ref to track last executed event to prevent loops
+  const lastExecutedEventRef = useRef<{
+    eventId: string;
+    timestamp: number;
+  } | null>(null);
+
   useEffect(() => {
     if (!containerRef.current || !onTransformUpdate) return;
+
+    // Loop prevention: Check if we're executing the same event too frequently
+    const now = Date.now();
+    if (lastExecutedEventRef.current) {
+      const isSameEvent = lastExecutedEventRef.current.eventId === event.id;
+      const timeDiff = now - lastExecutedEventRef.current.timestamp;
+      
+      // Prevent executing the same event within 500ms
+      if (isSameEvent && timeDiff < 500) {
+        console.log('[MobilePanZoomHandler] Skipping duplicate event execution within 500ms', {
+          eventId: event.id,
+          timeDiff
+        });
+        return;
+      }
+    }
+
+    lastExecutedEventRef.current = {
+      eventId: event.id,
+      timestamp: now
+    };
 
     setIsActive(true);
     triggerHapticFeedback('medium');
@@ -152,7 +179,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
       clearTimeout(instructionTimer);
       clearTimeout(completionTimer);
     };
-  }, [event, containerRef, handleComplete, onTransformUpdate]);
+  }, [event, containerRef, handleComplete, onTransformUpdate, hotspots, imageElement]);
 
   const handleOverlayClick = useCallback(() => {
     handleComplete();

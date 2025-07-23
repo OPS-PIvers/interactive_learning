@@ -235,6 +235,19 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     setHasUserChosenMode(false);
   }, []);
 
+  // Stable transform update callback to prevent infinite loops
+  const handleTransformUpdate = useCallback((transform: any) => {
+    setImageTransform(prev => ({ ...prev, ...transform }));
+  }, [setImageTransform]);
+
+  // Ref to track last processed step to prevent infinite loops
+  const lastProcessedStepRef = useRef<{
+    step: number;
+    moduleState: string;
+    eventsCount: number;
+    timestamp: number;
+  } | null>(null);
+
   // Process timeline events and activate hotspots based on current step
   useEffect(() => {
     console.log('[InteractiveViewer] Processing step events:', {
@@ -242,6 +255,31 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
       moduleState,
       timelineEventsCount: timelineEvents.length
     });
+
+    // Loop prevention: Check if we're processing the same step too frequently
+    const now = Date.now();
+    const current = {
+      step: currentStep,
+      moduleState,
+      eventsCount: timelineEvents.length,
+      timestamp: now
+    };
+
+    if (lastProcessedStepRef.current) {
+      const last = lastProcessedStepRef.current;
+      const isSameState = last.step === current.step && 
+                          last.moduleState === current.moduleState && 
+                          last.eventsCount === current.eventsCount;
+      const timeDiff = now - last.timestamp;
+      
+      // Prevent processing the same state within 100ms (loop prevention)
+      if (isSameState && timeDiff < 100) {
+        console.log('[InteractiveViewer] Skipping duplicate event processing within 100ms');
+        return;
+      }
+    }
+
+    lastProcessedStepRef.current = current;
 
     const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
     
@@ -500,7 +538,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
               imageContainerRef={imageContainerRef}
               isActive={moduleState === 'learning' || moduleState === 'exploring'}
               currentTransform={imageTransform}
-              onTransformUpdate={(transform) => setImageTransform(prev => ({ ...prev, ...transform }))}
+              onTransformUpdate={handleTransformUpdate}
               isGestureActive={isGestureActive()}
               isVisible={moduleState === 'learning' || moduleState === 'exploring'}
               // New timeline navigation props
@@ -535,7 +573,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
               imageContainerRef={imageContainerRef}
               isActive={moduleState === 'learning' || moduleState === 'exploring'}
               currentTransform={imageTransform}
-              onTransformUpdate={(transform) => setImageTransform(prev => ({ ...prev, ...transform }))}
+              onTransformUpdate={handleTransformUpdate}
               moduleState={moduleState}
               currentStep={currentStep}
               totalSteps={totalTimelineInteractionPoints}

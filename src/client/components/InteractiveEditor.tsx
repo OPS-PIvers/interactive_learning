@@ -192,8 +192,24 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
   }, [hotspots, onHotspotsChange, isMobile]);
 
   const handleRemoveHotspot = useCallback((hotspotId: string) => {
-    onHotspotsChange(hotspots.filter(h => h.id !== hotspotId));
-    onTimelineEventsChange(timelineEvents.filter(e => e.targetId !== hotspotId));
+    console.log('[InteractiveEditor] Removing hotspot:', {
+      hotspotId,
+      beforeCount: hotspots.length,
+      beforeIds: hotspots.map(h => h.id),
+      relatedEvents: timelineEvents.filter(e => e.targetId === hotspotId).length
+    });
+    
+    const filteredHotspots = hotspots.filter(h => h.id !== hotspotId);
+    const filteredEvents = timelineEvents.filter(e => e.targetId !== hotspotId);
+    
+    console.log('[InteractiveEditor] After filtering:', {
+      afterHotspotCount: filteredHotspots.length,
+      afterHotspotIds: filteredHotspots.map(h => h.id),
+      afterEventCount: filteredEvents.length
+    });
+    
+    onHotspotsChange(filteredHotspots);
+    onTimelineEventsChange(filteredEvents);
   }, [hotspots, timelineEvents, onHotspotsChange, onTimelineEventsChange]);
 
   // Helper function to update timeline event coordinates

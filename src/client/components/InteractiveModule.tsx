@@ -80,6 +80,12 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
 
   // Editor callbacks
   const handleSave = useCallback(async () => {
+    console.log('[InteractiveModule] Saving module data:', {
+      hotspotsCount: moduleData.hotspots.length,
+      hotspotIds: moduleData.hotspots.map(h => h.id),
+      eventsCount: moduleData.timelineEvents.length,
+      eventIds: moduleData.timelineEvents.map(e => e.id)
+    });
     await onSave(moduleData);
   }, [onSave, moduleData]);
 

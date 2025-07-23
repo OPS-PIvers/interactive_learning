@@ -406,6 +406,13 @@ export class FirebaseProjectAPI {
         const currentHotspotIds = new Set(sanitizedHotspots.map(h => h.id));
         const currentEventIds = new Set(sanitizedEvents.map(e => e.id));
         
+        debugLog.log(`[FirebaseAPI] Saving project ${project.id}:`, {
+          hotspotsCount: sanitizedHotspots.length,
+          eventsCount: sanitizedEvents.length,
+          hotspotIds: Array.from(currentHotspotIds),
+          eventIds: Array.from(currentEventIds)
+        });
+        
         // Upsert current hotspots and events
         for (const hotspot of sanitizedHotspots) {
           const hotspotRef = doc(hotspotsColRef, hotspot.id!);
@@ -423,12 +430,14 @@ export class FirebaseProjectAPI {
       // Clean up orphaned documents in a separate transaction (after main save succeeds)
       // This is safer than doing it in the same transaction
       try {
+        debugLog.log(`[FirebaseAPI] Starting cleanup for project ${project.id}`);
         await this.cleanupOrphanedSubcollectionDocs(project.id, 
           sanitizedHotspots.map(h => h.id!), 
           sanitizedEvents.map(e => e.id!)
         );
+        debugLog.log(`[FirebaseAPI] Cleanup completed for project ${project.id}`);
       } catch (cleanupError) {
-        debugLog.warn('Cleanup of orphaned documents failed, but main save succeeded:', cleanupError);
+        debugLog.error(`[FirebaseAPI] Failed to clean up orphaned documents for project ${project.id}, but main save succeeded:`, cleanupError);
         // Don't throw - main save was successful
       }
 
@@ -783,6 +792,9 @@ export class FirebaseProjectAPI {
       const currentEventIdSet = new Set(currentEventIds);
       
       // Find orphaned documents
+      const existingHotspotIds = existingHotspotsSnap.docs.map(doc => doc.id);
+      const existingEventIds = existingEventsSnap.docs.map(doc => doc.id);
+      
       const orphanedHotspotRefs = existingHotspotsSnap.docs
         .filter(doc => !currentHotspotIdSet.has(doc.id))
         .map(doc => doc.ref);
@@ -791,14 +803,24 @@ export class FirebaseProjectAPI {
         .filter(doc => !currentEventIdSet.has(doc.id))
         .map(doc => doc.ref);
       
+      debugLog.log(`[FirebaseAPI] Cleanup analysis for project ${projectId}:`, {
+        existingHotspots: existingHotspotIds,
+        currentHotspots: currentHotspotIds,
+        orphanedHotspots: orphanedHotspotRefs.map(ref => ref.id),
+        existingEvents: existingEventIds,
+        currentEvents: currentEventIds,
+        orphanedEvents: orphanedEventRefs.map(ref => ref.id)
+      });
+      
       // Delete orphans in batches (Firestore has a 500 operation limit per transaction)
       const allOrphanedRefs = [...orphanedHotspotRefs, ...orphanedEventRefs];
       
       if (allOrphanedRefs.length === 0) {
+        debugLog.log(`[FirebaseAPI] No orphaned documents to clean up for project ${projectId}`);
         return; // No cleanup needed
       }
       
-      debugLog.log(`Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
+      debugLog.log(`[FirebaseAPI] Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
       
       // Process in batches of 400 to stay under Firestore's 500 operation limit
       const batchSize = 400;
@@ -808,9 +830,12 @@ export class FirebaseProjectAPI {
         await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
           batch.forEach(ref => transaction.delete(ref));
         });
+        
+        debugLog.log(`[FirebaseAPI] Deleted batch of ${batch.length} orphaned documents:`, 
+          batch.map(ref => ref.id));
       }
       
-      debugLog.log(`Successfully cleaned up orphaned documents for project ${projectId}`);
+      debugLog.log(`[FirebaseAPI] Cleanup completed successfully for project ${projectId}`);
       
     } catch (error) {
       debugLog.error(`Error cleaning up orphaned documents for project ${projectId}:`, error);

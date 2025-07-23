@@ -135,6 +135,7 @@ export const useTouchGestures = (
 
   const isPinchingRef = useRef(false);
   const initialPinchDistanceRef = useRef(0);
+  const imageTransformRef = useRef(imageTransform);
 
   const gestureStateRef = useRef<TouchGestureState>({
     startDistance: null,
@@ -532,7 +533,8 @@ export const useTouchGestures = (
     const gestureState = gestureStateRef.current;
     if (!gestureState.animationFrameId) return; // Animation was cancelled
 
-    let currentTransform = imageTransform; // Get the latest transform
+    // Use ref to get current transform to avoid dependency loop
+    let currentTransform = imageTransformRef.current;
 
     // Apply damping
     gestureState.scaleVelocity *= DAMPING_FACTOR;
@@ -584,7 +586,7 @@ export const useTouchGestures = (
     } else {
       gestureState.animationFrameId = requestAnimationFrame(animateStep);
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale]);
+  }, [setImageTransform, setIsTransforming, minScale, maxScale]);
 
   const startMomentumAnimation = useCallback(() => {
     const gestureState = gestureStateRef.current;
@@ -687,6 +689,11 @@ export const useTouchGestures = (
     handlePinchEnd();
   }, [setIsTransforming, isDragging, isEditing, isDragActive, startMomentumAnimation, minScale, maxScale, setImageTransform, disabled]);
 
+  // Keep ref synchronized with state to avoid animation loop
+  useEffect(() => {
+    imageTransformRef.current = imageTransform;
+  }, [imageTransform]);
+
   useEffect(() => {
     return () => {
       if (doubleTapTimeoutRef.current) {
@@ -722,22 +729,30 @@ export const useTouchGestures = (
     return gestureState.isActive || gestureState.isEventActive || isDragging || isEditing || isDragActive;
   }, [isDragging, isEditing, isDragActive]);
 
-  // Add event control methods
+  // Add event control methods with improved coordination
   const setEventActive = useCallback((active: boolean) => {
     const gestureState = gestureStateRef.current;
+    const wasEventActive = gestureState.isEventActive;
     gestureState.isEventActive = active;
     
-    if (active) {
-      // Cancel any ongoing gestures when event takes control
+    if (active && !wasEventActive) {
+      // Event is taking control - cancel any ongoing gestures
+      console.log('[useTouchGestures] Event taking control, canceling gestures');
       cleanupGesture(true); // Preserve event state
+      setIsTransforming(true); // Let the event handle transforming state
+    } else if (!active && wasEventActive) {
+      // Event is releasing control
+      console.log('[useTouchGestures] Event releasing control');
+      setIsTransforming(false);
     }
     
     debugLog.info('Event active state changed', {
       isEventActive: active,
+      wasEventActive,
       wasGestureActive: gestureState.isActive,
       timestamp: Date.now()
     });
-  }, [cleanupGesture]);
+  }, [cleanupGesture, setIsTransforming]);
 
   const isEventActive = useCallback(() => {
     return gestureStateRef.current.isEventActive;
