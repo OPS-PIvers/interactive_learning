@@ -11,6 +11,7 @@ interface InteractiveModuleWrapperProps {
   onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => void;
   onImageUpload: (file: File) => Promise<void>;
   onReloadRequest?: () => void;
+  isPublished?: boolean;
 }
 
 const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
@@ -20,7 +21,8 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   onClose,
   onSave,
   onImageUpload,
-  onReloadRequest
+  onReloadRequest,
+  isPublished
 }) => {
   // ✅ ALWAYS call the same hooks in the same order
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -65,6 +67,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             projectName={selectedProject.title}
             projectId={selectedProject.id}
             onReloadRequest={onReloadRequest}
+            isPublished={isPublished}
           />
         ) : (
           <div className="flex items-center justify-center h-full">

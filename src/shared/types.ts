@@ -275,6 +275,7 @@ export interface InteractiveModuleState {
     selfPaced?: boolean;
     timed?: boolean;
   };
+  isPublished?: boolean;
 }
 
 // Stored in simulated Drive (module_data.json within project folder)
@@ -296,7 +297,7 @@ export interface Project {
   createdAt?: Date;         // When the project was created
   updatedAt?: Date;         // When the project was last updated
   thumbnailUrl?: string;    // URL for project thumbnail image
-  isPublic?: boolean;       // Whether the module is publicly accessible
+  isPublished?: boolean;       // Whether the module is publicly accessible
   interactiveData: InteractiveModuleState;
 }
 

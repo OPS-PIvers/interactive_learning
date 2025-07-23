@@ -123,7 +123,7 @@ export class FirebaseProjectAPI {
           createdAt: projectData.createdAt?.toDate?.() || new Date(),
           updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
           thumbnailUrl: projectData.thumbnailUrl,
-          isPublic: projectData.isPublic || false,
+          isPublished: projectData.isPublished || false,
           interactiveData: {
             backgroundImage: projectData.backgroundImage,
             imageFitMode: projectData.imageFitMode || 'cover',
@@ -159,7 +159,7 @@ export class FirebaseProjectAPI {
       const projectData = projectDoc.data();
       
       // Only return if the project is marked as public
-      if (!projectData.isPublic) {
+      if (!projectData.isPublished) {
         return null;
       }
       
@@ -178,7 +178,7 @@ export class FirebaseProjectAPI {
         createdAt: projectData.createdAt?.toDate?.() || new Date(),
         updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
         thumbnailUrl: projectData.thumbnailUrl,
-        isPublic: projectData.isPublic || false,
+        isPublished: projectData.isPublished || false,
         interactiveData: {
           backgroundImage: projectData.backgroundImage,
           imageFitMode: projectData.imageFitMode || 'cover',
@@ -271,7 +271,7 @@ export class FirebaseProjectAPI {
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
         viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
-        isPublic: false // Default to private
+        isPublished: false // Default to private
         }
       };
       
@@ -283,7 +283,7 @@ export class FirebaseProjectAPI {
         backgroundImage: null, // New projects start with no background image
         imageFitMode: interactiveData.imageFitMode,
         viewerModes: interactiveData.viewerModes,
-        isPublic: false,
+        isPublished: false,
         thumbnailUrl: null, // New projects start with no thumbnail
         createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
         updatedAt: serverTimestamp(),
@@ -373,7 +373,7 @@ export class FirebaseProjectAPI {
           backgroundImage: string | null;
           imageFitMode: string;
           viewerModes: { explore: boolean; selfPaced: boolean; timed: boolean };
-          isPublic: boolean;
+          isPublished: boolean;
           updatedAt: any; // Firestore serverTimestamp
           createdBy: string;
           createdAt?: any; // Optional, only for new projects
@@ -386,7 +386,7 @@ export class FirebaseProjectAPI {
           backgroundImage: newBackgroundImageForUpdate || null,
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
-          isPublic: project.isPublic || false,
+          isPublished: project.isPublished || false,
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy
         };
@@ -880,7 +880,7 @@ export class FirebaseProjectAPI {
     }
   }
 
-  async updateProjectPublicStatus(projectId: string, isPublic: boolean): Promise<void> {
+  async updateProjectPublishedStatus(projectId: string, isPublished: boolean): Promise<void> {
     try {
       const auth = firebaseManager.getAuth();
       const db = firebaseManager.getFirestore();
@@ -901,8 +901,8 @@ export class FirebaseProjectAPI {
         throw new Error('You do not have permission to update this project');
       }
 
-      await setDoc(projectRef, { isPublic, updatedAt: serverTimestamp() }, { merge: true });
-      debugLog.log(`Project ${projectId} public status updated to ${isPublic}`);
+      await setDoc(projectRef, { isPublished, updatedAt: serverTimestamp() }, { merge: true });
+      debugLog.log(`Project ${projectId} public status updated to ${isPublished}`);
     } catch (error) {
       debugLog.error(`Error updating project public status for ${projectId}:`, error);
       throw new Error(`Failed to update project public status: ${error instanceof Error ? error.message : 'Unknown error'}`);

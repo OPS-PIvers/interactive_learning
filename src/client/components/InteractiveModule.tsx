@@ -20,6 +20,7 @@ interface InteractiveModuleProps {
   autoStart?: boolean;
   onReloadRequest?: () => void;
   viewerModes?: ViewerModes;
+  isPublished?: boolean;
 }
 
 const InteractiveModule: React.FC<InteractiveModuleProps> = ({
@@ -34,7 +35,8 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
   theme = 'dark',
   autoStart = false,
   onReloadRequest,
-  viewerModes = { explore: true, selfPaced: true, timed: true }
+  viewerModes = { explore: true, selfPaced: true, timed: true },
+  isPublished = false
 }) => {
   // State management
   const [isInitialized, setIsInitialized] = useState(false);
@@ -147,6 +149,7 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         onBackgroundTypeChange={handleBackgroundTypeChange}
         onBackgroundVideoTypeChange={handleBackgroundVideoTypeChange}
         onImageUpload={onImageUpload}
+        isPublished={isPublished}
       />
     );
   } else {
