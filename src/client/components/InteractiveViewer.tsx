@@ -174,17 +174,37 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
-      resetTransform();
-      setCurrentStep(uniqueSortedSteps[currentStepIndex - 1]);
+      const prevStepIndex = currentStepIndex - 1;
+      const prevStep = uniqueSortedSteps[prevStepIndex];
+      const eventsForPrevStep = timelineEvents.filter(event => event.step === prevStep);
+      const hasPanZoom = eventsForPrevStep.some(event =>
+        event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT
+      );
+
+      if (!hasPanZoom) {
+        resetTransform();
+      }
+
+      setCurrentStep(prevStep);
     }
-  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
+  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, resetTransform]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
-      resetTransform();
-      setCurrentStep(uniqueSortedSteps[currentStepIndex + 1]);
+      const nextStepIndex = currentStepIndex + 1;
+      const nextStep = uniqueSortedSteps[nextStepIndex];
+      const eventsForNextStep = timelineEvents.filter(event => event.step === nextStep);
+      const hasPanZoom = eventsForNextStep.some(event =>
+        event.type === InteractionType.PAN_ZOOM || event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT
+      );
+
+      if (!hasPanZoom) {
+        resetTransform();
+      }
+
+      setCurrentStep(nextStep);
     }
-  }, [currentStepIndex, uniqueSortedSteps, resetTransform]);
+  }, [currentStepIndex, uniqueSortedSteps, timelineEvents, resetTransform]);
 
   const handleMobileEventComplete = useCallback(() => {
     setMobileActiveEvents([]);
