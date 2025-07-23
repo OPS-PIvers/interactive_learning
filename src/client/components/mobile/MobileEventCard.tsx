@@ -18,9 +18,16 @@ const getEventIcon = (type: InteractionType) => {
     [InteractionType.SHOW_AUDIO_MODAL]: '🎵',
     [InteractionType.SHOW_YOUTUBE]: '📺',
     [InteractionType.SPOTLIGHT]: '💡',
-    [InteractionType.PAN_ZOOM]: '🔍',
+    [InteractionType.HIGHLIGHT_HOTSPOT]: '💡',
     [InteractionType.PULSE_HOTSPOT]: '💓',
+    [InteractionType.PULSE_HIGHLIGHT]: '💓',
+    [InteractionType.PAN_ZOOM]: '🔍',
+    [InteractionType.PAN_ZOOM_TO_HOTSPOT]: '🔍',
     [InteractionType.QUIZ]: '❓',
+    [InteractionType.PLAY_AUDIO]: '🎵',
+    [InteractionType.PLAY_VIDEO]: '🎥',
+    [InteractionType.SHOW_IMAGE]: '🖼️',
+    [InteractionType.SHOW_MESSAGE]: '💬',
     // Add other icons as needed
   };
   return iconMap[type] || '⚙️';
