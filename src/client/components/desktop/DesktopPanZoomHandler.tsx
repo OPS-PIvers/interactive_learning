@@ -6,6 +6,7 @@ import { calculatePanZoomTransform, createResetTransform } from '../../utils/pan
 interface DesktopPanZoomHandlerProps {
   event: TimelineEventData;
   containerRef: React.RefObject<HTMLElement>;
+  imageElement?: HTMLImageElement | null;
   onComplete: () => void;
   currentTransform?: ImageTransformState;
   onTransformUpdate?: (transform: ImageTransformState) => void;
@@ -14,6 +15,7 @@ interface DesktopPanZoomHandlerProps {
 const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
   event,
   containerRef,
+  imageElement,
   onComplete,
   onTransformUpdate,
 }) => {
@@ -42,7 +44,12 @@ const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
     setIsActive(true);
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const newTransform = calculatePanZoomTransform(event, containerRect);
+    const newTransform = calculatePanZoomTransform(
+      event, 
+      containerRect, 
+      imageElement, 
+      containerRef.current
+    );
 
     // Apply the new transform
     setTimeout(() => {

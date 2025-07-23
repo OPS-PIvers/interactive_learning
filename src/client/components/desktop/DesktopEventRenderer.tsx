@@ -11,6 +11,7 @@ import DesktopPanZoomHandler from './DesktopPanZoomHandler';
 
 interface DesktopEventRendererProps {
   events: TimelineEventData[];
+  imageElement?: HTMLImageElement | null;
   onEventComplete?: (eventId: string) => void;
   imageContainerRef: React.RefObject<HTMLElement>;
   isActive: boolean;
@@ -48,6 +49,7 @@ const VISUAL_OVERLAY_EVENTS = new Set([
 
 export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
   events,
+  imageElement,
   onEventComplete,
   imageContainerRef,
   isActive,
@@ -164,20 +166,30 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
 
     const handleTimelineNext = () => {
       if (canGoToNextStep && onNextStep) {
+        console.log('[DesktopEventRenderer] Timeline next clicked');
         // Reset pan & zoom when moving to next step if currently active
         if (currentTransform && onTransformUpdate) {
+          console.log('[DesktopEventRenderer] Resetting pan/zoom transform before next step');
           onTransformUpdate(createResetTransform());
         }
+        // Clear modal queue to prevent events from previous step carrying over
+        setModalQueue([]);
+        setCurrentModalIndex(0);
         onNextStep();
       }
     };
 
     const handleTimelinePrevious = () => {
       if (canGoToPrevStep && onPrevStep) {
+        console.log('[DesktopEventRenderer] Timeline previous clicked');
         // Reset pan & zoom when moving to previous step if currently active
         if (currentTransform && onTransformUpdate) {
+          console.log('[DesktopEventRenderer] Resetting pan/zoom transform before previous step');
           onTransformUpdate(createResetTransform());
         }
+        // Clear modal queue to prevent events from previous step carrying over
+        setModalQueue([]);
+        setCurrentModalIndex(0);
         onPrevStep();
       }
     };
@@ -331,6 +343,7 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
             key={`pan-zoom-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
+            imageElement={imageElement}
             onComplete={handleComplete}
             currentTransform={currentTransform}
             onTransformUpdate={onTransformUpdate}

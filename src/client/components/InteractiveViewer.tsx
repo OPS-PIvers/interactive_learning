@@ -163,6 +163,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   }, []);
 
   const handleTimelineDotClick = useCallback((step: number) => {
+    console.log('[InteractiveViewer] Timeline dot clicked:', step);
+    // Clear active events first to prevent overlapping with new step events
+    setMobileActiveEvents([]);
+    setDesktopActiveEvents([]);
+    
     // Reset pan & zoom when moving to a different step
     resetTransform();
     setCurrentStep(step);
@@ -174,6 +179,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
+      console.log('[InteractiveViewer] Moving to previous step');
+      // Clear active events first to prevent overlapping
+      setMobileActiveEvents([]);
+      setDesktopActiveEvents([]);
+      
       const prevStepIndex = currentStepIndex - 1;
       const prevStep = uniqueSortedSteps[prevStepIndex];
       const eventsForPrevStep = timelineEvents.filter(event => event.step === prevStep);
@@ -191,6 +201,11 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex < uniqueSortedSteps.length - 1) {
+      console.log('[InteractiveViewer] Moving to next step');
+      // Clear active events first to prevent overlapping
+      setMobileActiveEvents([]);
+      setDesktopActiveEvents([]);
+      
       const nextStepIndex = currentStepIndex + 1;
       const nextStep = uniqueSortedSteps[nextStepIndex];
       const eventsForNextStep = timelineEvents.filter(event => event.step === nextStep);
@@ -222,6 +237,12 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
 
   // Process timeline events and activate hotspots based on current step
   useEffect(() => {
+    console.log('[InteractiveViewer] Processing step events:', {
+      currentStep,
+      moduleState,
+      timelineEventsCount: timelineEvents.length
+    });
+
     const eventsForCurrentStep = timelineEvents.filter(event => event.step === currentStep);
     
     if (moduleState === 'learning') {
@@ -261,12 +282,21 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         }
       });
       
-      // Set active events for current platform
-      if (isMobile) {
-        setMobileActiveEvents(eventsForCurrentStep);
-      } else {
-        setDesktopActiveEvents(eventsForCurrentStep);
-      }
+      // CRITICAL FIX: Clear previous events before setting new ones to prevent duplication
+      console.log('[InteractiveViewer] Clearing previous events before setting new ones for step:', currentStep);
+      setMobileActiveEvents([]);
+      setDesktopActiveEvents([]);
+      
+      // Small delay to ensure cleanup completes before setting new events
+      setTimeout(() => {
+        console.log('[InteractiveViewer] Setting events for step:', currentStep, 'Events:', eventsForCurrentStep.map(e => ({ id: e.id, type: e.type })));
+        // Set active events for current platform
+        if (isMobile) {
+          setMobileActiveEvents(eventsForCurrentStep);
+        } else {
+          setDesktopActiveEvents(eventsForCurrentStep);
+        }
+      }, 50);
       
       setActiveHotspotDisplayIds(newActiveDisplayIds);
       setPulsingHotspotId(newPulsingHotspotId);
@@ -499,6 +529,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
           {!isMobile && (
             <DesktopEventRenderer
               events={desktopActiveEvents}
+              imageElement={imageElementRef.current}
               onEventComplete={handleDesktopEventComplete}
               imageContainerRef={imageContainerRef}
               isActive={moduleState === 'learning' || moduleState === 'exploring'}

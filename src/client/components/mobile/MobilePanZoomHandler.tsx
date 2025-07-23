@@ -7,6 +7,7 @@ import { calculatePanZoomTransform, createResetTransform } from '../../utils/pan
 interface MobilePanZoomHandlerProps {
   event: TimelineEventData;
   containerRef: React.RefObject<HTMLElement>;
+  imageElement?: HTMLImageElement | null;
   onComplete: () => void;
   currentTransform?: { scale: number; translateX: number; translateY: number };
   onTransformUpdate?: (transform: ImageTransformState) => void;
@@ -15,6 +16,7 @@ interface MobilePanZoomHandlerProps {
 const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   event,
   containerRef,
+  imageElement,
   onComplete,
   onTransformUpdate,
 }) => {
@@ -45,7 +47,12 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     triggerHapticFeedback('medium');
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const newTransform = calculatePanZoomTransform(event, containerRect);
+    const newTransform = calculatePanZoomTransform(
+      event, 
+      containerRect, 
+      imageElement, 
+      containerRef.current
+    );
 
     // Apply the new transform
     setTimeout(() => {

@@ -258,12 +258,30 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
     const handleTimelineNext = () => {
       if (canGoToNextStep && onNextStep) {
+        console.log('[MobileEventRenderer] Timeline next clicked');
+        // Reset pan & zoom when moving to next step if currently active
+        if (activePanZoomEvent && onTransformUpdate) {
+          console.log('[MobileEventRenderer] Resetting pan/zoom transform before next step');
+          onTransformUpdate(createResetTransform());
+        }
+        // Clear modal queue to prevent events from previous step carrying over
+        setModalQueue([]);
+        setCurrentModalIndex(0);
         onNextStep();
       }
     };
 
     const handleTimelinePrevious = () => {
       if (canGoToPrevStep && onPrevStep) {
+        console.log('[MobileEventRenderer] Timeline previous clicked');
+        // Reset pan & zoom when moving to previous step if currently active
+        if (activePanZoomEvent && onTransformUpdate) {
+          console.log('[MobileEventRenderer] Resetting pan/zoom transform before previous step');
+          onTransformUpdate(createResetTransform());
+        }
+        // Clear modal queue to prevent events from previous step carrying over
+        setModalQueue([]);
+        setCurrentModalIndex(0);
         onPrevStep();
       }
     };
@@ -292,6 +310,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             key={`pan-zoom-${event.id}`}
             event={event}
             containerRef={imageContainerRef}
+            imageElement={imageElement}
             onComplete={handleComplete}
             currentTransform={currentTransform}
             onTransformUpdate={onTransformUpdate}

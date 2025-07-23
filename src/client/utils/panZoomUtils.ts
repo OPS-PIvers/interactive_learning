@@ -1,23 +1,48 @@
 // Unified pan and zoom calculation utilities
 import { TimelineEventData, ImageTransformState } from '../../shared/types';
 import { PREVIEW_DEFAULTS, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
+import { getActualImageVisibleBounds } from './imageBounds';
 
 /**
  * Calculate pan and zoom transform to center a target point in the viewport
- * This works for both mobile and desktop by using the correct mathematical formula
+ * This works for both mobile and desktop by using image-content-aware positioning
  * for centering a scaled image with transform-origin: center center
  */
 export const calculatePanZoomTransform = (
   event: TimelineEventData,
-  containerRect: DOMRect
+  containerRect: DOMRect,
+  imageElement: HTMLImageElement | null = null,
+  containerElement: HTMLElement | null = null
 ): ImageTransformState => {
   const targetX = event.targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
   const targetY = event.targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
   const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
 
-  // Convert percentage-based target coordinates to pixel values
-  const targetPixelX = (targetX / 100) * containerRect.width;
-  const targetPixelY = (targetY / 100) * containerRect.height;
+  let targetPixelX: number;
+  let targetPixelY: number;
+
+  // Use image-content-aware positioning when image elements are available
+  // This ensures perfect alignment with hotspot positions (same as spotlight effect)
+  if (imageElement && containerElement) {
+    const imageBounds = getActualImageVisibleBounds(imageElement, containerElement);
+    if (imageBounds) {
+      // Convert percentage to pixel position within image content area
+      const imageContentX = (targetX / 100) * imageBounds.width;
+      const imageContentY = (targetY / 100) * imageBounds.height;
+      
+      // Add image offset within container to get container-relative coordinates
+      targetPixelX = imageBounds.x + imageContentX;
+      targetPixelY = imageBounds.y + imageContentY;
+    } else {
+      // Fallback to container-relative positioning
+      targetPixelX = (targetX / 100) * containerRect.width;
+      targetPixelY = (targetY / 100) * containerRect.height;
+    }
+  } else {
+    // Fallback to container-relative positioning when image elements not available
+    targetPixelX = (targetX / 100) * containerRect.width;
+    targetPixelY = (targetY / 100) * containerRect.height;
+  }
 
   // Calculate the translation needed to center the target point in the viewport.
   // When an image is scaled by zoomLevel around its center (transform-origin: center center),
