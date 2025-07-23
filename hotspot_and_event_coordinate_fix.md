@@ -53,3 +53,18 @@
      3. Respects image boundaries - hotspots never appear in letterboxed areas
      4. Container-relative positioning - coordinates based off image content, not viewport
      5. Maintains mobile/desktop differences - mobile uses %, desktop uses pixels, both image-relative
+
+
+     Where Claude Code left off:
+     ● Update Todos
+  ⎿  ☒ Fix Firebase scope error - move sanitizedHotspots/sanitizedEvents outside       
+       transaction block
+     ☒ Create getActualImageVisibleBoundsRelative function for container-relative 
+       coordinates
+     ☒ Add enhanced boundary validation to keep hotspots within image bounds
+     ☒ Update InteractiveViewer to use image-relative positioning (mobile %, desktop 
+       pixels)
+     ☐ Make event coordinates optional in TimelineEventData interface
+     ☐ Update event overlay components to inherit coordinates from hotspots dynamically
+     ☐ Test hotspot positioning consistency between mobile and desktop
+     ☐ Verify events center correctly on hotspots in both modes
