@@ -3,6 +3,8 @@ import { TimelineEventData, ImageTransformState } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
 import { calculatePanZoomTransform, createResetTransform } from '../../utils/panZoomUtils';
+import { HotspotData, InteractionType } from '../../../shared/types';
+import { getUnifiedMobilePosition } from '../../utils/unifiedMobilePositioning';
 
 interface MobilePanZoomHandlerProps {
   event: TimelineEventData;
@@ -10,6 +12,8 @@ interface MobilePanZoomHandlerProps {
   onComplete: () => void;
   currentTransform?: { scale: number; translateX: number; translateY: number };
   onTransformUpdate?: (transform: ImageTransformState) => void;
+  hotspots?: HotspotData[];
+  imageElement?: HTMLImageElement | null;
 }
 
 const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
@@ -17,6 +21,8 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   containerRef,
   onComplete,
   onTransformUpdate,
+  hotspots,
+  imageElement,
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
@@ -45,7 +51,26 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
     triggerHapticFeedback('medium');
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const newTransform = calculatePanZoomTransform(event, containerRect);
+
+    let targetX = event.targetX;
+    let targetY = event.targetY;
+
+    if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT && hotspots && imageElement) {
+      const targetHotspot = hotspots.find(h => h.id === event.targetId);
+      if (targetHotspot) {
+        const position = getUnifiedMobilePosition({
+          hotspot: targetHotspot,
+          imageElement,
+          containerElement: containerRef.current,
+        });
+        if (position.isValid) {
+          targetX = (position.imageX / position.imageBounds.width) * 100;
+          targetY = (position.imageY / position.imageBounds.height) * 100;
+        }
+      }
+    }
+
+    const newTransform = calculatePanZoomTransform({ ...event, targetX, targetY }, containerRect);
 
     // Apply the new transform
     setTimeout(() => {

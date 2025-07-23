@@ -49,9 +49,15 @@ async function testHotspotCentering() {
     });
     browser = newBrowser;
 
+    const { setupConsoleLogger } = await import('./puppeteer-utils.js');
+    setupConsoleLogger(page);
+
     // Wait for the loading spinner to disappear
     console.log('Waiting for module content to load...');
     await page.waitForSelector('.animate-spin', { hidden: true, timeout: 10000 });
+
+    const bodyHTML = await page.evaluate(() => document.body.innerHTML);
+    console.log(bodyHTML);
 
     // Click on the first hotspot
     await page.click('[data-hotspot-id="hs1"]');

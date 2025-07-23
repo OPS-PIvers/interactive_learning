@@ -60,12 +60,48 @@ const DEMO_PROJECT_DATA = {
   ]
 };
 
+import { spawn } from 'child_process';
+
 async function createDemoProject() {
   console.log('🎯 Creating demo public project...');
   
   let browser;
+  let devServer;
   
   try {
+    // Start the dev server
+    devServer = spawn('npm', ['run', 'dev']);
+    devServer.stdout.on('data', (data) => {
+      console.log(`Dev server: ${data}`);
+    });
+    devServer.stderr.on('data', (data) => {
+      console.error(`Dev server error: ${data}`);
+    });
+
+    // Wait for the dev server to be ready and get the port
+    const url = await new Promise((resolve, reject) => {
+      const onData = (data) => {
+        const urlMatch = data.toString().match(/http:\/\/localhost:(\d+)/);
+        if (urlMatch) {
+          cleanup();
+          resolve(urlMatch[0]);
+        }
+      };
+
+      const onError = (data) => {
+        cleanup();
+        reject(new Error(`Dev server error: ${data}`));
+      };
+
+      const cleanup = () => {
+        devServer.stdout.removeListener('data', onData);
+        devServer.stderr.removeListener('data', onError);
+      };
+
+      devServer.stdout.on('data', onData);
+      devServer.stderr.on('data', onError);
+    });
+
     // Create browser
     browser = await createBrowser({ headless: true });
     console.log('✓ Browser launched');
@@ -76,29 +112,16 @@ async function createDemoProject() {
 
     // Navigate to local development server
     console.log('🌐 Navigating to local app...');
-    await page.goto('http://localhost:3000', { waitUntil: 'networkidle2' });
+    await page.goto(url, { waitUntil: 'networkidle2' });
     
     // Wait for Firebase to initialize
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await page.waitForFunction(() => window.firebaseManager, { timeout: 120000 });
     
     // Execute JavaScript to create the demo project
     console.log('📝 Creating demo project via browser...');
     
     const result = await page.evaluate(async (projectData) => {
       try {
-        // Wait for Firebase to be available
-        let retries = 10;
-        while (retries > 0 && !window.firebaseManager) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          retries--;
-        }
-        
-        if (!window.firebaseManager) {
-          throw new Error('Firebase not available');
-        }
-        
-        // Initialize Firebase if needed
-        await window.firebaseManager.initialize();
         const db = window.firebaseManager.getFirestore();
         
         // Import Firestore methods

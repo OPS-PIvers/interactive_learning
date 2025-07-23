@@ -304,6 +304,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
             onComplete={handleComplete}
             currentTransform={currentTransform}
             onTransformUpdate={onTransformUpdate}
+            hotspots={hotspots}
+            imageElement={imageElement}
           />
         );
       
