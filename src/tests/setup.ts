@@ -38,3 +38,9 @@ Object.defineProperty(window, 'visualViewport', {
     dispatchEvent: vi.fn(),
   },
 });
+
+// Mock for react-window
+Object.defineProperty(window, 'offsetWidth', {
+  writable: true,
+  value: 1024,
+});
