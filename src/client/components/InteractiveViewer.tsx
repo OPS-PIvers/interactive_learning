@@ -363,7 +363,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                         setImageLoading(false);
                       }}
                       style={{
-                        transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX}px, ${imageTransform.translateY}px)`,
+                        transform: `translate(${imageTransform.translateX}px, ${imageTransform.translateY}px) scale(${imageTransform.scale})`,
                         transformOrigin: 'center center',
                         transition: 'transform 0.3s ease-out'
                       }}

@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TimelineEventData, InteractionType } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
+import { createResetTransform } from '../../utils/panZoomUtils';
 import DesktopTextModal from './DesktopTextModal';
 import DesktopQuizModal from './DesktopQuizModal';
 import DesktopImageModal from './DesktopImageModal';
 import DesktopVideoModal from './DesktopVideoModal';
 import DesktopAudioModal from './DesktopAudioModal';
+import DesktopPanZoomHandler from './DesktopPanZoomHandler';
 
 interface DesktopEventRendererProps {
   events: TimelineEventData[];
@@ -165,7 +167,7 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
       if (canGoToNextStep && onNextStep) {
         // Reset pan & zoom when moving to next step if currently active
         if (currentTransform && onTransformUpdate) {
-          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+          onTransformUpdate(createResetTransform());
         }
         onNextStep();
       }
@@ -175,7 +177,7 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
       if (canGoToPrevStep && onPrevStep) {
         // Reset pan & zoom when moving to previous step if currently active
         if (currentTransform && onTransformUpdate) {
-          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+          onTransformUpdate(createResetTransform());
         }
         onPrevStep();
       }
@@ -323,11 +325,22 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
 
-      // For now, visual overlay events are not implemented for desktop
-      // These would require more complex positioning logic
-      case InteractionType.SPOTLIGHT:
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+        return (
+          <DesktopPanZoomHandler
+            key={`pan-zoom-${event.id}`}
+            event={event}
+            containerRef={imageContainerRef}
+            onComplete={handleComplete}
+            currentTransform={currentTransform}
+            onTransformUpdate={onTransformUpdate}
+          />
+        );
+
+      // For now, other visual overlay events are not implemented for desktop
+      // These would require more complex positioning logic
+      case InteractionType.SPOTLIGHT:
       case InteractionType.PULSE_HOTSPOT:
       case InteractionType.HIGHLIGHT_HOTSPOT:
       case InteractionType.PULSE_HIGHLIGHT:

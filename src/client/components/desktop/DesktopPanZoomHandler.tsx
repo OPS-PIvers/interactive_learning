@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { TimelineEventData, ImageTransformState } from '../../../shared/types';
-import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
 import { calculatePanZoomTransform, createResetTransform } from '../../utils/panZoomUtils';
 
-interface MobilePanZoomHandlerProps {
+interface DesktopPanZoomHandlerProps {
   event: TimelineEventData;
   containerRef: React.RefObject<HTMLElement>;
   onComplete: () => void;
-  currentTransform?: { scale: number; translateX: number; translateY: number };
+  currentTransform?: ImageTransformState;
   onTransformUpdate?: (transform: ImageTransformState) => void;
 }
 
-const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
+const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
   event,
   containerRef,
   onComplete,
@@ -29,20 +28,18 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
 
   const handleComplete = useCallback(() => {
     setIsActive(false);
-    triggerHapticFeedback('light');
 
     if (onTransformUpdate) {
       onTransformUpdate(createResetTransform());
     }
 
-    setTimeout(onComplete, 250); // Reduced delay for snappier feel
+    setTimeout(onComplete, 250); // Consistent with mobile timing
   }, [onComplete, onTransformUpdate]);
 
   useEffect(() => {
     if (!containerRef.current || !onTransformUpdate) return;
 
     setIsActive(true);
-    triggerHapticFeedback('medium');
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const newTransform = calculatePanZoomTransform(event, containerRect);
@@ -86,7 +83,7 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
         </div>
       )}
 
-      {/* Overlay to capture taps for early completion */}
+      {/* Overlay to capture clicks for early completion */}
       <div
         className="fixed inset-0 z-[999]"
         onClick={handleOverlayClick}
@@ -100,4 +97,4 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
   );
 };
 
-export default MobilePanZoomHandler;
+export default DesktopPanZoomHandler;

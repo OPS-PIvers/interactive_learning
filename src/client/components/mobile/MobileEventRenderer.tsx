@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, Fragment } from 'react';
 import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } from '../../../shared/types';
 import { Z_INDEX } from '../../constants/interactionConstants';
+import { createResetTransform } from '../../utils/panZoomUtils';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobilePanZoomHandler from './MobilePanZoomHandler';
 import MobileTextModal from './MobileTextModal';
@@ -260,7 +261,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       if (canGoToNextStep && onNextStep) {
         // Reset pan & zoom when moving to next step if currently active
         if (activePanZoomEvent && onTransformUpdate) {
-          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+          onTransformUpdate(createResetTransform());
         }
         onNextStep();
       }
@@ -270,7 +271,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       if (canGoToPrevStep && onPrevStep) {
         // Reset pan & zoom when moving to previous step if currently active
         if (activePanZoomEvent && onTransformUpdate) {
-          onTransformUpdate({ scale: 1, translateX: 0, translateY: 0 });
+          onTransformUpdate(createResetTransform());
         }
         onPrevStep();
       }
