@@ -1,5 +1,5 @@
 // Unified pan and zoom calculation utilities
-import { TimelineEventData, ImageTransformState } from '../../shared/types';
+import { TimelineEventData, ImageTransformState, HotspotData } from '../../shared/types';
 import { PREVIEW_DEFAULTS, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
 import { getActualImageVisibleBounds } from './imageBounds';
 
@@ -12,10 +12,30 @@ export const calculatePanZoomTransform = (
   event: TimelineEventData,
   containerRect: DOMRect,
   imageElement: HTMLImageElement | null = null,
-  containerElement: HTMLElement | null = null
+  containerElement: HTMLElement | null = null,
+  hotspots: HotspotData[] = []
 ): ImageTransformState => {
-  const targetX = event.targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
-  const targetY = event.targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
+  // Try to inherit coordinates from target hotspot first
+  let targetX = event.targetX;
+  let targetY = event.targetY;
+  
+  // If no explicit coordinates and we have a target hotspot, inherit from it
+  if ((targetX === undefined || targetY === undefined) && event.targetId) {
+    const targetHotspot = hotspots.find(h => h.id === event.targetId);
+    if (targetHotspot) {
+      targetX = targetX ?? targetHotspot.x;
+      targetY = targetY ?? targetHotspot.y;
+      console.log('[calculatePanZoomTransform] Inherited coordinates from hotspot:', {
+        hotspotId: targetHotspot.id,
+        inheritedX: targetX,
+        inheritedY: targetY
+      });
+    }
+  }
+  
+  // Fall back to spotlight coordinates or defaults
+  targetX = targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
+  targetY = targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
   const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
   
   console.log('[calculatePanZoomTransform] Input parameters:', {

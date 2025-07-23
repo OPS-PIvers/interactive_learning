@@ -258,7 +258,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         zoomLevel: focusScale,
       };
 
-      const newTransform = calculatePanZoomTransform(mockEvent as TimelineEventData, containerRect);
+      const newTransform = calculatePanZoomTransform(mockEvent as TimelineEventData, containerRect, imageRef.current, container, []);
 
       if (!isTransformingViaTouch) {
         setImageTransform({

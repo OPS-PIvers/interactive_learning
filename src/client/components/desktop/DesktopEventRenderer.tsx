@@ -347,6 +347,7 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
             event={event}
             containerRef={imageContainerRef}
             imageElement={imageElement}
+            hotspots={hotspots}
             onComplete={handleComplete}
             currentTransform={currentTransform}
             onTransformUpdate={onTransformUpdate}

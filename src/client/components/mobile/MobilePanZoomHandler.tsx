@@ -158,7 +158,8 @@ const MobilePanZoomHandler: React.FC<MobilePanZoomHandlerProps> = ({
       { ...event, targetX, targetY }, 
       containerRect,
       imageElement, 
-      containerRef.current
+      containerRef.current,
+      hotspots || []
     );
 
     // Apply the new transform

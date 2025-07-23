@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { TimelineEventData, ImageTransformState } from '../../../shared/types';
+import { TimelineEventData, ImageTransformState, HotspotData } from '../../../shared/types';
 import { useEventCleanup } from '../../hooks/useEventCleanup';
 import { calculatePanZoomTransform, createResetTransform } from '../../utils/panZoomUtils';
 
@@ -10,6 +10,7 @@ interface DesktopPanZoomHandlerProps {
   onComplete: () => void;
   currentTransform?: ImageTransformState;
   onTransformUpdate?: (transform: ImageTransformState) => void;
+  hotspots?: HotspotData[];
 }
 
 const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
@@ -18,6 +19,7 @@ const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
   imageElement,
   onComplete,
   onTransformUpdate,
+  hotspots = [],
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
@@ -58,7 +60,8 @@ const DesktopPanZoomHandler: React.FC<DesktopPanZoomHandlerProps> = ({
       event, 
       containerRect, 
       imageElement, 
-      containerRef.current
+      containerRef.current,
+      hotspots
     );
     
     console.log('[DesktopPanZoomHandler] Transform calculated:', {

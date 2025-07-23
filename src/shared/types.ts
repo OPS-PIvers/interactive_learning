@@ -182,8 +182,8 @@ export interface TimelineEventData {
   
   // === UNIFIED SPOTLIGHT PROPERTIES ===
   spotlightShape?: SpotlightShape;
-  spotlightX?: number;           // Center X (percentage)
-  spotlightY?: number;           // Center Y (percentage)
+  spotlightX?: number;           // Center X (percentage) - optional, inherits from hotspot if not provided
+  spotlightY?: number;           // Center Y (percentage) - optional, inherits from hotspot if not provided
   spotlightWidth?: number;       // Width in pixels
   spotlightHeight?: number;      // Height in pixels
   backgroundDimPercentage?: number; // 0-100 (how much to dim background)
@@ -225,8 +225,8 @@ export interface TimelineEventData {
   opacity?: number;
   position?: Position;
   size?: Size;
-  targetX?: number;
-  targetY?: number;
+  targetX?: number;                 // Pan/zoom target X - optional, inherits from hotspot if not provided
+  targetY?: number;                 // Pan/zoom target Y - optional, inherits from hotspot if not provided
   zoom?: number;
   content?: string;
   modalPosition?: Position | 'center';
