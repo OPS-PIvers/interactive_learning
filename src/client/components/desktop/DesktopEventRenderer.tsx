@@ -30,21 +30,14 @@ interface DesktopEventRendererProps {
 
 const MODAL_INTERACTIONS = new Set([
   InteractionType.SHOW_TEXT,
-  InteractionType.SHOW_MESSAGE,
   InteractionType.QUIZ,
   InteractionType.SHOW_IMAGE,
-  InteractionType.SHOW_IMAGE_MODAL,
-  InteractionType.SHOW_VIDEO,
-  InteractionType.SHOW_YOUTUBE,
   InteractionType.PLAY_VIDEO,
-  InteractionType.SHOW_AUDIO_MODAL,
   InteractionType.PLAY_AUDIO,
 ]);
 
 const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.SPOTLIGHT,
-  InteractionType.PULSE_HOTSPOT,
-  InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
 ]);
 
@@ -202,7 +195,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
 
     switch (event.type) {
       case InteractionType.SHOW_TEXT:
-      case InteractionType.SHOW_MESSAGE:
         return (
           <DesktopTextModal
             key={`text-${event.id}`}
@@ -260,7 +252,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
         );
       
       case InteractionType.SHOW_IMAGE:
-      case InteractionType.SHOW_IMAGE_MODAL:
         return (
           <DesktopImageModal
             key={`image-${event.id}`}
@@ -285,8 +276,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
       
-      case InteractionType.SHOW_VIDEO:
-      case InteractionType.SHOW_YOUTUBE:
       case InteractionType.PLAY_VIDEO:
         return (
           <DesktopVideoModal
@@ -312,7 +301,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
       
-      case InteractionType.SHOW_AUDIO_MODAL:
       case InteractionType.PLAY_AUDIO:
         return (
           <DesktopAudioModal
@@ -354,21 +342,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
       
-      case InteractionType.PULSE_HOTSPOT:
-      case InteractionType.PULSE_HIGHLIGHT:
-        // Use spotlight overlay for pulse effects on desktop
-        return (
-          <DesktopSpotlightOverlay
-            key={`pulse-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            hotspots={hotspots}
-            imageElement={imageElement}
-            onComplete={handleComplete}
-          />
-        );
-        
-        // TODO: Implement dedicated pulse effects in future
       
       case InteractionType.HIDE_HOTSPOT:
         // Hide hotspot events are handled automatically by the parent component

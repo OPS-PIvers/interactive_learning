@@ -36,21 +36,15 @@ interface MobileEventRendererProps {
 
 const MODAL_INTERACTIONS = new Set([
   InteractionType.SHOW_TEXT,
-  InteractionType.SHOW_MESSAGE,
   InteractionType.QUIZ,
   InteractionType.SHOW_IMAGE,
-  InteractionType.SHOW_VIDEO,
-  InteractionType.SHOW_YOUTUBE,
   InteractionType.PLAY_VIDEO,
-  InteractionType.SHOW_AUDIO_MODAL,
   InteractionType.PLAY_AUDIO,
 ]);
 
 // Separate visual overlay events from modal events
 const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.SPOTLIGHT,
-  InteractionType.PULSE_HOTSPOT,
-  InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
 ]);
 
@@ -308,7 +302,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
         return null;
       
       case InteractionType.SHOW_TEXT:
-      case InteractionType.SHOW_MESSAGE:
         return (
           <MobileTextModal
             key={`text-${event.id}`}
@@ -411,8 +404,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           />
         );
       
-      case InteractionType.SHOW_VIDEO:
-      case InteractionType.SHOW_YOUTUBE:
       case InteractionType.PLAY_VIDEO:
         return (
           <MobileVideoModal
@@ -446,7 +437,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           />
         );
       
-      case InteractionType.SHOW_AUDIO_MODAL:
       case InteractionType.PLAY_AUDIO:
         return (
           <MobileAudioModal
@@ -480,18 +470,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           />
         );
       
-      case InteractionType.PULSE_HOTSPOT:
-      case InteractionType.PULSE_HIGHLIGHT:
-        return (
-          <MobileSpotlightOverlay
-            key={`highlight-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            hotspots={hotspots} // ADD: Pass hotspots for unified positioning
-            imageElement={imageElement} // ADD: Pass image element for positioning
-            onComplete={handleComplete}
-          />
-        );
       
       case InteractionType.HIDE_HOTSPOT:
         // For mobile, hide hotspot events are handled automatically by the parent component

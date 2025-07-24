@@ -139,7 +139,7 @@ const StreamlinedHotspotEditor: React.FC<StreamlinedHotspotEditorProps> = ({
 
   const getEventIcon = (type: InteractionType) => {
     const icons: Record<InteractionType, string> = {
-      [InteractionType.PULSE_HOTSPOT]: 'Pulse',
+      [InteractionType.SPOTLIGHT]: 'Pulse',
       [InteractionType.SHOW_MESSAGE]: 'Text',
       [InteractionType.PAN_ZOOM_TO_HOTSPOT]: 'Zoom',
       [InteractionType.SPOTLIGHT]: 'Spotlight'
@@ -397,7 +397,7 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
   const [formData, setFormData] = useState<Partial<TimelineEventData>>(() => ({
     id: event?.id || `event_${Date.now()}`,
     name: event?.name || 'New Event',
-    type: event?.type || InteractionType.PULSE_HOTSPOT,
+    type: event?.type || InteractionType.SPOTLIGHT,
     targetId: hotspotId,
     message: event?.message || '',
     duration: event?.duration || 2000,
@@ -436,7 +436,7 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
           </div>
         );
       
-      case InteractionType.PULSE_HOTSPOT:
+      case InteractionType.SPOTLIGHT:
         return (
           <div>
             <label className="block text-xs text-slate-400 mb-1">Duration (ms)</label>
@@ -530,8 +530,7 @@ const EventEditorForm: React.FC<EventEditorFormProps> = ({ event, hotspotId, hot
             }}
             className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value={InteractionType.HIDE_HOTSPOT}>Hide Hotspot</option>
-            <option value={InteractionType.PULSE_HOTSPOT}>Pulse Hotspot</option>
+            <option value={InteractionType.SPOTLIGHT}>Spotlight</option>
             <option value={InteractionType.SHOW_MESSAGE}>Show Message</option>
             <option value={InteractionType.PAN_ZOOM_TO_HOTSPOT}>Pan & Zoom</option>
             <option value={InteractionType.SPOTLIGHT}>Spotlight</option>

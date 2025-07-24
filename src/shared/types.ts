@@ -11,15 +11,7 @@ export enum InteractionType {
   PLAY_VIDEO = 'PLAY_VIDEO',
   PLAY_AUDIO = 'PLAY_AUDIO',
   SHOW_TEXT = 'SHOW_TEXT',
-  SPOTLIGHT = 'SPOTLIGHT',
-  
-  // Legacy support - still needed for mobile compatibility
-  PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT', 
-  PULSE_HOTSPOT = 'PULSE_HOTSPOT',
-  SHOW_VIDEO = 'SHOW_VIDEO',
-  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
-  SHOW_YOUTUBE = 'SHOW_YOUTUBE',
-  SHOW_MESSAGE = 'SHOW_MESSAGE'
+  SPOTLIGHT = 'SPOTLIGHT'
 }
 
 

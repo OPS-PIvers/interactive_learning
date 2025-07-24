@@ -16,13 +16,33 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       };
     }
     
-    // Migrate PULSE_HIGHLIGHT to PULSE_HOTSPOT
+    // Migrate PULSE_HIGHLIGHT to SPOTLIGHT
     if (event.type === 'PULSE_HIGHLIGHT' as any) {
       return {
         ...event,
-        type: InteractionType.PULSE_HOTSPOT,
-        duration: event.duration || 2000,
-        intensity: event.intensity || 80,
+        type: InteractionType.SPOTLIGHT,
+        spotlightShape: 'circle' as SpotlightShape,
+        spotlightX: event.spotlightX || 50,
+        spotlightY: event.spotlightY || 50,
+        spotlightWidth: 120,
+        spotlightHeight: 120,
+        backgroundDimPercentage: 70,
+        spotlightOpacity: 0,
+      };
+    }
+    
+    // Migrate PULSE_HOTSPOT to SPOTLIGHT
+    if (event.type === 'PULSE_HOTSPOT' as any) {
+      return {
+        ...event,
+        type: InteractionType.SPOTLIGHT,
+        spotlightShape: 'circle' as SpotlightShape,
+        spotlightX: event.spotlightX || 50,
+        spotlightY: event.spotlightY || 50,
+        spotlightWidth: 120,
+        spotlightHeight: 120,
+        backgroundDimPercentage: 70,
+        spotlightOpacity: 0,
       };
     }
     
@@ -109,14 +129,6 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       };
     }
     
-    // Update existing PULSE_HOTSPOT events to use unified properties
-    if (event.type === InteractionType.PULSE_HOTSPOT) {
-      return {
-        ...event,
-        duration: event.duration || 2000,
-        intensity: event.intensity || 80,
-      };
-    }
     
     // Update existing PLAY_VIDEO events to use unified properties
     if (event.type === InteractionType.PLAY_VIDEO) {
@@ -210,7 +222,7 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
     const migratedEvent = migrateEventTypes([event])[0];
     
     // Additional processing for pan & zoom events that might be missing target coordinates
-    if ((migratedEvent.type === InteractionType.PAN_ZOOM || migratedEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
+    if (migratedEvent.type === InteractionType.PAN_ZOOM &&
         (migratedEvent.targetX === undefined || migratedEvent.targetY === undefined) &&
         migratedEvent.targetId) {
       
@@ -292,7 +304,8 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
 export const eventNeedsMigration = (event: TimelineEventData): boolean => {
   const deprecatedTypes = [
     'PAN_ZOOM_TO_HOTSPOT',
-    'PULSE_HIGHLIGHT', 
+    'PULSE_HIGHLIGHT',
+    'PULSE_HOTSPOT',
     'SHOW_YOUTUBE',
     'SHOW_VIDEO',
     'SHOW_AUDIO_MODAL',
@@ -310,7 +323,8 @@ export const getMigrationInfo = (event: TimelineEventData): { needsMigration: bo
     case 'PAN_ZOOM_TO_HOTSPOT':
       return { needsMigration: true, targetType: InteractionType.PAN_ZOOM, description: 'Unified pan & zoom functionality' };
     case 'PULSE_HIGHLIGHT':
-      return { needsMigration: true, targetType: InteractionType.PULSE_HOTSPOT, description: 'Unified pulse animation' };
+    case 'PULSE_HOTSPOT':
+      return { needsMigration: true, targetType: InteractionType.SPOTLIGHT, description: 'Unified spotlight highlighting' };
     case 'SHOW_YOUTUBE':
     case 'SHOW_VIDEO':
       return { needsMigration: true, targetType: InteractionType.PLAY_VIDEO, description: 'Unified video playback with source detection' };
