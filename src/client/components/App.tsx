@@ -122,7 +122,6 @@ const MainApp: React.FC = () => {
             timelineEvents: details.timelineEvents || [],
             backgroundImage: details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage,
             imageFitMode: details.imageFitMode || project.interactiveData.imageFitMode,
-            isPublished: details.isPublished || project.interactiveData.isPublished,
           }
         };
         
@@ -235,7 +234,6 @@ const MainApp: React.FC = () => {
       ...projectToSave,
       interactiveData: data,
       thumbnailUrl: thumbnailUrl || projectToSave.thumbnailUrl, // Use new thumbnail or keep existing
-      isPublished: data.isPublished || false,
     };
     
     setIsLoading(true);

@@ -275,7 +275,6 @@ export interface InteractiveModuleState {
     selfPaced?: boolean;
     timed?: boolean;
   };
-  isPublished?: boolean;
 }
 
 // Stored in simulated Drive (module_data.json within project folder)

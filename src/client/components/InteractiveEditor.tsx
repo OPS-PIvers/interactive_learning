@@ -396,7 +396,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: '',
-                isPublished: isPublished,
+                isPublished: false, // This is a dummy value, the actual value is stored in the project
                 thumbnailUrl: null,
                 data: {
                   backgroundImage: backgroundImage || '',

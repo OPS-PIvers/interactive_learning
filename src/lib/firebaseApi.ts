@@ -271,7 +271,6 @@ export class FirebaseProjectAPI {
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
         viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
-        isPublished: false // Default to private
         }
       };
       
