@@ -1,14 +1,18 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, { Fragment, useMemo, useState, useCallback } from 'react';
+import debounce from 'lodash.debounce';
 import InteractiveModule from './InteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
+import SlideEditor from './slides/SlideEditor';
+import { SlideDeck } from '../../shared/slideTypes';
+import SlideViewer from './slides/SlideViewer';
 
 interface InteractiveModuleWrapperProps {
   selectedProject: Project;
   isEditingMode: boolean;
   isMobile: boolean;
   onClose: () => void;
-  onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => void;
+  onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string, slideDeck?: SlideDeck) => void;
   onImageUpload: (file: File) => Promise<void>;
   onReloadRequest?: () => void;
   isPublished?: boolean;
@@ -26,6 +30,22 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
 }) => {
   // ✅ ALWAYS call the same hooks in the same order
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(
+    selectedProject.projectType === 'slide' ? (selectedProject.slideDeck || { slides: [] }) : null
+  );
+
+  // Debounced save function to prevent excessive network requests
+  const debouncedSave = useCallback(
+    debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
+      onSave(projectId, data, thumbnailUrl, slideDeck);
+    }, 1000), // 1 second delay
+    [onSave]
+  );
+
+  const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
+    setSlideDeck(newSlideDeck);
+    debouncedSave(selectedProject.id, selectedProject.interactiveData, undefined, newSlideDeck);
+  }, [debouncedSave, selectedProject.id, selectedProject.interactiveData]);
   
   // ✅ Determine wrapper type without affecting hook order
   const WrapperComponent = useMemo(() => {
@@ -56,7 +76,15 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900 mobile-viewport-fix">
       <WrapperComponent {...wrapperProps}>
-        {selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
+        {selectedProject.projectType === 'slide' && isEditingMode && slideDeck ? (
+          <SlideEditor
+            slideDeck={slideDeck}
+            onSlideDeckChange={handleSlideDeckChange}
+            onClose={onClose}
+          />
+        ) : selectedProject.projectType === 'slide' && slideDeck ? (
+          <SlideViewer slideDeck={slideDeck} />
+        ) : selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
           <InteractiveModule
             key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
             initialData={selectedProject.interactiveData}

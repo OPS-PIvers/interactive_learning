@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import MobilePropertiesPanel from './MobilePropertiesPanel';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -45,18 +46,19 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
   // Handle element drag start
-  const handleElementDragStart = useCallback((elementId: string, event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleElementDragStart = useCallback((elementId: string, event: React.MouseEvent | React.TouchEvent) => {
     event.stopPropagation();
     
     const element = currentSlide.elements.find(el => el.id === elementId);
     if (!element) return;
+
+    const startPosition = 'touches' in event ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : { x: event.clientX, y: event.clientY };
     
     const position = element.position[deviceType];
     setDragState({
       isDragging: true,
       elementId,
-      startPosition: { x: event.clientX, y: event.clientY },
+      startPosition: startPosition,
       startElementPosition: position
     });
     
@@ -64,11 +66,13 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   }, [currentSlide.elements, deviceType]);
 
   // Handle mouse move during drag
-  const handleMouseMove = useCallback((event: MouseEvent) => {
+  const handleMove = useCallback((event: MouseEvent | TouchEvent) => {
     if (!dragState.isDragging || !dragState.elementId) return;
+
+    const currentPosition = 'touches' in event ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : { x: event.clientX, y: event.clientY };
     
-    const deltaX = event.clientX - dragState.startPosition.x;
-    const deltaY = event.clientY - dragState.startPosition.y;
+    const deltaX = currentPosition.x - dragState.startPosition.x;
+    const deltaY = currentPosition.y - dragState.startPosition.y;
     
     const newPosition: FixedPosition = {
       x: Math.max(0, dragState.startElementPosition.x + deltaX),
@@ -104,7 +108,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   }, [dragState, slideDeck, currentSlideIndex, deviceType, onSlideDeckChange]);
 
   // Handle mouse up (end drag)
-  const handleMouseUp = useCallback(() => {
+  const handleDragEnd = useCallback(() => {
     setDragState({
       isDragging: false,
       elementId: null,
@@ -116,15 +120,19 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   // Attach global mouse event listeners
   useEffect(() => {
     if (dragState.isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleMove);
+      document.addEventListener('touchend', handleDragEnd);
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handleMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+        document.removeEventListener('touchmove', handleMove);
+        document.removeEventListener('touchend', handleDragEnd);
       };
     }
-  }, [dragState.isDragging, handleMouseMove, handleMouseUp]);
+  }, [dragState.isDragging, handleMove, handleDragEnd]);
 
   // Add new element
   const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'shape') => {
@@ -195,8 +203,29 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     ? currentSlide.elements.find(el => el.id === selectedElementId)
     : null;
 
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMobile && selectedElementId) {
+      setIsMobilePanelOpen(true);
+    } else {
+      setIsMobilePanelOpen(false);
+    }
+  }, [isMobile, selectedElementId]);
+
   return (
     <div className={`slide-editor w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${className}`}>
+      {isMobile && isMobilePanelOpen && (
+        <MobilePropertiesPanel
+          selectedElement={selectedElement}
+          deviceType={deviceType}
+          onDelete={handleDeleteElement}
+          onClose={() => {
+            setSelectedElementId(null);
+            setIsMobilePanelOpen(false);
+          }}
+        />
+      )}
       {/* Editor Header - Matches app header styling */}
       <div className="editor-header bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center space-x-4">
@@ -212,19 +241,19 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           {/* Add Element Buttons */}
           <div className="flex space-x-2">
             <button
-              className="slide-nav-button slide-nav-button-secondary text-sm px-3 py-2"
+              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
               onClick={() => handleAddElement('hotspot')}
             >
               + Hotspot
             </button>
             <button
-              className="slide-nav-button slide-nav-button-secondary text-sm px-3 py-2"
+              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
               onClick={() => handleAddElement('text')}
             >
               + Text
             </button>
             <button
-              className="slide-nav-button slide-nav-button-secondary text-sm px-3 py-2"
+              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
               onClick={() => handleAddElement('shape')}
             >
               + Shape
@@ -277,6 +306,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       zIndex: element.zIndex
                     }}
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}
+                    onTouchStart={(e) => handleElementDragStart(element.id, e)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedElementId(element.id);

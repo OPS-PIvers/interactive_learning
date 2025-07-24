@@ -1,5 +1,6 @@
 
 import { Timestamp } from 'firebase/firestore';
+import { SlideDeck } from './slideTypes';
 
 export enum InteractionType {
   // Essential interaction types
@@ -291,6 +292,8 @@ export interface Project {
   thumbnailUrl?: string;    // URL for project thumbnail image
   isPublished?: boolean;       // Whether the module is publicly accessible
   interactiveData: InteractiveModuleState;
+  projectType?: 'hotspot' | 'slide';
+  slideDeck?: SlideDeck;
 }
 
 export interface UserProfile {

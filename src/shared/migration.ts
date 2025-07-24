@@ -1,5 +1,7 @@
 // src/shared/migration.ts
-import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData } from './types';
+import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent } from './types';
+import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
+import { generateId } from '../client/utils/generateId';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map(event => {
@@ -336,3 +338,157 @@ export const getMigrationInfo = (event: TimelineEventData): { needsMigration: bo
       return { needsMigration: false };
   }
 };
+
+// New migration functions for converting to slide-based architecture
+const DESKTOP_RESOLUTION = { width: 1920, height: 1080 };
+const MOBILE_RESOLUTION = { width: 480, height: 800 };
+
+function convertHotspotToSlideElement(
+  hotspot: HotspotData,
+  timelineEvent: TimelineEventData,
+  module: InteractiveModuleState
+): SlideElement {
+  // Map hotspot size to dimensions (addressing hardcoded width/height issue)
+  let width = 100, height = 100;
+  if (hotspot.size === 'small') {
+    width = height = 60;
+  } else if (hotspot.size === 'large') {
+    width = height = 140;
+  }
+  // medium is default 100x100
+
+  const desktopPosition = {
+    x: Math.round((hotspot.x / 100) * DESKTOP_RESOLUTION.width) - width/2,
+    y: Math.round((hotspot.y / 100) * DESKTOP_RESOLUTION.height) - height/2,
+    width,
+    height,
+  };
+
+  const mobileWidth = Math.round(width * 0.6);
+  const mobileHeight = Math.round(height * 0.6);
+  const mobilePosition = {
+    x: Math.round((hotspot.x / 100) * MOBILE_RESOLUTION.width) - mobileWidth/2,
+    y: Math.round((hotspot.y / 100) * MOBILE_RESOLUTION.height) - mobileHeight/2,
+    width: mobileWidth,
+    height: mobileHeight,
+  };
+
+  // For tablet, use intermediate sizing
+  const tabletWidth = Math.round(width * 0.8);
+  const tabletHeight = Math.round(height * 0.8);
+  const tabletPosition = {
+    x: Math.round((hotspot.x / 100) * 1024) - tabletWidth/2, // Tablet resolution
+    y: Math.round((hotspot.y / 100) * 768) - tabletHeight/2,
+    width: tabletWidth,
+    height: tabletHeight,
+  };
+
+  const position: ResponsivePosition = {
+    desktop: desktopPosition,
+    tablet: tabletPosition,
+    mobile: mobilePosition,
+  };
+
+  const content: ElementContent = {
+    title: hotspot.title,
+    description: hotspot.description,
+  };
+
+  const interactions: ElementInteraction[] = [];
+  const style: ElementStyle = {
+    backgroundColor: hotspot.backgroundColor || hotspot.color || '#3b82f6',
+    borderRadius: 20,
+    opacity: 0.9,
+  };
+
+  return {
+    id: hotspot.id,
+    type: 'hotspot',
+    position,
+    content,
+    interactions,
+    style,
+    isVisible: true,
+  };
+}
+
+export function convertHotspotToSlideDeck(module: InteractiveModuleState): SlideDeck {
+  const slide: InteractiveSlide = {
+    id: generateId(),
+    title: 'Migrated Slide',
+    backgroundImage: module.backgroundImage,
+    elements: [],
+    transitions: [],
+    layout: {
+      containerWidth: DESKTOP_RESOLUTION.width,
+      containerHeight: DESKTOP_RESOLUTION.height,
+      aspectRatio: '16:9',
+      scaling: 'fit',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  };
+
+  // Convert hotspots to slide elements
+  if (module.hotspots && module.timelineEvents) {
+    // Create a map for quick hotspot lookup
+    const hotspotMap = new Map(module.hotspots.map(h => [h.id, h]));
+
+    // For each timeline event that targets a hotspot, create a slide element
+    module.timelineEvents.forEach(event => {
+      if (event.targetId) {
+        const hotspot = hotspotMap.get(event.targetId);
+        if (hotspot) {
+          const element = convertHotspotToSlideElement(hotspot, event, module);
+          // Only add if not already added (avoid duplicates)
+          if (!slide.elements.find(el => el.id === hotspot.id)) {
+            slide.elements.push(element);
+          }
+        }
+      }
+    });
+
+    // Add any hotspots that don't have timeline events
+    module.hotspots.forEach(hotspot => {
+      if (!slide.elements.find(el => el.id === hotspot.id)) {
+        // Create a dummy timeline event for conversion
+        const dummyEvent: TimelineEventData = {
+          id: generateId(),
+          type: InteractionType.SHOW_TEXT,
+          step: 1,
+          targetId: hotspot.id,
+          textContent: hotspot.description || 'Interactive hotspot',
+        };
+        const element = convertHotspotToSlideElement(hotspot, dummyEvent, module);
+        slide.elements.push(element);
+      }
+    });
+  }
+
+  const slideDeck: SlideDeck = {
+    id: generateId(),
+    title: 'Migrated Project',
+    description: 'Converted from hotspot-based architecture',
+    slides: [slide],
+    settings: {
+      autoAdvance: false,
+      autoAdvanceDelay: 5000,
+      allowNavigation: true,
+      showProgress: true,
+      showControls: true,
+      keyboardShortcuts: true,
+      touchGestures: true,
+      fullscreenMode: false,
+    },
+    metadata: {
+      created: Date.now(),
+      modified: Date.now(),
+      author: 'Migration Tool',
+      version: '1.0.0',
+      tags: ['migrated'],
+      isPublic: false,
+    },
+  };
+
+  return slideDeck;
+}

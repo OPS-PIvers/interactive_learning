@@ -16,6 +16,7 @@ import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import SlideEditorTestPage from './SlideEditorTestPage';
+import MigrationTestPage from './MigrationTestPage';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
 
 
@@ -155,59 +156,68 @@ const MainApp: React.FC = () => {
     loadProjectDetailsAndOpen(project, true);
   }, [loadProjectDetailsAndOpen]);
   
+  // Helper function to reduce code duplication
+  const createAndSetupProject = useCallback(async (title: string, description: string, projectType?: 'hotspot' | 'slide', demoData?: any) => {
+    setIsLoading(true);
+    try {
+      const newProject = await appScriptProxy.createProject(title, description, projectType);
+      let finalProject = newProject;
+
+      // If demo data is provided, save it with the project
+      if (demoData) {
+        const projectWithDemoData = {
+          ...newProject,
+          interactiveData: demoData,
+        };
+        
+        try {
+          await appScriptProxy.saveProject(projectWithDemoData);
+          finalProject = projectWithDemoData;
+        } catch (saveErr: any) {
+          console.error("Failed to save demo project data:", saveErr);
+          setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
+          return;
+        }
+      }
+
+      setProjects(prevProjects => [...prevProjects, finalProject]);
+      setSelectedProject(finalProject);
+      setIsEditingMode(true);
+      setIsModalOpen(true);
+    } catch (err: any) {
+      console.error("Failed to create project:", err);
+      setError(`Failed to create new project: ${err.message || ''}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const handleCreateNewProject = useCallback(async () => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
-    const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
+    const projectType = prompt("Choose project type: 'hotspot' or 'slide'", "hotspot");
 
-    if (createDemo) {
-      setIsLoading(true);
-      try {
-        const newProject = await appScriptProxy.createProject("Demo Module", "A module demonstrating all features.");
-        const projectWithDemoData = {
-          ...newProject,
-          interactiveData: demoModuleData,
-        };
-        
-        try {
-          await appScriptProxy.saveProject(projectWithDemoData);
-          setProjects(prevProjects => [...prevProjects, projectWithDemoData]);
-          setSelectedProject(projectWithDemoData);
-          setIsEditingMode(true);
-          setIsModalOpen(true);
-        } catch (saveErr: any) {
-          console.error("Failed to save demo project data:", saveErr);
-          setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
-        }
-      } catch (err: any) {
-        console.error("Failed to create demo project:", err);
-        setError(`Failed to create demo project: ${err.message || 'Please try again.'}`);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
+    if (projectType === 'slide') {
       const title = prompt("Enter new project title:");
       if (!title) return;
       const description = prompt("Enter project description (optional):") || "";
+      await createAndSetupProject(title, description, 'slide');
+    } else if (projectType === 'hotspot') {
+      const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
 
-      setIsLoading(true);
-      try {
-        const newProject = await appScriptProxy.createProject(title, description);
-        setProjects(prevProjects => [...prevProjects, newProject]);
-        setSelectedProject(newProject);
-        setIsEditingMode(true);
-        setIsModalOpen(true);
-      } catch (err: any) {
-        console.error("Failed to create project:", err);
-        setError(`Failed to create new project: ${err.message || ''}`);
-      } finally {
-        setIsLoading(false);
+      if (createDemo) {
+        await createAndSetupProject("Demo Module", "A module demonstrating all features.", 'hotspot', demoModuleData);
+      } else {
+        const title = prompt("Enter new project title:");
+        if (!title) return;
+        const description = prompt("Enter project description (optional):") || "";
+        await createAndSetupProject(title, description, 'hotspot');
       }
     }
-  }, [user]);
+  }, [user, createAndSetupProject]);
 
   const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
     if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
@@ -220,7 +230,7 @@ const MainApp: React.FC = () => {
     loadProjects();
   }, [loadProjects]);
 
-  const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string) => {
+  const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string, slideDeck?: SlideDeck) => {
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -236,6 +246,7 @@ const MainApp: React.FC = () => {
       ...projectToSave,
       interactiveData: data,
       thumbnailUrl: thumbnailUrl || projectToSave.thumbnailUrl, // Use new thumbnail or keep existing
+      slideDeck: slideDeck || projectToSave.slideDeck,
     };
     
     setIsLoading(true);
@@ -518,6 +529,7 @@ const App: React.FC = () => {
           } />
           <Route path="/slide-test" element={<SlideBasedTestPage />} />
           <Route path="/slide-editor" element={<SlideEditorTestPage />} />
+          <Route path="/migration-test" element={<MigrationTestPage />} />
         </Routes>
       </Router>
     </AuthProvider>

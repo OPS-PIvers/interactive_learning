@@ -54,3 +54,5 @@ Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
     toJSON: () => ({}),
   }),
 });
+
+HTMLCanvasElement.prototype.getContext = vi.fn();
