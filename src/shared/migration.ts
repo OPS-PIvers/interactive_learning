@@ -1,5 +1,7 @@
 // src/shared/migration.ts
-import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData } from './types';
+import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, Hotspot as HotspotData, InteractiveModuleState, Event as HotspotEvent } from './types';
+import { SlideDeck, SlideElement, Slide, ResponsivePosition, SlideElementData } from './slideTypes';
+import { generateId } from '../client/utils/generateId';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map(event => {
@@ -336,3 +338,79 @@ export const getMigrationInfo = (event: TimelineEventData): { needsMigration: bo
       return { needsMigration: false };
   }
 };
+
+// New migration functions for converting to slide-based architecture
+const DESKTOP_RESOLUTION = { width: 1920, height: 1080 };
+const MOBILE_RESOLUTION = { width: 480, height: 800 };
+
+function convertHotspotToSlideElement(
+  hotspot: HotspotData,
+  event: HotspotEvent,
+  module: InteractiveModuleState
+): SlideElement {
+  const desktopPosition = {
+    x: Math.round(hotspot.x * DESKTOP_RESOLUTION.width),
+    y: Math.round(hotspot.y * DESKTOP_RESOLUTION.height),
+    width: 100,
+    height: 100,
+  };
+
+  const mobilePosition = {
+    x: Math.round(hotspot.x * MOBILE_RESOLUTION.width),
+    y: Math.round(hotspot.y * MOBILE_RESOLUTION.height),
+    width: 60,
+    height: 60,
+  };
+
+  const position: ResponsivePosition = {
+    desktop: desktopPosition,
+    mobile: mobilePosition,
+  };
+
+  const data: SlideElementData = {
+    type: 'hotspot',
+    content: `Action: ${event.action.type}`,
+    interaction: {
+      type: 'click',
+      action: event.action,
+    },
+  };
+
+  return {
+    id: generateId(),
+    type: 'hotspot',
+    name: `Hotspot ${hotspot.id}`,
+    position,
+    data,
+  };
+}
+
+export function convertHotspotToSlideDeck(module: InteractiveModuleState): SlideDeck {
+  const slide: Slide = {
+    id: generateId(),
+    elements: [],
+    backgroundImage: module.backgroundImage,
+  };
+
+  if (module.events) {
+    module.events.forEach(event => {
+      if (event.type === 'hotspot' && event.hotspot) {
+        const element = convertHotspotToSlideElement(event.hotspot, event, module);
+        slide.elements.push(element);
+      }
+    });
+  }
+
+
+  const slideDeck: SlideDeck = {
+    id: module.id,
+    title: module.title,
+    slides: [slide],
+    activeSlide: 0,
+    settings: {
+      defaultTransition: 'fade',
+    },
+  };
+
+  return slideDeck;
+}

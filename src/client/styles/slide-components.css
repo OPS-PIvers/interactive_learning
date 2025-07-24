@@ -188,6 +188,10 @@
   @apply bg-slate-700 hover:bg-slate-600;
 }
 
+.mobile-add-button {
+  @apply px-4 py-3 text-base;
+}
+
 /* Slide Editor Specific Styles */
 .slide-editor {
   /* Ensure editor takes full height */
