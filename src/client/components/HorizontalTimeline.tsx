@@ -31,8 +31,19 @@ interface HorizontalTimelineProps {
 
 const ITEM_WIDTH = 48; // Example: 40px dot + 8px margin/padding
 
-const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSProperties, data: any }) => {
-  const { uniqueSortedSteps, currentStep, onStepSelect, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews } = data;
+interface TimelineStepData {
+  uniqueSortedSteps: number[];
+  currentStep: number;
+  onStepSelect: (step: number) => void;
+  timelineEvents: TimelineEventData[];
+  hotspots: HotspotData[];
+  handleStepClick: (step: number, event: React.MouseEvent) => void;
+  getStepTooltip: (step: number) => string;
+  showPreviews: boolean;
+}
+
+const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSProperties, data: TimelineStepData }) => {
+  const { uniqueSortedSteps, currentStep, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews } = data;
   const step = uniqueSortedSteps[index];
   const isActive = step === currentStep;
 
@@ -302,7 +313,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     );
   };
 
-  const itemData = {
+  const itemData = React.useMemo(() => ({
     uniqueSortedSteps,
     currentStep,
     onStepSelect,
@@ -311,7 +322,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     handleStepClick,
     getStepTooltip,
     showPreviews
-  };
+  }), [uniqueSortedSteps, currentStep, onStepSelect, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews]);
 
   return (
     <div className="w-full" aria-label="Module Timeline">
