@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { FixedSizeList } from 'react-window';
 import { TimelineEventData, HotspotData } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { XMarkIcon } from './icons/XMarkIcon';
@@ -28,6 +29,59 @@ interface HorizontalTimelineProps {
   onMoveStep: (dragIndex: number, hoverIndex: number) => void;
 }
 
+const ITEM_WIDTH = 48; // Example: 40px dot + 8px margin/padding
+
+interface TimelineStepData {
+  uniqueSortedSteps: number[];
+  currentStep: number;
+  onStepSelect: (step: number) => void;
+  timelineEvents: TimelineEventData[];
+  hotspots: HotspotData[];
+  handleStepClick: (step: number, event: React.MouseEvent) => void;
+  getStepTooltip: (step: number) => string;
+  showPreviews: boolean;
+}
+
+const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSProperties, data: TimelineStepData }) => {
+  const { uniqueSortedSteps, currentStep, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews } = data;
+  const step = uniqueSortedSteps[index];
+  const isActive = step === currentStep;
+
+  return (
+    <div style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+       <div key={step} className="relative">
+                  <button
+                    onClick={(event) => handleStepClick(step, event)}
+                    className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
+                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                      flex items-center justify-center
+                    `}
+                    aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                    aria-current={isActive ? "step" : undefined}
+                    title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
+                  >
+                     {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                  </button>
+                  <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
+                    {timelineEvents
+                      .filter((event: TimelineEventData) => event.step === step && event.targetId)
+                      .map((event: TimelineEventData) => {
+                        const hotspot = hotspots.find((h: HotspotData) => h.id === event.targetId);
+                        return hotspot ? (
+                          <div
+                            key={`${event.id}-${hotspot.id}`}
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: hotspot.color || '#ccc' }}
+                            title={`Hotspot: ${hotspot.title}`}
+                          />
+                        ) : null;
+                      })}
+                  </div>
+                </div>
+    </div>
+  );
+};
+
 const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   uniqueSortedSteps,
   currentStep,
@@ -54,6 +108,8 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const viewerTimelineRef = useRef<HTMLDivElement>(null);
+
 
   const SWIPE_THRESHOLD = 50;
   const VERTICAL_SWIPE_THRESHOLD = 30;
@@ -257,48 +313,36 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     );
   };
 
+  const itemData = React.useMemo(() => ({
+    uniqueSortedSteps,
+    currentStep,
+    onStepSelect,
+    timelineEvents,
+    hotspots,
+    handleStepClick,
+    getStepTooltip,
+    showPreviews
+  }), [uniqueSortedSteps, currentStep, onStepSelect, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews]);
+
   return (
     <div className="w-full" aria-label="Module Timeline">
-      <div className="px-4 py-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-        <div className="relative w-full h-8 flex items-center">
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
-          <div className="relative w-full flex items-center justify-between">
-            {uniqueSortedSteps.map((step) => {
-              const isActive = step === currentStep;
-              return (
-                <div key={step} className="relative">
-                  <button
-                    onClick={(event) => handleStepClick(step, event)}
-                    className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
-                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                      flex items-center justify-center
-                    `}
-                    aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-                    aria-current={isActive ? "step" : undefined}
-                    title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
-                  >
-                     {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
-                  </button>
-                  <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
-                    {timelineEvents
-                      .filter(event => event.step === step && event.targetId)
-                      .map(event => {
-                        const hotspot = hotspots.find(h => h.id === event.targetId);
-                        return hotspot ? (
-                          <div
-                            key={`${event.id}-${hotspot.id}`}
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: hotspot.color || '#ccc' }}
-                            title={`Hotspot: ${hotspot.title}`}
-                          />
-                        ) : null;
-                      })}
-                  </div>
-                </div>
-              );
-          })}
-        </div>
-      </div>
+      <div
+        className="relative w-full overflow-x-auto flex items-center justify-center py-4"
+        style={{ height: '80px' }} // Give it a fixed height for virtualization
+        ref={viewerTimelineRef}
+      >
+        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
+        <FixedSizeList
+          height={80} // Must match the parent container's height
+          width={isMobile ? window.innerWidth : viewerTimelineRef.current?.offsetWidth || 0} // Adjust width dynamically
+          itemCount={uniqueSortedSteps.length}
+          itemSize={ITEM_WIDTH}
+          layout="horizontal" // Crucial for horizontal scrolling
+          itemData={itemData}
+          className="custom-scrollbar" // Apply custom scrollbar styles if needed
+        >
+          {TimelineStep}
+        </FixedSizeList>
       </div>
       {activePreview && showPreviews && !isMobile && (
         <EventPreviewCard

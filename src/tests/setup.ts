@@ -38,3 +38,19 @@ Object.defineProperty(window, 'visualViewport', {
     dispatchEvent: vi.fn(),
   },
 });
+
+// Mock for react-window
+Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
+  writable: true,
+  value: () => ({
+    width: 1024,
+    height: 768,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  }),
+});
