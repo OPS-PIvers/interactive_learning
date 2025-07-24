@@ -647,6 +647,112 @@ export class FirebaseProjectAPI {
   }
 
   /**
+   * Upload a thumbnail for a specific project.
+   * Uses the path structure required by storage rules: /projects/{projectId}/thumbnails/{thumbId}
+   */
+  async uploadThumbnail(file: File, projectId: string): Promise<string> {
+    try {
+      const auth = firebaseManager.getAuth();
+      
+      // Verify authentication before upload
+      if (!auth.currentUser) {
+        throw new Error('auth/user-not-authenticated: User must be authenticated to upload thumbnails');
+      }
+      
+      // Validate inputs
+      if (!file || file.size === 0) {
+        throw new Error('Invalid file: File is empty or corrupted');
+      }
+      
+      if (!projectId) {
+        throw new Error('Project ID is required for thumbnail upload');
+      }
+      
+      // Generate unique thumbnail ID
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const thumbId = `${THUMBNAIL_FILE_PREFIX}${timestamp}_${randomSuffix}.jpg`;
+      
+      // Use the path structure that matches storage rules
+      const fileName = `projects/${projectId}/thumbnails/${thumbId}`;
+      
+      const storage = firebaseManager.getStorage();
+      const thumbnailRef = ref(storage, fileName);
+      
+      debugLog.log(`Uploading thumbnail: ${fileName} (${file.size} bytes, type: ${file.type})`);
+      
+      // Set metadata with ownerId for security rules
+      const metadata = {
+        contentType: file.type,
+        customMetadata: {
+          projectId: projectId,
+          uploadedAt: new Date().toISOString(),
+          ownerId: auth.currentUser.uid, // Required by storage rules
+          originalName: file.name,
+          thumbnailType: 'project'
+        }
+      };
+      
+      // Upload with optimized timeout and retry handling
+      const uploadPromise = uploadBytes(thumbnailRef, file, metadata);
+      
+      // Add timeout wrapper with appropriate time based on file size
+      const timeoutMs = Math.max(30000, file.size / 1024 / 1024 * 10000); // 10 seconds per MB, min 30s
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('storage/timeout: Thumbnail upload timed out'));
+        }, timeoutMs);
+      });
+      
+      const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+      
+      // Get download URL with retry logic
+      let downloadURL: string;
+      let urlAttempts = 0;
+      const maxUrlAttempts = 3;
+      
+      while (urlAttempts < maxUrlAttempts) {
+        try {
+          downloadURL = await getDownloadURL(snapshot.ref);
+          break;
+        } catch (urlError) {
+          urlAttempts++;
+          debugLog.warn(`Download URL attempt ${urlAttempts} failed:`, urlError);
+          
+          if (urlAttempts >= maxUrlAttempts) {
+            throw new Error(`Failed to get thumbnail download URL after ${maxUrlAttempts} attempts`);
+          }
+          
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * urlAttempts));
+        }
+      }
+      
+      debugLog.log('Thumbnail uploaded successfully:', downloadURL);
+      return downloadURL!;
+    } catch (error) {
+      debugLog.error('Error uploading thumbnail:', error);
+      
+      // Enhanced error categorization for thumbnails
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('auth/') || errorMessage.includes('authentication')) {
+          throw new Error(`Authentication error: ${error.message}`);
+        }
+        if (errorMessage.includes('storage/unauthorized') || errorMessage.includes('permission')) {
+          throw new Error(`Permission denied: Check project ownership and storage rules`);
+        }
+        if (errorMessage.includes('storage/timeout') || errorMessage.includes('timeout')) {
+          throw new Error(`Thumbnail upload timeout: File may be too large or connection too slow`);
+        }
+      }
+      
+      throw new Error(`Failed to upload thumbnail: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Upload a file with progress reporting.
    * @param file The file to upload.
    * @param onProgress A callback to report progress.
