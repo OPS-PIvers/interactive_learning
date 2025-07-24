@@ -15,28 +15,54 @@ export const calculatePanZoomTransform = (
   containerElement: HTMLElement | null = null,
   hotspots: HotspotData[] = []
 ): ImageTransformState => {
-  // Try to inherit coordinates from target hotspot first
+  // Step 1: Try to inherit coordinates from target hotspot first
   let targetX = event.targetX;
   let targetY = event.targetY;
   
   // If no explicit coordinates and we have a target hotspot, inherit from it
-  if ((targetX === undefined || targetY === undefined) && event.targetId) {
+  if ((targetX === undefined || targetY === undefined) && event.targetId && hotspots.length > 0) {
     const targetHotspot = hotspots.find(h => h.id === event.targetId);
+    
+    console.log('[calculatePanZoomTransform] Hotspot lookup:', {
+      targetId: event.targetId,
+      hotspotFound: !!targetHotspot,
+      availableHotspots: hotspots.map(h => ({ id: h.id, x: h.x, y: h.y })),
+      currentCoords: { targetX, targetY }
+    });
+    
     if (targetHotspot) {
+      // Only inherit if coordinates are actually missing
       targetX = targetX ?? targetHotspot.x;
       targetY = targetY ?? targetHotspot.y;
       console.log('[calculatePanZoomTransform] Inherited coordinates from hotspot:', {
         hotspotId: targetHotspot.id,
-        inheritedX: targetX,
-        inheritedY: targetY
+        hotspotCoords: { x: targetHotspot.x, y: targetHotspot.y },
+        finalCoords: { targetX, targetY }
+      });
+    } else {
+      console.warn('[calculatePanZoomTransform] Target hotspot not found:', {
+        targetId: event.targetId,
+        availableIds: hotspots.map(h => h.id)
       });
     }
   }
   
-  // Fall back to spotlight coordinates or defaults
+  // Step 2: Fall back to spotlight coordinates or defaults
   targetX = targetX ?? event.spotlightX ?? PREVIEW_DEFAULTS.TARGET_X;
   targetY = targetY ?? event.spotlightY ?? PREVIEW_DEFAULTS.TARGET_Y;
   const zoomLevel = event.zoomLevel ?? event.zoomFactor ?? event.zoom ?? INTERACTION_DEFAULTS.zoomFactor;
+  
+  // Step 3: Validate coordinates are within reasonable bounds
+  if (targetX < 0 || targetX > 100 || targetY < 0 || targetY > 100) {
+    console.warn('[calculatePanZoomTransform] Coordinates out of bounds, clamping:', {
+      originalX: targetX,
+      originalY: targetY,
+      clampedX: Math.max(0, Math.min(100, targetX)),
+      clampedY: Math.max(0, Math.min(100, targetY))
+    });
+    targetX = Math.max(0, Math.min(100, targetX));
+    targetY = Math.max(0, Math.min(100, targetY));
+  }
   
   console.log('[calculatePanZoomTransform] Input parameters:', {
     eventId: event.id,
@@ -56,6 +82,7 @@ export const calculatePanZoomTransform = (
   let targetPixelX: number;
   let targetPixelY: number;
 
+  // Step 4: Calculate target pixel coordinates
   // Use image-content-aware positioning when image elements are available
   // This ensures perfect alignment with hotspot positions (same as spotlight effect)
   if (imageElement && containerElement) {
@@ -63,10 +90,14 @@ export const calculatePanZoomTransform = (
     
     console.log('[calculatePanZoomTransform] Image bounds calculation:', {
       hasImageBounds: !!imageBounds,
-      imageBounds: imageBounds || 'NULL'
+      imageBounds: imageBounds || 'NULL',
+      imageNaturalSize: imageElement ? { 
+        width: imageElement.naturalWidth, 
+        height: imageElement.naturalHeight 
+      } : 'NO_IMAGE'
     });
     
-    if (imageBounds) {
+    if (imageBounds && imageBounds.width > 0 && imageBounds.height > 0) {
       // Convert percentage to pixel position within image content area
       const imageContentX = (targetX / 100) * imageBounds.width;
       const imageContentY = (targetY / 100) * imageBounds.height;
@@ -86,10 +117,11 @@ export const calculatePanZoomTransform = (
       targetPixelX = (targetX / 100) * containerRect.width;
       targetPixelY = (targetY / 100) * containerRect.height;
       
-      console.log('[calculatePanZoomTransform] Container fallback positioning (no image bounds):', {
+      console.log('[calculatePanZoomTransform] Container fallback positioning (invalid image bounds):', {
         percentageCoords: { targetX, targetY },
         containerRect: { width: containerRect.width, height: containerRect.height },
-        finalPixelCoords: { targetPixelX, targetPixelY }
+        finalPixelCoords: { targetPixelX, targetPixelY },
+        imageBoundsError: imageBounds ? 'ZERO_SIZE' : 'NULL'
       });
     }
   } else {
@@ -100,7 +132,8 @@ export const calculatePanZoomTransform = (
     console.log('[calculatePanZoomTransform] Container-only positioning (no image/container elements):', {
       percentageCoords: { targetX, targetY },
       containerRect: { width: containerRect.width, height: containerRect.height },
-      finalPixelCoords: { targetPixelX, targetPixelY }
+      finalPixelCoords: { targetPixelX, targetPixelY },
+      reason: !imageElement ? 'NO_IMAGE' : 'NO_CONTAINER'
     });
   }
 
