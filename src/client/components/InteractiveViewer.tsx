@@ -383,8 +383,27 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
       let pixelPosition = null;
       
       if (isMobile) {
-        // Mobile: Use percentage positioning for consistency across screen sizes
-        // No pixel position needed - will use CSS percentage positioning
+        // Mobile: Use unified positioning system for consistency with events
+        if (imageElementRef.current && imageContainerRef.current) {
+          const visibleImageBounds = getActualImageVisibleBoundsRelative(
+            imageElementRef.current, 
+            imageContainerRef.current
+          );
+          
+          if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
+            // Convert percentage to pixel position within image content area
+            const imagePixelPosition = percentageToPixelImageBounds(
+              { x: clampedHotspot.x, y: clampedHotspot.y },
+              visibleImageBounds
+            );
+            
+            // Add image offset within container to get final container-relative coordinates
+            pixelPosition = {
+              x: visibleImageBounds.x + imagePixelPosition.x,
+              y: visibleImageBounds.y + imagePixelPosition.y
+            };
+          }
+        }
       } else {
         // Desktop: Use pixel positioning for perfect alignment with events
         if (imageElementRef.current && imageContainerRef.current) {
@@ -535,7 +554,7 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
                           <HotspotViewer
                             hotspot={hotspot}
                             pixelPosition={hotspot.pixelPosition}
-                            usePixelPositioning={!isMobile && !!hotspot.pixelPosition}
+                            usePixelPositioning={!!hotspot.pixelPosition}
                             imageElement={imageElementRef.current}
                             isPulsing={moduleState === 'learning' && pulsingHotspotId === hotspot.id}
                             isDimmedInEditMode={false}

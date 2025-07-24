@@ -452,8 +452,10 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       </div>
 
       {/* Main Content Area - Always show the image with hotspots */}
-      <div className="flex-1 relative bg-slate-800 min-h-0">
-        {children}
+      <div className="flex-1 relative bg-slate-800 min-h-0 flex items-center justify-center">
+        <div className="w-full h-full relative overflow-hidden">
+          {children}
+        </div>
       </div>
 
       {/* Timeline at the bottom - Using simple viewer-style timeline for consistency */}

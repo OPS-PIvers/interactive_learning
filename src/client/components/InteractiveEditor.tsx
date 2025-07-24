@@ -12,7 +12,8 @@ import Modal from './Modal';
 import LoadingSpinnerIcon from './icons/LoadingSpinnerIcon';
 import CheckIcon from './icons/CheckIcon';
 import { Z_INDEX, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
-import { normalizeHotspotPosition, sanitizeHotspotPosition } from '../../lib/safeMathUtils';
+import { normalizeHotspotPosition, sanitizeHotspotPosition, percentageToPixelImageBounds } from '../../lib/safeMathUtils';
+import { getActualImageVisibleBoundsRelative } from '../utils/imageBounds';
 import { generateId } from '../utils/generateId';
 import { debugLog } from '../utils/debugUtils';
 
@@ -134,37 +135,50 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
     return uniqueSortedSteps.indexOf(currentStep);
   }, [uniqueSortedSteps, currentStep]);
 
-  // Hotspot positioning calculations
+  // Hotspot positioning calculations - UNIFIED across mobile and desktop
   const hotspotsWithPositions = useMemo(() => {
     if (!backgroundImage) return hotspots.map(h => ({ ...h, pixelPosition: null }));
     
-    // For mobile, we should use percentage positioning to let CSS handle the scaling
-    // Only provide pixel positioning for desktop or when we have accurate container dimensions
-    if (isMobile) {
-      return hotspots.map(hotspot => ({
-        ...hotspot,
-        pixelPosition: null // Let HotspotViewer use percentage positioning for mobile
-      }));
-    }
-    
-    // Desktop pixel positioning (only when we have accurate dimensions)
-    if (!imageNaturalDimensions) {
-      return hotspots.map(h => ({ ...h, pixelPosition: null }));
-    }
-    
     return hotspots.map(hotspot => {
-      const pixelX = (hotspot.x / 100) * imageNaturalDimensions.width;
-      const pixelY = (hotspot.y / 100) * imageNaturalDimensions.height;
+      // Apply boundary validation to percentage coordinates
+      const clampedPercentage = sanitizeHotspotPosition({ x: hotspot.x, y: hotspot.y });
+      
+      const clampedHotspot = {
+        ...hotspot,
+        x: clampedPercentage.x,
+        y: clampedPercentage.y
+      };
+      
+      let pixelPosition = null;
+      
+      // Use unified positioning system for both mobile and desktop (consistency with viewer)
+      if (actualImageRef.current && imageContainerRef.current) {
+        const visibleImageBounds = getActualImageVisibleBoundsRelative(
+          actualImageRef.current, 
+          imageContainerRef.current
+        );
+        
+        if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
+          // Convert percentage to pixel position within image content area
+          const imagePixelPosition = percentageToPixelImageBounds(
+            { x: clampedHotspot.x, y: clampedHotspot.y },
+            visibleImageBounds
+          );
+          
+          // Add image offset within container to get final container-relative coordinates
+          pixelPosition = {
+            x: visibleImageBounds.x + imagePixelPosition.x,
+            y: visibleImageBounds.y + imagePixelPosition.y
+          };
+        }
+      }
       
       return {
-        ...hotspot,
-        pixelPosition: {
-          x: pixelX,
-          y: pixelY
-        }
+        ...clampedHotspot,
+        pixelPosition
       };
     });
-  }, [hotspots, backgroundImage, imageNaturalDimensions, isMobile]);
+  }, [hotspots, backgroundImage, actualImageRef.current, imageContainerRef.current]);
 
   // Event handlers
   const handleAddHotspot = useCallback(() => {

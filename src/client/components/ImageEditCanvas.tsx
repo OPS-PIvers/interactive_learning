@@ -294,7 +294,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
       }}
     >
       <div
-          className={`relative flex items-center justify-center ${isMobile ? 'min-w-full min-h-full' : 'min-w-full min-h-full'} ${
+          className={`relative flex items-center justify-center ${isMobile ? 'w-full h-full' : 'min-w-full min-h-full'} ${
             isDragModeActive ? 'drag-mode-active' : ''
           }`}
         style={{
@@ -324,7 +324,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 ref={actualImageRef}
                 src={backgroundImage}
                 alt="Interactive module background"
-                className={isMobile ? "block max-w-full max-h-full object-contain" : "block max-w-none"}
+                className={isMobile ? "w-full h-full object-contain" : "block max-w-none"}
                 style={!isMobile ? { // Desktop specific styles from original
                   width: scrollableContainerRef.current?.clientWidth || 'auto',
                   height: 'auto',
@@ -367,7 +367,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 <HotspotViewer
                   hotspot={hotspot}
                   pixelPosition={hotspot.pixelPosition}
-                  usePixelPositioning={!!hotspot.pixelPosition && !isMobile}
+                  usePixelPositioning={!!hotspot.pixelPosition}
                   imageElement={actualImageRef.current}
                   isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
                   isDimmedInEditMode={getIsHotspotDimmed(hotspot.id)}
