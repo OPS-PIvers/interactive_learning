@@ -1,5 +1,5 @@
 // src/shared/DataMigration.ts - Data migration utilities
-import { TimelineEventData, InteractionType } from './types';
+import { TimelineEventData, InteractionType, InteractiveModuleState, HotspotData } from './types';
 
 export class DataMigration {
   /**
@@ -14,7 +14,7 @@ export class DataMigration {
       // Ensure required properties exist
       name: event.name || 'Legacy Event',
       step: event.step || 1,
-      type: event.type || InteractionType.SHOW_HOTSPOT
+      type: event.type || InteractionType.SHOW_TEXT
     };
   }
 
@@ -27,7 +27,7 @@ export class DataMigration {
       ...event,
       name: event.name || 'Legacy Event',
       step: event.step || 1,
-      type: event.type || InteractionType.SHOW_HOTSPOT
+      type: event.type || InteractionType.SHOW_TEXT
     };
   }
 
@@ -50,22 +50,17 @@ export class DataMigration {
     const migratedData: InteractiveModuleState = {
       hotspots: Array.isArray(data.hotspots) ? data.hotspots as HotspotData[] : [],
       timelineEvents: data.timelineEvents.map(this.convertLegacyEvent),
-      currentStep: typeof data.currentStep === 'number' ? data.currentStep : 0,
-      backgroundImage: typeof data.backgroundImage === 'string' ? data.backgroundImage : null,
-      // Add other required properties with defaults
-      isEditing: false,
-      isPlaying: false,
-      isDragging: false,
-      draggedHotspot: null,
-      selectedHotspot: null,
-      placementMode: false,
-      pendingHotspotType: null,
-      pendingHotspotData: null,
-      imageTransform: { scale: 1, translateX: 0, translateY: 0 },
-      isTransforming: false,
-      autoPlay: false,
-      previewMode: false,
-      ...(data as Partial<InteractiveModuleState>)
+      backgroundImage: typeof data.backgroundImage === 'string' ? data.backgroundImage : undefined,
+      backgroundType: (data.backgroundType as any) === 'video' ? 'video' : 'image',
+      backgroundVideoType: (data.backgroundVideoType as any) === 'mp4' || (data.backgroundVideoType as any) === 'youtube' 
+        ? data.backgroundVideoType as 'mp4' | 'youtube' 
+        : undefined,
+      imageFitMode: ['cover', 'contain', 'fill'].includes(data.imageFitMode as any) 
+        ? data.imageFitMode as 'cover' | 'contain' | 'fill' 
+        : undefined,
+      viewerModes: typeof data.viewerModes === 'object' && data.viewerModes !== null 
+        ? data.viewerModes as InteractiveModuleState['viewerModes']
+        : undefined
     };
     
     return migratedData;

@@ -5,6 +5,7 @@ interface InteractiveViewerContentProps {
   imageContainerRef: React.RefObject<HTMLElement>;
   imageElementRef: React.RefObject<HTMLImageElement>;
   children: React.ReactNode;
+  onTransformUpdate?: (transform: { scale: number; translateX: number; translateY: number }) => void;
 }
 
 /**
@@ -13,9 +14,10 @@ interface InteractiveViewerContentProps {
 export const InteractiveViewerContent: React.FC<InteractiveViewerContentProps> = ({
   imageContainerRef,
   imageElementRef,
-  children
+  children,
+  onTransformUpdate
 }) => {
-  const { setContainerElement, setImageElement } = usePanZoom();
+  const { setContainerElement, setImageElement, currentTransform } = usePanZoom();
 
   // Set up elements when refs change
   useEffect(() => {
@@ -29,6 +31,13 @@ export const InteractiveViewerContent: React.FC<InteractiveViewerContentProps> =
       setImageElement(imageElementRef.current);
     }
   }, [imageElementRef.current, setImageElement]);
+
+  // Sync context transform changes to parent component
+  useEffect(() => {
+    if (onTransformUpdate && currentTransform) {
+      onTransformUpdate(currentTransform);
+    }
+  }, [currentTransform, onTransformUpdate]);
 
   return <>{children}</>;
 };

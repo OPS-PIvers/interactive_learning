@@ -18,7 +18,7 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
   imageElement
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const animationRef = useRef<number>();
 
   const handleComplete = useCallback(() => {

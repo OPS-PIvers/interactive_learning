@@ -62,7 +62,7 @@ src/
 - **TimelineEventData** interface for timeline events with extensive properties
 - **InteractionPresets** provides UI metadata for each interaction type
 - **Event Execution**: Events are executed in sequence based on timeline step
-- **Event Settings**: Modal editing for `PLAY_AUDIO`, `PLAY_VIDEO`, `PAN_ZOOM`, `SPOTLIGHT`, and `HIGHLIGHT_HOTSPOT`
+- **Event Settings**: Modal editing for `PLAY_AUDIO`, `PLAY_VIDEO`, `PAN_ZOOM`, and `SPOTLIGHT`
 - **Legacy Support**: Backward compatibility maintained while consolidating similar event types
 - **Text Banner**: Optional text banner display for visual events with accessibility support
 

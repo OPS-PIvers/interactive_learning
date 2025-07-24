@@ -18,8 +18,9 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
   hotspots = [], // ADD
   imageElement // ADD
 }) => {
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const animationRef = useRef<number>();
 
   const handleComplete = useCallback(() => {
@@ -34,10 +35,14 @@ const MobileSpotlightOverlay: React.FC<MobileSpotlightOverlayProps> = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container) return;
+    if (!canvas || !container) {
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     // Set canvas size to match viewport
     const resizeCanvas = () => {

@@ -423,11 +423,22 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
     timed: viewerModes.timed ?? true
   }));
 
+  // Bridge PanZoom context transforms to local image transform state
+  const handleContextTransformUpdate = useCallback((transform: { scale: number; translateX: number; translateY: number }) => {
+    setImageTransform(prev => ({
+      ...prev,
+      scale: transform.scale,
+      translateX: transform.translateX,
+      translateY: transform.translateY
+    }));
+  }, []);
+
   return (
     <PanZoomProvider>
       <InteractiveViewerContent 
         imageContainerRef={imageContainerRef}
         imageElementRef={imageElementRef}
+        onTransformUpdate={handleContextTransformUpdate}
       >
         <div className="fixed inset-0 z-50 bg-slate-900">
         <div
