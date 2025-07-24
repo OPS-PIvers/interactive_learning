@@ -55,7 +55,6 @@ const HOTSPOT_SIZES = [
 
 // Simplified interaction types for mobile, can be expanded later
 const INTERACTION_TYPE_OPTIONS = [
-  // { value: InteractionType.HIGHLIGHT_HOTSPOT, label: 'Highlight Area' }, // More complex, defer if needed
   { value: InteractionType.PAN_ZOOM_TO_HOTSPOT, label: 'Zoom to Hotspot' },
   { value: InteractionType.SHOW_TEXT, label: 'Show Text' }, // Assumes simple text, not rich text editor
   { value: InteractionType.PLAY_VIDEO, label: 'Play Video (URL)' }, // Assumes direct video URL

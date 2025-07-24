@@ -25,7 +25,7 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     textColor: 'text-blue-200'
   },
   {
-    type: InteractionType.HIGHLIGHT_HOTSPOT,
+    type: InteractionType.SPOTLIGHT,
     label: 'Spotlight',
     description: 'Highlight area',
     color: 'bg-yellow-600',
@@ -71,14 +71,6 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     color: 'bg-red-600',
     hoverColor: 'hover:bg-red-700',
     textColor: 'text-red-200'
-  },
-  {
-    type: InteractionType.PULSE_HOTSPOT,
-    label: 'Pulse',
-    description: 'Animate hotspot',
-    color: 'bg-pink-600',
-    hoverColor: 'hover:bg-pink-700',
-    textColor: 'text-pink-200'
   }
 ];
 

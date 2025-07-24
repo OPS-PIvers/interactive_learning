@@ -25,7 +25,7 @@ describe('Spotlight Targeting', () => {
       step: 1,
       message: 'Highlighting area...',
       // Test the fixed logic for setting spotlight coordinates
-      ...((eventType === InteractionType.SPOTLIGHT || eventType === InteractionType.HIGHLIGHT_HOTSPOT) && {
+      ...(eventType === InteractionType.SPOTLIGHT && {
         spotlightX: mockHotspot.x,
         spotlightY: mockHotspot.y,
         spotlightShape: 'circle',

@@ -199,7 +199,7 @@ describe('Timeline Event Execution', () => {
     })
   })
 
-  describe('Pulse Event Processing', () => {
+  describe('Spotlight Event Processing', () => {
     test('should handle SPOTLIGHT with duration', () => {
       const pulseEvent: TimelineEventData = {
         id: 'pulse-event',

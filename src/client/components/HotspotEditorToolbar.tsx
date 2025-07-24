@@ -36,7 +36,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   const [activeTab, setActiveTab] = useState<'properties' | 'events'>('properties');
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
-  const [newEventType, setNewEventType] = useState<InteractionType>(InteractionType.PULSE_HOTSPOT);
+  const [newEventType, setNewEventType] = useState<InteractionType>(InteractionType.SPOTLIGHT);
 
   const handleDeleteHotspot = () => {
     if (confirm(`Delete "${selectedHotspot.title}" and all its events?`)) {
