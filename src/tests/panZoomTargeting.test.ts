@@ -69,7 +69,7 @@ describe('Pan & Zoom Targeting', () => {
 
   it('should not set target coordinates for other event types', () => {
     // Test that other event types don't get target coordinates
-    const eventType = InteractionType.PULSE_HOTSPOT;
+    const eventType = InteractionType.SHOW_TEXT;
     const newEvent = {
       id: 'test-event',
       type: eventType,

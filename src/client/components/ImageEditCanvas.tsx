@@ -113,7 +113,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
     return previewingEvents.map(event => {
       switch (event.type) {
         case InteractionType.SPOTLIGHT:
-        case InteractionType.HIGHLIGHT_HOTSPOT:
           return (
             <div
               key={`preview-${event.id}`}
@@ -179,9 +178,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
     return currentStep > 0 && !timelineEvents.some(e =>
       e.step === currentStep &&
       e.targetId === hotspotId &&
-      (e.type === InteractionType.PULSE_HOTSPOT ||
-       e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT ||
-       e.type === InteractionType.HIGHLIGHT_HOTSPOT)
+      (e.type === InteractionType.SPOTLIGHT ||
+       e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
     );
   };
 
@@ -468,8 +466,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                     );
                   }
                   
-                  if (previewOverlayEvent.type === InteractionType.SPOTLIGHT || 
-                      previewOverlayEvent.type === InteractionType.HIGHLIGHT_HOTSPOT) {
+                  if (previewOverlayEvent.type === InteractionType.SPOTLIGHT) {
                     return (
                       <SpotlightPreviewOverlay
                         event={previewOverlayEvent}

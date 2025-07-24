@@ -42,7 +42,6 @@ const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) =
     { type: InteractionType.PLAY_VIDEO, label: 'Video' },
     { type: InteractionType.PLAY_AUDIO, label: 'Audio' },
     { type: InteractionType.QUIZ, label: 'Quiz Question' },
-    { type: InteractionType.PULSE_HOTSPOT, label: 'Pulse Hotspot' },
   ];
 
   return (
@@ -219,14 +218,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         smooth: true,
       }),
       
-      // === PULSE PROPERTIES ===
-      ...(type === InteractionType.PULSE_HOTSPOT && {
-        duration: 2000,
-        intensity: 80,
-      }),
-      
       // === OTHER PROPERTIES ===
-      
       ...(type === InteractionType.QUIZ && {
         quizQuestion: 'Enter your question',
         quizOptions: ['Option 1', 'Option 2', 'Option 3'],

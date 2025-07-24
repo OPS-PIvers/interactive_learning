@@ -342,13 +342,6 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
           />
         );
       
-      
-      case InteractionType.HIDE_HOTSPOT:
-        // Hide hotspot events are handled automatically by the parent component
-        // Just complete the event immediately
-        setTimeout(handleComplete, 0); // Avoid setState during render
-        return null;
-      
       default:
         console.warn(`Unsupported desktop event type: ${event.type}`);
         return null;

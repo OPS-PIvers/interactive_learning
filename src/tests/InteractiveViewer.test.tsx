@@ -48,7 +48,7 @@ describe('InteractiveViewer - Start Guided Learning', () => {
     {
       id: 'event1',
       step: 1,
-      type: InteractionType.PULSE_HOTSPOT,
+      type: InteractionType.SPOTLIGHT,
       name: 'First Event',
       message: 'This is the first event',
       targetId: 'hotspot1',

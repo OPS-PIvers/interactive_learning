@@ -82,8 +82,6 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
         spotlightX: selectedHotspot.x,
         spotlightY: selectedHotspot.y
       }),
-      ...(newEventType === InteractionType.HIGHLIGHT_HOTSPOT && { highlightRadius: 60 }),
-      ...(newEventType === InteractionType.PULSE_HOTSPOT && { duration: 2000 }),
       ...(newEventType === InteractionType.SHOW_MESSAGE && { message: '' }),
       ...(newEventType === InteractionType.SHOW_VIDEO && { videoUrl: '', autoplay: false }),
       ...(newEventType === InteractionType.SHOW_AUDIO_MODAL && { audioUrl: '', autoplay: false }),
