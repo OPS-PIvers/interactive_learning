@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
-import { getActualImageVisibleBounds, getCachedBoundingClientRect } from '../utils/imageBounds';
+import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -159,15 +159,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       initialHotspotLeft_inContainer = currentPixelPos.x;
       initialHotspotTop_inContainer = currentPixelPos.y;
     } else {
-      // Calculate pixel position from percentage coordinates and container bounds
-      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement || null, containerElement as HTMLElement);
+      // Calculate pixel position from percentage coordinates using container-relative bounds
+      const visibleImageBounds = getActualImageVisibleBoundsRelative(props.imageElement || null, containerElement as HTMLElement);
       
       if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
-        // Calculate hotspot position relative to the visible image bounds
+        // Calculate hotspot position relative to the visible image bounds (same as pan/zoom)
         const hotspotX_relativeToImage = (hotspot.x / 100) * visibleImageBounds.width;
         const hotspotY_relativeToImage = (hotspot.y / 100) * visibleImageBounds.height;
         
-        // Add the image's offset within the container
+        // Add the image's offset within the container (container-relative coordinates)
         initialHotspotLeft_inContainer = visibleImageBounds.x + hotspotX_relativeToImage;
         initialHotspotTop_inContainer = visibleImageBounds.y + hotspotY_relativeToImage;
       } else {
