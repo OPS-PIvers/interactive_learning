@@ -98,12 +98,14 @@ export const usePanZoomEngine = ({
     const targetPixelY = imageBounds.y + imageContentY;
 
     // Calculate translation to center the target point in the viewport
-    // Original formula: translateX = viewportCenter - targetPixel * zoomLevel
+    // Account for CSS transform order: translate(x, y) scale(z)
+    // Since translation happens before scaling, we need: (targetPixel + translate) * scale = containerCenter
+    // Therefore: translate = (containerCenter / scale) - targetPixel
     const containerCenterX = containerRect.width / 2;
     const containerCenterY = containerRect.height / 2;
     
-    const finalTranslateX = containerCenterX - targetPixelX * zoomLevel;
-    const finalTranslateY = containerCenterY - targetPixelY * zoomLevel;
+    const finalTranslateX = (containerCenterX / zoomLevel) - targetPixelX;
+    const finalTranslateY = (containerCenterY / zoomLevel) - targetPixelY;
 
     // Debug logging can be enabled by setting localStorage.debug_pan_zoom = 'true'
     if (localStorage.getItem('debug_pan_zoom') === 'true') {

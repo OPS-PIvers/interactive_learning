@@ -62,7 +62,12 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
         spotlightX = targetHotspot.x;
         spotlightY = targetHotspot.y;
         if (localStorage.getItem('debug_spotlight') === 'true') {
-          console.log('[DesktopSpotlight] Using hotspot position:', { spotlightX, spotlightY, hotspotId: targetHotspot.id });
+          console.log('[DesktopSpotlight] Using hotspot position:', { 
+            spotlightX, 
+            spotlightY, 
+            hotspotId: targetHotspot.id,
+            fullHotspot: targetHotspot 
+          });
         }
       } else {
         console.warn('[DesktopSpotlight] Target hotspot not found:', event.targetId);
@@ -93,6 +98,7 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
         const imageY = (spotlightY / 100) * imageBounds.height;
         
         // Add image offset to get container-relative coordinates
+        // NOTE: imageBounds.x and imageBounds.y are already container-relative from getActualImageVisibleBoundsRelative
         centerX = imageBounds.x + imageX;
         centerY = imageBounds.y + imageY;
         
