@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { HotspotData, ImageTransformState } from '../../shared/types';
-import { getActualImageVisibleBounds } from '../utils/imageBounds';
+import { getActualImageVisibleBoundsRelative } from '../utils/imageBounds';
 
 export interface HotspotPositioningUtils {
   getPixelPosition: (
@@ -32,15 +32,21 @@ export const useHotspotPositioning = (
       imageElement: HTMLImageElement | null,
       containerElement: HTMLElement | null
     ): { x: number; y: number } | null => {
-      const visibleImageBounds = getActualImageVisibleBounds(imageElement, containerElement);
+      const visibleImageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
 
       if (!visibleImageBounds) {
         return null;
       }
 
-      // 1. Calculate base pixel position on the visible image content area
-      const positionX = (hotspot.x / 100) * visibleImageBounds.width;
-      const positionY = (hotspot.y / 100) * visibleImageBounds.height;
+      // Calculate pixel position using the same coordinate system as pan/zoom
+      // This matches the calculation in panZoomUtils.ts
+      const imageContentX = (hotspot.x / 100) * visibleImageBounds.width;
+      const imageContentY = (hotspot.y / 100) * visibleImageBounds.height;
+
+      // Add image offset within container to get final container-relative coordinates
+      // This is the same calculation used in pan/zoom for coordinate alignment
+      const positionX = visibleImageBounds.x + imageContentX;
+      const positionY = visibleImageBounds.y + imageContentY;
 
       return {
         x: positionX,

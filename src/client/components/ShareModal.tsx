@@ -28,7 +28,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   });
   const [activeTab, setActiveTab] = useState<'url' | 'embed'>('url');
   const [copySuccess, setCopySuccess] = useState<string>('');
-  const [isPublic, setIsPublic] = useState(project.isPublic || false);
+  const [isPublished, setIsPublished] = useState(project.isPublished || false);
   const [isToggling, setIsToggling] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
@@ -67,18 +67,18 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     }
   }, [isOpen, onClose]);
 
-  const handlePublicToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePublishToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isToggling) return; // Prevent multiple concurrent requests
     
-    const newPublicStatus = e.target.checked;
+    const newPublishedStatus = e.target.checked;
     setIsToggling(true);
     
     try {
-      await firebaseAPI.updateProjectPublicStatus(project.id, newPublicStatus);
-      setIsPublic(newPublicStatus);
-      setCopySuccess(`Module is now ${newPublicStatus ? 'public' : 'private'}`);
+      await firebaseAPI.updateProjectPublishedStatus(project.id, newPublishedStatus);
+      setIsPublished(newPublishedStatus);
+      setCopySuccess(`Module is now ${newPublishedStatus ? 'published' : 'private'}`);
     } catch (error) {
-      console.error('Failed to update public status:', error);
+      console.error('Failed to update published status:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       // Provide specific error messages based on error type
@@ -236,45 +236,28 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
               </div>
             </div>
 
-            {/* Publish & Share Toggle */}
+            {/* Publish Toggle */}
             <div className="border-t border-slate-700 pt-4">
-              <label htmlFor="publish-toggle" className="flex items-center justify-between cursor-pointer">
-                <span className="font-medium text-white">Publish & Share Options</span>
+              <label htmlFor="publish-toggle-mobile" className={`flex items-center justify-between ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <span className="font-medium text-white">Publish Module</span>
                 <div className="relative">
                   <input
                     type="checkbox"
-                    id="publish-toggle"
+                    id="publish-toggle-mobile"
                     className="sr-only"
-                    checked={isExpanded}
-                    onChange={() => setIsExpanded(!isExpanded)}
+                    checked={isPublished}
+                    onChange={handlePublishToggle}
+                    disabled={isToggling}
                   />
-                  <div className={`block w-10 h-6 rounded-full transition-colors ${isExpanded ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isExpanded ? 'transform translate-x-4' : ''}`}></div>
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`}></div>
                 </div>
               </label>
             </div>
 
             {/* Collapsible Options */}
-            {isExpanded && (
+            {isPublished && (
               <div className="space-y-4 pt-2">
-                {/* Public/Private Toggle */}
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Public Access</span>
-                  <label htmlFor="public-toggle-mobile" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        id="public-toggle-mobile"
-                        className="sr-only"
-                        checked={isPublic}
-                        onChange={handlePublicToggle}
-                        disabled={isToggling}
-                      />
-                      <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublic ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-                      <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublic ? 'transform translate-x-6' : ''}`}></div>
-                    </div>
-                  </label>
-                </div>
                 {/* Theme */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">Theme</label>
@@ -433,10 +416,34 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
           {/* Right Panel - Share Options */}
           <div className="lg:w-2/3 p-6">
-            {/* Tab Navigation */}
-            <div className="flex border-b border-slate-700 mb-6">
-              <button
-                onClick={() => setActiveTab('url')}
+            {/* Publish Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-medium text-white">Publish Module</h3>
+              <label htmlFor="publish-toggle-desktop" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="publish-toggle-desktop"
+                    className="sr-only"
+                    checked={isPublished}
+                    onChange={handlePublishToggle}
+                    disabled={isToggling}
+                  />
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`}></div>
+                </div>
+                <div className="ml-3 text-slate-300 text-sm font-medium">
+                  {isToggling ? 'Updating...' : isPublished ? 'Published' : 'Private'}
+                </div>
+              </label>
+            </div>
+
+            {isPublished && (
+              <>
+                {/* Tab Navigation */}
+                <div className="flex border-b border-slate-700 mb-6">
+                  <button
+                    onClick={() => setActiveTab('url')}
                 className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'url'
                     ? 'border-purple-500 text-purple-400'
@@ -559,6 +566,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
                 </div>
               </div>
             )}
+              </>
+            )}
 
             {/* Success Message */}
             {copySuccess && (
@@ -576,48 +585,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
         {/* Footer */}
         <div className="p-6 border-t border-slate-700 bg-slate-750">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <label htmlFor="public-toggle" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    id="public-toggle"
-                    className="sr-only"
-                    checked={isPublic}
-                    onChange={handlePublicToggle}
-                    disabled={isToggling}
-                    aria-describedby="public-toggle-description"
-                  />
-                  <div className={`block w-14 h-8 rounded-full transition-colors ${
-                    isToggling 
-                      ? 'bg-slate-500 opacity-50' 
-                      : isPublic 
-                        ? 'bg-purple-600' 
-                        : 'bg-slate-600'
-                  }`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${
-                    isToggling 
-                      ? 'opacity-50' 
-                      : isPublic 
-                        ? 'transform translate-x-6' 
-                        : ''
-                  }`}></div>
-                  {isToggling && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
-                </div>
-                <div className="ml-3 text-slate-300 text-sm font-medium">
-                  {isToggling ? 'Updating...' : isPublic ? 'Public' : 'Private'}
-                </div>
-              </label>
-              <div id="public-toggle-description" className="sr-only">
-                Toggle to make this module {isPublic ? 'private' : 'public'}. 
-                {isPublic ? 'Private modules can only be accessed by you.' : 'Public modules can be accessed by anyone with the link.'}
-              </div>
-            </div>
+          <div className="flex justify-end items-center">
             <button
               onClick={onClose}
               className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-md transition-colors"

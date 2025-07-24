@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useEffect, Fragment } from 'react';
+import React, { useState, useMemo, useEffect, Fragment, useRef } from 'react';
 import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } from '../../../shared/types';
-import { Z_INDEX } from '../../constants/interactionConstants';
-import { createResetTransform } from '../../utils/panZoomUtils';
+import { Z_INDEX, PAN_ZOOM_ANIMATION } from '../../constants/interactionConstants';
+import { createResetTransform, calculatePanZoomTransform, transformsAreDifferent } from '../../utils/panZoomUtils';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
-import MobilePanZoomHandler from './MobilePanZoomHandler';
 import MobileTextModal from './MobileTextModal';
 import MobileQuizModal from './MobileQuizModal';
 import MobileImageModal from './MobileImageModal';
@@ -77,6 +76,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 }) => {
   const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
+  const processedPanZoomEvents = useRef<Set<string>>(new Set());
 
   // Update modal queue when events change
   useEffect(() => {
@@ -117,6 +117,57 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       setCurrentModalIndex(0);
     };
   }, []);
+
+  // Process pan/zoom events once when they become active to prevent infinite loops
+  useEffect(() => {
+    if (!isActive || !onTransformUpdate || !imageContainerRef.current || !imageElement) {
+      return;
+    }
+
+    const panZoomEvents = events.filter(e => 
+      (e.type === InteractionType.PAN_ZOOM || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
+      !processedPanZoomEvents.current.has(e.id)
+    );
+
+    if (panZoomEvents.length === 0) {
+      return;
+    }
+
+    // Process each new pan/zoom event once
+    panZoomEvents.forEach(event => {
+      console.log('[MobileEventRenderer] Processing pan/zoom event once:', event.id);
+      
+      const containerRect = imageContainerRef.current!.getBoundingClientRect();
+      const transform = calculatePanZoomTransform(
+        event,
+        containerRect,
+        imageElement,
+        imageContainerRef.current,
+        hotspots || []
+      );
+      
+      // Only apply transform if it's significantly different from current transform
+      if (transformsAreDifferent(currentTransform, transform, 2)) {
+        console.log('[MobileEventRenderer] Applying new transform - significant change detected');
+        onTransformUpdate(transform);
+      } else {
+        console.log('[MobileEventRenderer] Skipping transform update - no significant change');
+      }
+      
+      // Mark as processed to prevent re-processing
+      processedPanZoomEvents.current.add(event.id);
+      
+      // Complete event after animation
+      setTimeout(() => {
+        onEventComplete?.(event.id);
+      }, PAN_ZOOM_ANIMATION.duration);
+    });
+  }, [events, isActive, onTransformUpdate, imageElement, hotspots, onEventComplete, currentTransform]);
+
+  // Clear processed events when events change (new step/timeline)
+  useEffect(() => {
+    processedPanZoomEvents.current.clear();
+  }, [events]);
 
   const activeEvents = useMemo(() => {
     if (!isActive) {
@@ -305,18 +356,9 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <MobilePanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-            hotspots={hotspots}
-            imageElement={imageElement}
-          />
-        );
+        // Pan/zoom events are now processed once in useEffect to prevent infinite loops
+        // This case just returns null as the event is handled by the useEffect
+        return null;
       
       case InteractionType.SHOW_TEXT:
       case InteractionType.SHOW_MESSAGE:

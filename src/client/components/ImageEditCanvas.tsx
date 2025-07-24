@@ -219,24 +219,64 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           const isClickingOnHotspot = target.closest('[data-hotspot-id]') !== null;
           
           if (!isClickingOnHotspot) {
-            const visibleImageBounds = getActualImageVisibleBounds(actualImageRef.current, imageContainerRef.current);
-            
-            if (visibleImageBounds && e.clientX >= visibleImageBounds.x && e.clientX <= visibleImageBounds.x + visibleImageBounds.width &&
-                e.clientY >= visibleImageBounds.y && e.clientY <= visibleImageBounds.y + visibleImageBounds.height) {
-              
-              const clickXRelativeToVisibleImage = e.clientX - visibleImageBounds.x;
-              const clickYRelativeToVisibleImage = e.clientY - visibleImageBounds.y;
+            const img = actualImageRef.current;
+            const rect = img.getBoundingClientRect();
 
-              const xPercent = (clickXRelativeToVisibleImage / visibleImageBounds.width) * 100;
-              const yPercent = (clickYRelativeToVisibleImage / visibleImageBounds.height) * 100;
+            // Click position relative to the <img> element's bounding box
+            const clickXInBox = e.clientX - rect.left;
+            const clickYInBox = e.clientY - rect.top;
 
-              const finalXPercent = Math.max(0, Math.min(100, xPercent));
-              const finalYPercent = Math.max(0, Math.min(100, yPercent));
+            const { naturalWidth, naturalHeight } = img;
+            const { width: displayedWidth, height: displayedHeight } = rect;
 
-              onPlaceNewHotspot(finalXPercent, finalYPercent);
-              e.stopPropagation();
+            // Calculate the dimensions and offset of the actual image content
+            const naturalAspectRatio = naturalWidth / naturalHeight;
+            const displayedAspectRatio = displayedWidth / displayedHeight;
+
+            let contentWidth = displayedWidth;
+            let contentHeight = displayedHeight;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (naturalAspectRatio > displayedAspectRatio) {
+              // Letterboxed (empty space top/bottom)
+              contentHeight = displayedWidth / naturalAspectRatio;
+              offsetY = (displayedHeight - contentHeight) / 2;
+            } else {
+              // Pillarboxed (empty space left/right)
+              contentWidth = displayedHeight * naturalAspectRatio;
+              offsetX = (displayedWidth - contentWidth) / 2;
+            }
+
+            // Ignore clicks in the empty padded area
+            if (
+              clickXInBox < offsetX || clickXInBox > offsetX + contentWidth ||
+              clickYInBox < offsetY || clickYInBox > offsetY + contentHeight
+            ) {
               return;
             }
+            
+            // Adjust click coordinates to be relative to the image content itself
+            const clickXInContent = clickXInBox - offsetX;
+            const clickYInContent = clickYInBox - offsetY;
+
+            // Calculate final relative coordinates based on content dimensions
+            const relativeX = clickXInContent / contentWidth;
+            const relativeY = clickYInContent / contentHeight;
+
+            const finalXPercent = Math.max(0, Math.min(100, relativeX * 100));
+            const finalYPercent = Math.max(0, Math.min(100, relativeY * 100));
+
+            console.log('Debug [ImageEditCanvas]: Hotspot placement with letterbox handling:', {
+              click: { x: clickXInBox, y: clickYInBox },
+              content: { width: contentWidth, height: contentHeight, offsetX, offsetY },
+              relative: { x: relativeX, y: relativeY },
+              final: { x: finalXPercent, y: finalYPercent }
+            });
+
+            onPlaceNewHotspot(finalXPercent, finalYPercent);
+            e.stopPropagation();
+            return;
           }
         }
         

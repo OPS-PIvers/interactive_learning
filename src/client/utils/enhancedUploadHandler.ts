@@ -194,7 +194,7 @@ export async function handleEnhancedImageUpload(
       
       // Upload thumbnail first
       onProgress?.('Uploading thumbnail...');
-      thumbnailUrl = await appScriptProxy.uploadImage(thumbnailFile, projectId + THUMBNAIL_POSTFIX);
+      thumbnailUrl = await appScriptProxy.uploadThumbnail(thumbnailFile, projectId);
       console.log(`Thumbnail generated and uploaded: ${thumbnailUrl}`);
       
     } catch (thumbnailError) {

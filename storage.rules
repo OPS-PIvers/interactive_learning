@@ -43,7 +43,14 @@ service firebase.storage {
       allow delete: if isAuthenticated();
     }
     
-    // Thumbnails
+    // Project-specific thumbnails
+    match /projects/{projectId}/thumbnails/{thumbId} {
+      allow read;
+      allow write: if isAuthenticated() && isValidImageFile() && exists(/databases/$(database)/documents/projects/$(projectId)) && resource.metadata.ownerId == request.auth.uid;
+      allow delete: if isAuthenticated() && exists(/databases/$(database)/documents/projects/$(projectId)) && resource.metadata.ownerId == request.auth.uid;
+    }
+
+    // Legacy thumbnails (user-specific)
     match /thumbnails/{userId}/{thumbId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && 

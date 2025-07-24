@@ -52,6 +52,12 @@ export const appScriptProxy = {
     return await firebaseAPI.uploadImage(file, projectId)
   },
 
+  // Add thumbnail upload capability
+  uploadThumbnail: async (file: File, projectId: string): Promise<string> => {
+    console.log(`Firebase: Uploading thumbnail for project ${projectId}`)
+    return await firebaseAPI.uploadThumbnail(file, projectId)
+  },
+
   uploadFile: async (file: File, onProgress: (progress: number) => void, projectId?: string): Promise<string> => {
     console.log(`Firebase: Uploading file for project ${projectId}`);
     return await firebaseAPI.uploadFile(file, onProgress, projectId);
