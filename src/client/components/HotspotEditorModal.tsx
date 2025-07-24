@@ -404,19 +404,31 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                 <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">
                   Pulse Animation
                 </label>
-                <div
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!!localHotspot.pulseAnimation}
                   onClick={() =>
-                    setLocalHotspot(prev => prev ? { ...prev, pulseAnimation: !prev.pulseAnimation } : null)
+                    setLocalHotspot(prev => {
+                      if (!prev) return null;
+                      const newPulseAnimation = !prev.pulseAnimation;
+                      return {
+                        ...prev,
+                        pulseAnimation: newPulseAnimation,
+                        // Set a default pulseType when enabling animation
+                        ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const }),
+                      };
+                    })
                   }
                   id="pulse-animation-toggle"
-                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
                               ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}
                 >
                   <span
                     className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
                                 ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`}
                   />
-                </div>
+                </button>
               </div>
               {/* Pulse Type Radio Buttons */}
               {localHotspot.pulseAnimation && (
@@ -459,11 +471,17 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                   <input
                     type="number"
                     id="pulse-duration"
-                    value={localHotspot.pulseDuration || ''}
-                    onChange={e =>
-                      setLocalHotspot(prev => prev ? { ...prev, pulseDuration: Number(e.target.value) } : null)
-                    }
+                    value={localHotspot.pulseDuration ?? ''}
+                    onChange={e => {
+                      const newDuration = parseFloat(e.target.value);
+                      setLocalHotspot(prev => 
+                        prev ? { ...prev, pulseDuration: isNaN(newDuration) ? undefined : newDuration } : null
+                      );
+                    }}
                     className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
+                    min="0"
+                    step="0.1"
+                    placeholder="Enter duration in seconds"
                   />
                 </div>
               )}
