@@ -8,6 +8,7 @@ import MobileQuizModal from './MobileQuizModal';
 import MobileImageModal from './MobileImageModal';
 import MobileVideoModal from './MobileVideoModal';
 import MobileAudioModal from './MobileAudioModal';
+import { PanZoomRenderer } from '../PanZoomRenderer';
 
 interface MobileEventRendererProps {
   events: TimelineEventData[];
@@ -51,7 +52,6 @@ const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.PULSE_HOTSPOT,
   InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
-  InteractionType.PAN_ZOOM_TO_HOTSPOT,
 ]);
 
 export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
@@ -76,7 +76,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 }) => {
   const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
-  const processedPanZoomEvents = useRef<Set<string>>(new Set());
 
   // Update modal queue when events change
   useEffect(() => {
@@ -118,56 +117,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
     };
   }, []);
 
-  // Process pan/zoom events once when they become active to prevent infinite loops
-  useEffect(() => {
-    if (!isActive || !onTransformUpdate || !imageContainerRef.current || !imageElement) {
-      return;
-    }
-
-    const panZoomEvents = events.filter(e => 
-      (e.type === InteractionType.PAN_ZOOM || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
-      !processedPanZoomEvents.current.has(e.id)
-    );
-
-    if (panZoomEvents.length === 0) {
-      return;
-    }
-
-    // Process each new pan/zoom event once
-    panZoomEvents.forEach(event => {
-      console.log('[MobileEventRenderer] Processing pan/zoom event once:', event.id);
-      
-      const containerRect = imageContainerRef.current!.getBoundingClientRect();
-      const transform = calculatePanZoomTransform(
-        event,
-        containerRect,
-        imageElement,
-        imageContainerRef.current,
-        hotspots || []
-      );
-      
-      // Only apply transform if it's significantly different from current transform
-      if (transformsAreDifferent(currentTransform, transform, 2)) {
-        console.log('[MobileEventRenderer] Applying new transform - significant change detected');
-        onTransformUpdate(transform);
-      } else {
-        console.log('[MobileEventRenderer] Skipping transform update - no significant change');
-      }
-      
-      // Mark as processed to prevent re-processing
-      processedPanZoomEvents.current.add(event.id);
-      
-      // Complete event after animation
-      setTimeout(() => {
-        onEventComplete?.(event.id);
-      }, PAN_ZOOM_ANIMATION.duration);
-    });
-  }, [events, isActive, onTransformUpdate, imageElement, hotspots, onEventComplete, currentTransform]);
-
-  // Clear processed events when events change (new step/timeline)
-  useEffect(() => {
-    processedPanZoomEvents.current.clear();
-  }, [events]);
 
   const activeEvents = useMemo(() => {
     if (!isActive) {
@@ -355,9 +304,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
         );
       
       case InteractionType.PAN_ZOOM:
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        // Pan/zoom events are now processed once in useEffect to prevent infinite loops
-        // This case just returns null as the event is handled by the useEffect
+        // Pan/zoom events are handled by PanZoomRenderer component
         return null;
       
       case InteractionType.SHOW_TEXT:
@@ -560,6 +507,14 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 
   return (
     <>
+      {/* Pan/Zoom event handling - unified across mobile and desktop */}
+      <PanZoomRenderer
+        events={events}
+        hotspots={hotspots}
+        isActive={isActive}
+        onEventComplete={onEventComplete}
+      />
+      
       {events.map((event, index) => {
         const isModal = MODAL_INTERACTIONS.has(event.type);
         const baseZIndex = Z_INDEX.MOBILE_OVERLAY + index;

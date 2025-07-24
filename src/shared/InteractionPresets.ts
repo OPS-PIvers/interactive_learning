@@ -15,8 +15,8 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '🔍',
     name: 'Pan & Zoom',
     color: 'bg-green-500',
-    settings: ['zoomLevel', 'smooth'],
-    description: 'Focus on hotspot with zoom'
+    settings: ['targetX', 'targetY', 'zoomLevel', 'smooth'],
+    description: 'Pan and zoom to specific coordinates on the image'
   },
   [InteractionType.SHOW_IMAGE]: {
     icon: '🖼️',
@@ -101,13 +101,6 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
   },
   
   // === LEGACY INTERACTION TYPES (for compatibility) ===
-  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: {
-    icon: '🔍',
-    name: 'Legacy Pan & Zoom to Hotspot',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Legacy: Pan and zoom to a specific hotspot.'
-  },
   [InteractionType.PULSE_HIGHLIGHT]: {
     icon: '✨',
     name: 'Legacy Pulse Highlight',

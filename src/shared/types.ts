@@ -14,7 +14,6 @@ export enum InteractionType {
   SPOTLIGHT = 'SPOTLIGHT',
   
   // Legacy support - still needed for mobile compatibility
-  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
   PULSE_HIGHLIGHT = 'PULSE_HIGHLIGHT', 
   PULSE_HOTSPOT = 'PULSE_HOTSPOT',
   SHOW_VIDEO = 'SHOW_VIDEO',
@@ -190,8 +189,10 @@ export interface TimelineEventData {
   spotlightOpacity?: number;     // Always 0 for spotlighted area
   
   // === UNIFIED PAN_ZOOM PROPERTIES ===
-  zoomLevel?: number;    // Unified zoom level (consolidates zoomFactor and zoomLevel)
-  smooth?: boolean;      // Smooth zoom animation
+  zoomLevel?: number;    // Zoom level for pan/zoom events (default: 2.0)
+  targetX?: number;      // Pan/zoom target X coordinate (0-100 percentage, defaults to hotspot center)
+  targetY?: number;      // Pan/zoom target Y coordinate (0-100 percentage, defaults to hotspot center)
+  smooth?: boolean;      // Smooth zoom animation (default: true)
   
   // === ENHANCED MEDIA QUIZ PROPERTIES ===
   quizTriggers?: MediaQuizTrigger[];
@@ -225,9 +226,6 @@ export interface TimelineEventData {
   opacity?: number;
   position?: Position;
   size?: Size;
-  targetX?: number;                 // Pan/zoom target X - optional, inherits from hotspot if not provided
-  targetY?: number;                 // Pan/zoom target Y - optional, inherits from hotspot if not provided
-  zoom?: number;
   content?: string;
   modalPosition?: Position | 'center';
   modalSize?: Size;

@@ -8,6 +8,7 @@ import DesktopImageModal from './DesktopImageModal';
 import DesktopVideoModal from './DesktopVideoModal';
 import DesktopAudioModal from './DesktopAudioModal';
 import DesktopSpotlightOverlay from './DesktopSpotlightOverlay';
+import { PanZoomRenderer } from '../PanZoomRenderer';
 
 interface DesktopEventRendererProps {
   events: TimelineEventData[];
@@ -45,7 +46,6 @@ const VISUAL_OVERLAY_EVENTS = new Set([
   InteractionType.PULSE_HOTSPOT,
   InteractionType.PULSE_HIGHLIGHT,
   InteractionType.PAN_ZOOM,
-  InteractionType.PAN_ZOOM_TO_HOTSPOT,
 ]);
 
 export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
@@ -339,27 +339,7 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
         );
 
       case InteractionType.PAN_ZOOM:
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        // Apply the pan/zoom transform and wait for animation to complete
-        if (onTransformUpdate && imageContainerRef.current && imageElement) {
-          const containerRect = imageContainerRef.current.getBoundingClientRect();
-          const transform = calculatePanZoomTransform(
-            event,
-            containerRect,
-            imageElement,
-            imageContainerRef.current,
-            hotspots || []
-          );
-          onTransformUpdate(transform);
-          
-          // Wait for animation to complete before marking event as done
-          setTimeout(() => {
-            handleComplete();
-          }, PAN_ZOOM_ANIMATION.duration);
-        } else {
-          // Fallback if transform update is not available
-          handleComplete();
-        }
+        // Pan/zoom events are handled by PanZoomRenderer component
         return null;
 
       case InteractionType.SPOTLIGHT:
@@ -404,6 +384,14 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
 
   return (
     <div className="desktop-event-renderer">
+      {/* Pan/Zoom event handling - unified across mobile and desktop */}
+      <PanZoomRenderer
+        events={events}
+        hotspots={hotspots}
+        isActive={isActive}
+        onEventComplete={onEventComplete}
+      />
+      
       {events.map((event, index) => {
         const isModal = MODAL_INTERACTIONS.has(event.type);
         const baseZIndex = Z_INDEX.MODAL + index;

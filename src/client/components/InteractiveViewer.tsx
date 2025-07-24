@@ -10,6 +10,8 @@ import '../styles/mobile-events.css';
 import { debugMobilePositioning } from '../utils/unifiedMobilePositioning';
 import { getActualImageVisibleBounds, getActualImageVisibleBoundsRelative } from '../utils/imageBounds';
 import { clampToImageBounds, percentageToPixelImageBounds } from '../../lib/safeMathUtils';
+import { PanZoomProvider } from '../contexts/PanZoomProvider';
+import { InteractiveViewerContent } from './InteractiveViewerContent';
 
 // Lazy load timeline component
 const HorizontalTimeline = lazy(() => import('./HorizontalTimeline'));
@@ -422,15 +424,20 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
   }));
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900">
-      <div
-        id="viewer-content"
-        tabIndex={-1}
-        className="text-slate-200 fixed inset-0 z-50 bg-slate-900"
-        role="main"
-        aria-label="Interactive module viewer"
-        aria-live="polite"
+    <PanZoomProvider>
+      <InteractiveViewerContent 
+        imageContainerRef={imageContainerRef}
+        imageElementRef={imageElementRef}
       >
+        <div className="fixed inset-0 z-50 bg-slate-900">
+        <div
+          id="viewer-content"
+          tabIndex={-1}
+          className="text-slate-200 fixed inset-0 z-50 bg-slate-900"
+          role="main"
+          aria-label="Interactive module viewer"
+          aria-live="polite"
+        >
         {/* Viewer Toolbar */}
         <div className="bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between">
           <button
@@ -676,6 +683,8 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
         </div>
       </div>
     </div>
+      </InteractiveViewerContent>
+    </PanZoomProvider>
   );
 };
 

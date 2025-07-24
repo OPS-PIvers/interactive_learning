@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import MobileEventRenderer from '../client/components/mobile/MobileEventRenderer';
 import { TimelineEventData, InteractionType } from '../shared/types';
+import { PanZoomProvider } from '../client/contexts/PanZoomProvider';
 
 // Mock the modal components
 vi.mock('../client/components/mobile/MobileTextModal', () => ({
@@ -34,6 +35,15 @@ vi.mock('../client/components/mobile/MobileImageModal', () => ({
   )
 }));
 
+// Helper function to render MobileEventRenderer with required providers
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(
+    <PanZoomProvider>
+      {ui}
+    </PanZoomProvider>
+  );
+};
+
 describe('MobileEventRenderer', () => {
   const mockImageRef = { current: null };
   const mockOnEventComplete = vi.fn();
@@ -60,7 +70,7 @@ describe('MobileEventRenderer', () => {
       }
     ];
 
-    render(
+    renderWithProviders(
       <MobileEventRenderer
         events={events}
         onEventComplete={mockOnEventComplete}
@@ -96,7 +106,7 @@ describe('MobileEventRenderer', () => {
       }
     ];
 
-    render(
+    renderWithProviders(
       <MobileEventRenderer
         events={events}
         onEventComplete={mockOnEventComplete}
@@ -137,7 +147,7 @@ describe('MobileEventRenderer', () => {
       }
     ];
 
-    render(
+    renderWithProviders(
       <MobileEventRenderer
         events={events}
         onEventComplete={mockOnEventComplete}
@@ -168,7 +178,7 @@ describe('MobileEventRenderer', () => {
       }
     ];
 
-    render(
+    renderWithProviders(
       <MobileEventRenderer
         events={events}
         onEventComplete={mockOnEventComplete}
@@ -210,7 +220,7 @@ describe('MobileEventRenderer', () => {
       }
     ];
 
-    render(
+    renderWithProviders(
       <MobileEventRenderer
         events={events}
         onEventComplete={mockOnEventComplete}
