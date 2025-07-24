@@ -238,23 +238,21 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
             {/* Publish Toggle */}
             <div className="border-t border-slate-700 pt-4">
-              <div className="flex items-center justify-between">
+              <label htmlFor="publish-toggle-mobile" className={`flex items-center justify-between ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                 <span className="font-medium text-white">Publish Module</span>
-                <label htmlFor="publish-toggle-mobile" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      id="publish-toggle-mobile"
-                      className="sr-only"
-                      checked={isPublished}
-                      onChange={handlePublishToggle}
-                      disabled={isToggling}
-                    />
-                    <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`}></div>
-                  </div>
-                </label>
-              </div>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="publish-toggle-mobile"
+                    className="sr-only"
+                    checked={isPublished}
+                    onChange={handlePublishToggle}
+                    disabled={isToggling}
+                  />
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`}></div>
+                </div>
+              </label>
             </div>
 
             {/* Collapsible Options */}

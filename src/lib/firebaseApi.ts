@@ -158,7 +158,7 @@ export class FirebaseProjectAPI {
       
       const projectData = projectDoc.data();
       
-      // Only return if the project is marked as public
+      // Only return if the project is marked as published
       if (!projectData.isPublished) {
         return null;
       }
@@ -901,10 +901,10 @@ export class FirebaseProjectAPI {
       }
 
       await setDoc(projectRef, { isPublished, updatedAt: serverTimestamp() }, { merge: true });
-      debugLog.log(`Project ${projectId} public status updated to ${isPublished}`);
+      debugLog.log(`Project ${projectId} published status updated to ${isPublished}`);
     } catch (error) {
-      debugLog.error(`Error updating project public status for ${projectId}:`, error);
-      throw new Error(`Failed to update project public status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      debugLog.error(`Error updating project published status for ${projectId}:`, error);
+      throw new Error(`Failed to update project published status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }
