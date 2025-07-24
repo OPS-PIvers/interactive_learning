@@ -1,4 +1,5 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, { Fragment, useMemo, useState, useCallback } from 'react';
+import debounce from 'lodash.debounce';
 import InteractiveModule from './InteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
@@ -33,11 +34,18 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
     selectedProject.projectType === 'slide' ? (selectedProject.slideDeck || { slides: [] }) : null
   );
 
-  const handleSlideDeckChange = (newSlideDeck: SlideDeck) => {
+  // Debounced save function to prevent excessive network requests
+  const debouncedSave = useCallback(
+    debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
+      onSave(projectId, data, thumbnailUrl, slideDeck);
+    }, 1000), // 1 second delay
+    [onSave]
+  );
+
+  const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
     setSlideDeck(newSlideDeck);
-    // TODO: Debounce this call
-    onSave(selectedProject.id, selectedProject.interactiveData, undefined, newSlideDeck);
-  };
+    debouncedSave(selectedProject.id, selectedProject.interactiveData, undefined, newSlideDeck);
+  }, [debouncedSave, selectedProject.id, selectedProject.interactiveData]);
   
   // ✅ Determine wrapper type without affecting hook order
   const WrapperComponent = useMemo(() => {

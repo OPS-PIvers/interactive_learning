@@ -156,6 +156,42 @@ const MainApp: React.FC = () => {
     loadProjectDetailsAndOpen(project, true);
   }, [loadProjectDetailsAndOpen]);
   
+  // Helper function to reduce code duplication
+  const createAndSetupProject = useCallback(async (title: string, description: string, projectType?: 'hotspot' | 'slide', demoData?: any) => {
+    setIsLoading(true);
+    try {
+      const newProject = await appScriptProxy.createProject(title, description, projectType);
+      let finalProject = newProject;
+
+      // If demo data is provided, save it with the project
+      if (demoData) {
+        const projectWithDemoData = {
+          ...newProject,
+          interactiveData: demoData,
+        };
+        
+        try {
+          await appScriptProxy.saveProject(projectWithDemoData);
+          finalProject = projectWithDemoData;
+        } catch (saveErr: any) {
+          console.error("Failed to save demo project data:", saveErr);
+          setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
+          return;
+        }
+      }
+
+      setProjects(prevProjects => [...prevProjects, finalProject]);
+      setSelectedProject(finalProject);
+      setIsEditingMode(true);
+      setIsModalOpen(true);
+    } catch (err: any) {
+      console.error("Failed to create project:", err);
+      setError(`Failed to create new project: ${err.message || ''}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const handleCreateNewProject = useCallback(async () => {
     if (!user) {
       setShowAuthModal(true);
@@ -168,68 +204,20 @@ const MainApp: React.FC = () => {
       const title = prompt("Enter new project title:");
       if (!title) return;
       const description = prompt("Enter project description (optional):") || "";
-      setIsLoading(true);
-      try {
-        const newProject = await appScriptProxy.createProject(title, description, 'slide');
-        setProjects(prevProjects => [...prevProjects, newProject]);
-        setSelectedProject(newProject);
-        setIsEditingMode(true);
-        setIsModalOpen(true);
-      } catch (err: any) {
-        console.error("Failed to create slide-based project:", err);
-        setError(`Failed to create new project: ${err.message || ''}`);
-      } finally {
-        setIsLoading(false);
-      }
+      await createAndSetupProject(title, description, 'slide');
     } else if (projectType === 'hotspot') {
       const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
 
       if (createDemo) {
-        setIsLoading(true);
-        try {
-          const newProject = await appScriptProxy.createProject("Demo Module", "A module demonstrating all features.");
-          const projectWithDemoData = {
-            ...newProject,
-            interactiveData: demoModuleData,
-          };
-
-          try {
-            await appScriptProxy.saveProject(projectWithDemoData);
-            setProjects(prevProjects => [...prevProjects, projectWithDemoData]);
-            setSelectedProject(projectWithDemoData);
-            setIsEditingMode(true);
-            setIsModalOpen(true);
-          } catch (saveErr: any) {
-            console.error("Failed to save demo project data:", saveErr);
-            setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
-          }
-        } catch (err: any) {
-          console.error("Failed to create demo project:", err);
-          setError(`Failed to create demo project: ${err.message || 'Please try again.'}`);
-        } finally {
-          setIsLoading(false);
-        }
+        await createAndSetupProject("Demo Module", "A module demonstrating all features.", 'hotspot', demoModuleData);
       } else {
         const title = prompt("Enter new project title:");
         if (!title) return;
         const description = prompt("Enter project description (optional):") || "";
-
-        setIsLoading(true);
-        try {
-          const newProject = await appScriptProxy.createProject(title, description);
-          setProjects(prevProjects => [...prevProjects, newProject]);
-          setSelectedProject(newProject);
-          setIsEditingMode(true);
-          setIsModalOpen(true);
-        } catch (err: any) {
-          console.error("Failed to create project:", err);
-          setError(`Failed to create new project: ${err.message || ''}`);
-        } finally {
-          setIsLoading(false);
-        }
+        await createAndSetupProject(title, description, 'hotspot');
       }
     }
-  }, [user]);
+  }, [user, createAndSetupProject]);
 
   const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
     if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
