@@ -35,6 +35,7 @@ interface InteractiveEditorProps {
   onBackgroundTypeChange: (type: 'image' | 'video') => void;
   onBackgroundVideoTypeChange: (type: 'upload' | 'youtube') => void;
   onImageUpload: (file: File) => Promise<void>;
+  isPublished: boolean;
 }
 
 const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
@@ -51,7 +52,8 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
   onBackgroundImageChange,
   onBackgroundTypeChange,
   onBackgroundVideoTypeChange,
-  onImageUpload
+  onImageUpload,
+  isPublished
 }) => {
   const isMobile = useIsMobile();
   
@@ -394,7 +396,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: '',
-                isPublic: false,
+                isPublished: false, // This is a dummy value, the actual value is stored in the project
                 thumbnailUrl: null,
                 data: {
                   backgroundImage: backgroundImage || '',

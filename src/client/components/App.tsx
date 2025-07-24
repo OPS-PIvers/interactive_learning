@@ -472,6 +472,7 @@ const MainApp: React.FC = () => {
             onSave={handleSaveProjectData}
             onImageUpload={handleImageUpload}
             onReloadRequest={handleModuleReloadRequest}
+            isPublished={selectedProject.isPublished}
           />
         </HookErrorBoundary>
       )}
