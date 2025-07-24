@@ -248,7 +248,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     // If actively dragging and containerElement exists
     if (isDragging && containerElement) {
       // Get the actual visible image bounds relative to the drag container (zoomedImageContainerRef)
-      const visibleImageBounds = getActualImageVisibleBounds(props.imageElement || null, containerElement as HTMLElement);
+      const visibleImageBounds = getActualImageVisibleBoundsRelative(props.imageElement || null, containerElement as HTMLElement);
 
       if (!visibleImageBounds || visibleImageBounds.width === 0 || visibleImageBounds.height === 0) {
         // Fallback or error handling if bounds are not valid
