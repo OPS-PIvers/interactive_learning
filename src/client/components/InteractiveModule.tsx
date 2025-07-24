@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { InteractiveModuleState } from '../../shared/types';
 import { ViewerModes, EditorCallbacks } from '../../shared/interactiveTypes';
 import { migrateEventTypesWithHotspots } from '../../shared/migration';
+import { migrateInvalidHotspots, logCoordinateValidation } from '../../shared/coordinateMigration';
 import LoadingScreen from './shared/LoadingScreen';
 import ErrorScreen from './shared/ErrorScreen';
 import InteractiveViewer from './InteractiveViewer';
@@ -52,10 +53,24 @@ const InteractiveModule: React.FC<InteractiveModuleProps> = ({
         initialData.hotspots || []
       );
       
+      // Validate and migrate hotspot coordinates to fix cross-platform positioning issues
+      const hotspots = initialData.hotspots || [];
+      const hotspotMigration = migrateInvalidHotspots(hotspots);
+      
+      // Log coordinate validation results for debugging
+      if (process.env.NODE_ENV === 'development') {
+        logCoordinateValidation(hotspots, projectName);
+        
+        if (hotspotMigration.changesMade) {
+          console.log('🔄 Hotspot Coordinate Migration Applied:');
+          hotspotMigration.migrationLog.forEach(log => console.log(`  ${log}`));
+        }
+      }
+      
       const processedData: InteractiveModuleState = {
         ...initialData,
         timelineEvents: migratedEvents,
-        hotspots: initialData.hotspots || [],
+        hotspots: hotspotMigration.migrated,
         backgroundImage: initialData.backgroundImage || null,
         backgroundType: initialData.backgroundType || 'image',
         backgroundVideoType: initialData.backgroundVideoType || 'upload'
