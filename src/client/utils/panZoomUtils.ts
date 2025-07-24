@@ -76,73 +76,39 @@ export const calculatePanZoomTransform = (
   let targetPixelX: number;
   let targetPixelY: number;
 
-  // Step 4: Calculate target pixel coordinates using letterbox-aware calculation
-  // Use the same letterbox handling logic as hotspot creation
-  if (imageElement && containerElement && typeof imageElement.getBoundingClientRect === 'function') {
-    const imageRect = imageElement.getBoundingClientRect();
-    const { naturalWidth, naturalHeight } = imageElement;
-    const { width: displayedWidth, height: displayedHeight } = imageRect;
+  // Step 4: Calculate target pixel coordinates using EXACT same logic as hotspots
+  // Use the same calculation as useHotspotPositioning.getPixelPosition()
+  if (imageElement && containerElement) {
+    const imageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
+    
+    if (imageBounds && imageBounds.width > 0 && imageBounds.height > 0) {
+      // Calculate pixel position using the same coordinate system as hotspots
+      // This matches the calculation in useHotspotPositioning.ts
+      const imageContentX = (targetX / 100) * imageBounds.width;
+      const imageContentY = (targetY / 100) * imageBounds.height;
 
-    // Calculate the dimensions and offset of the actual image content
-    const naturalAspectRatio = naturalWidth / naturalHeight;
-    const displayedAspectRatio = displayedWidth / displayedHeight;
+      // Add image offset within container to get final container-relative coordinates
+      // This is the same calculation used by hotspots for pixel positioning
+      targetPixelX = imageBounds.x + imageContentX;
+      targetPixelY = imageBounds.y + imageContentY;
 
-    let contentWidth = displayedWidth;
-    let contentHeight = displayedHeight;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    if (naturalAspectRatio > displayedAspectRatio) {
-      // Letterboxed (empty space top/bottom)
-      contentHeight = displayedWidth / naturalAspectRatio;
-      offsetY = (displayedHeight - contentHeight) / 2;
-    } else {
-      // Pillarboxed (empty space left/right)
-      contentWidth = displayedHeight * naturalAspectRatio;
-      offsetX = (displayedWidth - contentWidth) / 2;
-    }
-
-    // Calculate target's absolute pixel position within the <img> element's box
-    const targetAbsoluteInBoxX = offsetX + (targetX / 100) * contentWidth;
-    const targetAbsoluteInBoxY = offsetY + (targetY / 100) * contentHeight;
-
-    // Convert to container-relative coordinates
-    const containerRect_element = containerElement.getBoundingClientRect();
-    targetPixelX = targetAbsoluteInBoxX + imageRect.left - containerRect_element.left;
-    targetPixelY = targetAbsoluteInBoxY + imageRect.top - containerRect_element.top;
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[calculatePanZoomTransform] Letterbox-aware calculation:', {
-        image: { width: displayedWidth, height: displayedHeight },
-        content: { width: contentWidth, height: contentHeight, offsetX, offsetY },
-        target: { x: targetX, y: targetY },
-        absolute: { x: targetAbsoluteInBoxX, y: targetAbsoluteInBoxY },
-        final: { x: targetPixelX, y: targetPixelY }
-      });
-    }
-  } else {
-    // Fallback: Try using the old container-relative method for tests/compatibility
-    if (imageElement && containerElement) {
-      const imageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
-      
-      if (imageBounds && imageBounds.width > 0 && imageBounds.height > 0) {
-        // Convert percentage to pixel position within image content area (same as hotspots)
-        const imageContentX = (targetX / 100) * imageBounds.width;
-        const imageContentY = (targetY / 100) * imageBounds.height;
-        
-        // Add image offset within container to get final container-relative coordinates
-        targetPixelX = imageBounds.x + imageContentX;
-        targetPixelY = imageBounds.y + imageContentY;
-      } else {
-        // Final fallback to container-relative positioning
-        targetPixelX = (targetX / 100) * containerRect.width;
-        targetPixelY = (targetY / 100) * containerRect.height;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[calculatePanZoomTransform] Using EXACT hotspot positioning logic:', {
+          percentageCoords: { targetX, targetY },
+          imageBounds,
+          imageContentCoords: { imageContentX, imageContentY },
+          finalPixelCoords: { targetPixelX, targetPixelY }
+        });
       }
     } else {
-      // Final fallback to container-relative positioning when image elements not available
+      // Fallback to container-relative positioning
       targetPixelX = (targetX / 100) * containerRect.width;
       targetPixelY = (targetY / 100) * containerRect.height;
     }
+  } else {
+    // Fallback to container-relative positioning when image elements not available
+    targetPixelX = (targetX / 100) * containerRect.width;
+    targetPixelY = (targetY / 100) * containerRect.height;
   }
 
   // Calculate the translation needed to center the target point in the viewport.
