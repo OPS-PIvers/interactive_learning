@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { TimelineEventData, HotspotData } from '../../../shared/types';
-import { getActualImageVisibleBounds } from '../../utils/imageUtils';
+import { getActualImageVisibleBoundsRelative } from '../../utils/imageBounds';
 
 interface DesktopSpotlightOverlayProps {
   event: TimelineEventData;
@@ -61,13 +61,17 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
       if (targetHotspot) {
         spotlightX = targetHotspot.x;
         spotlightY = targetHotspot.y;
-        console.log('[DesktopSpotlight] Using hotspot position:', { spotlightX, spotlightY, hotspotId: targetHotspot.id });
+        if (localStorage.getItem('debug_spotlight') === 'true') {
+          console.log('[DesktopSpotlight] Using hotspot position:', { spotlightX, spotlightY, hotspotId: targetHotspot.id });
+        }
       } else {
         console.warn('[DesktopSpotlight] Target hotspot not found:', event.targetId);
       }
     }
 
-    console.log('[DesktopSpotlight] Final spotlight coordinates:', { spotlightX, spotlightY });
+    if (localStorage.getItem('debug_spotlight') === 'true') {
+      console.log('[DesktopSpotlight] Final spotlight coordinates:', { spotlightX, spotlightY });
+    }
 
     // Animation parameters
     const spotlightWidth = event.spotlightWidth || 150;
@@ -80,10 +84,11 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
     let centerY: number;
 
     if (imageElement) {
-      // Get actual image bounds within the container
-      const imageBounds = getActualImageVisibleBounds(imageElement, container);
+      // Get actual image bounds within the container (same function as pan/zoom and hotspots)
+      const imageBounds = getActualImageVisibleBoundsRelative(imageElement, container);
       if (imageBounds) {
         // Convert percentage coordinates to pixel coordinates within image bounds
+        // This matches exactly how hotspots and pan/zoom calculate positions
         const imageX = (spotlightX / 100) * imageBounds.width;
         const imageY = (spotlightY / 100) * imageBounds.height;
         
@@ -91,23 +96,28 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
         centerX = imageBounds.x + imageX;
         centerY = imageBounds.y + imageY;
         
-        console.log('[DesktopSpotlight] Image-based positioning:', {
-          imageBounds,
-          percentageCoords: { spotlightX, spotlightY },
-          imageCoords: { imageX, imageY },
-          finalCoords: { centerX, centerY }
-        });
+        // Debug logging can be enabled by setting localStorage.debug_spotlight = 'true'
+        if (localStorage.getItem('debug_spotlight') === 'true') {
+          console.log('[DesktopSpotlight] Image-based positioning (using relative bounds):', {
+            imageBounds,
+            percentageCoords: { spotlightX, spotlightY },
+            imageCoords: { imageX, imageY },
+            finalCoords: { centerX, centerY }
+          });
+        }
       } else {
         // Fallback to container-relative positioning
         const rect = container.getBoundingClientRect();
         centerX = (spotlightX / 100) * rect.width;
         centerY = (spotlightY / 100) * rect.height;
         
-        console.log('[DesktopSpotlight] Container-based positioning (fallback):', {
-          containerSize: { width: rect.width, height: rect.height },
-          percentageCoords: { spotlightX, spotlightY },
-          finalCoords: { centerX, centerY }
-        });
+        if (localStorage.getItem('debug_spotlight') === 'true') {
+          console.log('[DesktopSpotlight] Container-based positioning (fallback):', {
+            containerSize: { width: rect.width, height: rect.height },
+            percentageCoords: { spotlightX, spotlightY },
+            finalCoords: { centerX, centerY }
+          });
+        }
       }
     } else {
       // No image element, use container-relative positioning
@@ -115,11 +125,13 @@ const DesktopSpotlightOverlay: React.FC<DesktopSpotlightOverlayProps> = ({
       centerX = (spotlightX / 100) * rect.width;
       centerY = (spotlightY / 100) * rect.height;
       
-      console.log('[DesktopSpotlight] Container-only positioning:', {
-        containerSize: { width: rect.width, height: rect.height },
-        percentageCoords: { spotlightX, spotlightY },
-        finalCoords: { centerX, centerY }
-      });
+      if (localStorage.getItem('debug_spotlight') === 'true') {
+        console.log('[DesktopSpotlight] Container-only positioning:', {
+          containerSize: { width: rect.width, height: rect.height },
+          percentageCoords: { spotlightX, spotlightY },
+          finalCoords: { centerX, centerY }
+        });
+      }
     }
 
     // Animation state

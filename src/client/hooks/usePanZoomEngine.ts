@@ -70,6 +70,7 @@ export const usePanZoomEngine = ({
 
   /**
    * Calculate the transform needed to center target coordinates in the viewport
+   * Uses the same coordinate system as hotspots for perfect alignment
    */
   const calculatePanZoomTransform = useCallback((
     targetX: number,
@@ -88,22 +89,39 @@ export const usePanZoomEngine = ({
     }
 
     // Convert percentage coordinates to pixel coordinates within the image content
+    // This matches exactly how hotspots calculate their positions
     const imageContentX = (targetX / 100) * imageBounds.width;
     const imageContentY = (targetY / 100) * imageBounds.height;
 
-    // Get final container-relative coordinates
+    // Get final container-relative coordinates (same as hotspot positioning)
     const targetPixelX = imageBounds.x + imageContentX;
     const targetPixelY = imageBounds.y + imageContentY;
 
-    // Calculate translation to center the target point
-    // Formula: viewportCenter - (targetPixel * zoomLevel)
-    const translateX = containerRect.width / 2 - targetPixelX * zoomLevel;
-    const translateY = containerRect.height / 2 - targetPixelY * zoomLevel;
+    // Calculate translation to center the target point in the viewport
+    // Original formula: translateX = viewportCenter - targetPixel * zoomLevel
+    const containerCenterX = containerRect.width / 2;
+    const containerCenterY = containerRect.height / 2;
+    
+    const finalTranslateX = containerCenterX - targetPixelX * zoomLevel;
+    const finalTranslateY = containerCenterY - targetPixelY * zoomLevel;
+
+    // Debug logging can be enabled by setting localStorage.debug_pan_zoom = 'true'
+    if (localStorage.getItem('debug_pan_zoom') === 'true') {
+      console.log('[PanZoom] Coordinate calculation:', {
+        targetPercentage: { x: targetX, y: targetY },
+        imageBounds,
+        imageContentPixels: { x: imageContentX, y: imageContentY },
+        targetPixelPosition: { x: targetPixelX, y: targetPixelY },
+        containerCenter: { x: containerCenterX, y: containerCenterY },
+        zoomLevel,
+        finalTranslation: { x: finalTranslateX, y: finalTranslateY }
+      });
+    }
 
     return {
       scale: zoomLevel,
-      translateX,
-      translateY
+      translateX: finalTranslateX,
+      translateY: finalTranslateY
     };
   }, [containerElement, imageElement]);
 

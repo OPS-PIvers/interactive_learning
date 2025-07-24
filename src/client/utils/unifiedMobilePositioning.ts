@@ -1,5 +1,5 @@
 import { HotspotData, ImageTransformState } from '../../shared/types';
-import { getActualImageVisibleBounds } from './imageBounds';
+import { getActualImageVisibleBoundsRelative } from './imageBounds';
 
 export interface UnifiedPositionResult {
   // Absolute pixel coordinates relative to the container
@@ -70,8 +70,8 @@ export function getUnifiedMobilePosition(config: MobilePositioningConfig): Unifi
     return result;
   }
 
-  // Get actual image bounds (this is the same function used by hotspots)
-  const imageBounds = getActualImageVisibleBounds(imageElement, containerElement);
+  // Get actual image bounds (this is the same function used by hotspots and pan/zoom)
+  const imageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
   if (!imageBounds) {
     console.error('UnifiedMobilePositioning: Could not determine image bounds');
     return result;
@@ -112,6 +112,7 @@ export function getUnifiedMobilePosition(config: MobilePositioningConfig): Unifi
   }
 
   // 4. Convert to viewport coordinates (for fixed/absolute positioned elements like canvas)
+  // Since we're now using relative bounds, we need to add the container's viewport position
   const viewportX = containerBounds.left + finalContainerX;
   const viewportY = containerBounds.top + finalContainerY;
 
