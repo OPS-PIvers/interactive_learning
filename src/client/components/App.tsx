@@ -14,6 +14,8 @@ import { SettingsIcon } from './icons/SettingsIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
+import SlideBasedTestPage from './SlideBasedTestPage';
+import SlideEditorTestPage from './SlideEditorTestPage';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
 
 
@@ -514,6 +516,8 @@ const App: React.FC = () => {
               </main>
             </div>
           } />
+          <Route path="/slide-test" element={<SlideBasedTestPage />} />
+          <Route path="/slide-editor" element={<SlideEditorTestPage />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -1,0 +1,329 @@
+/**
+ * Slide-Based Architecture CSS
+ * 
+ * Styles for the new slide-based interactive system
+ * Maintains consistency with Interactive Learning Hub design system
+ */
+
+/* Slide Viewer - Matches app dark theme */
+.slide-viewer {
+  @apply relative w-full h-full overflow-hidden bg-slate-900;
+}
+
+.slide-elements-container {
+  @apply absolute inset-0;
+}
+
+/* Slide Background - Matches app gradient */
+.slide-background {
+  @apply absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800;
+}
+
+/* Slide Elements */
+.slide-element {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.slide-element:hover {
+  @apply scale-105;
+}
+
+.slide-element[role="button"] {
+  @apply cursor-pointer;
+}
+
+.slide-element[role="button"]:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* Hotspot Elements - Matches app hotspot styling */
+.slide-hotspot {
+  @apply relative w-full h-full flex items-center justify-center;
+}
+
+.hotspot-indicator {
+  @apply relative;
+}
+
+.hotspot-dot {
+  @apply w-full h-full rounded-full bg-current shadow-2xl border-2 border-white border-opacity-30;
+}
+
+.hotspot-tooltip {
+  @apply absolute top-full left-1/2 transform -translate-x-1/2 mt-2 
+         bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 
+         opacity-0 transition-all duration-200 pointer-events-none
+         min-w-max max-w-xs z-10 shadow-2xl backdrop-blur-sm;
+}
+
+.slide-hotspot:hover .hotspot-tooltip {
+  @apply opacity-100;
+}
+
+.hotspot-tooltip h4 {
+  @apply font-semibold mb-1;
+}
+
+.hotspot-tooltip p {
+  @apply text-xs opacity-90;
+}
+
+/* Text Elements - Matches app card styling */
+.slide-text {
+  @apply p-4 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl;
+}
+
+.text-title {
+  @apply text-xl font-semibold mb-2 text-white;
+}
+
+.text-description {
+  @apply text-sm leading-relaxed whitespace-pre-line text-slate-300;
+}
+
+/* Media Elements - Matches app media styling */
+.slide-media {
+  @apply rounded-xl overflow-hidden shadow-2xl border border-slate-700;
+}
+
+/* Shape Elements */
+.slide-shape {
+  @apply w-full h-full;
+}
+
+/* Animations */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse {
+  animation: pulse-subtle 2s infinite;
+}
+
+.animate-glow {
+  animation: glow 2s infinite;
+}
+
+.animate-bounce {
+  animation: bounce-gentle 1s infinite;
+}
+
+.animate-fade {
+  animation: fade-in-out 3s infinite;
+}
+
+.animate-infinite {
+  animation-iteration-count: infinite;
+}
+
+/* Effect Overlays */
+.spotlight-effect canvas {
+  @apply pointer-events-none;
+}
+
+.zoom-effect {
+  @apply pointer-events-auto cursor-pointer;
+}
+
+.text-effect {
+  @apply pointer-events-none;
+}
+
+/* Navigation - Matches app button styling */
+.slide-navigation-mobile {
+  @apply text-center;
+}
+
+.slide-navigation-desktop {
+  @apply text-sm;
+}
+
+.slide-nav-button {
+  @apply px-4 py-2 rounded-lg font-semibold transition-all duration-200
+         bg-slate-800 border border-slate-700 text-white shadow-lg
+         hover:bg-slate-700 hover:shadow-xl hover:scale-105
+         focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800;
+}
+
+.slide-nav-button-primary {
+  @apply bg-gradient-to-r from-purple-500 to-pink-600 border-none
+         hover:from-purple-600 hover:to-pink-700;
+}
+
+.slide-nav-button-secondary {
+  @apply bg-slate-700 hover:bg-slate-600;
+}
+
+/* Slide Editor Specific Styles */
+.slide-editor {
+  /* Ensure editor takes full height */
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide-canvas {
+  /* Canvas specific styling */
+  min-height: 500px;
+  position: relative;
+}
+
+.slide-canvas:hover {
+  /* Subtle hover effect for canvas */
+  @apply ring-1 ring-purple-500 ring-opacity-20;
+}
+
+/* Element selection and dragging */
+.slide-element-selected {
+  @apply ring-2 ring-purple-500 ring-opacity-75;
+}
+
+.slide-element-dragging {
+  @apply opacity-80 transform scale-105;
+  cursor: grabbing !important;
+}
+
+/* Properties panel */
+.properties-panel {
+  max-width: 320px;
+  min-width: 280px;
+}
+
+.properties-panel h3 {
+  @apply border-b border-slate-600 pb-2;
+}
+
+/* Device type indicators */
+.device-type-button {
+  @apply px-2 py-1 rounded text-xs font-medium transition-all duration-200;
+}
+
+.device-type-button.active {
+  @apply bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg;
+}
+
+.device-type-button.inactive {
+  @apply bg-slate-700 text-slate-300 hover:bg-slate-600;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .hotspot-tooltip {
+    @apply text-xs p-2 max-w-xs;
+  }
+  
+  .text-title {
+    @apply text-base;
+  }
+  
+  .text-description {
+    @apply text-xs;
+  }
+}
+
+@media (max-width: 480px) {
+  .hotspot-tooltip {
+    @apply text-xs p-2 max-w-48;
+  }
+  
+  .slide-text {
+    @apply p-2;
+  }
+  
+  .text-title {
+    @apply text-sm font-semibold;
+  }
+  
+  .text-description {
+    @apply text-xs;
+  }
+}
+
+/* Debug Styles (development only) */
+.slide-element[data-debug="true"] {
+  @apply border border-red-500 border-dashed;
+}
+
+.slide-element[data-debug="true"]::before {
+  content: attr(data-element-type) ' #' attr(data-element-id);
+  @apply absolute -top-6 left-0 text-xs bg-red-500 text-white px-1 rounded;
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .slide-element,
+  .animate-pulse,
+  .animate-glow,
+  .animate-bounce,
+  .animate-fade {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hotspot-dot {
+    @apply border-2 border-current;
+  }
+  
+  .hotspot-tooltip {
+    @apply border border-white;
+  }
+  
+  .slide-text {
+    @apply border border-current;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.slide-element:focus-visible {
+  @apply outline-none ring-4 ring-blue-500 ring-opacity-75;
+}
+
+/* Print styles */
+@media print {
+  .slide-navigation-mobile,
+  .slide-navigation-desktop,
+  .spotlight-effect,
+  .zoom-effect {
+    @apply hidden;
+  }
+  
+  .slide-viewer {
+    @apply break-inside-avoid;
+  }
+}
