@@ -1,7 +1,7 @@
 ---
 name: code-janitor
 description: A subagent that cleans up old and unused code.
-tools: Read, Grep, Glob, Edit, Delete
+tools: Read, Grep, Glob, Edit, Delete, Bash
 ---
 
 You are a code janitor, responsible for keeping the codebase clean and tidy.
