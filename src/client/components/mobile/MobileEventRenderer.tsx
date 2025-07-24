@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useEffect, Fragment } from 'react';
 import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } from '../../../shared/types';
-import { Z_INDEX } from '../../constants/interactionConstants';
-import { createResetTransform } from '../../utils/panZoomUtils';
+import { Z_INDEX, PAN_ZOOM_ANIMATION } from '../../constants/interactionConstants';
+import { createResetTransform, calculatePanZoomTransform } from '../../utils/panZoomUtils';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
-import MobilePanZoomHandler from './MobilePanZoomHandler';
 import MobileTextModal from './MobileTextModal';
 import MobileQuizModal from './MobileQuizModal';
 import MobileImageModal from './MobileImageModal';
@@ -305,18 +304,27 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <MobilePanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-            hotspots={hotspots}
-            imageElement={imageElement}
-          />
-        );
+        // Apply the pan/zoom transform and wait for animation to complete
+        if (onTransformUpdate && imageContainerRef.current && imageElement) {
+          const containerRect = imageContainerRef.current.getBoundingClientRect();
+          const transform = calculatePanZoomTransform(
+            event,
+            containerRect,
+            imageElement,
+            imageContainerRef.current,
+            hotspots || []
+          );
+          onTransformUpdate(transform);
+          
+          // Wait for animation to complete before marking event as done
+          setTimeout(() => {
+            handleComplete();
+          }, PAN_ZOOM_ANIMATION.duration);
+        } else {
+          // Fallback if transform update is not available
+          handleComplete();
+        }
+        return null;
       
       case InteractionType.SHOW_TEXT:
       case InteractionType.SHOW_MESSAGE:

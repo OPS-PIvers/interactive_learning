@@ -164,3 +164,35 @@ export const createResetTransform = (): ImageTransformState => ({
   translateY: 0,
   targetHotspotId: undefined,
 });
+
+/**
+ * Calculates the transform (pan) coordinates needed to center a specific point of the image
+ * in the container, given a target scale.
+ *
+ * @param hotspot - The target point on the image, with coordinates as percentages (0-1).
+ * @param targetScale - The target zoom level.
+ * @param imageNaturalDims - The original, unscaled dimensions of the image.
+ * @param containerDims - The dimensions of the viewport/container.
+ * @returns The {x, y} translation values for the CSS transform.
+ */
+export const calculateCenteringTransform = (
+  hotspot: { x: number; y: number },
+  targetScale: number,
+  imageNaturalDims: { width: number; height: number },
+  containerDims: { width: number; height: number }
+): { x: number; y: number } => {
+  if (!imageNaturalDims.width || !imageNaturalDims.height || !containerDims.width || !containerDims.height) {
+    return { x: 0, y: 0 };
+  }
+
+  // 1. Calculate the hotspot's position in pixels on the original, unscaled image.
+  const hotspotPixelX = hotspot.x * imageNaturalDims.width;
+  const hotspotPixelY = hotspot.y * imageNaturalDims.height;
+
+  // 2. Calculate the required translation (tx, ty) to center the hotspot.
+  // The formula is: tx = (container_center) - (hotspot_position_at_target_scale)
+  const tx = (containerDims.width / 2) - (hotspotPixelX * targetScale);
+  const ty = (containerDims.height / 2) - (hotspotPixelY * targetScale);
+
+  return { x: tx, y: ty };
+};

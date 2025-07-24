@@ -1,13 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TimelineEventData, InteractionType, HotspotData } from '../../../shared/types';
-import { Z_INDEX } from '../../constants/interactionConstants';
-import { createResetTransform } from '../../utils/panZoomUtils';
+import { Z_INDEX, PAN_ZOOM_ANIMATION } from '../../constants/interactionConstants';
+import { createResetTransform, calculatePanZoomTransform } from '../../utils/panZoomUtils';
 import DesktopTextModal from './DesktopTextModal';
 import DesktopQuizModal from './DesktopQuizModal';
 import DesktopImageModal from './DesktopImageModal';
 import DesktopVideoModal from './DesktopVideoModal';
 import DesktopAudioModal from './DesktopAudioModal';
-import DesktopPanZoomHandler from './DesktopPanZoomHandler';
 import DesktopSpotlightOverlay from './DesktopSpotlightOverlay';
 
 interface DesktopEventRendererProps {
@@ -341,18 +340,27 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
 
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <DesktopPanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            imageElement={imageElement}
-            hotspots={hotspots}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-          />
-        );
+        // Apply the pan/zoom transform and wait for animation to complete
+        if (onTransformUpdate && imageContainerRef.current && imageElement) {
+          const containerRect = imageContainerRef.current.getBoundingClientRect();
+          const transform = calculatePanZoomTransform(
+            event,
+            containerRect,
+            imageElement,
+            imageContainerRef.current,
+            hotspots || []
+          );
+          onTransformUpdate(transform);
+          
+          // Wait for animation to complete before marking event as done
+          setTimeout(() => {
+            handleComplete();
+          }, PAN_ZOOM_ANIMATION.duration);
+        } else {
+          // Fallback if transform update is not available
+          handleComplete();
+        }
+        return null;
 
       case InteractionType.SPOTLIGHT:
         return (

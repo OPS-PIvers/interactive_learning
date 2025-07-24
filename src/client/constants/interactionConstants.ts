@@ -34,6 +34,12 @@ export const ZOOM_LIMITS = {
   doubleTapZoomFactor: 2.0
 } as const;
 
+export const PAN_ZOOM_ANIMATION = {
+  duration: 300,
+  easing: 'easeOut' as const,
+  defaultHotspotScale: 1.75
+} as const;
+
 export const PREVIEW_DEFAULTS = {
   SPOTLIGHT_X: 50,
   SPOTLIGHT_Y: 50,
