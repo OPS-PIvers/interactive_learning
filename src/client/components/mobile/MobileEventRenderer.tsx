@@ -470,13 +470,6 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
           />
         );
       
-      
-      case InteractionType.HIDE_HOTSPOT:
-        // For mobile, hide hotspot events are handled automatically by the parent component
-        // Just complete the event immediately
-        handleComplete();
-        return null;
-      
       default:
         console.warn(`Unsupported mobile event type: ${event.type}`);
         return null;

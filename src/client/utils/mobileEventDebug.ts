@@ -88,18 +88,12 @@ class MobileEventDebugger {
     // Check event type specific properties
     switch (event.type) {
       case InteractionType.SPOTLIGHT:
-      case InteractionType.HIGHLIGHT_HOTSPOT:
         this.validateSpotlightEvent(event, issues);
         break;
       
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
         this.validatePanZoomEvent(event, issues);
-        break;
-      
-      case InteractionType.PULSE_HOTSPOT:
-      case InteractionType.PULSE_HIGHLIGHT:
-        this.validatePulseEvent(event, issues);
         break;
     }
 
@@ -247,7 +241,7 @@ class MobileEventDebugger {
       },
       {
         id: 'test-highlight-1',
-        type: InteractionType.HIGHLIGHT_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         step: 1,
         highlightX: 75,
         highlightY: 25,

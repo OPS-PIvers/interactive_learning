@@ -25,36 +25,7 @@ describe('Spotlight Targeting', () => {
       step: 1,
       message: 'Highlighting area...',
       // Test the fixed logic for setting spotlight coordinates
-      ...((eventType === InteractionType.SPOTLIGHT || eventType === InteractionType.HIGHLIGHT_HOTSPOT) && {
-        spotlightX: mockHotspot.x,
-        spotlightY: mockHotspot.y,
-        spotlightShape: 'circle',
-        backgroundDimPercentage: 70,
-        spotlightOpacity: 0,
-      }),
-    };
-
-    // Verify the event has the correct spotlight coordinates
-    expect(newEvent.spotlightX).toBe(25);
-    expect(newEvent.spotlightY).toBe(60);
-    expect(newEvent.spotlightShape).toBe('circle');
-    expect(newEvent.backgroundDimPercentage).toBe(70);
-    expect(newEvent.spotlightOpacity).toBe(0);
-    expect(newEvent.targetId).toBe('test-hotspot');
-  });
-
-  it('should create HIGHLIGHT_HOTSPOT events with spotlight coordinates matching hotspot position', () => {
-    // Test the HIGHLIGHT_HOTSPOT event type
-    const eventType = InteractionType.HIGHLIGHT_HOTSPOT;
-    const newEvent = {
-      id: 'test-event',
-      type: eventType,
-      name: 'Test Highlight Event',
-      targetId: mockHotspot.id,
-      step: 1,
-      message: 'Highlighting hotspot...',
-      // Test the fixed logic for setting spotlight coordinates
-      ...((eventType === InteractionType.SPOTLIGHT || eventType === InteractionType.HIGHLIGHT_HOTSPOT) && {
+      ...(eventType === InteractionType.SPOTLIGHT && {
         spotlightX: mockHotspot.x,
         spotlightY: mockHotspot.y,
         spotlightShape: 'circle',
@@ -74,7 +45,7 @@ describe('Spotlight Targeting', () => {
 
   it('should not set spotlight coordinates for non-spotlight event types', () => {
     // Test that other event types don't get spotlight coordinates
-    const eventType = InteractionType.PULSE_HOTSPOT;
+    const eventType = InteractionType.SHOW_TEXT;
     const newEvent = {
       id: 'test-event',
       type: eventType,
@@ -82,7 +53,7 @@ describe('Spotlight Targeting', () => {
       targetId: mockHotspot.id,
       step: 1,
       // Test the logic - should not add spotlight coordinates for non-spotlight events
-      ...((eventType === InteractionType.SPOTLIGHT || eventType === InteractionType.HIGHLIGHT_HOTSPOT) && {
+      ...((eventType === InteractionType.SPOTLIGHT) && {
         spotlightX: mockHotspot.x,
         spotlightY: mockHotspot.y,
         spotlightShape: 'circle',

@@ -222,7 +222,7 @@ const InteractiveEditor: React.FC<InteractiveEditorProps> = ({
       }
 
       // Update spotlight coordinates for spotlight-based events
-      if (event.type === InteractionType.SPOTLIGHT || event.type === InteractionType.HIGHLIGHT_HOTSPOT) {
+      if (event.type === InteractionType.SPOTLIGHT) {
         return { ...event, spotlightX: position.x, spotlightY: position.y };
       }
 

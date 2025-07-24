@@ -33,7 +33,6 @@ const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
     // ... (same as existing getTypeLabel)
     switch (type) {
       case InteractionType.SPOTLIGHT:
-      case InteractionType.HIGHLIGHT_HOTSPOT:
         return 'spotlight';
       case InteractionType.PAN_ZOOM:
         return 'pan-zoom';
@@ -160,7 +159,6 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
     // I will re-paste just one case for an example of the styling.
       switch (event.type) {
       case InteractionType.SPOTLIGHT:
-      case InteractionType.HIGHLIGHT_HOTSPOT:
         return (
           <div className="space-y-3 mt-2">
             <div>
@@ -670,8 +668,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                 event.type === InteractionType.PLAY_AUDIO ||
                 event.type === InteractionType.PLAY_VIDEO ||
                 event.type === InteractionType.PAN_ZOOM ||
-                event.type === InteractionType.SPOTLIGHT ||
-                event.type === InteractionType.HIGHLIGHT_HOTSPOT
+                event.type === InteractionType.SPOTLIGHT
               ) {
                 onEdit();
               } else {
@@ -683,8 +680,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               event.type === InteractionType.PLAY_AUDIO ||
               event.type === InteractionType.PLAY_VIDEO ||
               event.type === InteractionType.PAN_ZOOM ||
-              event.type === InteractionType.SPOTLIGHT ||
-              event.type === InteractionType.HIGHLIGHT_HOTSPOT
+              event.type === InteractionType.SPOTLIGHT
                 ? 'Edit Event Settings'
                 : 'Edit Title'
             }
@@ -692,8 +688,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
             {event.type === InteractionType.PLAY_AUDIO ||
             event.type === InteractionType.PLAY_VIDEO ||
             event.type === InteractionType.PAN_ZOOM ||
-            event.type === InteractionType.SPOTLIGHT ||
-            event.type === InteractionType.HIGHLIGHT_HOTSPOT ? (
+            event.type === InteractionType.SPOTLIGHT ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4"

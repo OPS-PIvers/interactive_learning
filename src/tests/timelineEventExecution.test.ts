@@ -68,14 +68,6 @@ describe('Timeline Event Execution', () => {
     test('should handle steps with multiple events', () => {
       const multiEventTimeline: TimelineEventData[] = [
         {
-          id: 'event-2',
-          step: 1,
-          name: 'Pulse Hotspot',
-          type: InteractionType.PULSE_HOTSPOT,
-          targetId: 'hotspot-1',
-          duration: 2000
-        },
-        {
           id: 'event-3',
           step: 1,
           name: 'Show Message',
@@ -85,7 +77,7 @@ describe('Timeline Event Execution', () => {
       ]
 
       const step1Events = multiEventTimeline.filter(event => event.step === 1)
-      expect(step1Events).toHaveLength(2)
+      expect(step1Events).toHaveLength(1)
     })
   })
 
@@ -95,7 +87,7 @@ describe('Timeline Event Execution', () => {
         id: 'invalid-event',
         step: 1,
         name: 'Invalid Target',
-        type: InteractionType.PULSE_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         targetId: 'non-existent-hotspot'
       }
 
@@ -207,13 +199,13 @@ describe('Timeline Event Execution', () => {
     })
   })
 
-  describe('Pulse Event Processing', () => {
-    test('should handle PULSE_HOTSPOT with duration', () => {
+  describe('Spotlight Event Processing', () => {
+    test('should handle SPOTLIGHT with duration', () => {
       const pulseEvent: TimelineEventData = {
         id: 'pulse-event',
         step: 1,
         name: 'Pulse Important Area',
-        type: InteractionType.PULSE_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         targetId: 'hotspot-1',
         duration: 3000
       }
@@ -230,18 +222,18 @@ describe('Timeline Event Execution', () => {
       expect(pulsingHotspotId).toBe('hotspot-1')
     })
 
-    test('should handle PULSE_HOTSPOT events', () => {
+    test('should handle SPOTLIGHT events', () => {
       const pulseHighlightEvent: TimelineEventData = {
         id: 'pulse-highlight-event',
         step: 1,
         name: 'Pulse with Highlight',
-        type: InteractionType.PULSE_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         targetId: 'hotspot-2',
         duration: 2500,
         intensity: 80
       }
 
-      expect(pulseHighlightEvent.type).toBe(InteractionType.PULSE_HOTSPOT)
+      expect(pulseHighlightEvent.type).toBe(InteractionType.SPOTLIGHT)
       expect(pulseHighlightEvent.intensity).toBe(80)
     })
   })
@@ -338,25 +330,6 @@ describe('Timeline Event Execution', () => {
   })
 
   describe('Event State Management', () => {
-    test('should handle HIDE_HOTSPOT events', () => {
-      const activeDisplayIds = new Set(['hotspot-1', 'hotspot-2'])
-
-      const hideEvent: TimelineEventData = {
-        id: 'hide-event',
-        step: 1,
-        name: 'Hide Hotspot',
-        type: InteractionType.HIDE_HOTSPOT,
-        targetId: 'hotspot-1'
-      }
-
-      if (hideEvent.type === InteractionType.HIDE_HOTSPOT && hideEvent.targetId) {
-        activeDisplayIds.delete(hideEvent.targetId)
-      }
-
-      expect(activeDisplayIds.has('hotspot-1')).toBe(false)
-      expect(activeDisplayIds.has('hotspot-2')).toBe(true)
-    })
-
     test('should manage highlight state', () => {
       let highlightedHotspotId: string | null = null
 

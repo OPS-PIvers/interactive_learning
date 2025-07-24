@@ -46,7 +46,6 @@ const MOBILE_INTERACTION_TYPES = [
     types: [
       { value: InteractionType.SPOTLIGHT, label: 'Spotlight', icon: '💡', description: 'Highlight specific area' },
       { value: InteractionType.PAN_ZOOM, label: 'Pan & Zoom', icon: '🔍', description: 'Focus on area' },
-      { value: InteractionType.PULSE_HOTSPOT, label: 'Pulse', icon: '💓', description: 'Animate hotspot' },
     ]
   },
   // Media Content

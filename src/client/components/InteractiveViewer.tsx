@@ -308,8 +308,8 @@ const InteractiveViewer: React.FC<InteractiveViewerProps> = ({
             newActiveDisplayIds.add(event.targetId);
           }
           
-          // Set pulsing for pulse events
-          if (event.type === InteractionType.PULSE_HOTSPOT || event.type === InteractionType.PULSE_HIGHLIGHT) {
+          // Set pulsing for spotlight events
+          if (event.type === InteractionType.SPOTLIGHT) {
             newPulsingHotspotId = event.targetId;
           }
         }

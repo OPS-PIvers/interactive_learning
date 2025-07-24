@@ -272,7 +272,7 @@ describe('Event System', () => {
           id: 'event-2',
           step: 1,
           name: 'Pulse Hotspot',
-          type: InteractionType.PULSE_HOTSPOT,
+          type: InteractionType.SPOTLIGHT,
           targetId: 'hotspot-1',
           duration: 2000
         }
@@ -306,7 +306,7 @@ describe('Event System', () => {
         id: 'test-1',
         step: 1,
         name: 'Invalid Target',
-        type: InteractionType.PULSE_HOTSPOT,
+        type: InteractionType.SPOTLIGHT,
         targetId: 'non-existent-hotspot'
       }
 

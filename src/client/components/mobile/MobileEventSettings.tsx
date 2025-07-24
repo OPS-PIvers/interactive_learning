@@ -14,8 +14,6 @@ interface MobileEventSettingsProps {
 export const MobileEventSettings: React.FC<MobileEventSettingsProps> = ({ event, onUpdate }) => {
   switch (event.type) {
     case InteractionType.SPOTLIGHT:
-    case InteractionType.PULSE_HOTSPOT:
-    case InteractionType.PULSE_HIGHLIGHT:
       return <MobileSpotlightSettings event={event} onUpdate={onUpdate} />;
     
     case InteractionType.PAN_ZOOM:
