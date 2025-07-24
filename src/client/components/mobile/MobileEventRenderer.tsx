@@ -3,7 +3,6 @@ import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } 
 import { Z_INDEX } from '../../constants/interactionConstants';
 import { createResetTransform } from '../../utils/panZoomUtils';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
-import MobilePanZoomHandler from './MobilePanZoomHandler';
 import MobileTextModal from './MobileTextModal';
 import MobileQuizModal from './MobileQuizModal';
 import MobileImageModal from './MobileImageModal';
@@ -305,18 +304,9 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <MobilePanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-            hotspots={hotspots}
-            imageElement={imageElement}
-          />
-        );
+        // This is now handled by the ImageViewer component
+        handleComplete();
+        return null;
       
       case InteractionType.SHOW_TEXT:
       case InteractionType.SHOW_MESSAGE:

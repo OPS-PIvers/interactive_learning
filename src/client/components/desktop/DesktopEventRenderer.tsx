@@ -7,7 +7,6 @@ import DesktopQuizModal from './DesktopQuizModal';
 import DesktopImageModal from './DesktopImageModal';
 import DesktopVideoModal from './DesktopVideoModal';
 import DesktopAudioModal from './DesktopAudioModal';
-import DesktopPanZoomHandler from './DesktopPanZoomHandler';
 import DesktopSpotlightOverlay from './DesktopSpotlightOverlay';
 
 interface DesktopEventRendererProps {
@@ -341,18 +340,9 @@ export const DesktopEventRenderer: React.FC<DesktopEventRendererProps> = ({
 
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        return (
-          <DesktopPanZoomHandler
-            key={`pan-zoom-${event.id}`}
-            event={event}
-            containerRef={imageContainerRef}
-            imageElement={imageElement}
-            hotspots={hotspots}
-            onComplete={handleComplete}
-            currentTransform={currentTransform}
-            onTransformUpdate={onTransformUpdate}
-          />
-        );
+        // This is now handled by the ImageViewer component
+        handleComplete();
+        return null;
 
       case InteractionType.SPOTLIGHT:
         return (
