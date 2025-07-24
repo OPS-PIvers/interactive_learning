@@ -1,7 +1,7 @@
 // Unified pan and zoom calculation utilities
 import { TimelineEventData, ImageTransformState, HotspotData } from '../../shared/types';
 import { PREVIEW_DEFAULTS, INTERACTION_DEFAULTS } from '../constants/interactionConstants';
-import { getActualImageVisibleBounds } from './imageBounds';
+import { getActualImageVisibleBoundsRelative } from './imageBounds';
 
 /**
  * Calculate pan and zoom transform to center a target point in the viewport
@@ -82,13 +82,12 @@ export const calculatePanZoomTransform = (
   let targetPixelX: number;
   let targetPixelY: number;
 
-  // Step 4: Calculate target pixel coordinates
-  // Use image-content-aware positioning when image elements are available
-  // This ensures perfect alignment with hotspot positions (same as spotlight effect)
+  // Step 4: Calculate target pixel coordinates using container-relative coordinates
+  // Use container-relative image bounds to match hotspot positioning system
   if (imageElement && containerElement) {
-    const imageBounds = getActualImageVisibleBounds(imageElement, containerElement);
+    const imageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
     
-    console.log('[calculatePanZoomTransform] Image bounds calculation:', {
+    console.log('[calculatePanZoomTransform] Container-relative image bounds calculation:', {
       hasImageBounds: !!imageBounds,
       imageBounds: imageBounds || 'NULL',
       imageNaturalSize: imageElement ? { 
@@ -98,15 +97,15 @@ export const calculatePanZoomTransform = (
     });
     
     if (imageBounds && imageBounds.width > 0 && imageBounds.height > 0) {
-      // Convert percentage to pixel position within image content area
+      // Convert percentage to pixel position within image content area (same as hotspots)
       const imageContentX = (targetX / 100) * imageBounds.width;
       const imageContentY = (targetY / 100) * imageBounds.height;
       
-      // Add image offset within container to get container-relative coordinates
+      // Add image offset within container to get final container-relative coordinates
       targetPixelX = imageBounds.x + imageContentX;
       targetPixelY = imageBounds.y + imageContentY;
       
-      console.log('[calculatePanZoomTransform] Image-based positioning:', {
+      console.log('[calculatePanZoomTransform] Container-relative positioning (matching hotspots):', {
         percentageCoords: { targetX, targetY },
         imageBounds,
         imageContentCoords: { imageContentX, imageContentY },
