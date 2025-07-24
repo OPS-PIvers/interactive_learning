@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useTransformContext } from 'react-zoom-pan-pinch';
 import { PanZoomEvent } from '../../shared/interactiveTypes';
 import { calculateCenteringTransform } from '../utils/panZoomUtils';
+import { PAN_ZOOM_ANIMATION } from '../constants/interactionConstants';
 
 interface PanZoomHandlerProps {
   panZoomToEvent: PanZoomEvent | null;
@@ -41,7 +42,7 @@ export const PanZoomHandler: React.FC<PanZoomHandlerProps> = ({
     );
 
     // Use the library's method to animate the transformation
-    setTransform(x, y, targetScale, 300, 'easeOut');
+    setTransform(x, y, targetScale, PAN_ZOOM_ANIMATION.duration, PAN_ZOOM_ANIMATION.easing);
 
   }, [panZoomToEvent, imageRef, containerRef, setTransform]);
 

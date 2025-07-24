@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { PanZoomHandler } from './PanZoomHandler';
 import { PanZoomEvent } from '../../shared/interactiveTypes';
+import { ZOOM_LIMITS, PAN_ZOOM_ANIMATION } from '../constants/interactionConstants';
 
 interface ImageViewerProps {
   src: string;
@@ -17,7 +18,8 @@ interface ImageViewerProps {
   onFocusAnimationComplete?: () => void;
 }
 
-const DEFAULT_HOTSPOT_FOCUS_SCALE = 1.75;
+// Use constant from shared constants
+// const DEFAULT_HOTSPOT_FOCUS_SCALE = 1.75; // Moved to PAN_ZOOM_ANIMATION.defaultHotspotScale
 
 const ImageViewer: React.FC<ImageViewerProps> = ({
   src,
@@ -37,12 +39,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       setPanZoomToEvent({
         x: focusHotspotTarget.xPercent / 100,
         y: focusHotspotTarget.yPercent / 100,
-        zoom: focusHotspotTarget.targetScale || DEFAULT_HOTSPOT_FOCUS_SCALE,
+        zoom: focusHotspotTarget.targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale,
       });
       if (onFocusAnimationComplete) {
         setTimeout(() => {
           onFocusAnimationComplete();
-        }, 300); // Corresponds to the animation duration in PanZoomHandler
+        }, PAN_ZOOM_ANIMATION.duration); // Use shared animation duration constant
       }
     }
   }, [focusHotspotTarget, onFocusAnimationComplete]);
@@ -51,9 +53,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     <div ref={containerRef} className={`viewer-container relative overflow-hidden bg-slate-900 ${className}`}>
       <TransformWrapper
         initialScale={1}
-        minScale={0.5}
-        maxScale={5}
-        doubleClick={{ zoomIn: 2, zoomOut: 1 }}
+        minScale={ZOOM_LIMITS.minScale}
+        maxScale={ZOOM_LIMITS.maxScale}
+        doubleClick={{ zoomIn: ZOOM_LIMITS.doubleTapZoomFactor, zoomOut: 1 }}
         wheel={{ step: 0.2 }}
       >
         <>
