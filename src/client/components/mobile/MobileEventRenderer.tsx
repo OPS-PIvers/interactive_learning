@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, Fragment } from 'react';
+import React, { useState, useMemo, useEffect, Fragment, useRef } from 'react';
 import { TimelineEventData, InteractionType, HotspotData, ImageTransformState } from '../../../shared/types';
 import { Z_INDEX, PAN_ZOOM_ANIMATION } from '../../constants/interactionConstants';
-import { createResetTransform, calculatePanZoomTransform } from '../../utils/panZoomUtils';
+import { createResetTransform, calculatePanZoomTransform, transformsAreDifferent } from '../../utils/panZoomUtils';
 import MobileSpotlightOverlay from './MobileSpotlightOverlay';
 import MobileTextModal from './MobileTextModal';
 import MobileQuizModal from './MobileQuizModal';
@@ -76,6 +76,7 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
 }) => {
   const [modalQueue, setModalQueue] = useState<TimelineEventData[]>([]);
   const [currentModalIndex, setCurrentModalIndex] = useState<number>(0);
+  const processedPanZoomEvents = useRef<Set<string>>(new Set());
 
   // Update modal queue when events change
   useEffect(() => {
@@ -116,6 +117,57 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       setCurrentModalIndex(0);
     };
   }, []);
+
+  // Process pan/zoom events once when they become active to prevent infinite loops
+  useEffect(() => {
+    if (!isActive || !onTransformUpdate || !imageContainerRef.current || !imageElement) {
+      return;
+    }
+
+    const panZoomEvents = events.filter(e => 
+      (e.type === InteractionType.PAN_ZOOM || e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) &&
+      !processedPanZoomEvents.current.has(e.id)
+    );
+
+    if (panZoomEvents.length === 0) {
+      return;
+    }
+
+    // Process each new pan/zoom event once
+    panZoomEvents.forEach(event => {
+      console.log('[MobileEventRenderer] Processing pan/zoom event once:', event.id);
+      
+      const containerRect = imageContainerRef.current!.getBoundingClientRect();
+      const transform = calculatePanZoomTransform(
+        event,
+        containerRect,
+        imageElement,
+        imageContainerRef.current,
+        hotspots || []
+      );
+      
+      // Only apply transform if it's significantly different from current transform
+      if (transformsAreDifferent(currentTransform, transform, 2)) {
+        console.log('[MobileEventRenderer] Applying new transform - significant change detected');
+        onTransformUpdate(transform);
+      } else {
+        console.log('[MobileEventRenderer] Skipping transform update - no significant change');
+      }
+      
+      // Mark as processed to prevent re-processing
+      processedPanZoomEvents.current.add(event.id);
+      
+      // Complete event after animation
+      setTimeout(() => {
+        onEventComplete?.(event.id);
+      }, PAN_ZOOM_ANIMATION.duration);
+    });
+  }, [events, isActive, onTransformUpdate, imageElement, hotspots, onEventComplete, currentTransform]);
+
+  // Clear processed events when events change (new step/timeline)
+  useEffect(() => {
+    processedPanZoomEvents.current.clear();
+  }, [events]);
 
   const activeEvents = useMemo(() => {
     if (!isActive) {
@@ -304,26 +356,8 @@ export const MobileEventRenderer: React.FC<MobileEventRendererProps> = ({
       
       case InteractionType.PAN_ZOOM:
       case InteractionType.PAN_ZOOM_TO_HOTSPOT:
-        // Apply the pan/zoom transform and wait for animation to complete
-        if (onTransformUpdate && imageContainerRef.current && imageElement) {
-          const containerRect = imageContainerRef.current.getBoundingClientRect();
-          const transform = calculatePanZoomTransform(
-            event,
-            containerRect,
-            imageElement,
-            imageContainerRef.current,
-            hotspots || []
-          );
-          onTransformUpdate(transform);
-          
-          // Wait for animation to complete before marking event as done
-          setTimeout(() => {
-            handleComplete();
-          }, PAN_ZOOM_ANIMATION.duration);
-        } else {
-          // Fallback if transform update is not available
-          handleComplete();
-        }
+        // Pan/zoom events are now processed once in useEffect to prevent infinite loops
+        // This case just returns null as the event is handled by the useEffect
         return null;
       
       case InteractionType.SHOW_TEXT:

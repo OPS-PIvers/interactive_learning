@@ -1,186 +1,285 @@
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "eventType": "PAN_ZOOM",
-    "isEventActive": true,
-    "activeEventsIds": [
-        "event_1753297431277_h1753297427018_k09b2d43a"
-    ]
-}
-
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "eventType": "PAN_ZOOM",
-    "rawTargetX": 31.715744425014726,
-    "rawTargetY": 48.67327098738564,
-    "resolvedTargetX": 31.715744425014726,
-    "resolvedTargetY": 48.67327098738564,
-    "zoomLevel": 3,
-    "hasImageElement": true,
-    "hasContainerElement": true,
-    "containerRect": {
-        "width": 393.6000061035156,
-        "height": 524
-    }
-}
-
-{
-    "hasImageBounds": true,
-    "imageBounds": {
-        "x": 0,
-        "y": 139.03845562321123,
-        "width": 393.6000061035156,
-        "height": 245.9230887535775
-    },
-    "imageNaturalSize": {
-        "width": 1919,
-        "height": 1199
-    }
-}
-
-{
-    "percentageCoords": {
-        "targetX": 31.715744425014726,
-        "targetY": 48.67327098738564
-    },
-    "imageBounds": {
-        "x": 0,
-        "y": 139.03845562321123,
-        "width": 393.6000061035156,
-        "height": 245.9230887535775
-    },
-    "imageContentCoords": {
-        "imageContentX": 124.83317199263337,
-        "imageContentY": 119.69881140957769
-    },
-    "finalPixelCoords": {
-        "targetPixelX": 124.83317199263337,
-        "targetPixelY": 258.7372670327889
-    }
-}
-
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "targetPixelCoords": {
-        "targetPixelX": 124.83317199263337,
-        "targetPixelY": 258.7372670327889
-    },
-    "viewportCenter": {
-        "x": 196.8000030517578,
-        "y": 262
-    },
-    "zoomLevel": 3,
-    "finalTransform": {
-        "scale": 3,
-        "translateX": -177.6995129261423,
-        "translateY": -514.2118010983668,
-        "targetHotspotId": "h1753297427018_k09b2d43a"
-    }
-}
-
-{
-    "isActive": true,
-    "events": [
-        {
-            "id": "event_1753297431277_h1753297427018_k09b2d43a",
-            "type": "PAN_ZOOM",
-            "name": "New pan zoom event"
-        }
-    ],
-    "eventsLength": 1
-}
-
-{
-    "modalEvents": [],
-    "modalEventsLength": 0
-}
-
-{
-    "visualEvents": [
-        {
-            "id": "event_1753297431277_h1753297427018_k09b2d43a",
-            "type": "PAN_ZOOM"
-        }
-    ],
-    "modalQueueLength": 0,
-    "currentModalIndex": 0,
-    "currentModal": null
-}
-
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "eventType": "PAN_ZOOM",
-    "isEventActive": true,
-    "activeEventsIds": [
-        "event_1753297431277_h1753297427018_k09b2d43a"
-    ]
-}
-
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "eventType": "PAN_ZOOM",
-    "rawTargetX": 31.715744425014726,
-    "rawTargetY": 48.67327098738564,
-    "resolvedTargetX": 31.715744425014726,
-    "resolvedTargetY": 48.67327098738564,
-    "zoomLevel": 3,
-    "hasImageElement": true,
-    "hasContainerElement": true,
-    "containerRect": {
-        "width": 393.6000061035156,
-        "height": 524
-    }
-}
-
-{
-    "hasImageBounds": true,
-    "imageBounds": {
-        "x": 0,
-        "y": 139.03845562321123,
-        "width": 393.6000061035156,
-        "height": 245.9230887535775
-    },
-    "imageNaturalSize": {
-        "width": 1919,
-        "height": 1199
-    }
-}
-
-{
-    "percentageCoords": {
-        "targetX": 31.715744425014726,
-        "targetY": 48.67327098738564
-    },
-    "imageBounds": {
-        "x": 0,
-        "y": 139.03845562321123,
-        "width": 393.6000061035156,
-        "height": 245.9230887535775
-    },
-    "imageContentCoords": {
-        "imageContentX": 124.83317199263337,
-        "imageContentY": 119.69881140957769
-    },
-    "finalPixelCoords": {
-        "targetPixelX": 124.83317199263337,
-        "targetPixelY": 258.7372670327889
-    }
-}
-
-{
-    "eventId": "event_1753297431277_h1753297427018_k09b2d43a",
-    "targetPixelCoords": {
-        "targetPixelX": 124.83317199263337,
-        "targetPixelY": 258.7372670327889
-    },
-    "viewportCenter": {
-        "x": 196.8000030517578,
-        "y": 262
-    },
-    "zoomLevel": 3,
-    "finalTransform": {
-        "scale": 3,
-        "translateX": -177.6995129261423,
-        "translateY": -514.2118010983668,
-        "targetHotspotId": "h1753297427018_k09b2d43a"
-    }
-}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:82 [MobileEventRenderer] Events changed: {isActive: true, events: Array(1), eventsLength: 1}
+MobileEventRenderer.tsx:96 [MobileEventRenderer] Modal events found: {modalEvents: Array(0), modalEventsLength: 0}
+MobileEventRenderer.tsx:108 [MobileEventRenderer] No modal events - clearing queue
+MobileEventRenderer.tsx:131 [MobileEventRenderer] activeEvents calculation: {visualEvents: Array(1), modalQueueLength: 0, currentModalIndex: 0, currentModal: null}
+MobileEventRenderer.tsx:154 [MobileEventRenderer] Only visual events active: [{…}]
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
+MobileEventRenderer.tsx:193 [MobileEventRenderer] renderEventType: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', isEventActive: true, activeEventsIds: Array(1)}
+panZoomUtils.ts:67 [calculatePanZoomTransform] Input parameters: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', eventType: 'PAN_ZOOM', rawTargetX: 31.715744425014726, rawTargetY: 48.67327098738564, rawSpotlightX: undefined, …}
+panZoomUtils.ts:90 [calculatePanZoomTransform] Container-relative image bounds calculation: {hasImageBounds: true, imageBounds: {…}, imageNaturalSize: {…}}
+panZoomUtils.ts:108 [calculatePanZoomTransform] Container-relative positioning (matching hotspots): {percentageCoords: {…}, imageBounds: {…}, imageContentCoords: {…}, finalPixelCoords: {…}}
+panZoomUtils.ts:154 [calculatePanZoomTransform] Final transform calculation: {eventId: 'event_1753297431277_h1753297427018_k09b2d43a', targetPixelCoords: {…}, viewportCenter: {…}, zoomLevel: 3, finalTransform: {…}}
