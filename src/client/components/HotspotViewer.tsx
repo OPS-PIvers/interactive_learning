@@ -342,11 +342,25 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   const sizeClasses = getSizeClasses(hotspot.size);
   
+  const [isTimedPulseActive, setIsTimedPulseActive] = useState(false);
+
+  useEffect(() => {
+    if (hotspot.pulseAnimation && hotspot.pulseType === 'timed' && hotspot.pulseDuration) {
+      setIsTimedPulseActive(true);
+      const timer = setTimeout(() => {
+        setIsTimedPulseActive(false);
+      }, hotspot.pulseDuration * 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hotspot.pulseAnimation, hotspot.pulseType, hotspot.pulseDuration]);
+
+  const shouldPulse = isContinuouslyPulsing || (hotspot.pulseAnimation && hotspot.pulseType === 'loop') || isTimedPulseActive;
+
   const dotClasses = `relative inline-flex items-center justify-center rounded-full ${sizeClasses} ${baseColor}
     transition-all duration-150 ease-in-out group-hover:brightness-110 group-focus:brightness-110
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${ringColor}
     shadow-md hover:shadow-lg
-    ${isContinuouslyPulsing ? 'animate-pulse-subtle' : ''}
+    ${shouldPulse ? 'animate-pulse-subtle' : ''}
     ${isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'}
     ${isDragging ? 'scale-110 shadow-xl z-50 brightness-125' : ''}
     ${isHolding ? 'scale-105 animate-pulse ring-2 ring-white/50' : ''}`;

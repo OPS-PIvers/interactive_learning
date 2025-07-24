@@ -391,6 +391,92 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                   />
                 </div>
               </div>
+              {/* Pulse Animation Toggle */}
+              <div className="flex items-center justify-between mt-4">
+                <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">
+                  Pulse Animation
+                </label>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!!localHotspot.pulseAnimation}
+                  onClick={() =>
+                    setLocalHotspot(prev => {
+                      if (!prev) return null;
+                      const newPulseAnimation = !prev.pulseAnimation;
+                      return {
+                        ...prev,
+                        pulseAnimation: newPulseAnimation,
+                        // Set a default pulseType when enabling animation
+                        ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const }),
+                      };
+                    })
+                  }
+                  id="pulse-animation-toggle"
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
+                              ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}
+                >
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+              {/* Pulse Type Radio Buttons */}
+              {localHotspot.pulseAnimation && (
+                <div className="mt-4">
+                  <label className="text-sm text-gray-300">Pulse Type</label>
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="radio"
+                      id="pulse-loop"
+                      name="pulseType"
+                      value="loop"
+                      checked={localHotspot.pulseType === 'loop'}
+                      onChange={() =>
+                        setLocalHotspot(prev => prev ? { ...prev, pulseType: 'loop' } : null)
+                      }
+                      className="mr-2"
+                    />
+                    <label htmlFor="pulse-loop" className="text-sm text-gray-300">Loop</label>
+                    <input
+                      type="radio"
+                      id="pulse-timed"
+                      name="pulseType"
+                      value="timed"
+                      checked={localHotspot.pulseType === 'timed'}
+                      onChange={() =>
+                        setLocalHotspot(prev => prev ? { ...prev, pulseType: 'timed' } : null)
+                      }
+                      className="ml-4 mr-2"
+                    />
+                    <label htmlFor="pulse-timed" className="text-sm text-gray-300">Timed</label>
+                  </div>
+                </div>
+              )}
+              {/* Pulse Duration Input */}
+              {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' && (
+                <div className="mt-4">
+                  <label htmlFor="pulse-duration" className="text-sm text-gray-300">
+                    Pulse Duration (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    id="pulse-duration"
+                    value={localHotspot.pulseDuration ?? ''}
+                    onChange={e => {
+                      const newDuration = parseFloat(e.target.value);
+                      setLocalHotspot(prev => 
+                        prev ? { ...prev, pulseDuration: isNaN(newDuration) ? undefined : newDuration } : null
+                      );
+                    }}
+                    className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
+                    min="0"
+                    step="0.1"
+                    placeholder="Enter duration in seconds"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Add Event Button - For adding events to the current hotspot */}

@@ -32,6 +32,9 @@ export interface HotspotData {
   link?: string; // Optional link URL for hotspot
   displayHotspotInEvent?: boolean; // When true, hotspot remains visible when its events are active
   pulseWhenActive?: boolean; // When true, hotspot pulses when its events are active
+  pulseAnimation?: boolean; // When true, pulse animation is enabled
+  pulseType?: 'loop' | 'timed'; // Type of pulse animation
+  pulseDuration?: number; // Duration of the pulse animation in seconds
 }
 
 // Base Event interface
