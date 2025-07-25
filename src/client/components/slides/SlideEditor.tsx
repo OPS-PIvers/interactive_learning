@@ -4,6 +4,8 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
+import SlideTimelineAdapter from '../SlideTimelineAdapter';
+import ChevronDownIcon from '../icons/ChevronDownIcon';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -247,6 +249,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     : null;
 
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(true);
 
   useEffect(() => {
     if (isMobile && selectedElementId) {
@@ -255,6 +258,14 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       setIsMobilePanelOpen(false);
     }
   }, [isMobile, selectedElementId]);
+
+  // Handle timeline step selection for slide navigation
+  const handleTimelineStepSelect = useCallback((slideIndex: number) => {
+    // This would be handled by parent component if slide index changes
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SlideEditor] Timeline navigation to slide:', slideIndex);
+    }
+  }, []);
 
   return (
     <div className={`slide-editor w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${className}`}>
@@ -503,6 +514,58 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Timeline Panel */}
+      <div className="timeline-panel border-t border-slate-700 bg-slate-800/50">
+        {/* Timeline Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsTimelineCollapsed(!isTimelineCollapsed)}
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+              aria-label={`${isTimelineCollapsed ? 'Expand' : 'Collapse'} timeline`}
+            >
+              <ChevronDownIcon 
+                className={`w-4 h-4 transform transition-transform ${
+                  isTimelineCollapsed ? '-rotate-90' : ''
+                }`} 
+              />
+              <span className="font-medium">Timeline</span>
+            </button>
+            
+            <div className="text-xs text-slate-400">
+              {slideDeck.slides.reduce((total, slide) => {
+                return total + slide.elements.filter(el => 
+                  el.interactions.some(int => int.trigger === 'timeline')
+                ).length;
+              }, 0)} timeline events across {slideDeck.slides.length} slides
+            </div>
+          </div>
+
+          {!isTimelineCollapsed && (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span>Editing timeline events for slide elements</span>
+            </div>
+          )}
+        </div>
+
+        {/* Timeline Content */}
+        {!isTimelineCollapsed && (
+          <div className="timeline-content" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <SlideTimelineAdapter
+              slideDeck={slideDeck}
+              currentSlideIndex={currentSlideIndex}
+              onSlideDeckChange={onSlideDeckChange}
+              onStepSelect={handleTimelineStepSelect}
+              isEditing={true}
+              showPreviews={true}
+              moduleState="idle"
+              isMobile={isMobile}
+              className="p-4"
+            />
+          </div>
+        )}
       </div>
 
     </div>

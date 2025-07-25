@@ -265,6 +265,66 @@ const ElementInteractionsModal: React.FC<ElementInteractionsModalProps> = ({
                     step="100"
                   />
                 </div>
+
+                {/* Timeline-specific settings */}
+                {selectedInteraction.trigger === 'timeline' && (
+                  <div className="mb-6 p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                    <h4 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
+                      ⏱️ Timeline Settings
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Timeline Step
+                        </label>
+                        <input
+                          type="number"
+                          value={(selectedInteraction.effect.parameters as any)?.timelineStep || 1}
+                          onChange={(e) => handleInteractionUpdate(selectedInteraction.id, { 
+                            effect: { 
+                              ...selectedInteraction.effect, 
+                              parameters: {
+                                ...selectedInteraction.effect.parameters,
+                                timelineStep: parseInt(e.target.value) || 1
+                              }
+                            } 
+                          })}
+                          className="w-full p-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          min="1"
+                          placeholder="Enter timeline step number"
+                        />
+                        <p className="text-xs text-slate-400 mt-1">
+                          The timeline step when this interaction should trigger
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Auto-advance Timeline
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={(selectedInteraction.effect.parameters as any)?.autoAdvance || false}
+                            onChange={(e) => handleInteractionUpdate(selectedInteraction.id, { 
+                              effect: { 
+                                ...selectedInteraction.effect, 
+                                parameters: {
+                                  ...selectedInteraction.effect.parameters,
+                                  autoAdvance: e.target.checked
+                                }
+                              } 
+                            })}
+                            className="rounded border-slate-600 bg-slate-700 text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-slate-300">
+                            Automatically advance to next timeline step after this interaction
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-slate-400">

@@ -7,6 +7,8 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerToolbar from './ViewerToolbar';
+import SlideTimelineAdapter from './SlideTimelineAdapter';
+import TimelineProgressTracker from './TimelineProgressTracker';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -38,6 +40,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const [viewerState, setViewerState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [hasUserChosenMode, setHasUserChosenMode] = useState(false);
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [showProgressTracker, setShowProgressTracker] = useState(false);
 
   // Auto-start functionality
   useEffect(() => {
@@ -71,6 +76,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // Slide change handler
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
     setCurrentSlideId(slideId);
+    setCurrentSlideIndex(slideIndex);
     
     if (process.env.NODE_ENV === 'development') {
       console.log('[SlideBasedViewer] Slide changed:', {
@@ -80,6 +86,40 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       });
     }
   }, [viewerState]);
+
+  // Timeline navigation handler
+  const handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
+    if (stepSlideIndex >= 0 && stepSlideIndex < slideDeck.slides.length) {
+      const slideId = slideDeck.slides[stepSlideIndex].id;
+      handleSlideChange(slideId, stepSlideIndex);
+    }
+  }, [slideDeck.slides, handleSlideChange]);
+
+  // Timeline visibility toggle
+  const handleToggleTimeline = useCallback(() => {
+    setShowTimeline(prev => !prev);
+  }, []);
+
+  // Progress tracker toggle
+  const handleToggleProgressTracker = useCallback(() => {
+    setShowProgressTracker(prev => !prev);
+  }, []);
+
+  // Progress tracker slide navigation
+  const handleProgressTrackerSlideChange = useCallback((slideIndex: number) => {
+    if (slideIndex >= 0 && slideIndex < slideDeck.slides.length) {
+      const slideId = slideDeck.slides[slideIndex].id;
+      setCurrentSlideId(slideId);
+      setCurrentSlideIndex(slideIndex);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SlideBasedViewer] Progress tracker navigation:', {
+          slideId,
+          slideIndex
+        });
+      }
+    }
+  }, [slideDeck.slides]);
 
   // Interaction handler
   const handleInteraction = useCallback((interaction: any) => {
@@ -224,6 +264,32 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         </div>
         
         <div className="flex items-center space-x-3">
+          {/* Progress Tracker Toggle */}
+          <button
+            className={`slide-nav-button text-sm transition-colors ${
+              showProgressTracker 
+                ? 'slide-nav-button-primary' 
+                : 'slide-nav-button-secondary'
+            }`}
+            onClick={handleToggleProgressTracker}
+            title={`${showProgressTracker ? 'Hide' : 'Show'} Auto-Progression`}
+          >
+            🎬 Auto-Play
+          </button>
+          
+          {/* Timeline Toggle */}
+          <button
+            className={`slide-nav-button text-sm transition-colors ${
+              showTimeline 
+                ? 'slide-nav-button-primary' 
+                : 'slide-nav-button-secondary'
+            }`}
+            onClick={handleToggleTimeline}
+            title={`${showTimeline ? 'Hide' : 'Show'} Timeline`}
+          >
+            ⏱️ Timeline
+          </button>
+          
           <button
             className="slide-nav-button slide-nav-button-secondary text-sm"
             onClick={handleBackToMenu}
@@ -244,24 +310,79 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       </div>
 
       {/* Slide viewer - use timeline viewer for guided/timed modes */}
-      <div className="flex-1 relative">
-        {(viewerState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
-          <TimelineSlideViewer
-            slideDeck={enhancedSlideDeck}
-            viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
-            onSlideChange={handleSlideChange}
-            onInteraction={handleInteraction}
-            onClose={handleBackToMenu}
-            className="w-full h-full"
-          />
-        ) : (
-          <SlideViewer
-            slideDeck={enhancedSlideDeck}
-            initialSlideId={currentSlideId}
-            onSlideChange={handleSlideChange}
-            onInteraction={handleInteraction}
-            className="w-full h-full"
-          />
+      <div className="flex-1 flex flex-col relative">
+        <div className="flex-1">
+          {(viewerState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
+            <TimelineSlideViewer
+              slideDeck={enhancedSlideDeck}
+              viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
+              onSlideChange={handleSlideChange}
+              onInteraction={handleInteraction}
+              onClose={handleBackToMenu}
+              className="w-full h-full"
+            />
+          ) : (
+            <SlideViewer
+              slideDeck={enhancedSlideDeck}
+              initialSlideId={currentSlideId}
+              onSlideChange={handleSlideChange}
+              onInteraction={handleInteraction}
+              className="w-full h-full"
+            />
+          )}
+        </div>
+
+        {/* Progress Tracker - visible when enabled */}
+        {showProgressTracker && (
+          <div className="border-t border-slate-700 bg-slate-800/50">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm text-slate-300 font-medium">
+                  Timeline Auto-Progression
+                </div>
+                <div className="text-xs text-slate-400">
+                  Interactive Timeline Experience
+                </div>
+              </div>
+              
+              <TimelineProgressTracker
+                slideDeck={slideDeck}
+                currentSlideIndex={currentSlideIndex}
+                onSlideChange={handleProgressTrackerSlideChange}
+                isAutoProgression={viewerModes.timed || false}
+                autoProgressionDelay={3000}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Timeline Navigation - visible when enabled */}
+        {showTimeline && (
+          <div className="border-t border-slate-700 bg-slate-800/50">
+            <div className="p-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-slate-300 font-medium">
+                  Interactive Timeline Navigation
+                </div>
+                <div className="text-xs text-slate-400">
+                  Step {currentSlideIndex + 1} of {slideDeck.slides.length}
+                </div>
+              </div>
+              
+              <SlideTimelineAdapter
+                slideDeck={slideDeck}
+                currentSlideIndex={currentSlideIndex}
+                onSlideDeckChange={() => {}} // Read-only in viewer mode
+                onStepSelect={handleTimelineStepSelect}
+                isEditing={false}
+                showPreviews={true}
+                moduleState={viewerState}
+                isMobile={isMobile}
+                className="timeline-viewer-mode"
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>
