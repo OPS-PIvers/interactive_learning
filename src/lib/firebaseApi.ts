@@ -471,8 +471,26 @@ export class FirebaseProjectAPI {
           updateData.createdAt = serverTimestamp();
         }
         
+        // Sanitize the entire updateData object to remove any undefined values
+        const sanitizedUpdateData = DataSanitizer.sanitizeObject(updateData);
+        
+        // Debug validation to catch undefined values in development
+        if (debugLog.isDebugEnabled()) {
+          const checkForUndefined = (obj: any, path = 'updateData'): void => {
+            for (const [key, value] of Object.entries(obj)) {
+              const currentPath = `${path}.${key}`;
+              if (value === undefined) {
+                debugLog.warn(`Found undefined value at ${currentPath} - this will be filtered out by sanitization`);
+              } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                checkForUndefined(value, currentPath);
+              }
+            }
+          };
+          checkForUndefined(updateData);
+        }
+        
         // Atomically set the document with the new structure.
-        transaction.set(projectRef, updateData, { merge: true });
+        transaction.set(projectRef, sanitizedUpdateData, { merge: true });
 
         const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
         const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');
@@ -530,7 +548,7 @@ export class FirebaseProjectAPI {
         thumbnailUrl: finalThumbnailUrl,
         interactiveData: {
           ...project.interactiveData,
-          backgroundImage: newBackgroundImageForUpdate || undefined
+          backgroundImage: newBackgroundImageForUpdate || null
         }
       };
     } catch (error) {
