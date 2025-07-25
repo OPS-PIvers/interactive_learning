@@ -1,7 +1,9 @@
 # CLAUDE.md - Interactive Learning Hub
 
 ## Project Overview
-Interactive web application for creating interactive multimedia training modules with hotspot-based learning experiences. Users can upload images, add interactive hotspots with various event types, and create timeline-based learning sequences. The application features a mobile-first design with comprehensive touch gesture support and accessibility features.
+Interactive web application for creating slide-based multimedia training modules with element-based learning experiences. Users can create multi-slide presentations, add interactive elements (hotspots, text, media, shapes) with responsive positioning, and create interactive learning sequences. The application features a mobile-first design with comprehensive touch gesture support and accessibility features.
+
+**Architecture Migration**: The app has migrated from complex coordinate systems to a predictable slide-based architecture with fixed positioning and responsive breakpoints.
 
 ## Development Commands
 - `npm run dev` - Start development server on port 3000
@@ -12,8 +14,9 @@ Interactive web application for creating interactive multimedia training modules
 - `npm run preview` - Preview production build locally
 
 ## Architecture Context
-- **Main Component**: `src/client/components/InteractiveModule.tsx` - Core container handling editing and viewing modes
-- **Dual Mode System**: Clean separation between `InteractiveEditor` and `InteractiveViewer` components
+- **Main Components**: `src/client/components/SlideBasedEditor.tsx` and `src/client/components/SlideBasedViewer.tsx` - Core containers for slide-based editing and viewing
+- **Slide Editor**: `src/client/components/slides/SlideEditor.tsx` - Visual drag-and-drop editor with responsive positioning
+- **Dual Mode System**: Clean separation between slide-based editing and viewing with enhanced component architecture
 - **State Management**: React useState with callback patterns and complex interdependencies
 - **Mobile-First Design**: Comprehensive mobile component library under `mobile/` directory
 - **Mobile Detection**: `useIsMobile()` hook drives conditional rendering with debounced resize handling
@@ -25,7 +28,7 @@ Interactive web application for creating interactive multimedia training modules
 - **React 18.3.1** with TypeScript
 - **Vite** for build tooling and dev server
 - **Firebase 11.9.1** for backend (Firestore + Storage)
-- **react-dnd** for drag and drop functionality
+- **Native Drag API** for slide element positioning (replaced react-dnd)
 - **Tailwind CSS** for styling
 - **lodash.debounce** for performance optimization
 
@@ -33,7 +36,8 @@ Interactive web application for creating interactive multimedia training modules
 ```
 src/
 ├── client/
-│   ├── components/          # 70+ React components
+│   ├── components/          # 80+ React components
+│   │   ├── slides/         # 7 slide-specific components (NEW)
 │   │   ├── mobile/         # 38 mobile-specific components
 │   │   ├── desktop/        # 6 desktop modal components  
 │   │   ├── icons/          # 19 custom icon components
@@ -42,7 +46,7 @@ src/
 │   ├── utils/              # 22 utility modules
 │   └── styles/             # CSS modules and stylesheets
 ├── lib/                    # Firebase integration and core utilities
-├── shared/                 # Types, presets, and migration logic
+├── shared/                 # Types, slide architecture, and migration logic
 └── tests/                  # Vitest test suite with error detection
 ```
 
@@ -57,23 +61,25 @@ src/
 - **State**: Use `useCallback` and `useMemo` for performance optimization
 - **Imports**: Direct imports over barrel exports for better tree-shaking
 
-## Event System
-- **InteractionType enum** defines available hotspot event types with unified architecture
-- **TimelineEventData** interface for timeline events with extensive properties
-- **InteractionPresets** provides UI metadata for each interaction type
-- **Event Execution**: Events are executed in sequence based on timeline step
-- **Event Settings**: Modal editing for `PLAY_AUDIO`, `PLAY_VIDEO`, `PAN_ZOOM`, and `SPOTLIGHT`
-- **Legacy Support**: Backward compatibility maintained while consolidating similar event types
-- **Text Banner**: Optional text banner display for visual events with accessibility support
+## Slide-Based Architecture
+- **SlideDeck** interface defines collection of interactive slides with metadata
+- **InteractiveSlide** interface for individual slides with elements, transitions, and layout
+- **SlideElement** interface for slide elements (hotspots, text, media, shapes) with responsive positioning
+- **ResponsivePosition** system with desktop/tablet/mobile breakpoints using fixed pixel positioning
+- **ElementInteraction** system for element-based interactions and effects
+- **SlideTransition** interface for navigation and animation between slides
+- **Migration Support**: Automatic migration from legacy hotspot-based system to slide architecture
+- **Backward Compatibility**: Legacy timeline events supported alongside new slide system
 
-## Working with Hotspots
-- Each hotspot has position coordinates as percentages for responsive layout
-- Use `safeMathUtils.ts` for coordinate calculations and safe transforms
-- Mobile and desktop have separate touch handling systems with gesture coordination
-- Hotspot editing uses enhanced modal system with context-specific panels
-- **Mobile Editing**: Specialized mobile hotspot editor with touch-optimized controls
-- **Event Coordination**: Separate user gestures from automated event execution
-- **Transform State**: Complex state management for pan/zoom operations with momentum physics
+## Working with Slide Elements
+- Elements use fixed pixel positioning with responsive breakpoints (desktop/tablet/mobile)
+- Use `ResponsivePosition` interface for consistent cross-device positioning
+- Native drag-and-drop API for precise element positioning within slide canvas
+- Element editing uses slide-specific property panels with device-responsive controls
+- **Mobile Editing**: `MobilePropertiesPanel` component with touch-optimized controls
+- **Element Types**: Support for hotspots, text, media, and shape elements
+- **Device Detection**: `useDeviceDetection()` hook for responsive positioning calculations
+- **Canvas System**: Slide editor canvas with visual drag-and-drop interface
 
 ## Testing Guidelines
 - Use Vitest for unit tests
@@ -86,6 +92,7 @@ src/
 - Tests for React Hook Error #310, TDZ errors, and component violations
 - Must pass before any component changes are committed
 - Validates proper hook order and component lifecycle management
+- **Slide Architecture Validation**: Tests ensure slide components properly handle ResponsivePosition calculations
 
 ## Firebase Integration
 - Firestore for data storage
@@ -103,19 +110,21 @@ src/
 - **Testing**: Test on actual mobile devices when possible, use mobile-specific test cases
 
 ## Custom Hook Patterns
-- **Touch Gestures**: `useTouchGestures` with momentum physics and gesture coordination
-- **Mobile Touch**: `useMobileTouchGestures` for simplified mobile touch handling
-- **Performance**: `useIntersectionObserver` for efficient rendering of large lists
+- **Device Detection**: `useDeviceDetection()` for responsive positioning and viewport calculations
+- **Mobile Detection**: `useIsMobile()` with debounced resize handling for device-specific rendering
+- **Touch Gestures**: `useTouchGestures` with momentum physics and gesture coordination  
+- **Performance**: `useIntersectionObserver` for efficient rendering of large slide collections
 - **Accessibility**: `useScreenReaderAnnouncements` with live regions
 - **Cleanup**: Always include proper dependency arrays and cleanup functions
 - **State Optimization**: Use `useCallback` and `useMemo` to prevent unnecessary re-renders
 
 ## TypeScript Best Practices
 - **Strict Types**: Use strict TypeScript interfaces, avoid `any` type
-- **Event Types**: Use unified `InteractionType` enum with legacy support
+- **Slide Types**: Use `SlideDeck`, `InteractiveSlide`, `SlideElement` interfaces from `slideTypes.ts`
+- **Position Types**: Use `ResponsivePosition` and `FixedPosition` for element positioning
 - **Component Props**: Define clear interfaces for all component props
-- **Utility Types**: Use Position, Size, Transform interfaces for geometric calculations
-- **Migration Support**: Include data migration utilities for schema evolution
+- **Device Types**: Use `DeviceType` enum for responsive behavior
+- **Migration Support**: Include data migration utilities for legacy-to-slide conversion
 - **Type Guards**: Implement type guards for runtime type checking
 
 ## Performance Optimization

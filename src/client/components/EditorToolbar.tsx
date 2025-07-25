@@ -3,11 +3,10 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
 import { MenuIcon } from './icons/MenuIcon';
 import { GearIcon } from './icons/GearIcon';
-import { ZoomInIcon } from './icons/ZoomInIcon';
-import { ZoomOutIcon } from './icons/ZoomOutIcon';
+// Removed ZoomInIcon and ZoomOutIcon imports - incompatible with slide architecture
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
 import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
-import { PlusCircleIcon } from './icons/PlusCircleIcon';
+// Removed PlusCircleIcon import - Add Hotspot functionality incompatible with slide architecture
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
 import ShareModal from './ShareModal';
 import AuthButton from './AuthButton';
@@ -25,12 +24,7 @@ interface EditorToolbarProps {
   autoProgressionDuration: number;
   onAutoProgressionDurationChange: (duration: number) => void;
   
-  // Zoom controls
-  currentZoom: number;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onZoomReset: () => void;
-  onCenter: () => void;
+  // Zoom controls - REMOVED: Incompatible with slide architecture
   
   // Color schemes
   currentColorScheme: string;
@@ -49,8 +43,7 @@ interface EditorToolbarProps {
   isSaving: boolean;
   showSuccessMessage: boolean;
   isMobile?: boolean; // Already present as per instructions
-  onAddHotspot: () => void; // Prop for adding a hotspot
-  isPlacingHotspot?: boolean; // For visual feedback
+  // Add hotspot functionality - REMOVED: Incompatible with slide architecture
   
   // Share functionality
   project?: Project; // Optional project data for sharing
@@ -134,20 +127,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
             </h1>
           </div>
 
-          {/* Center: Add Hotspot Button */}
+          {/* Add Hotspot Button - REMOVED: Incompatible with slide architecture */}
           <div className="flex items-center gap-1">
-            <button
-              onClick={props.onAddHotspot}
-              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
-                props.isPlacingHotspot
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
-                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
-              }`}
-              title={props.isPlacingHotspot ? "Cancel Placement (or tap button again)" : "Add Hotspot"}
-            >
-              <PlusCircleIcon className="w-5 h-5" />
-              <span className="text-sm">{props.isPlacingHotspot ? "Place..." : "Add"}</span>
-            </button>
+            <div className="text-sm text-slate-400 italic">
+              Slide Editor
+            </div>
           </div>
 
           {/* Right: Save, Share, Auth & Menu */}
@@ -229,56 +213,20 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
               {props.projectName}
             </h1>
 
-            <button
-              onClick={props.onAddHotspot}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
-                props.isPlacingHotspot
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-slate-900' // Styling for "placing" mode
-                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' // Default styling
-              }`}
-              title={props.isPlacingHotspot ? "Cancel Placement (or right-click on image)" : "Add Hotspot"}
-            >
-              <PlusCircleIcon className="w-5 h-5" />
-              <span>{props.isPlacingHotspot ? "Click to Place Hotspot..." : "Add Hotspot"}</span>
-            </button>
+            {/* Add Hotspot Button - REMOVED: Incompatible with slide architecture */}
+            <div className="text-sm text-slate-400 italic">
+              Slide Editor
+            </div>
           </div>
 
           {/* Right Section */}
           <div className="flex items-center gap-2"> {/* Reduced gap for zoom controls area */}
-            {/* Zoom Controls */}
-            <button
-              onClick={props.onZoomOut}
-              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors"
-              title="Zoom Out"
-            >
-              <ZoomOutIcon className="w-5 h-5" />
-            </button>
-            <span className="text-sm text-slate-300 w-12 text-center">
-              {`${Math.round(props.currentZoom * 100)}%`}
-            </span>
-            <button
-              onClick={props.onZoomIn}
-              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors"
-              title="Zoom In"
-            >
-              <ZoomInIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={props.onZoomReset}
-              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors text-xs"
-              title="Reset Zoom"
-            >
-              Reset
-            </button>
-            <button
-              onClick={props.onCenter}
-              className="p-1.5 text-slate-300 hover:bg-slate-700 rounded transition-colors text-xs"
-              title="Center Image"
-            >
-              Center
-            </button>
+            {/* Zoom Controls - REMOVED: Incompatible with slide architecture */}
+            <div className="text-sm text-slate-400 italic px-4">
+              Zoom controls not applicable to slide editing
+            </div>
 
-            <div className="h-6 w-px bg-slate-600 mx-2" /> {/* Divider */}
+            <div className="h-6 w-px bg-slate-600 mx-2" /> {/* Divider */
 
             {/* Quick Save Button */}
             <button

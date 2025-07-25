@@ -3,9 +3,11 @@
 ## Purpose
 This file provides instructions for Jules AI (Google Labs async coding agent) working on this Interactive Learning Hub project. Jules reads this file to understand project context, patterns, and requirements.
 
+**IMPORTANT**: The application has migrated from hotspot-based architecture to slide-based architecture. All new development should use the slide system.
+
 ## Project Context for Jules
 
-// Interactive web application for creating multimedia training modules with hotspot-based learning experiences
+// Interactive web application for creating slide-based multimedia training modules with element-based learning experiences
 
 ### Tech Stack
 - React 18.3.1 + TypeScript + Vite
@@ -50,34 +52,45 @@ npm run auth:test
 scripts/          # Utility scripts (e.g., backup-data.ts)
 src/
 ├── client/       # Frontend application (React)
-│   ├── components/     # React components (~40 files)
-│   │   ├── InteractiveModule.tsx    # Main app container
-│   │   ├── HotspotEditorModal.tsx   # Primary hotspot editor
-│   │   ├── ImageEditCanvas.tsx      # Image editing canvas
-│   │   ├── Mobile*/                 # Mobile-specific components
-│   │   └── icons/                   # Icon components
-│   ├── hooks/          # Custom React hooks (5 files)
+│   ├── components/     # React components (80+ files)
+│   │   ├── SlideBasedEditor.tsx     # Main slide editor container
+│   │   ├── SlideBasedViewer.tsx     # Main slide viewer container  
+│   │   ├── slides/                  # 7 slide-specific components (NEW)
+│   │   │   ├── SlideEditor.tsx      # Visual drag-and-drop editor
+│   │   │   ├── SlideViewer.tsx      # Slide presentation viewer
+│   │   │   ├── SlideNavigation.tsx  # Slide navigation controls
+│   │   │   ├── SlideElement.tsx     # Individual slide elements
+│   │   │   └── MobilePropertiesPanel.tsx # Touch-optimized properties
+│   │   ├── mobile/                  # 38 mobile-specific components
+│   │   ├── desktop/                 # 6 desktop modal components
+│   │   ├── icons/                   # 19 custom icon components
+│   │   └── shared/                  # Error boundaries and loading states
+│   ├── hooks/          # Custom React hooks (14 files)
 │   │   ├── useIsMobile.ts           # Mobile detection
+│   │   ├── useDeviceDetection.ts    # Device type and viewport detection (NEW)
 │   │   ├── useTouchGestures.ts      # Touch handling
 │   │   └── useScreenReaderAnnouncements.ts  # Accessibility
-│   ├── utils/          # Client-side utility functions (5 files)
+│   ├── utils/          # Client-side utility functions (22 files)
 │   │   ├── touchUtils.ts            # Touch event utilities
 │   │   └── mobileUtils.ts           # Mobile-specific utilities
 │   └── styles/         # CSS and styling files
-├── lib/              # Core logic, Firebase utilities (5 files)
+├── lib/              # Core logic, Firebase utilities
 │   ├── firebaseApi.ts           # Firebase integration
 │   ├── firebaseConfig.ts        # Firebase configuration
 │   └── safeMathUtils.ts         # Mathematical utilities
 ├── shared/           # Types and logic shared between client/server
-│   ├── types.ts                 # TypeScript interfaces
-│   └── InteractionPresets.ts    # Event system presets
+│   ├── slideTypes.ts            # Slide-based architecture interfaces (NEW)
+│   ├── types.ts                 # Legacy TypeScript interfaces
+│   ├── interactiveTypes.ts      # Interactive elements and viewer modes
+│   └── migrationUtils.ts        # Legacy-to-slide conversion utilities
 └── tests/            # Test files (Vitest)
     ├── safeMathUtils.test.ts
-    └── eventSystem.test.ts
+    └── ReactErrorDetection.test.ts
 
 # Key Configuration Files
 AGENTS.md         # Instructions for AI agents (this file)
 CLAUDE.md         # Project architecture overview
+GEMINI.md         # Gemini codebase context
 README.md         # Main project documentation
 firebase.json     # Firebase hosting and services configuration
 firestore.rules   # Firestore security rules
@@ -96,10 +109,13 @@ vitest.config.ts  # Vitest test runner configuration
 
 ## Key Architecture Points
 
-// Main component: src/client/components/InteractiveModule.tsx
-// State management: React useState with complex interdependencies
-// Touch handling: useTouchGestures for pan/zoom, separate pointer events for hotspots  
-// Modal system: HotspotEditorModal and EnhancedModalEditorToolbar
+// Main components: SlideBasedEditor.tsx and SlideBasedViewer.tsx
+// Slide system: SlideDeck -> InteractiveSlide -> SlideElement architecture
+// Positioning: ResponsivePosition with fixed pixel coordinates for desktop/tablet/mobile
+// State management: React useState with slide-based state patterns
+// Touch handling: Native drag API for element positioning, useTouchGestures for gestures
+// Device detection: useDeviceDetection() hook for responsive positioning calculations
+// Properties system: MobilePropertiesPanel for touch-optimized element editing
 
 ## Mobile Development
 // Always use useIsMobile() hook for responsive behavior
@@ -148,15 +164,94 @@ TEST_USER_PASSWORD=TestPassword123!
 // puppeteer_fill, puppeteer_login, puppeteer_logout, puppeteer_auth_status
 
 // Example commands:
-// "Navigate to localhost:3000, login with bypass method, test hotspots"
-// "Screenshot the mobile version after setting mobile viewport"
+// "Navigate to localhost:3000, login with bypass method, test slide editor"
+// "Screenshot the slide canvas with drag-and-drop elements"
+// "Test slide element positioning across different device sizes"
 // "Test authentication flow: login, verify, logout"
 
-## Event System
-// Follow InteractionType enum for hotspot events
-// Use TimelineEventData interface for timeline events
-// Reference InteractionPresets for UI metadata
-// Events execute in sequence based on timeline steps
+## Slide-Based Development Guidelines
+
+### Core Slide Interfaces
+```typescript
+// Always use these interfaces from slideTypes.ts:
+interface SlideDeck {
+  id: string;
+  title: string;
+  slides: InteractiveSlide[];
+  settings: DeckSettings;
+  metadata: DeckMetadata;
+}
+
+interface InteractiveSlide {
+  id: string;
+  title: string;
+  backgroundImage?: string;
+  backgroundColor?: string;
+  elements: SlideElement[];
+  transitions: SlideTransition[];
+  layout: SlideLayout;
+}
+
+interface SlideElement {
+  id: string;
+  type: 'hotspot' | 'text' | 'media' | 'shape';
+  position: ResponsivePosition;
+  content: ElementContent;
+  interactions: ElementInteraction[];
+  style: ElementStyle;
+  isVisible: boolean;
+}
+```
+
+### Responsive Positioning System
+```typescript
+// All elements MUST use ResponsivePosition for cross-device compatibility:
+interface ResponsivePosition {
+  desktop: FixedPosition;  // 1920x1080+ displays
+  tablet: FixedPosition;   // 768-1919px displays  
+  mobile: FixedPosition;   // <768px displays
+}
+
+interface FixedPosition {
+  x: number;      // Exact pixel position from left
+  y: number;      // Exact pixel position from top  
+  width: number;  // Element width in pixels
+  height: number; // Element height in pixels
+}
+```
+
+### Device Detection Patterns
+```typescript
+// Always use device detection for responsive behavior:
+const { deviceType, viewportInfo } = useDeviceDetection();
+const isMobile = useIsMobile();
+
+// Get appropriate position for current device:
+const position = element.position[deviceType] || element.position.desktop;
+```
+
+### Slide Editor Development
+// When working with slide editor components:
+// - Use native drag API, not react-dnd
+// - Calculate positions relative to slide canvas
+// - Implement proper touch event handling for mobile
+// - Use MobilePropertiesPanel for mobile element editing
+// - Follow existing drag state patterns in SlideEditor.tsx
+
+### Migration Support
+// When handling legacy data:
+// - Use migrationUtils.ts for converting hotspot-based projects
+// - Preserve existing timeline events during migration
+// - Maintain backward compatibility with existing projects
+// - Test migration with various legacy project formats
+
+## Slide System Architecture
+// Use SlideDeck, InteractiveSlide, SlideElement interfaces from slideTypes.ts
+// ResponsivePosition system with desktop/tablet/mobile breakpoints
+// ElementInteraction interface for element-based interactions and effects
+// SlideTransition interface for navigation and animation between slides
+// Migration utilities for converting legacy hotspot-based projects
+// Backward compatibility maintained with legacy timeline events
 
 ## Testing Requirements
 // Write unit tests for all new utilities and hooks
@@ -188,19 +283,22 @@ npm run test:run -- ReactErrorDetection
 
 ## Common Prompts for Jules
 
-// Refactor {specific component} to use TypeScript interfaces
-// Add unit tests for {specific hook or utility}
-// Fix mobile responsiveness issue in {specific component}
-// Implement {specific feature} following existing patterns
-// Debug {specific error} in Firebase integration
-// Add accessibility features to {specific component}
-// Optimize performance of {specific expensive operation}
+// Refactor {specific component} to use slide-based architecture
+// Add unit tests for slide positioning and responsive breakpoints
+// Fix mobile responsiveness issue in slide element positioning
+// Implement {specific slide feature} following existing patterns
+// Debug slide migration from legacy hotspot system
+// Add accessibility features to slide navigation and elements
+// Optimize performance of slide canvas rendering and drag operations
+// Create new slide element type following ResponsivePosition system
 
 ## Known Issues & Patterns
-// Large image files impact performance
-// Touch gesture coordination between pan/zoom and hotspot interaction
+// Large slide collections impact performance - use lazy loading
+// Touch gesture coordination between canvas pan/zoom and element drag operations
+// ResponsivePosition calculations require device detection accuracy
+// Slide migration from legacy hotspot system requires careful data preservation
 // Firebase emulator setup required for local development
-// Complex state interdependencies in main component
+// Complex state interdependencies in slide editor components
 // Use VS Code with TypeScript extensions
 // Use Firebase emulator for local development
 // Use React Developer Tools for debugging
@@ -409,33 +507,45 @@ npm run dev
 
 ## ACTIVE TASKS
 
-### Performance Optimization for Mobile (In Progress)
-**Status:** Partial completion
-**Files to modify:** All mobile components
+### Slide Architecture Migration (Completed)
+**Status:** ✅ COMPLETED
+**Major Changes:**
+- ✅ Migrated from hotspot-based to slide-based architecture
+- ✅ Implemented ResponsivePosition system with device breakpoints
+- ✅ Created SlideBasedEditor and SlideBasedViewer components
+- ✅ Added native drag-and-drop for slide element positioning
+- ✅ Established migration utilities for legacy project conversion
+- ✅ Updated all documentation (CLAUDE.md, GEMINI.md, AGENTS.md)
 
-**Remaining optimizations needed:**
-- Virtual scrolling for long event lists (SKIPPED due to complexity with dnd-kit)
-- Memory leak prevention (COMPLETED - code review found no leaks)
-- Bundle size optimization (COMPLETED - analysis showed good chunking)
+### UI Enhancements Implementation (Current Priority)
+**Status:** Planning completed, implementation pending
+**Reference:** UI_enhancements_todo.md contains detailed task breakdown
+**Files to modify:** 
+- SlideBasedEditor.tsx (toolbar cleanup, panel system)
+- SlideEditor.tsx (aspect ratio selector, background settings)  
+- EditorToolbar.tsx (remove broken controls)
+- MobilePropertiesPanel.tsx (eliminate scrollbars)
+
+**Current Phase:** Phase 1 - Critical Fixes & Cleanup
+- Fix Settings button component errors
+- Remove broken zoom controls
+- Eliminate right panel scrollbars
+- Implement dynamic panel resizing
+
+### Slide Performance Optimization (Ongoing)
+**Status:** Partial completion
+**Files to monitor:** All slide components, especially SlideEditor.tsx
+
+**Optimizations needed:**
+- Lazy loading for large slide collections
+- Canvas rendering optimization for drag operations
+- Memory management for slide element interactions
+- Device-specific performance tuning
 
 **Completed optimizations:**
-- ✅ Lazy loading of event settings components
-- ✅ Image optimization and lazy loading  
-- ✅ Animation performance optimization
-
-### Create Mobile Editor Test Suite (Pending)
-**Status:** Not started
-**Files to create:**
-- `src/client/components/mobile/__tests__/`
-- Test files for all mobile components
-
-**Test coverage needed:**
-- Unit tests for all mobile components
-- Integration tests for event creation workflow
-- Touch gesture testing
-- Performance testing on various devices
-- Accessibility testing
-- Cross-browser mobile testing
+- ✅ Native drag API implementation (replaced react-dnd)
+- ✅ ResponsivePosition calculation optimization
+- ✅ Device detection performance improvements
 
 ---
 

@@ -4,13 +4,15 @@ This document provides context for the "Interactive Learning Hub" codebase.
 
 ## Project Overview
 
-The Interactive Learning Hub is a web application designed for creating and delivering interactive multimedia training modules. It allows content creators to build engaging educational experiences by placing interactive hotspots on images and guiding learners through timeline-driven sequences.
+The Interactive Learning Hub is a web application designed for creating and delivering slide-based interactive multimedia training modules. It allows content creators to build engaging educational experiences by creating multi-slide presentations with interactive elements (hotspots, text, media, shapes) and responsive positioning across devices.
 
 ### Core Features:
 
-*   **Interactive Content Creation:** Users can add clickable hotspots to images, embedding rich media like videos, audio, and quizzes.
-*   **Timeline-Based Learning:** A timeline builder allows for the creation of step-by-step learning experiences with over 17 different interaction types.
-*   **Multi-Device Support:** The application is designed to be responsive, with optimized experiences for both desktop and mobile devices.
+*   **Slide-Based Content Creation:** Users can create multi-slide presentations with interactive elements including hotspots, text, media, and shapes.
+*   **Responsive Element Positioning:** Elements use fixed pixel positioning with responsive breakpoints for desktop, tablet, and mobile devices.
+*   **Visual Drag-and-Drop Editor:** Slide editor with native drag-and-drop API for precise element positioning within slide canvas.
+*   **Interactive Element System:** Support for various element interactions and effects with device-responsive controls.
+*   **Multi-Device Support:** Mobile-first design with comprehensive touch gesture support and device detection.
 *   **Real-time Collaboration:** The Firebase backend enables real-time data synchronization.
 
 ## Technology Stack
@@ -22,7 +24,7 @@ The Interactive Learning Hub is a web application designed for creating and deli
 *   **Styling:** Tailwind CSS
 *   **State Management:** React Hooks and Context API
 *   **Routing:** React Router
-*   **Drag and Drop:** @dnd-kit
+*   **Drag and Drop:** Native Drag API (migrated from @dnd-kit)
 
 ### Backend & Database:
 
@@ -41,14 +43,22 @@ The Interactive Learning Hub is a web application designed for creating and deli
 ## Project Structure
 
 *   `src/client/`: Contains all the client-side application code.
-    *   `components/`: Reusable React components.
-    *   `hooks/`: Custom React hooks for shared logic.
-    *   `utils/`: Utility functions.
+    *   `components/`: Reusable React components (80+ components).
+        *   `slides/`: 7 slide-specific components for slide-based architecture.
+        *   `mobile/`: 38 mobile-specific components with touch optimization.
+        *   `desktop/`: 6 desktop modal components.
+        *   `icons/`: 19 custom icon components.
+        *   `shared/`: Error boundaries and loading states.
+    *   `hooks/`: Custom React hooks for shared logic (14 hooks).
+    *   `utils/`: Utility functions (22 utility modules).
     *   `styles/`: Global and component-specific styles.
 *   `src/lib/`: Core application logic, including Firebase integration and data handling.
     *   `firebaseApi.ts`: Interacts with Firebase services.
     *   `authContext.tsx`: Manages user authentication state.
-*   `src/shared/`: Types, interfaces, and data structures shared between different parts of the application.
+*   `src/shared/`: Types, slide architecture, and data structures shared between different parts of the application.
+    *   `slideTypes.ts`: Core slide-based architecture interfaces (NEW).
+    *   `types.ts`: Legacy types maintained for backward compatibility.
+    *   `interactiveTypes.ts`: Interactive elements and viewer modes.
 *   `scripts/`: Node.js scripts for administrative tasks, such as data backups.
 *   `firebase.json`: Configuration for Firebase deployment and services.
 *   `vite.config.ts`: Configuration for the Vite development server and build process.
@@ -78,6 +88,7 @@ The Interactive Learning Hub is a web application designed for creating and deli
     *   Ensures proper component lifecycle management
     *   Verifies hook order compliance
     *   Tests memory leak prevention
+    *   **Slide Architecture Validation**: Tests ensure slide components properly handle ResponsivePosition calculations
 *   **Required:** Must pass before any component changes are committed
 
 ## Browser Automation & MCP Integration
@@ -100,3 +111,42 @@ The project includes Puppeteer Model Context Protocol (MCP) integration for auto
 *   `npm run mcp:validate` - Validate MCP server configuration
 *   `npm run auth:test` - Test authentication workflows
 *   `npm run mcp:demo` - Run demonstration of MCP capabilities
+
+## Slide-Based Architecture Overview
+
+### Core Slide System
+The application has migrated from complex coordinate systems to a predictable slide-based architecture:
+
+*   **SlideDeck Interface**: Collection of interactive slides with metadata and configuration
+*   **InteractiveSlide Interface**: Individual slides containing elements, transitions, and layout information
+*   **SlideElement Interface**: Elements within slides (hotspots, text, media, shapes) with responsive positioning
+*   **ResponsivePosition System**: Fixed pixel positioning with desktop/tablet/mobile breakpoints
+
+### Key Architecture Components
+
+*   **SlideBasedEditor** (`src/client/components/SlideBasedEditor.tsx`): Main editing interface
+*   **SlideBasedViewer** (`src/client/components/SlideBasedViewer.tsx`): Presentation and viewing interface  
+*   **SlideEditor** (`src/client/components/slides/SlideEditor.tsx`): Visual drag-and-drop editor with canvas
+*   **MobilePropertiesPanel** (`src/client/components/slides/MobilePropertiesPanel.tsx`): Touch-optimized property editing
+
+### Responsive Positioning System
+Elements use fixed pixel coordinates with responsive breakpoints:
+```typescript
+interface ResponsivePosition {
+  desktop: FixedPosition;  // 1920x1080+ displays
+  tablet: FixedPosition;   // 768-1919px displays  
+  mobile: FixedPosition;   // <768px displays
+}
+
+interface FixedPosition {
+  x: number;      // Exact pixel position from left
+  y: number;      // Exact pixel position from top  
+  width: number;  // Element width in pixels
+  height: number; // Element height in pixels
+}
+```
+
+### Migration & Backward Compatibility
+*   **Automatic Migration**: Legacy hotspot-based projects automatically convert to slide format
+*   **Data Preservation**: Existing timeline events and interactions are preserved during migration
+*   **Legacy Support**: Backward compatibility maintained for existing projects while leveraging new architecture

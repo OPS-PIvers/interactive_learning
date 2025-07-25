@@ -4,7 +4,7 @@ import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideEditor } from './slides/SlideEditor';
-import EditorToolbar from './EditorToolbar';
+import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 
 interface SlideBasedEditorProps {
@@ -208,7 +208,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           </div>
         </div>
         
-        <EditorToolbar
+        <SlideEditorToolbar
           projectName={projectName}
           onSave={handleSaveProject}
           onClose={onClose}
