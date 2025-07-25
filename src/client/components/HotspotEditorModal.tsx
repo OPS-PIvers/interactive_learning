@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
+import { hotspotStylePresets, hotspotSizePresets, applyStylePreset, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -391,6 +392,57 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                   />
                 </div>
               </div>
+              
+              {/* Style Presets */}
+              <div className="mt-4">
+                <label className="text-sm text-gray-300 mb-2 block">Style Presets</label>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {hotspotStylePresets.map((preset) => (
+                    <button
+                      key={preset.name}
+                      onClick={() => {
+                        if (localHotspot) {
+                          setLocalHotspot(applyStylePreset(localHotspot, preset));
+                        }
+                      }}
+                      className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
+                      title={preset.description}
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-full border border-gray-400" 
+                        style={{ backgroundColor: preset.style.color }}
+                      />
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Size Options */}
+              <div className="mt-4">
+                <label className="text-sm text-gray-300 mb-2 block">Size</label>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {hotspotSizePresets.map((sizePreset) => (
+                    <button
+                      key={sizePreset.value}
+                      onClick={() => {
+                        if (localHotspot) {
+                          setLocalHotspot(prev => prev ? { ...prev, size: sizePreset.value } : null);
+                        }
+                      }}
+                      className={`px-3 py-2 rounded text-xs transition-colors ${
+                        localHotspot?.size === sizePreset.value 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-600 text-white hover:bg-gray-500'
+                      }`}
+                      title={sizePreset.description}
+                    >
+                      {sizePreset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
               {/* Pulse Animation Toggle */}
               <div className="flex items-center justify-between mt-4">
                 <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">

@@ -1,5 +1,5 @@
 /**
- * Predefined Theme Presets for Interactive Learning Hub
+ * Predefined Theme Presets for ExpliCoLearning
  * 
  * This file contains predefined color palettes and themes that users can select
  * to provide consistent styling across hotspots, modals, and other interactive elements.

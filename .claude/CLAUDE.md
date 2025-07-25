@@ -1,4 +1,4 @@
-# CLAUDE.md - Interactive Learning Hub
+# CLAUDE.md - ExpliCoLearning
 
 ## Project Overview
 Interactive web application for creating slide-based multimedia training modules with element-based learning experiences. Users can create multi-slide presentations, add interactive elements (hotspots, text, media, shapes) with responsive positioning, and create interactive learning sequences. The application features a mobile-first design with comprehensive touch gesture support and accessibility features.
@@ -28,22 +28,27 @@ Interactive web application for creating slide-based multimedia training modules
 - **React 18.3.1** with TypeScript
 - **Vite** for build tooling and dev server
 - **Firebase 11.9.1** for backend (Firestore + Storage)
-- **Native Drag API** for slide element positioning (replaced react-dnd)
+- **dnd-kit** for accessible drag-and-drop functionality
+- **Framer Motion** for smooth animations and transitions
 - **Tailwind CSS** for styling
 - **lodash.debounce** for performance optimization
+- **react-router-dom** for client-side routing
 
 ## File Structure Patterns
 ```
 src/
 ├── client/
-│   ├── components/          # 80+ React components
-│   │   ├── slides/         # 7 slide-specific components (NEW)
-│   │   ├── mobile/         # 38 mobile-specific components
+│   ├── components/          # 130+ React components
+│   │   ├── slides/         # 14 slide-specific components including effects/
+│   │   ├── mobile/         # 14 mobile-specific components
 │   │   ├── desktop/        # 6 desktop modal components  
-│   │   ├── icons/          # 19 custom icon components
+│   │   ├── icons/          # 24 custom icon components
+│   │   ├── interactions/   # 3 interaction system components
+│   │   ├── animations/     # 3 animation and transition components
 │   │   └── shared/         # Error boundaries and loading states
-│   ├── hooks/              # 14 custom hooks
+│   ├── hooks/              # 19 custom hooks
 │   ├── utils/              # 22 utility modules
+│   ├── contexts/           # React context providers
 │   └── styles/             # CSS modules and stylesheets
 ├── lib/                    # Firebase integration and core utilities
 ├── shared/                 # Types, slide architecture, and migration logic
@@ -74,7 +79,7 @@ src/
 ## Working with Slide Elements
 - Elements use fixed pixel positioning with responsive breakpoints (desktop/tablet/mobile)
 - Use `ResponsivePosition` interface for consistent cross-device positioning
-- Native drag-and-drop API for precise element positioning within slide canvas
+- dnd-kit drag-and-drop API for accessible element positioning within slide canvas
 - Element editing uses slide-specific property panels with device-responsive controls
 - **Mobile Editing**: `MobilePropertiesPanel` component with touch-optimized controls
 - **Element Types**: Support for hotspots, text, media, and shape elements

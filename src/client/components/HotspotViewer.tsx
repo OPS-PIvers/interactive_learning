@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
+import { getHotspotSizeClasses, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
@@ -88,23 +89,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     };
   }, []);
 
-  // Size classes for the hotspot
-  const getSizeClasses = (size: HotspotSize = 'medium') => {
-    if (isMobile) {
-      switch (size) {
-        case 'small': return 'h-11 w-11';
-        case 'medium': return 'h-12 w-12';
-        case 'large': return 'h-14 w-14';
-        default: return 'h-12 w-12';
-      }
-    } else {
-      switch (size) {
-        case 'small': return 'h-3 w-3';
-        case 'medium': return 'h-5 w-5';
-        case 'large': return 'h-6 w-6';
-        default: return 'h-5 w-5';
-      }
-    }
+  // Size classes for the hotspot using shared utility
+  const getSizeClasses = (size: HotspotSize = defaultHotspotSize) => {
+    return getHotspotSizeClasses(size, !!isMobile);
   };
 
   // Simple drag handlers

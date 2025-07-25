@@ -1,6 +1,6 @@
 {
-  "name": "Interactive Training Module Creator",
-  "description": "A tool to create interactive training modules by uploading an image, adding hotspots with animations/interactions, and sequencing them on a timeline. Features project cards and an admin view for editing. Project data is stored using a simulated Google Drive backend (localStorage).",
+  "name": "ExpliCoLearning",
+  "description": "A powerful slide-based web application for creating interactive learning experiences by adding elements (hotspots, text, media, shapes) to slides with responsive positioning and sequencing. Features modern editor with drag-and-drop, real-time preview, and Firebase backend integration.",
   "requestFramePermissions": [],
   "prompt": ""
 }

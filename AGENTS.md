@@ -1,7 +1,7 @@
 # AGENTS.md - Jules AI Instructions
 
 ## Purpose
-This file provides instructions for Jules AI (Google Labs async coding agent) working on this Interactive Learning Hub project. Jules reads this file to understand project context, patterns, and requirements.
+This file provides instructions for Jules AI (Google Labs async coding agent) working on this ExpliCoLearning project. Jules reads this file to understand project context, patterns, and requirements.
 
 **IMPORTANT**: The application has migrated from hotspot-based architecture to slide-based architecture. All new development should use the slide system.
 

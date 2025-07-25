@@ -1,10 +1,10 @@
-# Gemini Codebase Context: Interactive Learning Hub
+# Gemini Codebase Context: ExpliCoLearning
 
-This document provides context for the "Interactive Learning Hub" codebase.
+This document provides context for the "ExpliCoLearning" codebase.
 
 ## Project Overview
 
-The Interactive Learning Hub is a web application designed for creating and delivering slide-based interactive multimedia training modules. It allows content creators to build engaging educational experiences by creating multi-slide presentations with interactive elements (hotspots, text, media, shapes) and responsive positioning across devices.
+ExpliCoLearning is a web application designed for creating and delivering slide-based interactive multimedia training modules. It allows content creators to build engaging educational experiences by creating multi-slide presentations with interactive elements (hotspots, text, media, shapes) and responsive positioning across devices.
 
 ### Core Features:
 

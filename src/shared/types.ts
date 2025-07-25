@@ -16,7 +16,7 @@ export enum InteractionType {
 }
 
 
-export type HotspotSize = 'small' | 'medium' | 'large';
+export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';
 export type VideoSourceType = 'file' | 'youtube' | 'device' | 'url';
 export type SpotlightShape = 'circle' | 'rectangle' | 'oval';
 export type ImageDisplayMode = 'inline' | 'modal';
