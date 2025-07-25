@@ -3,7 +3,6 @@ import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, R
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
-import AspectRatioSelector from '../AspectRatioSelector';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
 interface SlideEditorProps {
@@ -156,12 +155,6 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     }
   }, [dragState.isDragging, handleMove, handleDragEnd]);
 
-  // Handle aspect ratio changes
-  const handleAspectRatioChange = useCallback((newRatio: string) => {
-    if (onAspectRatioChange) {
-      onAspectRatioChange(currentSlideIndex, newRatio);
-    }
-  }, [currentSlideIndex, onAspectRatioChange]);
 
   // Add new element
   const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'shape') => {
@@ -267,36 +260,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
         </div>
         
         <div className="flex items-center space-x-3">
-          {/* Add Element Buttons */}
-          <div className="flex space-x-2">
-            <button
-              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
-              onClick={() => handleAddElement('hotspot')}
-            >
-              + Hotspot
-            </button>
-            <button
-              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
-              onClick={() => handleAddElement('text')}
-            >
-              + Text
-            </button>
-            <button
-              className={`slide-nav-button slide-nav-button-secondary text-sm px-3 py-2 ${isMobile ? 'mobile-add-button' : ''}`}
-              onClick={() => handleAddElement('shape')}
-            >
-              + Shape
-            </button>
-          </div>
           
-          {/* Aspect Ratio Selector */}
-          {currentSlide?.layout && (
-            <AspectRatioSelector
-              currentRatio={currentSlide.layout.aspectRatio || '16:9'}
-              onRatioChange={handleAspectRatioChange}
-              isMobile={isMobile}
-            />
-          )}
           
           <div className="h-6 w-px bg-slate-600" />
           
@@ -420,60 +384,6 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
         </div>
 
-        {/* Properties Panel */}
-        {!isMobile && (
-          <div className="properties-panel w-80 bg-slate-800 border-l border-slate-700 p-4 shadow-2xl">
-            <h3 className="text-white font-semibold mb-4">Properties</h3>
-            
-            {selectedElement ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Element Type
-                  </label>
-                  <div className="bg-slate-700 px-3 py-2 rounded-lg text-white capitalize">
-                    {selectedElement.type}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Position ({deviceType})
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-400">X:</span>
-                      <span className="text-white ml-1">{selectedElement.position[deviceType].x}px</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Y:</span>
-                      <span className="text-white ml-1">{selectedElement.position[deviceType].y}px</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">W:</span>
-                      <span className="text-white ml-1">{selectedElement.position[deviceType].width}px</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">H:</span>
-                      <span className="text-white ml-1">{selectedElement.position[deviceType].height}px</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <button
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-colors font-semibold"
-                  onClick={handleDeleteElement}
-                >
-                  Delete Element
-                </button>
-              </div>
-            ) : (
-              <div className="text-slate-400 text-sm">
-                Select an element to edit its properties
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
     </div>

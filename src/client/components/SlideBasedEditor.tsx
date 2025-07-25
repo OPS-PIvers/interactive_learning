@@ -8,6 +8,7 @@ import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 import HeaderInsertDropdown from './HeaderInsertDropdown';
 import EnhancedPropertiesPanel from './EnhancedPropertiesPanel';
+import AspectRatioSelector from './AspectRatioSelector';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
@@ -314,72 +315,38 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
               {projectName}
             </h1>
-            {migrationResult && (
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg">
-                MIGRATED
-              </div>
-            )}
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg">
+            <button
+              onClick={handleTogglePreview}
+              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg transition-all cursor-pointer"
+              aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
+            >
               {isPreviewMode ? 'PREVIEW' : 'EDIT'}
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* Center Section: Device + Preview + Insert */}
+        {/* Center Section: Insert and Controls */}
         <div className="flex items-center gap-3 flex-1 justify-center">
-          {/* Device Selector */}
-          <div className="flex items-center gap-2">
-            <span className={`text-slate-400 text-sm ${isMobile ? 'hidden' : ''}`}>
-              View:
-            </span>
-            <div className="flex items-center gap-1 bg-slate-700 rounded-md p-1">
-              {(['desktop', 'tablet', 'mobile'] as DeviceType[]).map(device => (
-                <button
-                  key={device}
-                  onClick={() => handleDeviceTypeChange(device)}
-                  className={`px-2 py-1 rounded text-xs font-semibold transition-all duration-200 capitalize ${
-                    effectiveDeviceType === device
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-600 hover:text-white'
-                  }`}
-                  aria-label={`Switch to ${device} view`}
-                >
-                  {isMobile ? device.charAt(0).toUpperCase() : device}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Preview Toggle */}
-          <button
-            onClick={handleTogglePreview}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
-              isPreviewMode
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-            }`}
-            aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
-          >
-            {isPreviewMode ? (
-              <>
-                <PencilIcon className="w-4 h-4" />
-                {!isMobile && <span>Edit</span>}
-              </>
-            ) : (
-              <>
-                <EyeIcon className="w-4 h-4" />
-                {!isMobile && <span>Preview</span>}
-              </>
-            )}
-          </button>
 
           {/* Insert Dropdown */}
           {!isPreviewMode && (
-            <HeaderInsertDropdown
-              onAddElement={handleAddElement}
-              onAddBackgroundMedia={handleAddBackgroundMedia}
-              isMobile={isMobile}
-            />
+            <>
+              <HeaderInsertDropdown
+                onAddElement={handleAddElement}
+                onAddBackgroundMedia={handleAddBackgroundMedia}
+                isMobile={isMobile}
+              />
+              
+              {/* Aspect Ratio Selector */}
+              {currentSlide?.layout && (
+                <AspectRatioSelector
+                  currentRatio={currentSlide.layout.aspectRatio || '16:9'}
+                  onRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
+                  isMobile={isMobile}
+                />
+              )}
+            </>
           )}
         </div>
 
