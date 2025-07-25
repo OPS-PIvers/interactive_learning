@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { firebaseAPI } from '../lib/firebaseApi';
-import { Project, InteractiveModuleState } from '../shared/types';
-import { firebaseManager } from '../lib/firebaseConfig';
+import { Project } from '../shared/types';
 
 // Mock Firebase
 vi.mock('../lib/firebaseConfig', () => ({
@@ -55,7 +54,7 @@ describe('FirebaseProjectAPI', () => {
         },
       };
 
-      const { runTransaction, setDoc, getDoc } = await import('firebase/firestore');
+      const { runTransaction, getDoc } = await import('firebase/firestore');
 
       // Mock getDoc to return a snapshot
       (getDoc as any).mockResolvedValue({

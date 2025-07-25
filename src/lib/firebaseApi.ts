@@ -179,41 +179,28 @@ export class FirebaseProjectAPI {
       // Check project type and handle accordingly
       const projectType = projectData.projectType || 'hotspot'; // Default to hotspot for backward compatibility
       
-      let interactiveData: any = {};
       let slideDeck: any = null;
+      
+      // Helper function to build fallback interactiveData from legacy fields
+      const buildFallbackInteractiveData = () => ({
+        backgroundImage: projectData.backgroundImage,
+        imageFitMode: projectData.imageFitMode || 'cover',
+        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+        hotspots: [],
+        timelineEvents: []
+      });
+      
+      // Build interactiveData, preferring nested structure with legacy fallback
+      let interactiveData: any = projectData.interactiveData 
+        ? { ...projectData.interactiveData }
+        : buildFallbackInteractiveData();
       
       if (projectType === 'slide') {
         // For slide-based projects, try to get slide deck data
         if (projectData.slideDeck) {
           slideDeck = projectData.slideDeck;
         }
-        // For slide-based projects, prefer the nested interactiveData object.
-        // Fallback to legacy fields for backward compatibility.
-        if (projectData.interactiveData) {
-          interactiveData = { ...projectData.interactiveData };
-        } else {
-          interactiveData = {
-            backgroundImage: projectData.backgroundImage,
-            imageFitMode: projectData.imageFitMode || 'cover',
-            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            hotspots: [],
-            timelineEvents: []
-          };
-        }
       } else {
-        // For legacy hotspot-based projects, prefer nested interactiveData but construct if missing.
-        if (projectData.interactiveData) {
-          interactiveData = { ...projectData.interactiveData };
-        } else {
-          interactiveData = {
-            backgroundImage: projectData.backgroundImage,
-            imageFitMode: projectData.imageFitMode || 'cover',
-            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            hotspots: [],
-            timelineEvents: []
-          };
-        }
-
         // Always load hotspots and timeline events for public view if not slide-based.
         const [hotspots, timelineEvents] = await Promise.all([
           this.getHotspots(projectId),
