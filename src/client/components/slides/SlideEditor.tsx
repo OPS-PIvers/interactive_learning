@@ -15,6 +15,10 @@ interface SlideEditorProps {
   className?: string;
   deviceTypeOverride?: DeviceType;
   onAspectRatioChange?: (slideIndex: number, aspectRatio: string) => void;
+  selectedElementId?: string | null;
+  onElementSelect?: (elementId: string | null) => void;
+  onElementUpdate?: (elementId: string, updates: Partial<SlideElement>) => void;
+  onSlideUpdate?: (slideUpdates: Partial<InteractiveSlide>) => void;
 }
 
 interface DragState {
@@ -36,7 +40,11 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   onClose,
   className = '',
   deviceTypeOverride,
-  onAspectRatioChange
+  onAspectRatioChange,
+  selectedElementId: propSelectedElementId,
+  onElementSelect,
+  onElementUpdate,
+  onSlideUpdate
 }) => {
   const { deviceType: detectedDeviceType, viewportInfo } = useDeviceDetection();
   const deviceType = deviceTypeOverride || detectedDeviceType;
@@ -47,7 +55,11 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   // Editor state - use prop if provided, otherwise manage internal state
   const [internalSlideIndex, setInternalSlideIndex] = useState(0);
   const currentSlideIndex = propCurrentSlideIndex;
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [internalSelectedElementId, setInternalSelectedElementId] = useState<string | null>(null);
+  
+  // Use prop selectedElementId if provided, otherwise use internal state
+  const selectedElementId = propSelectedElementId !== undefined ? propSelectedElementId : internalSelectedElementId;
+  const setSelectedElementId = onElementSelect || setInternalSelectedElementId;
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     elementId: null,
@@ -202,6 +214,61 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   const selectedElement = selectedElementId 
     ? currentSlide.elements.find(el => el.id === selectedElementId)
     : null;
+
+  // Create update handlers - use props if provided, otherwise update via onSlideDeckChange
+  const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
+    if (onElementUpdate) {
+      onElementUpdate(elementId, updates);
+    } else {
+      // Fallback to direct slide deck update if no prop handler provided
+      const updatedElements = currentSlide.elements.map(element =>
+        element.id === elementId ? { ...element, ...updates } : element
+      );
+
+      const updatedSlide = {
+        ...currentSlide,
+        elements: updatedElements
+      };
+
+      const updatedSlides = slideDeck.slides.map((slide, index) =>
+        index === currentSlideIndex ? updatedSlide : slide
+      );
+
+      onSlideDeckChange({
+        ...slideDeck,
+        slides: updatedSlides,
+        metadata: {
+          ...slideDeck.metadata,
+          modified: Date.now()
+        }
+      });
+    }
+  }, [onElementUpdate, currentSlide, currentSlideIndex, slideDeck, onSlideDeckChange]);
+
+  const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>) => {
+    if (onSlideUpdate) {
+      onSlideUpdate(slideUpdates);
+    } else {
+      // Fallback to direct slide deck update if no prop handler provided
+      const updatedSlide = {
+        ...currentSlide,
+        ...slideUpdates
+      };
+
+      const updatedSlides = slideDeck.slides.map((slide, index) =>
+        index === currentSlideIndex ? updatedSlide : slide
+      );
+
+      onSlideDeckChange({
+        ...slideDeck,
+        slides: updatedSlides,
+        metadata: {
+          ...slideDeck.metadata,
+          modified: Date.now()
+        }
+      });
+    }
+  }, [onSlideUpdate, currentSlide, currentSlideIndex, slideDeck, onSlideDeckChange]);
 
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(true);

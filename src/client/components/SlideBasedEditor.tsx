@@ -681,6 +681,10 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             className="flex-1"
             deviceTypeOverride={effectiveDeviceType}
             onAspectRatioChange={handleAspectRatioChange}
+            selectedElementId={selectedElementId}
+            onElementSelect={setSelectedElementId}
+            onElementUpdate={handleElementUpdate}
+            onSlideUpdate={handleSlideUpdate}
           />
         </div>
 
