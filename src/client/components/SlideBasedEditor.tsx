@@ -6,6 +6,16 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideEditor } from './slides/SlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
+import HeaderInsertDropdown from './HeaderInsertDropdown';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { EyeIcon } from './icons/EyeIcon';
+import { PencilIcon } from './icons/PencilIcon';
+import { SaveIcon } from './icons/SaveIcon';
+import { CheckIcon } from './icons/CheckIcon';
+import { GearIcon } from './icons/GearIcon';
+import AuthButton from './AuthButton';
+import ShareModal from './ShareModal';
+import { DeviceType } from '../../shared/slideTypes';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
@@ -44,6 +54,9 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [deviceTypeOverride, setDeviceTypeOverride] = useState<DeviceType | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -158,6 +171,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     setIsSaving(true);
     try {
       await onSave();
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 2000);
       
       if (process.env.NODE_ENV === 'development') {
         console.log('[SlideBasedEditor] Project saved successfully');
@@ -174,6 +189,20 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     setIsPreviewMode(prev => !prev);
     setSelectedElementId(null);
   }, []);
+
+  // Handle device type change
+  const handleDeviceTypeChange = useCallback((deviceType: DeviceType) => {
+    setDeviceTypeOverride(deviceType);
+  }, []);
+
+  // Handle background media addition
+  const handleAddBackgroundMedia = useCallback(() => {
+    // TODO: Implement background media addition
+    console.log('Add background media - to be implemented');
+  }, []);
+
+  // Get effective device type (override or detected)
+  const effectiveDeviceType = deviceTypeOverride || deviceType;
 
   // Enhanced slide deck for editor
   const editorSlideDeck = useMemo(() => ({
@@ -192,31 +221,147 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   return (
     <div className="slide-editor w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
-      {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-            {projectName} - Editor
-          </h1>
-          {migrationResult && (
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg">
-              MIGRATED TO SLIDES
+      {/* Header - 3-Section Layout */}
+      <div className="bg-slate-800 border-b border-slate-700 text-white px-4 py-2 flex items-center justify-between shadow-2xl">
+        {/* Left Section: Back + Title */}
+        <div className="flex items-center gap-4 flex-1">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg px-2 py-1 hover:bg-slate-700"
+            aria-label="Back to projects"
+          >
+            <ChevronLeftIcon className="w-5 h-5" />
+            {!isMobile && <span className="font-medium">Back</span>}
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+              {projectName}
+            </h1>
+            {migrationResult && (
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg">
+                MIGRATED
+              </div>
+            )}
+            <div className="bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg">
+              {isPreviewMode ? 'PREVIEW' : 'EDIT'}
             </div>
-          )}
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg">
-            {isPreviewMode ? 'PREVIEW' : 'EDIT'} MODE
           </div>
         </div>
-        
-        <SlideEditorToolbar
-          projectName={projectName}
-          onSave={handleSaveProject}
-          onClose={onClose}
-          isSaving={isSaving}
-          isPublished={isPublished}
-          onImageUpload={onImageUpload}
-          isMobile={isMobile}
-        />
+
+        {/* Center Section: Device + Preview + Insert */}
+        <div className="flex items-center gap-3 flex-1 justify-center">
+          {/* Device Selector */}
+          <div className="flex items-center gap-2">
+            <span className={`text-slate-400 text-sm ${isMobile ? 'hidden' : ''}`}>
+              View:
+            </span>
+            <div className="flex items-center gap-1 bg-slate-700 rounded-md p-1">
+              {(['desktop', 'tablet', 'mobile'] as DeviceType[]).map(device => (
+                <button
+                  key={device}
+                  onClick={() => handleDeviceTypeChange(device)}
+                  className={`px-2 py-1 rounded text-xs font-semibold transition-all duration-200 capitalize ${
+                    effectiveDeviceType === device
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white'
+                      : 'text-slate-300 hover:bg-slate-600 hover:text-white'
+                  }`}
+                  aria-label={`Switch to ${device} view`}
+                >
+                  {isMobile ? device.charAt(0).toUpperCase() : device}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview Toggle */}
+          <button
+            onClick={handleTogglePreview}
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isPreviewMode
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+            }`}
+            aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
+          >
+            {isPreviewMode ? (
+              <>
+                <PencilIcon className="w-4 h-4" />
+                {!isMobile && <span>Edit</span>}
+              </>
+            ) : (
+              <>
+                <EyeIcon className="w-4 h-4" />
+                {!isMobile && <span>Preview</span>}
+              </>
+            )}
+          </button>
+
+          {/* Insert Dropdown */}
+          {!isPreviewMode && (
+            <HeaderInsertDropdown
+              onAddElement={handleAddElement}
+              onAddBackgroundMedia={handleAddBackgroundMedia}
+              isMobile={isMobile}
+            />
+          )}
+        </div>
+
+        {/* Right Section: Settings + Save + Share + Auth */}
+        <div className="flex items-center gap-3 flex-1 justify-end">
+          <button
+            onClick={() => console.log('Settings - to be implemented')}
+            className="text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+            aria-label="Project settings"
+          >
+            <GearIcon className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={handleSaveProject}
+            disabled={isSaving}
+            className={`font-semibold py-1.5 px-4 rounded-md shadow-md transition-all duration-200 flex items-center gap-2 ${
+              isSaving 
+                ? 'bg-green-500 cursor-not-allowed' 
+                : showSuccessMessage 
+                  ? 'bg-green-500' 
+                  : 'bg-green-600 hover:bg-green-700'
+            } text-white`}
+            aria-label="Save project"
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                {!isMobile && <span>Saving...</span>}
+              </>
+            ) : showSuccessMessage ? (
+              <>
+                <CheckIcon className="w-4 h-4" />
+                {!isMobile && <span>Saved!</span>}
+              </>
+            ) : (
+              <>
+                <SaveIcon className="w-4 h-4" />
+                {!isMobile && <span>Save</span>}
+              </>
+            )}
+          </button>
+
+          {projectId && (
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-2"
+              aria-label="Share project"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+              {!isMobile && <span>Share</span>}
+            </button>
+          )}
+
+          <AuthButton variant={isMobile ? "compact" : "toolbar"} />
+        </div>
       </div>
 
       {/* Main editor content */}
@@ -225,7 +370,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         <div className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
           {/* Slide list header */}
           <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <h3 className="text-white font-semibold">Slides</h3>
               <button
                 className="slide-nav-button slide-nav-button-primary text-sm px-3 py-1"
@@ -234,18 +379,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 + Add
               </button>
             </div>
-            
-            {/* Mode toggle */}
-            <button
-              className={`w-full text-sm px-3 py-2 rounded-lg transition-all duration-200 ${
-                isPreviewMode 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-              }`}
-              onClick={handleTogglePreview}
-            >
-              {isPreviewMode ? '✏️ Edit Mode' : '👁️ Preview Mode'}
-            </button>
           </div>
 
           {/* Slide list */}
@@ -282,38 +415,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             ))}
           </div>
 
-          {/* Element tools */}
-          {!isPreviewMode && (
-            <div className="p-4 border-t border-slate-700">
-              <h4 className="text-white font-medium mb-3 text-sm">Add Elements</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  className="slide-nav-button text-xs p-2"
-                  onClick={() => handleAddElement('hotspot')}
-                >
-                  🎯 Hotspot
-                </button>
-                <button
-                  className="slide-nav-button text-xs p-2"
-                  onClick={() => handleAddElement('text')}
-                >
-                  📝 Text
-                </button>
-                <button
-                  className="slide-nav-button text-xs p-2"
-                  onClick={() => handleAddElement('media')}
-                >
-                  🎬 Media
-                </button>
-                <button
-                  className="slide-nav-button text-xs p-2"
-                  onClick={() => handleAddElement('shape')}
-                >
-                  🔷 Shape
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Main canvas area */}
@@ -323,6 +424,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             onSlideDeckChange={handleSlideDeckUpdate}
             onClose={onClose}
             className="flex-1"
+            deviceTypeOverride={effectiveDeviceType}
           />
         </div>
 
@@ -360,6 +462,17 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           </div>
         </div>
       )}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        project={{
+          id: projectId || '',
+          name: projectName,
+          published: isPublished
+        } as any}
+      />
     </div>
   );
 };

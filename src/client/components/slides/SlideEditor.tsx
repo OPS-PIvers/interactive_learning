@@ -9,6 +9,7 @@ interface SlideEditorProps {
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
   onClose: () => void;
   className?: string;
+  deviceTypeOverride?: DeviceType;
 }
 
 interface DragState {
@@ -27,9 +28,11 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   slideDeck,
   onSlideDeckChange,
   onClose,
-  className = ''
+  className = '',
+  deviceTypeOverride
 }) => {
-  const { deviceType, viewportInfo } = useDeviceDetection();
+  const { deviceType: detectedDeviceType, viewportInfo } = useDeviceDetection();
+  const deviceType = deviceTypeOverride || detectedDeviceType;
   const isMobile = useIsMobile();
   const canvasRef = useRef<HTMLDivElement>(null);
   
@@ -436,35 +439,6 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
         )}
       </div>
 
-      {/* Footer - Device Selector */}
-      <div className="editor-footer bg-slate-800 border-t border-slate-700 p-3 flex items-center justify-between shadow-2xl">
-        <div className="text-slate-300 text-sm">
-          Slide {currentSlideIndex + 1} of {slideDeck.slides.length}
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <span className="text-slate-400 text-sm">View:</span>
-          <div className="flex space-x-1">
-            {(['desktop', 'tablet', 'mobile'] as DeviceType[]).map(device => (
-              <button
-                key={device}
-                className={`px-3 py-1 rounded text-xs font-semibold transition-all duration-200 ${
-                  deviceType === device
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-                onClick={() => {
-                  // Note: In a real implementation, you'd need to update device detection
-                  // For now, this shows the concept
-                  console.log(`Switch to ${device} view`);
-                }}
-              >
-                {device}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
