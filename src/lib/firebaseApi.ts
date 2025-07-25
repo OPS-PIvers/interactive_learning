@@ -127,14 +127,16 @@ export class FirebaseProjectAPI {
           thumbnailUrl: projectData.thumbnailUrl,
           isPublished: projectData.isPublished || false,
           projectType: projectData.projectType || 'slide', // Default to slide for new architecture
-          interactiveData: {
-            backgroundImage: projectData.backgroundImage,
-            imageFitMode: projectData.imageFitMode || 'cover',
-            viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            hotspots: [], // Will be loaded on demand - explicitly empty for loading detection
-            timelineEvents: [], // Will be loaded on demand - explicitly empty for loading detection
-            _needsDetailLoad: true // Flag to indicate this project needs detail loading
-          }
+          interactiveData: projectData.interactiveData ?
+            { ...projectData.interactiveData, _needsDetailLoad: true } :
+            {
+              backgroundImage: projectData.backgroundImage,
+              imageFitMode: projectData.imageFitMode || 'cover',
+              viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+              hotspots: [],
+              timelineEvents: [],
+              _needsDetailLoad: true
+            }
         };
 
         // Include slide deck if it exists
@@ -177,37 +179,36 @@ export class FirebaseProjectAPI {
       // Check project type and handle accordingly
       const projectType = projectData.projectType || 'hotspot'; // Default to hotspot for backward compatibility
       
-      let interactiveData: any = {};
       let slideDeck: any = null;
+      
+      // Helper function to build fallback interactiveData from legacy fields
+      const buildFallbackInteractiveData = () => ({
+        backgroundImage: projectData.backgroundImage,
+        imageFitMode: projectData.imageFitMode || 'cover',
+        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+        hotspots: [],
+        timelineEvents: []
+      });
+      
+      // Build interactiveData, preferring nested structure with legacy fallback
+      let interactiveData: any = projectData.interactiveData 
+        ? { ...projectData.interactiveData }
+        : buildFallbackInteractiveData();
       
       if (projectType === 'slide') {
         // For slide-based projects, try to get slide deck data
         if (projectData.slideDeck) {
           slideDeck = projectData.slideDeck;
         }
-        // Also include basic interactive data for fallback
-        interactiveData = {
-          backgroundImage: projectData.backgroundImage,
-          imageFitMode: projectData.imageFitMode || 'cover',
-          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-          hotspots: [],
-          timelineEvents: []
-        };
       } else {
-        // For legacy hotspot-based projects
+        // Always load hotspots and timeline events for public view if not slide-based.
         const [hotspots, timelineEvents] = await Promise.all([
           this.getHotspots(projectId),
           this.getTimelineEvents(projectId)
         ]);
         this.logUsage('READ_OPERATIONS_PUBLIC_SUBCOLLECTIONS', 2);
-        
-        interactiveData = {
-          backgroundImage: projectData.backgroundImage,
-          imageFitMode: projectData.imageFitMode || 'cover',
-          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-          hotspots: hotspots || [],
-          timelineEvents: timelineEvents || []
-        };
+        interactiveData.hotspots = hotspots || [];
+        interactiveData.timelineEvents = timelineEvents || [];
       }
       
       return {
@@ -260,14 +261,24 @@ export class FirebaseProjectAPI {
       this.logUsage('READ_OPERATIONS_DETAILS_SUBCOLLECTIONS', 2);
 
 
-      // Include slide deck data if it exists (for slide-based projects)
-      const result: Partial<InteractiveModuleState> & { slideDeck?: any } = {
-        backgroundImage: projectData.backgroundImage,
-        imageFitMode: projectData.imageFitMode || 'cover',
-        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-        hotspots,
-        timelineEvents,
-      };
+      let result: Partial<InteractiveModuleState> & { slideDeck?: any };
+
+      // Prefer the 'interactiveData' field but fall back to legacy fields.
+      if (projectData.interactiveData) {
+        result = {
+          ...projectData.interactiveData,
+          hotspots,
+          timelineEvents,
+        };
+      } else {
+        result = {
+          backgroundImage: projectData.backgroundImage,
+          imageFitMode: projectData.imageFitMode || 'cover',
+          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          hotspots,
+          timelineEvents,
+        };
+      }
 
       // Add slide deck if it exists in the project data
       if (projectData.slideDeck) {
@@ -415,58 +426,52 @@ export class FirebaseProjectAPI {
           throw new Error('Project not found. Cannot update a non-existent project.');
         }
 
+        // Define the structure for the project document in Firestore.
+        // This now includes 'interactiveData' as a map (object).
         interface ProjectUpdateData {
           title: string;
           description: string;
-          thumbnailUrl: string;
-          backgroundImage: string | null;
-          imageFitMode: string;
-          viewerModes: { explore: boolean; selfPaced: boolean; timed: boolean };
+          thumbnailUrl: string | null;
           isPublished: boolean;
-          projectType?: 'hotspot' | 'slide';
-          slideDeck?: any; // Slide deck data for slide-based projects
+          projectType: 'hotspot' | 'slide';
+          slideDeck?: any;
           updatedAt: any; // Firestore serverTimestamp
           createdBy: string;
           createdAt?: any; // Optional, only for new projects
+          interactiveData: InteractiveModuleState; // Nested object
         }
 
+        // Prepare the data for Firestore update.
+        // All interactive data is now nested under the 'interactiveData' field.
         const updateData: ProjectUpdateData = {
           title: project.title,
           description: project.description,
           thumbnailUrl: finalThumbnailUrl,
-          backgroundImage: newBackgroundImageForUpdate || null,
-          imageFitMode: project.interactiveData.imageFitMode || 'cover',
-          viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
           isPublished: project.isPublished || false,
-          projectType: project.projectType || 'hotspot', // Default to hotspot for backward compatibility
+          projectType: project.projectType || 'hotspot',
           updatedAt: serverTimestamp(),
-          createdBy: project.createdBy
+          createdBy: project.createdBy,
+          interactiveData: {
+            ...project.interactiveData,
+            backgroundImage: newBackgroundImageForUpdate || null,
+          }
         };
 
-        // Add slide deck data for slide-based projects
+        // Add slide deck data for slide-based projects.
         if (project.projectType === 'slide' && project.slideDeck) {
           updateData.slideDeck = project.slideDeck;
-          
-          // Debug logging for slide deck save
           debugLog.log(`[FirebaseAPI] Saving slide deck for project ${project.id}:`, {
             slideCount: project.slideDeck.slides.length,
-            totalElements: project.slideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
-            slideElementCounts: project.slideDeck.slides.map(slide => slide.elements.length),
-            firstSlideElements: project.slideDeck.slides[0]?.elements || []
-          });
-        } else {
-          debugLog.log(`[FirebaseAPI] NOT saving slide deck for project ${project.id}:`, {
-            projectType: project.projectType,
-            hasSlideDeck: !!project.slideDeck,
-            slideDeckType: typeof project.slideDeck
+            totalElements: project.slideDeck.slides.reduce((acc, slide) => acc + (slide.elements ? slide.elements.length : 0), 0)
           });
         }
-        
-        // Add createdAt only for new projects
+
+        // Add createdAt only for new projects.
         if (isNewProject) {
           updateData.createdAt = serverTimestamp();
         }
         
+        // Atomically set the document with the new structure.
         transaction.set(projectRef, updateData, { merge: true });
 
         const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
