@@ -87,6 +87,29 @@ export interface ElementContent {
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'audio';
   customProperties?: Record<string, any>;
+  // Enhanced content from previous build
+  link?: string; // External link for hotspot
+  message?: string; // Event message/description
+  displayMode?: 'inline' | 'modal' | 'overlay'; // How content is displayed
+  // Quiz content
+  question?: string;
+  questionType?: 'multiple-choice' | 'fill-in-the-blank' | 'true-false';
+  choices?: string[];
+  correctAnswer?: string | number;
+  explanation?: string;
+  hint?: string;
+  // Video content
+  videoSource?: 'file' | 'youtube' | 'device' | 'url';
+  youtubeVideoId?: string;
+  youtubeStartTime?: number;
+  youtubeEndTime?: number;
+  // Audio content
+  audioUrl?: string;
+  startTime?: number;
+  endTime?: number;
+  // Text content
+  textContent?: string;
+  richText?: boolean;
 }
 
 // Element styling
@@ -98,6 +121,22 @@ export interface ElementStyle {
   opacity?: number;
   zIndex?: number;
   animation?: ElementAnimation;
+  // Enhanced styling from previous build
+  size?: 'small' | 'medium' | 'large';
+  color?: string; // Legacy hotspot color support
+  shadowColor?: string;
+  shadowSize?: number;
+  shadowOpacity?: number;
+  pulseAnimation?: boolean;
+  pulseType?: 'loop' | 'timed';
+  pulseDuration?: number; // in seconds
+  displayInEvent?: boolean; // Show hotspot during event
+  customShape?: 'circle' | 'square' | 'diamond' | 'star';
+  iconUrl?: string; // Custom icon for hotspot
+  textColor?: string; // For text elements
+  fontSize?: number; // For text elements
+  fontWeight?: 'normal' | 'bold' | 'light';
+  fontFamily?: string;
 }
 
 export interface ElementAnimation {
@@ -141,7 +180,11 @@ export type SlideEffectType =
   | 'transition' 
   | 'animate'
   | 'show_text'
-  | 'play_media';
+  | 'play_media'
+  | 'play_video'
+  | 'play_audio'
+  | 'quiz'
+  | 'pan_zoom';
 
 // Effect parameters
 export type EffectParameters = 
@@ -150,7 +193,11 @@ export type EffectParameters =
   | TransitionParameters 
   | AnimateParameters
   | ShowTextParameters
-  | PlayMediaParameters;
+  | PlayMediaParameters
+  | PlayVideoParameters
+  | PlayAudioParameters
+  | QuizParameters
+  | PanZoomParameters;
 
 export interface SpotlightParameters {
   position: FixedPosition; // Exact spotlight position
@@ -193,6 +240,59 @@ export interface PlayMediaParameters {
   autoplay: boolean;
   controls: boolean;
   volume?: number;
+}
+
+export interface PlayVideoParameters {
+  videoSource: 'file' | 'youtube' | 'device' | 'url';
+  videoUrl?: string;
+  videoFile?: File;
+  videoBlob?: Blob;
+  youtubeVideoId?: string;
+  youtubeStartTime?: number;
+  youtubeEndTime?: number;
+  displayMode: 'inline' | 'modal' | 'overlay';
+  showControls: boolean;
+  autoplay: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  volume?: number;
+  poster?: string;
+}
+
+export interface PlayAudioParameters {
+  audioUrl: string;
+  audioFile?: File;
+  audioBlob?: Blob;
+  displayMode: 'background' | 'modal' | 'mini-player';
+  showControls: boolean;
+  autoplay: boolean;
+  loop?: boolean;
+  volume?: number;
+  startTime?: number;
+  endTime?: number;
+}
+
+export interface QuizParameters {
+  question: string;
+  questionType: 'multiple-choice' | 'fill-in-the-blank' | 'true-false';
+  choices?: string[]; // For multiple choice
+  correctAnswer: string | number;
+  explanation?: string;
+  showHint?: boolean;
+  hint?: string;
+  allowMultipleAttempts: boolean;
+  resumeAfterCompletion: boolean;
+  timeLimit?: number; // in seconds
+  points?: number;
+}
+
+export interface PanZoomParameters {
+  targetPosition: FixedPosition;
+  zoomLevel: number; // 1.0 = no zoom, 2.0 = 2x zoom
+  duration: number; // Animation duration in ms
+  easing?: string;
+  returnToOriginal?: boolean; // Return to original position after duration
+  returnDelay?: number; // Delay before returning
 }
 
 export interface TextStyle {
@@ -252,6 +352,7 @@ export interface SlideDeck {
   slides: InteractiveSlide[];
   settings: DeckSettings;
   metadata: DeckMetadata;
+  theme?: ProjectTheme; // Theme system for consistent styling
 }
 
 export interface DeckSettings {
@@ -301,6 +402,94 @@ export interface ViewportInfo {
   deviceType: DeviceType;
   pixelRatio: number;
   orientation: 'portrait' | 'landscape';
+}
+
+// Theme system for color palettes and consistent styling
+export interface ProjectTheme {
+  id: string;
+  name: string;
+  description?: string;
+  colors: ThemeColors;
+  typography: ThemeTypography;
+  effects: ThemeEffects;
+}
+
+export interface ThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  success: string;
+  warning: string;
+  error: string;
+  // Hotspot-specific colors
+  hotspotDefault: string;
+  hotspotHover: string;
+  hotspotActive: string;
+  hotspotPulse: string;
+  // Modal colors
+  modalBackground: string;
+  modalOverlay: string;
+  modalBorder: string;
+}
+
+export interface ThemeTypography {
+  fontFamily: string;
+  fontSize: {
+    small: number;
+    medium: number;
+    large: number;
+    xlarge: number;
+  };
+  fontWeight: {
+    light: number;
+    normal: number;
+    bold: number;
+  };
+  lineHeight: {
+    small: number;
+    medium: number;
+    large: number;
+  };
+}
+
+export interface ThemeEffects {
+  borderRadius: {
+    small: number;
+    medium: number;
+    large: number;
+  };
+  shadow: {
+    small: string;
+    medium: string;
+    large: string;
+  };
+  animation: {
+    duration: {
+      fast: number;
+      medium: number;
+      slow: number;
+    };
+    easing: {
+      ease: string;
+      easeIn: string;
+      easeOut: string;
+      easeInOut: string;
+    };
+  };
+}
+
+// Predefined theme presets
+export type ThemePreset = 'professional' | 'vibrant' | 'earth' | 'dark' | 'custom';
+
+export interface ThemePresetDefinition {
+  id: ThemePreset;
+  name: string;
+  description: string;
+  theme: ProjectTheme;
 }
 
 // Migration from legacy format

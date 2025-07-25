@@ -5,6 +5,7 @@ import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
+import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerToolbar from './ViewerToolbar';
 
 interface SlideBasedViewerProps {
@@ -236,15 +237,26 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         </div>
       </div>
 
-      {/* Slide viewer */}
+      {/* Slide viewer - use timeline viewer for guided/timed modes */}
       <div className="flex-1 relative">
-        <SlideViewer
-          slideDeck={enhancedSlideDeck}
-          initialSlideId={currentSlideId}
-          onSlideChange={handleSlideChange}
-          onInteraction={handleInteraction}
-          className="w-full h-full"
-        />
+        {(viewerState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
+          <TimelineSlideViewer
+            slideDeck={enhancedSlideDeck}
+            viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
+            onSlideChange={handleSlideChange}
+            onInteraction={handleInteraction}
+            onClose={handleBackToMenu}
+            className="w-full h-full"
+          />
+        ) : (
+          <SlideViewer
+            slideDeck={enhancedSlideDeck}
+            initialSlideId={currentSlideId}
+            onSlideChange={handleSlideChange}
+            onInteraction={handleInteraction}
+            className="w-full h-full"
+          />
+        )}
       </div>
     </div>
   );

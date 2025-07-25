@@ -163,12 +163,41 @@ export class FirebaseProjectAPI {
         return null;
       }
       
-      // Get hotspots and timeline events directly (bypassing auth requirements)
-      const [hotspots, timelineEvents] = await Promise.all([
-        this.getHotspots(projectId),
-        this.getTimelineEvents(projectId)
-      ]);
-      this.logUsage('READ_OPERATIONS_PUBLIC_SUBCOLLECTIONS', 2);
+      // Check project type and handle accordingly
+      const projectType = projectData.projectType || 'hotspot'; // Default to hotspot for backward compatibility
+      
+      let interactiveData: any = {};
+      let slideDeck: any = null;
+      
+      if (projectType === 'slide') {
+        // For slide-based projects, try to get slide deck data
+        if (projectData.slideDeck) {
+          slideDeck = projectData.slideDeck;
+        }
+        // Also include basic interactive data for fallback
+        interactiveData = {
+          backgroundImage: projectData.backgroundImage,
+          imageFitMode: projectData.imageFitMode || 'cover',
+          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          hotspots: [],
+          timelineEvents: []
+        };
+      } else {
+        // For legacy hotspot-based projects
+        const [hotspots, timelineEvents] = await Promise.all([
+          this.getHotspots(projectId),
+          this.getTimelineEvents(projectId)
+        ]);
+        this.logUsage('READ_OPERATIONS_PUBLIC_SUBCOLLECTIONS', 2);
+        
+        interactiveData = {
+          backgroundImage: projectData.backgroundImage,
+          imageFitMode: projectData.imageFitMode || 'cover',
+          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          hotspots: hotspots || [],
+          timelineEvents: timelineEvents || []
+        };
+      }
       
       return {
         id: projectDoc.id,
@@ -179,13 +208,9 @@ export class FirebaseProjectAPI {
         updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
         thumbnailUrl: projectData.thumbnailUrl,
         isPublished: projectData.isPublished || false,
-        interactiveData: {
-          backgroundImage: projectData.backgroundImage,
-          imageFitMode: projectData.imageFitMode || 'cover',
-          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
-          hotspots: hotspots || [],
-          timelineEvents: timelineEvents || []
-        }
+        projectType: projectType,
+        interactiveData,
+        slideDeck
       } as Project;
     } catch (error) {
       // Only log as error for unexpected errors, not permission/not-found errors
@@ -373,6 +398,8 @@ export class FirebaseProjectAPI {
           imageFitMode: string;
           viewerModes: { explore: boolean; selfPaced: boolean; timed: boolean };
           isPublished: boolean;
+          projectType?: 'hotspot' | 'slide';
+          slideDeck?: any; // Slide deck data for slide-based projects
           updatedAt: any; // Firestore serverTimestamp
           createdBy: string;
           createdAt?: any; // Optional, only for new projects
@@ -386,9 +413,15 @@ export class FirebaseProjectAPI {
           imageFitMode: project.interactiveData.imageFitMode || 'cover',
           viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
           isPublished: project.isPublished || false,
+          projectType: project.projectType || 'hotspot', // Default to hotspot for backward compatibility
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy
         };
+
+        // Add slide deck data for slide-based projects
+        if (project.projectType === 'slide' && project.slideDeck) {
+          updateData.slideDeck = project.slideDeck;
+        }
         
         // Add createdAt only for new projects
         if (isNewProject) {

@@ -163,10 +163,16 @@ const MainApp: React.FC = () => {
       const newProject = await appScriptProxy.createProject(title, description);
       let finalProject = newProject;
 
+      // Set project type to 'slide' for new projects (this is the slides-based app)
+      const projectWithSlideType = {
+        ...newProject,
+        projectType: 'slide' as const
+      };
+
       // If demo data is provided, save it with the project
       if (demoData) {
         const projectWithDemoData = {
-          ...newProject,
+          ...projectWithSlideType,
           interactiveData: demoData,
         };
         
@@ -176,6 +182,16 @@ const MainApp: React.FC = () => {
         } catch (saveErr: any) {
           console.error("Failed to save demo project data:", saveErr);
           setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
+          return;
+        }
+      } else {
+        // For projects without demo data, still need to save the project type
+        try {
+          await appScriptProxy.saveProject(projectWithSlideType);
+          finalProject = projectWithSlideType;
+        } catch (saveErr: any) {
+          console.error("Failed to save project type:", saveErr);
+          setError(`Failed to save project: ${saveErr.message || 'Please try again.'}`);
           return;
         }
       }

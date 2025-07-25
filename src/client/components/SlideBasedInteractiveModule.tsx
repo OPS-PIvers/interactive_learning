@@ -10,6 +10,8 @@ import SlideBasedEditor from './SlideBasedEditor';
 
 interface SlideBasedInteractiveModuleProps {
   initialData: InteractiveModuleState;
+  slideDeck?: SlideDeck;
+  projectType?: 'hotspot' | 'slide';
   isEditing: boolean;
   onSave: (data: InteractiveModuleState, thumbnailUrl?: string) => void;
   onImageUpload: (file: File) => Promise<void>;
@@ -32,6 +34,8 @@ interface SlideBasedInteractiveModuleProps {
  */
 const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = ({
   initialData,
+  slideDeck,
+  projectType = 'slide',
   isEditing,
   onSave,
   onImageUpload,
@@ -48,14 +52,27 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   // State management
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
-  const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(null);
+  const [currentSlideDeck, setCurrentSlideDeck] = useState<SlideDeck | null>(null);
   const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null);
 
-  // Migrate hotspot data to slide format
-  const migratedSlideDeck = useMemo(() => {
-    if (!initialData) return null;
-
+  // Handle project initialization based on type
+  const processedSlideDeck = useMemo(() => {
     try {
+      // If we have a slide deck passed in, use it directly (for published slide projects)
+      if (slideDeck) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📄 Using existing slide deck:', {
+            projectName,
+            projectType,
+            slidesCount: slideDeck.slides.length
+          });
+        }
+        return { slideDeck, migrationResult: null };
+      }
+
+      // If it's a hotspot project or needs migration, migrate the hotspot data
+      if (!initialData) return { slideDeck: null, migrationResult: null };
+
       const result = migrateProjectToSlides(
         initialData,
         projectName,
@@ -67,11 +84,10 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         }
       );
 
-      setMigrationResult(result);
-      
       if (process.env.NODE_ENV === 'development') {
         console.log('🔄 Hotspot → Slide Migration:', {
           projectName,
+          projectType,
           slidesCreated: result.slideDeck.slides.length,
           elementsConverted: result.elementsConverted,
           interactionsConverted: result.interactionsConverted,
@@ -79,42 +95,43 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         });
       }
 
-      return result.slideDeck;
+      return { slideDeck: result.slideDeck, migrationResult: result };
     } catch (error) {
-      console.error('Failed to migrate project to slides:', error);
-      throw new Error(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to process project:', error);
+      throw new Error(`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [initialData, projectName]);
+  }, [initialData, slideDeck, projectName, projectType]);
 
   // Initialize component
   useEffect(() => {
     try {
-      if (!migratedSlideDeck) {
-        throw new Error('Failed to migrate project to slide format');
+      if (!processedSlideDeck.slideDeck) {
+        throw new Error('Failed to process project data');
       }
 
-      setSlideDeck(migratedSlideDeck);
+      setCurrentSlideDeck(processedSlideDeck.slideDeck);
+      setMigrationResult(processedSlideDeck.migrationResult);
       setIsInitialized(true);
     } catch (error) {
       console.error('Failed to initialize slide-based module:', error);
       setInitError(error instanceof Error ? error.message : 'Failed to initialize module');
     }
-  }, [migratedSlideDeck]);
+  }, [processedSlideDeck]);
 
   // Handle slide deck changes from editor
   const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
-    setSlideDeck(newSlideDeck);
+    setCurrentSlideDeck(newSlideDeck);
   }, []);
 
   // Save functionality - convert slide deck back to hotspot format if needed
   const handleSave = useCallback(async () => {
-    if (!slideDeck) return;
+    if (!currentSlideDeck) return;
 
     console.log('[SlideBasedInteractiveModule] Saving slide deck:', {
-      slideCount: slideDeck.slides.length,
-      title: slideDeck.title,
-      id: slideDeck.id,
-      firstSlideBackgroundMedia: slideDeck.slides[0]?.backgroundMedia
+      slideCount: currentSlideDeck.slides.length,
+      title: currentSlideDeck.title,
+      id: currentSlideDeck.id,
+      firstSlideBackgroundMedia: currentSlideDeck.slides[0]?.backgroundMedia
     });
 
     // Create updated interactive data that preserves the original structure 
@@ -122,14 +139,14 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     const updatedData: InteractiveModuleState = {
       ...initialData,
       // Preserve any legacy properties while ensuring background compatibility
-      backgroundImage: slideDeck.slides[0]?.backgroundMedia?.type === 'image' 
-        ? slideDeck.slides[0].backgroundMedia.url 
+      backgroundImage: currentSlideDeck.slides[0]?.backgroundMedia?.type === 'image' 
+        ? currentSlideDeck.slides[0].backgroundMedia.url 
         : initialData.backgroundImage
     };
 
     // Save both the updated legacy data AND the slide deck
     await onSave(updatedData);
-  }, [onSave, slideDeck, initialData]);
+  }, [onSave, currentSlideDeck, initialData]);
 
   const handleClose = useCallback(() => {
     if (onClose) {
@@ -143,7 +160,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   }
 
   // Error state
-  if (initError || !slideDeck) {
+  if (initError || !currentSlideDeck) {
     return (
       <ErrorScreen 
         error={initError || 'Failed to load slide deck'} 
@@ -156,7 +173,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   if (isEditing) {
     return (
       <SlideBasedEditor
-        slideDeck={slideDeck}
+        slideDeck={currentSlideDeck}
         projectName={projectName}
         projectId={projectId}
         onSlideDeckChange={handleSlideDeckChange}
@@ -170,7 +187,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   } else {
     return (
       <SlideBasedViewer
-        slideDeck={slideDeck}
+        slideDeck={currentSlideDeck}
         projectName={projectName}
         viewerModes={viewerModes}
         autoStart={autoStart}

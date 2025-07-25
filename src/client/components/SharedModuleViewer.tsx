@@ -154,6 +154,8 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
         <SlideBasedInteractiveModule
           key={`shared-${project.id}`}
           initialData={project.interactiveData}
+          slideDeck={project.slideDeck}
+          projectType={project.projectType}
           isEditing={false}
           onSave={handleSave} // No-op in viewer
           onClose={handleClose} // Handles embed/standalone logic
