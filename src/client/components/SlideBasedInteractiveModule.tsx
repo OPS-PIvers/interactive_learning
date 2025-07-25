@@ -13,7 +13,7 @@ interface SlideBasedInteractiveModuleProps {
   slideDeck?: SlideDeck;
   projectType?: 'hotspot' | 'slide';
   isEditing: boolean;
-  onSave: (data: InteractiveModuleState, thumbnailUrl?: string) => void;
+  onSave: (projectData: InteractiveModuleState & { projectType?: string; slideDeck?: SlideDeck; thumbnailUrl?: string }) => void;
   onImageUpload: (file: File) => Promise<void>;
   onClose?: (callback?: () => void) => void;
   projectName: string;
@@ -123,7 +123,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     setCurrentSlideDeck(newSlideDeck);
   }, []);
 
-  // Save functionality - convert slide deck back to hotspot format if needed
+  // Save functionality - properly pass slide deck data for persistence
   const handleSave = useCallback(async () => {
     if (!currentSlideDeck) return;
 
@@ -131,6 +131,8 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
       slideCount: currentSlideDeck.slides.length,
       title: currentSlideDeck.title,
       id: currentSlideDeck.id,
+      totalElements: currentSlideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
+      firstSlideElements: currentSlideDeck.slides[0]?.elements.length || 0,
       firstSlideBackgroundMedia: currentSlideDeck.slides[0]?.backgroundMedia
     });
 
@@ -144,8 +146,23 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         : initialData.backgroundImage
     };
 
-    // Save both the updated legacy data AND the slide deck
-    await onSave(updatedData);
+    // CRITICAL FIX: Create a proper project object with slide deck data
+    const projectWithSlideDeck = {
+      ...initialData,
+      projectType: 'slide' as const, // Mark as slide-based project
+      slideDeck: currentSlideDeck, // Include the slide deck with all elements
+      interactiveData: updatedData
+    };
+
+    console.log('[SlideBasedInteractiveModule] Project object being saved:', {
+      projectType: projectWithSlideDeck.projectType,
+      hasSlideDeck: !!projectWithSlideDeck.slideDeck,
+      slideCount: projectWithSlideDeck.slideDeck?.slides.length,
+      elementCounts: projectWithSlideDeck.slideDeck?.slides.map(s => s.elements.length)
+    });
+
+    // Save the complete project object with slide deck data
+    await onSave(projectWithSlideDeck);
   }, [onSave, currentSlideDeck, initialData]);
 
   const handleClose = useCallback(() => {

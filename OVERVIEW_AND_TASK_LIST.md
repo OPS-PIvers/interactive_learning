@@ -411,3 +411,60 @@ IDENTIFIED BUGS:
 3. **Phase 3 TODOs**: Advanced Navigation and Collaboration (Weeks 9-16)
 
 The slide-based architecture has successfully eliminated coordinate calculation complexity and provides a solid foundation for future enhancements.
+
+## KNOWN BUGS
+
+1. [ ] Add a hotspot and save the project, but the project doesn't save.  
+----Fix attempt #1 [DID NOT RESOLVE ISSUE]
+  - Corrected element structure by moving style properties from
+  content.style to the proper style object
+  - Added debug logging to track save operations and element counts
+  - This ensures hotspots are properly serialized and persisted
+---- Browser console: 
+firebaseProxy.ts:14 Firebase proxy: Already initialized
+firebaseProxy.ts:20 Firebase: Loading projects...
+App.tsx:112 Fetching details for project: proj_1753448476156_fpsjs (Sample)
+firebaseProxy.ts:25 Firebase: Getting details for project proj_1753448476156_fpsjs...
+firebaseApi.ts:859 Debug getHotspots: Starting, projectId: proj_1753448476156_fpsjs
+firebaseApi.ts:860 Debug getHotspots: firebaseManager exists: true
+firebaseApi.ts:861 Debug getHotspots: collection function exists: true
+firebaseApi.ts:864 Debug getHotspots: Got db: true
+firebaseApi.ts:867 Debug getHotspots: Got hotspotsRef: true
+firebaseApi.ts:887 Debug getTimelineEvents: Starting, projectId: proj_1753448476156_fpsjs
+firebaseApi.ts:888 Debug getTimelineEvents: firebaseManager exists: true
+firebaseApi.ts:889 Debug getTimelineEvents: collection function exists: true
+firebaseApi.ts:892 Debug getTimelineEvents: Got db: true
+firebaseApi.ts:895 Debug getTimelineEvents: Got eventsRef: true
+firebaseApi.ts:870 Debug getHotspots: Got snapshot: true
+firebaseApi.ts:898 Debug getTimelineEvents: Got snapshot: true
+SlideBasedInteractiveModule.tsx:130 [SlideBasedInteractiveModule] Saving slide deck: Object
+firebaseProxy.ts:40 Firebase: Saving project "Sample" (proj_1753448476156_fpsjs)
+App.tsx:271 Project data save initiated via proxy and successfully updated locally: proj_1753448476156_fpsjs ObjectcreatedAt: Fri Jul 25 2025 08:01:25 GMT-0500 (Central Daylight Time) {}createdBy: "CzQ5Mn4ZISQJeFSvBI5QTZVSfTj2"description: "Sample project to test functionality"id: "proj_1753448476156_fpsjs"interactiveData: backgroundImage: "https://firebasestorage.googleapis.com/v0/b/interactive-learning-278.firebasestorage.app/o/images%2FCzQ5Mn4ZISQJeFSvBI5QTZVSfTj2%2F1753448487160_ebxek1_paul_plush.png?alt=media&token=8276c73d-bbd5-4b69-9930-54b04bea636f"hotspots: Array(0)length: 0[[Prototype]]: Array(0)imageFitMode: "cover"timelineEvents: Array(0)length: 0[[Prototype]]: Array(0)viewerModes: {explore: true, timed: true, selfPaced: true}[[Prototype]]: ObjectisPublished: falseslideDeck: undefinedthumbnailUrl: nulltitle: "Sample"updatedAt: Fri Jul 25 2025 08:02:05 GMT-0500 (Central Daylight Time) {}[[Prototype]]: Object
+
+2. [ ] Hotspot style present buttons are non-functional
+3. [ ] Project card thumbnails are not loading.  These probably need to be reimagined with the slides-based system.  Perhaps the user can upload an image for the thumbnail (that is the size-optimized by the app for thumbnail display) or select a pre-made icon instead?
+
+
+
+  ✅ Bug 2: Fixed viewer extending beyond screen
+  - Implemented proper viewport scaling in SlideViewer.tsx
+  - Added responsive canvas with centered layout that stays within
+  viewport bounds
+  - Elements now scale properly with the canvas dimensions
+  - Added support for background media scaling
+
+  ✅ Bug 3: Restored hotspot visual customization presets
+  - Added a collapsible "Style Presets" section in the properties
+  panel
+  - Included 6 pre-designed hotspot styles: Blue Pulse, Red Alert,
+  Green, Purple, Orange, and Dark Minimal
+  - Presets auto-open when selecting hotspot elements
+  - Quick one-click application of professional hotspot designs
+
+  ✅ Bug 4: Moved interaction menu to properties panel
+  - Replaced separate modal with collapsible "Interactions" section
+  - Added quick-add interaction buttons for common use cases
+  - Included visual management of existing interactions with delete
+  functionality
+  - Kept "Advanced Interaction Settings" button for complex
+  configurations

@@ -108,7 +108,16 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             key={`${selectedProject.id}-${isEditingMode}-slide-based`}
             initialData={selectedProject.interactiveData}
             isEditing={isEditingMode}
-            onSave={(data, thumbnailUrl) => onSave(selectedProject.id, data, thumbnailUrl)}
+            onSave={(projectData) => {
+              // Handle both legacy data and full project objects
+              if (projectData.slideDeck && projectData.projectType === 'slide') {
+                // New slide-based project with slide deck data
+                onSave(selectedProject.id, projectData.interactiveData, projectData.thumbnailUrl, projectData.slideDeck);
+              } else {
+                // Legacy project format
+                onSave(selectedProject.id, projectData, projectData.thumbnailUrl);
+              }
+            }}
             onImageUpload={onImageUpload}
             onClose={onClose}
             projectName={selectedProject.title}

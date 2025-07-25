@@ -115,7 +115,9 @@ export class FirebaseProjectAPI {
       
       const projects: Project[] = snapshot.docs.map((docSnap) => {
         const projectData = docSnap.data()
-        return {
+        
+        // Build project object with slide deck data if available
+        const project: Project = {
           id: docSnap.id,
           title: projectData.title || 'Untitled Project',
           description: projectData.description || '',
@@ -124,6 +126,7 @@ export class FirebaseProjectAPI {
           updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
           thumbnailUrl: projectData.thumbnailUrl,
           isPublished: projectData.isPublished || false,
+          projectType: projectData.projectType || 'slide', // Default to slide for new architecture
           interactiveData: {
             backgroundImage: projectData.backgroundImage,
             imageFitMode: projectData.imageFitMode || 'cover',
@@ -132,7 +135,15 @@ export class FirebaseProjectAPI {
             timelineEvents: [], // Will be loaded on demand - explicitly empty for loading detection
             _needsDetailLoad: true // Flag to indicate this project needs detail loading
           }
-        } as Project
+        };
+
+        // Include slide deck if it exists
+        if (projectData.slideDeck) {
+          project.slideDeck = projectData.slideDeck;
+          debugLog.log(`[listProjects] Project ${project.id} has slide deck with ${projectData.slideDeck.slides?.length || 0} slides`);
+        }
+
+        return project;
       })
 
 
@@ -249,13 +260,27 @@ export class FirebaseProjectAPI {
       this.logUsage('READ_OPERATIONS_DETAILS_SUBCOLLECTIONS', 2);
 
 
-      return {
+      // Include slide deck data if it exists (for slide-based projects)
+      const result: Partial<InteractiveModuleState> & { slideDeck?: any } = {
         backgroundImage: projectData.backgroundImage,
         imageFitMode: projectData.imageFitMode || 'cover',
-        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true }, // Added viewerModes
+        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
         hotspots,
         timelineEvents,
       };
+
+      // Add slide deck if it exists in the project data
+      if (projectData.slideDeck) {
+        result.slideDeck = projectData.slideDeck;
+        debugLog.log(`[FirebaseAPI] Loaded slide deck for project ${projectId}:`, {
+          slideCount: projectData.slideDeck.slides?.length || 0,
+          totalElements: projectData.slideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+        });
+      } else {
+        debugLog.log(`[FirebaseAPI] No slide deck found for project ${projectId}`);
+      }
+
+      return result;
     } catch (error) {
       debugLog.error(`Error getting project details for ${projectId}:`, error);
       throw new Error(`Failed to load project details: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -421,6 +446,20 @@ export class FirebaseProjectAPI {
         // Add slide deck data for slide-based projects
         if (project.projectType === 'slide' && project.slideDeck) {
           updateData.slideDeck = project.slideDeck;
+          
+          // Debug logging for slide deck save
+          debugLog.log(`[FirebaseAPI] Saving slide deck for project ${project.id}:`, {
+            slideCount: project.slideDeck.slides.length,
+            totalElements: project.slideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
+            slideElementCounts: project.slideDeck.slides.map(slide => slide.elements.length),
+            firstSlideElements: project.slideDeck.slides[0]?.elements || []
+          });
+        } else {
+          debugLog.log(`[FirebaseAPI] NOT saving slide deck for project ${project.id}:`, {
+            projectType: project.projectType,
+            hasSlideDeck: !!project.slideDeck,
+            slideDeckType: typeof project.slideDeck
+          });
         }
         
         // Add createdAt only for new projects
