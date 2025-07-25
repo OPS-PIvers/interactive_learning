@@ -4,12 +4,47 @@
  * This replaces the complex coordinate system with predictable slide-based positioning
  */
 
+// Background media types
+export interface BackgroundMedia {
+  type: 'image' | 'video' | 'youtube' | 'audio' | 'none';
+  url?: string;
+  youtubeId?: string;
+  volume?: number;
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  controls?: boolean;
+  startTime?: number;
+  endTime?: number;
+  overlay?: BackgroundOverlay;
+  settings?: BackgroundSettings;
+}
+
+export interface BackgroundOverlay {
+  enabled: boolean;
+  color?: string;
+  opacity?: number;
+  gradient?: {
+    type: 'linear' | 'radial';
+    colors: string[];
+    direction?: string;
+  };
+}
+
+export interface BackgroundSettings {
+  size: 'cover' | 'contain' | 'auto' | 'stretch';
+  position: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
+  attachment: 'scroll' | 'fixed' | 'local';
+}
+
 // Core slide structure
 export interface InteractiveSlide {
   id: string;
   title: string;
-  backgroundImage?: string;
+  backgroundImage?: string; // Deprecated: use backgroundMedia
   backgroundColor?: string;
+  backgroundMedia?: BackgroundMedia;
   elements: SlideElement[];
   transitions: SlideTransition[];
   layout: SlideLayout;
