@@ -191,15 +191,26 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       },
       content: elementType === 'hotspot' ? {
         title: 'New Hotspot',
-        description: 'Click to interact',
-        style: { backgroundColor: '#3b82f6', borderRadius: '50%' }
+        description: 'Click to interact'
       } : elementType === 'text' ? {
         title: 'New Text Element',
-        description: 'Edit this text',
-        style: { backgroundColor: 'rgba(30, 41, 59, 0.9)', color: '#ffffff' }
+        description: 'Edit this text'
       } : {
-        shapeType: 'rectangle',
-        style: { backgroundColor: '#8b5cf6', borderRadius: '8px' }
+        shapeType: 'rectangle'
+      },
+      style: elementType === 'hotspot' ? {
+        backgroundColor: '#3b82f6',
+        borderRadius: 50,
+        opacity: 0.9
+      } : elementType === 'text' ? {
+        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+        color: '#ffffff',
+        borderRadius: 8,
+        opacity: 1
+      } : {
+        backgroundColor: '#8b5cf6',
+        borderRadius: 8,
+        opacity: 0.9
       },
       interactions: [],
       isVisible: true,

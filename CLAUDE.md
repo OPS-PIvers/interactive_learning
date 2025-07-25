@@ -203,6 +203,5 @@ claude "Set mobile viewport, navigate to app, authenticate, test touch interacti
 - **Large Datasets**: Image files and large hotspot collections may impact performance
 - **Touch Coordination**: Complex gesture coordination between pan/zoom and hotspot interaction
 - **Firebase Setup**: Firebase emulator setup required for local development and testing
-- **Legacy Support**: Maintaining backward compatibility while evolving the event system
 - **Mobile Viewport**: iOS Safari viewport quirks require specialized handling
 - **Puppeteer Stability**: Complex automation sequences can become unstable; chunk work appropriately

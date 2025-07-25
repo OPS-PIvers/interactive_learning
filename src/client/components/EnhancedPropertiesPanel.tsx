@@ -65,6 +65,7 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   // Collapsible sections state
   const [openSections, setOpenSections] = useState({
     style: true,
+    presets: selectedElement?.type === 'hotspot', // Auto-open for hotspots
     content: true,
     position: false,
     interactions: false,
@@ -273,6 +274,126 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
       
       {/* Content - Collapsible Sections */}
       <div className="flex-grow overflow-y-auto">
+        {/* Hotspot Presets Section - Only for hotspots */}
+        {selectedElement.type === 'hotspot' && (
+          <CollapsibleSection
+            title="Style Presets"
+            isOpen={openSections.presets}
+            onToggle={() => toggleSection('presets')}
+          >
+            <div className="space-y-3">
+              <div className="text-xs text-slate-400 mb-3">
+                Quick style presets for common hotspot designs
+              </div>
+              
+              {/* Preset Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Blue Pulse Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 50,
+                    opacity: 0.9,
+                    animation: 'pulse'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-blue-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full mb-2 animate-pulse"
+                    style={{ backgroundColor: '#3b82f6' }}
+                  />
+                  <span className="text-xs text-slate-300">Blue Pulse</span>
+                </button>
+
+                {/* Red Alert Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#ef4444',
+                    borderRadius: 50,
+                    opacity: 0.85,
+                    animation: 'bounce'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-red-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full mb-2"
+                    style={{ backgroundColor: '#ef4444' }}
+                  />
+                  <span className="text-xs text-slate-300">Red Alert</span>
+                </button>
+
+                {/* Green Success Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#10b981',
+                    borderRadius: 50,
+                    opacity: 0.9,
+                    animation: 'none'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-green-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full mb-2"
+                    style={{ backgroundColor: '#10b981' }}
+                  />
+                  <span className="text-xs text-slate-300">Green</span>
+                </button>
+
+                {/* Purple Gradient Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 50,
+                    opacity: 0.95,
+                    animation: 'glow'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-purple-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full mb-2"
+                    style={{ backgroundColor: '#8b5cf6' }}
+                  />
+                  <span className="text-xs text-slate-300">Purple</span>
+                </button>
+
+                {/* Orange Warning Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#f97316',
+                    borderRadius: 50,
+                    opacity: 0.9,
+                    animation: 'flash'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-orange-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded-full mb-2"
+                    style={{ backgroundColor: '#f97316' }}
+                  />
+                  <span className="text-xs text-slate-300">Orange</span>
+                </button>
+
+                {/* Dark Minimal Preset */}
+                <button
+                  onClick={() => handleStyleChange({
+                    backgroundColor: '#374151',
+                    borderRadius: 8,
+                    opacity: 0.8,
+                    animation: 'none'
+                  })}
+                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-gray-500"
+                >
+                  <div 
+                    className="w-6 h-6 rounded mb-2"
+                    style={{ backgroundColor: '#374151' }}
+                  />
+                  <span className="text-xs text-slate-300">Minimal</span>
+                </button>
+              </div>
+            </div>
+          </CollapsibleSection>
+        )}
+
         {/* Element Style Section */}
         <CollapsibleSection
           title="Style"
@@ -450,35 +571,168 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
           isOpen={openSections.interactions}
           onToggle={() => toggleSection('interactions')}
         >
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* Current Interactions List */}
             {selectedElement.interactions.length > 0 ? (
-              selectedElement.interactions.map((interaction, index) => (
-                <div key={index} className="bg-slate-700 rounded p-2">
-                  <div className="text-xs text-slate-300 font-medium">
-                    {interaction.trigger}
+              <div className="space-y-2">
+                {selectedElement.interactions.map((interaction, index) => (
+                  <div key={index} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-slate-300 font-medium capitalize">
+                        {interaction.trigger} → {interaction.effect.type}
+                      </div>
+                      <button 
+                        className="text-red-400 hover:text-red-300 text-xs"
+                        onClick={() => {
+                          // Remove interaction
+                          const updatedInteractions = selectedElement.interactions.filter((_, i) => i !== index);
+                          onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+                        }}
+                        title="Remove interaction"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {interaction.effect.parameters && Object.keys(interaction.effect.parameters).length > 0 && (
+                      <div className="text-xs text-slate-400">
+                        {Object.entries(interaction.effect.parameters).map(([key, value]) => (
+                          <div key={key}>{key}: {String(value)}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="text-xs text-slate-400">
-                    {interaction.effect.type} effect
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <div className="text-xs text-slate-400 text-center py-2">
-                No interactions added
+              <div className="text-center py-4 text-slate-400 bg-slate-700 rounded-lg">
+                <div className="text-lg mb-1">⚡</div>
+                <div className="text-xs">No interactions</div>
               </div>
             )}
+
+            {/* Quick Interaction Presets */}
+            <div className="border-t border-slate-600 pt-3">
+              <div className="text-xs text-slate-400 mb-2">Quick Add Interactions</div>
+              <div className="grid grid-cols-1 gap-2">
+                {/* Show Modal on Click */}
+                <button
+                  onClick={() => {
+                    const newInteraction = {
+                      id: `interaction_${Date.now()}`,
+                      trigger: 'click' as const,
+                      effect: {
+                        id: `effect_${Date.now()}`,
+                        type: 'modal' as const,
+                        duration: 0,
+                        parameters: {
+                          title: selectedElement.content.title || 'Modal Title',
+                          message: selectedElement.content.description || 'Modal content here'
+                        }
+                      }
+                    };
+                    onElementUpdate(selectedElement.id, {
+                      interactions: [...selectedElement.interactions, newInteraction]
+                    });
+                  }}
+                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
+                >
+                  📋 Show Modal on Click
+                </button>
+
+                {/* Navigate to Next Slide */}
+                <button
+                  onClick={() => {
+                    const newInteraction = {
+                      id: `interaction_${Date.now()}`,
+                      trigger: 'click' as const,
+                      effect: {
+                        id: `effect_${Date.now()}`,
+                        type: 'transition' as const,
+                        duration: 500,
+                        parameters: {
+                          type: 'next-slide'
+                        }
+                      }
+                    };
+                    onElementUpdate(selectedElement.id, {
+                      interactions: [...selectedElement.interactions, newInteraction]
+                    });
+                  }}
+                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
+                >
+                  ➡️ Next Slide on Click
+                </button>
+
+                {/* Play Sound Effect */}
+                <button
+                  onClick={() => {
+                    const newInteraction = {
+                      id: `interaction_${Date.now()}`,
+                      trigger: 'click' as const,
+                      effect: {
+                        id: `effect_${Date.now()}`,
+                        type: 'sound' as const,
+                        duration: 1000,
+                        parameters: {
+                          url: '/sounds/click.mp3',
+                          volume: 0.7
+                        }
+                      }
+                    };
+                    onElementUpdate(selectedElement.id, {
+                      interactions: [...selectedElement.interactions, newInteraction]
+                    });
+                  }}
+                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
+                >
+                  🔊 Play Sound on Click
+                </button>
+
+                {/* Show Tooltip on Hover */}
+                <button
+                  onClick={() => {
+                    const newInteraction = {
+                      id: `interaction_${Date.now()}`,
+                      trigger: 'hover' as const,
+                      effect: {
+                        id: `effect_${Date.now()}`,
+                        type: 'tooltip' as const,
+                        duration: 2000,
+                        parameters: {
+                          text: selectedElement.content.description || 'Tooltip text',
+                          position: 'top'
+                        }
+                      }
+                    };
+                    onElementUpdate(selectedElement.id, {
+                      interactions: [...selectedElement.interactions, newInteraction]
+                    });
+                  }}
+                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
+                >
+                  💬 Show Tooltip on Hover
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced Interactions Button */}
+            <div className="border-t border-slate-600 pt-3">
+              <button 
+                onClick={() => onViewInteractions(selectedElement.id)}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-md text-xs transition-colors"
+              >
+                ⚙️ Advanced Interaction Settings
+              </button>
+            </div>
           </div>
         </CollapsibleSection>
       </div>
       
       {/* Footer */}
       <div className="p-4 border-t border-slate-700">
-        <button 
-          onClick={() => onViewInteractions(selectedElement.id)}
-          className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors"
-        >
-          View Interactions
-        </button>
+        <div className="text-center text-slate-400 text-xs">
+          💡 Use the Interactions section above to add element behaviors
+        </div>
       </div>
     </aside>
   );

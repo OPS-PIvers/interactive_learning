@@ -4,6 +4,7 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideElement } from './SlideElement';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
 import { SlideNavigation } from './SlideNavigation';
+import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
 interface SlideViewerProps {
   slideDeck: SlideDeck;
@@ -195,20 +196,44 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     );
   }
 
-  // Calculate responsive container dimensions - Matches app dark theme
+  // Calculate responsive container dimensions with proper scaling
+  const canvasDimensions = React.useMemo(() => {
+    if (!containerRef.current || !currentSlide?.layout?.aspectRatio) {
+      return { width: 800, height: 600, scale: 1 };
+    }
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    return calculateCanvasDimensions(
+      currentSlide.layout.aspectRatio,
+      containerRect.width || window.innerWidth,
+      containerRect.height || window.innerHeight,
+      24 // Reduced padding for viewer
+    );
+  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height]);
+
   const containerStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: currentSlide.backgroundColor || '#0f172a' // slate-900
+    backgroundColor: currentSlide.backgroundColor || '#0f172a', // slate-900
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+  const slideCanvasStyle: React.CSSProperties = {
+    width: canvasDimensions.width,
+    height: canvasDimensions.height,
+    position: 'relative',
+    backgroundColor: currentSlide.backgroundColor || 'transparent'
   };
 
   if (currentSlide.backgroundImage) {
-    containerStyle.backgroundImage = `url(${currentSlide.backgroundImage})`;
-    containerStyle.backgroundSize = currentSlide.layout.backgroundSize || 'cover';
-    containerStyle.backgroundPosition = currentSlide.layout.backgroundPosition || 'center';
-    containerStyle.backgroundRepeat = 'no-repeat';
+    slideCanvasStyle.backgroundImage = `url(${currentSlide.backgroundImage})`;
+    slideCanvasStyle.backgroundSize = currentSlide.layout.backgroundSize || 'cover';
+    slideCanvasStyle.backgroundPosition = currentSlide.layout.backgroundPosition || 'center';
+    slideCanvasStyle.backgroundRepeat = 'no-repeat';
   }
 
   return (
@@ -219,20 +244,154 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
       data-slide-id={currentSlide.id}
       data-device-type={deviceType}
     >
-      {/* Slide Elements */}
-      <div className="slide-elements-container absolute inset-0">
-        {currentSlide.elements
-          .filter(element => element.isVisible)
-          .map(element => (
-            <SlideElement
-              key={element.id}
-              element={element}
-              deviceType={deviceType}
-              viewportInfo={viewportInfo}
-              onInteraction={handleElementInteraction}
-            />
-          ))
-        }
+      {/* Scaled Slide Canvas */}
+      <div 
+        className="slide-canvas"
+        style={slideCanvasStyle}
+      >
+        {/* Background Media Renderer */}
+        {currentSlide.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' && (
+          <div className="absolute inset-0 w-full h-full">
+            {/* Background Overlay */}
+            {currentSlide.backgroundMedia.overlay?.enabled && (
+              <div 
+                className="absolute inset-0 w-full h-full z-10"
+                style={{
+                  backgroundColor: currentSlide.backgroundMedia.overlay.color || '#000000',
+                  opacity: currentSlide.backgroundMedia.overlay.opacity || 0.3
+                }}
+              />
+            )}
+
+            {/* Image Background */}
+            {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url && (
+              <img
+                src={currentSlide.backgroundMedia.url}
+                alt="Slide background"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{
+                  objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                    ? 'contain' 
+                    : currentSlide.backgroundMedia.settings?.size === 'stretch' 
+                      ? 'fill' 
+                      : 'cover',
+                  objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+                }}
+              />
+            )}
+
+            {/* Video Background */}
+            {currentSlide.backgroundMedia.type === 'video' && currentSlide.backgroundMedia.url && (
+              <video
+                src={currentSlide.backgroundMedia.url}
+                autoPlay={currentSlide.backgroundMedia.autoplay}
+                loop={currentSlide.backgroundMedia.loop}
+                muted={currentSlide.backgroundMedia.muted}
+                controls={currentSlide.backgroundMedia.controls}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{
+                  objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                    ? 'contain' 
+                    : currentSlide.backgroundMedia.settings?.size === 'stretch' 
+                      ? 'fill' 
+                      : 'cover',
+                  objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+                }}
+                onLoadedData={(e) => {
+                  if (currentSlide.backgroundMedia?.volume !== undefined) {
+                    (e.target as HTMLVideoElement).volume = currentSlide.backgroundMedia.volume;
+                  }
+                }}
+              />
+            )}
+
+            {/* YouTube Background */}
+            {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId && (
+              <div className="absolute inset-0 w-full h-full">
+                <iframe
+                  src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
+                    currentSlide.backgroundMedia.autoplay ? 1 : 0
+                  }&loop=${
+                    currentSlide.backgroundMedia.loop ? 1 : 0
+                  }&mute=${
+                    currentSlide.backgroundMedia.muted ? 1 : 0
+                  }&controls=${
+                    currentSlide.backgroundMedia.controls ? 1 : 0
+                  }&start=${
+                    currentSlide.backgroundMedia.startTime || 0
+                  }&end=${
+                    currentSlide.backgroundMedia.endTime || ''
+                  }&rel=0&modestbranding=1&playsinline=1`}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title="Background Video"
+                  style={{
+                    border: 'none',
+                    objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                      ? 'contain' 
+                      : 'cover'
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Audio Background */}
+            {currentSlide.backgroundMedia.type === 'audio' && currentSlide.backgroundMedia.url && (
+              <>
+                <audio
+                  src={currentSlide.backgroundMedia.url}
+                  autoPlay={currentSlide.backgroundMedia.autoplay}
+                  loop={currentSlide.backgroundMedia.loop}
+                  controls={currentSlide.backgroundMedia.controls}
+                  className="hidden"
+                  onLoadedData={(e) => {
+                    if (currentSlide.backgroundMedia?.volume !== undefined) {
+                      (e.target as HTMLAudioElement).volume = currentSlide.backgroundMedia.volume;
+                    }
+                  }}
+                />
+                <div className="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12h.01M15 12h.01" />
+                  </svg>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Slide Elements */}
+        <div className="slide-elements-container absolute inset-0">
+          {currentSlide.elements
+            .filter(element => element.isVisible)
+            .map(element => {
+              // Apply scaling to element positions
+              const scaledElement = {
+                ...element,
+                position: {
+                  ...element.position,
+                  [deviceType]: {
+                    x: element.position[deviceType].x * canvasDimensions.scale,
+                    y: element.position[deviceType].y * canvasDimensions.scale,
+                    width: element.position[deviceType].width * canvasDimensions.scale,
+                    height: element.position[deviceType].height * canvasDimensions.scale
+                  }
+                }
+              };
+              
+              return (
+                <SlideElement
+                  key={element.id}
+                  element={scaledElement}
+                  deviceType={deviceType}
+                  viewportInfo={viewportInfo}
+                  onInteraction={handleElementInteraction}
+                />
+              );
+            })
+          }
+        </div>
       </div>
 
       {/* Active Effects */}
@@ -262,9 +421,11 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
       {/* Debug Info (development only) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
+        <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-50">
           Slide: {viewerState.currentSlideIndex + 1}/{slideDeck.slides.length}<br/>
           Device: {deviceType}<br/>
+          Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br/>
+          Scale: {canvasDimensions.scale.toFixed(2)}<br/>
           Effects: {activeEffects.length}
         </div>
       )}

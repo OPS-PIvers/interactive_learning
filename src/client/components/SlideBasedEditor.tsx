@@ -179,6 +179,16 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const handleSaveProject = useCallback(async () => {
     setIsSaving(true);
     try {
+      // Debug logging for save operations
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SlideBasedEditor] Starting save operation', {
+          slideCount: slideDeck.slides.length,
+          currentSlideElements: slideDeck.slides[currentSlideIndex]?.elements.length || 0,
+          allElements: slideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
+          slideDeckModified: slideDeck.metadata?.modified
+        });
+      }
+      
       await onSave(slideDeck);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 2000);
@@ -186,7 +196,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       if (process.env.NODE_ENV === 'development') {
         console.log('[SlideBasedEditor] Project saved successfully', {
           slideCount: slideDeck.slides.length,
-          backgroundMedia: slideDeck.slides.map(s => s.backgroundMedia?.type || 'none')
+          backgroundMedia: slideDeck.slides.map(s => s.backgroundMedia?.type || 'none'),
+          elementCounts: slideDeck.slides.map(s => s.elements.length)
         });
       }
     } catch (error) {
@@ -194,7 +205,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     } finally {
       setIsSaving(false);
     }
-  }, [onSave, slideDeck]);
+  }, [onSave, slideDeck, currentSlideIndex]);
 
   // Toggle preview mode
   const handleTogglePreview = useCallback(() => {
