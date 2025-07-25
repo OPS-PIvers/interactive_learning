@@ -3,6 +3,8 @@ import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, R
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
+import AspectRatioSelector from '../AspectRatioSelector';
+import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -10,6 +12,7 @@ interface SlideEditorProps {
   onClose: () => void;
   className?: string;
   deviceTypeOverride?: DeviceType;
+  onAspectRatioChange?: (slideIndex: number, aspectRatio: string) => void;
 }
 
 interface DragState {
@@ -29,12 +32,14 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   onSlideDeckChange,
   onClose,
   className = '',
-  deviceTypeOverride
+  deviceTypeOverride,
+  onAspectRatioChange
 }) => {
   const { deviceType: detectedDeviceType, viewportInfo } = useDeviceDetection();
   const deviceType = deviceTypeOverride || detectedDeviceType;
   const isMobile = useIsMobile();
   const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   
   // Editor state
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -47,6 +52,20 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   });
   
   const currentSlide = slideDeck.slides[currentSlideIndex];
+  
+  // Calculate canvas dimensions based on aspect ratio
+  const canvasDimensions = React.useMemo(() => {
+    if (!canvasContainerRef.current || !currentSlide?.layout?.aspectRatio) {
+      return { width: 800, height: 600, scale: 1 };
+    }
+    
+    const containerRect = canvasContainerRef.current.getBoundingClientRect();
+    return calculateCanvasDimensions(
+      currentSlide.layout.aspectRatio,
+      containerRect.width || 800,
+      containerRect.height || 600
+    );
+  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height]);
 
   // Handle element drag start
   const handleElementDragStart = useCallback((elementId: string, event: React.MouseEvent | React.TouchEvent) => {
@@ -136,6 +155,13 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       };
     }
   }, [dragState.isDragging, handleMove, handleDragEnd]);
+
+  // Handle aspect ratio changes
+  const handleAspectRatioChange = useCallback((newRatio: string) => {
+    if (onAspectRatioChange) {
+      onAspectRatioChange(currentSlideIndex, newRatio);
+    }
+  }, [currentSlideIndex, onAspectRatioChange]);
 
   // Add new element
   const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'shape') => {
@@ -263,6 +289,15 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             </button>
           </div>
           
+          {/* Aspect Ratio Selector */}
+          {currentSlide?.layout && (
+            <AspectRatioSelector
+              currentRatio={currentSlide.layout.aspectRatio || '16:9'}
+              onRatioChange={handleAspectRatioChange}
+              isMobile={isMobile}
+            />
+          )}
+          
           <div className="h-6 w-px bg-slate-600" />
           
           <button
@@ -277,11 +312,13 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       {/* Main Editor Content */}
       <div className="editor-content flex-1 flex">
         {/* Canvas Area */}
-        <div className="canvas-area flex-1 p-6 relative">
+        <div ref={canvasContainerRef} className="canvas-area flex-1 p-6 relative flex items-center justify-center">
           <div
             ref={canvasRef}
-            className="slide-canvas relative w-full h-full bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl"
+            className="slide-canvas relative bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl"
             style={{
+              width: canvasDimensions.width,
+              height: canvasDimensions.height,
               backgroundImage: currentSlide.backgroundImage ? `url(${currentSlide.backgroundImage})` : undefined,
               backgroundSize: currentSlide.layout?.backgroundSize || 'cover',
               backgroundPosition: currentSlide.layout?.backgroundPosition || 'center',
@@ -302,10 +339,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       isSelected ? 'ring-2 ring-purple-500 ring-opacity-75' : ''
                     }`}
                     style={{
-                      left: position.x,
-                      top: position.y,
-                      width: position.width,
-                      height: position.height,
+                      left: position.x * canvasDimensions.scale,
+                      top: position.y * canvasDimensions.scale,
+                      width: position.width * canvasDimensions.scale,
+                      height: position.height * canvasDimensions.scale,
                       zIndex: element.zIndex
                     }}
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}

@@ -7,6 +7,7 @@ import { SlideEditor } from './slides/SlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 import HeaderInsertDropdown from './HeaderInsertDropdown';
+import EnhancedPropertiesPanel from './EnhancedPropertiesPanel';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
@@ -16,6 +17,7 @@ import { GearIcon } from './icons/GearIcon';
 import AuthButton from './AuthButton';
 import ShareModal from './ShareModal';
 import { DeviceType } from '../../shared/slideTypes';
+import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
@@ -201,8 +203,82 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     console.log('Add background media - to be implemented');
   }, []);
 
+  // Handle element updates from properties panel
+  const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
+    if (!currentSlide) return;
+
+    const updatedElements = currentSlide.elements.map(element =>
+      element.id === elementId ? { ...element, ...updates } : element
+    );
+
+    const updatedSlide: InteractiveSlide = {
+      ...currentSlide,
+      elements: updatedElements
+    };
+
+    const updatedSlides = slideDeck.slides.map((slide, index) =>
+      index === currentSlideIndex ? updatedSlide : slide
+    );
+
+    const updatedSlideDeck: SlideDeck = {
+      ...slideDeck,
+      slides: updatedSlides,
+      metadata: {
+        ...slideDeck.metadata,
+        modified: Date.now()
+      }
+    };
+
+    handleSlideDeckUpdate(updatedSlideDeck);
+  }, [currentSlide, currentSlideIndex, slideDeck, handleSlideDeckUpdate]);
+
+  // Handle view interactions
+  const handleViewInteractions = useCallback((elementId: string) => {
+    // TODO: Implement interactions viewer/editor
+    console.log('View interactions for element:', elementId);
+  }, []);
+
+  // Handle aspect ratio changes for slides
+  const handleAspectRatioChange = useCallback((slideIndex: number, newAspectRatio: string) => {
+    const targetSlide = slideDeck.slides[slideIndex];
+    if (!targetSlide) return;
+
+    // Calculate new container dimensions based on aspect ratio
+    const newDimensions = calculateContainerDimensions(newAspectRatio);
+    
+    const updatedSlide: InteractiveSlide = {
+      ...targetSlide,
+      layout: {
+        ...targetSlide.layout,
+        aspectRatio: newAspectRatio,
+        containerWidth: newDimensions.width,
+        containerHeight: newDimensions.height
+      }
+    };
+
+    const updatedSlides = slideDeck.slides.map((slide, index) =>
+      index === slideIndex ? updatedSlide : slide
+    );
+
+    const updatedSlideDeck: SlideDeck = {
+      ...slideDeck,
+      slides: updatedSlides,
+      metadata: {
+        ...slideDeck.metadata,
+        modified: Date.now()
+      }
+    };
+
+    handleSlideDeckUpdate(updatedSlideDeck);
+  }, [slideDeck, handleSlideDeckUpdate]);
+
   // Get effective device type (override or detected)
   const effectiveDeviceType = deviceTypeOverride || deviceType;
+
+  // Get selected element object
+  const selectedElement = selectedElementId 
+    ? currentSlide?.elements.find(el => el.id === selectedElementId) || null
+    : null;
 
   // Enhanced slide deck for editor
   const editorSlideDeck = useMemo(() => ({
@@ -425,18 +501,19 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             onClose={onClose}
             className="flex-1"
             deviceTypeOverride={effectiveDeviceType}
+            onAspectRatioChange={handleAspectRatioChange}
           />
         </div>
 
         {/* Properties panel */}
-        {!isPreviewMode && selectedElementId && (
-          <div className="properties-panel bg-slate-800 border-l border-slate-700 p-4">
-            <h3 className="text-white font-semibold mb-4">Element Properties</h3>
-            <div className="text-slate-400 text-sm">
-              Properties panel for element: {selectedElementId}
-              {/* TODO: Implement detailed properties panel */}
-            </div>
-          </div>
+        {!isPreviewMode && (
+          <EnhancedPropertiesPanel
+            selectedElement={selectedElement}
+            deviceType={effectiveDeviceType}
+            onElementUpdate={handleElementUpdate}
+            onViewInteractions={handleViewInteractions}
+            isMobile={isMobile}
+          />
         )}
       </div>
 
