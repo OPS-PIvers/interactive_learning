@@ -235,7 +235,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         x: element.position.desktop.x / 12, // Convert to percentage (assuming 1200px width)
         y: element.position.desktop.y / 8,  // Convert to percentage (assuming 800px height)
         title: element.content.title || 'Hotspot',
-        color: element.style.backgroundColor || element.style.color || '#3b82f6'
+        color: element.style?.backgroundColor || element.style?.color || '#3b82f6'
       }));
   }, [slideDeck.slides, currentSlideIndex]);
   
