@@ -179,8 +179,13 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   }, [dragState.isDragging, handleMove, handleDragEnd]);
 
 
-  // Add new element
-  const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'shape') => {
+  // Add new element (NOTE: This function may be unused in current architecture)
+  const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'media' | 'shape') => {
+    console.log('[SlideEditor] handleAddElement called (this may indicate architectural issue):', {
+      elementType,
+      currentSlideIndex,
+      timestamp: new Date().toISOString()
+    });
     const newElement: SlideElement = {
       id: `element_${Date.now()}`,
       type: elementType,
@@ -195,6 +200,11 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       } : elementType === 'text' ? {
         title: 'New Text Element',
         description: 'Edit this text'
+      } : elementType === 'media' ? {
+        title: 'New Media Element',
+        description: 'Upload media content',
+        mediaType: 'image',
+        mediaUrl: ''
       } : {
         shapeType: 'rectangle'
       },
@@ -205,6 +215,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       } : elementType === 'text' ? {
         backgroundColor: 'rgba(30, 41, 59, 0.9)',
         color: '#ffffff',
+        borderRadius: 8,
+        opacity: 1
+      } : elementType === 'media' ? {
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
         borderRadius: 8,
         opacity: 1
       } : {

@@ -77,8 +77,19 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((newSlideDeck: SlideDeck) => {
+    console.log('[SlideBasedEditor] handleSlideDeckUpdate called:', {
+      slideCount: newSlideDeck.slides.length,
+      totalElements: newSlideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
+      currentSlideElements: newSlideDeck.slides[currentSlideIndex]?.elements?.length || 0,
+      slideDeckId: newSlideDeck.id,
+      modified: newSlideDeck.metadata?.modified,
+      timestamp: new Date().toISOString()
+    });
+    
     onSlideDeckChange(newSlideDeck);
-  }, [onSlideDeckChange]);
+    
+    console.log('[SlideBasedEditor] onSlideDeckChange callback completed');
+  }, [onSlideDeckChange, currentSlideIndex]);
 
   // Add new slide
   const handleAddSlide = useCallback(() => {
@@ -132,6 +143,14 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   // Add element to current slide
   const handleAddElement = useCallback((elementType: 'hotspot' | 'text' | 'media' | 'shape') => {
+    console.log('[SlideBasedEditor] handleAddElement called:', {
+      elementType,
+      currentSlideIndex,
+      slideDeckExists: !!slideDeck,
+      currentSlideElements: slideDeck?.slides[currentSlideIndex]?.elements?.length || 0,
+      timestamp: new Date().toISOString()
+    });
+
     const newElement: SlideElement = {
       id: generateId(),
       type: elementType,
@@ -140,23 +159,63 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         tablet: { x: 80, y: 80, width: 80, height: 80 },
         mobile: { x: 60, y: 60, width: 60, height: 60 }
       },
-      content: {
-        title: `New ${elementType}`,
-        description: `Description for ${elementType}`
+      content: elementType === 'hotspot' ? {
+        title: 'New Hotspot',
+        description: 'Click to interact'
+      } : elementType === 'text' ? {
+        title: 'New Text Element',
+        description: 'Edit this text'
+      } : elementType === 'media' ? {
+        title: 'New Media Element',
+        description: 'Upload media content',
+        mediaType: 'image',
+        mediaUrl: ''
+      } : {
+        title: 'New Shape',
+        description: 'Shape element',
+        shapeType: 'rectangle'
       },
       interactions: [],
-      style: {
+      style: elementType === 'hotspot' ? {
         backgroundColor: '#3b82f6',
-        borderRadius: elementType === 'hotspot' ? 50 : 8,
+        borderRadius: 50,
+        opacity: 0.9
+      } : elementType === 'text' ? {
+        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+        color: '#ffffff',
+        borderRadius: 8,
+        opacity: 1
+      } : elementType === 'media' ? {
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        borderRadius: 8,
+        opacity: 1
+      } : {
+        backgroundColor: '#8b5cf6',
+        borderRadius: 8,
         opacity: 0.9
       },
       isVisible: true
     };
 
+    console.log('[SlideBasedEditor] Created new element:', {
+      elementId: newElement.id,
+      elementType: newElement.type,
+      position: newElement.position,
+      content: newElement.content
+    });
+
     const updatedSlide: InteractiveSlide = {
       ...currentSlide,
       elements: [...currentSlide.elements, newElement]
     };
+
+    console.log('[SlideBasedEditor] Updated slide with new element:', {
+      slideId: updatedSlide.id,
+      slideTitle: updatedSlide.title,
+      totalElements: updatedSlide.elements.length,
+      newElementCount: updatedSlide.elements.length - currentSlide.elements.length,
+      elementIds: updatedSlide.elements.map(el => el.id)
+    });
 
     const updatedSlides = slideDeck.slides.map((slide, index) =>
       index === currentSlideIndex ? updatedSlide : slide
@@ -171,8 +230,17 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       }
     };
 
+    console.log('[SlideBasedEditor] Updated slide deck:', {
+      slideCount: updatedSlideDeck.slides.length,
+      totalElements: updatedSlideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
+      currentSlideElements: updatedSlideDeck.slides[currentSlideIndex].elements.length,
+      aboutToCallUpdate: true
+    });
+
     handleSlideDeckUpdate(updatedSlideDeck);
     setSelectedElementId(newElement.id);
+    
+    console.log('[SlideBasedEditor] Element addition completed, selected element ID:', newElement.id);
   }, [currentSlide, currentSlideIndex, slideDeck, handleSlideDeckUpdate]);
 
   // Save functionality
