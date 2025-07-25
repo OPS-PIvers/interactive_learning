@@ -1,8 +1,9 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction } from '../../shared/slideTypes';
 import { TimelineEventData, HotspotData } from '../../shared/types';
 import HorizontalTimeline from './HorizontalTimeline';
 import { generateId } from '../utils/generateId';
+import { useSlideAnimations, AnimationSequence } from '../hooks/useSlideAnimations';
 
 interface SlideTimelineAdapterProps {
   slideDeck: SlideDeck;
@@ -41,6 +42,14 @@ const SlideTimelineAdapter: React.FC<SlideTimelineAdapterProps> = ({
   isMobile = false,
   className = ''
 }) => {
+  
+  // Animation state management
+  const { 
+    animationState, 
+    playAnimationSequence, 
+    stopAnimationSequence, 
+    resetAnimations 
+  } = useSlideAnimations();
   
   // Convert slide elements to timeline-compatible hotspot data
   const convertedHotspots = useMemo((): HotspotData[] => {
@@ -105,6 +114,42 @@ const SlideTimelineAdapter: React.FC<SlideTimelineAdapterProps> = ({
     return steps.sort((a, b) => a.step - b.step);
   }, [slideDeck.slides]);
 
+  // Generate animation sequences from timeline interactions
+  const animationSequences = useMemo((): AnimationSequence[] => {
+    const sequences: AnimationSequence[] = [];
+    
+    timelineSteps.forEach((timelineStep) => {
+      if (timelineStep.elementId && timelineStep.interactionId) {
+        const element = timelineStep.slide.elements.find(el => el.id === timelineStep.elementId);
+        const interaction = element?.interactions.find(int => int.id === timelineStep.interactionId);
+        
+        if (element && interaction) {
+          // Map interaction effects to animation variants
+          const getAnimationVariant = (effectType: string) => {
+            switch (effectType) {
+              case 'spotlight': return 'spotlight';
+              case 'zoom': return 'zoom';
+              case 'show_text': return 'textReveal';
+              case 'transition': return 'slideLeft';
+              case 'animate': return 'popup';
+              default: return 'fade';
+            }
+          };
+
+          sequences.push({
+            id: `anim_${timelineStep.step}_${element.id}`,
+            elementId: element.id,
+            variant: getAnimationVariant(interaction.effect.type),
+            delay: interaction.effect.delay || 0,
+            duration: interaction.effect.duration || 300
+          });
+        }
+      }
+    });
+    
+    return sequences;
+  }, [timelineSteps]);
+
   // Convert slide interactions to timeline events
   const convertedTimelineEvents = useMemo((): TimelineEventData[] => {
     const events: TimelineEventData[] = [];
@@ -161,8 +206,17 @@ const SlideTimelineAdapter: React.FC<SlideTimelineAdapterProps> = ({
     const timelineStep = timelineSteps.find(ts => ts.step === step);
     if (timelineStep && onStepSelect) {
       onStepSelect(timelineStep.slideIndex);
+      
+      // Trigger animations for the selected step
+      const stepAnimations = animationSequences.filter(seq => 
+        timelineSteps.some(ts => ts.step === step && ts.elementId === seq.elementId)
+      );
+      
+      if (stepAnimations.length > 0 && moduleState === 'learning') {
+        playAnimationSequence(stepAnimations);
+      }
     }
-  }, [timelineSteps, onStepSelect]);
+  }, [timelineSteps, onStepSelect, animationSequences, moduleState, playAnimationSequence]);
 
   // Handle timeline events update
   const handleTimelineEventsUpdate = useCallback((events: TimelineEventData[]) => {
@@ -212,6 +266,33 @@ const SlideTimelineAdapter: React.FC<SlideTimelineAdapterProps> = ({
       }
     });
   }, [slideDeck, onSlideDeckChange]);
+
+  // Handle animation cleanup when slides change
+  useEffect(() => {
+    if (moduleState === 'idle') {
+      resetAnimations();
+    }
+  }, [currentSlideIndex, moduleState, resetAnimations]);
+
+  // Auto-play animations for slide transitions
+  useEffect(() => {
+    if (moduleState === 'learning') {
+      const slideTransitionAnimations = animationSequences.filter(seq => 
+        timelineSteps.some(ts => 
+          ts.slideIndex === currentSlideIndex && 
+          ts.step === currentSlideIndex * 100 && 
+          ts.elementId === seq.elementId
+        )
+      );
+      
+      if (slideTransitionAnimations.length > 0) {
+        // Delay to allow slide to render first
+        setTimeout(() => {
+          playAnimationSequence(slideTransitionAnimations);
+        }, 100);
+      }
+    }
+  }, [currentSlideIndex, moduleState, animationSequences, timelineSteps, playAnimationSequence]);
 
   // Timeline event management
   const handleAddStep = useCallback((step: number) => {

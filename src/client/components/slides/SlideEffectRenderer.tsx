@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters } from '../../../shared/slideTypes';
+import { AnimatedElement } from '../animations/ElementAnimations';
 
 interface SlideEffectRendererProps {
   effect: SlideEffect;
@@ -103,40 +105,51 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     ctx.restore();
 
     return (
-      <div className="spotlight-effect fixed inset-0 z-50">
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full"
-          style={{ 
-            opacity: isVisible ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out'
-          }}
-        />
-        
-        {/* Message overlay */}
-        {params.message && (
-          <div 
-            className="absolute top-1/4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transition: 'opacity 0.3s ease-in-out'
-            }}
+      <AnimatePresence>
+        {isVisible && (
+          <AnimatedElement
+            variant="spotlight"
+            microInteraction="subtle"
+            className="spotlight-effect fixed inset-0 z-50"
+            isVisible={isVisible}
           >
-            <div className="bg-black bg-opacity-75 text-white px-4 py-2 rounded-lg text-center">
-              {params.message}
-            </div>
-          </div>
-        )}
+            <motion.canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            />
+            
+            {/* Message overlay */}
+            {params.message && (
+              <motion.div
+                className="absolute top-1/4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
+              >
+                <div className="bg-black bg-opacity-75 text-white px-4 py-2 rounded-lg text-center">
+                  {params.message}
+                </div>
+              </motion.div>
+            )}
 
-        {/* Click to continue */}
-        <div 
-          className="absolute inset-0 cursor-pointer"
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onComplete, 300);
-          }}
-        />
-      </div>
+            {/* Click to continue */}
+            <motion.div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => {
+                setIsVisible(false);
+                setTimeout(onComplete, 300);
+              }}
+              whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+              transition={{ duration: 0.2 }}
+            />
+          </AnimatedElement>
+        )}
+      </AnimatePresence>
     );
   };
 
@@ -170,27 +183,64 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     };
 
     return (
-      <div 
-        className="zoom-effect"
-        style={zoomStyle}
-      >
-        <div style={contentStyle}>
-          {/* Zoom target indicator */}
-          <div
-            style={{
-              position: 'absolute',
-              left: params.targetPosition.x,
-              top: params.targetPosition.y,
-              width: params.targetPosition.width,
-              height: params.targetPosition.height,
-              border: '2px solid #3b82f6',
-              borderRadius: '4px',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              zIndex: 10
-            }}
-          />
-        </div>
-      </div>
+      <AnimatePresence>
+        {isVisible && (
+          <AnimatedElement
+            variant="zoom"
+            className="zoom-effect"
+            style={zoomStyle}
+            isVisible={isVisible}
+          >
+            <motion.div
+              style={{
+                position: 'absolute',
+                transformOrigin: 'center center',
+                width: '100%',
+                height: '100%'
+              }}
+              initial={{ 
+                scale: 1, 
+                x: 0, 
+                y: 0 
+              }}
+              animate={{ 
+                scale: params.zoomLevel,
+                x: params.centerOnTarget ? 
+                  `${50 - ((params.targetPosition.x + params.targetPosition.width / 2) / (containerRef.current?.clientWidth || 1)) * 100}%` : 
+                  0,
+                y: params.centerOnTarget ? 
+                  `${50 - ((params.targetPosition.y + params.targetPosition.height / 2) / (containerRef.current?.clientHeight || 1)) * 100}%` : 
+                  0
+              }}
+              transition={{
+                duration: effect.duration / 1000,
+                ease: effect.easing || "easeInOut",
+                type: "spring",
+                damping: 20,
+                stiffness: 100
+              }}
+            >
+              {/* Zoom target indicator */}
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  left: params.targetPosition.x,
+                  top: params.targetPosition.y,
+                  width: params.targetPosition.width,
+                  height: params.targetPosition.height,
+                  border: '2px solid #3b82f6',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  zIndex: 10
+                }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              />
+            </motion.div>
+          </AnimatedElement>
+        )}
+      </AnimatePresence>
     );
   };
 
@@ -201,32 +251,46 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     const params = effect.parameters as any;
 
     return (
-      <div
-        className="text-effect absolute z-30"
-        style={{
-          left: params.position.x,
-          top: params.position.y,
-          width: params.position.width,
-          height: params.position.height,
-          opacity: isVisible ? 1 : 0,
-          transition: 'opacity 0.3s ease-in-out'
-        }}
-      >
-        <div
-          style={{
-            ...params.style,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: params.style.padding || 16,
-            borderRadius: params.style.borderRadius || 8
-          }}
-        >
-          {params.text}
-        </div>
-      </div>
+      <AnimatePresence>
+        {isVisible && (
+          <AnimatedElement
+            variant="textReveal"
+            microInteraction="subtle"
+            className="text-effect absolute z-30"
+            style={{
+              left: params.position.x,
+              top: params.position.y,
+              width: params.position.width,
+              height: params.position.height
+            }}
+            isVisible={isVisible}
+          >
+            <motion.div
+              style={{
+                ...params.style,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: params.style.padding || 16,
+                borderRadius: params.style.borderRadius || 8
+              }}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              transition={{
+                type: "spring",
+                damping: 20,
+                stiffness: 100,
+                duration: 0.4
+              }}
+            >
+              {params.text}
+            </motion.div>
+          </AnimatedElement>
+        )}
+      </AnimatePresence>
     );
   };
 
