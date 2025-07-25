@@ -42,20 +42,21 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     }
   }, [element.id, element.interactions, onInteraction]);
 
-  // Build element style
+  // Build element style with null checks
+  const style = element.style || {};
   const elementStyle: React.CSSProperties = {
     position: 'absolute',
     left: position.x,
     top: position.y,
     width: position.width,
     height: position.height,
-    backgroundColor: element.style.backgroundColor,
-    borderColor: element.style.borderColor,
-    borderWidth: element.style.borderWidth,
-    borderStyle: element.style.borderWidth ? 'solid' : 'none',
-    borderRadius: element.style.borderRadius,
-    opacity: element.style.opacity ?? 1,
-    zIndex: element.style.zIndex ?? 10,
+    backgroundColor: style.backgroundColor,
+    borderColor: style.borderColor,
+    borderWidth: style.borderWidth,
+    borderStyle: style.borderWidth ? 'solid' : 'none',
+    borderRadius: style.borderRadius,
+    opacity: style.opacity ?? 1,
+    zIndex: style.zIndex ?? 10,
     cursor: element.interactions.length > 0 ? 'pointer' : 'default',
     display: 'flex',
     alignItems: 'center',
@@ -64,7 +65,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
   };
 
   // Add animation classes
-  const animationClasses = getAnimationClasses(element.style.animation);
+  const animationClasses = getAnimationClasses(style.animation);
 
   // Render different element types
   const renderElementContent = () => {

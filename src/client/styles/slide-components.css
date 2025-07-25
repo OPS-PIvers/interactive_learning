@@ -256,6 +256,45 @@
   .text-description {
     @apply text-xs;
   }
+
+  /* Mobile slide viewer optimizations */
+  .slide-viewer {
+    /* Ensure proper mobile viewport handling */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  /* Mobile slide elements */
+  .slide-element {
+    /* Improve touch targets on mobile */
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .slide-element[role="button"] {
+    /* Enhanced mobile touch feedback */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .slide-element[role="button"]:active {
+    @apply scale-95;
+    transition-duration: 0.1s;
+  }
+
+  /* Mobile hotspot improvements */
+  .slide-hotspot .hotspot-dot {
+    min-width: 40px;
+    min-height: 40px;
+    /* Enhanced mobile visibility */
+    border-width: 3px;
+  }
+
+  .slide-navigation-mobile .slide-nav-button {
+    @apply px-6 py-4 text-base;
+    min-height: 52px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -273,6 +312,22 @@
   
   .text-description {
     @apply text-xs;
+  }
+
+  /* Ultra-mobile optimizations */
+  .slide-hotspot .hotspot-dot {
+    min-width: 36px;
+    min-height: 36px;
+    border-width: 2px;
+  }
+
+  .slide-nav-button {
+    @apply px-4 py-3 text-sm;
+    min-height: 48px;
+  }
+
+  .slide-media {
+    @apply rounded-lg; /* Smaller radius on very small screens */
   }
 }
 
@@ -330,4 +385,76 @@
   .slide-viewer {
     @apply break-inside-avoid;
   }
+}
+
+/* Slide-specific mobile viewport fixes */
+@media screen and (max-width: 768px) {
+  .slide-viewer {
+    /* Enhanced mobile viewport support */
+    --vh: 1vh;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* Prevent overscroll */
+    overscroll-behavior: none;
+    overscroll-behavior-y: contain;
+    
+    /* Improve touch responsiveness */
+    touch-action: manipulation;
+  }
+
+  .slide-viewer.mobile-viewport-fix {
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  .slide-viewer.mobile-safe-area {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+}
+
+/* Dark mode slide components (matching app theme) */
+@media (prefers-color-scheme: dark) {
+  .slide-background {
+    @apply bg-gradient-to-br from-slate-900 to-slate-800;
+  }
+  
+  .slide-text {
+    @apply bg-slate-800 border-slate-700 text-white;
+  }
+  
+  .slide-media {
+    @apply border-slate-700;
+  }
+}
+
+/* Light mode overrides for slides */
+@media (prefers-color-scheme: light) {
+  .slide-background {
+    @apply bg-gradient-to-br from-gray-50 to-gray-100;
+  }
+  
+  .slide-text {
+    @apply bg-white border-gray-200 text-gray-900;
+  }
+  
+  .text-description {
+    @apply text-gray-600;
+  }
+  
+  .slide-media {
+    @apply border-gray-200;
+  }
+}
+
+/* Enhanced slide performance */
+.slide-element {
+  /* GPU acceleration for smooth animations */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.slide-elements-container {
+  /* Optimize rendering performance */
+  contain: layout style paint;
 }

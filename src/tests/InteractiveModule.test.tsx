@@ -3,7 +3,7 @@ import { render, screen, within, fireEvent, cleanup } from '@testing-library/rea
 import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import InteractiveModule from '../client/components/InteractiveModule';
+import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
 import { InteractiveModuleState } from '../shared/types';
 
 // Mock child components that are not relevant to these specific tests
@@ -36,7 +36,7 @@ vi.mock('../lib/firebaseProxy', () => ({
 }));
 
 
-describe('InteractiveModule', () => {
+describe('SlideBasedInteractiveModule', () => {
   const mockOnSave = vi.fn();
   const mockOnClose = vi.fn();
 
@@ -69,66 +69,66 @@ describe('InteractiveModule', () => {
   // Test suite for initial overlay buttons in viewer mode
   describe('Initial Overlay Buttons (Viewer Mode)', () => {
     test('renders both "Explore Module" and "Start Guided Tour" buttons by default (all modes enabled)', () => {
-      render(<ToastProvider><InteractiveModule {...getProps()} /></ToastProvider>);
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps()} /></ToastProvider>);
       // The buttons are inside a specific overlay div, let's target that
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return; // Type guard
 
-      expect(within(overlay).getByText('Explore Module')).toBeInTheDocument();
-      expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).getByText('🔍 Explore Freely')).toBeInTheDocument();
+      expect(within(overlay).getByText('🎯 Guided Experience')).toBeInTheDocument();
     });
 
     test('renders only "Explore Module" button if only explore mode is enabled', () => {
-      render(<ToastProvider><InteractiveModule {...getProps({ explore: true, selfPaced: false, timed: false })} /></ToastProvider>);
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps({ explore: true, selfPaced: false, timed: false })} /></ToastProvider>);
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).getByText('Explore Module')).toBeInTheDocument();
-      expect(within(overlay).queryByText('Start Guided Tour')).not.toBeInTheDocument();
+      expect(within(overlay).getByText('🔍 Explore Freely')).toBeInTheDocument();
+      expect(within(overlay).queryByText('🎯 Guided Experience')).not.toBeInTheDocument();
     });
 
     test('renders only "Start Guided Tour" button if only selfPaced mode is enabled', () => {
-      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: false })} /></ToastProvider>);
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps({ explore: false, selfPaced: true, timed: false })} /></ToastProvider>);
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
-      expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).queryByText('🔍 Explore Freely')).not.toBeInTheDocument();
+      expect(within(overlay).getByText('🎯 Guided Experience')).toBeInTheDocument();
     });
 
     test('renders only "Start Guided Tour" button if only timed mode is enabled', () => {
-      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: true })} /></ToastProvider>);
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps({ explore: false, selfPaced: false, timed: true })} /></ToastProvider>);
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
-      expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).queryByText('🔍 Explore Freely')).not.toBeInTheDocument();
+      expect(within(overlay).getByText('🎯 Guided Experience')).toBeInTheDocument();
     });
 
     test('renders "Start Guided Tour" button if both selfPaced and timed modes are enabled (explore disabled)', () => {
-      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: true, timed: true })} /></ToastProvider>);
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps({ explore: false, selfPaced: true, timed: true })} /></ToastProvider>);
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
-      expect(within(overlay).getByText('Start Guided Tour')).toBeInTheDocument();
+      expect(within(overlay).queryByText('🔍 Explore Freely')).not.toBeInTheDocument();
+      expect(within(overlay).getByText('🎯 Guided Experience')).toBeInTheDocument();
     });
 
     test('renders no mode selection buttons in overlay if all viewer modes are disabled', () => {
-      render(<ToastProvider><InteractiveModule {...getProps({ explore: false, selfPaced: false, timed: false })} /></ToastProvider>);
-      const overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      render(<ToastProvider><SlideBasedInteractiveModule {...getProps({ explore: false, selfPaced: false, timed: false })} /></ToastProvider>);
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
       if (!overlay) return;
 
-      expect(within(overlay).queryByText('Explore Module')).not.toBeInTheDocument();
-      expect(within(overlay).queryByText('Start Guided Tour')).not.toBeInTheDocument();
-      // It should still show the "Interactive Module Ready" text.
-      expect(within(overlay).getByText('Interactive Module Ready')).toBeInTheDocument();
+      expect(within(overlay).queryByText('🔍 Explore Freely')).not.toBeInTheDocument();
+      expect(within(overlay).queryByText('🎯 Guided Experience')).not.toBeInTheDocument();
+      // It should still show the "Interactive Learning Experience" text.
+      expect(within(overlay).getByText('Interactive Learning Experience')).toBeInTheDocument();
     });
 
     test('does not render initial overlay if not in idle state', () => {
@@ -138,16 +138,16 @@ describe('InteractiveModule', () => {
       // A more complex test would involve changing moduleState after initial render.
       // This test might be better as an integration test if moduleState changes are involved.
       // Current component logic initializes to 'idle' when isEditing is false.
-      const { rerender } = render(<ToastProvider><InteractiveModule {...getProps()} /></ToastProvider>);
-      let overlay = screen.getByText('Interactive Module Ready').closest('div.bg-black\\/40');
+      const { rerender } = render(<ToastProvider><SlideBasedInteractiveModule {...getProps()} /></ToastProvider>);
+      let overlay = screen.getByText('Interactive Learning Experience').closest('div');
       expect(overlay).toBeInTheDocument();
 
-      // Simulate clicking "Start Guided Tour" which changes moduleState to 'learning'
-      if(overlay) fireEvent.click(within(overlay).getByText('Start Guided Tour'));
+      // Simulate clicking "🎯 Guided Experience" which changes moduleState to 'learning'
+      if(overlay) fireEvent.click(within(overlay).getByText('🎯 Guided Experience'));
 
       // Re-render or wait for state update. For this component, it might auto-hide.
       // Check if the overlay is gone. This depends on the component's internal logic for hiding the overlay.
-      const moduleReadyText = screen.queryByText('Interactive Module Ready');
+      const moduleReadyText = screen.queryByText('Interactive Learning Experience');
       const overlayAfterClick = moduleReadyText?.closest('div.bg-black\\/40') || null;
       expect(overlayAfterClick).not.toBeInTheDocument();
 

@@ -1,6 +1,6 @@
 import React, { Fragment, useMemo, useState, useCallback } from 'react';
 import debounce from 'lodash.debounce';
-import InteractiveModule from './InteractiveModule';
+import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
 import SlideEditor from './slides/SlideEditor';
@@ -31,7 +31,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   // ✅ ALWAYS call the same hooks in the same order
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(
-    selectedProject.projectType === 'slide' ? (selectedProject.slideDeck || { slides: [] }) : null
+    selectedProject.slideDeck || null
   );
 
   // Debounced save function to prevent excessive network requests
@@ -76,17 +76,19 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900 mobile-viewport-fix">
       <WrapperComponent {...wrapperProps}>
-        {selectedProject.projectType === 'slide' && isEditingMode && slideDeck ? (
+        {/* Native slide projects - use existing slide components */}
+        {slideDeck && isEditingMode ? (
           <SlideEditor
             slideDeck={slideDeck}
             onSlideDeckChange={handleSlideDeckChange}
             onClose={onClose}
           />
-        ) : selectedProject.projectType === 'slide' && slideDeck ? (
+        ) : slideDeck ? (
           <SlideViewer slideDeck={slideDeck} />
-        ) : selectedProject.interactiveData.hotspots && selectedProject.interactiveData.timelineEvents ? (
-          <InteractiveModule
-            key={`${selectedProject.id}-${isEditingMode}-details-loaded`}
+        ) : /* All projects now use slide-based architecture */ 
+        selectedProject.interactiveData ? (
+          <SlideBasedInteractiveModule
+            key={`${selectedProject.id}-${isEditingMode}-slide-based`}
             initialData={selectedProject.interactiveData}
             isEditing={isEditingMode}
             onSave={(data, thumbnailUrl) => onSave(selectedProject.id, data, thumbnailUrl)}
@@ -96,6 +98,11 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             projectId={selectedProject.id}
             onReloadRequest={onReloadRequest}
             isPublished={isPublished}
+            viewerModes={{
+              explore: true,
+              selfPaced: true,
+              timed: false
+            }}
           />
         ) : (
           <div className="flex items-center justify-center h-full">

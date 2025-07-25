@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Project } from '../../shared/types';
-import InteractiveModule from './InteractiveModule';
+import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -151,7 +151,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
       {/* Main Module Content - takes up available space */}
       <main id="main-content" className="flex-grow flex flex-col focus:outline-none" tabIndex={-1}>
-        <InteractiveModule
+        <SlideBasedInteractiveModule
           key={`shared-${project.id}`}
           initialData={project.interactiveData}
           isEditing={false}

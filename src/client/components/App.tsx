@@ -157,10 +157,10 @@ const MainApp: React.FC = () => {
   }, [loadProjectDetailsAndOpen]);
   
   // Helper function to reduce code duplication
-  const createAndSetupProject = useCallback(async (title: string, description: string, projectType?: 'hotspot' | 'slide', demoData?: any) => {
+  const createAndSetupProject = useCallback(async (title: string, description: string, demoData?: any) => {
     setIsLoading(true);
     try {
-      const newProject = await appScriptProxy.createProject(title, description, projectType);
+      const newProject = await appScriptProxy.createProject(title, description);
       let finalProject = newProject;
 
       // If demo data is provided, save it with the project
@@ -198,24 +198,15 @@ const MainApp: React.FC = () => {
       return;
     }
 
-    const projectType = prompt("Choose project type: 'hotspot' or 'slide'", "hotspot");
+    const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
 
-    if (projectType === 'slide') {
+    if (createDemo) {
+      await createAndSetupProject("Demo Module", "A module demonstrating all features.", demoModuleData);
+    } else {
       const title = prompt("Enter new project title:");
       if (!title) return;
       const description = prompt("Enter project description (optional):") || "";
-      await createAndSetupProject(title, description, 'slide');
-    } else if (projectType === 'hotspot') {
-      const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
-
-      if (createDemo) {
-        await createAndSetupProject("Demo Module", "A module demonstrating all features.", 'hotspot', demoModuleData);
-      } else {
-        const title = prompt("Enter new project title:");
-        if (!title) return;
-        const description = prompt("Enter project description (optional):") || "";
-        await createAndSetupProject(title, description, 'hotspot');
-      }
+      await createAndSetupProject(title, description);
     }
   }, [user, createAndSetupProject]);
 

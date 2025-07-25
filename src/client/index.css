@@ -4,6 +4,7 @@
 /* @import url('./styles/mobile.css'); Tailwind handles responsiveness */
 @import './styles/custom-scrollbar.css'; /* Custom scrollbar styles we added */
 @import './styles/high-contrast.css'; /* High contrast mode styles */
+@import './styles/slide-components.css'; /* Slide-based architecture styles */
 
 /* Main styles for the Interactive Training Module Creator */
 

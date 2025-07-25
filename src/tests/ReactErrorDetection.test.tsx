@@ -3,7 +3,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
-import InteractiveModule from '../client/components/InteractiveModule';
+import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
 import { InteractiveModuleState } from '../shared/types';
 
 // Mock child components to isolate testing
@@ -111,13 +111,13 @@ describe('React Error Detection Tests', () => {
     test('should not produce React Hook Error #310 in viewer mode', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       // Wait for component to fully initialize
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Check for React Hook Error #310 specifically
@@ -139,7 +139,7 @@ describe('React Error Detection Tests', () => {
     test('should not produce React Hook Error #310 in editor mode', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getEditorProps()} />
+          <SlideBasedInteractiveModule {...getEditorProps()} />
         </ToastProvider>
       );
 
@@ -167,25 +167,25 @@ describe('React Error Detection Tests', () => {
     test('should not produce hook order violations during mode transitions', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       // Wait for initial render
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
-      // Simulate mode transition by clicking "Start Guided Tour"
-      const overlay = screen.getByText('Interactive Module Ready').closest('div');
+      // Simulate mode transition by clicking "🎯 Guided Experience"
+      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
       if (overlay) {
-        const tourButton = screen.getByText('Start Guided Tour');
+        const tourButton = screen.getByText('🎯 Guided Experience');
         fireEvent.click(tourButton);
       }
 
       // Wait for transition to complete
       await waitFor(() => {
-        const moduleReadyText = screen.queryByText('Interactive Module Ready');
+        const moduleReadyText = screen.queryByText('Interactive Learning Experience');
         expect(moduleReadyText).not.toBeInTheDocument();
       });
 
@@ -210,12 +210,12 @@ describe('React Error Detection Tests', () => {
     test('should not produce TDZ errors during component initialization', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Check for TDZ-related errors
@@ -239,7 +239,7 @@ describe('React Error Detection Tests', () => {
     test('should not produce TDZ errors in editor mode', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getEditorProps()} />
+          <SlideBasedInteractiveModule {...getEditorProps()} />
         </ToastProvider>
       );
 
@@ -270,12 +270,12 @@ describe('React Error Detection Tests', () => {
     test('should not produce unhandled component errors in viewer mode', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Filter out expected Firebase warnings and focus on React component errors
@@ -307,7 +307,7 @@ describe('React Error Detection Tests', () => {
     test('should not produce unhandled component errors in editor mode', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getEditorProps()} />
+          <SlideBasedInteractiveModule {...getEditorProps()} />
         </ToastProvider>
       );
 
@@ -344,12 +344,12 @@ describe('React Error Detection Tests', () => {
     test('should handle prop changes without errors', async () => {
       const { rerender } = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Clear any initialization errors
@@ -367,12 +367,12 @@ describe('React Error Detection Tests', () => {
 
       rerender(
         <ToastProvider>
-          <InteractiveModule {...newProps} />
+          <SlideBasedInteractiveModule {...newProps} />
         </ToastProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Check that prop changes didn't cause errors
@@ -401,12 +401,12 @@ describe('React Error Detection Tests', () => {
     test('should properly cleanup on unmount without errors', async () => {
       const component = render(
         <ToastProvider>
-          <InteractiveModule {...getViewerProps()} />
+          <SlideBasedInteractiveModule {...getViewerProps()} />
         </ToastProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       // Clear any initialization errors
@@ -452,13 +452,13 @@ describe('React Error Detection Tests', () => {
       const component = render(
         <TestErrorBoundary>
           <ToastProvider>
-            <InteractiveModule {...getViewerProps()} />
+            <SlideBasedInteractiveModule {...getViewerProps()} />
           </ToastProvider>
         </TestErrorBoundary>
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Module Ready')).toBeInTheDocument();
+        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
       });
 
       expect(errorBoundaryTriggered).toBe(false);
