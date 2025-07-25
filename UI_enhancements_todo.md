@@ -510,20 +510,34 @@ Based on my research of both the current codebase and the `main_revert` branch, 
     *   Theme customization panel for creating custom color combinations
     *   Integration with existing `themePresets` (Professional, Vibrant, Earth, Dark)
 
-### Key Technical Decisions
+Back button in viewer is non-functional
 
-1.  **Leverage Existing Foundation:** Build upon the completed theme system, `slideTypes` extensions, and timeline integration
-2.  **Maintain Backward Compatibility:** Ensure legacy hotspot projects continue working while enabling enhanced features
-3.  **Progressive Enhancement:** Add new features as optional enhancements that don't break existing functionality
-4.  **Mobile-First Design:** Ensure all new UI components work well on both desktop and mobile
-5.  **Theme Integration:** Connect all new appearance controls to the theme system for consistent styling
+Module is published (toggle is on and loads in that state as well afterwards so the state is saving) but the published view-only link loads as "Module unavailable" and the console says it doesn't have sufficient permissions to view it.
 
-### Expected Outcomes
+-----
 
-*   Rich event editing capabilities matching the legacy system
-*   Professional appearance customization UI with color presets and animations
-*   Comprehensive properties panels for all element types
-*   Integrated theme system with visual selector in project settings
-*   Enhanced user experience with consistent styling and theming
+Here's where Claude left off last:
 
-This plan builds systematically on the completed high-priority work while integrating seamlessly with the existing slide-based architecture.
+● Update Todos
+  ⎿  ☒ Fix sharing issues - investigate and resolve 'module not     
+       available' error
+     ☒ Extend slideTypes interfaces for rich event settings and 
+       styling options
+     ☒ Create theme system foundation with color palettes and theme 
+       interfaces
+     ☒ Integrate horizontal timeline with slide navigation for 
+       guided learning
+     ☒ Implement guided learning and auto-progression modes with 
+       timeline control
+     ☒ Phase 1: Migrate event settings from main_revert 
+       MobileEventSettings to slide system
+     ☐ Phase 2: Implement hotspot appearance customization with 
+       enhanced UI from StreamlinedHotspotEditor
+     ☐ Phase 3: Create comprehensive properties panels for element
+       editing with expanded sections
+     ☐ Phase 4: Integrate theme system with SlideBasedEditor using
+       ProjectThemeProvider
+     ☐ Phase 5: Implement project settings menu with theme selector
+       triggered by gear icon
+     ☐ Phase 6: Create enhanced color palette interface with visual
+       theme preview cards
