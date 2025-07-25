@@ -17,6 +17,8 @@ import { CheckIcon } from './icons/CheckIcon';
 import { GearIcon } from './icons/GearIcon';
 import AuthButton from './AuthButton';
 import ShareModal from './ShareModal';
+import ElementInteractionsModal from './ElementInteractionsModal';  
+import ProjectSettingsModal from './ProjectSettingsModal';
 import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 
@@ -61,6 +63,9 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  const [isInteractionsModalOpen, setIsInteractionsModalOpen] = useState(false);
+  const [interactionElementId, setInteractionElementId] = useState<string | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -266,8 +271,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   // Handle view interactions
   const handleViewInteractions = useCallback((elementId: string) => {
-    // TODO: Implement interactions viewer/editor
-    console.log('View interactions for element:', elementId);
+    setInteractionElementId(elementId);
+    setIsInteractionsModalOpen(true);
   }, []);
 
   // Duplicate slide
@@ -452,7 +457,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         {/* Right Section: Settings + Save + Share + Auth */}
         <div className="flex items-center gap-3 flex-1 justify-end">
           <button
-            onClick={() => console.log('Settings - to be implemented')}
+            onClick={() => setIsSettingsModalOpen(true)}
             className="text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
             aria-label="Project settings"
           >
@@ -529,48 +534,49 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <div className="font-semibold text-sm">{index + 1}. {slide.title}</div>
-                    <div className="text-xs text-slate-300 mt-1">{slide.elements.length} elements</div>
+                    <span className="font-semibold text-sm">{index + 1}. {slide.title}</span>
+                    <p className="text-xs text-slate-300 mt-1">{slide.elements.length} element{slide.elements.length !== 1 ? 's' : ''}</p>
                   </div>
                   
                   {/* Three-dot menu */}
                   <div className="relative">
                     <button
-                      className="text-slate-400 hover:text-slate-200 p-1 rounded"
+                      className="text-slate-400 hover:text-white p-1 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDropdownToggle(slide.id);
                       }}
                       title="Slide options"
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                      </svg>
+                      ⋯
                     </button>
                     
                     {/* Dropdown menu */}
                     {activeDropdownId === slide.id && (
-                      <div className="absolute right-0 top-8 w-32 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50">
+                      <div className="absolute right-0 top-8 w-36 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50">
                         <div className="py-1">
                           <button
-                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 hover:text-white"
+                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors rounded-t-lg"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDuplicateSlide(index);
+                              setActiveDropdownId(null);
                             }}
                           >
-                            Duplicate
+                            📋 Duplicate
                           </button>
                           {slideDeck.slides.length > 1 && (
                             <button
-                              className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-600 hover:text-red-300"
+                              className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors rounded-b-lg"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteSlide(index);
-                                setActiveDropdownId(null);
+                                if (window.confirm('Delete this slide?')) {
+                                  handleDeleteSlide(index);
+                                  setActiveDropdownId(null);
+                                }
                               }}
                             >
-                              Delete
+                              🗑️ Delete
                             </button>
                           )}
                         </div>
@@ -652,6 +658,27 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           name: projectName,
           published: isPublished
         } as any}
+      />
+
+      {/* Element Interactions Modal */}
+      {interactionElementId && currentSlide && (
+        <ElementInteractionsModal
+          isOpen={isInteractionsModalOpen}
+          onClose={() => {
+            setIsInteractionsModalOpen(false);
+            setInteractionElementId(null);
+          }}
+          element={currentSlide.elements.find(el => el.id === interactionElementId)!}
+          onElementUpdate={handleElementUpdate}
+        />
+      )}
+
+      {/* Project Settings Modal */}
+      <ProjectSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        projectName={projectName}
+        projectId={projectId || ''}
       />
     </div>
   );

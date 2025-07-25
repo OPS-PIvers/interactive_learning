@@ -125,10 +125,13 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           
           <ViewerToolbar
             projectName={projectName}
-            onClose={onClose}
+            onBack={onClose}
+            moduleState={viewerState}
+            onStartLearning={handleStartGuidedTour}
+            onStartExploring={handleExploreModule} 
+            hasContent={slideDeck.slides.length > 0}
             isMobile={isMobile}
-            currentStep={1}
-            totalSteps={slideDeck.slides.length}
+            viewerModes={viewerModes}
           />
         </div>
 
@@ -229,10 +232,13 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           </button>
           <ViewerToolbar
             projectName={projectName}
-            onClose={onClose}
+            onBack={onClose}
+            moduleState={viewerState}
+            onStartLearning={handleStartGuidedTour}
+            onStartExploring={handleExploreModule} 
+            hasContent={slideDeck.slides.length > 0}
             isMobile={isMobile}
-            currentStep={1}
-            totalSteps={slideDeck.slides.length}
+            viewerModes={viewerModes}
           />
         </div>
       </div>
