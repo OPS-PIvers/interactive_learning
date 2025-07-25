@@ -25,7 +25,7 @@ interface SlideBasedEditorProps {
   projectName: string;
   projectId?: string;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
-  onSave: () => Promise<void>;
+  onSave: (currentSlideDeck: SlideDeck) => Promise<void>;
   onImageUpload: (file: File) => Promise<void>;
   onClose: () => void;
   isPublished: boolean;
@@ -60,6 +60,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [deviceTypeOverride, setDeviceTypeOverride] = useState<DeviceType | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -173,19 +174,22 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const handleSaveProject = useCallback(async () => {
     setIsSaving(true);
     try {
-      await onSave();
+      await onSave(slideDeck);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 2000);
       
       if (process.env.NODE_ENV === 'development') {
-        console.log('[SlideBasedEditor] Project saved successfully');
+        console.log('[SlideBasedEditor] Project saved successfully', {
+          slideCount: slideDeck.slides.length,
+          backgroundMedia: slideDeck.slides.map(s => s.backgroundMedia?.type || 'none')
+        });
       }
     } catch (error) {
       console.error('[SlideBasedEditor] Save failed:', error);
     } finally {
       setIsSaving(false);
     }
-  }, [onSave]);
+  }, [onSave, slideDeck]);
 
   // Toggle preview mode
   const handleTogglePreview = useCallback(() => {
@@ -266,6 +270,58 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     console.log('View interactions for element:', elementId);
   }, []);
 
+  // Duplicate slide
+  const handleDuplicateSlide = useCallback((slideIndex: number) => {
+    const slideToClone = slideDeck.slides[slideIndex];
+    if (!slideToClone) return;
+
+    const duplicatedSlide: InteractiveSlide = {
+      ...slideToClone,
+      id: generateId(),
+      title: `${slideToClone.title} (Copy)`,
+      elements: slideToClone.elements.map(element => ({
+        ...element,
+        id: generateId()
+      }))
+    };
+
+    const updatedSlides = [
+      ...slideDeck.slides.slice(0, slideIndex + 1),
+      duplicatedSlide,
+      ...slideDeck.slides.slice(slideIndex + 1)
+    ];
+
+    const updatedSlideDeck: SlideDeck = {
+      ...slideDeck,
+      slides: updatedSlides,
+      metadata: {
+        ...slideDeck.metadata,
+        modified: Date.now()
+      }
+    };
+
+    handleSlideDeckUpdate(updatedSlideDeck);
+    setCurrentSlideIndex(slideIndex + 1); // Navigate to the duplicated slide
+    setActiveDropdownId(null);
+  }, [slideDeck, handleSlideDeckUpdate]);
+
+  // Handle dropdown toggle
+  const handleDropdownToggle = useCallback((slideId: string) => {
+    setActiveDropdownId(prev => prev === slideId ? null : slideId);
+  }, []);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveDropdownId(null);
+    };
+
+    if (activeDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [activeDropdownId]);
+
   // Handle aspect ratio changes for slides
   const handleAspectRatioChange = useCallback((slideIndex: number, newAspectRatio: string) => {
     const targetSlide = slideDeck.slides[slideIndex];
@@ -325,6 +381,22 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   return (
     <div className="slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+      {/* Custom scrollbar styles for slide list */}
+      <style>{`
+        .slide-list::-webkit-scrollbar {
+          width: 6px;
+        }
+        .slide-list::-webkit-scrollbar-track {
+          background: #2d3748;
+        }
+        .slide-list::-webkit-scrollbar-thumb {
+          background: #4a5568;
+          border-radius: 3px;
+        }
+        .slide-list::-webkit-scrollbar-thumb:hover {
+          background: #718096;
+        }
+      `}</style>
       {/* Header - 3-Section Layout */}
       <div className="bg-slate-800 border-b border-slate-700 text-white px-4 py-2 flex items-center justify-between shadow-2xl">
         {/* Left Section: Back + Title */}
@@ -436,61 +508,96 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
       {/* Main editor content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Slide navigation panel */}
-        <div className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
-          {/* Slide list header */}
+        {/* Slide navigation panel - matches landing page example layout */}
+        <div className="w-64 bg-slate-800/50 border-r border-slate-700 flex flex-col">
+          {/* Header */}
           <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold">Slides</h3>
-              <button
-                className="slide-nav-button slide-nav-button-primary text-sm px-3 py-1"
-                onClick={handleAddSlide}
-              >
-                + Add
-              </button>
-            </div>
+            <h2 className="text-white font-semibold">Slides</h2>
           </div>
 
-          {/* Slide list */}
-          <div className="flex-1 overflow-y-auto p-2">
+          {/* Scrollable slide list */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-2 slide-list">
             {slideDeck.slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className={`p-3 mb-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                   index === currentSlideIndex
-                    ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white'
+                    ? 'bg-blue-600/30 border border-blue-500 text-white'
                     : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white'
                 }`}
                 onClick={() => handleSlideChange(index)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
                   <div>
-                    <div className="font-medium text-sm">{slide.title}</div>
-                    <div className="text-xs opacity-70">{slide.elements.length} elements</div>
+                    <div className="font-semibold text-sm">{index + 1}. {slide.title}</div>
+                    <div className="text-xs text-slate-300 mt-1">{slide.elements.length} elements</div>
                   </div>
                   
-                  {slideDeck.slides.length > 1 && (
+                  {/* Three-dot menu */}
+                  <div className="relative">
                     <button
-                      className="text-red-400 hover:text-red-300 text-xs p-1"
+                      className="text-slate-400 hover:text-slate-200 p-1 rounded"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteSlide(index);
+                        handleDropdownToggle(slide.id);
                       }}
+                      title="Slide options"
                     >
-                      🗑️
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                      </svg>
                     </button>
-                  )}
+                    
+                    {/* Dropdown menu */}
+                    {activeDropdownId === slide.id && (
+                      <div className="absolute right-0 top-8 w-32 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50">
+                        <div className="py-1">
+                          <button
+                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicateSlide(index);
+                            }}
+                          >
+                            Duplicate
+                          </button>
+                          {slideDeck.slides.length > 1 && (
+                            <button
+                              className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-600 hover:text-red-300"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSlide(index);
+                                setActiveDropdownId(null);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Footer with Add Slide button */}
+          <div className="p-4 border-t border-slate-700">
+            <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
+              onClick={handleAddSlide}
+            >
+              + Add Slide
+            </button>
+          </div>
         </div>
 
         {/* Main canvas area */}
         <div className="flex-1 flex flex-col">
           <SlideEditor
             slideDeck={editorSlideDeck}
+            currentSlideIndex={currentSlideIndex}
             onSlideDeckChange={handleSlideDeckUpdate}
             onClose={onClose}
             className="flex-1"

@@ -3,7 +3,7 @@ import debounce from 'lodash.debounce';
 import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
-import SlideEditor from './slides/SlideEditor';
+import SlideBasedEditor from './SlideBasedEditor';
 import { SlideDeck } from '../../shared/slideTypes';
 import SlideViewer from './slides/SlideViewer';
 
@@ -46,6 +46,12 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
     setSlideDeck(newSlideDeck);
     debouncedSave(selectedProject.id, selectedProject.interactiveData, undefined, newSlideDeck);
   }, [debouncedSave, selectedProject.id, selectedProject.interactiveData]);
+
+  const handleImmediateSave = useCallback(async (currentSlideDeck: SlideDeck) => {
+    // Cancel any pending debounced saves and save immediately
+    debouncedSave.cancel();
+    await onSave(selectedProject.id, selectedProject.interactiveData, undefined, currentSlideDeck);
+  }, [onSave, selectedProject.id, selectedProject.interactiveData, debouncedSave]);
   
   // ✅ Determine wrapper type without affecting hook order
   const WrapperComponent = useMemo(() => {
@@ -82,12 +88,17 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   return (
     <div className={`fixed inset-0 z-50 mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
       <WrapperComponent {...wrapperProps}>
-        {/* Native slide projects - use existing slide components */}
+        {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ? (
-          <SlideEditor
+          <SlideBasedEditor
             slideDeck={slideDeck}
+            projectName={selectedProject.title}
+            projectId={selectedProject.id}
             onSlideDeckChange={handleSlideDeckChange}
+            onSave={handleImmediateSave}
+            onImageUpload={onImageUpload}
             onClose={onClose}
+            isPublished={selectedProject.isPublished || false}
           />
         ) : slideDeck ? (
           <SlideViewer slideDeck={slideDeck} />

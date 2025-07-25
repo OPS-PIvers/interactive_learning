@@ -110,16 +110,25 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   const handleSave = useCallback(async () => {
     if (!slideDeck) return;
 
-    // For now, we'll save the original format
-    // TODO: Implement slide deck → hotspot conversion or update backend to support slides
     console.log('[SlideBasedInteractiveModule] Saving slide deck:', {
       slideCount: slideDeck.slides.length,
       title: slideDeck.title,
-      id: slideDeck.id
+      id: slideDeck.id,
+      firstSlideBackgroundMedia: slideDeck.slides[0]?.backgroundMedia
     });
 
-    // Preserve original data structure for compatibility
-    await onSave(initialData);
+    // Create updated interactive data that preserves the original structure 
+    // but includes any legacy compatibility needs
+    const updatedData: InteractiveModuleState = {
+      ...initialData,
+      // Preserve any legacy properties while ensuring background compatibility
+      backgroundImage: slideDeck.slides[0]?.backgroundMedia?.type === 'image' 
+        ? slideDeck.slides[0].backgroundMedia.url 
+        : initialData.backgroundImage
+    };
+
+    // Save both the updated legacy data AND the slide deck
+    await onSave(updatedData);
   }, [onSave, slideDeck, initialData]);
 
   const handleClose = useCallback(() => {

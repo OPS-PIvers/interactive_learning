@@ -7,6 +7,7 @@ import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
+  currentSlideIndex?: number;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
   onClose: () => void;
   className?: string;
@@ -28,6 +29,7 @@ interface DragState {
  */
 export const SlideEditor: React.FC<SlideEditorProps> = ({
   slideDeck,
+  currentSlideIndex: propCurrentSlideIndex = 0,
   onSlideDeckChange,
   onClose,
   className = '',
@@ -40,8 +42,9 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   
-  // Editor state
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  // Editor state - use prop if provided, otherwise manage internal state
+  const [internalSlideIndex, setInternalSlideIndex] = useState(0);
+  const currentSlideIndex = propCurrentSlideIndex;
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
@@ -51,6 +54,24 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   });
   
   const currentSlide = slideDeck.slides[currentSlideIndex];
+  
+  // Debug current slide background media in development
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SlideEditor] Current slide changed:', {
+        slideIndex: currentSlideIndex,
+        slideTitle: currentSlide?.title,
+        backgroundMediaType: currentSlide?.backgroundMedia?.type,
+        backgroundMediaUrl: currentSlide?.backgroundMedia?.url,
+        backgroundMediaYoutubeId: currentSlide?.backgroundMedia?.youtubeId,
+        allSlideBackgrounds: slideDeck.slides.map((s, i) => ({
+          index: i,
+          title: s.title,
+          backgroundType: s.backgroundMedia?.type || 'none'
+        }))
+      });
+    }
+  }, [currentSlideIndex, currentSlide, slideDeck.slides]);
   
   // Calculate canvas dimensions based on aspect ratio
   const canvasDimensions = React.useMemo(() => {
@@ -328,6 +349,12 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 {/* YouTube Background */}
                 {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId && (
                   <div className="absolute inset-0 w-full h-full">
+                    {process.env.NODE_ENV === 'development' && console.log('[SlideEditor] Rendering YouTube background:', {
+                      slideIndex: currentSlideIndex,
+                      youtubeId: currentSlide.backgroundMedia.youtubeId,
+                      autoplay: currentSlide.backgroundMedia.autoplay,
+                      slideDeckLength: slideDeck.slides.length
+                    })}
                     <iframe
                       src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
                         currentSlide.backgroundMedia.autoplay ? 1 : 0
