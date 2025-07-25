@@ -248,30 +248,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           }}
         />
       )}
-      {/* Editor Header - Matches app header styling */}
-      <div className="editor-header bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between shadow-2xl">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-            Slide Editor
-          </h1>
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg">
-            {slideDeck.slides.length} SLIDES
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          
-          
-          <div className="h-6 w-px bg-slate-600" />
-          
-          <button
-            className="slide-nav-button slide-nav-button-primary"
-            onClick={onClose}
-          >
-            Done
-          </button>
-        </div>
-      </div>
+      
 
       {/* Main Editor Content */}
       <div className="editor-content flex-1 flex">
