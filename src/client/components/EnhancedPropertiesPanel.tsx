@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SlideElement, DeviceType, ElementStyle, ElementContent, InteractiveSlide, BackgroundMedia, ElementInteraction } from '../../shared/slideTypes';
 import { InteractionType } from '../../shared/types';
 import ChevronDownIcon from './icons/ChevronDownIcon';
@@ -69,9 +69,17 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
     presets: selectedElement?.type === 'hotspot', // Auto-open for hotspots
     content: true,
     position: false,
-    interactions: false,
+    interactions: selectedElement?.type === 'hotspot',
     background: true
   });
+
+  useEffect(() => {
+    setOpenSections(prev => ({
+      ...prev,
+      presets: selectedElement?.type === 'hotspot',
+      interactions: selectedElement?.type === 'hotspot'
+    }));
+  }, [selectedElement]);
 
   // Background media panel state
   const [isBackgroundPanelOpen, setIsBackgroundPanelOpen] = useState(false);
