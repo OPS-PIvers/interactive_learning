@@ -36,7 +36,7 @@
   @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
 }
 
-/* Hotspot Elements - Matches app hotspot styling */
+/* Hotspot Elements - Uses theme variables */
 .slide-hotspot {
   @apply relative w-full h-full flex items-center justify-center;
 }
@@ -46,14 +46,27 @@
 }
 
 .hotspot-dot {
-  @apply w-full h-full rounded-full bg-current shadow-2xl border-2 border-white border-opacity-30;
+  @apply w-full h-full shadow-2xl border-2 border-white border-opacity-30;
+  background-color: var(--color-hotspot-default, #3b82f6);
+  border-radius: var(--border-radius-large, 16px);
+}
+
+.slide-hotspot:hover .hotspot-dot {
+  background-color: var(--color-hotspot-hover, #2563eb);
+}
+
+.slide-hotspot:active .hotspot-dot {
+  background-color: var(--color-hotspot-active, #1d4ed8);
 }
 
 .hotspot-tooltip {
   @apply absolute top-full left-1/2 transform -translate-x-1/2 mt-2 
-         bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 
-         opacity-0 transition-all duration-200 pointer-events-none
+         text-sm p-3 opacity-0 transition-all duration-200 pointer-events-none
          min-w-max max-w-xs z-10 shadow-2xl backdrop-blur-sm;
+  background-color: var(--color-modal-background, #1e293b);
+  border: 1px solid var(--color-modal-border, #475569);
+  color: var(--color-text, #f1f5f9);
+  border-radius: var(--border-radius-medium, 8px);
 }
 
 .slide-hotspot:hover .hotspot-tooltip {
@@ -68,22 +81,31 @@
   @apply text-xs opacity-90;
 }
 
-/* Text Elements - Matches app card styling */
+/* Text Elements - Uses theme variables */
 .slide-text {
-  @apply p-4 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl;
+  @apply p-4 shadow-2xl;
+  background-color: var(--color-surface, #1e293b);
+  border: 1px solid var(--color-modal-border, #475569);
+  border-radius: var(--border-radius-medium, 8px);
 }
 
 .text-title {
-  @apply text-xl font-semibold mb-2 text-white;
+  @apply text-xl font-semibold mb-2;
+  color: var(--color-text, #f1f5f9);
+  font-family: var(--font-family, 'Inter, system-ui, -apple-system, sans-serif');
 }
 
 .text-description {
-  @apply text-sm leading-relaxed whitespace-pre-line text-slate-300;
+  @apply text-sm leading-relaxed whitespace-pre-line;
+  color: var(--color-text-secondary, #94a3b8);
+  font-family: var(--font-family, 'Inter, system-ui, -apple-system, sans-serif');
 }
 
-/* Media Elements - Matches app media styling */
+/* Media Elements - Uses theme variables */
 .slide-media {
-  @apply rounded-xl overflow-hidden shadow-2xl border border-slate-700;
+  @apply overflow-hidden shadow-2xl;
+  border: 1px solid var(--color-modal-border, #475569);
+  border-radius: var(--border-radius-medium, 8px);
 }
 
 /* Shape Elements */
@@ -163,7 +185,7 @@
   @apply pointer-events-none;
 }
 
-/* Navigation - Matches app button styling */
+/* Navigation - Uses theme variables */
 .slide-navigation-mobile {
   @apply text-center;
 }
@@ -173,19 +195,42 @@
 }
 
 .slide-nav-button {
-  @apply px-4 py-2 rounded-lg font-semibold transition-all duration-200
-         bg-slate-800 border border-slate-700 text-white shadow-lg
-         hover:bg-slate-700 hover:shadow-xl hover:scale-105
-         focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800;
+  @apply px-4 py-2 font-semibold shadow-lg
+         hover:shadow-xl hover:scale-105
+         focus:ring-2 focus:ring-offset-2;
+  background-color: var(--color-surface, #1e293b);
+  border: 1px solid var(--color-modal-border, #475569);
+  color: var(--color-text, #f1f5f9);
+  border-radius: var(--border-radius-medium, 8px);
+  transition-duration: var(--animation-duration-medium, 300ms);
+  font-family: var(--font-family, 'Inter, system-ui, -apple-system, sans-serif');
+}
+
+.slide-nav-button:hover {
+  background-color: var(--color-secondary, #64748b);
+}
+
+.slide-nav-button:focus {
+  ring-color: var(--color-primary, #3b82f6);
+  ring-offset-color: var(--color-background, #f8fafc);
 }
 
 .slide-nav-button-primary {
-  @apply bg-gradient-to-r from-purple-500 to-pink-600 border-none
-         hover:from-purple-600 hover:to-pink-700;
+  @apply border-none;
+  background: linear-gradient(to right, var(--color-primary, #3b82f6), var(--color-accent, #06b6d4));
+}
+
+.slide-nav-button-primary:hover {
+  background: linear-gradient(to right, var(--color-primary, #3b82f6), var(--color-accent, #06b6d4));
+  filter: brightness(0.9);
 }
 
 .slide-nav-button-secondary {
-  @apply bg-slate-700 hover:bg-slate-600;
+  background-color: var(--color-secondary, #64748b);
+}
+
+.slide-nav-button-secondary:hover {
+  filter: brightness(0.9);
 }
 
 .mobile-add-button {

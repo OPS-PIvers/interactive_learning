@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset } from '../../shared/slideTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
@@ -21,11 +21,14 @@ import ShareModal from './ShareModal';
 import ProjectSettingsModal from './ProjectSettingsModal';
 import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
+import { ProjectThemeProvider } from '../hooks/useProjectTheme';
+import { firebaseAPI } from '../../lib/firebaseApi';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
   projectName: string;
   projectId?: string;
+  projectTheme?: ThemePreset;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
   onSave: (currentSlideDeck: SlideDeck) => Promise<void>;
   onImageUpload: (file: File) => Promise<void>;
@@ -44,6 +47,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   slideDeck,
   projectName,
   projectId,
+  projectTheme = 'professional',
   onSlideDeckChange,
   onSave,
   onImageUpload,
@@ -433,6 +437,17 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     handleSlideDeckUpdate(updatedSlideDeck);
   }, [slideDeck, handleSlideDeckUpdate]);
 
+  // Theme change handler
+  const handleThemeChange = useCallback(async (theme: any, themeId: ThemePreset) => {
+    if (projectId) {
+      try {
+        await firebaseAPI.updateProject(projectId, { theme: themeId });
+      } catch (error) {
+        console.error('Failed to save theme:', error);
+      }
+    }
+  }, [projectId]);
+
   // Get effective device type (override or detected)
   const effectiveDeviceType = deviceTypeOverride || deviceType;
 
@@ -457,7 +472,11 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   }), [slideDeck, isMobile]);
 
   return (
-    <div className="slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+    <ProjectThemeProvider 
+      initialThemeId={projectTheme}
+      onThemeChange={handleThemeChange}
+    >
+      <div className="slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {
@@ -736,14 +755,15 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       />
 
 
-      {/* Project Settings Modal */}
-      <ProjectSettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        projectName={projectName}
-        projectId={projectId || ''}
-      />
-    </div>
+        {/* Project Settings Modal */}
+        <ProjectSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          projectName={projectName}
+          projectId={projectId || ''}
+        />
+      </div>
+    </ProjectThemeProvider>
   );
 };
 

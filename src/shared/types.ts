@@ -294,6 +294,7 @@ export interface Project {
   interactiveData: InteractiveModuleState;
   projectType?: 'hotspot' | 'slide';
   slideDeck?: SlideDeck;
+  theme?: string;           // Theme preset ID for this project
 }
 
 export interface UserProfile {

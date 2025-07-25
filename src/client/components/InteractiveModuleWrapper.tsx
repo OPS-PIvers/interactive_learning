@@ -4,7 +4,7 @@ import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
 import SlideBasedEditor from './SlideBasedEditor';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import SlideViewer from './slides/SlideViewer';
 
 interface InteractiveModuleWrapperProps {
@@ -94,6 +94,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             slideDeck={slideDeck}
             projectName={selectedProject.title}
             projectId={selectedProject.id}
+            projectTheme={selectedProject.theme as ThemePreset || 'professional'}
             onSlideDeckChange={handleSlideDeckChange}
             onSave={handleImmediateSave}
             onImageUpload={onImageUpload}

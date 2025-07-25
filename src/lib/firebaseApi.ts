@@ -1080,6 +1080,41 @@ export class FirebaseProjectAPI {
     }
   }
 
+  async updateProject(projectId: string, updates: Partial<Project>): Promise<void> {
+    try {
+      const auth = firebaseManager.getAuth();
+      const db = firebaseManager.getFirestore();
+      
+      if (!auth.currentUser) {
+        throw new Error('User must be authenticated to update project');
+      }
+      
+      const projectRef = doc(db, 'projects', projectId);
+      const projectSnap = await getDoc(projectRef);
+
+      if (!projectSnap.exists()) {
+        throw new Error('Project not found');
+      }
+
+      const projectData = projectSnap.data();
+      if (projectData.createdBy !== auth.currentUser.uid) {
+        throw new Error('You do not have permission to update this project');
+      }
+
+      // Prepare update data with timestamp
+      const updateData = {
+        ...updates,
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(projectRef, updateData, { merge: true });
+      debugLog.log(`Project ${projectId} updated successfully`);
+    } catch (error) {
+      debugLog.error(`Error updating project ${projectId}:`, error);
+      throw new Error(`Failed to update project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async updateProjectPublishedStatus(projectId: string, isPublished: boolean): Promise<void> {
     try {
       const auth = firebaseManager.getAuth();
