@@ -37,8 +37,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const { deviceType } = useDeviceDetection();
   
   // Viewer state
-  const [viewerState, setViewerState] = useState<'idle' | 'exploring' | 'learning'>('idle');
-  const [hasUserChosenMode, setHasUserChosenMode] = useState(false);
+  const [viewerState, setViewerState] = useState<'exploring' | 'learning'>('exploring');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showTimeline, setShowTimeline] = useState(false);
@@ -46,32 +45,23 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Auto-start functionality
   useEffect(() => {
-    if (autoStart && !hasUserChosenMode) {
-      // Determine the best mode to auto-start with
+    if (autoStart) {
       if (viewerModes.selfPaced) {
-        handleStartGuidedTour();
-      } else if (viewerModes.explore) {
-        handleExploreModule();
+        setViewerState('learning');
+      } else {
+        setViewerState('exploring');
       }
     }
-  }, [autoStart, hasUserChosenMode, viewerModes]);
+  }, [autoStart, viewerModes]);
 
-  // Mode selection handlers
-  const handleExploreModule = useCallback(() => {
-    setViewerState('exploring');
-    setHasUserChosenMode(true);
-  }, []);
-
-  const handleStartGuidedTour = useCallback(() => {
-    setViewerState('learning');
-    setHasUserChosenMode(true);
+  const handleToggleMode = useCallback(() => {
+    setViewerState(prev => prev === 'learning' ? 'exploring' : 'learning');
   }, []);
 
   const handleBackToMenu = useCallback(() => {
-    setViewerState('idle');
-    setHasUserChosenMode(false);
-    setCurrentSlideId(slideDeck.slides[0]?.id || '');
-  }, [slideDeck.slides]);
+    // In this simplified view, "Back to Menu" will just close the viewer
+    onClose();
+  }, [onClose]);
 
   // Slide change handler
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
@@ -143,113 +133,8 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     }
   }), [slideDeck, viewerState, viewerModes, isMobile]);
 
-  // Render initial overlay for mode selection
-  if (viewerState === 'idle' && !autoStart) {
-    const showExploreButton = viewerModes.explore;
-    const showGuidedButton = viewerModes.selfPaced || viewerModes.timed;
-    
-    return (
-      <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
-        {/* Header with project info */}
-        <div className="bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-              {projectName}
-            </h1>
-            {migrationResult && (
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg">
-                SLIDE-BASED
-              </div>
-            )}
-          </div>
-          
-          <ViewerToolbar
-            projectName={projectName}
-            onBack={onClose}
-            moduleState={viewerState}
-            onStartLearning={handleStartGuidedTour}
-            onStartExploring={handleExploreModule} 
-            hasContent={slideDeck.slides.length > 0}
-            isMobile={isMobile}
-            viewerModes={viewerModes}
-          />
-        </div>
+  // No more 'idle' state, viewer is always active
 
-        {/* Main content with mode selection */}
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Interactive Learning Experience
-            </h2>
-            <p className="text-slate-300 mb-8 text-lg leading-relaxed">
-              Choose how you'd like to experience this interactive content
-            </p>
-            
-            {/* Migration info */}
-            {migrationResult && (
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
-                <h3 className="text-lg font-semibold text-white mb-4">Enhanced Slide Experience</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">{migrationResult.slideDeck.slides.length}</div>
-                    <div className="text-slate-400">Interactive Slides</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-400">{migrationResult.elementsConverted}</div>
-                    <div className="text-slate-400">Interactive Elements</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">{migrationResult.interactionsConverted}</div>
-                    <div className="text-slate-400">Interactions</div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Mode selection buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {showExploreButton && (
-                <button
-                  className="slide-nav-button slide-nav-button-secondary px-8 py-4 text-lg"
-                  onClick={handleExploreModule}
-                >
-                  🔍 Explore Freely
-                </button>
-              )}
-              
-              {showGuidedButton && (
-                <button
-                  className="slide-nav-button slide-nav-button-primary px-8 py-4 text-lg"
-                  onClick={handleStartGuidedTour}
-                >
-                  🎯 Guided Experience
-                </button>
-              )}
-            </div>
-            
-            {(!showExploreButton && !showGuidedButton) && (
-              <div className="text-slate-400">
-                No viewer modes are currently enabled for this project.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-slate-800 border-t border-slate-700 text-slate-400 p-3 text-xs text-center">
-          <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent font-semibold">
-            Slide-Based Interactive Learning
-          </span>
-          <span className="mx-2">•</span>
-          Modern Architecture
-          <span className="mx-2">•</span>
-          Enhanced Performance
-        </div>
-      </div>
-    );
-  }
-
-  // Render active slide viewer
   return (
     <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Header */}
@@ -292,16 +177,16 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           
           <button
             className="slide-nav-button slide-nav-button-secondary text-sm"
-            onClick={handleBackToMenu}
+            onClick={onClose}
           >
-            ← Back to Menu
+            ← Close Viewer
           </button>
           <ViewerToolbar
             projectName={projectName}
             onBack={onClose}
             moduleState={viewerState}
-            onStartLearning={handleStartGuidedTour}
-            onStartExploring={handleExploreModule} 
+            onStartLearning={handleToggleMode}
+            onStartExploring={handleToggleMode}
             hasContent={slideDeck.slides.length > 0}
             isMobile={isMobile}
             viewerModes={viewerModes}
