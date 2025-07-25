@@ -200,9 +200,36 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   // Handle background media addition
   const handleAddBackgroundMedia = useCallback(() => {
-    // TODO: Implement background media addition
-    console.log('Add background media - to be implemented');
+    // Clear any selected element to show slide properties panel
+    setSelectedElementId(null);
+    // The background media panel will be accessible through the properties panel
+    // when no element is selected (showing slide properties)
   }, []);
+
+  // Handle slide updates from properties panel
+  const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>) => {
+    if (!currentSlide) return;
+
+    const updatedSlide: InteractiveSlide = {
+      ...currentSlide,
+      ...slideUpdates
+    };
+
+    const updatedSlides = slideDeck.slides.map((slide, index) =>
+      index === currentSlideIndex ? updatedSlide : slide
+    );
+
+    const updatedSlideDeck: SlideDeck = {
+      ...slideDeck,
+      slides: updatedSlides,
+      metadata: {
+        ...slideDeck.metadata,
+        modified: Date.now()
+      }
+    };
+
+    handleSlideDeckUpdate(updatedSlideDeck);
+  }, [currentSlide, currentSlideIndex, slideDeck, handleSlideDeckUpdate]);
 
   // Handle element updates from properties panel
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
@@ -297,7 +324,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   }), [slideDeck, isMobile]);
 
   return (
-    <div className="slide-editor w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
       {/* Header - 3-Section Layout */}
       <div className="bg-slate-800 border-b border-slate-700 text-white px-4 py-2 flex items-center justify-between shadow-2xl">
         {/* Left Section: Back + Title */}
@@ -476,8 +503,10 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         {!isPreviewMode && (
           <EnhancedPropertiesPanel
             selectedElement={selectedElement}
+            currentSlide={currentSlide}
             deviceType={effectiveDeviceType}
             onElementUpdate={handleElementUpdate}
+            onSlideUpdate={handleSlideUpdate}
             onViewInteractions={handleViewInteractions}
             isMobile={isMobile}
           />

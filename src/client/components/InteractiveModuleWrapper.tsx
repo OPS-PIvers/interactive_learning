@@ -49,14 +49,20 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   
   // ✅ Determine wrapper type without affecting hook order
   const WrapperComponent = useMemo(() => {
+    // Use Fragment (full-screen) for all slide editing modes
+    // Only use Modal for legacy non-slide projects if needed
+    if (slideDeck && isEditingMode) {
+      return Fragment; // All slide editing uses full-screen
+    }
     if (isEditingMode && !isMobile) {
-      return Modal; // Desktop editing uses modal
+      return Modal; // Legacy desktop editing uses modal
     }
     return Fragment; // Mobile editing and viewing use full-screen
-  }, [isEditingMode, isMobile]);
+  }, [isEditingMode, isMobile, slideDeck]);
   
   const wrapperProps = useMemo(() => {
-    if (isEditingMode && !isMobile) {
+    // Only use modal props for legacy non-slide projects
+    if (isEditingMode && !isMobile && !slideDeck) {
       return {
         isOpen: isModalOpen,
         onClose: () => {
@@ -71,10 +77,10 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
       onClose: () => {},
       title: ''
     };
-  }, [isEditingMode, isMobile, isModalOpen, onClose, selectedProject.title]);
+  }, [isEditingMode, isMobile, slideDeck, isModalOpen, onClose, selectedProject.title]);
   
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900 mobile-viewport-fix">
+    <div className={`fixed inset-0 z-50 mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
       <WrapperComponent {...wrapperProps}>
         {/* Native slide projects - use existing slide components */}
         {slideDeck && isEditingMode ? (

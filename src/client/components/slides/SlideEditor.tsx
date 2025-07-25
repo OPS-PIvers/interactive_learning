@@ -260,12 +260,127 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             style={{
               width: canvasDimensions.width,
               height: canvasDimensions.height,
-              backgroundImage: currentSlide.backgroundImage ? `url(${currentSlide.backgroundImage})` : undefined,
+              // Legacy background image support
+              backgroundImage: (!currentSlide.backgroundMedia && currentSlide.backgroundImage) 
+                ? `url(${currentSlide.backgroundImage})` 
+                : undefined,
               backgroundSize: currentSlide.layout?.backgroundSize || 'cover',
               backgroundPosition: currentSlide.layout?.backgroundPosition || 'center',
               backgroundRepeat: 'no-repeat'
             }}
           >
+            {/* Background Media Renderer */}
+            {currentSlide.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' && (
+              <div className="absolute inset-0 w-full h-full">
+                {/* Background Overlay */}
+                {currentSlide.backgroundMedia.overlay?.enabled && (
+                  <div 
+                    className="absolute inset-0 w-full h-full z-10"
+                    style={{
+                      backgroundColor: currentSlide.backgroundMedia.overlay.color || '#000000',
+                      opacity: currentSlide.backgroundMedia.overlay.opacity || 0.3
+                    }}
+                  />
+                )}
+
+                {/* Image Background */}
+                {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url && (
+                  <img
+                    src={currentSlide.backgroundMedia.url}
+                    alt="Slide background"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{
+                      objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                        ? 'contain' 
+                        : currentSlide.backgroundMedia.settings?.size === 'stretch' 
+                          ? 'fill' 
+                          : 'cover',
+                      objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+                    }}
+                  />
+                )}
+
+                {/* Video Background */}
+                {currentSlide.backgroundMedia.type === 'video' && currentSlide.backgroundMedia.url && (
+                  <video
+                    src={currentSlide.backgroundMedia.url}
+                    autoPlay={currentSlide.backgroundMedia.autoplay}
+                    loop={currentSlide.backgroundMedia.loop}
+                    muted={currentSlide.backgroundMedia.muted}
+                    controls={currentSlide.backgroundMedia.controls}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{
+                      objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                        ? 'contain' 
+                        : currentSlide.backgroundMedia.settings?.size === 'stretch' 
+                          ? 'fill' 
+                          : 'cover',
+                      objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+                    }}
+                    onLoadedData={(e) => {
+                      if (currentSlide.backgroundMedia?.volume !== undefined) {
+                        (e.target as HTMLVideoElement).volume = currentSlide.backgroundMedia.volume;
+                      }
+                    }}
+                  />
+                )}
+
+                {/* YouTube Background */}
+                {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId && (
+                  <div className="absolute inset-0 w-full h-full">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
+                        currentSlide.backgroundMedia.autoplay ? 1 : 0
+                      }&loop=${
+                        currentSlide.backgroundMedia.loop ? 1 : 0
+                      }&mute=${
+                        currentSlide.backgroundMedia.muted ? 1 : 0
+                      }&controls=${
+                        currentSlide.backgroundMedia.controls ? 1 : 0
+                      }&start=${
+                        currentSlide.backgroundMedia.startTime || 0
+                      }&end=${
+                        currentSlide.backgroundMedia.endTime || ''
+                      }&rel=0&modestbranding=1&playsinline=1`}
+                      className="absolute inset-0 w-full h-full"
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                      title="Background Video"
+                      style={{
+                        border: 'none',
+                        objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
+                          ? 'contain' 
+                          : 'cover'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Audio Background */}
+                {currentSlide.backgroundMedia.type === 'audio' && currentSlide.backgroundMedia.url && (
+                  <>
+                    <audio
+                      src={currentSlide.backgroundMedia.url}
+                      autoPlay={currentSlide.backgroundMedia.autoplay}
+                      loop={currentSlide.backgroundMedia.loop}
+                      controls={currentSlide.backgroundMedia.controls}
+                      className="hidden"
+                      onLoadedData={(e) => {
+                        if (currentSlide.backgroundMedia?.volume !== undefined) {
+                          (e.target as HTMLAudioElement).volume = currentSlide.backgroundMedia.volume;
+                        }
+                      }}
+                    />
+                    {/* Audio visualization or indicator */}
+                    <div className="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12h.01M15 12h.01" />
+                      </svg>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             {/* Render Elements */}
             {currentSlide.elements
               .filter(element => element.isVisible)
@@ -284,7 +399,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       top: position.y * canvasDimensions.scale,
                       width: position.width * canvasDimensions.scale,
                       height: position.height * canvasDimensions.scale,
-                      zIndex: element.zIndex
+                      zIndex: (element.zIndex || 0) + 20 // Ensure elements are above background media
                     }}
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}
                     onTouchStart={(e) => handleElementDragStart(element.id, e)}
