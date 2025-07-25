@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { AuthProvider } from '../lib/authContext';
 import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
@@ -9,9 +10,6 @@ import { InteractiveModuleState } from '../shared/types';
 // Mock child components to isolate testing
 vi.mock('../client/components/ViewerToolbar', () => ({
   default: () => <div data-testid="viewer-toolbar">ViewerToolbar</div>
-}));
-vi.mock('../client/components/EditorToolbar', () => ({
-  default: () => <div data-testid="editor-toolbar">EditorToolbar</div>
 }));
 vi.mock('../client/components/HotspotViewer', () => ({
   default: () => <div data-testid="hotspot-viewer">HotspotViewer</div>
@@ -110,9 +108,11 @@ describe('React Error Detection Tests', () => {
   describe('React Hook Order Validation', () => {
     test('should not produce React Hook Error #310 in viewer mode', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       // Wait for component to fully initialize
@@ -138,14 +138,16 @@ describe('React Error Detection Tests', () => {
 
     test('should not produce React Hook Error #310 in editor mode', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getEditorProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getEditorProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       // Wait for component to fully initialize
       await waitFor(() => {
-        expect(screen.getByTestId('editor-toolbar')).toBeInTheDocument();
+        expect(screen.getByText('Test Project')).toBeInTheDocument();
       });
 
       // Check for React Hook Error #310 specifically
@@ -166,9 +168,11 @@ describe('React Error Detection Tests', () => {
 
     test('should not produce hook order violations during mode transitions', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       // Wait for initial render
@@ -209,9 +213,11 @@ describe('React Error Detection Tests', () => {
   describe('Temporal Dead Zone (TDZ) Error Detection', () => {
     test('should not produce TDZ errors during component initialization', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -238,13 +244,15 @@ describe('React Error Detection Tests', () => {
 
     test('should not produce TDZ errors in editor mode', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getEditorProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getEditorProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('editor-toolbar')).toBeInTheDocument();
+        expect(screen.getByText('Test Project')).toBeInTheDocument();
       });
 
       // Check for TDZ-related errors
@@ -269,9 +277,11 @@ describe('React Error Detection Tests', () => {
   describe('General Component Error Detection', () => {
     test('should not produce unhandled component errors in viewer mode', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -306,13 +316,15 @@ describe('React Error Detection Tests', () => {
 
     test('should not produce unhandled component errors in editor mode', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getEditorProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getEditorProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('editor-toolbar')).toBeInTheDocument();
+        expect(screen.getByText('Test Project')).toBeInTheDocument();
       });
 
       // Filter out expected Firebase warnings and focus on React component errors
@@ -343,9 +355,11 @@ describe('React Error Detection Tests', () => {
 
     test('should handle prop changes without errors', async () => {
       const { rerender } = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -366,9 +380,11 @@ describe('React Error Detection Tests', () => {
       };
 
       rerender(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...newProps} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...newProps} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -400,9 +416,11 @@ describe('React Error Detection Tests', () => {
   describe('Memory Leak Detection', () => {
     test('should properly cleanup on unmount without errors', async () => {
       const component = render(
-        <ToastProvider>
-          <SlideBasedInteractiveModule {...getViewerProps()} />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <SlideBasedInteractiveModule {...getViewerProps()} />
+          </ToastProvider>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -451,9 +469,11 @@ describe('React Error Detection Tests', () => {
 
       const component = render(
         <TestErrorBoundary>
-          <ToastProvider>
-            <SlideBasedInteractiveModule {...getViewerProps()} />
-          </ToastProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <SlideBasedInteractiveModule {...getViewerProps()} />
+            </ToastProvider>
+          </AuthProvider>
         </TestErrorBoundary>
       );
 
