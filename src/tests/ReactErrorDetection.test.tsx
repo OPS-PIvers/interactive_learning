@@ -5,7 +5,7 @@ import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
-import { InteractiveModuleState } from '../shared/types';
+import { InteractiveModuleState, InteractionType } from '../shared/types';
 
 // Mock child components to isolate testing
 vi.mock('../client/components/ViewerToolbar', () => ({
@@ -28,6 +28,9 @@ vi.mock('../client/components/MobileEditorModal', () => ({
 }));
 vi.mock('../client/components/MobileEditorLayout', () => ({
   default: () => <div data-testid="mobile-editor-layout">MobileEditorLayout</div>
+}));
+vi.mock('../client/components/AuthButton', () => ({
+  default: () => <div data-testid="auth-button">AuthButton</div>
 }));
 vi.mock('../client/hooks/useIsMobile', () => ({
   useIsMobile: () => false
@@ -61,6 +64,7 @@ describe('React Error Detection Tests', () => {
         x: 50,
         y: 50,
         title: 'Test Hotspot',
+        description: 'Test hotspot description',
         color: '#ff0000'
       }
     ],
@@ -68,7 +72,8 @@ describe('React Error Detection Tests', () => {
       {
         id: 'test-event-1',
         step: 1,
-        type: 'SHOW_TEXT',
+        name: 'Test Event',
+        type: InteractionType.SHOW_TEXT,
         targetId: 'test-hotspot-1',
         textContent: 'Test text content'
       }
@@ -81,6 +86,7 @@ describe('React Error Detection Tests', () => {
     isEditing: false,
     onSave: mockOnSave,
     onClose: mockOnClose,
+    onImageUpload: vi.fn(),
     projectName: 'Test Project',
     viewerModes: { explore: true, selfPaced: true, timed: false },
   });
@@ -90,6 +96,7 @@ describe('React Error Detection Tests', () => {
     isEditing: true,
     onSave: mockOnSave,
     onClose: mockOnClose,
+    onImageUpload: vi.fn(),
     projectName: 'Test Project',
     projectId: 'test-project-id',
     viewerModes: { explore: true, selfPaced: true, timed: false },
@@ -373,6 +380,7 @@ describe('React Error Detection Tests', () => {
       const newProps = {
         ...getViewerProps(),
         projectName: 'Updated Project Name',
+        onImageUpload: vi.fn(),
         initialData: {
           ...defaultInitialData,
           backgroundImage: 'updated-image.jpg'
