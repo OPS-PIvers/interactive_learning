@@ -227,7 +227,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       {isMobile && isMobilePanelOpen && (
         <MobilePropertiesPanel
           selectedElement={selectedElement}
+          currentSlide={currentSlide}
           deviceType={deviceType}
+          onElementUpdate={handleElementUpdate}
+          onSlideUpdate={handleSlideUpdate}
           onDelete={handleDeleteElement}
           onClose={() => {
             setSelectedElementId(null);

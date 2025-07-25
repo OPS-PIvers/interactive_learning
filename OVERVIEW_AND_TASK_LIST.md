@@ -391,7 +391,6 @@ npm install reactflow
 
 ---
 IDENTIFIED BUGS:
-- [ ] EDITOR: User adds a hotspot, then click saves.  Hotspot immediately disappears becaues it did not save appropriatley.
 - [ ] Viewer extends beyond screen. Everything should be scaled to stay within the viewport (just like we did with the editor view). 
 - [ ] Missing pre-set hotspot visual customization from previous build (refer to branch main-revert to see the hotspot visual customization presets)
 - [ ] when i click an element, the interaction menu should appear as ac ollapsible section int he properties panel instead of a separate settings modal.

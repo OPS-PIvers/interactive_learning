@@ -1,7 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { SlideElement, DeviceType, ElementStyle, ElementContent, InteractiveSlide, BackgroundMedia } from '../../shared/slideTypes';
+import { SlideElement, DeviceType, ElementStyle, ElementContent, InteractiveSlide, BackgroundMedia, ElementInteraction } from '../../shared/slideTypes';
+import { InteractionType } from '../../shared/types';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import BackgroundMediaPanel from './BackgroundMediaPanel';
+import InteractionsList from './interactions/InteractionsList';
+import InteractionEditor from './interactions/InteractionEditor';
 
 interface EnhancedPropertiesPanelProps {
   selectedElement: SlideElement | null;
@@ -9,7 +12,6 @@ interface EnhancedPropertiesPanelProps {
   deviceType: DeviceType;
   onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
   onSlideUpdate: (slideUpdates: Partial<InteractiveSlide>) => void;
-  onViewInteractions: (elementId: string) => void;
   isMobile?: boolean;
 }
 
@@ -59,7 +61,6 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   deviceType,
   onElementUpdate,
   onSlideUpdate,
-  onViewInteractions,
   isMobile = false
 }) => {
   // Collapsible sections state
@@ -74,6 +75,9 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
 
   // Background media panel state
   const [isBackgroundPanelOpen, setIsBackgroundPanelOpen] = useState(false);
+  
+  // Interaction editing state
+  const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
 
   const toggleSection = useCallback((section: keyof typeof openSections) => {
     setOpenSections(prev => ({
@@ -132,6 +136,47 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   const handleOpenBackgroundPanel = useCallback(() => {
     setIsBackgroundPanelOpen(true);
   }, []);
+
+  // Interaction handlers
+  const handleAddInteraction = useCallback((interactionType: InteractionType) => {
+    if (!selectedElement) return;
+    
+    const newInteraction: ElementInteraction = {
+      id: `interaction_${Date.now()}`,
+      trigger: 'click',
+      effect: {
+        type: interactionType,
+        parameters: {},
+        duration: 500,
+        delay: 0
+      }
+    };
+
+    const updatedInteractions = [...selectedElement.interactions, newInteraction];
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+    setSelectedInteractionId(newInteraction.id);
+  }, [selectedElement, onElementUpdate]);
+
+  const handleRemoveInteraction = useCallback((interactionId: string) => {
+    if (!selectedElement) return;
+    
+    const updatedInteractions = selectedElement.interactions.filter(i => i.id !== interactionId);
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+    if (selectedInteractionId === interactionId) {
+      setSelectedInteractionId(null);
+    }
+  }, [selectedElement, onElementUpdate, selectedInteractionId]);
+
+  const handleInteractionUpdate = useCallback((interactionId: string, updates: Partial<ElementInteraction>) => {
+    if (!selectedElement) return;
+    
+    const updatedInteractions = selectedElement.interactions.map(interaction =>
+      interaction.id === interactionId 
+        ? { ...interaction, ...updates }
+        : interaction
+    );
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+  }, [selectedElement, onElementUpdate]);
 
   // Render slide properties (when no element is selected)
   if (!selectedElement) {
@@ -571,159 +616,27 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
           isOpen={openSections.interactions}
           onToggle={() => toggleSection('interactions')}
         >
-          <div className="space-y-3">
-            {/* Current Interactions List */}
-            {selectedElement.interactions.length > 0 ? (
-              <div className="space-y-2">
-                {selectedElement.interactions.map((interaction, index) => (
-                  <div key={index} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs text-slate-300 font-medium capitalize">
-                        {interaction.trigger} → {interaction.effect.type}
-                      </div>
-                      <button 
-                        className="text-red-400 hover:text-red-300 text-xs"
-                        onClick={() => {
-                          // Remove interaction
-                          const updatedInteractions = selectedElement.interactions.filter((_, i) => i !== index);
-                          onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
-                        }}
-                        title="Remove interaction"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    {interaction.effect.parameters && Object.keys(interaction.effect.parameters).length > 0 && (
-                      <div className="text-xs text-slate-400">
-                        {Object.entries(interaction.effect.parameters).map(([key, value]) => (
-                          <div key={key}>{key}: {String(value)}</div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-slate-400 bg-slate-700 rounded-lg">
-                <div className="text-lg mb-1">⚡</div>
-                <div className="text-xs">No interactions</div>
+          <div className="space-y-4">
+            {/* Interactions List */}
+            <InteractionsList
+              element={selectedElement}
+              selectedInteractionId={selectedInteractionId}
+              onInteractionSelect={setSelectedInteractionId}
+              onInteractionAdd={handleAddInteraction}
+              onInteractionRemove={handleRemoveInteraction}
+              isCompact={isMobile}
+            />
+            
+            {/* Inline Interaction Editor */}
+            {selectedInteractionId && (
+              <div className="border-t border-slate-600 pt-4">
+                <InteractionEditor
+                  interaction={selectedElement.interactions.find(i => i.id === selectedInteractionId) || null}
+                  onInteractionUpdate={handleInteractionUpdate}
+                  isCompact={isMobile}
+                />
               </div>
             )}
-
-            {/* Quick Interaction Presets */}
-            <div className="border-t border-slate-600 pt-3">
-              <div className="text-xs text-slate-400 mb-2">Quick Add Interactions</div>
-              <div className="grid grid-cols-1 gap-2">
-                {/* Show Modal on Click */}
-                <button
-                  onClick={() => {
-                    const newInteraction = {
-                      id: `interaction_${Date.now()}`,
-                      trigger: 'click' as const,
-                      effect: {
-                        id: `effect_${Date.now()}`,
-                        type: 'modal' as const,
-                        duration: 0,
-                        parameters: {
-                          title: selectedElement.content.title || 'Modal Title',
-                          message: selectedElement.content.description || 'Modal content here'
-                        }
-                      }
-                    };
-                    onElementUpdate(selectedElement.id, {
-                      interactions: [...selectedElement.interactions, newInteraction]
-                    });
-                  }}
-                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
-                >
-                  📋 Show Modal on Click
-                </button>
-
-                {/* Navigate to Next Slide */}
-                <button
-                  onClick={() => {
-                    const newInteraction = {
-                      id: `interaction_${Date.now()}`,
-                      trigger: 'click' as const,
-                      effect: {
-                        id: `effect_${Date.now()}`,
-                        type: 'transition' as const,
-                        duration: 500,
-                        parameters: {
-                          type: 'next-slide'
-                        }
-                      }
-                    };
-                    onElementUpdate(selectedElement.id, {
-                      interactions: [...selectedElement.interactions, newInteraction]
-                    });
-                  }}
-                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
-                >
-                  ➡️ Next Slide on Click
-                </button>
-
-                {/* Play Sound Effect */}
-                <button
-                  onClick={() => {
-                    const newInteraction = {
-                      id: `interaction_${Date.now()}`,
-                      trigger: 'click' as const,
-                      effect: {
-                        id: `effect_${Date.now()}`,
-                        type: 'sound' as const,
-                        duration: 1000,
-                        parameters: {
-                          url: '/sounds/click.mp3',
-                          volume: 0.7
-                        }
-                      }
-                    };
-                    onElementUpdate(selectedElement.id, {
-                      interactions: [...selectedElement.interactions, newInteraction]
-                    });
-                  }}
-                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
-                >
-                  🔊 Play Sound on Click
-                </button>
-
-                {/* Show Tooltip on Hover */}
-                <button
-                  onClick={() => {
-                    const newInteraction = {
-                      id: `interaction_${Date.now()}`,
-                      trigger: 'hover' as const,
-                      effect: {
-                        id: `effect_${Date.now()}`,
-                        type: 'tooltip' as const,
-                        duration: 2000,
-                        parameters: {
-                          text: selectedElement.content.description || 'Tooltip text',
-                          position: 'top'
-                        }
-                      }
-                    };
-                    onElementUpdate(selectedElement.id, {
-                      interactions: [...selectedElement.interactions, newInteraction]
-                    });
-                  }}
-                  className="text-left p-2 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition-colors"
-                >
-                  💬 Show Tooltip on Hover
-                </button>
-              </div>
-            </div>
-
-            {/* Advanced Interactions Button */}
-            <div className="border-t border-slate-600 pt-3">
-              <button 
-                onClick={() => onViewInteractions(selectedElement.id)}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-md text-xs transition-colors"
-              >
-                ⚙️ Advanced Interaction Settings
-              </button>
-            </div>
           </div>
         </CollapsibleSection>
       </div>

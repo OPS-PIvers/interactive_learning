@@ -17,7 +17,7 @@ import { CheckIcon } from './icons/CheckIcon';
 import { GearIcon } from './icons/GearIcon';
 import AuthButton from './AuthButton';
 import ShareModal from './ShareModal';
-import ElementInteractionsModal from './ElementInteractionsModal';  
+  
 import ProjectSettingsModal from './ProjectSettingsModal';
 import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
@@ -63,8 +63,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
-  const [isInteractionsModalOpen, setIsInteractionsModalOpen] = useState(false);
-  const [interactionElementId, setInteractionElementId] = useState<string | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
@@ -348,11 +346,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     handleSlideDeckUpdate(updatedSlideDeck);
   }, [currentSlide, currentSlideIndex, slideDeck, handleSlideDeckUpdate]);
 
-  // Handle view interactions
-  const handleViewInteractions = useCallback((elementId: string) => {
-    setInteractionElementId(elementId);
-    setIsInteractionsModalOpen(true);
-  }, []);
 
   // Duplicate slide
   const handleDuplicateSlide = useCallback((slideIndex: number) => {
@@ -699,7 +692,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             deviceType={effectiveDeviceType}
             onElementUpdate={handleElementUpdate}
             onSlideUpdate={handleSlideUpdate}
-            onViewInteractions={handleViewInteractions}
             isMobile={isMobile}
           />
         )}
@@ -739,18 +731,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         } as any}
       />
 
-      {/* Element Interactions Modal */}
-      {interactionElementId && currentSlide && (
-        <ElementInteractionsModal
-          isOpen={isInteractionsModalOpen}
-          onClose={() => {
-            setIsInteractionsModalOpen(false);
-            setInteractionElementId(null);
-          }}
-          element={currentSlide.elements.find(el => el.id === interactionElementId)!}
-          onElementUpdate={handleElementUpdate}
-        />
-      )}
 
       {/* Project Settings Modal */}
       <ProjectSettingsModal
