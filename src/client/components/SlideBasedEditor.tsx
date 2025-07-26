@@ -489,6 +489,16 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     }
   }, [isMobile, showMobileHint]);
 
+  // Add mobile body classes when mobile editor is active
+  React.useEffect(() => {
+    if (isMobile) {
+      document.body.classList.add('mobile-editor-active');
+      return () => {
+        document.body.classList.remove('mobile-editor-active');
+      };
+    }
+  }, [isMobile]);
+
   // Mobile modal handlers
   const handleMobileSlidesOpen = useCallback(() => {
     setIsMobileSlidesModalOpen(true);
@@ -530,7 +540,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className="slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+      <div className={`slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden ${isMobile ? 'mobile-full-height mobile-viewport-fix' : ''}`}>
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {

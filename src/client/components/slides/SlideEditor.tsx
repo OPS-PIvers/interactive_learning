@@ -100,11 +100,31 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     const isLandscape = window.innerWidth > window.innerHeight;
     const isMobileLandscape = isMobile && isLandscape;
     
+    // For mobile, use constrained viewport dimensions to ensure proper scaling
+    let availableWidth: number;
+    let availableHeight: number;
+    
+    if (isMobile) {
+      // Mobile-specific dimension calculation with viewport constraints
+      const viewportWidth = Math.min(window.innerWidth, window.screen.width);
+      const viewportHeight = Math.min(window.innerHeight, window.screen.height);
+      
+      // Account for safe areas and browser UI
+      const safeWidth = viewportWidth - 32; // 16px padding on each side
+      const safeHeight = viewportHeight - (isMobileLandscape ? 64 : 120); // Account for mobile UI
+      
+      availableWidth = Math.min(containerRect.width || safeWidth, safeWidth);
+      availableHeight = Math.min(containerRect.height || safeHeight, safeHeight);
+    } else {
+      availableWidth = containerRect.width || 800;
+      availableHeight = containerRect.height || 600;
+    }
+    
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
-      containerRect.width || 800,
-      containerRect.height || 600,
-      isMobileLandscape ? 16 : 48, // Reduced padding for mobile landscape
+      availableWidth,
+      availableHeight,
+      isMobileLandscape ? 4 : isMobile ? 8 : 48, // Minimal padding for mobile
       isMobileLandscape
     );
   }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, isMobile]);
@@ -555,10 +575,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       {/* Main Editor Content */}
       <div className="editor-content flex-1 flex">
         {/* Canvas Area */}
-        <div ref={canvasContainerRef} className="canvas-area flex-1 p-6 relative flex items-center justify-center">
+        <div ref={canvasContainerRef} className={`canvas-area flex-1 relative flex items-center justify-center ${isMobile ? 'p-2' : 'p-6'}`}>
           <div
             ref={canvasRef}
-            className="slide-canvas relative bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl"
+            className={`slide-canvas relative bg-slate-900 overflow-hidden shadow-2xl ${isMobile ? 'mobile-slide-canvas touch-container' : 'rounded-xl border border-slate-700'}`}
             style={{
               width: canvasDimensions.width,
               height: canvasDimensions.height,

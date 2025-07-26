@@ -82,17 +82,17 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
   return (
     <div 
       ref={containerRef}
-      className={`mobile-slide-editor ${props.className || ''}`}
+      className={`mobile-slide-editor mobile-viewport-manager ${props.className || ''}`}
     >
       {/* Main slide area with proper containment */}
       <div 
         ref={slideAreaRef}
-        className="mobile-slide-area"
+        className="mobile-slide-area mobile-viewport-content"
       >
-        <div className="mobile-slide-canvas">
+        <div className="mobile-slide-canvas touch-container">
           <SlideEditor
             {...props}
-            className="h-full w-full"
+            className="h-full w-full mobile-editor-canvas"
           />
         </div>
       </div>

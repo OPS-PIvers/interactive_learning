@@ -105,15 +105,29 @@ export function calculateCanvasDimensions(
     canvasWidth = canvasHeight * aspectRatio;
   }
 
-  // For mobile landscape, ensure we don't exceed available space
-  if (isMobileLandscape) {
-    if (canvasWidth > availableWidth) {
-      canvasWidth = availableWidth;
+  // For mobile, ensure we don't exceed available space
+  if (isMobileLandscape || availableWidth <= 768) {
+    // Mobile-specific maximum constraints
+    const maxMobileWidth = Math.min(availableWidth, window.innerWidth - 32);
+    const maxMobileHeight = Math.min(availableHeight, window.innerHeight - (isMobileLandscape ? 64 : 120));
+    
+    if (canvasWidth > maxMobileWidth) {
+      canvasWidth = maxMobileWidth;
       canvasHeight = canvasWidth / aspectRatio;
     }
-    if (canvasHeight > availableHeight) {
-      canvasHeight = availableHeight;
+    if (canvasHeight > maxMobileHeight) {
+      canvasHeight = maxMobileHeight;
       canvasWidth = canvasHeight * aspectRatio;
+    }
+    
+    // Final constraint check to ensure canvas fits mobile viewport
+    if (canvasWidth > maxMobileWidth || canvasHeight > maxMobileHeight) {
+      const scaleFactorWidth = maxMobileWidth / canvasWidth;
+      const scaleFactorHeight = maxMobileHeight / canvasHeight;
+      const scaleFactor = Math.min(scaleFactorWidth, scaleFactorHeight);
+      
+      canvasWidth *= scaleFactor;
+      canvasHeight *= scaleFactor;
     }
   }
 
