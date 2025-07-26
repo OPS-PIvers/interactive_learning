@@ -210,3 +210,168 @@ claude "Set mobile viewport, navigate to app, authenticate, test touch interacti
 - **Firebase Setup**: Firebase emulator setup required for local development and testing
 - **Mobile Viewport**: iOS Safari viewport quirks require specialized handling
 - **Puppeteer Stability**: Complex automation sequences can become unstable; chunk work appropriately
+
+## Claude Development Workflows
+
+### Sub-Agent Usage Guidelines
+
+#### When to Use Sub-Agents
+
+Use specialized sub-agents when tasks match their expertise:
+
+- **general-purpose**: Complex research, multi-step tasks, file searching when unsure of exact matches
+- **data-scientist**: SQL queries, data analysis, BigQuery operations  
+- **architect**: System design, new features, refactoring, code quality reviews
+- **security-specialist**: Security analysis, vulnerability assessment, defensive tools
+- **code-janitor**: Cleaning up old/unused code, removing deprecated features
+- **debugger**: Error investigation, test failures, unexpected behavior
+- **ui-designer**: Mobile-first responsive design, UI components, design system adherence
+- **code-reviewer**: Code quality, security, maintainability reviews
+- **performance-optimizer**: Performance bottlenecks, optimization opportunities
+
+#### Sub-Agent Decision Flow
+
+1. **Identify task type** - What category does this work fall into?
+2. **Check complexity** - Is this a multi-step or specialized task?
+3. **Match expertise** - Does a sub-agent specialize in this area?
+4. **Launch agent** - Use the Task tool with appropriate sub-agent type
+5. **Review results** - Validate and integrate sub-agent output
+
+### Task Management Workflow
+
+#### Before Starting Multi-Step Tasks
+
+1. **Analyze the request** - Break down what needs to be accomplished
+2. **Create task list** - Document all steps in `tasks.md` file (root level)
+3. **Use TodoWrite tool** - Create structured todo list for tracking
+4. **Begin execution** - Start with first high-priority task
+
+#### During Task Execution
+
+1. **Mark tasks in progress** - Update status when starting work
+2. **Complete tasks incrementally** - Mark completed immediately after finishing
+3. **Update tasks.md** - Document progress and any changes to scope
+4. **Use sub-agents when appropriate** - Follow sub-agent guidelines above
+
+#### After Task Completion
+
+1. **Final tasks.md update** - Document completion and any follow-up needed
+2. **Summary of work done** - Brief overview of accomplishments
+3. **Note any architectural changes** - Important for future reference
+
+### Task Documentation Format
+
+#### tasks.md Structure (Root Level)
+```markdown
+# [Project/Feature Name]
+
+## Overview
+Brief description of the work being done.
+
+## Current Status
+- [✅] Completed items
+- [🚧] In progress items  
+- [⏳] Pending items
+
+## Implementation Plan
+Detailed breakdown of steps and approach.
+
+## Notes
+- Important decisions made
+- Architecture changes
+- Issues encountered and resolved
+```
+
+#### TodoWrite Integration
+- Always use TodoWrite for tracking active work
+- Keep todo list synchronized with tasks.md
+- Mark tasks completed immediately when finished
+- Add new tasks if scope changes during implementation
+
+### Example Workflows
+
+#### New Feature Development
+
+1. **Research & Planning**
+   ```
+   - Use architect sub-agent for system design
+   - Create tasks.md with implementation plan
+   - Set up TodoWrite tracking
+   ```
+
+2. **Implementation**
+   ```
+   - Use ui-designer for UI components
+   - Use code-reviewer after significant code changes
+   - Update progress in tasks.md and TodoWrite
+   ```
+
+3. **Quality Assurance**
+   ```
+   - Use debugger for testing issues
+   - Use performance-optimizer for bottlenecks
+   - Use security-specialist for security review
+   ```
+
+#### Bug Investigation
+
+1. **Diagnosis**
+   ```
+   - Use debugger sub-agent for error analysis
+   - Document findings in tasks.md
+   - Create focused todo list
+   ```
+
+2. **Resolution**
+   ```
+   - Implement fixes with appropriate sub-agents
+   - Use code-reviewer for validation
+   - Update documentation
+   ```
+
+#### Code Cleanup
+
+1. **Assessment**
+   ```
+   - Use code-janitor for identifying cleanup opportunities
+   - Document scope in tasks.md
+   - Prioritize cleanup tasks
+   ```
+
+2. **Execution**
+   ```
+   - Systematic cleanup with progress tracking
+   - Use architect for any structural changes
+   - Update documentation as needed
+   ```
+
+### Best Practices
+
+#### Sub-Agent Usage
+- Provide detailed context and requirements
+- Specify expected deliverables clearly
+- Review output before proceeding
+- Use multiple agents concurrently when appropriate
+
+#### Task Management
+- Break large tasks into smaller, trackable pieces
+- Update progress frequently to maintain context
+- Document decisions and rationale
+- Keep tasks.md as a permanent record
+
+#### Documentation
+- Write for future developers (including future Claude sessions)
+- Include context for why decisions were made
+- Note any workarounds or technical debt
+- Update architecture documentation when making structural changes
+
+### Recovery from Interruption
+
+If a session is interrupted:
+
+1. **Check tasks.md** - Review the last documented state
+2. **Review TodoWrite** - See what was in progress
+3. **Assess current state** - What has been completed vs. documented
+4. **Continue or adjust** - Pick up where left off or revise plan
+
+This workflow ensures continuity across sessions and maintains a clear record of development progress.

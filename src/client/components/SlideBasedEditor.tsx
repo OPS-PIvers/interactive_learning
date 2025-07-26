@@ -4,7 +4,7 @@ import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideEditor } from './slides/SlideEditor';
-import { TouchAwareSlideEditor } from './slides/TouchAwareSlideEditor';
+import { MobileSlideEditor } from './slides/MobileSlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 import HeaderInsertDropdown from './HeaderInsertDropdown';
@@ -25,6 +25,10 @@ import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 import { ProjectThemeProvider } from '../hooks/useProjectTheme';
 import { firebaseAPI } from '../../lib/firebaseApi';
+import { MobileFloatingMenu } from './mobile/MobileFloatingMenu';
+import { MobileSlidesModal } from './mobile/MobileSlidesModal';
+import { MobileBackgroundModal } from './mobile/MobileBackgroundModal';
+import { MobileInsertModal } from './mobile/MobileInsertModal';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
@@ -71,6 +75,11 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSlidePanelCollapsed, setIsSlidePanelCollapsed] = useState(false);
+  
+  // Mobile modal states
+  const [isMobileSlidesModalOpen, setIsMobileSlidesModalOpen] = useState(false);
+  const [isMobileBackgroundModalOpen, setIsMobileBackgroundModalOpen] = useState(false);
+  const [isMobileInsertModalOpen, setIsMobileInsertModalOpen] = useState(false);
   
   // Check if device is in landscape mode
   const isLandscape = window.innerWidth > window.innerHeight;
@@ -468,6 +477,19 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     }
   }, [projectId]);
 
+  // Mobile modal handlers
+  const handleMobileSlidesOpen = useCallback(() => {
+    setIsMobileSlidesModalOpen(true);
+  }, []);
+
+  const handleMobileBackgroundOpen = useCallback(() => {
+    setIsMobileBackgroundModalOpen(true);
+  }, []);
+
+  const handleMobileInsertOpen = useCallback(() => {
+    setIsMobileInsertModalOpen(true);
+  }, []);
+
   // Get effective device type (override or detected)
   const effectiveDeviceType = deviceTypeOverride || deviceType;
 
@@ -758,21 +780,33 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         </div>
 
         {/* Main canvas area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
           {isMobile ? (
-            <TouchAwareSlideEditor
-              slideDeck={editorSlideDeck}
-              currentSlideIndex={currentSlideIndex}
-              onSlideDeckChange={handleSlideDeckUpdate}
-              onClose={onClose}
-              className="flex-1"
-              deviceTypeOverride={effectiveDeviceType}
-              onAspectRatioChange={handleAspectRatioChange}
-              selectedElementId={selectedElementId}
-              onElementSelect={setSelectedElementId}
-              onElementUpdate={handleElementUpdate}
-              onSlideUpdate={handleSlideUpdate}
-            />
+            <>
+              <MobileSlideEditor
+                slideDeck={editorSlideDeck}
+                currentSlideIndex={currentSlideIndex}
+                onSlideDeckChange={handleSlideDeckUpdate}
+                onClose={onClose}
+                className="flex-1"
+                deviceTypeOverride={effectiveDeviceType}
+                onAspectRatioChange={handleAspectRatioChange}
+                selectedElementId={selectedElementId}
+                onElementSelect={setSelectedElementId}
+                onElementUpdate={handleElementUpdate}
+                onSlideUpdate={handleSlideUpdate}
+              />
+              
+              {/* Mobile Floating Menu */}
+              {!isPreviewMode && (
+                <MobileFloatingMenu
+                  onSlidesOpen={handleMobileSlidesOpen}
+                  onBackgroundOpen={handleMobileBackgroundOpen}
+                  onInsertOpen={handleMobileInsertOpen}
+                  isTimelineVisible={false} // TODO: Check if timeline is actually visible
+                />
+              )}
+            </>
           ) : (
             <SlideEditor
               slideDeck={editorSlideDeck}
@@ -902,6 +936,41 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           projectName={projectName}
           projectId={projectId || ''}
         />
+
+        {/* Mobile Modals */}
+        {isMobile && (
+          <>
+            {isMobileSlidesModalOpen && (
+              <MobileSlidesModal
+                slides={slideDeck.slides}
+                currentSlideIndex={currentSlideIndex}
+                onSlideSelect={handleSlideChange}
+                onSlideAdd={handleAddSlide}
+                onSlideDelete={handleDeleteSlide}
+                onSlideDuplicate={handleDuplicateSlide}
+                onClose={() => setIsMobileSlidesModalOpen(false)}
+              />
+            )}
+
+            {isMobileBackgroundModalOpen && currentSlide && (
+              <MobileBackgroundModal
+                currentSlide={currentSlide}
+                onAspectRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
+                onBackgroundUpload={onImageUpload}
+                onBackgroundRemove={() => handleSlideUpdate({ backgroundMedia: undefined })}
+                onBackgroundUpdate={(mediaConfig) => handleSlideUpdate({ backgroundMedia: mediaConfig })}
+                onClose={() => setIsMobileBackgroundModalOpen(false)}
+              />
+            )}
+
+            {isMobileInsertModalOpen && (
+              <MobileInsertModal
+                onInsertElement={handleAddElement}
+                onClose={() => setIsMobileInsertModalOpen(false)}
+              />
+            )}
+          </>
+        )}
       </div>
     </ProjectThemeProvider>
   );

@@ -245,3 +245,158 @@ body.touch-editing {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
+
+/* New Mobile-First Layout Styles */
+
+/* Mobile-specific slide editor layout */
+.mobile-slide-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.mobile-slide-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-slide-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Mobile floating menu */
+.mobile-floating-menu {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: bottom 0.3s ease;
+}
+
+.mobile-floating-menu.timeline-visible {
+  bottom: 72px;
+}
+
+/* Mobile floating menu buttons */
+.mobile-floating-menu button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-floating-menu button:hover {
+  transform: scale(1.1);
+}
+
+.mobile-floating-menu button:active {
+  transform: scale(0.95);
+}
+
+/* Mobile landscape optimizations */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .mobile-slide-area {
+    padding: 4px;
+  }
+  
+  .mobile-floating-menu {
+    bottom: 8px;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  
+  .mobile-floating-menu button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Hide slide panels on mobile for clean layout */
+@media (max-width: 768px) {
+  .slide-editor .slide-navigation-panel {
+    display: none !important;
+  }
+  
+  .slide-editor .properties-panel {
+    display: none !important;
+  }
+}
+
+/* Prevent body scroll when mobile editor is active */
+body.mobile-editor-active {
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  -webkit-overflow-scrolling: none;
+  overscroll-behavior: none;
+}
+
+/* Touch-friendly element selection */
+.mobile-slide-editor .slide-element {
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.mobile-slide-editor .slide-element.selected {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+  z-index: 10;
+}
+
+/* Disable complex transforms that break containment */
+.mobile-slide-editor .slide-canvas {
+  transform: none !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* Modal backdrop optimizations for mobile */
+@media (max-width: 768px) {
+  .modal-backdrop {
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .modal-content {
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
