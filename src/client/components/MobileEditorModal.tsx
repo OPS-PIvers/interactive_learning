@@ -140,6 +140,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     triggerHapticFeedback('selection');
   };
 
+
   useEffect(() => {
     if (hotspot) {
       const savedState = mobileStateManager.loadState();
@@ -322,8 +323,10 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     );
   }
 
+  const modalClasses = 'fixed inset-0 z-50 bg-black bg-opacity-50 flex flex-col';
+
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex flex-col">
+    <div className={modalClasses}>
       {/* Modal */}
       <div
         ref={modalRef}
