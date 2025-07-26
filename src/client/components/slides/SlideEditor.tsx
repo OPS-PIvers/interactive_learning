@@ -96,12 +96,17 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     }
     
     const containerRect = canvasContainerRef.current.getBoundingClientRect();
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const isMobileLandscape = isMobile && isLandscape;
+    
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
       containerRect.width || 800,
-      containerRect.height || 600
+      containerRect.height || 600,
+      isMobileLandscape ? 16 : 48, // Reduced padding for mobile landscape
+      isMobileLandscape
     );
-  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height]);
+  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, isMobile]);
 
   // Handle element drag start
   const handleElementDragStart = useCallback((elementId: string, event: React.MouseEvent | React.TouchEvent) => {

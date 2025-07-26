@@ -58,19 +58,24 @@ export function parseAspectRatio(ratio: string): AspectRatioDimensions {
  * @param containerWidth - Available container width
  * @param containerHeight - Available container height
  * @param padding - Padding around canvas (default: 48px)
+ * @param isMobileLandscape - Whether device is mobile in landscape mode
  * @returns Canvas dimensions with scale factor
  */
 export function calculateCanvasDimensions(
   ratio: string,
   containerWidth: number,
   containerHeight: number,
-  padding: number = 48
+  padding: number = 48,
+  isMobileLandscape: boolean = false
 ): CanvasDimensions {
   const { width: ratioWidth, height: ratioHeight } = parseAspectRatio(ratio);
   const aspectRatio = ratioWidth / ratioHeight;
 
-  const availableWidth = containerWidth - padding;
-  const availableHeight = containerHeight - padding;
+  // Reduce padding for mobile landscape to maximize canvas space
+  const effectivePadding = isMobileLandscape ? Math.min(padding / 2, 16) : padding;
+  
+  const availableWidth = containerWidth - effectivePadding;
+  const availableHeight = containerHeight - effectivePadding;
 
   let canvasWidth: number;
   let canvasHeight: number;
@@ -86,9 +91,9 @@ export function calculateCanvasDimensions(
     canvasHeight = canvasWidth / aspectRatio;
   }
 
-  // Ensure minimum dimensions
-  const minWidth = 300;
-  const minHeight = 200;
+  // Adjust minimum dimensions for mobile landscape
+  const minWidth = isMobileLandscape ? 200 : 300;
+  const minHeight = isMobileLandscape ? 150 : 200;
 
   if (canvasWidth < minWidth) {
     canvasWidth = minWidth;
@@ -98,6 +103,18 @@ export function calculateCanvasDimensions(
   if (canvasHeight < minHeight) {
     canvasHeight = minHeight;
     canvasWidth = canvasHeight * aspectRatio;
+  }
+
+  // For mobile landscape, ensure we don't exceed available space
+  if (isMobileLandscape) {
+    if (canvasWidth > availableWidth) {
+      canvasWidth = availableWidth;
+      canvasHeight = canvasWidth / aspectRatio;
+    }
+    if (canvasHeight > availableHeight) {
+      canvasHeight = availableHeight;
+      canvasWidth = canvasHeight * aspectRatio;
+    }
   }
 
   // Calculate scale factor (useful for element positioning)

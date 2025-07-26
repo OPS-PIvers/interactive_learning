@@ -48,6 +48,18 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
   // Active slide effects
   const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
+  
+  // Touch gesture state for mobile
+  const [touchState, setTouchState] = useState({
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    isDragging: false,
+    panX: 0,
+    panY: 0,
+    scale: 1,
+    initialDistance: 0
+  });
 
   // Get current slide
   const currentSlide = slideDeck.slides.find(slide => slide.id === viewerState.currentSlideId);
@@ -140,6 +152,102 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     onInteraction?.(interactionLog);
   }, [currentSlide, triggerEffect, navigateToSlide, onInteraction]);
 
+  // Touch gesture handlers for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!slideDeck.settings.touchGestures) return;
+    
+    const touch = e.touches[0];
+    const now = Date.now();
+    
+    if (e.touches.length === 1) {
+      // Single touch - prepare for swipe or pan
+      setTouchState(prev => ({
+        ...prev,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        startTime: now,
+        isDragging: false
+      }));
+    } else if (e.touches.length === 2) {
+      // Two finger touch - prepare for pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      setTouchState(prev => ({
+        ...prev,
+        initialDistance: distance,
+        isDragging: false
+      }));
+    }
+  }, [slideDeck.settings.touchGestures]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!slideDeck.settings.touchGestures) return;
+    
+    e.preventDefault(); // Prevent scrolling while handling gestures
+    
+    if (e.touches.length === 1) {
+      // Single finger - pan or swipe detection
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchState.startX;
+      const deltaY = touch.clientY - touchState.startY;
+      
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        setTouchState(prev => ({ ...prev, isDragging: true, panX: deltaX, panY: deltaY }));
+      }
+    } else if (e.touches.length === 2 && touchState.initialDistance > 0) {
+      // Two finger - pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      const scale = Math.max(0.5, Math.min(3, distance / touchState.initialDistance));
+      setTouchState(prev => ({ ...prev, scale, isDragging: true }));
+    }
+  }, [slideDeck.settings.touchGestures, touchState.startX, touchState.startY, touchState.initialDistance]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!slideDeck.settings.touchGestures) return;
+    
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchState.startX;
+    const deltaY = touch.clientY - touchState.startY;
+    const deltaTime = Date.now() - touchState.startTime;
+    
+    // Reset dragging state
+    setTouchState(prev => ({ ...prev, isDragging: false, panX: 0, panY: 0 }));
+    
+    // Detect swipe gestures (fast horizontal movement)
+    if (!touchState.isDragging && deltaTime < 300) {
+      const minSwipeDistance = 50;
+      const maxVerticalMovement = 100;
+      
+      if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaY) < maxVerticalMovement) {
+        if (deltaX > 0) {
+          // Swipe right - go to previous slide
+          navigateToPrevious();
+        } else {
+          // Swipe left - go to next slide
+          navigateToNext();
+        }
+      }
+    }
+    
+    // Reset scale if it was adjusted
+    if (touchState.scale !== 1) {
+      setTimeout(() => {
+        setTouchState(prev => ({ ...prev, scale: 1 }));
+      }, 300);
+    }
+  }, [slideDeck.settings.touchGestures, touchState, navigateToNext, navigateToPrevious]);
+
   // Keyboard navigation
   useEffect(() => {
     if (!slideDeck.settings.keyboardShortcuts) return;
@@ -203,13 +311,18 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     }
     
     const containerRect = containerRef.current.getBoundingClientRect();
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const isMobile = deviceType === 'mobile';
+    const isMobileLandscape = isMobile && isLandscape;
+    
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
       containerRect.width || window.innerWidth,
       containerRect.height || window.innerHeight,
-      24 // Reduced padding for viewer
+      isMobileLandscape ? 8 : 24, // Much reduced padding for mobile landscape
+      isMobileLandscape
     );
-  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height]);
+  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, deviceType]);
 
   const containerStyle: React.CSSProperties = {
     width: '100%',
@@ -226,7 +339,10 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     width: canvasDimensions.width,
     height: canvasDimensions.height,
     position: 'relative',
-    backgroundColor: currentSlide.backgroundColor || 'transparent'
+    backgroundColor: currentSlide.backgroundColor || 'transparent',
+    transform: `translate(${touchState.panX}px, ${touchState.panY}px) scale(${touchState.scale})`,
+    transition: touchState.isDragging ? 'none' : 'transform 0.3s ease-out',
+    touchAction: slideDeck.settings.touchGestures ? 'none' : 'auto'
   };
 
   if (currentSlide.backgroundImage) {
@@ -244,10 +360,13 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
       data-slide-id={currentSlide.id}
       data-device-type={deviceType}
     >
-      {/* Scaled Slide Canvas */}
+      {/* Scaled Slide Canvas with Touch Support */}
       <div 
         className="slide-canvas"
         style={slideCanvasStyle}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Background Media Renderer */}
         {currentSlide.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' && (

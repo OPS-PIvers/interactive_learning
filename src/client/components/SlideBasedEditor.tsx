@@ -69,6 +69,11 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSlidePanelCollapsed, setIsSlidePanelCollapsed] = useState(false);
+  
+  // Check if device is in landscape mode
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const shouldCollapsePanelOnMobile = isMobile && isLandscape;
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -618,89 +623,136 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
       {/* Main editor content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Slide navigation panel - matches landing page example layout */}
-        <div className="w-64 bg-slate-800/50 border-r border-slate-700 flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-slate-700">
-            <h2 className="text-white font-semibold">Slides</h2>
+        {/* Slide navigation panel - responsive and collapsible */}
+        <div className={`${isSlidePanelCollapsed ? 'w-12' : shouldCollapsePanelOnMobile ? 'w-48' : 'w-64'} bg-slate-800/50 border-r border-slate-700 flex flex-col transition-all duration-300 relative`}>
+          {/* Header with collapse toggle */}
+          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+            <h2 className={`text-white font-semibold transition-opacity duration-300 ${isSlidePanelCollapsed ? 'opacity-0 hidden' : 'opacity-100'}`}>Slides</h2>
+            <button
+              onClick={() => setIsSlidePanelCollapsed(!isSlidePanelCollapsed)}
+              className="text-slate-400 hover:text-white transition-colors p-1 rounded"
+              title={isSlidePanelCollapsed ? 'Expand slide panel' : 'Collapse slide panel'}
+              aria-label={isSlidePanelCollapsed ? 'Expand slide panel' : 'Collapse slide panel'}
+            >
+              {isSlidePanelCollapsed ? '→' : '←'}
+            </button>
           </div>
 
           {/* Scrollable slide list */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-2 slide-list">
-            {slideDeck.slides.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
-                  index === currentSlideIndex
-                    ? 'bg-blue-600/30 border border-blue-500 text-white'
-                    : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white'
-                }`}
-                onClick={() => handleSlideChange(index)}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-semibold text-sm">{index + 1}. {slide.title}</span>
-                    <p className="text-xs text-slate-300 mt-1">{slide.elements.length} element{slide.elements.length !== 1 ? 's' : ''}</p>
-                  </div>
-                  
-                  {/* Three-dot menu */}
-                  <div className="relative">
-                    <button
-                      className="text-slate-400 hover:text-white p-1 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDropdownToggle(slide.id);
-                      }}
-                      title="Slide options"
-                    >
-                      ⋯
-                    </button>
+          <div className={`flex-1 overflow-y-auto p-2 space-y-2 slide-list transition-opacity duration-300 ${isSlidePanelCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            {isSlidePanelCollapsed ? (
+              /* Collapsed view - just slide numbers */
+              slideDeck.slides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className={`w-8 h-8 rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold ${
+                    index === currentSlideIndex
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                  onClick={() => handleSlideChange(index)}
+                  title={`Slide ${index + 1}: ${slide.title}`}
+                >
+                  {index + 1}
+                </div>
+              ))
+            ) : (
+              /* Expanded view - full slide cards */
+              slideDeck.slides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+                    index === currentSlideIndex
+                      ? 'bg-blue-600/30 border border-blue-500 text-white'
+                      : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                  onClick={() => handleSlideChange(index)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="min-w-0 flex-1">
+                      <span className={`font-semibold ${shouldCollapsePanelOnMobile ? 'text-xs' : 'text-sm'} truncate block`}>
+                        {index + 1}. {slide.title}
+                      </span>
+                      {!shouldCollapsePanelOnMobile && (
+                        <p className="text-xs text-slate-300 mt-1">
+                          {slide.elements.length} element{slide.elements.length !== 1 ? 's' : ''}
+                        </p>
+                      )}
+                    </div>
                     
-                    {/* Dropdown menu */}
-                    {activeDropdownId === slide.id && (
-                      <div className="absolute right-0 top-8 w-36 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50">
-                        <div className="py-1">
-                          <button
-                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors rounded-t-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicateSlide(index);
-                              setActiveDropdownId(null);
-                            }}
-                          >
-                            📋 Duplicate
-                          </button>
-                          {slideDeck.slides.length > 1 && (
-                            <button
-                              className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors rounded-b-lg"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm('Delete this slide?')) {
-                                  handleDeleteSlide(index);
+                    {/* Three-dot menu - hidden in mobile landscape for space */}
+                    {!shouldCollapsePanelOnMobile && (
+                      <div className="relative ml-2">
+                        <button
+                          className="text-slate-400 hover:text-white p-1 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDropdownToggle(slide.id);
+                          }}
+                          title="Slide options"
+                        >
+                          ⋯
+                        </button>
+                        
+                        {/* Dropdown menu */}
+                        {activeDropdownId === slide.id && (
+                          <div className="absolute right-0 top-8 w-36 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-50">
+                            <div className="py-1">
+                              <button
+                                className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors rounded-t-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDuplicateSlide(index);
                                   setActiveDropdownId(null);
-                                }
-                              }}
-                            >
-                              🗑️ Delete
-                            </button>
-                          )}
-                        </div>
+                                }}
+                              >
+                                📋 Duplicate
+                              </button>
+                              {slideDeck.slides.length > 1 && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors rounded-b-lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm('Delete this slide?')) {
+                                      handleDeleteSlide(index);
+                                      setActiveDropdownId(null);
+                                    }
+                                  }}
+                                >
+                                  🗑️ Delete
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Footer with Add Slide button */}
-          <div className="p-4 border-t border-slate-700">
-            <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
-              onClick={handleAddSlide}
-            >
-              + Add Slide
-            </button>
+          <div className={`p-4 border-t border-slate-700 transition-opacity duration-300 ${isSlidePanelCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            {isSlidePanelCollapsed ? (
+              <button
+                className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs transition-colors flex items-center justify-center"
+                onClick={handleAddSlide}
+                title="Add Slide"
+              >
+                +
+              </button>
+            ) : (
+              <button
+                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors ${
+                  shouldCollapsePanelOnMobile ? 'text-xs' : 'text-sm'
+                }`}
+                onClick={handleAddSlide}
+              >
+                + Add Slide
+              </button>
+            )}
           </div>
         </div>
 
@@ -721,8 +773,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           />
         </div>
 
-        {/* Properties panel */}
-        {!isPreviewMode && (
+        {/* Properties panel - collapsible on mobile landscape */}
+        {!isPreviewMode && !shouldCollapsePanelOnMobile && (
           <EnhancedPropertiesPanel
             selectedElement={selectedElement}
             currentSlide={currentSlide}
@@ -732,10 +784,65 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             isMobile={isMobile}
           />
         )}
+        
+        {/* Mobile Landscape Floating Toolbar */}
+        {shouldCollapsePanelOnMobile && !isPreviewMode && (
+          <>
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-full px-4 py-2 flex items-center gap-3 shadow-lg">
+              <button
+                onClick={() => handleSlideChange(Math.max(0, currentSlideIndex - 1))}
+                disabled={currentSlideIndex === 0}
+                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors"
+                title="Previous slide"
+              >
+                ←
+              </button>
+              
+              <span className="text-white text-sm font-medium px-2">
+                {currentSlideIndex + 1}/{slideDeck.slides.length}
+              </span>
+              
+              <button
+                onClick={() => handleSlideChange(Math.min(slideDeck.slides.length - 1, currentSlideIndex + 1))}
+                disabled={currentSlideIndex === slideDeck.slides.length - 1}
+                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors"
+                title="Next slide"
+              >
+                →
+              </button>
+              
+              <div className="w-px h-6 bg-slate-600 mx-1" />
+              
+              <button
+                onClick={handleAddSlide}
+                className="p-2 text-white hover:bg-slate-700 rounded-full transition-colors"
+                title="Add slide"
+              >
+                +
+              </button>
+              
+              <button
+                onClick={() => setIsSlidePanelCollapsed(!isSlidePanelCollapsed)}
+                className="p-2 text-white hover:bg-slate-700 rounded-full transition-colors"
+                title="Toggle slide panel"
+              >
+                ☰
+              </button>
+            </div>
+            
+            {/* Mobile landscape help hint */}
+            <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-200">📱</span>
+                <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Footer with migration info */}
-      {migrationResult && (
+      {/* Footer with migration info - hidden on mobile landscape for space */}
+      {migrationResult && !shouldCollapsePanelOnMobile && (
         <div className="bg-slate-800 border-t border-slate-700 text-slate-400 p-3 text-xs">
           <div className="flex items-center justify-between">
             <div>
@@ -758,15 +865,17 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       )}
 
       {/* Share Modal */}
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        project={{
-          id: projectId || '',
-          name: projectName,
-          published: isPublished
-        } as any}
-      />
+      {isShareModalOpen && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          project={{
+            id: projectId || '',
+            name: projectName,
+            published: isPublished
+          } as any}
+        />
+      )}
 
 
         {/* Project Settings Modal */}
