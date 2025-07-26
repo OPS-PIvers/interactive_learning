@@ -21,7 +21,6 @@
 ## UPDATE INTERACTION TYPE: "Text Tip"
   - Implement a new interaction type that uses the following concept to add an overlay text tip associated with a hotspot.  Adjust for the styling of my project:
 
-  /* From Uiverse.io by vnuny */ 
 .item-hints {
   --purple: #720c8f;
   cursor: pointer;

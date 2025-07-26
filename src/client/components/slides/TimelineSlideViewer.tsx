@@ -11,7 +11,7 @@ import { SlideDeck, SlideViewerState } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SlideViewer } from './SlideViewer';
-import HorizontalTimeline from '../HorizontalTimeline';
+import HeaderTimeline from '../HeaderTimeline';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;
@@ -56,6 +56,8 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isTimelineMode, setIsTimelineMode] = useState(viewerMode !== 'explore');
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
+  const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
   
   // Generate timeline events from slide elements
   const timelineEvents = useMemo(() => {
@@ -167,6 +169,23 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       onSlideChange(slideId, slideIndex);
     }
   }, [isTimelineMode, timelineEvents, onSlideChange]);
+
+  // Hotspot state handlers
+  const handleHotspotFocus = useCallback((hotspotId: string, slideIndex: number) => {
+    setActiveHotspotId(hotspotId);
+    // If hotspot is on different slide, navigate there
+    if (slideIndex !== currentSlideIndex) {
+      const slide = slideDeck.slides[slideIndex];
+      if (slide) {
+        handleSlideViewerChange(slide.id, slideIndex);
+      }
+    }
+  }, [currentSlideIndex, slideDeck.slides, handleSlideViewerChange]);
+
+  const handleHotspotComplete = useCallback((hotspotId: string) => {
+    setCompletedHotspots(prev => new Set([...prev, hotspotId]));
+    setActiveHotspotId(null);
+  }, []);
   
   // Auto-progression mode logic
   useEffect(() => {
@@ -186,14 +205,10 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
     }
   }, [viewerMode, currentStepIndex, currentStep, slideDeck, handleNextStep, uniqueSortedSteps.length]);
   
-  // Determine if timeline should be shown
-  const showTimeline = isTimelineMode && timelineEvents.length > 0;
   
   // Keyboard navigation support
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (!showTimeline) return;
-      
       switch (event.key) {
         case 'ArrowLeft':
           event.preventDefault();
@@ -217,30 +232,27 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       }
     };
     
-    if (showTimeline && slideDeck.settings.keyboardShortcuts) {
+    if (slideDeck.settings.keyboardShortcuts) {
       document.addEventListener('keydown', handleKeyPress);
       return () => document.removeEventListener('keydown', handleKeyPress);
     }
-  }, [showTimeline, handlePrevStep, handleNextStep, viewerMode, onClose, slideDeck.settings.keyboardShortcuts]);
+  }, [handlePrevStep, handleNextStep, viewerMode, onClose, slideDeck.settings.keyboardShortcuts]);
   
-  // Convert slide elements to hotspot data for timeline compatibility
-  const hotspotsForTimeline = useMemo(() => {
-    const currentSlide = slideDeck.slides[currentSlideIndex];
-    if (!currentSlide) return [];
-    
-    return currentSlide.elements
-      .filter(element => element.type === 'hotspot')
-      .map(element => ({
-        id: element.id,
-        x: element.position.desktop.x / 12, // Convert to percentage (assuming 1200px width)
-        y: element.position.desktop.y / 8,  // Convert to percentage (assuming 800px height)
-        title: element.content.title || 'Hotspot',
-        color: element.style?.backgroundColor || element.style?.color || '#3b82f6'
-      }));
-  }, [slideDeck.slides, currentSlideIndex]);
   
   return (
     <div className={`timeline-slide-viewer flex flex-col h-full ${className}`}>
+      {/* Persistent Timeline Header */}
+      <HeaderTimeline
+        slideDeck={slideDeck}
+        currentSlideIndex={currentSlideIndex}
+        onSlideChange={handleSlideViewerChange}
+        viewerMode={viewerMode}
+        activeHotspotId={activeHotspotId}
+        completedHotspots={completedHotspots}
+        onHotspotFocus={handleHotspotFocus}
+        className="shadow-lg"
+      />
+      
       {/* Main slide viewer */}
       <div className="flex-1 relative">
         <SlideViewer
@@ -259,31 +271,6 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         )}
       </div>
       
-      {/* Horizontal Timeline - shown for guided and auto-progression modes */}
-      {showTimeline && (
-        <div className="timeline-container bg-slate-800 border-t border-slate-700">
-          <HorizontalTimeline
-            uniqueSortedSteps={uniqueSortedSteps}
-            currentStep={currentStep}
-            onStepSelect={handleStepSelect}
-            isEditing={false}
-            timelineEvents={timelineEvents as any} // Type cast for compatibility
-            setTimelineEvents={() => {}} // Read-only in viewer mode
-            hotspots={hotspotsForTimeline as any} // Type cast for compatibility
-            showPreviews={true}
-            moduleState={viewerMode === 'guided' ? 'learning' : 'idle'}
-            onPrevStep={handlePrevStep}
-            onNextStep={handleNextStep}
-            currentStepIndex={currentStepIndex}
-            totalSteps={uniqueSortedSteps.length}
-            isMobile={isMobile}
-            onAddStep={() => {}} // Not available in viewer
-            onDeleteStep={() => {}} // Not available in viewer
-            onUpdateStep={() => {}} // Not available in viewer
-            onMoveStep={() => {}} // Not available in viewer
-          />
-        </div>
-      )}
       
       {/* Close button */}
       {onClose && (

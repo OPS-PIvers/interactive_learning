@@ -392,10 +392,33 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
         
         // Get element position if no custom position specified
         const elementPosition = element.position[deviceType];
-        const spotlightX = spotlightParams?.spotlightX !== undefined ? spotlightParams.spotlightX : 
-          (elementPosition.x / canvasDimensions.width) * 100;
-        const spotlightY = spotlightParams?.spotlightY !== undefined ? spotlightParams.spotlightY : 
-          (elementPosition.y / canvasDimensions.height) * 100;
+        
+        // Calculate hotspot visual center by adding half the hotspot dimensions to position
+        let spotlightX: number;
+        let spotlightY: number;
+        
+        if (spotlightParams?.spotlightX !== undefined && spotlightParams?.spotlightY !== undefined) {
+          // Use custom position if specified
+          spotlightX = spotlightParams.spotlightX;
+          spotlightY = spotlightParams.spotlightY;
+        } else {
+          // Calculate center of hotspot for spotlight positioning
+          if (element.type === 'hotspot') {
+            const hotspotSize = element.content?.customProperties?.size || defaultHotspotSize;
+            const dimensions = getHotspotPixelDimensions(hotspotSize, isMobile);
+            
+            // Add half the hotspot dimensions to get visual center
+            const centerX = elementPosition.x + (dimensions.width / 2);
+            const centerY = elementPosition.y + (dimensions.height / 2);
+            
+            spotlightX = (centerX / canvasDimensions.width) * 100;
+            spotlightY = (centerY / canvasDimensions.height) * 100;
+          } else {
+            // For non-hotspot elements, use top-left as before
+            spotlightX = (elementPosition.x / canvasDimensions.width) * 100;
+            spotlightY = (elementPosition.y / canvasDimensions.height) * 100;
+          }
+        }
         
         setSpotlightInteraction({
           shape: (spotlightParams?.spotlightShape as 'circle' | 'rectangle' | 'oval') || 'circle',
@@ -510,7 +533,20 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 : undefined,
               backgroundSize: currentSlide.layout?.backgroundSize || 'cover',
               backgroundPosition: currentSlide.layout?.backgroundPosition || 'center',
-              backgroundRepeat: 'no-repeat'
+              backgroundRepeat: 'no-repeat',
+              // Pan & Zoom transforms
+              ...(panZoomInteraction && {
+                transform: `scale(${panZoomInteraction.zoomLevel}) translate(${
+                  // Calculate translate values to center the zoom on target
+                  ((50 - panZoomInteraction.targetX) / panZoomInteraction.zoomLevel)
+                }%, ${
+                  ((50 - panZoomInteraction.targetY) / panZoomInteraction.zoomLevel)
+                }%)`,
+                transformOrigin: `${panZoomInteraction.targetX}% ${panZoomInteraction.targetY}%`,
+                transition: panZoomInteraction.smooth 
+                  ? `transform ${panZoomInteraction.duration}ms ease-in-out` 
+                  : 'none'
+              })
             }}
           >
             {/* Background Media Renderer */}
@@ -638,15 +674,16 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 const position = element.position[deviceType];
                 const isSelected = element.id === selectedElementId;
                 
-                // For hotspots, use dynamic sizing based on size preset
+                // For hotspots, use dynamic sizing based on size preset to ensure container matches visual
                 let containerWidth = position.width;
                 let containerHeight = position.height;
+                let hotspotDimensions: { width: number; height: number } | null = null;
                 
                 if (element.type === 'hotspot') {
                   const hotspotSize = element.content?.customProperties?.size || defaultHotspotSize;
-                  const dimensions = getHotspotPixelDimensions(hotspotSize, isMobile);
-                  containerWidth = dimensions.width;
-                  containerHeight = dimensions.height;
+                  hotspotDimensions = getHotspotPixelDimensions(hotspotSize, isMobile);
+                  containerWidth = hotspotDimensions.width;
+                  containerHeight = hotspotDimensions.height;
                 }
                 
                 return (
@@ -670,20 +707,19 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     {element.type === 'hotspot' && (
                       <div className="relative w-full h-full">
                         <div
-                          className={`rounded-full shadow-2xl border-2 border-white border-opacity-30 ${
-                            getHotspotSizeClasses(element.content?.customProperties?.size || defaultHotspotSize, isMobile)
-                          } ${element.interactions.length > 0 ? 'cursor-pointer' : ''}`}
+                          className={`rounded-full shadow-2xl border-2 border-white border-opacity-30 transition-all duration-150 ${
+                            element.interactions.length > 0 
+                              ? 'cursor-pointer animate-pulse hover:shadow-3xl' 
+                              : ''
+                          }`}
                           style={{
+                            // Use calculated dimensions instead of Tailwind classes for consistency
+                            width: hotspotDimensions ? `${hotspotDimensions.width}px` : '20px',
+                            height: hotspotDimensions ? `${hotspotDimensions.height}px` : '20px',
                             backgroundColor: element.content?.style?.backgroundColor || '#3b82f6',
                             opacity: element.content?.style?.opacity !== undefined ? element.content.style.opacity : 0.9
                           }}
                         />
-                        {/* Interactive indicator */}
-                        {element.interactions.length > 0 && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white animate-pulse shadow-sm">
-                            <div className="w-full h-full rounded-full bg-yellow-300 animate-ping" />
-                          </div>
-                        )}
                       </div>
                     )}
                     
@@ -886,35 +922,41 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
 
       {/* Pan&Zoom Interaction Overlay */}
       {panZoomInteraction && (
-        <div className="absolute inset-0 pointer-events-none z-30">
-          {/* Pan&Zoom visual indicator */}
+        <div className="absolute inset-0 pointer-events-none z-30">          
+          {/* Zoom level and status indicator */}
+          <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+              </svg>
+              <span>Zoom: {Math.round(panZoomInteraction.zoomLevel * 100)}%</span>
+            </div>
+            <div className="text-xs text-blue-200 mt-1">
+              Target: {Math.round(panZoomInteraction.targetX)}%, {Math.round(panZoomInteraction.targetY)}%
+            </div>
+          </div>
+          
+          {/* Target crosshair indicator */}
           <div
-            className="absolute bg-blue-500 bg-opacity-30 border-2 border-blue-400 rounded-lg pointer-events-none animate-pulse"
+            className="absolute pointer-events-none"
             style={{
               left: `${panZoomInteraction.targetX}%`,
               top: `${panZoomInteraction.targetY}%`,
-              width: '80px',
-              height: '80px',
               transform: 'translate(-50%, -50%)',
               transition: panZoomInteraction.smooth ? `all ${panZoomInteraction.duration}ms ease-in-out` : 'none'
             }}
           >
-            {/* Zoom icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-              </svg>
+            {/* Crosshair */}
+            <div className="relative">
+              <div className="absolute w-8 h-0.5 bg-blue-400 -translate-x-1/2 -translate-y-1/2"></div>
+              <div className="absolute h-8 w-0.5 bg-blue-400 -translate-x-1/2 -translate-y-1/2"></div>
+              <div className="absolute w-3 h-3 border-2 border-blue-400 rounded-full -translate-x-1/2 -translate-y-1/2 animate-ping"></div>
             </div>
           </div>
           
-          {/* Zoom level indicator */}
-          <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">
-            Zoom: {Math.round(panZoomInteraction.zoomLevel * 100)}%
-          </div>
-          
-          {/* Close button */}
+          {/* Reset button */}
           <button
-            className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-all pointer-events-auto"
+            className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-all pointer-events-auto shadow-lg"
             onClick={() => setPanZoomInteraction(null)}
             aria-label="Reset zoom"
           >

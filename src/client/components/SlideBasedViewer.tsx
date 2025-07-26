@@ -7,8 +7,7 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerToolbar from './ViewerToolbar';
-import SlideTimelineAdapter from './SlideTimelineAdapter';
-import TimelineProgressTracker from './TimelineProgressTracker';
+import HeaderTimeline from './HeaderTimeline';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -40,8 +39,8 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const [viewerState, setViewerState] = useState<'exploring' | 'learning'>('exploring');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [showProgressTracker, setShowProgressTracker] = useState(false);
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
+  const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
 
   // Auto-start functionality
   useEffect(() => {
@@ -85,37 +84,30 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     }
   }, [slideDeck.slides, handleSlideChange]);
 
-  // Timeline visibility toggle
-  const handleToggleTimeline = useCallback(() => {
-    setShowTimeline(prev => !prev);
-  }, []);
 
-  // Progress tracker toggle
-  const handleToggleProgressTracker = useCallback(() => {
-    setShowProgressTracker(prev => !prev);
-  }, []);
-
-  // Progress tracker slide navigation
-  const handleProgressTrackerSlideChange = useCallback((slideIndex: number) => {
-    if (slideIndex >= 0 && slideIndex < slideDeck.slides.length) {
-      const slideId = slideDeck.slides[slideIndex].id;
-      setCurrentSlideId(slideId);
-      setCurrentSlideIndex(slideIndex);
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[SlideBasedViewer] Progress tracker navigation:', {
-          slideId,
-          slideIndex
-        });
-      }
-    }
-  }, [slideDeck.slides]);
 
   // Interaction handler
   const handleInteraction = useCallback((interaction: any) => {
     if (process.env.NODE_ENV === 'development') {
       console.log('[SlideBasedViewer] Interaction:', interaction);
     }
+  }, []);
+
+  // Hotspot state handlers
+  const handleHotspotFocus = useCallback((hotspotId: string, slideIndex: number) => {
+    setActiveHotspotId(hotspotId);
+    // If hotspot is on different slide, navigate there
+    if (slideIndex !== currentSlideIndex) {
+      const slide = slideDeck.slides[slideIndex];
+      if (slide) {
+        handleSlideChange(slide.id, slideIndex);
+      }
+    }
+  }, [currentSlideIndex, slideDeck.slides, handleSlideChange]);
+
+  const handleHotspotComplete = useCallback((hotspotId: string) => {
+    setCompletedHotspots(prev => new Set([...prev, hotspotId]));
+    setActiveHotspotId(null);
   }, []);
 
   // Enhanced slide deck with viewer mode settings
@@ -149,32 +141,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         </div>
         
         <div className="flex items-center space-x-3">
-          {/* Progress Tracker Toggle */}
-          <button
-            className={`slide-nav-button text-sm transition-colors ${
-              showProgressTracker 
-                ? 'slide-nav-button-primary' 
-                : 'slide-nav-button-secondary'
-            }`}
-            onClick={handleToggleProgressTracker}
-            title={`${showProgressTracker ? 'Hide' : 'Show'} Auto-Progression`}
-          >
-            🎬 Auto-Play
-          </button>
-          
-          {/* Timeline Toggle */}
-          <button
-            className={`slide-nav-button text-sm transition-colors ${
-              showTimeline 
-                ? 'slide-nav-button-primary' 
-                : 'slide-nav-button-secondary'
-            }`}
-            onClick={handleToggleTimeline}
-            title={`${showTimeline ? 'Hide' : 'Show'} Timeline`}
-          >
-            ⏱️ Timeline
-          </button>
-          
           <button
             className="slide-nav-button slide-nav-button-secondary text-sm"
             onClick={onClose}
@@ -193,6 +159,19 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           />
         </div>
       </div>
+
+      {/* Persistent Timeline */}
+      <HeaderTimeline
+        slideDeck={enhancedSlideDeck}
+        currentSlideIndex={currentSlideIndex}
+        onSlideChange={handleSlideChange}
+        viewerMode={viewerState === 'learning' && viewerModes.timed ? 'auto-progression' : 
+                    viewerState === 'learning' ? 'guided' : 'explore'}
+        activeHotspotId={activeHotspotId}
+        completedHotspots={completedHotspots}
+        onHotspotFocus={handleHotspotFocus}
+        className="shadow-lg"
+      />
 
       {/* Slide viewer - use timeline viewer for guided/timed modes */}
       <div className="flex-1 flex flex-col relative">
@@ -217,58 +196,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           )}
         </div>
 
-        {/* Progress Tracker - visible when enabled */}
-        {showProgressTracker && (
-          <div className="border-t border-slate-700 bg-slate-800/50">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm text-slate-300 font-medium">
-                  Timeline Auto-Progression
-                </div>
-                <div className="text-xs text-slate-400">
-                  Interactive Timeline Experience
-                </div>
-              </div>
-              
-              <TimelineProgressTracker
-                slideDeck={slideDeck}
-                currentSlideIndex={currentSlideIndex}
-                onSlideChange={handleProgressTrackerSlideChange}
-                isAutoProgression={viewerModes.timed || false}
-                autoProgressionDelay={3000}
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Timeline Navigation - visible when enabled */}
-        {showTimeline && (
-          <div className="border-t border-slate-700 bg-slate-800/50">
-            <div className="p-2">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-slate-300 font-medium">
-                  Interactive Timeline Navigation
-                </div>
-                <div className="text-xs text-slate-400">
-                  Step {currentSlideIndex + 1} of {slideDeck.slides.length}
-                </div>
-              </div>
-              
-              <SlideTimelineAdapter
-                slideDeck={slideDeck}
-                currentSlideIndex={currentSlideIndex}
-                onSlideDeckChange={() => {}} // Read-only in viewer mode
-                onStepSelect={handleTimelineStepSelect}
-                isEditing={false}
-                showPreviews={true}
-                moduleState={viewerState}
-                isMobile={isMobile}
-                className="timeline-viewer-mode"
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
