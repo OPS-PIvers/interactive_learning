@@ -322,12 +322,24 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
   }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, isMobile, props.onHotspotDoubleClick]);
 
-  // Style classes
-  const baseColor = hotspot.color || 'bg-sky-500'; // Default to sky blue
+  // Style classes - with enhanced color support for slide-based and legacy systems
+  const getHotspotColor = () => {
+    // Priority order: customProperties (from slide element) -> hotspot.backgroundColor -> hotspot.color -> default
+    const customColor = (hotspot as any).customProperties?.backgroundColor || (hotspot as any).customProperties?.color;
+    return customColor || hotspot.backgroundColor || hotspot.color || 'bg-sky-500';
+  };
+  
+  const baseColor = getHotspotColor();
   const hoverColor = baseColor.replace('500', '400').replace('600', '500'); // Basic hover adjustment
   const ringColor = baseColor.replace('bg-', 'ring-').replace('-500', '-400'); // For focus ring
 
-  const sizeClasses = getSizeClasses(hotspot.size);
+  // Get hotspot size from multiple sources (priority: customProperties -> hotspot.size -> default)
+  const getHotspotSize = () => {
+    const customSize = (hotspot as any).customProperties?.size;
+    return customSize || hotspot.size || defaultHotspotSize;
+  };
+  
+  const sizeClasses = getSizeClasses(getHotspotSize());
   
   const [isTimedPulseActive, setIsTimedPulseActive] = useState(false);
 
@@ -342,6 +354,21 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   }, [hotspot.pulseAnimation, hotspot.pulseType, hotspot.pulseDuration]);
 
   const shouldPulse = isContinuouslyPulsing || (hotspot.pulseAnimation && hotspot.pulseType === 'loop') || isTimedPulseActive;
+
+  // Get custom styling for hotspot
+  const getCustomStyles = () => {
+    const styles: React.CSSProperties = {};
+    
+    // Apply opacity from multiple sources (priority: customProperties -> hotspot.opacity)
+    const customOpacity = (hotspot as any).customProperties?.opacity;
+    const opacity = customOpacity !== undefined ? customOpacity : hotspot.opacity;
+    
+    if (opacity !== undefined) {
+      styles.opacity = opacity;
+    }
+    
+    return styles;
+  };
 
   const dotClasses = `relative inline-flex items-center justify-center rounded-full ${sizeClasses} ${baseColor}
     transition-all duration-150 ease-in-out group-hover:brightness-110 group-focus:brightness-110
@@ -389,7 +416,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       aria-grabbed={isEditing ? isDragging : undefined}
       aria-dropeffect={isEditing ? "move" : "none"}
     >
-      <span className={dotClasses} aria-hidden="true">
+      <span className={dotClasses} style={getCustomStyles()} aria-hidden="true">
         {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
         {/* Inner dot for improved visibility/style, conditional rendering based on size or if mobile */}
         <span className={innerDotClasses}></span>

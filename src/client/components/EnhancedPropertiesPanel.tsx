@@ -5,6 +5,7 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 import BackgroundMediaPanel from './BackgroundMediaPanel';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
+import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
 
 interface EnhancedPropertiesPanelProps {
   selectedElement: SlideElement | null;
@@ -63,14 +64,14 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   onSlideUpdate,
   isMobile = false
 }) => {
-  // Collapsible sections state
+  // Collapsible sections state - default to closed for cleaner interface
   const [openSections, setOpenSections] = useState({
-    style: true,
-    presets: selectedElement?.type === 'hotspot', // Auto-open for hotspots
-    content: true,
+    style: false,
+    presets: selectedElement?.type === 'hotspot', // Keep presets open for hotspots as primary functionality
+    content: false,
     position: false,
-    interactions: selectedElement?.type === 'hotspot',
-    background: true
+    interactions: false,
+    background: false
   });
 
   useEffect(() => {
@@ -94,16 +95,70 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
     }));
   }, []);
 
+  // Color mapping from hex to Tailwind classes for hotspot compatibility
+  const hexToTailwindMap: Record<string, string> = {
+    '#3b82f6': 'bg-blue-500',
+    '#ef4444': 'bg-red-500', 
+    '#10b981': 'bg-emerald-500',
+    '#8b5cf6': 'bg-violet-500',
+    '#f97316': 'bg-orange-500',
+    '#374151': 'bg-gray-700'
+  };
+
   // Update handlers
   const handleStyleChange = useCallback((styleUpdates: Partial<ElementStyle>) => {
     if (!selectedElement) return;
     
-    onElementUpdate(selectedElement.id, {
+    // Prepare updates for slide element
+    const elementUpdates: Partial<SlideElement> = {
       style: {
         ...selectedElement.style,
         ...styleUpdates
       }
-    });
+    };
+
+    // For hotspot elements, also update the legacy hotspot properties for compatibility
+    if (selectedElement.type === 'hotspot') {
+      const customProps: Record<string, any> = {
+        ...selectedElement.content.customProperties
+      };
+      
+      // Update color if backgroundColor is being changed
+      if (styleUpdates.backgroundColor) {
+        const tailwindColor = hexToTailwindMap[styleUpdates.backgroundColor] || 'bg-blue-500';
+        customProps.color = tailwindColor;
+        customProps.backgroundColor = tailwindColor; // alias for mobile compatibility
+      }
+      
+      // Update opacity if it's being changed
+      if (styleUpdates.opacity !== undefined) {
+        customProps.opacity = styleUpdates.opacity;
+      }
+      
+      elementUpdates.content = {
+        ...selectedElement.content,
+        customProperties: customProps
+      };
+    }
+    
+    onElementUpdate(selectedElement.id, elementUpdates);
+  }, [selectedElement, onElementUpdate]);
+
+  // Size change handler for hotspots
+  const handleSizeChange = useCallback((size: HotspotSize) => {
+    if (!selectedElement || selectedElement.type !== 'hotspot') return;
+    
+    const elementUpdates: Partial<SlideElement> = {
+      content: {
+        ...selectedElement.content,
+        customProperties: {
+          ...selectedElement.content.customProperties,
+          size: size
+        }
+      }
+    };
+    
+    onElementUpdate(selectedElement.id, elementUpdates);
   }, [selectedElement, onElementUpdate]);
 
   const handleContentChange = useCallback((contentUpdates: Partial<ElementContent>) => {
@@ -349,7 +404,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.9,
                     animation: 'pulse'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-blue-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#3b82f6' 
+                      ? 'border-blue-500 bg-blue-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-blue-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded-full mb-2 animate-pulse"
@@ -366,7 +425,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.85,
                     animation: 'bounce'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-red-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#ef4444' 
+                      ? 'border-red-500 bg-red-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-red-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded-full mb-2"
@@ -383,7 +446,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.9,
                     animation: 'none'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-green-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#10b981' 
+                      ? 'border-green-500 bg-green-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-green-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded-full mb-2"
@@ -400,7 +467,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.95,
                     animation: 'glow'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-purple-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#8b5cf6' 
+                      ? 'border-purple-500 bg-purple-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-purple-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded-full mb-2"
@@ -417,7 +488,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.9,
                     animation: 'flash'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-orange-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#f97316' 
+                      ? 'border-orange-500 bg-orange-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-orange-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded-full mb-2"
@@ -434,7 +509,11 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                     opacity: 0.8,
                     animation: 'none'
                   })}
-                  className="flex flex-col items-center p-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors border border-transparent hover:border-gray-500"
+                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
+                    selectedElement.style.backgroundColor === '#374151' 
+                      ? 'border-gray-500 bg-gray-500/20' 
+                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-gray-500'
+                  }`}
                 >
                   <div 
                     className="w-6 h-6 rounded mb-2"
@@ -442,6 +521,69 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                   />
                   <span className="text-xs text-slate-300">Minimal</span>
                 </button>
+              </div>
+              
+              {/* Size Selector */}
+              <div className="mt-4">
+                <div className="text-xs text-slate-400 mb-3">
+                  Hotspot Size
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {hotspotSizePresets.map((sizePreset) => {
+                    const currentSize = selectedElement.content.customProperties?.size || 'medium';
+                    const isSelected = currentSize === sizePreset.value;
+                    
+                    return (
+                      <button
+                        key={sizePreset.value}
+                        onClick={() => handleSizeChange(sizePreset.value)}
+                        className={`flex flex-col items-center p-2 rounded-lg transition-colors border ${
+                          isSelected 
+                            ? 'border-purple-500 bg-purple-500/20' 
+                            : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-slate-500'
+                        }`}
+                        title={sizePreset.description}
+                      >
+                        <div 
+                          className={`rounded-full bg-blue-500 mb-1 ${
+                            sizePreset.value === 'x-small' ? 'w-2 h-2' :
+                            sizePreset.value === 'small' ? 'w-3 h-3' :
+                            sizePreset.value === 'medium' ? 'w-4 h-4' :
+                            'w-5 h-5'
+                          }`}
+                        />
+                        <span className={`text-xs ${
+                          isSelected ? 'text-purple-300' : 'text-slate-300'
+                        }`}>
+                          {sizePreset.value === 'x-small' ? 'XS' :
+                           sizePreset.value === 'small' ? 'S' :
+                           sizePreset.value === 'medium' ? 'M' : 'L'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Opacity Control - moved from Style section */}
+              <div className="mt-4">
+                <div className="text-xs text-slate-400 mb-2">
+                  Opacity
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={selectedElement.style.opacity || 0.9}
+                    onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-slate-400 w-12">
+                    {Math.round((selectedElement.style.opacity || 0.9) * 100)}%
+                  </span>
+                </div>
               </div>
             </div>
           </CollapsibleSection>
@@ -476,50 +618,95 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
               </div>
             </div>
 
-            {/* Border Radius */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Border Radius
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="50"
-                  value={selectedElement.style.borderRadius || 8}
-                  onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
-                  className="flex-1"
-                />
-                <span className="text-xs text-slate-400 w-8">
-                  {selectedElement.style.borderRadius || 8}px
-                </span>
-              </div>
-            </div>
-
-            {/* Opacity */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Opacity
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={selectedElement.style.opacity || 0.9}
-                  onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
-                  className="flex-1"
-                />
-                <span className="text-xs text-slate-400 w-8">
-                  {Math.round((selectedElement.style.opacity || 0.9) * 100)}%
-                </span>
-              </div>
-            </div>
           </div>
         </CollapsibleSection>
 
-        {/* Element Content Section */}
+        {/* Hotspot Element Properties Section - Combined Content and Position */}
+        {selectedElement.type === 'hotspot' && (
+          <CollapsibleSection
+            title="Hotspot Element Properties"
+            isOpen={openSections.content} // Reuse content section state
+            onToggle={() => toggleSection('content')}
+          >
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={selectedElement.content.title || ''}
+                  onChange={(e) => handleContentChange({ title: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                  placeholder="Hotspot title"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={selectedElement.content.description || ''}
+                  onChange={(e) => handleContentChange({ description: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs resize-none"
+                  placeholder="Hotspot description"
+                  rows={3}
+                />
+              </div>
+
+              {/* Position Controls */}
+              <div>
+                <div className="text-xs font-medium text-slate-300 mb-2">
+                  Position & Size ({deviceType})
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">X</label>
+                    <input
+                      type="number"
+                      value={currentPosition.x}
+                      onChange={(e) => handlePositionChange('x', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Y</label>
+                    <input
+                      type="number"
+                      value={currentPosition.y}
+                      onChange={(e) => handlePositionChange('y', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Width</label>
+                    <input
+                      type="number"
+                      value={currentPosition.width}
+                      onChange={(e) => handlePositionChange('width', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Height</label>
+                    <input
+                      type="number"
+                      value={currentPosition.height}
+                      onChange={(e) => handlePositionChange('height', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Element Content Section - Only for non-hotspot elements */}
+        {selectedElement.type !== 'hotspot' && (
         <CollapsibleSection
           title="Content"
           isOpen={openSections.content}
@@ -571,8 +758,10 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
             )}
           </div>
         </CollapsibleSection>
+        )}
 
-        {/* Position Section */}
+        {/* Position Section - Only for non-hotspot elements */}
+        {selectedElement.type !== 'hotspot' && (
         <CollapsibleSection
           title={`Position (${deviceType})`}
           isOpen={openSections.position}
@@ -617,6 +806,7 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
             </div>
           </div>
         </CollapsibleSection>
+        )}
 
         {/* Interactions Section */}
         <CollapsibleSection

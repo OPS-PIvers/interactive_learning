@@ -58,10 +58,10 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   onDelete,
   onClose,
 }) => {
-  // Collapsible sections state
+  // Collapsible sections state - default to closed for cleaner interface
   const [openSections, setOpenSections] = useState({
     style: false,
-    content: true,
+    content: false,
     position: false,
     interactions: false
   });

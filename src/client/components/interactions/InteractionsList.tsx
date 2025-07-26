@@ -157,12 +157,6 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
           })}
         </div>
         
-        {/* Show All Interactions Button */}
-        <div className="mt-2 pt-2 border-t border-slate-600/50">
-          <div className="text-xs text-slate-400 text-center">
-            💡 Select an interaction above to configure its settings
-          </div>
-        </div>
       </div>
     </div>
   );
