@@ -128,37 +128,18 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // No more 'idle' state, viewer is always active
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
-      {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-            {projectName}
-          </h1>
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg">
-            {viewerState === 'learning' ? 'GUIDED MODE' : 'EXPLORE MODE'}
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <button
-            className="slide-nav-button slide-nav-button-secondary text-sm"
-            onClick={onClose}
-          >
-            ← Close Viewer
-          </button>
-          <ViewerToolbar
-            projectName={projectName}
-            onBack={onClose}
-            moduleState={viewerState}
-            onStartLearning={handleToggleMode}
-            onStartExploring={handleToggleMode}
-            hasContent={slideDeck.slides.length > 0}
-            isMobile={isMobile}
-            viewerModes={viewerModes}
-          />
-        </div>
-      </div>
+    <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${!isMobile ? 'pt-16' : ''}`}>
+      {/* Toolbar */}
+      <ViewerToolbar
+        projectName={projectName}
+        onBack={onClose}
+        moduleState={viewerState === 'exploring' ? 'idle' : viewerState}
+        onStartLearning={() => setViewerState('learning')}
+        onStartExploring={() => setViewerState('exploring')}
+        hasContent={slideDeck.slides.length > 0}
+        isMobile={isMobile}
+        viewerModes={viewerModes}
+      />
 
       {/* Persistent Timeline */}
       <HeaderTimeline
