@@ -11,6 +11,7 @@ import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import HookErrorBoundary from './HookErrorBoundary';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
+import { GradientCreateButton } from './ui/GradientCreateButton';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import AuthButton from './AuthButton';
@@ -378,14 +379,11 @@ const MainApp: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="block sm:hidden">
             <div className={`flex justify-between items-center mb-3 px-2 transition-all duration-1000 delay-200 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
-              <button
+              <GradientCreateButton
                 onClick={handleCreateNewProject}
-                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
-                title="Create New Project"
-                aria-label="Create New Project"
-              >
-                <PlusCircleIcon className="w-6 h-6" />
-              </button>
+                size="medium"
+                variant="compact"
+              />
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
@@ -429,14 +427,11 @@ const MainApp: React.FC = () => {
               ExpliCoLearning
             </h1>
             <div className="flex-1 flex justify-end items-center space-x-4">
-              <button
+              <GradientCreateButton
                 onClick={handleCreateNewProject}
-                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
-                title="Create New Project"
-                aria-label="Create New Project"
-              >
-                <PlusCircleIcon className="w-7 h-7" />
-              </button>
+                size="large"
+                variant="toolbar"
+              />
               <button
                 type="button"
                 className="p-2 rounded-full hover:bg-slate-700 transition-colors"

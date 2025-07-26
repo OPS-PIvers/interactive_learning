@@ -3,11 +3,6 @@ export const isMobileDevice = () => {
   // Primary check: viewport width (most reliable indicator)
   const isNarrowViewport = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches : false;
   
-  // If viewport is narrow, treat as mobile (works for dev tools and real mobile)
-  if (isNarrowViewport) {
-    return true;
-  }
-  
   // For wider viewports, check if it's actually a mobile device
   // using user agent and additional device characteristics
   const userAgent = navigator.userAgent.toLowerCase();
@@ -17,8 +12,21 @@ export const isMobileDevice = () => {
   const isTablet = /ipad|tablet|kindle|silk|playbook/.test(userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   
-  // Return true for actual mobile devices even in wide viewports
-  return isMobileUserAgent || isTablet;
+  const result = isNarrowViewport || isMobileUserAgent || isTablet;
+  
+  // Debug logging for production troubleshooting
+  console.log('🔍 MOBILE DETECTION:', {
+    result,
+    viewport: { width: window.innerWidth, height: window.innerHeight },
+    isNarrowViewport,
+    isMobileUserAgent,
+    isTablet,
+    userAgent: navigator.userAgent,
+    maxTouchPoints: navigator.maxTouchPoints,
+    timestamp: new Date().toISOString()
+  });
+  
+  return result;
 };
 
 export const getMobileViewportHeight = () => {

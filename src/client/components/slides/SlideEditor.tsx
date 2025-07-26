@@ -8,6 +8,7 @@ import SlideTimelineAdapter from '../SlideTimelineAdapter';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { InteractionType } from '../../../shared/types';
+import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -291,6 +292,15 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     text: string;
     position: { x: number; y: number };
   } | null>(null);
+
+  // Feedback animation state
+  const [feedbackAnimations, setFeedbackAnimations] = useState<Array<{
+    id: string;
+    x: number;
+    y: number;
+    color: string;
+    timestamp: number;
+  }>>([]);
   
   // Spotlight state for interactions
   const [spotlightInteraction, setSpotlightInteraction] = useState<{
@@ -482,6 +492,26 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   // Handle element click with interaction support
   const handleElementClick = useCallback((element: SlideElement, event: React.MouseEvent) => {
     event.stopPropagation();
+    
+    // Add feedback animation for hotspots
+    if (element.type === 'hotspot') {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const animationId = `feedback-${Date.now()}-${Math.random()}`;
+      const feedbackAnimation = {
+        id: animationId,
+        x: event.clientX,
+        y: event.clientY,
+        color: element.style.backgroundColor || '#3b82f6',
+        timestamp: Date.now()
+      };
+      
+      setFeedbackAnimations(prev => [...prev, feedbackAnimation]);
+      
+      // Clean up animation after duration
+      setTimeout(() => {
+        setFeedbackAnimations(prev => prev.filter(anim => anim.id !== animationId));
+      }, 600);
+    }
     
     // If element has click interactions, execute them
     const clickInteractions = element.interactions.filter(i => i.trigger === 'click');
@@ -861,6 +891,21 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
         </div>
       )}
+
+      {/* Hotspot Feedback Animations */}
+      {feedbackAnimations.map((animation) => (
+        <HotspotFeedbackAnimation
+          key={animation.id}
+          x={animation.x}
+          y={animation.y}
+          color={animation.color}
+          variant="ripple"
+          intensity="normal"
+          onComplete={() => {
+            setFeedbackAnimations(prev => prev.filter(anim => anim.id !== animation.id));
+          }}
+        />
+      ))}
 
       {/* Tooltip Interaction */}
       {tooltipInteraction && (

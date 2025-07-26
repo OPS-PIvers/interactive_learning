@@ -80,6 +80,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const [isMobileSlidesModalOpen, setIsMobileSlidesModalOpen] = useState(false);
   const [isMobileBackgroundModalOpen, setIsMobileBackgroundModalOpen] = useState(false);
   const [isMobileInsertModalOpen, setIsMobileInsertModalOpen] = useState(false);
+  const [showMobileHint, setShowMobileHint] = useState(true);
   
   // Check if device is in landscape mode
   const isLandscape = window.innerWidth > window.innerHeight;
@@ -477,6 +478,17 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     }
   }, [projectId]);
 
+  // Auto-dismiss mobile hint after 5 seconds
+  React.useEffect(() => {
+    if (isMobile && showMobileHint) {
+      const timer = setTimeout(() => {
+        setShowMobileHint(false);
+      }, 5000); // 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, showMobileHint]);
+
   // Mobile modal handlers
   const handleMobileSlidesOpen = useCallback(() => {
     setIsMobileSlidesModalOpen(true);
@@ -646,8 +658,9 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
       {/* Main editor content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Slide navigation panel - responsive and collapsible */}
-        <div className={`${isSlidePanelCollapsed ? 'w-12' : shouldCollapsePanelOnMobile ? 'w-48' : 'w-64'} bg-slate-800/50 border-r border-slate-700 flex flex-col transition-all duration-300 relative`}>
+        {/* Slide navigation panel - hidden on mobile, responsive and collapsible on desktop */}
+        {!isMobile && (
+          <div className={`${isSlidePanelCollapsed ? 'w-12' : shouldCollapsePanelOnMobile ? 'w-48' : 'w-64'} bg-slate-800/50 border-r border-slate-700 flex flex-col transition-all duration-300 relative`}>
           {/* Header with collapse toggle */}
           <div className="p-4 border-b border-slate-700 flex items-center justify-between">
             <h2 className={`text-white font-semibold transition-opacity duration-300 ${isSlidePanelCollapsed ? 'opacity-0 hidden' : 'opacity-100'}`}>Slides</h2>
@@ -777,7 +790,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               </button>
             )}
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Main canvas area */}
         <div className="flex-1 flex flex-col relative">
@@ -824,8 +838,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           )}
         </div>
 
-        {/* Properties panel - collapsible on mobile landscape */}
-        {!isPreviewMode && !shouldCollapsePanelOnMobile && (
+        {/* Properties panel - hidden on mobile */}
+        {!isPreviewMode && !isMobile && (
           <EnhancedPropertiesPanel
             selectedElement={selectedElement}
             currentSlide={currentSlide}
@@ -881,13 +895,22 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               </button>
             </div>
             
-            {/* Mobile landscape help hint */}
-            <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-200">📱</span>
-                <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
+            {/* Mobile landscape help hint - auto-dismisses after 5 seconds */}
+            {showMobileHint && (
+              <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-200">📱</span>
+                  <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
+                  <button
+                    onClick={() => setShowMobileHint(false)}
+                    className="ml-2 text-blue-200 hover:text-white"
+                    aria-label="Dismiss hint"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

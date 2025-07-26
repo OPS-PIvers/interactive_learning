@@ -6,6 +6,7 @@ import BackgroundMediaPanel from './BackgroundMediaPanel';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
+import { LiquidColorSelector } from './ui/LiquidColorSelector';
 
 interface EnhancedPropertiesPanelProps {
   selectedElement: SlideElement | null;
@@ -460,26 +461,26 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                 </div>
               </div>
 
-              {/* Background Color - moved from Style section */}
+              {/* Background Color - Enhanced with Liquid Color Selector */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-slate-300 mb-2">
                   Background Color
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={selectedElement.style.backgroundColor || '#3b82f6'}
-                    onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                    className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={selectedElement.style.backgroundColor || '#3b82f6'}
-                    onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                    className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                    placeholder="#3b82f6"
-                  />
-                </div>
+                <LiquidColorSelector
+                  selectedColor={selectedElement.style.backgroundColor || '#3b82f6'}
+                  onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
+                  isMobile={isMobile}
+                  size="medium"
+                  showLiquidAnimation={true}
+                />
+                {/* Hex input for precise control */}
+                <input
+                  type="text"
+                  value={selectedElement.style.backgroundColor || '#3b82f6'}
+                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
+                  className="mt-2 w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                  placeholder="#3b82f6"
+                />
               </div>
             </div>
           </CollapsibleSection>
