@@ -41,6 +41,7 @@ const MainApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showInitialAnimation, setShowInitialAnimation] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -48,6 +49,15 @@ const MainApp: React.FC = () => {
     return () => {
       cleanupVhUpdater();
     };
+  }, []);
+
+  // Handle initial animation timing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialAnimation(false);
+    }, 2000); // Show animation for 2 seconds
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Load projects only when user is authenticated
@@ -355,11 +365,11 @@ const MainApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white" style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
+    <div className={`min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white transition-all duration-2000 ${showInitialAnimation ? 'scale-105 opacity-95' : 'scale-100 opacity-100'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
       <header className="mb-6 sm:mb-8 text-center" style={{ paddingTop: '16px' }}>
         <div className="max-w-6xl mx-auto">
           <div className="block sm:hidden">
-            <div className="flex justify-between items-center mb-3 px-2" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
+            <div className={`flex justify-between items-center mb-3 px-2 transition-all duration-1000 delay-200 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
               <button
                 onClick={handleCreateNewProject}
                 className="p-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white shadow-lg transition-colors"
@@ -383,12 +393,12 @@ const MainApp: React.FC = () => {
                 <AuthButton variant="compact" size="small" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4">
-              Interactive Learning Hub
+            <h1 className={`text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4 transition-all duration-1000 ${showInitialAnimation ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 translate-y-0 scale-100'}`}>
+              ExpliCoLearning
             </h1>
           </div>
           
-          <div className="hidden sm:flex justify-between items-center mb-2" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)' }}>
+          <div className={`hidden sm:flex justify-between items-center mb-2 transition-all duration-1000 delay-200 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)' }}>
             <div className="flex-1 flex items-center space-x-4">
               <span className="text-slate-300">
                 Welcome, {user?.displayName || user?.email}
@@ -407,8 +417,8 @@ const MainApp: React.FC = () => {
                 Sign Out
               </button>
             </div>
-            <h1 className="flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap">
-              Interactive Learning Hub
+            <h1 className={`flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap transition-all duration-1000 ${showInitialAnimation ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 translate-y-0 scale-100'}`}>
+              ExpliCoLearning
             </h1>
             <div className="flex-1 flex justify-end items-center space-x-4">
               <button
@@ -434,10 +444,10 @@ const MainApp: React.FC = () => {
             </div>
           </div>
         </div>
-        <p className="text-slate-400 mt-2 text-base sm:text-lg px-4">Create and explore engaging interactive modules.</p>
+        <p className={`text-slate-400 mt-2 text-base sm:text-lg px-4 transition-all duration-1000 delay-300 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>Create and explore engaging interactive modules.</p>
       </header>
 
-      <div className="max-w-6xl mx-auto">
+      <div className={`max-w-6xl mx-auto transition-all duration-1000 delay-500 ${showInitialAnimation ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>
         {isLoading && !isProjectDetailsLoading && (
           <div className="text-center py-10">
             <p className="text-slate-400 text-xl">Loading projects...</p>
