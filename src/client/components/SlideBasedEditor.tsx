@@ -4,6 +4,7 @@ import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideEditor } from './slides/SlideEditor';
+import { TouchAwareSlideEditor } from './slides/TouchAwareSlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 import HeaderInsertDropdown from './HeaderInsertDropdown';
@@ -758,19 +759,35 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
         {/* Main canvas area */}
         <div className="flex-1 flex flex-col">
-          <SlideEditor
-            slideDeck={editorSlideDeck}
-            currentSlideIndex={currentSlideIndex}
-            onSlideDeckChange={handleSlideDeckUpdate}
-            onClose={onClose}
-            className="flex-1"
-            deviceTypeOverride={effectiveDeviceType}
-            onAspectRatioChange={handleAspectRatioChange}
-            selectedElementId={selectedElementId}
-            onElementSelect={setSelectedElementId}
-            onElementUpdate={handleElementUpdate}
-            onSlideUpdate={handleSlideUpdate}
-          />
+          {isMobile ? (
+            <TouchAwareSlideEditor
+              slideDeck={editorSlideDeck}
+              currentSlideIndex={currentSlideIndex}
+              onSlideDeckChange={handleSlideDeckUpdate}
+              onClose={onClose}
+              className="flex-1"
+              deviceTypeOverride={effectiveDeviceType}
+              onAspectRatioChange={handleAspectRatioChange}
+              selectedElementId={selectedElementId}
+              onElementSelect={setSelectedElementId}
+              onElementUpdate={handleElementUpdate}
+              onSlideUpdate={handleSlideUpdate}
+            />
+          ) : (
+            <SlideEditor
+              slideDeck={editorSlideDeck}
+              currentSlideIndex={currentSlideIndex}
+              onSlideDeckChange={handleSlideDeckUpdate}
+              onClose={onClose}
+              className="flex-1"
+              deviceTypeOverride={effectiveDeviceType}
+              onAspectRatioChange={handleAspectRatioChange}
+              selectedElementId={selectedElementId}
+              onElementSelect={setSelectedElementId}
+              onElementUpdate={handleElementUpdate}
+              onSlideUpdate={handleSlideUpdate}
+            />
+          )}
         </div>
 
         {/* Properties panel - collapsible on mobile landscape */}

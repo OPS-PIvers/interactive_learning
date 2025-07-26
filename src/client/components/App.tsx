@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import '../styles/mobile-touch.css';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { AuthModal } from './AuthModal';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
@@ -46,10 +47,17 @@ const MainApp: React.FC = () => {
 
   useEffect(() => {
     const cleanupVhUpdater = setDynamicVhProperty();
+    
+    // Add touch editing body class for mobile optimizations
+    if (isMobile) {
+      document.body.classList.add('touch-editing');
+    }
+    
     return () => {
       cleanupVhUpdater();
+      document.body.classList.remove('touch-editing');
     };
-  }, []);
+  }, [isMobile]);
 
   // Handle initial animation timing
   useEffect(() => {

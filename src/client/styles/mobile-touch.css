@@ -1,0 +1,247 @@
+/* Mobile Touch Optimizations */
+
+/* Fixed layout to prevent page scrolling */
+.touch-aware-slide-editor,
+.slide-editor.touch-enabled {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden !important;
+  touch-action: none;
+  -webkit-overflow-scrolling: none;
+  overscroll-behavior: none;
+}
+
+/* Touch Container isolation */
+.touch-container {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Canvas container optimizations */
+.slide-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+  will-change: transform;
+}
+
+/* Slide canvas touch optimizations */
+.slide-canvas.touch-enabled {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Mobile viewport optimizations */
+.mobile-viewport-manager {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mobile-viewport-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  transform-origin: top left;
+}
+
+/* Smooth transitions for non-gesture interactions */
+.slide-canvas:not(.gesturing) {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Disable text selection during gestures */
+.gesturing,
+.gesturing * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Mobile landscape optimizations */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .touch-aware-slide-editor {
+    padding: 4px;
+  }
+  
+  .mobile-viewport-content {
+    padding: 4px;
+  }
+}
+
+/* Mobile portrait optimizations */
+@media screen and (orientation: portrait) and (max-width: 500px) {
+  .touch-aware-slide-editor {
+    padding: 8px;
+  }
+  
+  .mobile-viewport-content {
+    padding: 8px;
+  }
+}
+
+/* Prevent bounce scrolling on iOS */
+body.modal-open,
+body.touch-editing {
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  -webkit-overflow-scrolling: none;
+  overscroll-behavior: none;
+}
+
+/* High DPI optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .slide-canvas.touch-enabled {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Zoom controls styling */
+.zoom-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.zoom-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(30, 41, 59, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zoom-button:hover {
+  background: rgba(51, 65, 85, 0.9);
+  transform: scale(1.05);
+}
+
+.zoom-button:active {
+  transform: scale(0.95);
+}
+
+/* Touch feedback */
+.touch-feedback {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(59, 130, 246, 0.3);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: touchRipple 0.6s ease-out;
+}
+
+@keyframes touchRipple {
+  0% {
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+  }
+  100% {
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+  }
+}
+
+/* Gesture indicators */
+.gesture-indicator {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  z-index: 50;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+.zoom-indicator {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pan-indicator {
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Safe area support */
+@supports (padding: max(0px)) {
+  .touch-aware-slide-editor {
+    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+}
+
+/* Performance optimizations for animations */
+.slide-canvas.touch-enabled,
+.mobile-viewport-content,
+.touch-container {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* Disable default touch behaviors */
+.touch-aware-slide-editor * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Element interaction improvements */
+.slide-element.touch-enabled {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.slide-element.touch-enabled:active {
+  transform: scale(0.98);
+}
+
+.slide-element.selected.touch-enabled {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
