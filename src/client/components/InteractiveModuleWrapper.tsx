@@ -7,6 +7,8 @@ import SlideBasedEditor from './SlideBasedEditor';
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import SlideViewer from './slides/SlideViewer';
 
+// Note: This wrapper is now primarily for editing mode.
+// Viewing mode uses the separate ViewerView component with its own route.
 interface InteractiveModuleWrapperProps {
   selectedProject: Project;
   isEditingMode: boolean;
@@ -53,17 +55,16 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
     await onSave(selectedProject.id, selectedProject.interactiveData, undefined, currentSlideDeck);
   }, [onSave, selectedProject.id, selectedProject.interactiveData, debouncedSave]);
   
-  // ✅ Determine wrapper type without affecting hook order
+  // ✅ Determine wrapper type - now simplified since viewer mode uses separate route
   const WrapperComponent = useMemo(() => {
     // Use Fragment (full-screen) for all slide editing modes
-    // Only use Modal for legacy non-slide projects if needed
     if (slideDeck && isEditingMode) {
       return Fragment; // All slide editing uses full-screen
     }
     if (isEditingMode && !isMobile) {
       return Modal; // Legacy desktop editing uses modal
     }
-    return Fragment; // Mobile editing and viewing use full-screen
+    return Fragment; // Mobile editing uses full-screen
   }, [isEditingMode, isMobile, slideDeck]);
   
   const wrapperProps = useMemo(() => {

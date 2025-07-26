@@ -114,7 +114,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     }
     
     const queryString = params.toString();
-    return `${baseUrl}/view/${project.id}${queryString ? `?${queryString}` : ''}`;
+    return `${baseUrl}/shared/${project.id}${queryString ? `?${queryString}` : ''}`;
   }, [project.id, shareOptions]);
 
   // Generate embed code
@@ -123,7 +123,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     const embedParams = new URLSearchParams(new URL(shareUrl).search);
     embedParams.append('embed', 'true');
     
-    const embedUrl = `${window.location.origin}/view/${project.id}?${embedParams.toString()}`;
+    const embedUrl = `${window.location.origin}/shared/${project.id}?${embedParams.toString()}`;
     
     return `<iframe 
   src="${embedUrl}"

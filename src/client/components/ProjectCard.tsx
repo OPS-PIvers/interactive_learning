@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Project } from '../../shared/types';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
@@ -10,13 +11,13 @@ import { normalizeFirebaseUrl, addFirebaseImageCORS, logFirebaseImageLoad } from
 
 interface ProjectCardProps {
   project: Project;
-  onView: () => void;
   onEdit: () => void;
   onDelete: (projectId: string) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDelete }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,7 +56,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onView, onEdit, onDe
           <p className="text-slate-400 text-sm mb-4 flex-grow min-h-[60px]" title={project.description}>{project.description}</p>
           <div className="mt-auto flex space-x-3">
             <button
-              onClick={onView}
+              onClick={() => navigate(`/view/${project.id}`)}
               className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center space-x-2"
               aria-label={`View ${project.title}`}
             >

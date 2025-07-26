@@ -14,6 +14,7 @@ import { SettingsIcon } from './icons/SettingsIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
+import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import SlideEditorTestPage from './SlideEditorTestPage';
 import MigrationTestPage from './MigrationTestPage';
@@ -92,7 +93,7 @@ const MainApp: React.FC = () => {
     }
   }, [user, loading, loadProjects]);
 
-  const loadProjectDetailsAndOpen = useCallback(async (project: Project, editingMode: boolean) => {
+  const loadProjectDetailsAndOpenEditor = useCallback(async (project: Project) => {
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -137,7 +138,7 @@ const MainApp: React.FC = () => {
         console.log(`Project ${project.id} already has details loaded`);
         setSelectedProject(project);
       }
-      setIsEditingMode(editingMode);
+      setIsEditingMode(true);
       setIsModalOpen(true);
     } catch (err: any) {
       console.error(`Failed to load project details for ${project.id}:`, err);
@@ -148,13 +149,9 @@ const MainApp: React.FC = () => {
     }
   }, [user]);
 
-  const handleViewProject = useCallback((project: Project) => {
-    loadProjectDetailsAndOpen(project, false);
-  }, [loadProjectDetailsAndOpen]);
-
   const handleEditProject = useCallback((project: Project) => {
-    loadProjectDetailsAndOpen(project, true);
-  }, [loadProjectDetailsAndOpen]);
+    loadProjectDetailsAndOpenEditor(project);
+  }, [loadProjectDetailsAndOpenEditor]);
   
   // Helper function to reduce code duplication
   const createAndSetupProject = useCallback(async (title: string, description: string, demoData?: any) => {
@@ -346,11 +343,11 @@ const MainApp: React.FC = () => {
           timelineEvents: undefined,
         }
       };
-      await loadProjectDetailsAndOpen(projectToReload as Project, isEditingMode);
+      await loadProjectDetailsAndOpenEditor(projectToReload as Project);
     } else {
       console.warn("Module reload requested, but no project is currently selected.");
     }
-  }, [selectedProject, loadProjectDetailsAndOpen, isEditingMode]);
+  }, [selectedProject, loadProjectDetailsAndOpenEditor]);
 
   // Show loading screen while authentication is being determined
   if (loading) {
@@ -455,7 +452,7 @@ const MainApp: React.FC = () => {
           <div className="text-center py-10 bg-red-800/50 p-4 rounded-lg">
             <p className="text-red-300 text-xl">{error}</p>
             <button 
-              onClick={selectedProject ? () => loadProjectDetailsAndOpen(selectedProject, isEditingMode) : loadProjects}
+              onClick={selectedProject ? () => loadProjectDetailsAndOpenEditor(selectedProject) : loadProjects}
               className="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
             >
               Retry
@@ -473,7 +470,6 @@ const MainApp: React.FC = () => {
               <ProjectCard
                 key={project.id}
                 project={project}
-                onView={() => handleViewProject(project)}
                 onEdit={() => handleEditProject(project)}
                 onDelete={handleDeleteProject}
               />
@@ -527,7 +523,8 @@ const App: React.FC = () => {
       <Router>
         <Routes>
           <Route path="/" element={<AuthenticatedApp />} />
-          <Route path="/view/:moduleId" element={
+          <Route path="/view/:projectId" element={<ViewerView />} />
+          <Route path="/shared/:moduleId" element={
             <div className="min-h-screen bg-gray-50">
               <main>
                 <SharedModuleViewer />

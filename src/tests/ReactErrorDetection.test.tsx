@@ -124,7 +124,7 @@ describe('React Error Detection Tests', () => {
 
       // Wait for component to fully initialize
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Check for React Hook Error #310 specifically
@@ -184,11 +184,11 @@ describe('React Error Detection Tests', () => {
 
       // Wait for initial render
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Simulate mode transition by clicking "🎯 Guided Experience"
-      const overlay = screen.getByText('Interactive Learning Experience').closest('div');
+      const overlay = screen.getByText('ExpliCoLearning').closest('div');
       if (overlay) {
         const tourButton = screen.getByText('🎯 Guided Experience');
         fireEvent.click(tourButton);
@@ -196,7 +196,7 @@ describe('React Error Detection Tests', () => {
 
       // Wait for transition to complete
       await waitFor(() => {
-        const moduleReadyText = screen.queryByText('Interactive Learning Experience');
+        const moduleReadyText = screen.queryByText('ExpliCoLearning');
         expect(moduleReadyText).not.toBeInTheDocument();
       });
 
@@ -228,7 +228,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Check for TDZ-related errors
@@ -292,7 +292,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Filter out expected Firebase warnings and focus on React component errors
@@ -370,7 +370,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Clear any initialization errors
@@ -396,7 +396,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Check that prop changes didn't cause errors
@@ -432,7 +432,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       // Clear any initialization errors
@@ -486,7 +486,7 @@ describe('React Error Detection Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Interactive Learning Experience')).toBeInTheDocument();
+        expect(screen.getByText('ExpliCoLearning')).toBeInTheDocument();
       });
 
       expect(errorBoundaryTriggered).toBe(false);
