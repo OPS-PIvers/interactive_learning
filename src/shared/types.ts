@@ -12,7 +12,13 @@ export enum InteractionType {
   PLAY_VIDEO = 'PLAY_VIDEO',
   PLAY_AUDIO = 'PLAY_AUDIO',
   SHOW_TEXT = 'SHOW_TEXT',
-  SPOTLIGHT = 'SPOTLIGHT'
+  SPOTLIGHT = 'SPOTLIGHT',
+  
+  // === SLIDE-BASED INTERACTION TYPES ===
+  MODAL = 'modal',
+  TRANSITION = 'transition', 
+  SOUND = 'sound',
+  TOOLTIP = 'tooltip'
 }
 
 

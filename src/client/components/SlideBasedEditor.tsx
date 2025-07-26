@@ -13,6 +13,7 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { SaveIcon } from './icons/SaveIcon';
+import { getHotspotPixelDimensions, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import { CheckIcon } from './icons/CheckIcon';
 import { GearIcon } from './icons/GearIcon';
 import AuthButton from './AuthButton';
@@ -153,13 +154,26 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       timestamp: new Date().toISOString()
     });
 
+    // For hotspots, use size-appropriate dimensions based on default size preset
+    const getInitialDimensions = (deviceType: 'desktop' | 'tablet' | 'mobile') => {
+      if (elementType === 'hotspot') {
+        const isMobile = deviceType === 'mobile';
+        const dimensions = getHotspotPixelDimensions(defaultHotspotSize, isMobile);
+        return { width: dimensions.width, height: dimensions.height };
+      }
+      // Default dimensions for other element types
+      return deviceType === 'desktop' ? { width: 100, height: 100 } :
+             deviceType === 'tablet' ? { width: 80, height: 80 } :
+             { width: 60, height: 60 };
+    };
+
     const newElement: SlideElement = {
       id: generateId(),
       type: elementType,
       position: {
-        desktop: { x: 100, y: 100, width: 100, height: 100 },
-        tablet: { x: 80, y: 80, width: 80, height: 80 },
-        mobile: { x: 60, y: 60, width: 60, height: 60 }
+        desktop: { x: 100, y: 100, ...getInitialDimensions('desktop') },
+        tablet: { x: 80, y: 80, ...getInitialDimensions('tablet') },
+        mobile: { x: 60, y: 60, ...getInitialDimensions('mobile') }
       },
       content: elementType === 'hotspot' ? {
         title: 'New Hotspot',

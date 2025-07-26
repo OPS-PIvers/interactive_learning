@@ -127,35 +127,35 @@ export const hotspotStylePresets: HotspotStylePreset[] = [
   }
 ];
 
-// Size presets with responsive classes
+// Size presets with responsive classes - shifted up for better visibility
 export const hotspotSizePresets: HotspotSizePreset[] = [
   {
     name: 'Extra Small',
     value: 'x-small',
     description: 'For dense layouts or subtle markers',
-    mobileClasses: 'h-10 w-10',
-    desktopClasses: 'h-2 w-2'
+    mobileClasses: 'h-11 w-11',
+    desktopClasses: 'h-3 w-3'
   },
   {
     name: 'Small',
     value: 'small',
     description: 'Compact size for detailed content',
-    mobileClasses: 'h-11 w-11',
-    desktopClasses: 'h-3 w-3'
+    mobileClasses: 'h-12 w-12',
+    desktopClasses: 'h-5 w-5'
   },
   {
     name: 'Medium',
     value: 'medium',
     description: 'Standard size for most content',
-    mobileClasses: 'h-12 w-12',
-    desktopClasses: 'h-5 w-5'
+    mobileClasses: 'h-14 w-14',
+    desktopClasses: 'h-6 w-6'
   },
   {
     name: 'Large',
     value: 'large',
     description: 'Prominent size for important content',
-    mobileClasses: 'h-14 w-14',
-    desktopClasses: 'h-6 w-6'
+    mobileClasses: 'h-16 w-16',
+    desktopClasses: 'h-8 w-8'
   }
 ];
 
@@ -168,10 +168,54 @@ export const getHotspotSizeClasses = (size: HotspotSize = defaultHotspotSize, is
   if (!preset) {
     // Fallback to small if size not found
     const fallback = hotspotSizePresets.find(p => p.value === 'small');
-    return isMobile ? fallback?.mobileClasses || 'h-11 w-11' : fallback?.desktopClasses || 'h-3 w-3';
+    return isMobile ? fallback?.mobileClasses || 'h-12 w-12' : fallback?.desktopClasses || 'h-5 w-5';
   }
   return isMobile ? preset.mobileClasses : preset.desktopClasses;
 };
+
+// Utility to convert Tailwind size classes to pixel dimensions
+const tailwindSizeMap: Record<string, number> = {
+  'h-3': 12, 'w-3': 12,
+  'h-5': 20, 'w-5': 20, 
+  'h-6': 24, 'w-6': 24,
+  'h-8': 32, 'w-8': 32,
+  'h-11': 44, 'w-11': 44,
+  'h-12': 48, 'w-12': 48,
+  'h-14': 56, 'w-14': 56,
+  'h-16': 64, 'w-16': 64
+};
+
+// Helper function to get hotspot pixel dimensions
+export const getHotspotPixelDimensions = (size: HotspotSize = defaultHotspotSize, isMobile: boolean = false): { width: number; height: number } => {
+  const preset = hotspotSizePresets.find(p => p.value === size);
+  if (!preset) {
+    // Fallback to small if size not found
+    const fallback = hotspotSizePresets.find(p => p.value === 'small');
+    const classes = isMobile ? fallback?.mobileClasses || 'h-12 w-12' : fallback?.desktopClasses || 'h-5 w-5';
+    return parseClassesToDimensions(classes);
+  }
+  
+  const classes = isMobile ? preset.mobileClasses : preset.desktopClasses;
+  return parseClassesToDimensions(classes);
+};
+
+// Parse Tailwind classes to pixel dimensions
+function parseClassesToDimensions(classes: string): { width: number; height: number } {
+  const classArray = classes.split(' ');
+  let width = 20; // default fallback
+  let height = 20; // default fallback
+  
+  for (const cls of classArray) {
+    if (cls.startsWith('w-') && tailwindSizeMap[cls]) {
+      width = tailwindSizeMap[cls];
+    }
+    if (cls.startsWith('h-') && tailwindSizeMap[cls]) {
+      height = tailwindSizeMap[cls];
+    }
+  }
+  
+  return { width, height };
+}
 
 // Helper function to apply style preset to hotspot
 export const applyStylePreset = (currentHotspot: any, preset: HotspotStylePreset) => {

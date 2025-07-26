@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition } from '../../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import SlideTimelineAdapter from '../SlideTimelineAdapter';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
-import { getHotspotSizeClasses, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
+import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
+import { InteractionType } from '../../../shared/types';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -273,6 +274,37 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
 
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(true);
+  
+  // Modal state for interactions
+  const [modalInteraction, setModalInteraction] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+  
+  // Tooltip state for interactions
+  const [tooltipInteraction, setTooltipInteraction] = useState<{
+    text: string;
+    position: { x: number; y: number };
+  } | null>(null);
+  
+  // Spotlight state for interactions
+  const [spotlightInteraction, setSpotlightInteraction] = useState<{
+    shape: 'circle' | 'rectangle' | 'oval';
+    x: number; // percentage
+    y: number; // percentage 
+    width: number; // pixels
+    height: number; // pixels
+    backgroundDimPercentage: number; // 0-100
+  } | null>(null);
+  
+  // Pan&Zoom state for interactions
+  const [panZoomInteraction, setPanZoomInteraction] = useState<{
+    targetX: number; // percentage
+    targetY: number; // percentage
+    zoomLevel: number; // 1.0 = 100%
+    smooth: boolean;
+    duration: number; // milliseconds
+  } | null>(null);
 
   useEffect(() => {
     if (isMobile && selectedElementId) {
@@ -281,6 +313,160 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       setIsMobilePanelOpen(false);
     }
   }, [isMobile, selectedElementId]);
+
+  // Handle interaction execution when elements are clicked
+  const executeInteraction = useCallback((interaction: ElementInteraction, element: SlideElement, event: React.MouseEvent) => {
+    console.log('[SlideEditor] Executing interaction:', interaction.effect.type, interaction);
+    
+    switch (interaction.effect.type as InteractionType) {
+      case InteractionType.MODAL:
+        const modalParams = interaction.effect.parameters as { title?: string; message?: string };
+        setModalInteraction({
+          title: modalParams?.title || element.content.title || 'Information',
+          message: modalParams?.message || element.content.description || 'No message configured'
+        });
+        break;
+        
+      case InteractionType.TRANSITION:
+        const transitionParams = interaction.effect.parameters as { type?: string; slideIndex?: number };
+        const transitionType = transitionParams?.type || 'next-slide';
+        
+        // Handle different transition types
+        switch (transitionType) {
+          case 'next-slide':
+            if (currentSlideIndex < slideDeck.slides.length - 1) {
+              // This would need to be handled by parent component
+              console.log('[SlideEditor] Transition to next slide');
+            }
+            break;
+          case 'prev-slide':
+            if (currentSlideIndex > 0) {
+              console.log('[SlideEditor] Transition to previous slide');
+            }
+            break;
+          case 'specific-slide':
+            const targetSlide = transitionParams?.slideIndex || 0;
+            if (targetSlide >= 0 && targetSlide < slideDeck.slides.length) {
+              console.log('[SlideEditor] Transition to slide:', targetSlide);
+            }
+            break;
+          default:
+            console.log('[SlideEditor] Unknown transition type:', transitionType);
+        }
+        break;
+        
+      case InteractionType.SOUND:
+        const soundParams = interaction.effect.parameters as { url?: string; volume?: number };
+        if (soundParams?.url) {
+          const audio = new Audio(soundParams.url);
+          audio.volume = soundParams.volume || 0.7;
+          audio.play().catch(error => {
+            console.error('[SlideEditor] Failed to play sound:', error);
+          });
+        }
+        break;
+        
+      case InteractionType.TOOLTIP:
+        const tooltipParams = interaction.effect.parameters as { text?: string; position?: string };
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        setTooltipInteraction({
+          text: tooltipParams?.text || element.content.description || 'No tooltip text configured',
+          position: { x: rect.left + rect.width / 2, y: rect.top }
+        });
+        
+        // Auto-hide tooltip after 3 seconds
+        setTimeout(() => {
+          setTooltipInteraction(null);
+        }, 3000);
+        break;
+        
+      case InteractionType.SPOTLIGHT:
+        const spotlightParams = interaction.effect.parameters as { 
+          spotlightShape?: string; 
+          spotlightX?: number; 
+          spotlightY?: number; 
+          spotlightWidth?: number; 
+          spotlightHeight?: number; 
+          backgroundDimPercentage?: number;
+        };
+        
+        // Get element position if no custom position specified
+        const elementPosition = element.position[deviceType];
+        const spotlightX = spotlightParams?.spotlightX !== undefined ? spotlightParams.spotlightX : 
+          (elementPosition.x / canvasDimensions.width) * 100;
+        const spotlightY = spotlightParams?.spotlightY !== undefined ? spotlightParams.spotlightY : 
+          (elementPosition.y / canvasDimensions.height) * 100;
+        
+        setSpotlightInteraction({
+          shape: (spotlightParams?.spotlightShape as 'circle' | 'rectangle' | 'oval') || 'circle',
+          x: spotlightX,
+          y: spotlightY,
+          width: spotlightParams?.spotlightWidth || 200,
+          height: spotlightParams?.spotlightHeight || 200,
+          backgroundDimPercentage: spotlightParams?.backgroundDimPercentage || 70
+        });
+        
+        // Auto-hide spotlight after 5 seconds
+        setTimeout(() => {
+          setSpotlightInteraction(null);
+        }, 5000);
+        break;
+        
+      case InteractionType.PAN_ZOOM:
+        const panZoomParams = interaction.effect.parameters as { 
+          targetX?: number; 
+          targetY?: number; 
+          zoomLevel?: number; 
+          smooth?: boolean;
+          duration?: number;
+        };
+        
+        // Get element position if no custom target specified
+        const targetElementPosition = element.position[deviceType];
+        const targetX = panZoomParams?.targetX !== undefined ? panZoomParams.targetX : 
+          (targetElementPosition.x / canvasDimensions.width) * 100;
+        const targetY = panZoomParams?.targetY !== undefined ? panZoomParams.targetY : 
+          (targetElementPosition.y / canvasDimensions.height) * 100;
+        
+        const panZoomConfig = {
+          targetX,
+          targetY, 
+          zoomLevel: panZoomParams?.zoomLevel || 2.0,
+          smooth: panZoomParams?.smooth !== false, // default to true
+          duration: panZoomParams?.duration || 1000
+        };
+        
+        setPanZoomInteraction(panZoomConfig);
+        
+        console.log('[SlideEditor] Pan&Zoom interaction triggered:', panZoomConfig);
+        
+        // Auto-reset zoom after duration + 3 seconds
+        setTimeout(() => {
+          setPanZoomInteraction(null);
+        }, panZoomConfig.duration + 3000);
+        break;
+        
+      default:
+        console.warn('[SlideEditor] Unknown interaction type:', interaction.effect.type);
+    }
+  }, [currentSlideIndex, slideDeck.slides.length]);
+  
+  // Handle element click with interaction support
+  const handleElementClick = useCallback((element: SlideElement, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    // If element has click interactions, execute them
+    const clickInteractions = element.interactions.filter(i => i.trigger === 'click');
+    if (clickInteractions.length > 0) {
+      // Execute all click interactions
+      clickInteractions.forEach(interaction => {
+        executeInteraction(interaction, element, event);
+      });
+    }
+    
+    // Always select the element for editing (this maintains existing behavior)
+    setSelectedElementId(element.id);
+  }, [executeInteraction]);
 
   // Handle timeline step selection for slide navigation
   const handleTimelineStepSelect = useCallback((slideIndex: number) => {
@@ -452,6 +638,17 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 const position = element.position[deviceType];
                 const isSelected = element.id === selectedElementId;
                 
+                // For hotspots, use dynamic sizing based on size preset
+                let containerWidth = position.width;
+                let containerHeight = position.height;
+                
+                if (element.type === 'hotspot') {
+                  const hotspotSize = element.content?.customProperties?.size || defaultHotspotSize;
+                  const dimensions = getHotspotPixelDimensions(hotspotSize, isMobile);
+                  containerWidth = dimensions.width;
+                  containerHeight = dimensions.height;
+                }
+                
                 return (
                   <div
                     key={element.id}
@@ -461,28 +658,33 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     style={{
                       left: position.x * canvasDimensions.scale,
                       top: position.y * canvasDimensions.scale,
-                      width: position.width * canvasDimensions.scale,
-                      height: position.height * canvasDimensions.scale,
+                      width: containerWidth * canvasDimensions.scale,
+                      height: containerHeight * canvasDimensions.scale,
                       zIndex: (element.zIndex || 0) + 20 // Ensure elements are above background media
                     }}
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}
                     onTouchStart={(e) => handleElementDragStart(element.id, e)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedElementId(element.id);
-                    }}
+                    onClick={(e) => handleElementClick(element, e)}
                   >
                     {/* Element Content Based on Type */}
                     {element.type === 'hotspot' && (
-                      <div
-                        className={`rounded-full shadow-2xl border-2 border-white border-opacity-30 ${
-                          getHotspotSizeClasses(element.content?.customProperties?.size || defaultHotspotSize, isMobile)
-                        }`}
-                        style={{
-                          backgroundColor: element.content?.style?.backgroundColor || '#3b82f6',
-                          opacity: element.content?.style?.opacity !== undefined ? element.content.style.opacity : 0.9
-                        }}
-                      />
+                      <div className="relative w-full h-full">
+                        <div
+                          className={`rounded-full shadow-2xl border-2 border-white border-opacity-30 ${
+                            getHotspotSizeClasses(element.content?.customProperties?.size || defaultHotspotSize, isMobile)
+                          } ${element.interactions.length > 0 ? 'cursor-pointer' : ''}`}
+                          style={{
+                            backgroundColor: element.content?.style?.backgroundColor || '#3b82f6',
+                            opacity: element.content?.style?.opacity !== undefined ? element.content.style.opacity : 0.9
+                          }}
+                        />
+                        {/* Interactive indicator */}
+                        {element.interactions.length > 0 && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white animate-pulse shadow-sm">
+                            <div className="w-full h-full rounded-full bg-yellow-300 animate-ping" />
+                          </div>
+                        )}
+                      </div>
                     )}
                     
                     {element.type === 'text' && (
@@ -596,6 +798,132 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Modal Interaction Overlay */}
+      {modalInteraction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {modalInteraction.title}
+            </h2>
+            <div className="text-gray-700 mb-6 whitespace-pre-wrap">
+              {modalInteraction.message}
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setModalInteraction(null)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tooltip Interaction */}
+      {tooltipInteraction && (
+        <div
+          className="fixed bg-gray-900 text-white px-3 py-2 rounded-lg text-sm shadow-lg z-50 pointer-events-none max-w-xs"
+          style={{
+            left: tooltipInteraction.position.x,
+            top: tooltipInteraction.position.y - 40,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="whitespace-pre-wrap">{tooltipInteraction.text}</div>
+          {/* Tooltip arrow */}
+          <div 
+            className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"
+          />
+        </div>
+      )}
+
+      {/* Spotlight Interaction Overlay */}
+      {spotlightInteraction && (
+        <div className="absolute inset-0 pointer-events-none z-40">
+          {/* Background dim overlay */}
+          <div 
+            className="absolute inset-0 bg-black transition-opacity duration-500"
+            style={{ 
+              opacity: spotlightInteraction.backgroundDimPercentage / 100 
+            }}
+          />
+          
+          {/* Spotlight area */}
+          <div
+            className="absolute transition-all duration-500"
+            style={{
+              left: `${spotlightInteraction.x}%`,
+              top: `${spotlightInteraction.y}%`,
+              width: `${spotlightInteraction.width}px`,
+              height: `${spotlightInteraction.height}px`,
+              transform: 'translate(-50%, -50%)',
+              // Create spotlight effect using box-shadow
+              boxShadow: spotlightInteraction.shape === 'circle' 
+                ? `0 0 0 9999px rgba(0, 0, 0, ${spotlightInteraction.backgroundDimPercentage / 100})`
+                : `0 0 0 9999px rgba(0, 0, 0, ${spotlightInteraction.backgroundDimPercentage / 100})`,
+              borderRadius: spotlightInteraction.shape === 'circle' ? '50%' : 
+                           spotlightInteraction.shape === 'oval' ? '50%' : '8px',
+              background: 'transparent',
+              border: '3px solid rgba(255, 255, 255, 0.8)',
+              animation: 'pulse 2s infinite'
+            }}
+          />
+          
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all pointer-events-auto"
+            onClick={() => setSpotlightInteraction(null)}
+            aria-label="Close spotlight"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Pan&Zoom Interaction Overlay */}
+      {panZoomInteraction && (
+        <div className="absolute inset-0 pointer-events-none z-30">
+          {/* Pan&Zoom visual indicator */}
+          <div
+            className="absolute bg-blue-500 bg-opacity-30 border-2 border-blue-400 rounded-lg pointer-events-none animate-pulse"
+            style={{
+              left: `${panZoomInteraction.targetX}%`,
+              top: `${panZoomInteraction.targetY}%`,
+              width: '80px',
+              height: '80px',
+              transform: 'translate(-50%, -50%)',
+              transition: panZoomInteraction.smooth ? `all ${panZoomInteraction.duration}ms ease-in-out` : 'none'
+            }}
+          >
+            {/* Zoom icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Zoom level indicator */}
+          <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium">
+            Zoom: {Math.round(panZoomInteraction.zoomLevel * 100)}%
+          </div>
+          
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-all pointer-events-auto"
+            onClick={() => setPanZoomInteraction(null)}
+            aria-label="Reset zoom"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
     </div>
   );

@@ -99,4 +99,37 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     ],
     description: 'Focus attention with customizable spotlight effect'
   },
+  
+  // === SLIDE-BASED INTERACTION TYPES ===
+  [InteractionType.MODAL]: {
+    icon: '📋',
+    name: 'Modal Dialog',
+    color: 'bg-blue-500',
+    settings: ['title', 'message'],
+    description: 'Show information in a popup dialog'
+  },
+  
+  [InteractionType.TRANSITION]: {
+    icon: '➡️',
+    name: 'Slide Transition',
+    color: 'bg-green-500',
+    settings: ['type', 'slideIndex'],
+    description: 'Navigate to another slide or section'
+  },
+  
+  [InteractionType.SOUND]: {
+    icon: '🔊',
+    name: 'Play Sound',
+    color: 'bg-purple-500',
+    settings: ['url', 'volume'],
+    description: 'Play an audio file or sound effect'
+  },
+  
+  [InteractionType.TOOLTIP]: {
+    icon: '💬',
+    name: 'Tooltip',
+    color: 'bg-orange-500',
+    settings: ['text', 'position'],
+    description: 'Show contextual information on hover or click'
+  },
 };

@@ -36,7 +36,7 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
   }, [onInteractionRemove]);
 
   // Quick interaction presets for inline addition
-  const quickInteractionTypes: InteractionType[] = ['modal', 'transition', 'sound', 'tooltip'];
+  const quickInteractionTypes: InteractionType[] = ['modal', 'transition', 'sound', 'tooltip', 'SPOTLIGHT', 'PAN_ZOOM'];
 
   return (
     <div className={`space-y-3 ${className}`}>

@@ -379,7 +379,113 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
     <aside className={`w-80 bg-slate-800/50 flex flex-col border-l border-slate-700 flex-shrink-0 ${isMobile ? 'hidden' : ''}`}>
       {/* Content - Collapsible Sections */}
       <div className="flex-grow overflow-y-auto">
-        {/* Hotspot Presets Section - Only for hotspots */}
+        {/* Properties - Hotspot Element Section - Now first */}
+        {selectedElement.type === 'hotspot' && (
+          <CollapsibleSection
+            title="Properties - Hotspot Element"
+            isOpen={openSections.content} // Reuse content section state
+            onToggle={() => toggleSection('content')}
+          >
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={selectedElement.content.title || ''}
+                  onChange={(e) => handleContentChange({ title: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                  placeholder="Hotspot title"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={selectedElement.content.description || ''}
+                  onChange={(e) => handleContentChange({ description: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs resize-none"
+                  placeholder="Hotspot description"
+                  rows={3}
+                />
+              </div>
+
+              {/* Position Controls */}
+              <div>
+                <div className="text-xs font-medium text-slate-300 mb-2">
+                  Position & Size ({deviceType})
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">X</label>
+                    <input
+                      type="number"
+                      value={currentPosition.x}
+                      onChange={(e) => handlePositionChange('x', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Y</label>
+                    <input
+                      type="number"
+                      value={currentPosition.y}
+                      onChange={(e) => handlePositionChange('y', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Width</label>
+                    <input
+                      type="number"
+                      value={currentPosition.width}
+                      onChange={(e) => handlePositionChange('width', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Height</label>
+                    <input
+                      type="number"
+                      value={currentPosition.height}
+                      onChange={(e) => handlePositionChange('height', parseInt(e.target.value) || 0)}
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Background Color - moved from Style section */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Background Color
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={selectedElement.style.backgroundColor || '#3b82f6'}
+                    onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
+                    className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={selectedElement.style.backgroundColor || '#3b82f6'}
+                    onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
+                    className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                    placeholder="#3b82f6"
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Style Presets Section - Now second for hotspots */}
         {selectedElement.type === 'hotspot' && (
           <CollapsibleSection
             title="Style Presets"
@@ -586,121 +692,6 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
           </CollapsibleSection>
         )}
 
-        {/* Properties - Hotspot Element Section */}
-        {selectedElement.type === 'hotspot' && (
-          <CollapsibleSection
-            title="Properties - Hotspot Element"
-            isOpen={openSections.content} // Reuse content section state
-            onToggle={() => toggleSection('content')}
-          >
-            <div className="space-y-4">
-              {/* Title */}
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={selectedElement.content.title || ''}
-                  onChange={(e) => handleContentChange({ title: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                  placeholder="Hotspot title"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={selectedElement.content.description || ''}
-                  onChange={(e) => handleContentChange({ description: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs resize-none"
-                  placeholder="Hotspot description"
-                  rows={3}
-                />
-              </div>
-
-              {/* Position Controls */}
-              <div>
-                <div className="text-xs font-medium text-slate-300 mb-2">
-                  Position & Size ({deviceType})
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">X</label>
-                    <input
-                      type="number"
-                      value={currentPosition.x}
-                      onChange={(e) => handlePositionChange('x', parseInt(e.target.value) || 0)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Y</label>
-                    <input
-                      type="number"
-                      value={currentPosition.y}
-                      onChange={(e) => handlePositionChange('y', parseInt(e.target.value) || 0)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Width</label>
-                    <input
-                      type="number"
-                      value={currentPosition.width}
-                      onChange={(e) => handlePositionChange('width', parseInt(e.target.value) || 0)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Height</label>
-                    <input
-                      type="number"
-                      value={currentPosition.height}
-                      onChange={(e) => handlePositionChange('height', parseInt(e.target.value) || 0)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CollapsibleSection>
-        )}
-
-        {/* Element Style Section */}
-        <CollapsibleSection
-          title="Style"
-          isOpen={openSections.style}
-          onToggle={() => toggleSection('style')}
-        >
-          <div className="space-y-3">
-            {/* Background Color */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Background Color
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={selectedElement.style.backgroundColor || '#3b82f6'}
-                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                  className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={selectedElement.style.backgroundColor || '#3b82f6'}
-                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                  className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                  placeholder="#3b82f6"
-                />
-              </div>
-            </div>
-
-          </div>
-        </CollapsibleSection>
 
         {/* Element Content Section - Only for non-hotspot elements */}
         {selectedElement.type !== 'hotspot' && (
