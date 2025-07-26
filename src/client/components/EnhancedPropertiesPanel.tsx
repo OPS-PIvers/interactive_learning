@@ -117,7 +117,7 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
       }
     };
 
-    // For hotspot elements, also update the legacy hotspot properties for compatibility
+    // For hotspot elements, update both content.style (for SlideEditor) and customProperties (for HotspotViewer)
     if (selectedElement.type === 'hotspot') {
       const customProps: Record<string, any> = {
         ...selectedElement.content.customProperties
@@ -137,7 +137,12 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
       
       elementUpdates.content = {
         ...selectedElement.content,
-        customProperties: customProps
+        customProperties: customProps,
+        // Update content.style for SlideEditor compatibility
+        style: {
+          ...selectedElement.content.style,
+          ...styleUpdates
+        }
       };
     }
     
@@ -372,14 +377,6 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
 
   return (
     <aside className={`w-80 bg-slate-800/50 flex flex-col border-l border-slate-700 flex-shrink-0 ${isMobile ? 'hidden' : ''}`}>
-      {/* Header */}
-      <div className="p-4 border-b border-slate-700">
-        <h2 className="font-semibold text-white">Properties</h2>
-        <div className="text-xs text-slate-400 mt-1 capitalize">
-          {selectedElement.type} Element
-        </div>
-      </div>
-      
       {/* Content - Collapsible Sections */}
       <div className="flex-grow overflow-y-auto">
         {/* Hotspot Presets Section - Only for hotspots */}
@@ -589,42 +586,10 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
           </CollapsibleSection>
         )}
 
-        {/* Element Style Section */}
-        <CollapsibleSection
-          title="Style"
-          isOpen={openSections.style}
-          onToggle={() => toggleSection('style')}
-        >
-          <div className="space-y-3">
-            {/* Background Color */}
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Background Color
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={selectedElement.style.backgroundColor || '#3b82f6'}
-                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                  className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={selectedElement.style.backgroundColor || '#3b82f6'}
-                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                  className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-                  placeholder="#3b82f6"
-                />
-              </div>
-            </div>
-
-          </div>
-        </CollapsibleSection>
-
-        {/* Hotspot Element Properties Section - Combined Content and Position */}
+        {/* Properties - Hotspot Element Section */}
         {selectedElement.type === 'hotspot' && (
           <CollapsibleSection
-            title="Hotspot Element Properties"
+            title="Properties - Hotspot Element"
             isOpen={openSections.content} // Reuse content section state
             onToggle={() => toggleSection('content')}
           >
@@ -704,6 +669,38 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
             </div>
           </CollapsibleSection>
         )}
+
+        {/* Element Style Section */}
+        <CollapsibleSection
+          title="Style"
+          isOpen={openSections.style}
+          onToggle={() => toggleSection('style')}
+        >
+          <div className="space-y-3">
+            {/* Background Color */}
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Background Color
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={selectedElement.style.backgroundColor || '#3b82f6'}
+                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
+                  className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={selectedElement.style.backgroundColor || '#3b82f6'}
+                  onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
+                  className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+                  placeholder="#3b82f6"
+                />
+              </div>
+            </div>
+
+          </div>
+        </CollapsibleSection>
 
         {/* Element Content Section - Only for non-hotspot elements */}
         {selectedElement.type !== 'hotspot' && (

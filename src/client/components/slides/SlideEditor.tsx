@@ -6,6 +6,7 @@ import MobilePropertiesPanel from './MobilePropertiesPanel';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import SlideTimelineAdapter from '../SlideTimelineAdapter';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
+import { getSizeClasses, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 
 interface SlideEditorProps {
   slideDeck: SlideDeck;
@@ -474,9 +475,12 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     {/* Element Content Based on Type */}
                     {element.type === 'hotspot' && (
                       <div
-                        className="w-full h-full rounded-full shadow-2xl border-2 border-white border-opacity-30"
+                        className={`rounded-full shadow-2xl border-2 border-white border-opacity-30 ${
+                          getSizeClasses(element.content?.customProperties?.size || defaultHotspotSize)
+                        }`}
                         style={{
-                          backgroundColor: element.content?.style?.backgroundColor || '#3b82f6'
+                          backgroundColor: element.content?.style?.backgroundColor || '#3b82f6',
+                          opacity: element.content?.style?.opacity !== undefined ? element.content.style.opacity : 0.9
                         }}
                       />
                     )}
