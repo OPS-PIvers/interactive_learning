@@ -674,6 +674,59 @@
   .mobile-modal-content {
     padding: 12px 16px;
   }
+
+  /* Ensure the main editor layout adapts to landscape */
+  .mobile-editor {
+    flex-direction: row;
+  }
+
+  .mobile-editor-content {
+    flex: 1;
+  }
+
+  .mobile-editor-panels {
+    width: 320px;
+    max-height: 100vh;
+    border-top: none;
+    border-left: 1px solid #334155;
+  }
+
+  .mobile-editor-toolbar {
+    /* In landscape, the toolbar might be on the side or top,
+       depending on the design. Let's assume it stays at the top for now. */
+    width: 100%;
+  }
+
+  .mobile-timeline-container {
+    /* The timeline might be better suited on the side in landscape */
+    position: static;
+    border-top: none;
+    border-left: 1px solid #334155;
+    width: 320px;
+    height: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  /* Styles specific to portrait mode */
+  .mobile-editor {
+    flex-direction: column;
+  }
+
+  .mobile-editor-panels {
+    width: 100%;
+    max-height: 50vh;
+    border-top: 1px solid #334155;
+    border-left: none;
+  }
+
+  .mobile-timeline-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-top: 1px solid #334155;
+    border-left: none;
+  }
 }
 
 /* Fix for iOS Safari viewport */

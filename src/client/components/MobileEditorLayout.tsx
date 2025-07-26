@@ -155,7 +155,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   const [editorMode, setEditorMode] = useState<'compact' | 'fullscreen' | 'modal'>('compact');
   const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline' | 'background'>(activePanelOverride || 'image');
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
-    window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
+    window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape'
   );
   const [showHotspotEditor, setShowHotspotEditor] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -263,12 +263,15 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
   useEffect(() => {
     const handleOrientationChange = () => {
-      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+      setOrientation(window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape');
     };
 
-    window.addEventListener('orientationchange', handleOrientationChange);
+    // Initial check
+    handleOrientationChange();
+
+    window.screen.orientation.addEventListener('change', handleOrientationChange);
     return () => {
-      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.screen.orientation.removeEventListener('change', handleOrientationChange);
     };
   }, []);
 

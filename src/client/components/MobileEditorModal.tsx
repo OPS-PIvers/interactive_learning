@@ -88,6 +88,9 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
 }) => {
   const viewportHeight = useViewportHeight();
   const [isEditingHotspot, setIsEditingHotspot] = useState(false);
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
+    window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape'
+  );
 
   const [tabState, setTabState] = useState<TabState>({
     activeTab: 'basic',
@@ -139,6 +142,20 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     setTabState(prev => ({ ...prev, activeTab: tabs[nextIndex] as any }));
     triggerHapticFeedback('selection');
   };
+
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      setOrientation(
+        window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape'
+      );
+    };
+
+    window.screen.orientation.addEventListener('change', handleOrientationChange);
+
+    return () => {
+      window.screen.orientation.removeEventListener('change', handleOrientationChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (hotspot) {
@@ -322,8 +339,12 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     );
   }
 
+  const modalClasses = `fixed inset-0 z-50 bg-black bg-opacity-50 flex flex-col ${
+    orientation === 'landscape' ? 'mobile-landscape-modal' : 'mobile-portrait-modal'
+  }`;
+
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex flex-col">
+    <div className={modalClasses}>
       {/* Modal */}
       <div
         ref={modalRef}
