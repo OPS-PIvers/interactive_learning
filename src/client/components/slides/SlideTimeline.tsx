@@ -220,24 +220,27 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const progress = timelineSteps.length > 0 ? (currentStepIndex / (timelineSteps.length - 1)) * 100 : 0;
   
   return (
-    <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700 ${className}`}>
-      {/* Timeline Header */}
-      <div className="px-4 py-3 border-b border-slate-700">
+    <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 shadow-lg ${className}`}>
+      {/* Enhanced Timeline Header */}
+      <div className="px-4 py-3 border-b border-slate-700/30 bg-gradient-to-r from-slate-800/50 to-slate-700/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-white font-semibold text-sm">Interactive Timeline</h3>
-            <span className="text-slate-400 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+              <h3 className="text-white font-semibold text-sm">Interactive Timeline</h3>
+            </div>
+            <span className="text-slate-300 text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
               Step {currentStepIndex + 1} of {timelineSteps.length}
             </span>
           </div>
           
-          {/* Playback Speed Control */}
+          {/* Enhanced Playback Speed Control */}
           <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-xs">Speed:</span>
+            <span className="text-slate-400 text-xs font-medium">Speed:</span>
             <select
               value={playbackSpeed}
               onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-              className="bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
+              className="bg-gradient-to-r from-slate-700 to-slate-600 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200"
             >
               <option value={0.5}>0.5x</option>
               <option value={1}>1x</option>
@@ -248,36 +251,39 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         </div>
       </div>
       
-      {/* Current Step Info */}
+      {/* Enhanced Current Step Info */}
       {currentStep && (
-        <div className="px-4 py-3 border-b border-slate-700">
-          <h4 className="text-white font-medium text-sm mb-1">{currentStep.title}</h4>
-          <p className="text-slate-400 text-xs">{currentStep.description}</p>
+        <div className="px-4 py-3 border-b border-slate-700/30 bg-gradient-to-r from-slate-700/30 to-slate-600/30">
+          <h4 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+            {currentStep.title}
+          </h4>
+          <p className="text-slate-300 text-xs leading-relaxed">{currentStep.description}</p>
         </div>
       )}
       
-      {/* Timeline Progress Bar */}
-      <div className="px-4 py-3">
+      {/* Enhanced Timeline Progress Bar */}
+      <div className="px-4 py-4">
         <div className="relative">
-          <div className="w-full h-2 bg-slate-700 rounded-full">
+          <div className="w-full h-2.5 bg-slate-700/70 rounded-full overflow-hidden shadow-inner">
             <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-purple-500 via-purple-400 to-blue-500 rounded-full transition-all duration-500 ease-out shadow-sm"
               style={{ width: `${progress}%` }}
             />
           </div>
           
-          {/* Timeline Markers */}
-          <div className="absolute top-0 w-full h-2 flex justify-between">
+          {/* Enhanced Timeline Markers */}
+          <div className="absolute top-0 w-full h-2.5 flex justify-between">
             {timelineSteps.map((step, index) => (
               <button
                 key={step.id}
                 onClick={() => handleScrub(index)}
-                className={`w-3 h-3 rounded-full border-2 transition-all duration-200 transform -translate-y-0.5 ${
+                className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 transform -translate-y-0.5 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                   index === currentStepIndex
-                    ? 'bg-blue-500 border-white scale-125'
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 border-white scale-125 shadow-lg shadow-purple-500/25'
                     : index < currentStepIndex
-                      ? 'bg-blue-400 border-blue-200'
-                      : 'bg-slate-600 border-slate-400 hover:bg-slate-500'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-200 shadow-md'
+                      : 'bg-slate-600 border-slate-400 hover:bg-gradient-to-r hover:from-slate-500 hover:to-slate-400 shadow-sm'
                 }`}
                 title={`${step.title} - ${step.description}`}
               />
@@ -286,11 +292,11 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         </div>
       </div>
       
-      {/* Playback Controls */}
-      <div className="px-4 py-3 flex items-center justify-center gap-3">
+      {/* Enhanced Playback Controls */}
+      <div className="px-4 py-4 flex items-center justify-center gap-4 bg-gradient-to-r from-slate-800/30 to-slate-700/30 border-t border-slate-700/30">
         <button
           onClick={handleStop}
-          className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-700"
+          className="p-2.5 text-slate-400 hover:text-white transition-all duration-200 rounded-lg hover:bg-slate-700/60 shadow-sm hover:shadow-md"
           title="Stop and reset"
         >
           <StopIcon className="w-4 h-4" />
@@ -299,7 +305,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         <button
           onClick={handlePrevious}
           disabled={currentStepIndex === 0}
-          className="p-2 text-slate-400 hover:text-white disabled:text-slate-600 transition-colors rounded-full hover:bg-slate-700 disabled:hover:bg-transparent"
+          className="p-2.5 text-slate-400 hover:text-white disabled:text-slate-600 disabled:opacity-30 transition-all duration-200 rounded-lg hover:bg-slate-700/60 disabled:hover:bg-transparent shadow-sm hover:shadow-md disabled:cursor-not-allowed"
           title="Previous step"
         >
           ⏮
@@ -307,7 +313,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         
         <button
           onClick={isPlaying ? handlePause : handlePlay}
-          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors shadow-lg"
+          className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
           title={isPlaying ? "Pause" : "Play"}
         >
           {isPlaying ? (
@@ -320,35 +326,44 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         <button
           onClick={handleNext}
           disabled={currentStepIndex === timelineSteps.length - 1}
-          className="p-2 text-slate-400 hover:text-white disabled:text-slate-600 transition-colors rounded-full hover:bg-slate-700 disabled:hover:bg-transparent"
+          className="p-2.5 text-slate-400 hover:text-white disabled:text-slate-600 disabled:opacity-30 transition-all duration-200 rounded-lg hover:bg-slate-700/60 disabled:hover:bg-transparent shadow-sm hover:shadow-md disabled:cursor-not-allowed"
           title="Next step"
         >
           ⏭
         </button>
         
-        <div className="ml-4 text-slate-400 text-xs">
+        <div className="ml-4 text-slate-300 text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
           {currentStep ? `${Math.round(currentStep.timestamp)}s` : '0s'}
         </div>
       </div>
       
-      {/* Timeline Steps List */}
-      <div className="max-h-32 overflow-y-auto border-t border-slate-700">
+      {/* Enhanced Timeline Steps List */}
+      <div className="max-h-36 overflow-y-auto border-t border-slate-700/30 bg-gradient-to-b from-slate-800/20 to-slate-700/20">
         {timelineSteps.map((step, index) => (
           <button
             key={step.id}
             onClick={() => handleScrub(index)}
-            className={`w-full px-4 py-2 text-left transition-colors border-b border-slate-700/50 ${
+            className={`w-full px-4 py-3 text-left transition-all duration-200 border-b border-slate-700/30 hover:border-slate-600/50 ${
               index === currentStepIndex
-                ? 'bg-blue-600/20 border-blue-500'
-                : 'hover:bg-slate-700/50'
+                ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/50'
+                : 'hover:bg-gradient-to-r hover:from-slate-700/30 hover:to-slate-600/30'
             }`}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <div className="text-white text-xs font-medium">{step.stepNumber}. {step.title}</div>
-                <div className="text-slate-400 text-xs">{step.description}</div>
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${
+                  index === currentStepIndex 
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                    : index < currentStepIndex
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      : 'bg-slate-500'
+                }`}></div>
+                <div>
+                  <div className="text-white text-sm font-medium">{step.stepNumber}. {step.title}</div>
+                  <div className="text-slate-300 text-xs leading-relaxed">{step.description}</div>
+                </div>
               </div>
-              <div className="text-slate-500 text-xs">
+              <div className="text-slate-400 text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
                 {Math.round(step.timestamp)}s
               </div>
             </div>

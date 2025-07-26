@@ -8,7 +8,7 @@ import { TrashIcon } from '../icons/TrashIcon';
 interface MobileBackgroundModalProps {
   currentSlide: InteractiveSlide;
   onAspectRatioChange: (ratio: string) => void;
-  onBackgroundUpload: (file: File) => void;
+  onBackgroundUpload: (file: File) => Promise<void>;
   onBackgroundRemove: () => void;
   onBackgroundUpdate: (mediaConfig: BackgroundMedia) => void;
   onClose: () => void;
@@ -32,14 +32,26 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
   onClose
 }) => {
   const [activeTab, setActiveTab] = useState<'aspectRatio' | 'background'>('aspectRatio');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   const backgroundMedia = currentSlide.backgroundMedia;
   const currentAspectRatio = currentSlide.layout?.aspectRatio || '16:9';
 
-  const handleFileUpload = (file: File) => {
-    onBackgroundUpload(file);
-    // Switch to background tab after upload
-    setActiveTab('background');
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    setUploadError(null);
+    
+    try {
+      await onBackgroundUpload(file);
+      // Switch to background tab after successful upload
+      setActiveTab('background');
+    } catch (error) {
+      console.error('Mobile background upload failed:', error);
+      setUploadError(error instanceof Error ? error.message : 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleBackgroundRemove = () => {
@@ -173,10 +185,30 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 {backgroundMedia ? 'Change Background' : 'Add Background'}
               </h3>
+              
+              {/* Upload error message */}
+              {uploadError && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {uploadError}
+                </div>
+              )}
+              
+              {/* Upload status */}
+              {isUploading && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+                  <div className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading background media...
+                  </div>
+                </div>
+              )}
+              
               <FileUpload
-                onFileSelect={handleFileUpload}
-                accept="image/*,video/*"
-                className="w-full"
+                onFileUpload={handleFileUpload}
+                acceptedTypes="all"
                 label={`${backgroundMedia ? 'Change' : 'Upload'} Image or Video`}
               />
             </div>

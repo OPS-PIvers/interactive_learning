@@ -45,36 +45,62 @@ const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSP
   const { uniqueSortedSteps, currentStep, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews } = data;
   const step = uniqueSortedSteps[index];
   const isActive = step === currentStep;
+  const isCompleted = uniqueSortedSteps.findIndex(s => s === currentStep) > index;
+  const stepEvents = timelineEvents.filter((event: TimelineEventData) => event.step === step && event.targetId);
 
   return (
     <div style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-       <div key={step} className="relative">
+       <div key={step} className="relative group">
                   <button
                     onClick={(event) => handleStepClick(step, event)}
-                    className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out
-                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
+                    className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out transform hover:scale-110
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-2 ring-purple-300/50 scale-125 shadow-lg shadow-purple-500/25' 
+                        : isCompleted
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-md hover:shadow-lg'
+                          : 'bg-slate-500 hover:bg-gradient-to-r hover:from-purple-400 hover:to-blue-400 shadow-sm hover:shadow-md'
+                      }
                       flex items-center justify-center
                     `}
                     aria-label={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
                     aria-current={isActive ? "step" : undefined}
                     title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
                   >
-                     {isActive && <span className="absolute w-2 h-2 bg-white rounded-full"></span>}
+                     {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>}
+                     {isCompleted && !isActive && (
+                       <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                       </svg>
+                     )}
+                     {!isActive && !isCompleted && (
+                       <span className="text-xs font-bold text-white">{index + 1}</span>
+                     )}
                   </button>
-                  <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
-                    {timelineEvents
-                      .filter((event: TimelineEventData) => event.step === step && event.targetId)
-                      .map((event: TimelineEventData) => {
-                        const hotspot = hotspots.find((h: HotspotData) => h.id === event.targetId);
-                        return hotspot ? (
-                          <div
-                            key={`${event.id}-${hotspot.id}`}
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: hotspot.color || '#ccc' }}
-                            title={`Hotspot: ${hotspot.title}`}
-                          />
-                        ) : null;
-                      })}
+                  
+                  {/* Enhanced hotspot indicators for desktop */}
+                  <div className="absolute top-full mt-2 flex space-x-1 justify-center w-full opacity-80 group-hover:opacity-100 transition-opacity">
+                    {stepEvents.slice(0, 5).map((event: TimelineEventData) => {
+                      const hotspot = hotspots.find((h: HotspotData) => h.id === event.targetId);
+                      return hotspot ? (
+                        <div
+                          key={`${event.id}-${hotspot.id}`}
+                          className="w-2 h-2 rounded-full border border-white/30 shadow-sm transition-transform duration-200 hover:scale-125"
+                          style={{ 
+                            backgroundColor: hotspot.color || '#64748b',
+                            boxShadow: isActive ? `0 0 6px ${hotspot.color || '#64748b'}50` : undefined
+                          }}
+                          title={`Hotspot: ${hotspot.title}`}
+                        />
+                      ) : null;
+                    })}
+                    {stepEvents.length > 5 && (
+                      <div
+                        className="w-2 h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-400 border border-white/30 flex items-center justify-center"
+                        title={`+${stepEvents.length - 5} more hotspots`}
+                      >
+                        <span className="text-xs text-white leading-none font-bold">+</span>
+                      </div>
+                    )}
                   </div>
                 </div>
     </div>
@@ -190,41 +216,51 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     
     return (
       <div
-        className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-3 min-w-[250px] max-w-xs"
+        className="absolute z-50 bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-xl shadow-2xl shadow-black/20 p-4 min-w-[280px] max-w-sm"
         style={{
           left: `${position.x}px`,
           top: `${position.y - 10}px`,
           transform: 'translateY(-100%)'
         }}
       >
-        <div className="flex justify-between items-start mb-2">
-          <h4 className="font-semibold text-slate-100 text-sm">Step {step}</h4>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+            <h4 className="font-semibold text-slate-100 text-sm">Step {step}</h4>
+          </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 ml-2"
+            className="text-slate-400 hover:text-slate-200 transition-colors duration-200 p-1 rounded-md hover:bg-slate-700/50"
           >
-            <XMarkIcon className="w-3 h-3" />
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
         
-        <div className="space-y-2 max-h-32 overflow-y-auto">
+        <div className="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
           {eventsAtStep.length === 0 ? (
-            <p className="text-slate-400 text-xs">No events at this step</p>
+            <div className="text-center py-4">
+              <p className="text-slate-400 text-sm">No events at this step</p>
+            </div>
           ) : (
             eventsAtStep.map((event, index) => {
               const hotspot = event.targetId ? hotspots.find(h => h.id === event.targetId) : null;
               return (
-                <div key={event.id} className="text-xs text-slate-300 p-2 bg-slate-700 rounded">
-                  <div className="font-medium">{event.name}</div>
-                  <div className="text-slate-400">{event.type.replace(/_/g, ' ')}</div>
+                <div key={event.id} className="text-sm text-slate-200 p-3 bg-gradient-to-r from-slate-700/70 to-slate-600/70 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                  <div className="font-medium text-white mb-1">{event.name}</div>
+                  <div className="text-slate-400 text-xs uppercase tracking-wide mb-2">{event.type.replace(/_/g, ' ')}</div>
                   {hotspot && (
-                    <div className="flex items-center space-x-1 mt-1">
-                      <div className={`w-2 h-2 rounded-full ${hotspot.color || 'bg-gray-500'}`}></div>
-                      <span>{hotspot.title}</span>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div 
+                        className="w-3 h-3 rounded-full border border-white/30 shadow-sm" 
+                        style={{ backgroundColor: hotspot.color || '#64748b' }}
+                      ></div>
+                      <span className="text-slate-300 text-xs font-medium">{hotspot.title}</span>
                     </div>
                   )}
                   {event.message && (
-                    <div className="italic text-slate-400 mt-1">"{event.message.substring(0, 50)}..."</div>
+                    <div className="text-slate-400 text-xs leading-relaxed italic border-l-2 border-purple-500/30 pl-2">
+                      "{event.message.substring(0, 80)}{event.message.length > 80 ? '...' : ''}"
+                    </div>
                   )}
                 </div>
               );
@@ -300,137 +336,184 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   if (isMobile) {
     const currentEvent = timelineEvents.find(event => event.step === currentStep && event.name);
+    const progressPercentage = uniqueSortedSteps.length > 0 ? 
+      (uniqueSortedSteps.findIndex(step => step === currentStep) / (uniqueSortedSteps.length - 1)) * 100 : 0;
+
     return (
       <div className="fixed bottom-0 left-0 right-0 z-20">
+        {/* Modern glassmorphism container with gradient accents */}
         <div
-          className="w-full bg-slate-800 py-2 border-t border-slate-700"
+          className="w-full bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50"
           style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
+          {/* Enhanced current event display */}
           {currentEvent && moduleState === 'learning' && (
-            <div className="px-3 pb-2">
-            <button
-              onClick={() => setIsEventPreviewCollapsed(!isEventPreviewCollapsed)}
-              className="w-full text-left text-xs text-slate-300 hover:text-slate-100 flex justify-between items-center"
-            >
-              <span>Current: <span className="font-medium">{currentEvent.name}</span></span>
-              <ChevronDownIcon className={`w-4 h-4 transform transition-transform ${isEventPreviewCollapsed ? '' : 'rotate-180'}`} />
-            </button>
-            {!isEventPreviewCollapsed && (
-              <div className="mt-1 p-2 bg-slate-700 rounded text-xs text-slate-300">
-                 <p>{currentEvent.message || "No additional details for this event."}</p>
+            <div className="px-4 py-3 border-b border-slate-700/30">
+              <button
+                onClick={() => setIsEventPreviewCollapsed(!isEventPreviewCollapsed)}
+                className="w-full text-left text-sm text-slate-200 hover:text-white flex justify-between items-center transition-colors duration-200"
+              >
+                <span className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+                  <span className="font-medium">{currentEvent.name}</span>
+                </span>
+                <ChevronDownIcon className={`w-4 h-4 transform transition-transform duration-200 ${isEventPreviewCollapsed ? '' : 'rotate-180'}`} />
+              </button>
+              {!isEventPreviewCollapsed && (
+                <div className="mt-3 p-3 bg-gradient-to-r from-slate-700/50 to-slate-600/50 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                  <p className="text-sm text-slate-300 leading-relaxed">{currentEvent.message || "No additional details for this event."}</p>
+                </div>
+              )}
+            </div>
+          )}
+          {/* Enhanced timeline with modern progress bar */}
+          <div className="px-4 py-3">
+            {/* Overall progress indicator */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-medium text-slate-400">Progress</span>
+                <span className="text-xs font-medium text-slate-300">
+                  {uniqueSortedSteps.findIndex(step => step === currentStep) + 1} / {uniqueSortedSteps.length}
+                </span>
               </div>
-            )}
-          </div>
-        )}
-        <div className="mobile-timeline-container px-3">
-          <div
-            className="mobile-timeline-scroll"
-            style={{
-              display: 'flex',
-              overflowX: 'auto',
-              overflowY: 'hidden',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch',
-              paddingBottom: '2px',
-              position: 'relative',
-            }}
-          >
-            <div
-              className="absolute top-1/2 left-0 h-1 bg-slate-600 rounded-full transform -translate-y-1/2"
-              style={{
-                width: `${Math.max(uniqueSortedSteps.length * 68, window.innerWidth - 48)}px`,
-                minWidth: '100%'
-              }}
-            />
-            {uniqueSortedSteps.map((step, index) => {
-              const isActive = step === currentStep;
-              const MOBILE_STEP_WIDTH = 60;
-              const MOBILE_STEP_SPACING = 8;
+              <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={step}
-                  className="mobile-timeline-step"
-                  style={{
-                    minWidth: `${MOBILE_STEP_WIDTH}px`,
-                    width: `${MOBILE_STEP_WIDTH}px`,
-                    height: '48px',
-                    marginRight: index < uniqueSortedSteps.length - 1 ? `${MOBILE_STEP_SPACING}px` : '0',
-                    flexShrink: 0,
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <button
-                    onClick={() => onStepSelect(step)}
-                    className={`relative w-7 h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 ease-in-out z-10
-                      ${isActive ? 'bg-purple-500 ring-2 ring-purple-300 scale-125' : 'bg-slate-400 hover:bg-purple-400'}
-                      flex items-center justify-center shadow-lg
-                    `}
-                    aria-label={getStepTooltip(step)}
-                    aria-current={isActive ? "step" : undefined}
-                    title={getStepTooltip(step)}
+            {/* Modern timeline steps */}
+            <div
+              className="mobile-timeline-scroll"
+              style={{
+                display: 'flex',
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+                paddingBottom: '4px',
+                position: 'relative',
+                gap: '12px'
+              }}
+            >
+              {/* Gradient timeline track */}
+              <div
+                className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2"
+                style={{
+                  width: `${Math.max(uniqueSortedSteps.length * 72, window.innerWidth - 32)}px`,
+                  minWidth: '100%'
+                }}
+              />
+              {uniqueSortedSteps.map((step, index) => {
+                const isActive = step === currentStep;
+                const isCompleted = uniqueSortedSteps.findIndex(s => s === currentStep) > index;
+                const stepEvents = timelineEvents.filter(event => event.step === step && event.targetId);
+
+                return (
+                  <div
+                    key={step}
+                    className="flex-shrink-0 flex flex-col items-center justify-center"
+                    style={{
+                      minWidth: '60px',
+                      width: '60px',
+                      height: '56px',
+                      position: 'relative'
+                    }}
                   >
-                    {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full"></span>}
-                  </button>
-                  <div className="absolute top-full mt-1 flex space-x-0.5 justify-center w-full">
-                    {timelineEvents
-                      .filter(event => event.step === step && event.targetId)
-                      .slice(0, 4)
-                      .map(event => {
+                    {/* Enhanced step button */}
+                    <button
+                      onClick={() => onStepSelect(step)}
+                      className={`relative w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out z-10 ${
+                        isActive 
+                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-2 ring-purple-300/50 scale-125 shadow-lg shadow-purple-500/25' 
+                          : isCompleted
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-md'
+                            : 'bg-slate-500 hover:bg-gradient-to-r hover:from-purple-400 hover:to-blue-400 shadow-sm'
+                      } flex items-center justify-center`}
+                      aria-label={getStepTooltip(step)}
+                      aria-current={isActive ? "step" : undefined}
+                      title={getStepTooltip(step)}
+                    >
+                      {isActive && (
+                        <span className="absolute w-3 h-3 bg-white rounded-full animate-pulse"></span>
+                      )}
+                      {isCompleted && !isActive && (
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {!isActive && !isCompleted && (
+                        <span className="text-xs font-bold text-white">{index + 1}</span>
+                      )}
+                    </button>
+
+                    {/* Enhanced hotspot indicators */}
+                    <div className="absolute top-full mt-1.5 flex space-x-1 justify-center w-full">
+                      {stepEvents.slice(0, 4).map(event => {
                         const hotspot = hotspots.find(h => h.id === event.targetId);
                         return hotspot ? (
                           <div
                             key={`${event.id}-${hotspot.id}-mobile`}
-                            className="w-2 h-2 rounded-full border border-white/20"
-                            style={{ backgroundColor: hotspot.color || '#64748b' }}
+                            className="w-2 h-2 rounded-full border border-white/30 shadow-sm transition-transform duration-200 hover:scale-110"
+                            style={{ 
+                              backgroundColor: hotspot.color || '#64748b',
+                              boxShadow: isActive ? `0 0 8px ${hotspot.color || '#64748b'}40` : undefined
+                            }}
                             title={`Hotspot: ${hotspot.title}`}
                           />
                         ) : null;
                       })}
-                    {timelineEvents.filter(event => event.step === step && event.targetId).length > 4 && (
-                      <div
-                        className="w-2 h-2 rounded-full bg-slate-500 border border-white/20 flex items-center justify-center"
-                        title={`+${timelineEvents.filter(event => event.step === step && event.targetId).length - 4} more hotspots`}
-                      >
-                        <span className="text-xs text-white leading-none">•</span>
-                      </div>
-                    )}
+                      {stepEvents.length > 4 && (
+                        <div
+                          className="w-2 h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-400 border border-white/30 flex items-center justify-center"
+                          title={`+${stepEvents.length - 4} more hotspots`}
+                        >
+                          <span className="text-xs text-white leading-none font-bold">+</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* Enhanced navigation controls */}
+          {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700/30" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 8px) + 8px, 16px)' }}>
+              <button
+                onClick={onPrevStep}
+                disabled={currentStepIndex === 0}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 disabled:from-slate-800 disabled:to-slate-800 disabled:opacity-50 text-white rounded-lg transition-all duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:cursor-not-allowed shadow-sm"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+                <span className="font-medium">Previous</span>
+              </button>
+              
+              <div className="text-center">
+                <div className="text-xs font-medium text-slate-300">
+                  Step {(currentStepIndex || 0) + 1} of {totalSteps}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-        {moduleState === 'learning' && onPrevStep && onNextStep && totalSteps !== undefined && currentStepIndex !== undefined && (
-          <div className="flex items-center justify-between mt-3 px-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-            <button
-              onClick={onPrevStep}
-              disabled={currentStepIndex === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
-            >
-              <ChevronLeftIcon className="w-4 h-4" />
-              Previous
-            </button>
-            <span className="text-slate-300 text-xs font-medium">
-              Step {(currentStepIndex || 0) + 1} / {totalSteps}
-            </span>
-            <button
-              onClick={onNextStep}
-              disabled={currentStepIndex >= totalSteps - 1}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed"
-            >
-              Next
-              <ChevronRightIcon className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {Math.round(progressPercentage)}% Complete
+                </div>
+              </div>
+              
+              <button
+                onClick={onNextStep}
+                disabled={currentStepIndex >= totalSteps - 1}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:from-slate-800 disabled:to-slate-800 disabled:opacity-50 text-white rounded-lg transition-all duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:cursor-not-allowed shadow-sm"
+              >
+                <span className="font-medium">Next</span>
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+          )}
       </div>
     </div>
     );
@@ -438,20 +521,22 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   return (
     <div className="w-full" aria-label="Module Timeline">
+      {/* Enhanced desktop timeline container */}
       <div
-        className="relative w-full overflow-x-auto flex items-center justify-center py-4"
-        style={{ height: '80px' }} // Give it a fixed height for virtualization
+        className="relative w-full overflow-x-auto flex items-center justify-center py-6 bg-slate-800/30 backdrop-blur-sm border-y border-slate-700/50"
+        style={{ height: '80px' }}
         ref={viewerTimelineRef}
       >
-        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-600 rounded-full transform -translate-y-1/2" />
+        {/* Modern gradient timeline track */}
+        <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2" />
         <FixedSizeList
-          height={80} // Must match the parent container's height
-          width={isMobile ? window.innerWidth : viewerTimelineRef.current?.offsetWidth || 0} // Adjust width dynamically
+          height={80}
+          width={isMobile ? window.innerWidth : viewerTimelineRef.current?.offsetWidth || 0}
           itemCount={uniqueSortedSteps.length}
           itemSize={ITEM_WIDTH}
-          layout="horizontal" // Crucial for horizontal scrolling
+          layout="horizontal"
           itemData={itemData}
-          className="custom-scrollbar" // Apply custom scrollbar styles if needed
+          className="custom-scrollbar"
         >
           {TimelineStep}
         </FixedSizeList>

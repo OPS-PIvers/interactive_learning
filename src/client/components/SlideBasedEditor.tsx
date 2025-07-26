@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset } from '../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia } from '../../shared/slideTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
@@ -989,7 +989,26 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               <MobileBackgroundModal
                 currentSlide={currentSlide}
                 onAspectRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
-                onBackgroundUpload={onImageUpload}
+                onBackgroundUpload={async (file: File) => {
+                  try {
+                    // Use Firebase API to upload the file
+                    const imageUrl = await firebaseAPI.uploadImage(file);
+                    
+                    // Create BackgroundMedia object
+                    const backgroundMedia: BackgroundMedia = {
+                      type: file.type.startsWith('video/') ? 'video' : 'image',
+                      url: imageUrl,
+                      size: 'cover',
+                      position: 'center'
+                    };
+                    
+                    // Update the slide with the new background
+                    handleSlideUpdate({ backgroundMedia });
+                  } catch (error) {
+                    console.error('Background upload failed:', error);
+                    throw error; // Re-throw to be handled by the modal
+                  }
+                }}
                 onBackgroundRemove={() => handleSlideUpdate({ backgroundMedia: undefined })}
                 onBackgroundUpdate={(mediaConfig) => handleSlideUpdate({ backgroundMedia: mediaConfig })}
                 onClose={() => setIsMobileBackgroundModalOpen(false)}

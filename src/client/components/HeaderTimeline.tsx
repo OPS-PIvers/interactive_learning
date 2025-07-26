@@ -103,29 +103,29 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
     : 100;
 
   return (
-    <div className={`header-timeline bg-slate-800/95 border-b border-slate-700 ${className}`}>
-      <div className="flex items-center h-12 px-4">
-        {/* Previous button */}
+    <div className={`header-timeline bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 ${className}`}>
+      <div className="flex items-center h-14 px-4">
+        {/* Enhanced previous button */}
         <button
           onClick={handlePrevSlide}
           disabled={currentSlideIndex === 0}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
           aria-label="Previous slide"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </button>
 
-        {/* Timeline track container */}
+        {/* Enhanced timeline track container */}
         <div className="flex-1 mx-4 relative">
-          {/* Progress track */}
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-600 rounded-full transform -translate-y-1/2">
+          {/* Modern gradient progress track */}
+          <div className="absolute top-1/2 left-0 right-0 h-1.5 bg-slate-600/70 rounded-full transform -translate-y-1/2 overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-gradient-to-r from-purple-500 via-purple-400 to-blue-500 rounded-full transition-all duration-500 ease-out shadow-sm"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
 
-          {/* Timeline steps */}
+          {/* Enhanced timeline steps */}
           <div className="flex items-center justify-between relative">
             {timelineSteps.map((step, index) => {
               const isActive = index === currentSlideIndex;
@@ -136,20 +136,20 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                 <button
                   key={step.slideId}
                   onClick={() => handleStepClick(index)}
-                  className={`relative flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 ${
+                  className={`relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
                     isActive 
-                      ? 'bg-white text-purple-600 shadow-lg scale-125 z-10' 
+                      ? 'bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 scale-125 z-10' 
                       : isCompleted
-                        ? 'bg-purple-500 text-white shadow-md'
-                        : 'bg-slate-500 text-slate-300 hover:bg-slate-400'
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:shadow-lg'
+                        : 'bg-slate-500 text-slate-300 hover:bg-gradient-to-r hover:from-slate-400 hover:to-slate-300 shadow-sm'
                   }`}
                   title={`${step.title}${step.hotspotCount > 0 ? ` (${step.hotspotCount} hotspots)` : ''}`}
                   aria-label={`Go to ${step.title}${isActive ? ' (current)' : ''}`}
                 >
-                  {/* Step number or status indicator */}
-                  <span className="text-xs font-semibold">
+                  {/* Enhanced step number or status indicator */}
+                  <span className="text-xs font-bold transition-all duration-200 group-hover:scale-110">
                     {isCompleted ? (
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     ) : (
@@ -157,15 +157,15 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                     )}
                   </span>
 
-                  {/* Interactive indicator */}
+                  {/* Enhanced interactive indicator */}
                   {isInteractive && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full border border-slate-800" 
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full border border-slate-800 animate-pulse shadow-sm" 
                          title="Contains interactive elements" />
                   )}
 
-                  {/* Hotspot indicators with states */}
+                  {/* Enhanced hotspot indicators with modern styling */}
                   {step.hotspots.length > 0 && (
-                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
+                    <div className="absolute -bottom-2.5 left-1/2 transform -translate-x-1/2 flex space-x-0.5 opacity-80 group-hover:opacity-100 transition-opacity duration-200">
                       {step.hotspots.slice(0, 3).map((hotspot, i) => (
                         <button
                           key={hotspot.id}
@@ -177,22 +177,22 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                               handleStepClick(step.slideIndex);
                             }
                           }}
-                          className={`w-1.5 h-1.5 rounded-full transition-all duration-200 hover:scale-150 ${
+                          className={`w-2 h-2 rounded-full transition-all duration-200 hover:scale-150 border border-white/40 shadow-sm ${
                             hotspot.isActive 
-                              ? 'ring-1 ring-white shadow-lg animate-pulse' 
+                              ? 'ring-1 ring-white shadow-lg animate-pulse scale-125' 
                               : hotspot.isCompleted
-                                ? 'opacity-60'
-                                : 'hover:opacity-80'
+                                ? 'opacity-70 hover:opacity-90'
+                                : 'hover:opacity-90'
                           }`}
                           style={{ 
                             backgroundColor: hotspot.color,
-                            transform: hotspot.isActive ? 'scale(1.5)' : 'scale(1)'
+                            boxShadow: hotspot.isActive ? `0 0 8px ${hotspot.color}50` : undefined
                           }}
                           title={`${hotspot.title}${hotspot.isActive ? ' (active)' : hotspot.isCompleted ? ' (completed)' : ''}`}
                         />
                       ))}
                       {step.hotspots.length > 3 && (
-                        <span className="text-xs text-slate-400 leading-none">+{step.hotspots.length - 3}</span>
+                        <span className="text-xs text-slate-400 leading-none font-medium">+{step.hotspots.length - 3}</span>
                       )}
                     </div>
                   )}
@@ -202,28 +202,33 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
           </div>
         </div>
 
-        {/* Next button */}
+        {/* Enhanced next button */}
         <button
           onClick={handleNextSlide}
           disabled={currentSlideIndex === slideDeck.slides.length - 1}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
           aria-label="Next slide"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </button>
 
-        {/* Mode indicator */}
+        {/* Enhanced mode indicator */}
         {viewerMode !== 'explore' && (
-          <div className="ml-3 px-2 py-1 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-full">
-            <span className="text-xs text-green-300 font-medium">
+          <div className="ml-3 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-full shadow-sm backdrop-blur-sm">
+            <span className="text-xs text-green-300 font-semibold tracking-wide">
               {viewerMode === 'guided' ? 'GUIDED' : 'AUTO'}
             </span>
           </div>
         )}
 
-        {/* Progress text */}
-        <div className="ml-3 text-xs text-slate-400 font-medium">
-          {currentSlideIndex + 1} / {slideDeck.slides.length}
+        {/* Enhanced progress text */}
+        <div className="ml-3 text-center">
+          <div className="text-xs text-slate-300 font-semibold">
+            {currentSlideIndex + 1} / {slideDeck.slides.length}
+          </div>
+          <div className="text-xs text-slate-500 font-medium">
+            {Math.round(progressPercentage)}%
+          </div>
         </div>
       </div>
     </div>

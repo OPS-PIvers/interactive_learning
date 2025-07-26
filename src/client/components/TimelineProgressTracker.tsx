@@ -159,22 +159,22 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
   const currentStep = timelineSteps[progress.currentStep];
 
   return (
-    <div className={`timeline-progress-tracker ${className}`}>
-      {/* Progress Bar */}
-      <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
+    <div className={`timeline-progress-tracker bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 shadow-lg ${className}`}>
+      {/* Enhanced Progress Bar */}
+      <div className="w-full bg-slate-700/70 rounded-full h-3 mb-6 overflow-hidden shadow-inner">
         <div
-          className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+          className="bg-gradient-to-r from-purple-500 via-purple-400 to-blue-500 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between">
+      {/* Enhanced Controls */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {!progress.isPlaying ? (
             <button
               onClick={handlePlay}
-              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={progress.currentStep >= timelineSteps.length - 1}
             >
               ▶️ Play
@@ -182,7 +182,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
           ) : (
             <button
               onClick={handlePause}
-              className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
             >
               ⏸️ Pause
             </button>
@@ -190,54 +190,62 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
 
           <button
             onClick={handleReset}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white text-sm rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-500 hover:to-slate-400 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
           >
             ⏮️ Reset
           </button>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Step {progress.currentStep + 1} of {timelineSteps.length}
+        <div className="text-center">
+          <div className="text-sm text-slate-300 font-semibold">
+            Step {progress.currentStep + 1} of {timelineSteps.length}
+          </div>
           {currentStep && (
-            <span className="ml-2">
-              (Slide {currentStep.slideIndex + 1})
-            </span>
+            <div className="text-xs text-slate-400 font-medium">
+              Slide {currentStep.slideIndex + 1} • {Math.round(progressPercentage)}%
+            </div>
           )}
         </div>
       </div>
 
-      {/* Current Step Info */}
+      {/* Enhanced Current Step Info */}
       {currentStep && (
-        <div className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-          <div className="text-sm font-medium text-slate-200">
-            Current Step: Slide {currentStep.slideIndex + 1}
+        <div className="mt-4 p-4 bg-gradient-to-r from-slate-700/50 to-slate-600/50 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+            <div className="text-sm font-semibold text-slate-100">
+              Current Step: Slide {currentStep.slideIndex + 1}
+            </div>
           </div>
           {currentStep.elementId && (
-            <div className="text-xs text-slate-400 mt-1">
+            <div className="text-xs text-slate-300 mb-2 bg-slate-800/30 px-2 py-1 rounded">
               Element Interaction: {currentStep.interactionId}
             </div>
           )}
-          <div className="text-xs text-slate-500 mt-1">
-            Duration: {currentStep.duration}ms
-            {currentStep.delay > 0 && ` • Delay: ${currentStep.delay}ms`}
+          <div className="text-xs text-slate-400 flex gap-4">
+            <span>Duration: {currentStep.duration}ms</span>
+            {currentStep.delay > 0 && <span>Delay: {currentStep.delay}ms</span>}
           </div>
         </div>
       )}
 
-      {/* Interactive Timeline Scrubber */}
+      {/* Enhanced Interactive Timeline Scrubber */}
       <div className="mt-4">
-        <div className="text-xs text-slate-400 mb-2">Timeline Steps:</div>
-        <div className="flex gap-1 overflow-x-auto pb-2">
+        <div className="text-xs text-slate-400 font-medium mb-3 flex items-center gap-2">
+          <span>Timeline Steps:</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent"></div>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {timelineSteps.map((step, index) => (
             <button
               key={index}
               onClick={() => handleStepSelect(index)}
-              className={`flex-shrink-0 w-6 h-6 rounded-full text-xs transition-all ${
+              className={`flex-shrink-0 w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 border-2 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                 index === progress.currentStep
-                  ? 'bg-purple-500 text-white scale-110'
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white border-white scale-110 shadow-lg shadow-purple-500/25'
                   : index < progress.currentStep
-                    ? 'bg-green-500 text-white'
-                    : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-200 shadow-md'
+                    : 'bg-slate-600 text-slate-300 border-slate-400 hover:bg-gradient-to-r hover:from-slate-500 hover:to-slate-400 shadow-sm'
               }`}
               title={`Step ${index + 1}: Slide ${step.slideIndex + 1}${step.elementId ? ' (Interaction)' : ''}`}
             >
