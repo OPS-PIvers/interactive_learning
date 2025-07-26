@@ -128,14 +128,14 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // No more 'idle' state, viewer is always active
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${!isMobile ? 'pt-16' : ''}`}>
       {/* Toolbar */}
       <ViewerToolbar
         projectName={projectName}
         onBack={onClose}
-        moduleState={viewerState}
-        onStartLearning={handleToggleMode}
-        onStartExploring={handleToggleMode}
+        moduleState={viewerState === 'exploring' ? 'idle' : viewerState}
+        onStartLearning={() => setViewerState('learning')}
+        onStartExploring={() => setViewerState('exploring')}
         hasContent={slideDeck.slides.length > 0}
         isMobile={isMobile}
         viewerModes={viewerModes}
