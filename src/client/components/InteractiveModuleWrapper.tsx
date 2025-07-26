@@ -103,7 +103,17 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             isPublished={selectedProject.isPublished || false}
           />
         ) : slideDeck ? (
-          <SlideViewer slideDeck={slideDeck} />
+          <SlideViewer 
+            slideDeck={slideDeck} 
+            showTimeline={!isEditingMode}
+            timelineAutoPlay={false}
+            onSlideChange={(slideId, slideIndex) => {
+              console.log(`Navigated to slide ${slideIndex + 1}: ${slideId}`);
+            }}
+            onInteraction={(interaction) => {
+              console.log('Interaction triggered:', interaction);
+            }}
+          />
         ) : /* All projects now use slide-based architecture */ 
         selectedProject.interactiveData ? (
           <SlideBasedInteractiveModule

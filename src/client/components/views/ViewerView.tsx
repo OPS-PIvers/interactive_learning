@@ -100,7 +100,17 @@ const ViewerView: React.FC = () => {
 
       {/* Viewer content */}
       {project.slideDeck ? (
-        <SlideViewer slideDeck={project.slideDeck} />
+        <SlideViewer 
+          slideDeck={project.slideDeck} 
+          showTimeline={true}
+          timelineAutoPlay={false}
+          onSlideChange={(slideId, slideIndex) => {
+            console.log(`Navigated to slide ${slideIndex + 1}: ${slideId}`);
+          }}
+          onInteraction={(interaction) => {
+            console.log('Interaction triggered:', interaction);
+          }}
+        />
       ) : project.interactiveData ? (
         <SlideBasedInteractiveModule
           key={`viewer-${project.id}`}

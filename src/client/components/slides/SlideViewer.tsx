@@ -4,6 +4,7 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideElement } from './SlideElement';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
 import { SlideNavigation } from './SlideNavigation';
+import { SlideTimeline } from './SlideTimeline';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
 interface SlideViewerProps {
@@ -12,6 +13,8 @@ interface SlideViewerProps {
   onSlideChange?: (slideId: string, slideIndex: number) => void;
   onInteraction?: (interaction: any) => void;
   className?: string;
+  showTimeline?: boolean;
+  timelineAutoPlay?: boolean;
 }
 
 /**
@@ -24,7 +27,9 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
   initialSlideId,
   onSlideChange,
   onInteraction,
-  className = ''
+  className = '',
+  showTimeline = true,
+  timelineAutoPlay = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { deviceType, viewportInfo } = useDeviceDetection();
@@ -48,6 +53,10 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
   // Active slide effects
   const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
+  
+  // Timeline state
+  const [currentTimelineStep, setCurrentTimelineStep] = useState(0);
+  const [isTimelineVisible, setIsTimelineVisible] = useState(showTimeline);
   
   // Touch gesture state for mobile
   const [touchState, setTouchState] = useState({
@@ -151,6 +160,16 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
     onInteraction?.(interactionLog);
   }, [currentSlide, triggerEffect, navigateToSlide, onInteraction]);
+
+  // Timeline step change handler
+  const handleTimelineStepChange = useCallback((stepIndex: number) => {
+    setCurrentTimelineStep(stepIndex);
+  }, []);
+
+  // Timeline effect trigger handler
+  const handleTimelineEffectTrigger = useCallback((effect: SlideEffect) => {
+    triggerEffect(effect);
+  }, [triggerEffect]);
 
   // Touch gesture handlers for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -538,14 +557,38 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
         />
       )}
 
+      {/* Interactive Timeline */}
+      {isTimelineVisible && (
+        <div className="absolute bottom-0 left-0 right-0">
+          <SlideTimeline
+            slideDeck={slideDeck}
+            currentSlideIndex={viewerState.currentSlideIndex}
+            onStepChange={handleTimelineStepChange}
+            onEffectTrigger={handleTimelineEffectTrigger}
+            autoPlay={timelineAutoPlay}
+            className="border-t border-slate-700"
+          />
+        </div>
+      )}
+
+      {/* Timeline Toggle Button */}
+      <button
+        onClick={() => setIsTimelineVisible(!isTimelineVisible)}
+        className="absolute top-4 left-4 z-40 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-full p-2 text-white hover:bg-slate-700 transition-colors"
+        title={isTimelineVisible ? 'Hide timeline' : 'Show timeline'}
+      >
+        {isTimelineVisible ? '⏸' : '▶'}
+      </button>
+
       {/* Debug Info (development only) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-50">
+        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-50">
           Slide: {viewerState.currentSlideIndex + 1}/{slideDeck.slides.length}<br/>
           Device: {deviceType}<br/>
           Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br/>
           Scale: {canvasDimensions.scale.toFixed(2)}<br/>
-          Effects: {activeEffects.length}
+          Effects: {activeEffects.length}<br/>
+          Timeline Step: {currentTimelineStep + 1}
         </div>
       )}
     </div>

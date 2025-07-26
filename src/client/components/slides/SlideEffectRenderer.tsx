@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters } from '../../../shared/slideTypes';
+import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters } from '../../../shared/slideTypes';
 import { AnimatedElement } from '../animations/ElementAnimations';
 
 interface SlideEffectRendererProps {
@@ -294,6 +294,270 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     );
   };
 
+  // Render pan and zoom effect
+  const renderPanZoomEffect = () => {
+    if (effect.type !== 'pan_zoom') return null;
+
+    const params = effect.parameters as PanZoomParameters;
+    
+    return (
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            className="fixed inset-0 z-40 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="w-full h-full"
+              initial={{
+                scale: 1,
+                x: 0,
+                y: 0
+              }}
+              animate={{
+                scale: params.zoomLevel || 1.5,
+                x: params.targetX ? `-${params.targetX}px` : 0,
+                y: params.targetY ? `-${params.targetY}px` : 0
+              }}
+              transition={{
+                duration: effect.duration / 1000,
+                ease: "easeInOut",
+                type: "spring",
+                damping: 20,
+                stiffness: 100
+              }}
+            >
+              {/* Pan/Zoom target indicator */}
+              {params.targetX && params.targetY && (
+                <motion.div
+                  className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"
+                  style={{
+                    left: params.targetX - 8,
+                    top: params.targetY - 8,
+                    zIndex: 10
+                  }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                />
+              )}
+            </motion.div>
+            
+            {/* Click overlay to complete */}
+            <div 
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => {
+                setIsVisible(false);
+                setTimeout(onComplete, 300);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
+  // Render element animation effect
+  const renderAnimateEffect = () => {
+    if (effect.type !== 'animate') return null;
+
+    const params = effect.parameters as AnimateParameters;
+    
+    return (
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            className="absolute z-30 pointer-events-none"
+            style={{
+              left: params.fromPosition?.x || 0,
+              top: params.fromPosition?.y || 0,
+              width: params.fromPosition?.width || 'auto',
+              height: params.fromPosition?.height || 'auto'
+            }}
+            initial={{
+              x: 0,
+              y: 0,
+              scale: 1,
+              rotate: 0,
+              opacity: 1
+            }}
+            animate={{
+              x: params.toPosition ? (params.toPosition.x - (params.fromPosition?.x || 0)) : 0,
+              y: params.toPosition ? (params.toPosition.y - (params.fromPosition?.y || 0)) : 0,
+              scale: params.animationType === 'resize' ? 1.2 : 1,
+              rotate: params.animationType === 'rotate' ? 360 : 0,
+              opacity: params.animationType === 'fade' ? 0 : 1
+            }}
+            transition={{
+              duration: effect.duration / 1000,
+              ease: effect.easing || "easeInOut",
+              type: params.animationType === 'move' ? "spring" : "tween",
+              damping: 15,
+              stiffness: 100
+            }}
+          >
+            {/* Animated element indicator */}
+            <div className="w-full h-full bg-purple-500/20 border-2 border-purple-500 rounded-lg" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
+  // Render media playback effect
+  const renderPlayMediaEffect = () => {
+    if (effect.type !== 'play_media' && effect.type !== 'play_video' && effect.type !== 'play_audio') return null;
+
+    const params = effect.parameters as PlayMediaParameters;
+    
+    return (
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="bg-black/90 rounded-lg p-6 max-w-2xl w-full mx-4"
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              transition={{ type: "spring", damping: 20, stiffness: 100 }}
+            >
+              {params.mediaType === 'video' && (
+                <video
+                  src={params.mediaUrl}
+                  controls={params.controls}
+                  autoPlay={params.autoplay}
+                  className="w-full rounded"
+                  style={{ maxHeight: '70vh' }}
+                  onEnded={() => {
+                    setIsVisible(false);
+                    setTimeout(onComplete, 300);
+                  }}
+                />
+              )}
+              
+              {params.mediaType === 'audio' && (
+                <div className="text-center">
+                  <div className="text-white mb-4">
+                    <div className="text-lg font-semibold mb-2">🎵 Playing Audio</div>
+                    <div className="text-sm text-gray-300">Audio is now playing...</div>
+                  </div>
+                  <audio
+                    src={params.mediaUrl}
+                    controls={params.controls}
+                    autoPlay={params.autoplay}
+                    className="w-full"
+                    onEnded={() => {
+                      setIsVisible(false);
+                      setTimeout(onComplete, 300);
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Close button */}
+              <button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onComplete, 300);
+                }}
+                className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-bold"
+              >
+                ×
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
+  // Render quiz effect
+  const renderQuizEffect = () => {
+    if (effect.type !== 'quiz') return null;
+
+    const params = effect.parameters as QuizParameters;
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [showResult, setShowResult] = useState(false);
+    
+    const handleAnswerSelect = (answer: string) => {
+      setSelectedAnswer(answer);
+      setShowResult(true);
+      
+      // Auto-close after showing result
+      setTimeout(() => {
+        setIsVisible(false);
+        setTimeout(onComplete, 300);
+      }, 2000);
+    };
+    
+    return (
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="bg-white rounded-lg p-6 max-w-lg w-full"
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              transition={{ type: "spring", damping: 20, stiffness: 100 }}
+            >
+              {!showResult ? (
+                <>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">{params.question}</h3>
+                  <div className="space-y-3">
+                    {params.choices?.map((choice, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAnswerSelect(choice)}
+                        className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center">
+                  <div className={`text-2xl mb-4 ${
+                    selectedAnswer === params.correctAnswer ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {selectedAnswer === params.correctAnswer ? '✅ Correct!' : '❌ Incorrect'}
+                  </div>
+                  <div className="text-gray-700 mb-4">
+                    {selectedAnswer === params.correctAnswer 
+                      ? 'Well done!' 
+                      : `The correct answer was: ${params.correctAnswer}`
+                    }
+                  </div>
+                  {params.explanation && (
+                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      {params.explanation}
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
   // Main render logic
   useEffect(() => {
     if (effect.type === 'spotlight') {
@@ -306,8 +570,18 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       return renderSpotlightEffect() || <div />;
     case 'zoom':
       return renderZoomEffect() || <div />;
+    case 'pan_zoom':
+      return renderPanZoomEffect() || <div />;
     case 'show_text':
       return renderShowTextEffect() || <div />;
+    case 'animate':
+      return renderAnimateEffect() || <div />;
+    case 'play_media':
+    case 'play_video':
+    case 'play_audio':
+      return renderPlayMediaEffect() || <div />;
+    case 'quiz':
+      return renderQuizEffect() || <div />;
     default:
       return null;
   }
