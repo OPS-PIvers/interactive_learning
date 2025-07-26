@@ -83,7 +83,9 @@ describe('FirebaseProjectAPI', () => {
       expect(savedData.interactiveData).toBeDefined();
       expect(savedData.interactiveData.backgroundImage).toBe('test-image.jpg');
       expect(savedData.interactiveData.imageFitMode).toBe('contain');
-      expect(savedData.interactiveData.hotspots).toEqual([{ id: 'h1', x: 10, y: 20, title: 'Hotspot 1', description: '' }]);
+      // IMPORTANT: hotspots should be cleared in main document since subcollections are authoritative
+      expect(savedData.interactiveData.hotspots).toEqual([]);
+      expect(savedData.interactiveData.timelineEvents).toEqual([]);
     });
   });
 });

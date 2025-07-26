@@ -267,6 +267,8 @@ export class FirebaseProjectAPI {
       if (projectData.interactiveData) {
         result = {
           ...projectData.interactiveData,
+          // IMPORTANT: Subcollection data always overrides interactiveData arrays
+          // to maintain single source of truth and prevent data inconsistencies
           hotspots,
           timelineEvents,
         };
@@ -443,6 +445,8 @@ export class FirebaseProjectAPI {
 
         // Prepare the data for Firestore update.
         // All interactive data is now nested under the 'interactiveData' field.
+        // IMPORTANT: Clear hotspots and timelineEvents from interactiveData since 
+        // subcollections are the authoritative source to prevent data inconsistencies.
         const updateData: ProjectUpdateData = {
           title: project.title,
           description: project.description,
@@ -454,6 +458,9 @@ export class FirebaseProjectAPI {
           interactiveData: {
             ...project.interactiveData,
             backgroundImage: newBackgroundImageForUpdate || null,
+            // Clear these arrays since subcollections are authoritative
+            hotspots: [],
+            timelineEvents: [],
           }
         };
 
@@ -1106,6 +1113,17 @@ export class FirebaseProjectAPI {
         ...updates,
         updatedAt: serverTimestamp()
       };
+
+      // IMPORTANT: If interactiveData is being updated, ensure hotspots and timelineEvents 
+      // are cleared since subcollections are the authoritative source
+      if (updateData.interactiveData) {
+        updateData.interactiveData = {
+          ...updateData.interactiveData,
+          hotspots: [],
+          timelineEvents: [],
+        };
+        debugLog.log(`[updateProject] Cleared hotspots/timelineEvents from interactiveData to maintain subcollection authority`);
+      }
 
       await setDoc(projectRef, updateData, { merge: true });
       debugLog.log(`Project ${projectId} updated successfully`);
