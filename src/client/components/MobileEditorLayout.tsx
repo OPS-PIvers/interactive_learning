@@ -154,9 +154,6 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
 
   const [editorMode, setEditorMode] = useState<'compact' | 'fullscreen' | 'modal'>('compact');
   const [activePanel, setActivePanel] = useState<'image' | 'properties' | 'timeline' | 'background'>(activePanelOverride || 'image');
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
-    window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape'
-  );
   const [showHotspotEditor, setShowHotspotEditor] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
@@ -261,19 +258,6 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    const handleOrientationChange = () => {
-      setOrientation(window.screen.orientation.type.startsWith('portrait') ? 'portrait' : 'landscape');
-    };
-
-    // Initial check
-    handleOrientationChange();
-
-    window.screen.orientation.addEventListener('change', handleOrientationChange);
-    return () => {
-      window.screen.orientation.removeEventListener('change', handleOrientationChange);
-    };
-  }, []);
 
   const handleBackGesture = useCallback((e: TouchEvent) => {
     // Implement edge swipe detection for back navigation
