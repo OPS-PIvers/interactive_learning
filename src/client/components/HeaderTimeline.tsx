@@ -2,6 +2,9 @@ import React, { useCallback, useMemo } from 'react';
 import { SlideDeck } from '../../shared/slideTypes';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { useIOSSafariViewport } from '../hooks/useViewportHeight';
+import { getIOSZIndexStyle, getIOSSafeAreaStyle, IOS_Z_INDEX } from '../utils/iosZIndexManager';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;
@@ -46,6 +49,8 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
   completedHotspots = new Set(),
   onHotspotFocus
 }) => {
+  const isMobile = useIsMobile();
+  const { isIOSSafariUIVisible } = useIOSSafariViewport();
   // Generate timeline steps from slides
   const timelineSteps = useMemo((): TimelineStep[] => {
     return slideDeck.slides.map((slide, index) => {
@@ -102,17 +107,36 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
     ? (currentSlideIndex / (slideDeck.slides.length - 1)) * 100 
     : 100;
 
+  // Get appropriate styles for mobile and iOS Safari
+  const containerStyle = {
+    ...getIOSZIndexStyle('FLOATING_MENU'),
+    ...getIOSSafeAreaStyle({ 
+      includeTop: true,
+      additionalPadding: isMobile ? 8 : 4
+    })
+  };
+
+  // Adjust height and spacing for mobile
+  const timelineHeight = isMobile ? 'h-16' : 'h-14';
+  const timelinePadding = isMobile ? 'px-4 py-2' : 'px-4';
+  const buttonSize = isMobile ? 'w-11 h-11' : 'w-9 h-9';
+  const stepSize = isMobile ? 'w-8 h-8' : 'w-7 h-7';
+
   return (
-    <div className={`header-timeline bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 ${className}`}>
-      <div className="flex items-center h-14 px-4">
+    <div 
+      className={`header-timeline bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 sticky top-0 ${className}`}
+      style={containerStyle}
+    >
+      <div className={`flex items-center ${timelineHeight} ${timelinePadding}`}>
         {/* Enhanced previous button */}
         <button
           onClick={handlePrevSlide}
           disabled={currentSlideIndex === 0}
-          className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+          className={`flex items-center justify-center ${buttonSize} rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md ${isMobile ? 'active:scale-95 touch-manipulation' : ''}`}
           aria-label="Previous slide"
+          style={isMobile ? { minHeight: '44px', minWidth: '44px' } : undefined}
         >
-          <ChevronLeftIcon className="w-4 h-4" />
+          <ChevronLeftIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
         </button>
 
         {/* Enhanced timeline track container */}
@@ -136,15 +160,16 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                 <button
                   key={step.slideId}
                   onClick={() => handleStepClick(index)}
-                  className={`relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
+                  className={`relative flex items-center justify-center ${stepSize} rounded-full transition-all duration-300 transform ${isMobile ? 'active:scale-95 touch-manipulation' : 'hover:scale-110'} focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
                     isActive 
-                      ? 'bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 scale-125 z-10' 
+                      ? `bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 ${isMobile ? 'scale-110' : 'scale-125'} z-10` 
                       : isCompleted
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:shadow-lg'
                         : 'bg-slate-500 text-slate-300 hover:bg-gradient-to-r hover:from-slate-400 hover:to-slate-300 shadow-sm'
                   }`}
                   title={`${step.title}${step.hotspotCount > 0 ? ` (${step.hotspotCount} hotspots)` : ''}`}
                   aria-label={`Go to ${step.title}${isActive ? ' (current)' : ''}`}
+                  style={isMobile ? { minHeight: '32px', minWidth: '32px' } : undefined}
                 >
                   {/* Enhanced step number or status indicator */}
                   <span className="text-xs font-bold transition-all duration-200 group-hover:scale-110">
@@ -206,10 +231,11 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
         <button
           onClick={handleNextSlide}
           disabled={currentSlideIndex === slideDeck.slides.length - 1}
-          className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+          className={`flex items-center justify-center ${buttonSize} rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md ${isMobile ? 'active:scale-95 touch-manipulation' : ''}`}
           aria-label="Next slide"
+          style={isMobile ? { minHeight: '44px', minWidth: '44px' } : undefined}
         >
-          <ChevronRightIcon className="w-4 h-4" />
+          <ChevronRightIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
         </button>
 
         {/* Enhanced mode indicator */}
@@ -221,14 +247,16 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
           </div>
         )}
 
-        {/* Enhanced progress text */}
-        <div className="ml-3 text-center">
-          <div className="text-xs text-slate-300 font-semibold">
+        {/* Enhanced progress text - responsive sizing */}
+        <div className={`${isMobile ? 'ml-2' : 'ml-3'} text-center ${isMobile ? 'min-w-0' : ''}`}>
+          <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-slate-300 font-semibold whitespace-nowrap`}>
             {currentSlideIndex + 1} / {slideDeck.slides.length}
           </div>
-          <div className="text-xs text-slate-500 font-medium">
-            {Math.round(progressPercentage)}%
-          </div>
+          {!isMobile && (
+            <div className="text-xs text-slate-500 font-medium">
+              {Math.round(progressPercentage)}%
+            </div>
+          )}
         </div>
       </div>
     </div>

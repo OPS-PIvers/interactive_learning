@@ -23,12 +23,32 @@ const MobileEditorToolbar: React.FC<MobileEditorToolbarProps> = ({
 }) => {
   return (
     <div className="mobile-bottom-toolbar">
-      <button onClick={onUndo} disabled={!canUndo}>Undo</button>
-      <button onClick={onRedo} disabled={!canRedo}>Redo</button>
-      <button onClick={onAddHotspot} disabled={isPlacingHotspot}>
-        {isPlacingHotspot ? 'Placing...' : 'Add Hotspot'}
+      <button 
+        onClick={onUndo} 
+        disabled={!canUndo}
+        title="Undo last action"
+      >
+        Undo
       </button>
-      <button onClick={onSave} disabled={isSaving}>
+      <button 
+        onClick={onRedo} 
+        disabled={!canRedo}
+        title="Redo last action"
+      >
+        Redo
+      </button>
+      <button 
+        onClick={onAddHotspot} 
+        disabled={isPlacingHotspot}
+        title={isPlacingHotspot ? "Tap on image to place hotspot" : "Add new hotspot"}
+      >
+        {isPlacingHotspot ? 'Placing...' : 'Add'}
+      </button>
+      <button 
+        onClick={onSave} 
+        disabled={isSaving}
+        title="Save project"
+      >
         {isSaving ? 'Saving...' : 'Save'}
       </button>
     </div>

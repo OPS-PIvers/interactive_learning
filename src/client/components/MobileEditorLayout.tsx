@@ -453,12 +453,11 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       <div 
         className="flex-1 relative bg-slate-800 min-h-0 flex items-center justify-center"
         style={{
-          /* Ensure content area accounts for iOS Safari dynamic viewport and bottom toolbar */
-          height: 'calc(100dvh - 120px - 80px)', // Account for header (120px) and bottom toolbar (80px)
-          minHeight: 'calc(100vh - 120px - 80px)', // Fallback
-          maxHeight: 'calc(100dvh - 120px - 80px)',
-          /* Prevent content from being hidden behind iOS Safari UI */
-          marginBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' // Account for bottom toolbar height
+          /* Let flexbox handle the height calculation automatically */
+          /* The flex-1 class will take remaining space after header */
+          minHeight: 0,
+          /* Only add bottom padding to prevent content being hidden behind toolbar */
+          paddingBottom: 'calc(var(--mobile-bottom-toolbar-height, 56px) + env(safe-area-inset-bottom, 0px))'
         }}
       >
         <div 
@@ -621,7 +620,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           className={`h-full w-full bg-slate-900 relative overflow-hidden keyboard-aware-container ${keyboardInfo.isVisible ? 'keyboard-open' : ''}`}
           style={{ 
             height: `${viewport.availableHeight}px`,
-            paddingBottom: `calc(80px + ${viewport.safeAreaInsets.bottom}px)` // Account for bottom toolbar
+            /* Remove the padding since the toolbar is positioned fixed and content has its own padding */
           }}
         >
           {renderCompactLayout()}
