@@ -1,5 +1,4 @@
 import React from 'react';
-import { HotspotData, TimelineEventData } from '../../shared/types';
 
 interface MobileEditorToolbarProps {
   onAddHotspot: () => void;

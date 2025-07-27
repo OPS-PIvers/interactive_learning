@@ -69,7 +69,7 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   const [presetsOpen, setPresetsOpen] = useState(selectedElement?.type === 'hotspot');
   const [contentOpen, setContentOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
-  const [interactionsOpen, setInteractionsOpen] = useState(false);
+  const [interactionsOpen, setInteractionsOpen] = useState(selectedElement?.type === 'hotspot');
   const [backgroundOpen, setBackgroundOpen] = useState(false);
 
   useEffect(() => {
@@ -83,12 +83,6 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   // Interaction editing state
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
 
-  const toggleSection = useCallback((section: keyof typeof openSections) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  }, []);
 
   // Color mapping from hex to Tailwind classes for hotspot compatibility
   const hexToTailwindMap: Record<string, string> = {

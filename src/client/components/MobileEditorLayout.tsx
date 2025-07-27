@@ -477,8 +477,8 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
         isPlacingHotspot={isPlacingHotspot}
         onSave={onSave}
         isSaving={isSaving}
-        onUndo={() => console.log("Undo")}
-        onRedo={() => console.log("Redo")}
+        onUndo={() => {}}
+        onRedo={() => {}}
         canUndo={false}
         canRedo={false}
       />
