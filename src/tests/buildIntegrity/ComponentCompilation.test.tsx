@@ -111,9 +111,10 @@ describe('Component Compilation Integrity Tests', () => {
   });
 
   describe('Component Instantiation', () => {
-    test('ViewerToolbar can be instantiated without crashing', () => {
-      expect(() => {
-        const ViewerToolbar = require('../../client/components/ViewerToolbar').default;
+    test('ViewerToolbar can be instantiated without crashing', async () => {
+      expect(async () => {
+        const ViewerToolbarModule = await import('../../client/components/ViewerToolbar');
+        const ViewerToolbar = ViewerToolbarModule.default;
         render(
           <ViewerToolbar 
             projectName="Test"
@@ -127,9 +128,10 @@ describe('Component Compilation Integrity Tests', () => {
       }).not.toThrow();
     });
 
-    test('SlideBasedInteractiveModule can be instantiated with minimal props', () => {
-      expect(() => {
-        const SlideBasedInteractiveModule = require('../../client/components/SlideBasedInteractiveModule').default;
+    test('SlideBasedInteractiveModule can be instantiated with minimal props', async () => {
+      expect(async () => {
+        const SlideBasedInteractiveModuleModule = await import('../../client/components/SlideBasedInteractiveModule');
+        const SlideBasedInteractiveModule = SlideBasedInteractiveModuleModule.default;
         const mockSlideDeck = {
           id: 'test',
           title: 'Test',

@@ -487,7 +487,7 @@ describe('Slide Editing Workflow Tests', () => {
     });
 
     test('state persistence across component re-renders', () => {
-      const StatePersistenceTest: React.FC<{ key: number }> = ({ key }) => {
+      const StatePersistenceTest: React.FC<{ componentId: number }> = ({ componentId }) => {
         const [slideDeck, setSlideDeck] = React.useState<SlideDeck>(() => ({
           id: 'persistent-deck',
           title: 'Persistent Deck',
@@ -515,7 +515,7 @@ describe('Slide Editing Workflow Tests', () => {
 
         return (
           <div data-testid="persistence-test">
-            <div data-testid="component-key">{key}</div>
+            <div data-testid="component-key">{componentId}</div>
             <div data-testid="slide-count">{slideDeck.slides.length}</div>
             <button onClick={addSlide} data-testid="add-slide">
               Add Slide
@@ -524,14 +524,14 @@ describe('Slide Editing Workflow Tests', () => {
         );
       };
 
-      const { rerender } = render(<StatePersistenceTest key={1} />);
+      const { rerender } = render(<StatePersistenceTest key={1} componentId={1} />);
 
       // Add a slide
       fireEvent.click(screen.getByTestId('add-slide'));
       expect(screen.getByTestId('slide-count')).toHaveTextContent('1');
 
       // Re-render with different key (simulates component remount)
-      rerender(<StatePersistenceTest key={2} />);
+      rerender(<StatePersistenceTest key={2} componentId={2} />);
       
       // State should reset with new component instance
       expect(screen.getByTestId('slide-count')).toHaveTextContent('0');

@@ -200,7 +200,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
         })}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes liquid-flow {
           0%, 100% { 
             transform: rotate(0deg) scale(1); 

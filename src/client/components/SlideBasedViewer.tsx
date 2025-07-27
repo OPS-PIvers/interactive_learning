@@ -36,7 +36,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const { deviceType } = useDeviceDetection();
   
   // Viewer state
-  const [viewerState, setViewerState] = useState<'exploring' | 'learning'>('exploring');
+  const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
@@ -46,15 +46,19 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   useEffect(() => {
     if (autoStart) {
       if (viewerModes.selfPaced) {
-        setViewerState('learning');
+        setModuleState('learning');
       } else {
-        setViewerState('exploring');
+        setModuleState('exploring');
       }
     }
   }, [autoStart, viewerModes]);
 
-  const handleToggleMode = useCallback(() => {
-    setViewerState(prev => prev === 'learning' ? 'exploring' : 'learning');
+  const handleStartExploring = useCallback(() => {
+    setModuleState('exploring');
+  }, []);
+
+  const handleStartLearning = useCallback(() => {
+    setModuleState('learning');
   }, []);
 
   const handleBackToMenu = useCallback(() => {
@@ -71,10 +75,10 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       console.log('[SlideBasedViewer] Slide changed:', {
         slideId,
         slideIndex,
-        viewerState
+        moduleState
       });
     }
-  }, [viewerState]);
+  }, [moduleState]);
 
   // Timeline navigation handler
   const handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
@@ -115,17 +119,50 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     ...slideDeck,
     settings: {
       ...slideDeck.settings,
-      autoAdvance: viewerState === 'learning' && viewerModes.timed,
+      autoAdvance: moduleState === 'learning' && viewerModes.timed,
       allowNavigation: true,
-      showProgress: viewerState === 'learning',
+      showProgress: moduleState === 'learning',
       showControls: true,
       keyboardShortcuts: true,
       touchGestures: isMobile,
       fullscreenMode: false
     }
-  }), [slideDeck, viewerState, viewerModes, isMobile]);
+  }), [slideDeck, moduleState, viewerModes, isMobile]);
 
-  // No more 'idle' state, viewer is always active
+  // Initial overlay when in idle state
+  if (moduleState === 'idle') {
+    return (
+      <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 relative">
+        {/* Initial overlay */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <h2 className="text-3xl font-bold text-slate-800 mb-6">ExpliCoLearning</h2>
+            <p className="text-slate-600 mb-8">Choose how you'd like to experience this content:</p>
+            
+            <div className="space-y-4">
+              {viewerModes.explore && (
+                <button
+                  onClick={handleStartExploring}
+                  className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+                >
+                  🔍 Explore Freely
+                </button>
+              )}
+              
+              {(viewerModes.selfPaced || viewerModes.timed) && (
+                <button
+                  onClick={handleStartLearning}
+                  className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+                >
+                  🎯 Guided Experience
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${!isMobile ? 'pt-16' : ''}`}>
@@ -133,9 +170,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       <ViewerToolbar
         projectName={projectName}
         onBack={onClose}
-        moduleState={viewerState === 'exploring' ? 'idle' : viewerState}
-        onStartLearning={() => setViewerState('learning')}
-        onStartExploring={() => setViewerState('exploring')}
+        moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+        onStartLearning={handleStartLearning}
+        onStartExploring={handleStartExploring}
         hasContent={slideDeck.slides.length > 0}
         isMobile={isMobile}
         viewerModes={viewerModes}
@@ -146,8 +183,8 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         slideDeck={enhancedSlideDeck}
         currentSlideIndex={currentSlideIndex}
         onSlideChange={handleSlideChange}
-        viewerMode={viewerState === 'learning' && viewerModes.timed ? 'auto-progression' : 
-                    viewerState === 'learning' ? 'guided' : 'explore'}
+        viewerMode={moduleState === 'learning' && viewerModes.timed ? 'auto-progression' : 
+                    moduleState === 'learning' ? 'guided' : 'explore'}
         activeHotspotId={activeHotspotId}
         completedHotspots={completedHotspots}
         onHotspotFocus={handleHotspotFocus}
@@ -157,7 +194,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       {/* Slide viewer - use timeline viewer for guided/timed modes */}
       <div className="flex-1 flex flex-col relative">
         <div className="flex-1">
-          {(viewerState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
+          {(moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
             <TimelineSlideViewer
               slideDeck={enhancedSlideDeck}
               viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}

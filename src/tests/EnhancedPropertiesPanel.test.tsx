@@ -108,29 +108,30 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
     test('can toggle collapsible sections', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
 
-      const contentHeader = screen.getByText('Properties - Hotspot Element');
-      fireEvent.click(contentHeader);
+      // The main properties section should be collapsed by default
+      expect(screen.queryByDisplayValue('Test Hotspot')).not.toBeInTheDocument();
+
+      // Open the properties section
+      const mainHeader = screen.getByText('Properties - Hotspot Element');
+      fireEvent.click(mainHeader);
+
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Hotspot')).toBeVisible();
       });
 
-      fireEvent.click(contentHeader);
+      // Close the properties section
+      fireEvent.click(mainHeader);
+      
       await waitFor(() => {
-        expect(screen.getByDisplayValue('Test Hotspot')).not.toBeVisible();
+        expect(screen.queryByDisplayValue('Test Hotspot')).not.toBeInTheDocument();
       });
     });
 
     test('touch events on sections work correctly', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
 
-      const positionHeader = screen.getByText('Properties - Hotspot Element');
-      fireEvent.click(positionHeader);
-
-      await waitFor(() => {
-        const positionHeader = screen.getByText(/Position & Size/);
-        fireEvent.click(positionHeader.closest('button'));
-      });
-
+      const mainHeader = screen.getByText('Properties - Hotspot Element');
+      fireEvent.click(mainHeader);
 
       await waitFor(() => {
         expect(screen.getByDisplayValue('60')).toBeVisible(); // x-position for mobile
@@ -140,22 +141,23 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
     test('multiple sections can be open simultaneously', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
 
+      // Open main element properties section
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
-      await waitFor(() => {
-        const positionHeader = screen.getByText(/Position & Size/);
-        fireEvent.click(positionHeader.closest('button'));
-      });
-
-
+      
+      // Wait for properties section to open, then also try to open style presets
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Hotspot')).toBeVisible();
-        expect(screen.getByDisplayValue('60')).toBeVisible();
+        expect(screen.getByDisplayValue('60')).toBeVisible(); // position value
       });
+
+      // Note: Style Presets section should already be open by default for hotspots
+      // Check if style presets content is visible
+      expect(screen.getByText('Style Presets')).toBeVisible();
     });
   });
 
   describe('Element Updates', () => {
-    test('updates element title', () => {
+    test('updates element title', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
 
@@ -167,7 +169,7 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       });
     });
 
-    test('updates element description', () => {
+    test('updates element description', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
 
@@ -179,7 +181,7 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       });
     });
 
-    test('updates element background color', () => {
+    test('updates element background color', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
 
@@ -198,9 +200,6 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
 
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
-      await waitFor(() => {
-        fireEvent.click(screen.getByText(/Position & Size/).closest('button'));
-      });
 
       const xInput = screen.getByDisplayValue('60');
       fireEvent.change(xInput, { target: { value: '65' } });
@@ -217,18 +216,29 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
   });
 
   describe('Interactions Management', () => {
-    test('shows interactions section when opened', () => {
+    test('shows interactions section when opened', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText('Interactions'));
-      expect(screen.getByTestId('interactions-list')).toBeInTheDocument();
+      
+      // Open interactions section
+      const interactionsHeader = screen.getByText('Interactions');
+      fireEvent.click(interactionsHeader);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('interactions-list')).toBeInTheDocument();
+      });
     });
 
-    test('can add new interactions', () => {
+    test('can add new interactions', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText('Interactions'));
+      
+      // Open interactions section
+      const interactionsHeader = screen.getByText('Interactions');
+      fireEvent.click(interactionsHeader);
 
-      const addButton = screen.getByText('Add Interaction');
-      fireEvent.click(addButton);
+      await waitFor(() => {
+        const addButton = screen.getByText('Add Interaction');
+        fireEvent.click(addButton);
+      });
 
       expect(defaultProps.onElementUpdate).toHaveBeenCalledWith(
         mockElement.id,
@@ -250,11 +260,6 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       );
 
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
-
-      await waitFor(() => {
-        fireEvent.click(screen.getByText(/Position & Size/).closest('button'));
-      });
-
 
       // Should show tablet position values
       await waitFor(() => {
@@ -291,7 +296,7 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       // Should not crash
     });
 
-    test('handles rapid successive updates correctly', () => {
+    test('handles rapid successive updates correctly', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
       fireEvent.click(screen.getByText('Properties - Hotspot Element'));
 
