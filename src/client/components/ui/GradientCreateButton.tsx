@@ -26,9 +26,9 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
   const [isPressed, setIsPressed] = useState(false);
 
   const sizeClasses = {
-    small: 'w-8 h-8 text-sm',
-    medium: 'w-12 h-12 text-base',
-    large: 'w-16 h-16 text-lg'
+    small: 'h-8 px-3 text-sm',
+    medium: 'h-12 px-4 text-base',
+    large: 'h-16 px-6 text-lg'
   };
 
   const variantClasses = {
@@ -65,7 +65,7 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
         disabled:from-slate-500 disabled:to-slate-600
         disabled:cursor-not-allowed
         rounded-full 
-        text-white font-medium
+        text-white font-semibold
         shadow-lg hover:shadow-xl
         transition-all duration-300 ease-out
         transform hover:scale-105 hover:-translate-y-0.5
@@ -110,11 +110,13 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
               className={`
                 transition-transform duration-300 ease-cubic-bezier(0.19,1,0.22,1)
                 ${isPressed ? '-translate-y-7' : 'translate-y-0'}
+                flex items-center gap-2
               `}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
+              <span>Create</span>
             </div>
             
             {/* Secondary animation layer */}
@@ -123,11 +125,13 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
                 absolute top-7 left-0 flex items-center justify-center w-full
                 transition-transform duration-300 ease-cubic-bezier(0.19,1,0.22,1)
                 ${isPressed ? '-translate-y-7' : 'translate-y-0'}
+                flex items-center gap-2
               `}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
+              <span>Create</span>
             </div>
           </div>
         )}
