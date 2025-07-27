@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HotspotData, TimelineEventData, InteractionType, Project } from '../../shared/types';
 import EditorToolbar from './EditorToolbar';
+import MobileEditorToolbar from './MobileEditorToolbar';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileBackgroundSettings from './MobileBackgroundSettings';
 import AuthButton from './AuthButton';
@@ -471,53 +472,16 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           {children}
         </div>
       </div>
-
-      {/* Timeline at the bottom - Using simple viewer-style timeline for consistency */}
-      <div 
-        className="flex-shrink-0 bg-slate-800 border-t border-slate-700"
-        style={{
-          /* Ensure timeline stays above iOS home indicator */
-          paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
-          /* Prevent timeline from being hidden by iOS Safari UI */
-          position: 'relative',
-          zIndex: 10
-        }}
-      >
-        <HorizontalTimeline
-          uniqueSortedSteps={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b)}
-          currentStep={currentStep}
-          onStepSelect={(step) => {
-            // In editing mode, just change the current step for preview
-            console.log('Timeline step selected:', step);
-          }}
-          isEditing={false} // Use viewer-style timeline (simpler interface)
-          timelineEvents={timelineEvents}
-          setTimelineEvents={() => {}} // Read-only in this context, events managed by parent
-          hotspots={hotspots}
-          moduleState="learning" // Use learning mode to show navigation buttons
-          onPrevStep={() => {
-            const uniqueSteps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-            const currentIndex = uniqueSteps.indexOf(currentStep);
-            if (currentIndex > 0) {
-              console.log('Previous step:', uniqueSteps[currentIndex - 1]);
-            }
-          }}
-          onNextStep={() => {
-            const uniqueSteps = [...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b);
-            const currentIndex = uniqueSteps.indexOf(currentStep);
-            if (currentIndex < uniqueSteps.length - 1) {
-              console.log('Next step:', uniqueSteps[currentIndex + 1]);
-            }
-          }}
-          currentStepIndex={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b).indexOf(currentStep)}
-          totalSteps={[...new Set(timelineEvents.map(e => e.step))].length}
-          isMobile={true}
-          onAddStep={() => {}} // No-op in viewer-style mode
-          onDeleteStep={() => {}} // No-op in viewer-style mode
-          onUpdateStep={() => {}} // No-op in viewer-style mode
-          onMoveStep={() => {}} // No-op in viewer-style mode
-        />
-      </div>
+      <MobileEditorToolbar
+        onAddHotspot={onAddHotspot}
+        isPlacingHotspot={isPlacingHotspot}
+        onSave={onSave}
+        isSaving={isSaving}
+        onUndo={() => {}}
+        onRedo={() => {}}
+        canUndo={false}
+        canRedo={false}
+      />
     </div>
   );
 
