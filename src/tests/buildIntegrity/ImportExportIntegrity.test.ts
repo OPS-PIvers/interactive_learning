@@ -40,10 +40,10 @@ describe('Import/Export Integrity Tests', () => {
       expect(typeof module.default).toBe('function');
     });
 
-    test('MobilePropertiesPanel has named export', async () => {
-      const module = await import('../../client/components/slides/MobilePropertiesPanel');
-      expect(module.MobilePropertiesPanel).toBeDefined();
-      expect(typeof module.MobilePropertiesPanel).toBe('function');
+    test('EnhancedPropertiesPanel has default export', async () => {
+      const module = await import('../../client/components/EnhancedPropertiesPanel');
+      expect(module.default).toBeDefined();
+      expect(typeof module.default).toBe('function');
     });
   });
 
@@ -131,7 +131,7 @@ describe('Import/Export Integrity Tests', () => {
       const components = await Promise.all([
         loadComponent('../../client/components/SlideBasedInteractiveModule'),
         loadComponent('../../client/components/ViewerToolbar'),
-        loadComponent('../../client/components/slides/MobilePropertiesPanel')
+        loadComponent('../../client/components/EnhancedPropertiesPanel')
       ]);
 
       components.forEach(({ module, loadTime }) => {
@@ -144,14 +144,12 @@ describe('Import/Export Integrity Tests', () => {
   describe('Tree-Shaking Compatibility', () => {
     test('named exports support selective importing', async () => {
       // Test that named exports can be imported selectively
-      const { MobilePropertiesPanel } = await import('../../client/components/slides/MobilePropertiesPanel');
       const { useIsMobile } = await import('../../client/hooks/useIsMobile');
       
       // DeviceType is a type alias, so we test it compiles correctly
       const testDevice: import('../../shared/slideTypes').DeviceType = 'desktop';
       expect(testDevice).toBe('desktop');
       
-      expect(MobilePropertiesPanel).toBeDefined();
       expect(useIsMobile).toBeDefined();
     });
 
