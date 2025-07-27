@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface MobileFloatingMenuProps {
+interface MobileToolbarProps {
   onSlidesOpen: () => void;
   onBackgroundOpen: () => void;
   onInsertOpen: () => void;
@@ -9,15 +9,7 @@ interface MobileFloatingMenuProps {
   currentAspectRatio?: string;
 }
 
-/**
- * MobileFloatingMenu - Floating action menu for mobile slide editor
- * 
- * Provides quick access to:
- * - Slides management (replaces side panel)
- * - Background settings (replaces background controls)
- * - Insert element options (replaces insert toolbar)
- */
-export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
+export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onSlidesOpen,
   onBackgroundOpen,
   onInsertOpen,
@@ -73,27 +65,8 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
   ];
 
   return (
-    <div 
-      className={`mobile-floating-menu ${
-        isTimelineVisible ? 'timeline-visible' : ''
-      }`}
-      style={{
-        position: 'fixed', // Changed from absolute to fixed for iOS Safari
-        bottom: `max(${isTimelineVisible ? '72px' : '16px'}, calc(env(safe-area-inset-bottom, 0px) + 8px))`, // Safe area aware
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 100, // Increased z-index to stay above iOS Safari UI
-        background: 'rgba(30, 41, 59, 0.95)',
-        backdropFilter: 'blur(8px)',
-        borderRadius: '24px',
-        padding: '8px 16px',
-        display: 'flex',
-        gap: '12px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-        transition: 'bottom 0.3s ease',
-        /* Prevent iOS Safari from hiding the menu behind browser UI */
-        marginBottom: 'env(safe-area-inset-bottom, 0px)'
-      }}
+    <div
+      className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
     >
       {menuItems.map((item) => (
         <button
@@ -105,7 +78,6 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
         >
           {item.icon}
           
-          {/* Tooltip */}
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
             <div className="bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
               {item.label}
@@ -118,4 +90,4 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
   );
 };
 
-export default MobileFloatingMenu;
+export default MobileToolbar;

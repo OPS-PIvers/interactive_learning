@@ -204,7 +204,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const { getDoc } = await import('firebase/firestore');
       (getDoc as any).mockResolvedValue({
         exists: () => true,
-        data: () => ({ ...mockSlideDeck, createdBy: 'test-user' }),
+        data: () => ({ slideDeck: mockSlideDeck, createdBy: 'test-user' }),
         id: 'test-deck'
       });
 

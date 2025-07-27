@@ -181,6 +181,7 @@ describe('Import/Export Integrity Tests', () => {
 
     test('environment-specific imports work correctly', async () => {
       // Test that environment-specific code paths work
+      process.env.VITE_USE_FIREBASE_EMULATOR = 'true';
       const firebaseConfig = await import('../../lib/firebaseConfig');
       
       // In test environment, should have test configuration
