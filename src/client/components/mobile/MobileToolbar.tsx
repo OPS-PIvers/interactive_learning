@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface MobileFloatingMenuProps {
+interface MobileToolbarProps {
   onSlidesOpen: () => void;
   onBackgroundOpen: () => void;
   onInsertOpen: () => void;
@@ -10,14 +10,13 @@ interface MobileFloatingMenuProps {
 }
 
 /**
- * MobileFloatingMenu - Floating action menu for mobile slide editor
- * 
- * Provides quick access to:
- * - Slides management (replaces side panel)
- * - Background settings (replaces background controls)
- * - Insert element options (replaces insert toolbar)
+ * MobileToolbar - A consolidated toolbar for the mobile viewer.
+ *
+ * This component provides quick access to common actions in the mobile editor,
+ * such as managing slides, changing the background, and inserting elements.
+ * It is designed to be sticky at the bottom of the viewport.
  */
-export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
+export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onSlidesOpen,
   onBackgroundOpen,
   onInsertOpen,
@@ -73,26 +72,22 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
   ];
 
   return (
-    <div 
-      className={`mobile-floating-menu ${
-        isTimelineVisible ? 'timeline-visible' : ''
-      }`}
+    <div
+      className="mobile-toolbar"
       style={{
-        position: 'fixed', // Changed from absolute to fixed for iOS Safari
-        bottom: `max(${isTimelineVisible ? '72px' : '16px'}, calc(env(safe-area-inset-bottom, 0px) + 8px))`, // Safe area aware
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 100, // Increased z-index to stay above iOS Safari UI
+        position: 'fixed',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        zIndex: 100,
         background: 'rgba(30, 41, 59, 0.95)',
         backdropFilter: 'blur(8px)',
-        borderRadius: '24px',
         padding: '8px 16px',
+        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
         display: 'flex',
-        gap: '12px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+        justifyContent: 'space-around',
+        boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
         transition: 'bottom 0.3s ease',
-        /* Prevent iOS Safari from hiding the menu behind browser UI */
-        marginBottom: 'env(safe-area-inset-bottom, 0px)'
       }}
     >
       {menuItems.map((item) => (
@@ -118,4 +113,4 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
   );
 };
 
-export default MobileFloatingMenu;
+export default MobileToolbar;

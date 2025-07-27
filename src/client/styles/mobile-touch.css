@@ -312,29 +312,29 @@ body.touch-editing {
   user-select: none;
 }
 
-/* Mobile floating menu */
-.mobile-floating-menu {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
+/* Mobile toolbar */
+.mobile-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: rgba(30, 41, 59, 0.95);
   backdrop-filter: blur(8px);
-  border-radius: 24px;
   padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   display: flex;
-  gap: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  justify-content: space-around;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.4);
   transition: bottom 0.3s ease;
 }
 
-.mobile-floating-menu.timeline-visible {
-  bottom: 72px;
+.mobile-toolbar.timeline-visible {
+  bottom: 64px; /* Adjust based on timeline height */
 }
 
-/* Mobile floating menu buttons */
-.mobile-floating-menu button {
+/* Mobile toolbar buttons */
+.mobile-toolbar button {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -348,27 +348,23 @@ body.touch-editing {
   -webkit-tap-highlight-color: transparent;
 }
 
-.mobile-floating-menu button:hover {
+.mobile-toolbar button:hover {
   transform: scale(1.1);
 }
 
-.mobile-floating-menu button:active {
+.mobile-toolbar button:active {
   transform: scale(0.95);
 }
 
 /* Mobile landscape optimizations */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  .mobile-slide-area {
-    padding: 4px;
-  }
-  
-  .mobile-floating-menu {
-    bottom: 8px;
+  .mobile-toolbar {
     padding: 6px 12px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     gap: 8px;
   }
   
-  .mobile-floating-menu button {
+  .mobile-toolbar button {
     width: 40px;
     height: 40px;
   }

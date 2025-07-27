@@ -27,7 +27,7 @@ import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 import { ProjectThemeProvider } from '../hooks/useProjectTheme';
 import { firebaseAPI } from '../../lib/firebaseApi';
-import { MobileFloatingMenu } from './mobile/MobileFloatingMenu';
+import { MobileToolbar } from './mobile/MobileToolbar';
 import { MobileSlidesModal } from './mobile/MobileSlidesModal';
 import { MobileBackgroundModal } from './mobile/MobileBackgroundModal';
 import { MobileInsertModal } from './mobile/MobileInsertModal';
@@ -892,9 +892,9 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 onSlideUpdate={handleSlideUpdate}
               />
               
-              {/* Mobile Floating Menu */}
+              {/* Mobile Toolbar */}
               {!isPreviewMode && (
-                <MobileFloatingMenu
+                <MobileToolbar
                   onSlidesOpen={handleMobileSlidesOpen}
                   onBackgroundOpen={handleMobileBackgroundOpen}
                   onInsertOpen={handleMobileInsertOpen}
