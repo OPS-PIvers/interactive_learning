@@ -1,8 +1,11 @@
 // src/client/components/mobile/MobileNavigationBar.tsx
 import React, { useState, useEffect } from 'react';
 import { Project } from '../../../shared/types';
+import AuthButton from '../AuthButton';
+import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 
-interface MobileNavigationBarProps {
+interface MobileNavigationBarEditorProps {
+  mode: 'editor';
   project: Project;
   onBack: () => void;
   onSave: () => void;
@@ -31,42 +34,48 @@ interface MobileNavigationBarProps {
   onViewerModeChange: (mode: 'explore' | 'selfPaced' | 'timed', enabled: boolean) => void;
 }
 
+interface MobileNavigationBarViewerProps {
+  mode: 'viewer';
+  projectName: string;
+  onBack: () => void;
+  moduleState: 'idle' | 'learning';
+  onStartLearning: () => void;
+  onStartExploring: () => void;
+  hasContent: boolean;
+  viewerModes?: {
+    explore?: boolean;
+    selfPaced?: boolean;
+    timed?: boolean;
+  };
+}
+
+type MobileNavigationBarProps = MobileNavigationBarEditorProps | MobileNavigationBarViewerProps;
+
 /**
- * MobileNavigationBar - Top navigation bar for mobile editor
+ * MobileNavigationBar - Unified top navigation bar for mobile editor and viewer
  * 
- * Provides back button, project title, add hotspot button, settings dropdown,
- * and save button with success message display. Manages its own settings
- * dropdown state and includes proper accessibility features.
+ * Supports both editor and viewer modes with appropriate controls for each:
+ * 
+ * Editor Mode:
+ * - Back button, project title, add hotspot button, settings dropdown, save button
+ * - Settings dropdown with zoom controls, background options, and viewer modes
+ * - Integrated save status with loading state and success message display
+ * 
+ * Viewer Mode:
+ * - Back button, project name with gradient styling, mode toggle buttons, auth button
+ * - "Explore" and "Tour" mode buttons based on viewer configuration
+ * - Consistent styling with ViewerToolbar mobile layout
  * 
  * Features:
  * - Mobile-optimized navigation with touch-friendly targets
- * - Settings dropdown with zoom controls, background options, and viewer modes
- * - Integrated save status with loading state
- * - Success message display
  * - Proper ARIA labels and semantic HTML
- * - Click-outside handling to close settings menu
+ * - Click-outside handling to close settings menu (editor mode)
+ * - Accessibility features maintained across both modes
  */
-export const MobileNavigationBar: React.FC<MobileNavigationBarProps> = ({
-  project,
-  onBack,
-  onSave,
-  isSaving,
-  showSuccessMessage,
-  onAddHotspot,
-  isPlacingHotspot = false,
-  currentZoom,
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
-  backgroundType = 'image',
-  onBackgroundTypeChange,
-  onReplaceImage,
-  viewerModes,
-  onViewerModeChange
-}) => {
+export const MobileNavigationBar: React.FC<MobileNavigationBarProps> = (props) => {
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
-  // Close settings menu when clicking outside
+  // Close settings menu when clicking outside (editor mode only)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showSettingsMenu && !(event.target as Element).closest('.settings-menu-container')) {
@@ -74,11 +83,105 @@ export const MobileNavigationBar: React.FC<MobileNavigationBarProps> = ({
       }
     };
 
-    if (showSettingsMenu) {
+    if (showSettingsMenu && props.mode === 'editor') {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showSettingsMenu]);
+  }, [showSettingsMenu, props.mode]);
+
+  if (props.mode === 'viewer') {
+    const {
+      projectName,
+      onBack,
+      moduleState,
+      onStartLearning,
+      onStartExploring,
+      hasContent,
+      viewerModes = { explore: true, selfPaced: true, timed: true }
+    } = props;
+
+    return (
+      <nav className="bg-slate-800 border-b border-slate-700 text-white shadow-2xl" aria-label="Mobile viewer navigation">
+        {/* Single row: Back, Title, Mode Toggle, Profile */}
+        <div className="px-3 py-3 flex items-center justify-between">
+          {/* Left: Back button */}
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+            aria-label="Back to projects"
+          >
+            <ChevronLeftIcon className="w-5 h-5" />
+          </button>
+          
+          {/* Left-Center: Stylized project name */}
+          <div className="flex-1 flex justify-start ml-2">
+            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-[180px]">
+              {projectName}
+            </h1>
+          </div>
+
+          {/* Center-Right: Mode toggle buttons */}
+          <div className="flex items-center gap-2">
+            {hasContent && (
+              <>
+                {viewerModes.explore && (
+                  <button
+                    onClick={onStartExploring}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                      moduleState === 'idle'
+                        ? 'bg-sky-500 text-white hover:bg-sky-600 shadow-lg'
+                        : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white'
+                    }`}
+                    aria-label={moduleState === 'idle' ? 'Explore mode active' : 'Switch to explore mode'}
+                  >
+                    Explore
+                  </button>
+                )}
+                {(viewerModes.selfPaced || viewerModes.timed) && (
+                  <button
+                    onClick={onStartLearning}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                      moduleState === 'learning'
+                        ? 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg'
+                        : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white'
+                    }`}
+                    aria-label={moduleState === 'learning' ? 'Tour mode active' : 'Switch to tour mode'}
+                  >
+                    Tour
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right: Profile */}
+          <div className="flex items-center ml-3">
+            <AuthButton variant="compact" size="medium" />
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Editor mode
+  const {
+    project,
+    onBack,
+    onSave,
+    isSaving,
+    showSuccessMessage,
+    onAddHotspot,
+    isPlacingHotspot = false,
+    currentZoom,
+    onZoomIn,
+    onZoomOut,
+    onZoomReset,
+    backgroundType = 'image',
+    onBackgroundTypeChange,
+    onReplaceImage,
+    viewerModes,
+    onViewerModeChange
+  } = props;
 
   return (
     <nav className="flex-shrink-0 bg-slate-800 border-b border-slate-700 p-4" aria-label="Mobile editor navigation">

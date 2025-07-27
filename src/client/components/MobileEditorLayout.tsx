@@ -282,6 +282,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
     >
       {/* Mobile Navigation Bar */}
       <MobileNavigationBar
+        mode="editor"
         project={project}
         onBack={onBack}
         onSave={onSave}

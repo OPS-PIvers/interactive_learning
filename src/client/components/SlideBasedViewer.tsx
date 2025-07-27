@@ -8,6 +8,7 @@ import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerToolbar from './ViewerToolbar';
 import HeaderTimeline from './HeaderTimeline';
+import { MobileNavigationBar } from './mobile/MobileNavigationBar';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -166,17 +167,30 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   return (
     <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${!isMobile ? 'pt-16' : ''}`}>
-      {/* Toolbar */}
-      <ViewerToolbar
-        projectName={projectName}
-        onBack={onClose}
-        moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
-        onStartLearning={handleStartLearning}
-        onStartExploring={handleStartExploring}
-        hasContent={slideDeck.slides.length > 0}
-        isMobile={isMobile}
-        viewerModes={viewerModes}
-      />
+      {/* Navigation Bar - Mobile vs Desktop */}
+      {isMobile ? (
+        <MobileNavigationBar
+          mode="viewer"
+          projectName={projectName}
+          onBack={onClose}
+          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+          onStartLearning={handleStartLearning}
+          onStartExploring={handleStartExploring}
+          hasContent={slideDeck.slides.length > 0}
+          viewerModes={viewerModes}
+        />
+      ) : (
+        <ViewerToolbar
+          projectName={projectName}
+          onBack={onClose}
+          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+          onStartLearning={handleStartLearning}
+          onStartExploring={handleStartExploring}
+          hasContent={slideDeck.slides.length > 0}
+          isMobile={isMobile}
+          viewerModes={viewerModes}
+        />
+      )}
 
       {/* Persistent Timeline */}
       <HeaderTimeline
