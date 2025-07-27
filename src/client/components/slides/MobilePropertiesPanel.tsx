@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { SlideElement, DeviceType, ElementInteraction, InteractiveSlide, ElementStyle, ElementContent } from '../../../shared/slideTypes';
+import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters } from '../../../shared/slideTypes';
 import { InteractionType } from '../../../shared/types';
 import InteractionsList from '../interactions/InteractionsList';
 import InteractionEditor from '../interactions/InteractionEditor';
@@ -7,10 +7,8 @@ import ChevronDownIcon from '../icons/ChevronDownIcon';
 
 interface MobilePropertiesPanelProps {
   selectedElement: SlideElement | null;
-  currentSlide: InteractiveSlide | null;
   deviceType: DeviceType;
   onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
-  onSlideUpdate: (slideUpdates: Partial<InteractiveSlide>) => void;
   onDelete: () => void;
   onClose: () => void;
 }
@@ -49,18 +47,108 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   </div>
 );
 
+// Helper function to map InteractionType to SlideEffectType and create default parameters
+const mapInteractionToSlideEffect = (interactionType: InteractionType): { type: SlideEffectType; parameters: EffectParameters } => {
+  switch (interactionType) {
+    case InteractionType.SPOTLIGHT:
+      return {
+        type: 'spotlight',
+        parameters: {
+          position: { x: 0, y: 0, width: 100, height: 100 },
+          shape: 'circle',
+          intensity: 80,
+          fadeEdges: true
+        } as EffectParameters
+      };
+    case InteractionType.PAN_ZOOM:
+      return {
+        type: 'pan_zoom',
+        parameters: {
+          targetPosition: { x: 0, y: 0, width: 100, height: 100 },
+          zoomLevel: 2.0,
+          duration: 1000
+        } as EffectParameters
+      };
+    case InteractionType.PLAY_VIDEO:
+      return {
+        type: 'play_video',
+        parameters: {
+          videoSource: 'url',
+          displayMode: 'modal',
+          showControls: true,
+          autoplay: false
+        } as EffectParameters
+      };
+    case InteractionType.PLAY_AUDIO:
+      return {
+        type: 'play_audio',
+        parameters: {
+          audioUrl: '',
+          displayMode: 'modal',
+          showControls: true,
+          autoplay: false
+        } as EffectParameters
+      };
+    case InteractionType.SHOW_TEXT:
+      return {
+        type: 'show_text',
+        parameters: {
+          text: '',
+          position: { x: 0, y: 0, width: 200, height: 100 },
+          style: {
+            fontSize: 16,
+            color: '#000000',
+            textAlign: 'center'
+          }
+        } as EffectParameters
+      };
+    case InteractionType.QUIZ:
+      return {
+        type: 'quiz',
+        parameters: {
+          question: '',
+          questionType: 'multiple-choice',
+          correctAnswer: 0,
+          allowMultipleAttempts: true,
+          resumeAfterCompletion: true
+        } as EffectParameters
+      };
+    case InteractionType.TRANSITION:
+      return {
+        type: 'transition',
+        parameters: {
+          targetSlideId: '',
+          direction: 'next',
+          transitionType: 'slide'
+        } as EffectParameters
+      };
+    default:
+      // Default to show_text for unknown types
+      return {
+        type: 'show_text',
+        parameters: {
+          text: 'New interaction',
+          position: { x: 0, y: 0, width: 200, height: 100 },
+          style: {
+            fontSize: 16,
+            color: '#000000',
+            textAlign: 'center'
+          }
+        } as EffectParameters
+      };
+  }
+};
+
 export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   selectedElement,
-  currentSlide,
   deviceType,
   onElementUpdate,
-  onSlideUpdate,
   onDelete,
   onClose,
 }) => {
-  // Collapsible sections state - default to closed for cleaner interface
+  // Collapsible sections state - style section open by default for better UX
   const [openSections, setOpenSections] = useState({
-    style: false,
+    style: true,
     content: false,
     position: false,
     interactions: false
@@ -118,14 +206,16 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   const handleAddInteraction = useCallback((interactionType: InteractionType) => {
     if (!selectedElement) return;
     
+    const effectMapping = mapInteractionToSlideEffect(interactionType);
+    
     const newInteraction: ElementInteraction = {
       id: `interaction_${Date.now()}`,
       trigger: 'click',
       effect: {
-        type: interactionType,
-        parameters: {},
-        duration: 500,
-        delay: 0
+        id: `effect_${Date.now()}`,
+        type: effectMapping.type,
+        parameters: effectMapping.parameters,
+        duration: 500
       }
     };
 
@@ -165,6 +255,26 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      onTouchStart={(e) => {
+        // Prevent touch events from bubbling to underlying slide editor
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+      onTouchMove={(e) => {
+        // Prevent touch events from bubbling to underlying slide editor
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+      onClick={(e) => {
+        // Close modal when clicking outside the panel
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       {/* Mobile slide-up panel */}
       <div className="bg-slate-800 w-full max-h-[85vh] rounded-t-xl shadow-2xl overflow-hidden">
