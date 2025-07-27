@@ -21,16 +21,6 @@ vi.mock('../client/components/mobile/MobileColorPicker', () => ({
   ),
 }));
 
-vi.mock('../client/components/interactions/InteractionsList', () => ({
-  __esModule: true,
-  default: ({ onInteractionAdd }) => (
-    <div data-testid="interactions-list">
-      <button onClick={() => onInteractionAdd('show_text')}>
-        Add Interaction
-      </button>
-    </div>
-  ),
-}));
 
 
 const mockElement: SlideElement = {
@@ -219,13 +209,17 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
     test('shows interactions section when opened', async () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
       
-      // Open interactions section
+      // Open interactions section by clicking the header
       const interactionsHeader = screen.getByText('Interactions');
       fireEvent.click(interactionsHeader);
       
+      // Small delay to allow state update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Wait for the interactions content to appear
       await waitFor(() => {
         expect(screen.getByTestId('interactions-list')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
 
     test('can add new interactions', async () => {
@@ -236,8 +230,9 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       fireEvent.click(interactionsHeader);
 
       await waitFor(() => {
-        const addButton = screen.getByText('Add Interaction');
-        fireEvent.click(addButton);
+        // Click on a modal interaction button (one of the quick add buttons)
+        const modalButton = screen.getByText('Modal Dialog');
+        fireEvent.click(modalButton);
       });
 
       expect(defaultProps.onElementUpdate).toHaveBeenCalledWith(
@@ -245,7 +240,7 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
         expect.objectContaining({
           interactions: expect.arrayContaining([
             expect.objectContaining({
-              effect: expect.objectContaining({ type: 'show_text' }),
+              effect: expect.objectContaining({ type: 'modal' }),
             }),
           ]),
         })

@@ -39,7 +39,7 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
   const quickInteractionTypes: InteractionType[] = ['modal', 'transition', 'sound', 'tooltip', 'SPOTLIGHT', 'PAN_ZOOM'];
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div data-testid="interactions-list" className={`space-y-3 ${className}`}>
       {/* Current Interactions List */}
       {element.interactions.length > 0 ? (
         <div className="space-y-2">
