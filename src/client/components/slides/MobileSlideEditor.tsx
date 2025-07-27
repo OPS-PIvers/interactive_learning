@@ -86,10 +86,9 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
       style={{
         /* iOS Safari viewport handling */
         height: '100dvh',
-        minHeight: '-webkit-fill-available',
         maxHeight: '100dvh',
-        /* Fallback for browsers without dvh support */
-        minHeight: '100vh',
+        /* Fallback for browsers without dvh support and webkit-fill-available */
+        minHeight: '-webkit-fill-available',
         /* Safe area awareness */
         paddingTop: 'env(safe-area-inset-top, 0px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',

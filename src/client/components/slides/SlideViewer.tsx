@@ -584,7 +584,14 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
       )}
 
       {/* Modern Floating Viewer Controls */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl">
+      <div 
+        className="absolute left-1/2 transform -translate-x-1/2 z-[9999] bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl"
+        style={{
+          bottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
+          /* Ensure it stays above mobile browser UI */
+          marginBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+      >
         {/* Previous Button */}
         <button
           onClick={navigateToPrevious}

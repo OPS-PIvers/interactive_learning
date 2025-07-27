@@ -557,114 +557,212 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           background: #718096;
         }
       `}</style>
-      {/* Header - 3-Section Layout */}
-      <div className="bg-slate-800 border-b border-slate-700 text-white px-4 py-2 flex items-center justify-between shadow-2xl">
-        {/* Left Section: Back + Title */}
-        <div className="flex items-center gap-4 flex-1">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg px-2 py-1 hover:bg-slate-700"
-            aria-label="Back to projects"
-          >
-            <ChevronLeftIcon className="w-5 h-5" />
-            {!isMobile && <span className="font-medium">Back</span>}
-          </button>
-          
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-              {projectName}
-            </h1>
+      {/* Header - Mobile-Optimized Layout */}
+      {isMobile ? (
+        /* Mobile: Two-row layout for better space utilization */
+        <div className="bg-slate-800 border-b border-slate-700 text-white shadow-2xl">
+          {/* Top row: Back, Title, Save */}
+          <div className="px-3 py-2 flex items-center justify-between">
             <button
-              onClick={handleTogglePreview}
-              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg transition-all cursor-pointer"
-              aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
+              onClick={onClose}
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+              aria-label="Back to projects"
             >
-              {isPreviewMode ? 'PREVIEW' : 'EDIT'}
+              <ChevronLeftIcon className="w-5 h-5" />
+            </button>
+            
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              <h1 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-[150px]">
+                {projectName}
+              </h1>
+              <button
+                onClick={handleTogglePreview}
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg transition-all cursor-pointer"
+                aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
+              >
+                {isPreviewMode ? 'PREVIEW' : 'EDIT'}
+              </button>
+            </div>
+
+            <button
+              onClick={handleSaveProject}
+              disabled={isSaving}
+              className={`font-semibold py-2 px-3 rounded-md shadow-md transition-all duration-200 flex items-center gap-1 ${
+                isSaving 
+                  ? 'bg-green-500 cursor-not-allowed' 
+                  : showSuccessMessage 
+                    ? 'bg-green-500' 
+                    : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
+              aria-label="Save project"
+            >
+              {isSaving ? (
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : showSuccessMessage ? (
+                <CheckIcon className="w-4 h-4" />
+              ) : (
+                <SaveIcon className="w-4 h-4" />
+              )}
             </button>
           </div>
+
+          {/* Bottom row: Controls and secondary actions */}
+          <div className="px-3 py-2 flex items-center justify-between border-t border-slate-700">
+            {/* Left: Edit controls */}
+            <div className="flex items-center gap-2">
+              {!isPreviewMode && (
+                <>
+                  <HeaderInsertDropdown
+                    onAddElement={handleAddElement}
+                    onAddBackgroundMedia={handleAddBackgroundMedia}
+                    isMobile={isMobile}
+                  />
+                  
+                  {currentSlide?.layout && (
+                    <AspectRatioSelector
+                      currentRatio={currentSlide.layout.aspectRatio || '16:9'}
+                      onRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
+                      isMobile={isMobile}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Right: Secondary actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+                aria-label="Project settings"
+              >
+                <GearIcon className="w-4 h-4" />
+              </button>
+
+              {projectId && (
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md transition-colors flex items-center"
+                  aria-label="Share project"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  </svg>
+                </button>
+              )}
+
+              <AuthButton variant="compact" />
+            </div>
+          </div>
         </div>
+      ) : (
+        /* Desktop: Original 3-section layout */
+        <div className="bg-slate-800 border-b border-slate-700 text-white px-4 py-2 flex items-center justify-between shadow-2xl">
+          {/* Left Section: Back + Title */}
+          <div className="flex items-center gap-4 flex-1">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg px-2 py-1 hover:bg-slate-700"
+              aria-label="Back to projects"
+            >
+              <ChevronLeftIcon className="w-5 h-5" />
+              <span className="font-medium">Back</span>
+            </button>
+            
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+                {projectName}
+              </h1>
+              <button
+                onClick={handleTogglePreview}
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg transition-all cursor-pointer"
+                aria-label={isPreviewMode ? 'Switch to edit mode' : 'Switch to preview mode'}
+              >
+                {isPreviewMode ? 'PREVIEW' : 'EDIT'}
+              </button>
+            </div>
+          </div>
 
-        {/* Center Section: Insert and Controls */}
-        <div className="flex items-center gap-3 flex-1 justify-center">
-
-
-          {/* Insert Dropdown */}
-          {!isPreviewMode && (
-            <>
-              <HeaderInsertDropdown
-                onAddElement={handleAddElement}
-                onAddBackgroundMedia={handleAddBackgroundMedia}
-                isMobile={isMobile}
-              />
-              
-              {/* Aspect Ratio Selector */}
-              {currentSlide?.layout && (
-                <AspectRatioSelector
-                  currentRatio={currentSlide.layout.aspectRatio || '16:9'}
-                  onRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
+          {/* Center Section: Insert and Controls */}
+          <div className="flex items-center gap-3 flex-1 justify-center">
+            {/* Insert Dropdown */}
+            {!isPreviewMode && (
+              <>
+                <HeaderInsertDropdown
+                  onAddElement={handleAddElement}
+                  onAddBackgroundMedia={handleAddBackgroundMedia}
                   isMobile={isMobile}
                 />
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Right Section: Settings + Save + Share + Auth */}
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <button
-            onClick={() => setIsSettingsModalOpen(true)}
-            className="text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
-            aria-label="Project settings"
-          >
-            <GearIcon className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={handleSaveProject}
-            disabled={isSaving}
-            className={`font-semibold py-1.5 px-4 rounded-md shadow-md transition-all duration-200 flex items-center gap-2 ${
-              isSaving 
-                ? 'bg-green-500 cursor-not-allowed' 
-                : showSuccessMessage 
-                  ? 'bg-green-500' 
-                  : 'bg-green-600 hover:bg-green-700'
-            } text-white`}
-            aria-label="Save project"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                {!isMobile && <span>Saving...</span>}
-              </>
-            ) : showSuccessMessage ? (
-              <>
-                <CheckIcon className="w-4 h-4" />
-                {!isMobile && <span>Saved!</span>}
-              </>
-            ) : (
-              <>
-                <SaveIcon className="w-4 h-4" />
-                {!isMobile && <span>Save</span>}
+                
+                {/* Aspect Ratio Selector */}
+                {currentSlide?.layout && (
+                  <AspectRatioSelector
+                    currentRatio={currentSlide.layout.aspectRatio || '16:9'}
+                    onRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
+                    isMobile={isMobile}
+                  />
+                )}
               </>
             )}
-          </button>
+          </div>
 
-          {projectId && (
+          {/* Right Section: Settings + Save + Share + Auth */}
+          <div className="flex items-center gap-3 flex-1 justify-end">
             <button
-              onClick={() => setIsShareModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-2"
-              aria-label="Share project"
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+              aria-label="Project settings"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-              </svg>
-              {!isMobile && <span>Share</span>}
+              <GearIcon className="w-5 h-5" />
             </button>
-          )}
 
-          <AuthButton variant={isMobile ? "compact" : "toolbar"} />
+            <button
+              onClick={handleSaveProject}
+              disabled={isSaving}
+              className={`font-semibold py-1.5 px-4 rounded-md shadow-md transition-all duration-200 flex items-center gap-2 ${
+                isSaving 
+                  ? 'bg-green-500 cursor-not-allowed' 
+                  : showSuccessMessage 
+                    ? 'bg-green-500' 
+                    : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
+              aria-label="Save project"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  <span>Saving...</span>
+                </>
+              ) : showSuccessMessage ? (
+                <>
+                  <CheckIcon className="w-4 h-4" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <SaveIcon className="w-4 h-4" />
+                  <span>Save</span>
+                </>
+              )}
+            </button>
+
+            {projectId && (
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-2"
+                aria-label="Share project"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                </svg>
+                <span>Share</span>
+              </button>
+            )}
+
+            <AuthButton variant="toolbar" />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main editor content */}
       <div className="flex-1 flex overflow-hidden">
@@ -998,8 +1096,12 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                     const backgroundMedia: BackgroundMedia = {
                       type: file.type.startsWith('video/') ? 'video' : 'image',
                       url: imageUrl,
-                      size: 'cover',
-                      position: 'center'
+                      settings: {
+                        size: 'cover',
+                        position: 'center',
+                        repeat: 'no-repeat',
+                        attachment: 'scroll'
+                      }
                     };
                     
                     // Update the slide with the new background

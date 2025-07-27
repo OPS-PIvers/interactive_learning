@@ -37,35 +37,34 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
 
   // THEN do conditional rendering WITHOUT early returns
   const content = isMobile ? (
-    // Mobile layout
-    <div className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 flex flex-col justify-center shadow-md sticky top-0 mobile-toolbar" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', minHeight: 'calc(48px + env(safe-area-inset-top))' }}>
-      {/* Main Toolbar Row */}
-      <div className="flex items-center justify-between px-2 h-12"> {/* Reduced height and padding for mobile */}
-        {/* Left Section - Back Button and Project Name */}
-        <div className="flex items-center gap-1 overflow-hidden"> {/* Reduced gap */}
-          <button
-            onClick={onBack}
-            className="p-2 text-slate-200 hover:text-white active:bg-slate-700 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
-            aria-label="Back to projects"
-          >
-            <ChevronLeftIcon className="w-5 h-5 flex-shrink-0" /> {/* Slightly smaller icon */}
-          </button>
-          <h1 className="text-sm font-semibold text-slate-100 truncate pr-1"> {/* Smaller text, pr for spacing from buttons */}
+    // Mobile layout - matches SlideBasedEditor styling
+    <div className="bg-slate-800 border-b border-slate-700 text-white shadow-2xl">
+      {/* Top row: Back, Title, Mode Toggle */}
+      <div className="px-3 py-2 flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+          aria-label="Back to projects"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+        </button>
+        
+        <div className="flex items-center gap-2 flex-1 justify-center">
+          <h1 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-[150px]">
             {projectName}
           </h1>
         </div>
 
-        {/* Right Section - Mode Controls & Auth */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-2">
           {hasContent && (
-            <div className="flex items-center gap-1.5"> {/* Reduced gap */}
+            <>
               {viewerModes.explore && (
                 <button
                   onClick={onStartExploring}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-sky-400 whitespace-nowrap ${
+                  className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
                     moduleState === 'idle'
-                      ? 'bg-sky-500 text-white shadow-sm hover:bg-sky-400 active:bg-sky-600'
-                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
+                      ? 'bg-sky-500 text-white hover:bg-sky-600'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300'
                   }`}
                 >
                   Explore
@@ -74,19 +73,23 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
               {(viewerModes.selfPaced || viewerModes.timed) && (
                 <button
                   onClick={onStartLearning}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-slate-800 focus:ring-purple-400 whitespace-nowrap ${
+                  className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
                     moduleState === 'learning'
-                      ? 'bg-purple-500 text-white shadow-sm hover:bg-purple-400 active:bg-purple-600'
-                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white active:bg-slate-500'
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-slate-600 hover:bg-slate-500 text-slate-300'
                   }`}
                 >
                   Tour
                 </button>
               )}
-            </div>
+            </>
           )}
-          <AuthButton variant="compact" />
         </div>
+      </div>
+
+      {/* Bottom row: Auth button */}
+      <div className="px-3 py-2 flex items-center justify-end border-t border-slate-700">
+        <AuthButton variant="compact" />
       </div>
     </div>
   ) : (
@@ -106,7 +109,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
           
           <div className="h-6 w-px bg-slate-600" />
           
-          <h1 className="text-xl font-semibold text-slate-100 truncate max-w-md xl:max-w-lg">
+          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-md xl:max-w-lg">
             {projectName}
           </h1>
         </div>

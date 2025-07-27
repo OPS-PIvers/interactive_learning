@@ -296,10 +296,8 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
       <div 
         className="bg-slate-800 w-full rounded-t-xl shadow-2xl overflow-hidden"
         style={{
-          /* Dynamic max height for iOS Safari */
+          /* Dynamic max height for iOS Safari with dvh support */
           maxHeight: 'min(85dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))',
-          /* Fallback for browsers without dvh support */
-          maxHeight: 'min(85vh, calc(100vh - 76px))'
         }}
       >
         {/* Header */}
@@ -324,10 +322,8 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
         <div 
           className="overflow-y-auto" 
           style={{ 
-            /* Dynamic height calculation for iOS Safari */
+            /* Dynamic height calculation for iOS Safari with dvh support */
             maxHeight: 'min(calc(85dvh - 150px), calc(100vh - env(safe-area-inset-top, 44px) - env(safe-area-inset-bottom, 34px) - 182px))',
-            /* Fallback for browsers without dvh support */
-            maxHeight: 'calc(85vh - 150px)',
             touchAction: 'pan-y', // Allow vertical scrolling within panel
             /* Improved scrolling on iOS */
             WebkitOverflowScrolling: 'touch',
