@@ -5,6 +5,8 @@ interface MobileFloatingMenuProps {
   onBackgroundOpen: () => void;
   onInsertOpen: () => void;
   isTimelineVisible: boolean;
+  onAspectRatioOpen?: () => void;
+  currentAspectRatio?: string;
 }
 
 /**
@@ -19,7 +21,9 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
   onSlidesOpen,
   onBackgroundOpen,
   onInsertOpen,
-  isTimelineVisible
+  isTimelineVisible,
+  onAspectRatioOpen,
+  currentAspectRatio = '16:9'
 }) => {
   const menuItems = [
     {
@@ -54,7 +58,18 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
       ),
       onClick: onInsertOpen,
       color: 'bg-green-600 hover:bg-green-700'
-    }
+    },
+    ...(onAspectRatioOpen ? [{
+      id: 'aspect-ratio',
+      label: `Aspect Ratio (${currentAspectRatio})`,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16v12H4V6z" />
+        </svg>
+      ),
+      onClick: onAspectRatioOpen,
+      color: 'bg-orange-600 hover:bg-orange-700'
+    }] : [])
   ];
 
   return (
