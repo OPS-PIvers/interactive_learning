@@ -9,13 +9,6 @@ interface MobileToolbarProps {
   currentAspectRatio?: string;
 }
 
-/**
- * MobileToolbar - A consolidated toolbar for the mobile viewer.
- *
- * This component provides quick access to common actions in the mobile editor,
- * such as managing slides, changing the background, and inserting elements.
- * It is designed to be sticky at the bottom of the viewport.
- */
 export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onSlidesOpen,
   onBackgroundOpen,
@@ -73,22 +66,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
 
   return (
     <div
-      className="mobile-toolbar"
-      style={{
-        position: 'fixed',
-        bottom: '0',
-        left: '0',
-        right: '0',
-        zIndex: 100,
-        background: 'rgba(30, 41, 59, 0.95)',
-        backdropFilter: 'blur(8px)',
-        padding: '8px 16px',
-        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
-        display: 'flex',
-        justifyContent: 'space-around',
-        boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
-        transition: 'bottom 0.3s ease',
-      }}
+      className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
     >
       {menuItems.map((item) => (
         <button
@@ -100,7 +78,6 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         >
           {item.icon}
           
-          {/* Tooltip */}
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
             <div className="bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
               {item.label}

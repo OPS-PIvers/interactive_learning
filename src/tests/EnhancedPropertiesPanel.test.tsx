@@ -205,6 +205,48 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
     });
   });
 
+  describe('Interactions Management', () => {
+    test('shows interactions section when opened', async () => {
+      render(<EnhancedPropertiesPanel {...defaultProps} />);
+      
+      // Open interactions section by clicking the header
+      const interactionsHeader = screen.getByText('Interactions');
+      fireEvent.click(interactionsHeader);
+      
+      // Small delay to allow state update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Wait for the interactions content to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('interactions-list')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+
+    test('can add new interactions', async () => {
+      render(<EnhancedPropertiesPanel {...defaultProps} />);
+      
+      // Open interactions section
+      const interactionsHeader = screen.getByText('Interactions');
+      fireEvent.click(interactionsHeader);
+
+      await waitFor(() => {
+        // Click on a modal interaction button (one of the quick add buttons)
+        const modalButton = screen.getByText('Modal Dialog');
+        fireEvent.click(modalButton);
+      });
+
+      expect(defaultProps.onElementUpdate).toHaveBeenCalledWith(
+        mockElement.id,
+        expect.objectContaining({
+          interactions: expect.arrayContaining([
+            expect.objectContaining({
+              effect: expect.objectContaining({ type: 'modal' }),
+            }),
+          ]),
+        })
+      );
+    });
+  });
 
   describe('Device Type Handling', () => {
     test('works correctly with different device types', async () => {
