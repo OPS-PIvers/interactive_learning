@@ -1,11 +1,14 @@
-import React, { Fragment, useMemo, useState, useCallback } from 'react';
+import React, { Fragment, useMemo, useState, useCallback, Suspense, lazy } from 'react';
 import debounce from 'lodash.debounce';
 import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import Modal from './Modal';
 import { InteractiveModuleState, Project } from '../../shared/types';
-import SlideBasedEditor from './SlideBasedEditor';
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import SlideViewer from './slides/SlideViewer';
+import LoadingScreen from './shared/LoadingScreen';
+
+// Lazy load the heavy editor component
+const SlideBasedEditor = lazy(() => import('./SlideBasedEditor'));
 
 // Note: This wrapper is now primarily for editing mode.
 // Viewing mode uses the separate ViewerView component with its own route.
@@ -91,17 +94,19 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
       <WrapperComponent {...wrapperProps}>
         {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ? (
-          <SlideBasedEditor
-            slideDeck={slideDeck}
-            projectName={selectedProject.title}
-            projectId={selectedProject.id}
-            projectTheme={selectedProject.theme as ThemePreset || 'professional'}
-            onSlideDeckChange={handleSlideDeckChange}
-            onSave={handleImmediateSave}
-            onImageUpload={onImageUpload}
-            onClose={onClose}
-            isPublished={selectedProject.isPublished || false}
-          />
+          <Suspense fallback={<LoadingScreen title="Loading Slide Editor..." />}>
+            <SlideBasedEditor
+              slideDeck={slideDeck}
+              projectName={selectedProject.title}
+              projectId={selectedProject.id}
+              projectTheme={selectedProject.theme as ThemePreset || 'professional'}
+              onSlideDeckChange={handleSlideDeckChange}
+              onSave={handleImmediateSave}
+              onImageUpload={onImageUpload}
+              onClose={onClose}
+              isPublished={selectedProject.isPublished || false}
+            />
+          </Suspense>
         ) : slideDeck ? (
           <SlideViewer 
             slideDeck={slideDeck} 

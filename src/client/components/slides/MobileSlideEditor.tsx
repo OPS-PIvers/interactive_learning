@@ -30,46 +30,28 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
   const slideAreaRef = useRef<HTMLDivElement>(null);
   const [isLandscape] = useState(window.innerWidth > window.innerHeight);
 
-  // Handle touch start for element selection
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Simple tap detection for element selection
-    const touch = e.touches[0];
-    if (touch && props.onElementSelect) {
-      // Get slide area bounds for coordinate calculation
-      const slideArea = slideAreaRef.current;
-      if (slideArea) {
-        const rect = slideArea.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        console.log(`Touch at ${x}, ${y} in slide area`);
-        // Element selection will be handled by SlideEditor's existing logic
-      }
-    }
-  }, [props.onElementSelect]);
+  // Remove problematic touch handling that was intercepting hotspot touches
+  // The SlideEditor component handles touch interactions directly on elements
 
-  // Add touch event listeners
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-    };
-  }, [handleTouchStart]);
-
-  // Prevent page scrolling within editor bounds
+  // Prevent page scrolling within editor bounds, but allow hotspot interactions
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const preventScroll = (e: TouchEvent) => {
-      e.preventDefault();
+      // Only prevent scroll if the touch isn't on an interactive element
+      const target = e.target as HTMLElement;
+      const isInteractiveElement = target?.closest('[data-hotspot-id]') || 
+                                  target?.hasAttribute('data-hotspot-id') ||
+                                  target?.closest('.hotspot-element') ||
+                                  target?.classList.contains('hotspot-element') ||
+                                  target?.closest('button') ||
+                                  target?.closest('input') ||
+                                  target?.closest('textarea');
+      
+      if (!isInteractiveElement) {
+        e.preventDefault();
+      }
     };
 
     container.addEventListener('touchmove', preventScroll, { passive: false });

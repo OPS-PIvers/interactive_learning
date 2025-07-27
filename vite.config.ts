@@ -46,21 +46,68 @@ export default defineConfig(({ mode, command }) => {
             chunkFileNames: 'assets/[name].[hash].js',
             assetFileNames: 'assets/[name].[hash].[ext]',
             format: 'es',
-            manualChunks: {
-              // Split Firebase into its own chunk
-              firebase: ['firebase/app', 'firebase/firestore', 'firebase/storage'],
-              // Split React libs into their own chunk
-              react: ['react', 'react-dom', 'react-router-dom'],
-              // Split utility libraries
-              utils: ['lodash.debounce', 'qrcode'],
-              // Split react-dnd into its own chunk
-              dnd: ['react-dnd', 'react-dnd-html5-backend']
+            manualChunks: (id) => {
+              // Firebase dependencies - largest external dependency
+              if (id.includes('firebase')) {
+                return 'firebase';
+              }
+              
+              // React core libraries
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'react';
+              }
+              
+              // Animation libraries
+              if (id.includes('framer-motion')) {
+                return 'animations';
+              }
+              
+              // DnD libraries
+              if (id.includes('dnd-kit') || id.includes('react-dnd')) {
+                return 'dnd';
+              }
+              
+              // Utility libraries
+              if (id.includes('lodash') || id.includes('qrcode') || id.includes('uuid')) {
+                return 'utils';
+              }
+              
+              // Large editor components (>500 lines)
+              if (id.includes('SlideBasedEditor') || id.includes('SlideEditor') || id.includes('EnhancedPropertiesPanel')) {
+                return 'editor-core';
+              }
+              
+              // Mobile-specific components
+              if (id.includes('/mobile/') || id.includes('Mobile') && id.includes('components')) {
+                return 'mobile-components';
+              }
+              
+              // Desktop-specific components  
+              if (id.includes('/desktop/') || id.includes('Desktop') && id.includes('components')) {
+                return 'desktop-components';
+              }
+              
+              // Slide system components
+              if (id.includes('/slides/') && id.includes('components')) {
+                return 'slide-components';
+              }
+              
+              // Icons can be bundled together
+              if (id.includes('/icons/') && id.includes('components')) {
+                return 'icons';
+              }
+              
+              // Node modules that aren't explicitly handled above
+              if (id.includes('node_modules')) {
+                return 'vendor';
+              }
             }
           }
         },
         cssCodeSplit: true,
         sourcemap: true, // Enable source maps in production for debugging
-        reportCompressedSize: false
+        reportCompressedSize: false,
+        chunkSizeWarningLimit: 800 // Increase from default 500kB to 800kB
       },
       define: {
         // CRITICAL: Explicit environment definitions

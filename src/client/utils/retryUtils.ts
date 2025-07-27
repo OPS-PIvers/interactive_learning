@@ -1,5 +1,6 @@
 // Retry utilities for network operations with exponential backoff
 import { isMobileDevice } from './mobileUtils';
+import { auth } from '../../lib/firebaseConfig';
 
 export interface RetryOptions {
   maxAttempts: number;
@@ -145,7 +146,6 @@ export async function retryWithBackoff<T>(
  */
 export async function refreshAuthTokenIfNeeded(): Promise<boolean> {
   try {
-    const { auth } = await import('../../lib/firebaseConfig');
     const user = auth.currentUser;
     
     if (!user) {

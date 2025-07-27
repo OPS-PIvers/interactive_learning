@@ -509,18 +509,21 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     }
   }, [currentSlideIndex, slideDeck.slides.length]);
   
-  // Handle element click with interaction support
-  const handleElementClick = useCallback((element: SlideElement, event: React.MouseEvent) => {
+  // Handle element click with interaction support (supports both mouse and touch events)
+  const handleElementClick = useCallback((element: SlideElement, event: React.MouseEvent | React.TouchEvent) => {
     event.stopPropagation();
+    
+    // Get coordinates from either mouse or touch event
+    const clientX = 'touches' in event ? event.touches[0]?.clientX || event.changedTouches[0]?.clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0]?.clientY || event.changedTouches[0]?.clientY : event.clientY;
     
     // Add feedback animation for hotspots
     if (element.type === 'hotspot') {
-      const rect = event.currentTarget.getBoundingClientRect();
       const animationId = `feedback-${Date.now()}-${Math.random()}`;
       const feedbackAnimation = {
         id: animationId,
-        x: event.clientX,
-        y: event.clientY,
+        x: clientX,
+        y: clientY,
         color: element.style.backgroundColor || '#3b82f6',
         timestamp: Date.now()
       };
@@ -536,15 +539,15 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     // If element has click interactions, execute them
     const clickInteractions = element.interactions.filter(i => i.trigger === 'click');
     if (clickInteractions.length > 0) {
-      // Execute all click interactions
+      // Execute all click interactions - cast to MouseEvent for compatibility
       clickInteractions.forEach(interaction => {
-        executeInteraction(interaction, element, event);
+        executeInteraction(interaction, element, event as React.MouseEvent);
       });
     }
     
     // Always select the element for editing (this maintains existing behavior)
     setSelectedElementId(element.id);
-  }, [executeInteraction]);
+  }, [executeInteraction, setSelectedElementId]);
 
   // Handle timeline step selection for slide navigation
   const handleTimelineStepSelect = useCallback((slideIndex: number) => {
@@ -744,7 +747,9 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     key={element.id}
                     className={`absolute cursor-move transition-all duration-200 ${
                       isSelected ? 'ring-2 ring-purple-500 ring-opacity-75' : ''
-                    }`}
+                    } ${element.type === 'hotspot' ? 'hotspot-element' : ''}`}
+                    data-element-id={element.id}
+                    data-hotspot-id={element.type === 'hotspot' ? element.id : undefined}
                     style={{
                       left: position.x * canvasDimensions.scale,
                       top: position.y * canvasDimensions.scale,
@@ -755,6 +760,13 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}
                     onTouchStart={(e) => handleElementDragStart(element.id, e)}
                     onClick={(e) => handleElementClick(element, e)}
+                    onTouchEnd={(e) => {
+                      // Handle touch end as a click for better mobile responsiveness
+                      // Only if we're not dragging
+                      if (!dragState.isDragging) {
+                        handleElementClick(element, e);
+                      }
+                    }}
                   >
                     {/* Element Content Based on Type */}
                     {element.type === 'hotspot' && (

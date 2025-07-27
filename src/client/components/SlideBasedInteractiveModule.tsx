@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { InteractiveModuleState } from '../../shared/types';
 import { ViewerModes, EditorCallbacks } from '../../shared/interactiveTypes';
 import { SlideDeck } from '../../shared/slideTypes';
@@ -6,7 +6,9 @@ import { migrateProjectToSlides, MigrationResult } from '../../shared/migrationU
 import LoadingScreen from './shared/LoadingScreen';
 import ErrorScreen from './shared/ErrorScreen';
 import SlideBasedViewer from './SlideBasedViewer';
-import SlideBasedEditor from './SlideBasedEditor';
+
+// Lazy load the heavy editor component
+const SlideBasedEditor = lazy(() => import('./SlideBasedEditor'));
 
 interface SlideBasedInteractiveModuleProps {
   initialData: InteractiveModuleState;
@@ -189,17 +191,19 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   // Route to appropriate component
   if (isEditing) {
     return (
-      <SlideBasedEditor
-        slideDeck={currentSlideDeck}
-        projectName={projectName}
-        projectId={projectId}
-        onSlideDeckChange={handleSlideDeckChange}
-        onSave={handleSave}
-        onImageUpload={onImageUpload}
-        onClose={handleClose}
-        isPublished={isPublished}
-        migrationResult={migrationResult}
-      />
+      <Suspense fallback={<LoadingScreen title="Loading Editor..." />}>
+        <SlideBasedEditor
+          slideDeck={currentSlideDeck}
+          projectName={projectName}
+          projectId={projectId}
+          onSlideDeckChange={handleSlideDeckChange}
+          onSave={handleSave}
+          onImageUpload={onImageUpload}
+          onClose={handleClose}
+          isPublished={isPublished}
+          migrationResult={migrationResult}
+        />
+      </Suspense>
     );
   } else {
     return (

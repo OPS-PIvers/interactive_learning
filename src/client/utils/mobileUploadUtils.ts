@@ -1,5 +1,6 @@
 // Enhanced mobile utilities for upload debugging
 import { isMobileDevice } from './mobileUtils';
+import { auth } from '../../lib/firebaseConfig';
 
 export interface MobileUploadError {
   code: 'AUTH_ERROR' | 'SIZE_ERROR' | 'NETWORK_ERROR' | 'COMPRESSION_ERROR' | 'CONNECTIVITY_ERROR' | 'TIMEOUT_ERROR' | 'FIREBASE_ERROR' | 'UNKNOWN_ERROR';
@@ -57,7 +58,6 @@ export function getNetworkDetails(): MobileUploadError['networkDetails'] {
  */
 export async function getAuthDetails(): Promise<MobileUploadError['authDetails']> {
   try {
-    const { auth } = await import('../../lib/firebaseConfig');
     const user = auth.currentUser;
     
     if (!user) {
@@ -149,8 +149,6 @@ export async function checkNetworkConnectivity(): Promise<{ connected: boolean; 
 
   try {
     // Test connectivity with a small Firebase request
-    const { auth } = await import('../../lib/firebaseConfig');
-    
     // If user is authenticated, try to refresh the token as a connectivity test
     if (auth.currentUser) {
       const startTime = Date.now();
