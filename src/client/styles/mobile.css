@@ -406,8 +406,7 @@
     background: #0f172a;
   }
 
-  .mobile-editor-toolbar,
-  .mobile-toolbar {
+  .mobile-editor-toolbar {
     flex-shrink: 0;
     background: #1e293b;
     border-bottom: 1px solid #334155;
