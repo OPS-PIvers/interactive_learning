@@ -419,6 +419,42 @@
     gap: 16px;
   }
 
+  .mobile-bottom-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 16px;
+  }
+
+  .mobile-bottom-toolbar button {
+    background: #334155;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .mobile-bottom-toolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .mobile-bottom-toolbar button:hover:not(:disabled) {
+    background: #475569;
+  }
+
   /* Enhanced toolbar safe area handling */
   .mobile-toolbar-safe {
     padding-top: max(env(safe-area-inset-top), 8px);

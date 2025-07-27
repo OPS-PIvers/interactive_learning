@@ -36,7 +36,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
       aria-expanded={isOpen}
     >
-      <span className="font-medium text-white">{title}</span>
+      <span className="font-medium text-white" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>{title}</span>
       <ChevronDownIcon 
         className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
           isOpen ? 'rotate-180' : ''
@@ -65,22 +65,16 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   onSlideUpdate,
   isMobile = false
 }) => {
-  // Collapsible sections state - default to closed for cleaner interface
-  const [openSections, setOpenSections] = useState({
-    style: false,
-    presets: selectedElement?.type === 'hotspot', // Keep presets open for hotspots as primary functionality
-    content: false,
-    position: false,
-    interactions: false,
-    background: false
-  });
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(selectedElement?.type === 'hotspot');
+  const [contentOpen, setContentOpen] = useState(false);
+  const [positionOpen, setPositionOpen] = useState(false);
+  const [interactionsOpen, setInteractionsOpen] = useState(false);
+  const [backgroundOpen, setBackgroundOpen] = useState(false);
 
   useEffect(() => {
-    setOpenSections(prev => ({
-      ...prev,
-      presets: selectedElement?.type === 'hotspot',
-      interactions: selectedElement?.type === 'hotspot'
-    }));
+    setPresetsOpen(selectedElement?.type === 'hotspot');
+    setInteractionsOpen(selectedElement?.type === 'hotspot');
   }, [selectedElement]);
 
   // Background media panel state
@@ -263,8 +257,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         <div className="flex-grow overflow-y-auto">
           <CollapsibleSection
             title="Background Media"
-            isOpen={openSections.background}
-            onToggle={() => toggleSection('background')}
+            isOpen={backgroundOpen}
+            onToggle={() => setBackgroundOpen(!backgroundOpen)}
           >
             <div className="space-y-3">
               {/* Current Background Display */}
@@ -384,8 +378,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         {selectedElement.type === 'hotspot' && (
           <CollapsibleSection
             title="Properties - Hotspot Element"
-            isOpen={openSections.content} // Reuse content section state
-            onToggle={() => toggleSection('content')}
+            isOpen={contentOpen} // Reuse content section state
+            onToggle={() => setContentOpen(!contentOpen)}
           >
             <div className="space-y-4">
               {/* Title */}
@@ -490,8 +484,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         {selectedElement.type === 'hotspot' && (
           <CollapsibleSection
             title="Style Presets"
-            isOpen={openSections.presets}
-            onToggle={() => toggleSection('presets')}
+            isOpen={presetsOpen}
+            onToggle={() => setPresetsOpen(!presetsOpen)}
           >
             <div className="space-y-3">
               <div className="text-xs text-slate-400 mb-3">
@@ -698,8 +692,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         {selectedElement.type !== 'hotspot' && (
         <CollapsibleSection
           title="Content"
-          isOpen={openSections.content}
-          onToggle={() => toggleSection('content')}
+          isOpen={contentOpen}
+          onToggle={() => setContentOpen(!contentOpen)}
         >
           <div className="space-y-3">
             {/* Title */}
@@ -753,8 +747,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         {selectedElement.type !== 'hotspot' && (
         <CollapsibleSection
           title={`Position (${deviceType})`}
-          isOpen={openSections.position}
-          onToggle={() => toggleSection('position')}
+          isOpen={positionOpen}
+          onToggle={() => setPositionOpen(!positionOpen)}
         >
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -800,8 +794,8 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
         {/* Interactions Section */}
         <CollapsibleSection
           title="Interactions"
-          isOpen={openSections.interactions}
-          onToggle={() => toggleSection('interactions')}
+          isOpen={interactionsOpen}
+          onToggle={() => setInteractionsOpen(!interactionsOpen)}
         >
           <div className="space-y-4">
             {/* Interactions List */}

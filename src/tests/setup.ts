@@ -7,6 +7,9 @@ vi.mock('@firebase/analytics', () => ({
   isSupported: vi.fn().mockResolvedValue(false),
 }));
 
+const noop = () => {};
+Object.defineProperty(window, 'scrollTo', { value: noop, writable: true });
+
 // Mock window.matchMedia for mobile detection tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
