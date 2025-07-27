@@ -194,7 +194,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   const handlePositionChange = useCallback((dimension: string, value: number) => {
     if (!selectedElement) return;
     
-    const currentPosition = selectedElement.position[deviceType];
+    const currentPosition = selectedElement.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
     onElementUpdate(selectedElement.id, {
       position: {
         ...selectedElement.position,
@@ -253,7 +253,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
     return null;
   }
 
-  const currentPosition = selectedElement.position[deviceType];
+  const currentPosition = selectedElement.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
 
   return (
     <div 
@@ -317,13 +317,13 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={selectedElement.style.backgroundColor || '#3b82f6'}
+                    value={selectedElement.style?.backgroundColor || '#3b82f6'}
                     onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
                     className="w-12 h-12 rounded-lg border border-slate-600 cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={selectedElement.style.backgroundColor || '#3b82f6'}
+                    value={selectedElement.style?.backgroundColor || '#3b82f6'}
                     onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
                     className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                     placeholder="#3b82f6"
@@ -341,12 +341,12 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                     type="range"
                     min="0"
                     max="50"
-                    value={selectedElement.style.borderRadius || 8}
+                    value={selectedElement.style?.borderRadius || 8}
                     onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
                     className="flex-1"
                   />
                   <span className="text-sm text-slate-400 w-12 text-right">
-                    {selectedElement.style.borderRadius || 8}px
+                    {selectedElement.style?.borderRadius || 8}px
                   </span>
                 </div>
               </div>
@@ -362,12 +362,12 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                     min="0"
                     max="1"
                     step="0.1"
-                    value={selectedElement.style.opacity || 0.9}
+                    value={selectedElement.style?.opacity || 0.9}
                     onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
                     className="flex-1"
                   />
                   <span className="text-sm text-slate-400 w-12 text-right">
-                    {Math.round((selectedElement.style.opacity || 0.9) * 100)}%
+                    {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
                   </span>
                 </div>
               </div>
@@ -388,7 +388,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={selectedElement.content.title || ''}
+                  value={selectedElement.content?.title || ''}
                   onChange={(e) => handleContentChange({ title: e.target.value })}
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                   placeholder="Element title"
@@ -401,7 +401,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                   Description
                 </label>
                 <textarea
-                  value={selectedElement.content.description || ''}
+                  value={selectedElement.content?.description || ''}
                   onChange={(e) => handleContentChange({ description: e.target.value })}
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white resize-none"
                   placeholder="Element description"
@@ -417,7 +417,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                   </label>
                   <input
                     type="url"
-                    value={selectedElement.content.mediaUrl || ''}
+                    value={selectedElement.content?.mediaUrl || ''}
                     onChange={(e) => handleContentChange({ mediaUrl: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                     placeholder="https://example.com/media.jpg"

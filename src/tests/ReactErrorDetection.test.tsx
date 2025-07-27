@@ -5,29 +5,20 @@ import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
-import { InteractiveModuleState, InteractionType } from '../shared/types';
+import { SlideDeck, InteractiveSlide, SlideElement, DeviceType } from '../shared/slideTypes';
 
 // Mock child components to isolate testing
-vi.mock('../client/components/ViewerToolbar', () => ({
-  default: () => <div data-testid="viewer-toolbar">ViewerToolbar</div>
+vi.mock('../client/components/slides/SlideBasedEditor', () => ({
+  SlideBasedEditor: () => <div data-testid="slide-based-editor">SlideBasedEditor</div>
 }));
-vi.mock('../client/components/HotspotViewer', () => ({
-  default: () => <div data-testid="hotspot-viewer">HotspotViewer</div>
+vi.mock('../client/components/slides/SlideBasedViewer', () => ({
+  SlideBasedViewer: () => <div data-testid="slide-based-viewer">SlideBasedViewer</div>
 }));
-vi.mock('../client/components/HorizontalTimeline', () => ({
-  default: () => <div data-testid="horizontal-timeline">HorizontalTimeline</div>
+vi.mock('../client/components/slides/SlideEditor', () => ({
+  SlideEditor: () => <div data-testid="slide-editor">SlideEditor</div>
 }));
-vi.mock('../client/components/ImageEditCanvas', () => ({
-  default: () => <div data-testid="image-edit-canvas">ImageEditCanvas</div>
-}));
-vi.mock('../client/components/HotspotEditorModal', () => ({
-  default: () => <div data-testid="hotspot-editor-modal">HotspotEditorModal</div>
-}));
-vi.mock('../client/components/MobileEditorModal', () => ({
-  default: () => <div data-testid="mobile-editor-modal">MobileEditorModal</div>
-}));
-vi.mock('../client/components/MobileEditorLayout', () => ({
-  default: () => <div data-testid="mobile-editor-layout">MobileEditorLayout</div>
+vi.mock('../client/components/mobile/MobilePropertiesPanel', () => ({
+  MobilePropertiesPanel: () => <div data-testid="mobile-properties-panel">MobilePropertiesPanel</div>
 }));
 vi.mock('../client/components/AuthButton', () => ({
   default: () => <div data-testid="auth-button">AuthButton</div>
@@ -56,50 +47,67 @@ describe('React Error Detection Tests', () => {
   const mockOnSave = vi.fn();
   const mockOnClose = vi.fn();
 
-  const defaultInitialData: InteractiveModuleState = {
-    backgroundImage: 'test-image.jpg',
-    hotspots: [
+  const defaultSlideData: SlideDeck = {
+    id: 'test-slide-deck',
+    title: 'Test Slide Deck',
+    description: 'Test slide deck for React error detection',
+    slides: [
       {
-        id: 'test-hotspot-1',
-        x: 50,
-        y: 50,
-        title: 'Test Hotspot',
-        description: 'Test hotspot description',
-        color: '#ff0000'
-      }
+        id: 'test-slide-1',
+        title: 'Test Slide',
+        backgroundImage: 'test-image.jpg',
+        elements: [
+          {
+            id: 'test-element-1',
+            type: 'hotspot',
+            position: {
+              desktop: { x: 100, y: 100, width: 50, height: 50 },
+              tablet: { x: 80, y: 80, width: 40, height: 40 },
+              mobile: { x: 60, y: 60, width: 30, height: 30 }
+            },
+            style: {
+              backgroundColor: '#ff0000',
+              borderRadius: '50%',
+              opacity: 0.8
+            },
+            content: {
+              title: 'Test Hotspot',
+              description: 'Test hotspot description'
+            },
+            interactions: []
+          }
+        ],
+        transitions: [],
+        layout: {
+          aspectRatio: '16:9',
+          backgroundFit: 'contain'
+        }
+      } as InteractiveSlide
     ],
-    timelineEvents: [
-      {
-        id: 'test-event-1',
-        step: 1,
-        name: 'Test Event',
-        type: InteractionType.SHOW_TEXT,
-        targetId: 'test-hotspot-1',
-        textContent: 'Test text content'
-      }
-    ],
-    imageFitMode: 'contain',
+    metadata: {
+      version: '2.0',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
   };
 
   const getViewerProps = () => ({
-    initialData: defaultInitialData,
+    slideDeck: defaultSlideData,
     isEditing: false,
     onSave: mockOnSave,
     onClose: mockOnClose,
-    onImageUpload: vi.fn(),
     projectName: 'Test Project',
-    viewerModes: { explore: true, selfPaced: true, timed: false },
+    deviceType: 'desktop' as DeviceType,
   });
 
   const getEditorProps = () => ({
-    initialData: defaultInitialData,
+    slideDeck: defaultSlideData,
     isEditing: true,
     onSave: mockOnSave,
     onClose: mockOnClose,
-    onImageUpload: vi.fn(),
     projectName: 'Test Project',
     projectId: 'test-project-id',
-    viewerModes: { explore: true, selfPaced: true, timed: false },
+    deviceType: 'desktop' as DeviceType,
   });
 
   beforeEach(() => {
@@ -377,14 +385,21 @@ describe('React Error Detection Tests', () => {
       consoleErrorSpy.mockClear();
 
       // Change props and re-render
+      const updatedSlideData = {
+        ...defaultSlideData,
+        title: 'Updated Project Name',
+        slides: [
+          {
+            ...defaultSlideData.slides[0],
+            backgroundImage: 'updated-image.jpg'
+          }
+        ]
+      };
+      
       const newProps = {
         ...getViewerProps(),
         projectName: 'Updated Project Name',
-        onImageUpload: vi.fn(),
-        initialData: {
-          ...defaultInitialData,
-          backgroundImage: 'updated-image.jpg'
-        }
+        slideDeck: updatedSlideData
       };
 
       rerender(
