@@ -63,11 +63,11 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
         isTimelineVisible ? 'timeline-visible' : ''
       }`}
       style={{
-        position: 'absolute',
-        bottom: isTimelineVisible ? '72px' : '16px', // Adjust for timeline
+        position: 'fixed', // Changed from absolute to fixed for iOS Safari
+        bottom: `max(${isTimelineVisible ? '72px' : '16px'}, calc(env(safe-area-inset-bottom, 0px) + 8px))`, // Safe area aware
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 40,
+        zIndex: 100, // Increased z-index to stay above iOS Safari UI
         background: 'rgba(30, 41, 59, 0.95)',
         backdropFilter: 'blur(8px)',
         borderRadius: '24px',
@@ -75,7 +75,9 @@ export const MobileFloatingMenu: React.FC<MobileFloatingMenuProps> = ({
         display: 'flex',
         gap: '12px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-        transition: 'bottom 0.3s ease'
+        transition: 'bottom 0.3s ease',
+        /* Prevent iOS Safari from hiding the menu behind browser UI */
+        marginBottom: 'env(safe-area-inset-bottom, 0px)'
       }}
     >
       {menuItems.map((item) => (

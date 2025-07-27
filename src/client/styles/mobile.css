@@ -6,6 +6,12 @@
   :root {
     /* CSS custom properties for dynamic viewport */
     --vh: 1vh;
+    --dvh: 1vh; /* Dynamic viewport height fallback */
+    --svh: 1vh; /* Small viewport height fallback */
+    --lvh: 1vh; /* Large viewport height fallback */
+    --available-vh: 1vh; /* Available height excluding iOS Safari UI */
+    
+    /* Safe area insets for iOS devices with notches/home indicators */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
@@ -14,6 +20,10 @@
     /* Keyboard detection */
     --keyboard-height: 0px;
     --content-height: calc(100vh - var(--keyboard-height));
+    
+    /* iOS Safari specific adjustments */
+    --ios-top-bar-height: 44px; /* Typical iOS status bar + URL bar */
+    --ios-bottom-bar-height: 34px; /* Typical iOS home indicator */
   }
 
   html {
@@ -52,11 +62,28 @@
     overscroll-behavior: none;
   }
 
-  /* Dynamic viewport height calculation */
+  /* Dynamic viewport height calculation with iOS Safari support */
   .mobile-full-height {
     height: 100vh;
     height: -webkit-fill-available;
     height: calc(var(--vh, 1vh) * 100);
+    /* Modern dynamic viewport units with fallback */
+    height: 100dvh;
+    height: calc(var(--dvh, 1vh) * 100);
+  }
+  
+  /* Available height excluding iOS Safari UI */
+  .mobile-available-height {
+    height: calc(var(--available-vh, 1vh) * 100);
+    min-height: calc(100vh - var(--ios-top-bar-height, 44px) - var(--ios-bottom-bar-height, 34px));
+  }
+  
+  /* iOS Safari safe viewport */
+  .ios-safe-viewport {
+    height: 100dvh;
+    height: -webkit-fill-available;
+    min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 
   .mobile-safe-area {
@@ -70,6 +97,16 @@
     min-height: 100vh;
     min-height: -webkit-fill-available;
     min-height: calc(var(--vh, 1vh) * 100);
+    /* iOS Safari specific fixes */
+    min-height: 100dvh;
+    min-height: calc(var(--dvh, 1vh) * 100);
+  }
+  
+  /* iOS Safari URL bar aware height */
+  .ios-url-bar-aware {
+    height: 100svh; /* Small viewport height - excludes URL bar */
+    height: calc(var(--svh, 1vh) * 100);
+    min-height: calc(100vh - 120px); /* Fallback accounting for iOS Safari UI */
   }
 }
 
@@ -228,10 +265,23 @@
 /* ===== MODAL IMPROVEMENTS ===== */
 
 @media screen and (max-width: 768px) {
-  /* Enhanced modal positioning for mobile */
+  /* Enhanced modal positioning for mobile with iOS Safari support */
   .mobile-modal-container {
     min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    /* iOS Safari dynamic viewport support */
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  
+  /* iOS Safari modal with proper z-index */
+  .ios-safari-modal {
+    z-index: 9999; /* Higher than iOS Safari UI elements */
+    position: fixed;
+    bottom: env(safe-area-inset-bottom, 0px);
+    left: env(safe-area-inset-left, 0px);
+    right: env(safe-area-inset-right, 0px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 44px) - env(safe-area-inset-bottom, 34px) - 32px);
   }
 
   /* Keyboard-aware modal height */
@@ -755,14 +805,40 @@
   }
 }
 
-/* Fix for iOS Safari viewport */
+/* Comprehensive iOS Safari viewport fixes */
 @supports (-webkit-touch-callout: none) {
   .ios-viewport-fix {
     height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
   }
 
   .ios-safe-area {
+    padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* iOS Safari specific modal positioning */
+  .ios-modal-container {
+    height: -webkit-fill-available;
+    max-height: -webkit-fill-available;
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
+  
+  /* iOS Safari floating elements */
+  .ios-floating-element {
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    z-index: 999;
+  }
+  
+  /* iOS Safari full screen elements */
+  .ios-fullscreen {
+    height: -webkit-fill-available;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 

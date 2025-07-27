@@ -183,18 +183,44 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
     };
   }, [updateViewport]);
 
-  // Set CSS custom properties for viewport info
+  // Set CSS custom properties for viewport info with iOS Safari support
   useEffect(() => {
     const root = document.documentElement;
+    
+    // Basic viewport properties
     root.style.setProperty('--viewport-width', `${viewport.width}px`);
     root.style.setProperty('--viewport-height', `${viewport.height}px`);
     root.style.setProperty('--optimal-scale', `${optimalScale}`);
     root.style.setProperty('--is-landscape', viewport.isLandscape ? '1' : '0');
     root.style.setProperty('--is-portrait', viewport.isPortrait ? '1' : '0');
+    
+    // Safe area properties
     root.style.setProperty('--safe-area-inset-top', `${viewport.safeAreaInsets.top}px`);
     root.style.setProperty('--safe-area-inset-bottom', `${viewport.safeAreaInsets.bottom}px`);
     root.style.setProperty('--safe-area-inset-left', `${viewport.safeAreaInsets.left}px`);
     root.style.setProperty('--safe-area-inset-right', `${viewport.safeAreaInsets.right}px`);
+    
+    // Dynamic viewport height support for iOS Safari
+    const vh = viewport.height * 0.01;
+    root.style.setProperty('--vh', `${vh}px`);
+    
+    // Check for visual viewport (iOS Safari support)
+    if (window.visualViewport) {
+      const visualVh = window.visualViewport.height * 0.01;
+      root.style.setProperty('--visual-vh', `${visualVh}px`);
+      
+      // Available height excluding iOS Safari UI
+      const availableHeight = Math.min(viewport.height, window.visualViewport.height);
+      const availableVh = availableHeight * 0.01;
+      root.style.setProperty('--available-vh', `${availableVh}px`);
+    }
+    
+    // Dynamic viewport units fallback for unsupported browsers
+    if (!CSS.supports('height', '100dvh')) {
+      root.style.setProperty('--dvh', `${vh}px`);
+      root.style.setProperty('--svh', `${vh}px`);
+      root.style.setProperty('--lvh', `${window.innerHeight * 0.01}px`);
+    }
   }, [viewport, optimalScale]);
 
   const containerStyle: React.CSSProperties = {
@@ -206,7 +232,12 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
     paddingTop: viewport.safeAreaInsets.top,
     paddingBottom: viewport.safeAreaInsets.bottom,
     paddingLeft: viewport.safeAreaInsets.left,
-    paddingRight: viewport.safeAreaInsets.right
+    paddingRight: viewport.safeAreaInsets.right,
+    // iOS Safari viewport fixes
+    minHeight: '-webkit-fill-available',
+    maxHeight: '100dvh',
+    // Ensure proper containment
+    boxSizing: 'border-box'
   };
 
   const contentStyle: React.CSSProperties = {
@@ -216,7 +247,12 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
     padding: viewport.isLandscape ? landscapePadding : portraitPadding,
     transform: enableAutoScale ? `scale(${optimalScale})` : undefined,
     transformOrigin: 'top left',
-    transition: 'transform 0.3s ease-out'
+    transition: 'transform 0.3s ease-out',
+    // iOS Safari content adjustments
+    maxHeight: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    boxSizing: 'border-box'
   };
 
   return (

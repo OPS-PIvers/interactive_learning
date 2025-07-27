@@ -30,10 +30,12 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     <button
       onClick={onToggle}
       onTouchStart={(e) => {
-        // Prevent modal touch isolation from interfering
+        // Prevent event from bubbling to parent modal handlers
+        // but don't prevent the default click behavior
         e.stopPropagation();
       }}
       className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-700/50 transition-colors"
+      style={{ touchAction: 'manipulation' }}
       aria-expanded={isOpen}
     >
       <span className="font-medium text-white text-lg">{title}</span>
@@ -258,17 +260,27 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center"
-      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      style={{ 
+        paddingBottom: 'max(env(safe-area-inset-bottom), 16px)', 
+        touchAction: 'none',
+        /* Use dynamic viewport height for iOS Safari */
+        height: '100dvh',
+        minHeight: '-webkit-fill-available'
+      }}
       onTouchStart={(e) => {
-        // Only prevent events if touching the modal backdrop directly
-        if (e.target === e.currentTarget) {
+        // More reliable backdrop detection for mobile
+        const target = e.target as HTMLElement;
+        const isBackdrop = target === e.currentTarget || target.classList.contains('bg-black');
+        if (isBackdrop) {
           e.preventDefault();
           e.stopPropagation();
         }
       }}
       onTouchMove={(e) => {
-        // Only prevent events if touching the modal backdrop directly
-        if (e.target === e.currentTarget) {
+        // Prevent scrolling on backdrop but allow scrolling within panel
+        const target = e.target as HTMLElement;
+        const isBackdrop = target === e.currentTarget || target.classList.contains('bg-black');
+        if (isBackdrop) {
           e.preventDefault();
           e.stopPropagation();
         }
@@ -281,7 +293,15 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
       }}
     >
       {/* Mobile slide-up panel */}
-      <div className="bg-slate-800 w-full max-h-[85vh] rounded-t-xl shadow-2xl overflow-hidden">
+      <div 
+        className="bg-slate-800 w-full rounded-t-xl shadow-2xl overflow-hidden"
+        style={{
+          /* Dynamic max height for iOS Safari */
+          maxHeight: 'min(85dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))',
+          /* Fallback for browsers without dvh support */
+          maxHeight: 'min(85vh, calc(100vh - 76px))'
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div>
@@ -301,7 +321,19 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
         </div>
         
         {/* Scrollable Content */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 80px - 70px)' }}>
+        <div 
+          className="overflow-y-auto" 
+          style={{ 
+            /* Dynamic height calculation for iOS Safari */
+            maxHeight: 'min(calc(85dvh - 150px), calc(100vh - env(safe-area-inset-top, 44px) - env(safe-area-inset-bottom, 34px) - 182px))',
+            /* Fallback for browsers without dvh support */
+            maxHeight: 'calc(85vh - 150px)',
+            touchAction: 'pan-y', // Allow vertical scrolling within panel
+            /* Improved scrolling on iOS */
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain'
+          }}
+        >
           {/* Element Style Section */}
           <CollapsibleSection
             title="Style"
@@ -505,7 +537,13 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
         </div>
         
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-700 space-y-3">
+        <div 
+          className="p-4 border-t border-slate-700 space-y-3"
+          style={{
+            /* Ensure footer stays above iOS home indicator */
+            paddingBottom: 'max(env(safe-area-inset-bottom), 16px)'
+          }}
+        >
           {/* Save confirmation message */}
           <div className="text-center">
             <p className="text-sm text-green-400 font-medium">

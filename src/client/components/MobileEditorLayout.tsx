@@ -272,7 +272,17 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   }, [handleBackGesture]);
 
   const renderCompactLayout = () => (
-    <div className="flex flex-col h-full">
+    <div 
+      className="flex flex-col h-full"
+      style={{
+        /* iOS Safari viewport handling */
+        height: '100dvh',
+        minHeight: '-webkit-fill-available',
+        maxHeight: '100dvh',
+        /* Fallback for browsers without dvh support */
+        minHeight: '100vh'
+      }}
+    >
       {/* Mobile Editor Toolbar with Settings Cog */}
       <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 p-4">
         <div className="flex items-center justify-between">
@@ -439,14 +449,40 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       </div>
 
       {/* Main Content Area - Always show the image with hotspots */}
-      <div className="flex-1 relative bg-slate-800 min-h-0 flex items-center justify-center">
-        <div className="w-full h-full relative overflow-hidden">
+      <div 
+        className="flex-1 relative bg-slate-800 min-h-0 flex items-center justify-center"
+        style={{
+          /* Ensure content area accounts for iOS Safari dynamic viewport */
+          height: 'calc(100dvh - 120px)', // Account for header and timeline
+          minHeight: 'calc(100vh - 120px)', // Fallback
+          maxHeight: 'calc(100dvh - 120px)',
+          /* Prevent content from being hidden behind iOS Safari UI */
+          marginBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+      >
+        <div 
+          className="w-full h-full relative overflow-hidden"
+          style={{
+            /* Safe area padding for content */
+            paddingLeft: 'env(safe-area-inset-left, 0px)',
+            paddingRight: 'env(safe-area-inset-right, 0px)'
+          }}
+        >
           {children}
         </div>
       </div>
 
       {/* Timeline at the bottom - Using simple viewer-style timeline for consistency */}
-      <div className="flex-shrink-0 bg-slate-800 border-t border-slate-700">
+      <div 
+        className="flex-shrink-0 bg-slate-800 border-t border-slate-700"
+        style={{
+          /* Ensure timeline stays above iOS home indicator */
+          paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
+          /* Prevent timeline from being hidden by iOS Safari UI */
+          position: 'relative',
+          zIndex: 10
+        }}
+      >
         <HorizontalTimeline
           uniqueSortedSteps={[...new Set(timelineEvents.map(e => e.step))].sort((a, b) => a - b)}
           currentStep={currentStep}
@@ -503,7 +539,18 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       />
       
       {/* Modal Content */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-slate-900 rounded-t-2xl max-h-[80vh] flex flex-col">
+      <div 
+        className="fixed inset-x-0 bottom-0 z-50 bg-slate-900 rounded-t-2xl flex flex-col"
+        style={{
+          /* Dynamic max height for iOS Safari */
+          maxHeight: 'min(80dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))',
+          /* Fallback for browsers without dvh support */
+          maxHeight: '80vh',
+          /* Ensure modal stays above iOS Safari UI */
+          bottom: 'env(safe-area-inset-bottom, 0px)',
+          zIndex: 150 // Higher z-index for iOS Safari
+        }}
+      >
         {/* Modal Header */}
         <div className="flex-shrink-0 bg-slate-800 rounded-t-2xl border-b border-slate-700 p-4">
           <div className="flex items-center justify-between">
