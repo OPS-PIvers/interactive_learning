@@ -392,7 +392,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto" {...handleSwipe}>
+        <div className="flex-1 overflow-y-auto">
           <ReactPullToRefresh onRefresh={() => Promise.resolve()}>
             <Suspense fallback={<div>Loading...</div>}>
               <TabContent
