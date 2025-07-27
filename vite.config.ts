@@ -24,7 +24,7 @@ export default defineConfig(({ mode, command }) => {
           jsxImportSource: 'react',
         })
       ],
-      root: isDevelopment ? 'src/client' : '.',
+      root: 'src/client',
       server: {
         host: isCodespaces ? '0.0.0.0' : 'localhost',
         port: 3000,
@@ -36,12 +36,11 @@ export default defineConfig(({ mode, command }) => {
         open: !isCodespaces
       },
       build: {
-        outDir: isDevelopment ? '../../dist' : './dist',
+        outDir: '../../dist',
         emptyOutDir: true,
         target: 'es2020',
         minify: isProduction ? 'terser' : false,
         rollupOptions: {
-          input: isDevelopment ? 'index.html' : path.resolve(__dirname, 'src/client/index.html'),
           output: {
             entryFileNames: 'assets/[name].[hash].js',
             chunkFileNames: 'assets/[name].[hash].js',
