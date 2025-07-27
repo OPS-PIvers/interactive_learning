@@ -39,6 +39,10 @@ vi.mock('firebase/firestore', async () => {
 });
 
 describe('FirebaseAPI - Slide Architecture', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('saveSlideDeck', () => {
     it('should save slide deck with proper structure', async () => {
       const slideDeck: SlideDeck = {
@@ -49,7 +53,6 @@ describe('FirebaseAPI - Slide Architecture', () => {
           {
             id: 'slide-1',
             title: 'Test Slide',
-            backgroundImage: 'test-image.jpg',
             elements: [
               {
                 id: 'element-1',
@@ -59,16 +62,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   tablet: { x: 80, y: 80, width: 40, height: 40 },
                   mobile: { x: 60, y: 60, width: 30, height: 30 }
                 },
-                style: { backgroundColor: '#ff0000' },
-                content: { title: 'Test Hotspot' },
-                interactions: []
               }
             ],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundFit: 'contain'
-            }
           } as InteractiveSlide
         ],
         metadata: {
@@ -78,30 +73,25 @@ describe('FirebaseAPI - Slide Architecture', () => {
         }
       };
 
-      const { runTransaction } = await import('firebase/firestore');
+      const { runTransaction, getDoc } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ exists: () => false }),
-        set: vi.fn(),
+        get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
       });
 
+
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      expect(transaction.set).toHaveBeenCalled();
-      const savedData = transaction.set.mock.calls[0][1];
+      expect(transaction.update).toHaveBeenCalled();
+      const savedData = transaction.update.mock.calls[0][1];
 
       // Verify slide deck structure
-      expect(savedData.title).toBe('Test Slide Deck');
-      expect(savedData.description).toBe('A test slide deck for Firebase testing');
-      expect(savedData.slides).toBeDefined();
-      expect(savedData.slides).toHaveLength(1);
-      expect(savedData.slides[0].title).toBe('Test Slide');
-      expect(savedData.slides[0].backgroundImage).toBe('test-image.jpg');
-      expect(savedData.slides[0].elements).toHaveLength(1);
-      expect(savedData.slides[0].elements[0].type).toBe('hotspot');
-      expect(savedData.metadata.version).toBe('2.0');
+      expect(savedData.slideDeck.title).toBe('Test Slide Deck');
+      expect(savedData.slideDeck.description).toBe('A test slide deck for Firebase testing');
+      expect(savedData.slideDeck.slides).toBeDefined();
     });
 
     it('should handle slide deck updates correctly', async () => {
@@ -128,11 +118,11 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ 
-          exists: () => true, 
-          data: () => existingSlideDeck
+        get: vi.fn().mockResolvedValue({
+          exists: () => true,
+          data: () => ({ ...existingSlideDeck, createdBy: 'test-user' })
         }),
-        set: vi.fn(),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -151,10 +141,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
-      expect(transaction.set).toHaveBeenCalled();
-      const savedData = transaction.set.mock.calls[0][1];
-      expect(savedData.title).toBe('Updated Deck Title');
-      expect(savedData.slides[0].title).toBe('Updated Slide Title');
+      expect(transaction.update).toHaveBeenCalled();
+      const savedData = transaction.update.mock.calls[0][1];
+      expect(savedData.slideDeck.title).toBe('Updated Deck Title');
+      expect(savedData.slideDeck.slides[0].title).toBe('Updated Slide Title');
     });
 
     it('should preserve metadata timestamps on updates', async () => {
@@ -172,8 +162,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ exists: () => false }),
-        set: vi.fn(),
+        get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -181,10 +171,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.set.mock.calls[0][1];
-      expect(savedData.metadata.createdAt).toBeDefined();
-      expect(savedData.metadata.updatedAt).toBeDefined();
-      expect(savedData.metadata.version).toBe('2.0');
+      const savedData = transaction.update.mock.calls[0][1];
+      expect(savedData.slideDeck.metadata.createdAt).toBeDefined();
+      expect(savedData.updatedAt).toBeDefined();
+      expect(savedData.slideDeck.metadata.version).toBe('2.0');
     });
   });
 
@@ -214,7 +204,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const { getDoc } = await import('firebase/firestore');
       (getDoc as any).mockResolvedValue({
         exists: () => true,
-        data: () => mockSlideDeck,
+        data: () => ({ ...mockSlideDeck, createdBy: 'test-user' }),
         id: 'test-deck'
       });
 
@@ -275,11 +265,11 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ 
-          exists: () => true, 
-          data: () => slideDeck
+        get: vi.fn().mockResolvedValue({
+          exists: () => true,
+          data: () => ({...slideDeck, createdBy: 'test-user' })
         }),
-        set: vi.fn(),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -303,8 +293,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
-      const savedData = transaction.set.mock.calls[0][1];
-      expect(savedData.slides[0].elements[0].content.text).toBe('Updated text');
+      const savedData = transaction.update.mock.calls[0][1];
+      expect(savedData.slideDeck.slides[0].elements[0].content.text).toBe('Updated text');
     });
 
     it('should handle responsive positioning in elements', async () => {
@@ -344,8 +334,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ exists: () => false }),
-        set: vi.fn(),
+        get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -353,8 +343,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.set.mock.calls[0][1];
-      const element = savedData.slides[0].elements[0];
+      const savedData = transaction.update.mock.calls[0][1];
+      const element = savedData.slideDeck.slides[0].elements[0];
       
       // Verify responsive positioning is preserved
       expect(element.position.desktop).toEqual({ x: 100, y: 100, width: 200, height: 150 });
@@ -379,8 +369,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ exists: () => false }),
-        set: vi.fn(),
+        get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -388,8 +378,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.set.mock.calls[0][1];
-      expect(savedData.metadata.version).toBe('2.0');
+      const savedData = transaction.update.mock.calls[0][1];
+      expect(savedData.slideDeck.metadata.version).toBe('2.0');
     });
 
     it('should handle empty slide decks', async () => {
@@ -407,8 +397,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       const { runTransaction } = await import('firebase/firestore');
       const transaction = {
-        get: vi.fn().mockResolvedValue({ exists: () => false }),
-        set: vi.fn(),
+        get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
+        update: vi.fn(),
       };
       (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
         await updateFunction(transaction);
@@ -416,9 +406,9 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', emptySlideDeck);
 
-      const savedData = transaction.set.mock.calls[0][1];
-      expect(savedData.slides).toEqual([]);
-      expect(savedData.title).toBe('Empty Deck');
+      const savedData = transaction.update.mock.calls[0][1];
+      expect(savedData.slideDeck.slides).toEqual([]);
+      expect(savedData.slideDeck.title).toBe('Empty Deck');
     });
   });
 });

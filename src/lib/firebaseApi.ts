@@ -1161,6 +1161,51 @@ export class FirebaseProjectAPI {
       throw new Error(`Failed to update project published status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  async saveSlideDeck(userId: string, slideDeck: any): Promise<void> {
+    if (!userId || !slideDeck || !slideDeck.id) {
+      throw new Error("Invalid input for saving slide deck.");
+    }
+
+    const projectRef = doc(firebaseManager.getFirestore(), 'projects', slideDeck.id);
+
+    await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
+      const projectDoc = await transaction.get(projectRef);
+      if (!projectDoc.exists()) {
+        throw new Error("Project not found.");
+      }
+
+      const projectData = projectDoc.data();
+      if (projectData.createdBy !== userId) {
+        throw new Error("User does not have permission to save this slide deck.");
+      }
+
+      transaction.update(projectRef, {
+        slideDeck: slideDeck,
+        updatedAt: serverTimestamp(),
+      });
+    });
+  }
+
+  async loadSlideDeck(userId: string, projectId: string): Promise<any> {
+    if (!userId || !projectId) {
+      throw new Error("Invalid input for loading slide deck.");
+    }
+
+    const projectRef = doc(firebaseManager.getFirestore(), 'projects', projectId);
+    const projectDoc = await getDoc(projectRef);
+
+    if (!projectDoc.exists()) {
+      return null;
+    }
+
+    const projectData = projectDoc.data();
+    if (projectData.createdBy !== userId) {
+      throw new Error("User does not have permission to load this slide deck.");
+    }
+
+    return projectData.slideDeck || null;
+  }
 }
 
 // Export singleton instance

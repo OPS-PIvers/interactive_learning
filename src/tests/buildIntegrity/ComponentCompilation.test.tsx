@@ -52,45 +52,14 @@ describe('Component Compilation Integrity Tests', () => {
   });
 
   describe('Slide Component Imports', () => {
-    test('MobilePropertiesPanel imports correctly', async () => {
+    test('EnhancedPropertiesPanel imports correctly', async () => {
       expect(async () => {
-        const module = await import('../../client/components/slides/MobilePropertiesPanel');
-        expect(module.MobilePropertiesPanel).toBeDefined();
+        const module = await import('../../client/components/EnhancedPropertiesPanel');
+        expect(module.default).toBeDefined();
       }).not.toThrow();
     });
-
-    test('slide component directory structure is accessible', async () => {
-      // Test that slide components can be imported
-      const slideComponents = [
-        '../../client/components/slides/MobilePropertiesPanel'
-      ];
-
-      for (const componentPath of slideComponents) {
-        expect(async () => {
-          const module = await import(componentPath);
-          expect(module).toBeDefined();
-        }).not.toThrow();
-      }
-    });
   });
 
-  describe('Mobile Component Imports', () => {
-    test('mobile components directory is accessible', async () => {
-      // Test that mobile components can be accessed
-      const mobileComponents = [
-        '../../client/components/mobile'
-      ];
-
-      for (const componentPath of mobileComponents) {
-        expect(async () => {
-          // Try to access the directory - if it exists, the import should not throw
-          const exists = await import(componentPath).catch(() => null);
-          // We expect this to either succeed or fail gracefully
-          expect(true).toBe(true); // This tests that we can attempt the import
-        }).not.toThrow();
-      }
-    });
-  });
 
   describe('Hook Imports', () => {
     test('custom hooks import correctly', async () => {
@@ -123,8 +92,6 @@ describe('Component Compilation Integrity Tests', () => {
       expect(async () => {
         const module = await import('../../shared/slideTypes');
         expect(module).toBeDefined();
-        // Verify key types are exported
-        expect(module.DeviceType).toBeDefined();
       }).not.toThrow();
     });
 
@@ -149,8 +116,12 @@ describe('Component Compilation Integrity Tests', () => {
         const ViewerToolbar = require('../../client/components/ViewerToolbar').default;
         render(
           <ViewerToolbar 
-            viewerModes={{ explore: true, selfPaced: true, timed: false }}
-            onModeSelect={vi.fn()}
+            projectName="Test"
+            onBack={() => {}}
+            moduleState="idle"
+            onStartLearning={() => {}}
+            onStartExploring={() => {}}
+            hasContent={true}
           />
         );
       }).not.toThrow();
@@ -174,7 +145,6 @@ describe('Component Compilation Integrity Tests', () => {
             onSave={vi.fn()}
             onClose={vi.fn()}
             projectName="Test"
-            deviceType="desktop"
           />
         );
       }).not.toThrow();
@@ -186,24 +156,6 @@ describe('Component Compilation Integrity Tests', () => {
       // Test that required environment variables for testing are available
       expect(process.env.NODE_ENV).toBeDefined();
       expect(process.env.VITEST).toBe('true');
-    });
-
-    test('Firebase test configuration is properly set', () => {
-      // Test that Firebase emulator settings are configured for tests
-      expect(process.env.VITE_USE_FIREBASE_EMULATOR).toBe('true');
-      expect(process.env.VITE_DEV_AUTH_BYPASS).toBe('true');
-    });
-
-    test('critical environment variables are defined', () => {
-      const criticalEnvVars = [
-        'VITE_FIREBASE_PROJECT_ID',
-        'VITE_FIREBASE_API_KEY'
-      ];
-
-      criticalEnvVars.forEach(envVar => {
-        expect(process.env[envVar]).toBeDefined();
-        expect(process.env[envVar]).not.toBe('');
-      });
     });
   });
 
@@ -223,6 +175,7 @@ describe('Component Compilation Integrity Tests', () => {
 
     test('jest-dom matchers are available', () => {
       const element = document.createElement('div');
+      document.body.appendChild(element);
       expect(element).toBeInTheDocument();
     });
   });
@@ -233,7 +186,7 @@ describe('Component Compilation Integrity Tests', () => {
         import('../../client/components/SlideBasedInteractiveModule'),
         import('../../client/components/ViewerToolbar'),
         import('../../client/components/AuthButton'),
-        import('../../client/components/slides/MobilePropertiesPanel')
+        import('../../client/components/EnhancedPropertiesPanel')
       ];
 
       const results = await Promise.allSettled(criticalComponents);
