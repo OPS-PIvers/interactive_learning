@@ -1,6 +1,5 @@
 // src/client/components/MobileEditorModal.tsx
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
-import { useSwipeable } from 'react-swipeable';
 import ReactPullToRefresh from 'react-pull-to-refresh';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
@@ -118,27 +117,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
     }, 2000);
   };
 
-  const handleSwipe = useSwipeable({
-    onSwipedLeft: () => switchTab('right'),
-    onSwipedRight: () => switchTab('left'),
-    preventScrollOnSwipe: true,
-    trackMouse: true,
-  });
 
-  const switchTab = (direction: 'left' | 'right') => {
-    const tabs = ['basic', 'style', 'timeline'];
-    const currentIndex = tabs.indexOf(tabState.activeTab);
-    let nextIndex;
-
-    if (direction === 'right') {
-      nextIndex = (currentIndex + 1) % tabs.length;
-    } else {
-      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    }
-
-    setTabState(prev => ({ ...prev, activeTab: tabs[nextIndex] as any }));
-    triggerHapticFeedback('selection');
-  };
 
 
   useEffect(() => {
@@ -392,7 +371,7 @@ const MobileEditorModal: React.FC<MobileEditorModalProps> = ({
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto" {...handleSwipe}>
+        <div className="flex-1 overflow-y-auto">
           <ReactPullToRefresh onRefresh={() => Promise.resolve()}>
             <Suspense fallback={<div>Loading...</div>}>
               <TabContent
