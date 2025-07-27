@@ -4,6 +4,8 @@ import { InteractionType } from '../../../shared/types';
 import InteractionsList from '../interactions/InteractionsList';
 import InteractionEditor from '../interactions/InteractionEditor';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
+import { hotspotSizePresets, HotspotSize } from '../../../shared/hotspotStylePresets';
+import { LiquidColorSelector } from '../ui/LiquidColorSelector';
 
 interface MobilePropertiesPanelProps {
   selectedElement: SlideElement | null;
@@ -152,9 +154,11 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   onDelete,
   onClose,
 }) => {
-  // Collapsible sections state - style section open by default for better UX
+  // Collapsible sections state - keep presets open for hotspots, style for others
   const [openSections, setOpenSections] = useState({
-    style: true,
+    properties: selectedElement?.type === 'hotspot',
+    presets: selectedElement?.type === 'hotspot',
+    style: selectedElement?.type !== 'hotspot',
     content: false,
     position: false,
     interactions: false
@@ -171,15 +175,73 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   }, []);
 
   // Update handlers
+  // Color mapping from hex to Tailwind classes for hotspot compatibility
+  const hexToTailwindMap: Record<string, string> = {
+    '#3b82f6': 'bg-blue-500',
+    '#ef4444': 'bg-red-500', 
+    '#10b981': 'bg-emerald-500',
+    '#8b5cf6': 'bg-violet-500',
+    '#f97316': 'bg-orange-500',
+    '#374151': 'bg-gray-700'
+  };
+
   const handleStyleChange = useCallback((styleUpdates: Partial<ElementStyle>) => {
     if (!selectedElement) return;
     
-    onElementUpdate(selectedElement.id, {
+    // Prepare updates for slide element
+    const elementUpdates: Partial<SlideElement> = {
       style: {
         ...selectedElement.style,
         ...styleUpdates
       }
-    });
+    };
+
+    // For hotspot elements, update both content.style and customProperties
+    if (selectedElement.type === 'hotspot') {
+      const customProps: Record<string, any> = {
+        ...selectedElement.content.customProperties
+      };
+      
+      // Update color if backgroundColor is being changed
+      if (styleUpdates.backgroundColor) {
+        const tailwindColor = hexToTailwindMap[styleUpdates.backgroundColor] || 'bg-blue-500';
+        customProps.color = tailwindColor;
+        customProps.backgroundColor = tailwindColor;
+      }
+      
+      // Update opacity if it's being changed
+      if (styleUpdates.opacity !== undefined) {
+        customProps.opacity = styleUpdates.opacity;
+      }
+      
+      elementUpdates.content = {
+        ...selectedElement.content,
+        customProperties: customProps,
+        style: {
+          ...selectedElement.content.style,
+          ...styleUpdates
+        }
+      };
+    }
+    
+    onElementUpdate(selectedElement.id, elementUpdates);
+  }, [selectedElement, onElementUpdate]);
+
+  // Size change handler for hotspots
+  const handleSizeChange = useCallback((size: HotspotSize) => {
+    if (!selectedElement || selectedElement.type !== 'hotspot') return;
+    
+    const elementUpdates: Partial<SlideElement> = {
+      content: {
+        ...selectedElement.content,
+        customProperties: {
+          ...selectedElement.content.customProperties,
+          size: size
+        }
+      }
+    };
+    
+    onElementUpdate(selectedElement.id, elementUpdates);
   }, [selectedElement, onElementUpdate]);
 
   const handleContentChange = useCallback((contentUpdates: Partial<ElementContent>) => {
@@ -330,134 +392,409 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
             overscrollBehavior: 'contain'
           }}
         >
-          {/* Element Style Section */}
-          <CollapsibleSection
-            title="Style"
-            isOpen={openSections.style}
-            onToggle={() => toggleSection('style')}
-          >
-            <div className="space-y-4">
-              {/* Background Color */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Background Color
-                </label>
-                <div className="flex items-center gap-3">
+          {/* Properties Section - Hotspot Elements Only */}
+          {selectedElement.type === 'hotspot' && (
+            <CollapsibleSection
+              title="Properties - Hotspot Element"
+              isOpen={openSections.properties}
+              onToggle={() => toggleSection('properties')}
+            >
+              <div className="space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Title
+                  </label>
                   <input
-                    type="color"
+                    type="text"
+                    value={selectedElement.content?.title || ''}
+                    onChange={(e) => handleContentChange({ title: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+                    placeholder="Hotspot title"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={selectedElement.content?.description || ''}
+                    onChange={(e) => handleContentChange({ description: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white resize-none"
+                    placeholder="Hotspot description"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Background Color - Enhanced with Liquid Color Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-3">
+                    Background Color
+                  </label>
+                  <LiquidColorSelector
+                    selectedColor={selectedElement.style?.backgroundColor || '#3b82f6'}
+                    onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
+                    isMobile={true}
+                    size="medium"
+                    showLiquidAnimation={true}
+                  />
+                  {/* Hex input for precise control */}
+                  <input
+                    type="text"
                     value={selectedElement.style?.backgroundColor || '#3b82f6'}
                     onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                    className="w-12 h-12 rounded-lg border border-slate-600 cursor-pointer"
+                    className="mt-3 w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+                    placeholder="#3b82f6"
+                  />
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Style Presets Section - Hotspot Elements Only */}
+          {selectedElement.type === 'hotspot' && (
+            <CollapsibleSection
+              title="Style Presets"
+              isOpen={openSections.presets}
+              onToggle={() => toggleSection('presets')}
+            >
+              <div className="space-y-4">
+                <div className="text-sm text-slate-400 mb-4">
+                  Quick style presets for common hotspot designs
+                </div>
+                
+                {/* Preset Grid - Mobile optimized with larger touch targets */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Blue Pulse Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#3b82f6',
+                      borderRadius: 50,
+                      opacity: 0.9
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#3b82f6' 
+                        ? 'border-blue-500 bg-blue-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-blue-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full mb-2 animate-pulse"
+                      style={{ backgroundColor: '#3b82f6' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Blue Pulse</span>
+                  </button>
+
+                  {/* Red Alert Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#ef4444',
+                      borderRadius: 50,
+                      opacity: 0.85
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#ef4444' 
+                        ? 'border-red-500 bg-red-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-red-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full mb-2"
+                      style={{ backgroundColor: '#ef4444' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Red Alert</span>
+                  </button>
+
+                  {/* Green Success Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#10b981',
+                      borderRadius: 50,
+                      opacity: 0.9
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#10b981' 
+                        ? 'border-green-500 bg-green-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-green-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full mb-2"
+                      style={{ backgroundColor: '#10b981' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Green</span>
+                  </button>
+
+                  {/* Purple Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#8b5cf6',
+                      borderRadius: 50,
+                      opacity: 0.95
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#8b5cf6' 
+                        ? 'border-purple-500 bg-purple-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-purple-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full mb-2"
+                      style={{ backgroundColor: '#8b5cf6' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Purple</span>
+                  </button>
+
+                  {/* Orange Warning Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#f97316',
+                      borderRadius: 50,
+                      opacity: 0.9
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#f97316' 
+                        ? 'border-orange-500 bg-orange-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-orange-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full mb-2"
+                      style={{ backgroundColor: '#f97316' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Orange</span>
+                  </button>
+
+                  {/* Dark Minimal Preset */}
+                  <button
+                    onClick={() => handleStyleChange({
+                      backgroundColor: '#374151',
+                      borderRadius: 8,
+                      opacity: 0.8
+                    })}
+                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
+                      selectedElement.style?.backgroundColor === '#374151' 
+                        ? 'border-gray-500 bg-gray-500/20 scale-105' 
+                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-gray-500 active:scale-95'
+                    }`}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded mb-2"
+                      style={{ backgroundColor: '#374151' }}
+                    />
+                    <span className="text-sm text-slate-300 font-medium">Minimal</span>
+                  </button>
+                </div>
+                
+                {/* Size Selector */}
+                <div className="mt-6">
+                  <div className="text-sm text-slate-400 mb-4">
+                    Hotspot Size
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {hotspotSizePresets.map((sizePreset) => {
+                      const currentSize = selectedElement.content?.customProperties?.size || 'medium';
+                      const isSelected = currentSize === sizePreset.value;
+                      
+                      return (
+                        <button
+                          key={sizePreset.value}
+                          onClick={() => handleSizeChange(sizePreset.value)}
+                          className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 border-2 min-h-[60px] ${
+                            isSelected 
+                              ? 'border-purple-500 bg-purple-500/20 scale-105' 
+                              : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-slate-500 active:scale-95'
+                          }`}
+                          style={{ touchAction: 'manipulation' }}
+                          title={sizePreset.description}
+                        >
+                          <div 
+                            className={`rounded-full bg-blue-500 mb-2 ${
+                              sizePreset.value === 'x-small' ? 'w-3 h-3' :
+                              sizePreset.value === 'small' ? 'w-4 h-4' :
+                              sizePreset.value === 'medium' ? 'w-5 h-5' :
+                              'w-6 h-6'
+                            }`}
+                          />
+                          <span className={`text-xs font-medium ${
+                            isSelected ? 'text-purple-300' : 'text-slate-300'
+                          }`}>
+                            {sizePreset.value === 'x-small' ? 'XS' :
+                             sizePreset.value === 'small' ? 'S' :
+                             sizePreset.value === 'medium' ? 'M' : 'L'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Opacity Control */}
+                <div className="mt-6">
+                  <div className="text-sm text-slate-400 mb-3">
+                    Opacity
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={selectedElement.style?.opacity || 0.9}
+                      onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
+                      className="flex-1 h-2"
+                      style={{ touchAction: 'manipulation' }}
+                    />
+                    <span className="text-sm text-slate-400 w-12 text-right font-medium">
+                      {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Style Section - Non-hotspot Elements Only */}
+          {selectedElement.type !== 'hotspot' && (
+            <CollapsibleSection
+              title="Style"
+              isOpen={openSections.style}
+              onToggle={() => toggleSection('style')}
+            >
+              <div className="space-y-4">
+                {/* Background Color */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-3">
+                    Background Color
+                  </label>
+                  <LiquidColorSelector
+                    selectedColor={selectedElement.style?.backgroundColor || '#3b82f6'}
+                    onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
+                    isMobile={true}
+                    size="medium"
+                    showLiquidAnimation={true}
                   />
                   <input
                     type="text"
                     value={selectedElement.style?.backgroundColor || '#3b82f6'}
                     onChange={(e) => handleStyleChange({ backgroundColor: e.target.value })}
-                    className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+                    className="mt-3 w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                     placeholder="#3b82f6"
                   />
                 </div>
-              </div>
 
-              {/* Border Radius */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Border Radius
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="50"
-                    value={selectedElement.style?.borderRadius || 8}
-                    onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
-                    className="flex-1"
-                  />
-                  <span className="text-sm text-slate-400 w-12 text-right">
-                    {selectedElement.style?.borderRadius || 8}px
-                  </span>
-                </div>
-              </div>
-
-              {/* Opacity */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Opacity
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={selectedElement.style?.opacity || 0.9}
-                    onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
-                    className="flex-1"
-                  />
-                  <span className="text-sm text-slate-400 w-12 text-right">
-                    {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CollapsibleSection>
-
-          {/* Element Content Section */}
-          <CollapsibleSection
-            title="Content"
-            isOpen={openSections.content}
-            onToggle={() => toggleSection('content')}
-          >
-            <div className="space-y-4">
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={selectedElement.content?.title || ''}
-                  onChange={(e) => handleContentChange({ title: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-                  placeholder="Element title"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={selectedElement.content?.description || ''}
-                  onChange={(e) => handleContentChange({ description: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white resize-none"
-                  placeholder="Element description"
-                  rows={3}
-                />
-              </div>
-
-              {/* Media URL (for media elements) */}
-              {selectedElement.type === 'media' && (
+                {/* Border Radius */}
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Media URL
+                    Border Radius
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={selectedElement.style?.borderRadius || 8}
+                      onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
+                      className="flex-1 h-2"
+                      style={{ touchAction: 'manipulation' }}
+                    />
+                    <span className="text-sm text-slate-400 w-12 text-right">
+                      {selectedElement.style?.borderRadius || 8}px
+                    </span>
+                  </div>
+                </div>
+
+                {/* Opacity */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Opacity
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={selectedElement.style?.opacity || 0.9}
+                      onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
+                      className="flex-1 h-2"
+                      style={{ touchAction: 'manipulation' }}
+                    />
+                    <span className="text-sm text-slate-400 w-12 text-right">
+                      {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Content Section - Non-hotspot Elements Only */}
+          {selectedElement.type !== 'hotspot' && (
+            <CollapsibleSection
+              title="Content"
+              isOpen={openSections.content}
+              onToggle={() => toggleSection('content')}
+            >
+              <div className="space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Title
                   </label>
                   <input
-                    type="url"
-                    value={selectedElement.content?.mediaUrl || ''}
-                    onChange={(e) => handleContentChange({ mediaUrl: e.target.value })}
+                    type="text"
+                    value={selectedElement.content?.title || ''}
+                    onChange={(e) => handleContentChange({ title: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-                    placeholder="https://example.com/media.jpg"
+                    placeholder="Element title"
                   />
                 </div>
-              )}
-            </div>
-          </CollapsibleSection>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={selectedElement.content?.description || ''}
+                    onChange={(e) => handleContentChange({ description: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white resize-none"
+                    placeholder="Element description"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Media URL (for media elements) */}
+                {selectedElement.type === 'media' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Media URL
+                    </label>
+                    <input
+                      type="url"
+                      value={selectedElement.content?.mediaUrl || ''}
+                      onChange={(e) => handleContentChange({ mediaUrl: e.target.value })}
+                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+                      placeholder="https://example.com/media.jpg"
+                    />
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
+          )}
 
           {/* Position Section */}
           <CollapsibleSection
-            title={`Position (${deviceType})`}
+            title={selectedElement.type === 'hotspot' ? `Position & Size (${deviceType})` : `Position (${deviceType})`}
             isOpen={openSections.position}
             onToggle={() => toggleSection('position')}
           >
