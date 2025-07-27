@@ -272,7 +272,19 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
 
   describe('Error Handling and Edge Cases', () => {
     test('handles element with missing properties gracefully', () => {
-      const minimalElement = { id: 'elem2', type: 'hotspot', position: { desktop: {}, mobile: {}, tablet: {} }, content: {}, style: {}, interactions: [] };
+      const minimalElement = { 
+        id: 'elem2', 
+        type: 'hotspot', 
+        position: { 
+          desktop: { x: 0, y: 0, width: 10, height: 10 }, 
+          mobile: { x: 0, y: 0, width: 10, height: 10 }, 
+          tablet: { x: 0, y: 0, width: 10, height: 10 } 
+        }, 
+        content: {}, 
+        style: {}, 
+        interactions: [], 
+        isVisible: true 
+      };
       render(<EnhancedPropertiesPanel {...defaultProps} selectedElement={minimalElement} />);
 
       expect(screen.getByText('Properties - Hotspot Element')).toBeInTheDocument();

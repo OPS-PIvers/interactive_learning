@@ -16,6 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
 import { firebaseManager } from './firebaseConfig'
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
+import { SlideDeck } from '../shared/slideTypes'
 import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
 import { generateThumbnail } from '../client/utils/imageUtils'
@@ -1162,7 +1163,7 @@ export class FirebaseProjectAPI {
     }
   }
 
-  async saveSlideDeck(userId: string, slideDeck: any): Promise<void> {
+  async saveSlideDeck(userId: string, slideDeck: SlideDeck): Promise<void> {
     if (!userId || !slideDeck || !slideDeck.id) {
       throw new Error("Invalid input for saving slide deck.");
     }
@@ -1187,7 +1188,7 @@ export class FirebaseProjectAPI {
     });
   }
 
-  async loadSlideDeck(userId: string, projectId: string): Promise<any> {
+  async loadSlideDeck(userId: string, projectId: string): Promise<SlideDeck | null> {
     if (!userId || !projectId) {
       throw new Error("Invalid input for loading slide deck.");
     }
