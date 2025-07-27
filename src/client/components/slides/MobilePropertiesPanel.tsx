@@ -29,6 +29,10 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   <div className="border-b border-slate-600 last:border-b-0">
     <button
       onClick={onToggle}
+      onTouchStart={(e) => {
+        // Prevent modal touch isolation from interfering
+        e.stopPropagation();
+      }}
       className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-700/50 transition-colors"
       aria-expanded={isOpen}
     >
@@ -256,14 +260,14 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
       onTouchStart={(e) => {
-        // Prevent touch events from bubbling to underlying slide editor
+        // Only prevent events if touching the modal backdrop directly
         if (e.target === e.currentTarget) {
           e.preventDefault();
           e.stopPropagation();
         }
       }}
       onTouchMove={(e) => {
-        // Prevent touch events from bubbling to underlying slide editor
+        // Only prevent events if touching the modal backdrop directly
         if (e.target === e.currentTarget) {
           e.preventDefault();
           e.stopPropagation();
@@ -288,6 +292,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
           </div>
           <button
             onClick={onClose}
+            onTouchStart={(e) => e.stopPropagation()}
             className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors text-lg"
             aria-label="Close properties"
           >
@@ -500,19 +505,31 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
         </div>
         
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-700 flex gap-3">
-          <button
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-lg"
-            onClick={onDelete}
-          >
-            Delete Element
-          </button>
-          <button
-            className="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-lg"
-            onClick={onClose}
-          >
-            Done
-          </button>
+        <div className="p-4 border-t border-slate-700 space-y-3">
+          {/* Save confirmation message */}
+          <div className="text-center">
+            <p className="text-sm text-green-400 font-medium">
+              ✓ Changes saved automatically
+            </p>
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <button
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-lg"
+              onClick={onDelete}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              Delete Element
+            </button>
+            <button
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-lg"
+              onClick={onClose}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              Done
+            </button>
+          </div>
         </div>
       </div>
     </div>
