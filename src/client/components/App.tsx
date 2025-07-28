@@ -182,7 +182,27 @@ const MainApp: React.FC = () => {
       // Set project type to 'slide' for new projects (this is the slides-based app)
       const projectWithSlideType = {
         ...newProject,
-        projectType: 'slide' as const
+        projectType: 'slide' as const,
+        slideDeck: {
+          id: newProject.id,
+          title: newProject.title,
+          slides: [],
+          settings: {
+            autoAdvance: false,
+            allowNavigation: true,
+            showProgress: true,
+            showControls: true,
+            keyboardShortcuts: true,
+            touchGestures: true,
+            fullscreenMode: false,
+          },
+          metadata: {
+            created: Date.now(),
+            modified: Date.now(),
+            version: '1.0',
+            isPublic: false,
+          },
+        },
       };
 
       // If demo data is provided, save it with the project
