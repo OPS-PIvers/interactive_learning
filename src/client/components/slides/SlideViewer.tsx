@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SlideDeck, InteractiveSlide, SlideViewerState, DeviceType, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
@@ -16,6 +16,13 @@ interface SlideViewerProps {
   className?: string;
   showTimeline?: boolean;
   timelineAutoPlay?: boolean;
+}
+
+// Interface for SlideViewer imperative methods
+export interface SlideViewerRef {
+  triggerEffect: (effect: SlideEffect) => void;
+  clearEffect: (effectId: string) => void;
+  navigateToSlide: (slideId: string) => void;
 }
 
 /**
