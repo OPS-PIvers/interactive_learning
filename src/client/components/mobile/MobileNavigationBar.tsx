@@ -184,7 +184,10 @@ export const MobileNavigationBar: React.FC<MobileNavigationBarProps> = (props) =
   } = props;
 
   return (
-    <nav className="flex-shrink-0 bg-slate-800 border-b border-slate-700 p-4" aria-label="Mobile editor navigation">
+    <nav
+      className="flex-shrink-0 bg-slate-800 border-b border-slate-700 p-4 mobile-navigation-bar"
+      aria-label="Mobile editor navigation"
+    >
       <div className="flex items-center justify-between">
         {/* Back Button */}
         <button
