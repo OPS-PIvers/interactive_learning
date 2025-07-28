@@ -591,6 +591,10 @@ export class FirebaseProjectAPI {
 
       const transactionStartTime = Date.now();
       
+      // Variables to track orphaned refs for cleanup metrics
+      let orphanedHotspotRefs: any[] = [];
+      let orphanedEventRefs: any[] = [];
+      
       await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
@@ -705,11 +709,11 @@ export class FirebaseProjectAPI {
         ]);
         
         // Step 2: Identify orphaned documents that need cleanup
-        const orphanedHotspotRefs = existingHotspotsSnap.docs
+        orphanedHotspotRefs = existingHotspotsSnap.docs
           .filter(doc => !currentHotspotIds.has(doc.id))
           .map(doc => doc.ref);
           
-        const orphanedEventRefs = existingEventsSnap.docs
+        orphanedEventRefs = existingEventsSnap.docs
           .filter(doc => !currentEventIds.has(doc.id))
           .map(doc => doc.ref);
         

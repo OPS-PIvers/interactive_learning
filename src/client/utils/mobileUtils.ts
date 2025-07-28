@@ -14,17 +14,19 @@ export const isMobileDevice = () => {
   
   const result = isNarrowViewport || isMobileUserAgent || isTablet;
   
-  // Debug logging for production troubleshooting
-  console.log('🔍 MOBILE DETECTION:', {
-    result,
-    viewport: { width: window.innerWidth, height: window.innerHeight },
-    isNarrowViewport,
-    isMobileUserAgent,
-    isTablet,
-    userAgent: navigator.userAgent,
-    maxTouchPoints: navigator.maxTouchPoints,
-    timestamp: new Date().toISOString()
-  });
+  // Debug logging only in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 MOBILE DETECTION:', {
+      result,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      isNarrowViewport,
+      isMobileUserAgent,
+      isTablet,
+      userAgent: navigator.userAgent,
+      maxTouchPoints: navigator.maxTouchPoints,
+      timestamp: new Date().toISOString()
+    });
+  }
   
   return result;
 };
