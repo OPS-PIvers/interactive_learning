@@ -411,48 +411,20 @@
     background: #0f172a;
   }
 
+  /* Mobile bottom toolbar - styles moved to component for better control */
   .mobile-bottom-toolbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #1e293b;
-    border-top: 1px solid #334155;
-    padding: 8px 16px;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-    z-index: var(--z-index-toolbar);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 12px;
-    height: var(--mobile-bottom-toolbar-height, 56px);
-    min-height: var(--mobile-bottom-toolbar-height, 56px);
-    box-sizing: border-box;
+    /* Base styles are now handled inline in MobileEditorToolbar component */
+    /* Keep only essential CSS custom properties here */
   }
 
-  .mobile-bottom-toolbar button {
-    background: #334155;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    min-height: 36px;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* Enhanced toolbar button interactions */
+  .mobile-toolbar-button:hover:not(:disabled) {
+    background: #475569 !important;
   }
 
-  .mobile-bottom-toolbar button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .mobile-bottom-toolbar button:hover:not(:disabled) {
-    background: #475569;
+  .mobile-toolbar-button:active:not(:disabled) {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
   }
 
   /* Mobile navigation bar (top toolbar) */
@@ -501,6 +473,41 @@
     
     /* Ensure content fits within bounds */
     box-sizing: border-box;
+  }
+
+  /* Mobile slide editor viewport styles */
+  .mobile-slide-viewport {
+    /* Optimize for pan/zoom performance */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    
+    /* Smooth touch interactions */
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-slide-canvas-container {
+    /* GPU acceleration for smooth transforms */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    
+    /* Optimize rendering */
+    contain: layout style paint;
+    
+    /* Prepare for zoom transforms */
+    transform-style: preserve-3d;
+  }
+
+  .mobile-slide-canvas {
+    /* Ensure proper touch target sizes are maintained */
+    min-height: 100%;
+    min-width: 100%;
+    
+    /* Optimize for touch interactions */
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
   
   /* Mobile canvas content constraints */

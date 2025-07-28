@@ -305,11 +305,15 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       <div 
         className="flex-1 relative bg-slate-800 min-h-0 flex items-center justify-center"
         style={{
-          /* Let flexbox handle the height calculation automatically */
-          /* The flex-1 class will take remaining space after header */
+          /* Calculate proper height excluding header and toolbar */
           minHeight: 0,
-          /* Only add bottom padding to prevent content being hidden behind toolbar */
-          paddingBottom: 'calc(var(--mobile-bottom-toolbar-height, 56px) + env(safe-area-inset-bottom, 0px))'
+          /* Account for fixed toolbar height to prevent content overlap */
+          marginBottom: 'calc(var(--mobile-bottom-toolbar-height, 56px) + env(safe-area-inset-bottom, 0px))',
+          /* Ensure content area is properly constrained */
+          maxHeight: 'calc(100dvh - var(--mobile-header-height, 80px) - var(--mobile-bottom-toolbar-height, 56px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+          /* Fallback for browsers without dvh support */
+          maxHeight: 'calc(100vh - 136px)', // 80px header + 56px toolbar
+          overflow: 'hidden'
         }}
       >
         <div 
@@ -317,12 +321,17 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           style={{
             /* Safe area padding for content */
             paddingLeft: 'env(safe-area-inset-left, 0px)',
-            paddingRight: 'env(safe-area-inset-right, 0px)'
+            paddingRight: 'env(safe-area-inset-right, 0px)',
+            /* Ensure container fits properly within bounds */
+            maxWidth: '100%',
+            maxHeight: '100%'
           }}
         >
           {children}
         </div>
       </div>
+      
+      {/* Fixed Toolbar - positioned outside flex layout */}
       <MobileEditorToolbar
         onAddHotspot={onAddHotspot}
         isPlacingHotspot={isPlacingHotspot}

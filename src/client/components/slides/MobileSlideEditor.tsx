@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType } from '../../../shared/slideTypes';
 import { SlideEditor } from './SlideEditor';
+import { useTouchGestures } from '../../hooks/useTouchGestures';
+import { ImageTransformState } from '../../../shared/types';
 
 interface MobileSlideEditorProps {
   slideDeck: SlideDeck;
@@ -28,10 +30,70 @@ interface MobileSlideEditorProps {
 export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const slideAreaRef = useRef<HTMLDivElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [isLandscape] = useState(window.innerWidth > window.innerHeight);
 
-  // Remove problematic touch handling that was intercepting hotspot touches
-  // The SlideEditor component handles touch interactions directly on elements
+  // Pan/zoom transform state
+  const [canvasTransform, setCanvasTransform] = useState<ImageTransformState>({
+    scale: 1,
+    translateX: 0,
+    translateY: 0
+  });
+  const [isTransforming, setIsTransforming] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Touch gesture handling for pan/zoom scroll
+  const touchHandlers = useTouchGestures(
+    slideAreaRef,
+    canvasTransform,
+    setCanvasTransform,
+    setIsTransforming,
+    {
+      minScale: 0.5,
+      maxScale: 3,
+      doubleTapZoomFactor: 2,
+      isDragging,
+      isEditing,
+      isDragActive: isDragging
+    }
+  );
+
+  // Handle element interactions
+  const handleElementSelect = useCallback((elementId: string | null) => {
+    setIsEditing(!!elementId);
+    if (props.onElementSelect) {
+      props.onElementSelect(elementId);
+    }
+  }, [props]);
+
+  const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
+    if (props.onElementUpdate) {
+      props.onElementUpdate(elementId, updates);
+    }
+  }, [props]);
+
+  // Detect when element dragging starts/stops to coordinate with pan/zoom
+  useEffect(() => {
+    const detectDragStart = (e: CustomEvent) => {
+      setIsDragging(true);
+      touchHandlers.setEventActive(true);
+    };
+
+    const detectDragEnd = (e: CustomEvent) => {
+      setIsDragging(false);
+      touchHandlers.setEventActive(false);
+    };
+
+    // Listen for custom events from slide elements
+    document.addEventListener('slideElementDragStart', detectDragStart);
+    document.addEventListener('slideElementDragEnd', detectDragEnd);
+
+    return () => {
+      document.removeEventListener('slideElementDragStart', detectDragStart);
+      document.removeEventListener('slideElementDragEnd', detectDragEnd);
+    };
+  }, [touchHandlers]);
 
   // Prevent page scrolling within editor bounds, but allow hotspot interactions
   useEffect(() => {
@@ -66,52 +128,79 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
       ref={containerRef}
       className={`mobile-slide-editor mobile-viewport-manager ${props.className || ''}`}
       style={{
-        /* iOS Safari viewport handling */
-        height: '100dvh',
-        maxHeight: '100dvh',
-        /* Fallback for browsers without dvh support and webkit-fill-available */
-        minHeight: '-webkit-fill-available',
-        /* Safe area awareness */
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        paddingLeft: 'env(safe-area-inset-left, 0px)',
-        paddingRight: 'env(safe-area-inset-right, 0px)',
-        /* Prevent content from extending into notch/home indicator areas */
-        boxSizing: 'border-box',
+        /* Use full available space within parent layout */
+        width: '100%',
+        height: '100%',
+        maxWidth: '100%',
+        maxHeight: '100%',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxSizing: 'border-box'
       }}
     >
-      {/* Main slide area with proper containment */}
+      {/* Slide viewport container - pan/zoom enabled */}
       <div 
         ref={slideAreaRef}
-        className="mobile-slide-area mobile-viewport-content"
+        className="mobile-slide-viewport"
         style={{
-          /* Dynamic height calculation for content area */
-          height: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
-          /* Fallback */
-          minHeight: 'calc(100vh - 88px)', // Account for typical iOS safe areas
+          /* Take full container space */
           width: '100%',
+          height: '100%',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          background: '#1e293b',
+          /* Touch handling for pan/zoom gestures */
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
         }}
+        // Touch gesture event handlers
+        onTouchStart={touchHandlers.handleTouchStart}
+        onTouchMove={touchHandlers.handleTouchMove}
+        onTouchEnd={touchHandlers.handleTouchEnd}
       >
+        {/* Pan/zoom canvas container */}
         <div 
-          className="mobile-slide-canvas touch-container"
+          ref={canvasContainerRef}
+          className="mobile-slide-canvas-container"
           style={{
-            /* Ensure canvas stays within safe boundaries */
-            height: '100%',
+            /* Full viewport */
             width: '100%',
-            maxHeight: '100%',
-            maxWidth: '100%',
+            height: '100%',
             position: 'relative',
-            overflow: 'hidden'
+            /* Apply pan/zoom transforms */
+            transform: `translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px) scale(${canvasTransform.scale})`,
+            transformOrigin: '0 0',
+            /* Optimize for transform performance */
+            willChange: isTransforming ? 'transform' : 'auto',
+            /* Enable GPU acceleration */
+            backfaceVisibility: 'hidden',
+            /* Smooth transforms when not actively gesturing */
+            transition: isTransforming ? 'none' : 'transform 0.2s ease-out'
           }}
         >
-          <SlideEditor
-            {...props}
-            className="h-full w-full mobile-editor-canvas"
-          />
+          {/* Actual slide canvas - this will contain the slide content */}
+          <div 
+            className="mobile-slide-canvas touch-container"
+            style={{
+              /* Canvas sizing - maintain aspect ratio during zoom */
+              width: '100%',
+              height: '100%',
+              minWidth: '100%',
+              minHeight: '100%',
+              position: 'relative',
+              /* Enable content overflow for zoom */
+              overflow: 'visible'
+            }}
+          >
+            <SlideEditor
+              {...props}
+              className="h-full w-full mobile-editor-canvas"
+              selectedElementId={props.selectedElementId}
+              onElementSelect={handleElementSelect}
+              onElementUpdate={handleElementUpdate}
+            />
+          </div>
         </div>
       </div>
     </div>
