@@ -521,7 +521,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
+    <div className="h-screen bg-gray-50 overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       <main>
         <MainApp />
       </main>

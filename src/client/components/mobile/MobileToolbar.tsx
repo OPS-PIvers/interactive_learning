@@ -68,27 +68,39 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
     <div
       className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
       style={{
-        /* Ensure fixed positioning over content */
+        /* FORCE fixed positioning over all content with !important level specificity */
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        /* Background and styling */
+        bottom: isTimelineVisible ? '64px' : '0px',
+        left: '0px',
+        right: '0px',
+        width: '100vw',
+        zIndex: 999, // Increased z-index to ensure it's above everything
+        /* Strong background to ensure visibility */
         background: '#1e293b',
         borderTop: '1px solid #334155',
+        boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(8px)',
         /* Responsive padding with safe area awareness */
         padding: '12px 16px',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-        /* Layout */
-        display: 'flex',
+        /* Layout - force flex display */
+        display: 'flex !important' as any,
         alignItems: 'center',
         justifyContent: 'center',
         gap: '16px',
-        /* Height management */
-        height: 'var(--mobile-bottom-toolbar-height, 56px)',
-        minHeight: 'var(--mobile-bottom-toolbar-height, 56px)',
-        boxSizing: 'border-box'
+        flexDirection: 'row' as const,
+        /* Height management - use explicit px values as fallback */
+        height: '56px',
+        minHeight: '56px',
+        maxHeight: '56px',
+        boxSizing: 'border-box',
+        /* Ensure visibility */
+        visibility: 'visible',
+        opacity: 1,
+        /* Prevent any transforms that might hide it */
+        transform: 'none',
+        /* Ensure it's not being clipped */
+        overflow: 'visible'
       }}
     >
       {menuItems.map((item) => (
