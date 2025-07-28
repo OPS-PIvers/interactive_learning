@@ -281,7 +281,7 @@ export const HotspotFeedbackAnimation: React.FC<HotspotFeedbackAnimationProps> =
         }
 
         /* Liquid Animations */
-        @keyframes liquid-splash {
+        @keyframes hotspotLiquidSplash {
           0% {
             transform: translate(-50%, -50%) scale(0) rotate(0deg);
             opacity: 1;
@@ -310,7 +310,7 @@ export const HotspotFeedbackAnimation: React.FC<HotspotFeedbackAnimationProps> =
           }
         }
 
-        @keyframes liquid-core {
+        @keyframes hotspotLiquidCore {
           0% {
             transform: translate(-50%, -50%) scale(0);
             opacity: 1;
@@ -351,7 +351,7 @@ export const HotspotFeedbackAnimation: React.FC<HotspotFeedbackAnimationProps> =
         }
 
         .animate-liquid-splash {
-          animation: liquid-splash 0.8s ease-out forwards;
+          animation: hotspotLiquidSplash 0.8s ease-out forwards;
         }
 
         .animate-droplet {
@@ -359,7 +359,7 @@ export const HotspotFeedbackAnimation: React.FC<HotspotFeedbackAnimationProps> =
         }
 
         .animate-liquid-core {
-          animation: liquid-core 0.8s ease-out forwards;
+          animation: hotspotLiquidCore 0.8s ease-out forwards;
         }
       `}</style>
     </div>

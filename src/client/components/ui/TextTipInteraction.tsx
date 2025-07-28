@@ -181,7 +181,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
             className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden"
             style={{
               background: `conic-gradient(from 0deg, transparent, ${theme === 'dark' ? '#8b5cf6' : '#3b82f6'}40, transparent)`,
-              animation: isAnimating ? 'liquid-border 3s ease-in-out infinite' : 'none',
+              animation: isAnimating ? 'textTipLiquidBorder 3s ease-in-out infinite' : 'none',
               mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
               maskComposite: 'xor',
               WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
@@ -267,7 +267,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       </div>
 
       <style jsx>{`
-        @keyframes liquid-border {
+        @keyframes textTipLiquidBorder {
           0%, 100% {
             transform: rotate(0deg);
             opacity: 0.6;

@@ -1,0 +1,309 @@
+/* LiquidColorSelector - Dedicated CSS Module */
+/* Prevents conflicts with other liquid animation systems */
+
+.liquidColorSelector {
+  position: relative;
+  z-index: 10;
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 16px;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.colorOption {
+  position: relative;
+}
+
+.colorButton {
+  position: relative;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  backface-visibility: hidden;
+  cursor: pointer;
+  outline: none;
+  background-clip: padding-box;
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.colorButton:hover {
+  box-shadow: 
+    0 10px 35px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: scale(1.12) translateY(-2px);
+}
+
+.colorButton:focus {
+  outline: none;
+  box-shadow: 
+    0 0 0 4px rgba(255, 255, 255, 0.6), 
+    0 10px 35px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: scale(1.12) translateY(-2px);
+}
+
+.colorButton.selected {
+  transform: scale(1.18) translateY(-3px);
+  box-shadow: 
+    0 0 0 4px rgba(255, 255, 255, 0.9), 
+    0 0 0 8px rgba(139, 92, 246, 0.3),
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  z-index: 20;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.colorButton.hovered {
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Size variants - made larger and more prominent */
+.small {
+  width: 40px;
+  height: 40px;
+}
+
+.medium {
+  width: 52px;
+  height: 52px;
+}
+
+.large {
+  width: 64px;
+  height: 64px;
+}
+
+/* Inner glow effect */
+.innerGlow {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  pointer-events: none;
+}
+
+.colorButton:hover .innerGlow {
+  opacity: 1;
+}
+
+/* Selection indicator */
+.selectionIndicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.checkmark {
+  width: 22px;
+  height: 22px;
+  color: white;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
+  animation: colorSelectorScaleIn 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  stroke-width: 3;
+}
+
+/* Liquid selection animation - namespaced to avoid conflicts */
+.liquidSelection {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: colorSelectorPulse 2s ease-in-out infinite;
+  transform: scale(1.2);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Liquid border animation - namespaced */
+.liquidBorder {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 3px;
+  animation: colorSelectorLiquidFlow 2s ease-in-out infinite;
+  pointer-events: none;
+  mask: radial-gradient(circle, transparent 60%, black 62%);
+  -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
+  z-index: 15;
+}
+
+.liquidBorderInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--bg-primary, #0f172a);
+}
+
+/* Hover glow effect - namespaced */
+.hoverGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform: scale(1.5);
+  filter: blur(8px);
+  animation: colorSelectorGlow 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -2;
+}
+
+/* Ripple effect container */
+.rippleContainer {
+  position: absolute;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.ripple {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: colorSelectorRipple 600ms ease-out forwards;
+}
+
+/* Namespaced keyframe animations to prevent conflicts */
+@keyframes colorSelectorLiquidFlow {
+  0%, 100% { 
+    transform: rotate(0deg) scale(1); 
+    opacity: 0.8;
+  }
+  50% { 
+    transform: rotate(180deg) scale(1.05); 
+    opacity: 1;
+  }
+}
+
+@keyframes colorSelectorRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(8);
+    opacity: 0;
+  }
+}
+
+@keyframes colorSelectorGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1.5);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes colorSelectorScaleIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes colorSelectorPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.3);
+  }
+}
+
+/* Mobile optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .colorGrid {
+    gap: 24px;
+    padding: 16px;
+  }
+  
+  .colorButton {
+    /* Larger touch targets on mobile */
+    min-width: 56px;
+    min-height: 56px;
+  }
+  
+  .colorButton:hover {
+    /* Disable hover effects on touch devices */
+    transform: none;
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  .colorButton:active {
+    /* Enhanced active state feedback on mobile */
+    transform: scale(0.92) translateY(1px);
+    transition: transform 120ms ease-out;
+    box-shadow: 
+      0 3px 10px rgba(0, 0, 0, 0.5),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .colorButton.selected:active {
+    transform: scale(1.1) translateY(-1px);
+  }
+  
+  .innerGlow {
+    /* Disable hover glow on mobile */
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .colorButton {
+    border: 3px solid white;
+  }
+  
+  .colorButton.selected {
+    box-shadow: 0 0 0 5px white, 0 8px 25px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .colorButton,
+  .innerGlow,
+  .liquidSelection,
+  .liquidBorder,
+  .hoverGlow,
+  .ripple {
+    animation: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+  
+  .colorButton:hover {
+    transform: none;
+  }
+  
+  .colorButton.selected {
+    transform: none;
+  }
+}

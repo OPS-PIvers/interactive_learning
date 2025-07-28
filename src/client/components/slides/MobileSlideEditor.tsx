@@ -3,6 +3,7 @@ import { SlideDeck, InteractiveSlide, SlideElement, DeviceType } from '../../../
 import { SlideEditor } from './SlideEditor';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
 import { ImageTransformState } from '../../../shared/types';
+import { ViewportBounds } from '../../utils/touchUtils';
 
 interface MobileSlideEditorProps {
   slideDeck: SlideDeck;
@@ -42,6 +43,52 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
   const [isTransforming, setIsTransforming] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>(undefined);
+
+  // Calculate viewport bounds for touch gesture constraints
+  const calculateViewportBounds = useCallback((): ViewportBounds | undefined => {
+    const slideArea = slideAreaRef.current;
+    const canvasContainer = canvasContainerRef.current;
+    
+    if (!slideArea || !canvasContainer) {
+      return undefined;
+    }
+    
+    const slideAreaRect = slideArea.getBoundingClientRect();
+    const canvasRect = canvasContainer.getBoundingClientRect();
+    
+    return {
+      width: slideAreaRect.width,
+      height: slideAreaRect.height,
+      contentWidth: canvasRect.width / canvasTransform.scale, // Original content size
+      contentHeight: canvasRect.height / canvasTransform.scale
+    };
+  }, [canvasTransform.scale]);
+
+  // Update viewport bounds when layout changes
+  useEffect(() => {
+    const updateBounds = () => {
+      const bounds = calculateViewportBounds();
+      setViewportBounds(bounds);
+    };
+
+    // Initial calculation
+    updateBounds();
+
+    // Update on resize and orientation change
+    const handleResize = () => {
+      // Delay to allow layout to settle
+      setTimeout(updateBounds, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [calculateViewportBounds]);
 
   // Touch gesture handling for pan/zoom scroll
   const touchHandlers = useTouchGestures(
@@ -55,7 +102,8 @@ export const MobileSlideEditor: React.FC<MobileSlideEditorProps> = (props) => {
       doubleTapZoomFactor: 2,
       isDragging,
       isEditing,
-      isDragActive: isDragging
+      isDragActive: isDragging,
+      viewportBounds
     }
   );
 

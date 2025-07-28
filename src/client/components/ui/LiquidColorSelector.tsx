@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import styles from './LiquidColorSelector.module.css';
 
 interface ColorOption {
   id: string;
@@ -45,10 +46,13 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
     { id: 'teal', color: '#14b8a6', label: 'Teal', gradient: 'from-teal-500 to-teal-600' }
   ];
 
-  const sizeClasses = {
-    small: 'w-8 h-8',
-    medium: 'w-10 h-10',
-    large: 'w-12 h-12'
+  const getSizeClass = (sizeType: string) => {
+    switch (sizeType) {
+      case 'small': return styles.small;
+      case 'medium': return styles.medium;
+      case 'large': return styles.large;
+      default: return styles.medium;
+    }
   };
 
   const handleColorSelect = useCallback((colorOption: ColorOption, event: React.MouseEvent | React.TouchEvent) => {
@@ -70,38 +74,30 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
   }, [onColorChange, showLiquidAnimation]);
 
   return (
-    <div className="liquid-color-selector">
-      <div className="grid grid-cols-4 gap-3 p-1">
+    <div className={styles.liquidColorSelector}>
+      <div className={styles.colorGrid}>
         {defaultColors.map((colorOption) => {
           const isSelected = selectedColor === colorOption.color;
           const isHovered = hoveredColor === colorOption.id;
           
           return (
-            <div key={colorOption.id} className="relative">
+            <div key={colorOption.id} className={styles.colorOption}>
               {/* Main color button */}
               <button
                 onClick={(e) => handleColorSelect(colorOption, e)}
                 onMouseEnter={() => setHoveredColor(colorOption.id)}
                 onMouseLeave={() => setHoveredColor(null)}
                 className={`
-                  relative
-                  ${sizeClasses[size]}
-                  rounded-full
-                  border-2 border-white/20
-                  shadow-lg hover:shadow-xl
-                  transition-all duration-300 ease-out
-                  transform hover:scale-110
-                  focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-slate-800
-                  group
-                  ${isSelected ? 'scale-110 ring-2 ring-white/80 ring-offset-2 ring-offset-slate-800' : ''}
-                  ${isHovered ? 'shadow-2xl' : ''}
+                  ${styles.colorButton}
+                  ${getSizeClass(size)}
+                  ${isSelected ? styles.selected : ''}
+                  ${isHovered ? styles.hovered : ''}
                 `}
                 style={{
                   backgroundColor: colorOption.color,
                   backgroundImage: colorOption.gradient 
                     ? `linear-gradient(135deg, ${colorOption.color}, ${colorOption.color}dd)`
-                    : undefined,
-                  willChange: 'transform, box-shadow'
+                    : undefined
                 }}
                 title={colorOption.label}
                 aria-label={`Select ${colorOption.label} color`}
@@ -109,29 +105,21 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 {/* Liquid selection indicator */}
                 {isSelected && showLiquidAnimation && (
                   <div 
-                    className="absolute inset-0 rounded-full animate-pulse"
+                    className={styles.liquidSelection}
                     style={{
-                      background: `radial-gradient(circle, ${colorOption.color}40 0%, ${colorOption.color}20 50%, transparent 100%)`,
-                      transform: 'scale(1.2)'
+                      background: `radial-gradient(circle, ${colorOption.color}40 0%, ${colorOption.color}20 50%, transparent 100%)`
                     }}
                   />
                 )}
 
                 {/* Inner glow */}
-                <div 
-                  className={`
-                    absolute inset-1 rounded-full
-                    bg-gradient-to-br from-white/30 to-transparent
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-300
-                  `}
-                />
+                <div className={styles.innerGlow} />
 
                 {/* Selection checkmark */}
                 {isSelected && (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className={styles.selectionIndicator}>
                     <svg 
-                      className="w-4 h-4 text-white drop-shadow-lg animate-scale-in" 
+                      className={styles.checkmark}
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -149,7 +137,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 {/* Ripple effect */}
                 {rippleEffect && rippleEffect.id === colorOption.id && (
                   <div 
-                    className="absolute pointer-events-none"
+                    className={styles.rippleContainer}
                     style={{
                       left: rippleEffect.x,
                       top: rippleEffect.y,
@@ -157,7 +145,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                     }}
                   >
                     <div 
-                      className="w-2 h-2 rounded-full animate-ripple"
+                      className={styles.ripple}
                       style={{
                         backgroundColor: `${colorOption.color}60`,
                         boxShadow: `0 0 20px ${colorOption.color}40`
@@ -170,28 +158,21 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
               {/* Liquid border animation */}
               {isSelected && showLiquidAnimation && (
                 <div 
-                  className="absolute inset-0 rounded-full pointer-events-none liquid-border"
+                  className={styles.liquidBorder}
                   style={{
-                    background: `conic-gradient(from 0deg, ${colorOption.color}, transparent, ${colorOption.color})`,
-                    padding: '2px',
-                    animation: 'liquid-flow 2s ease-in-out infinite'
+                    background: `conic-gradient(from 0deg, ${colorOption.color}, transparent, ${colorOption.color})`
                   }}
                 >
-                  <div 
-                    className="w-full h-full rounded-full"
-                    style={{ backgroundColor: 'var(--bg-primary, #0f172a)' }}
-                  />
+                  <div className={styles.liquidBorderInner} />
                 </div>
               )}
 
               {/* Hover glow effect */}
               {isHovered && showLiquidAnimation && (
                 <div 
-                  className="absolute inset-0 rounded-full pointer-events-none animate-glow"
+                  className={styles.hoverGlow}
                   style={{
-                    background: `radial-gradient(circle, ${colorOption.color}30 0%, transparent 70%)`,
-                    transform: 'scale(1.5)',
-                    filter: 'blur(8px)'
+                    background: `radial-gradient(circle, ${colorOption.color}30 0%, transparent 70%)`
                   }}
                 />
               )}
@@ -199,70 +180,6 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
           );
         })}
       </div>
-
-      <style>{`
-        @keyframes liquid-flow {
-          0%, 100% { 
-            transform: rotate(0deg) scale(1); 
-            opacity: 0.8;
-          }
-          50% { 
-            transform: rotate(180deg) scale(1.05); 
-            opacity: 1;
-          }
-        }
-
-        @keyframes ripple {
-          0% {
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 1;
-          }
-          100% {
-            transform: translate(-50%, -50%) scale(8);
-            opacity: 0;
-          }
-        }
-
-        @keyframes glow {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(1.5);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(1.7);
-          }
-        }
-
-        @keyframes scale-in {
-          0% {
-            transform: scale(0);
-          }
-          50% {
-            transform: scale(1.2);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-
-        .animate-ripple {
-          animation: ripple 0.6s ease-out forwards;
-        }
-
-        .animate-glow {
-          animation: glow 2s ease-in-out infinite;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out forwards;
-        }
-
-        .liquid-border {
-          mask: radial-gradient(circle, transparent 60%, black 62%);
-          -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
-        }
-      `}</style>
     </div>
   );
 };

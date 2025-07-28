@@ -1,5 +1,18 @@
 import { ImageTransformState } from '../../shared/types';
 
+// Viewport bounds interface for transform validation
+export interface ViewportBounds {
+  width: number;
+  height: number;
+  contentWidth: number;
+  contentHeight: number;
+}
+
+// Constants for elastic boundary behavior
+export const ELASTIC_MARGIN = 50; // pixels of allowed overflow
+export const ELASTIC_RESISTANCE = 0.3; // reduce overflow movement by 70%
+export const SPRING_BACK_DURATION = 300; // milliseconds for spring-back animation
+
 export const getTouchDistance = (touch1: React.Touch, touch2: React.Touch): number => {
   return Math.hypot(
     touch1.clientX - touch2.clientX,
@@ -14,15 +27,86 @@ export const getTouchCenter = (touch1: React.Touch, touch2: React.Touch): { x: n
 
 export const getValidatedTransform = (
   transform: ImageTransformState,
-  bounds: { minScale: number; maxScale: number }
+  bounds: { minScale: number; maxScale: number },
+  viewportBounds?: ViewportBounds
 ): ImageTransformState => {
   const scale = Math.max(bounds.minScale, Math.min(bounds.maxScale, transform.scale));
-  // Add constraints for translateX and translateY if necessary,
-  // for example, to prevent panning outside of image boundaries.
-  // For now, just validating scale.
+  
+  let translateX = transform.translateX;
+  let translateY = transform.translateY;
+  
+  // Apply viewport bounds constraints if provided
+  if (viewportBounds) {
+    const scaledContentWidth = viewportBounds.contentWidth * scale;
+    const scaledContentHeight = viewportBounds.contentHeight * scale;
+    
+    // Calculate bounds for translation
+    // If content is smaller than viewport, center it
+    if (scaledContentWidth <= viewportBounds.width) {
+      translateX = (viewportBounds.width - scaledContentWidth) / 2;
+    } else {
+      // Content is larger than viewport, allow panning with elastic margins
+      const maxTranslateX = ELASTIC_MARGIN;
+      const minTranslateX = viewportBounds.width - scaledContentWidth - ELASTIC_MARGIN;
+      translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
+    }
+    
+    if (scaledContentHeight <= viewportBounds.height) {
+      translateY = (viewportBounds.height - scaledContentHeight) / 2;
+    } else {
+      // Content is larger than viewport, allow panning with elastic margins
+      const maxTranslateY = ELASTIC_MARGIN;
+      const minTranslateY = viewportBounds.height - scaledContentHeight - ELASTIC_MARGIN;
+      translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
+    }
+  }
+  
   return {
     ...transform,
     scale,
+    translateX,
+    translateY,
+  };
+};
+
+export const getSpringBackTransform = (
+  transform: ImageTransformState,
+  bounds: { minScale: number; maxScale: number },
+  viewportBounds?: ViewportBounds
+): ImageTransformState => {
+  if (!viewportBounds) {
+    return getValidatedTransform(transform, bounds);
+  }
+  
+  const scale = Math.max(bounds.minScale, Math.min(bounds.maxScale, transform.scale));
+  const scaledContentWidth = viewportBounds.contentWidth * scale;
+  const scaledContentHeight = viewportBounds.contentHeight * scale;
+  
+  let translateX = transform.translateX;
+  let translateY = transform.translateY;
+  
+  // Calculate hard bounds for spring-back (no elastic margin)
+  if (scaledContentWidth <= viewportBounds.width) {
+    translateX = (viewportBounds.width - scaledContentWidth) / 2;
+  } else {
+    const maxTranslateX = 0;
+    const minTranslateX = viewportBounds.width - scaledContentWidth;
+    translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
+  }
+  
+  if (scaledContentHeight <= viewportBounds.height) {
+    translateY = (viewportBounds.height - scaledContentHeight) / 2;
+  } else {
+    const maxTranslateY = 0;
+    const minTranslateY = viewportBounds.height - scaledContentHeight;
+    translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
+  }
+  
+  return {
+    ...transform,
+    scale,
+    translateX,
+    translateY,
   };
 };
 

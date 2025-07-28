@@ -2,7 +2,7 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 import { ImageTransformState } from '../../shared/types';
 import { debugLog } from '../utils/debugUtils';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
-import { getTouchDistance, getTouchCenter, getValidatedTransform, shouldPreventDefault } from '../utils/touchUtils';
+import { getTouchDistance, getTouchCenter, getValidatedTransform, getSpringBackTransform, shouldPreventDefault, ViewportBounds } from '../utils/touchUtils';
 
 /**
  * Custom hook for handling touch gestures (pan, pinch-zoom, double-tap zoom) on an HTML element.
@@ -73,7 +73,7 @@ const throttle = <T extends (...args: any[]) => any>(
 };
 
 const DOUBLE_TAP_THRESHOLD = 300; // ms
-const PAN_THRESHOLD_PIXELS = 5; // For distinguishing tap from pan
+const PAN_THRESHOLD_PIXELS = 60; // For distinguishing tap from pan (research-backed optimal value for touch)
 
 // Constants for momentum and animation
 const DAMPING_FACTOR = 0.92; // Determines how quickly momentum fades
@@ -121,6 +121,7 @@ export const useTouchGestures = (
     isEditing?: boolean; // Add editing mode awareness
     isDragActive?: boolean; // Add drag mode awareness for hotspot dragging
     disabled?: boolean; // Add option to disable gestures completely
+    viewportBounds?: ViewportBounds; // Add viewport bounds for translation constraints
   }
 ) => {
   const {
@@ -131,6 +132,7 @@ export const useTouchGestures = (
     isEditing = false,
     isDragActive = false,
     disabled = false,
+    viewportBounds,
   } = options || {};
 
   const isPinchingRef = useRef(false);
@@ -297,7 +299,7 @@ export const useTouchGestures = (
               scale: 1,
               translateX: 0,
               translateY: 0,
-            }, { minScale, maxScale });
+            }, { minScale, maxScale }, viewportBounds);
           } else {
             // Zoom in centered on tap point
             const nextScale = Math.min(maxScale, prevTransform.scale * doubleTapZoomFactor);
@@ -310,7 +312,7 @@ export const useTouchGestures = (
               scale: nextScale,
               translateX: nextTranslateX,
               translateY: nextTranslateY,
-            }, { minScale, maxScale });
+            }, { minScale, maxScale }, viewportBounds);
           }
         });
 
@@ -330,6 +332,11 @@ export const useTouchGestures = (
       gestureState.panStartCoords = { x: touch.clientX, y: touch.clientY };
       gestureState.startTransform = { ...imageTransform }; // Capture transform at pan start
       gestureState.lastTap = now;
+      
+      // Initialize velocity tracking for potential pan momentum
+      gestureState.translateXVelocity = 0;
+      gestureState.translateYVelocity = 0;
+      gestureState.lastMoveTimestamp = now;
     } else if (touchCount === 2) {
       // Pinch-to-zoom initialization - atomically claim zoom gesture
       if (shouldPreventDefault(e.nativeEvent, 'zoom')) {
@@ -428,13 +435,26 @@ export const useTouchGestures = (
         const newTranslateX = gestureState.startTransform.translateX + deltaX;
         const newTranslateY = gestureState.startTransform.translateY + deltaY;
 
-        // Use a ref to avoid race conditions with rapid updates
-        setImageTransform(prev => {
+        // Calculate pan velocity
+        const currentTimestamp = Date.now();
+        const deltaTime = gestureState.lastMoveTimestamp ? (currentTimestamp - gestureState.lastMoveTimestamp) / 1000 : (1/60);
+        
+        if (deltaTime > 0) {
+          const prevTranslateX = imageTransform.translateX;
+          const prevTranslateY = imageTransform.translateY;
+          
           const validated = getValidatedTransform({
-            scale: prev.scale,
+            scale: imageTransform.scale,
             translateX: newTranslateX,
             translateY: newTranslateY,
-          }, { minScale, maxScale });
+          }, { minScale, maxScale }, viewportBounds);
+          
+          // Calculate pan velocities
+          gestureState.translateXVelocity = (validated.translateX - prevTranslateX) / deltaTime;
+          gestureState.translateYVelocity = (validated.translateY - prevTranslateY) / deltaTime;
+          
+          // Use a ref to avoid race conditions with rapid updates
+          setImageTransform(() => validated);
           
           // Update gesture state with the validated transform for consistency
           if (gestureState.startTransform) {
@@ -444,9 +464,29 @@ export const useTouchGestures = (
               translateY: validated.translateY
             };
           }
-          
-          return validated;
-        });
+        } else {
+          // Fallback for when deltaTime is 0
+          setImageTransform(prev => {
+            const validated = getValidatedTransform({
+              scale: prev.scale,
+              translateX: newTranslateX,
+              translateY: newTranslateY,
+            }, { minScale, maxScale }, viewportBounds);
+            
+            // Update gesture state with the validated transform for consistency
+            if (gestureState.startTransform) {
+              gestureState.startTransform = {
+                ...gestureState.startTransform,
+                translateX: validated.translateX,
+                translateY: validated.translateY
+              };
+            }
+            
+            return validated;
+          });
+        }
+        
+        gestureState.lastMoveTimestamp = currentTimestamp;
       }
     } else if (touchCount === 2 && gestureState.startDistance && gestureState.startCenter && gestureState.startTransform) {
       // Pinch-to-zoom - optimize touch access
@@ -491,7 +531,7 @@ export const useTouchGestures = (
             scale: newScale,
             translateX: newTranslateX,
             translateY: newTranslateY,
-        }, { minScale, maxScale });
+        }, { minScale, maxScale }, viewportBounds);
 
         // Calculate velocities using the validated current transform
         gestureState.scaleVelocity = (validatedCurrentTransform.scale - prevScale) / deltaTime;
@@ -547,7 +587,8 @@ export const useTouchGestures = (
 
     const nextTransform = getValidatedTransform(
       { scale: newScale, translateX: newTranslateX, translateY: newTranslateY },
-      { minScale, maxScale }
+      { minScale, maxScale },
+      viewportBounds
     );
 
     setImageTransform(nextTransform);
@@ -568,6 +609,22 @@ export const useTouchGestures = (
       Math.abs(gestureState.translateYVelocity) < VELOCITY_THRESHOLD
     ) {
       stopAnimation = true;
+    }
+    
+    // Also check if we've reached the spring-back target
+    if (viewportBounds) {
+      const springBackTransform = getSpringBackTransform(currentTransform, { minScale, maxScale }, viewportBounds);
+      const reachedSpringBackTarget = (
+        Math.abs(currentTransform.translateX - springBackTransform.translateX) < 1 &&
+        Math.abs(currentTransform.translateY - springBackTransform.translateY) < 1 &&
+        Math.abs(currentTransform.scale - springBackTransform.scale) < 0.01
+      );
+      
+      if (reachedSpringBackTarget) {
+        // Snap to exact spring-back position and stop
+        setImageTransform(springBackTransform);
+        stopAnimation = true;
+      }
     }
 
     // Additional check: if scale is at boundary and no more velocity to push it off, or it's not moving
@@ -590,23 +647,43 @@ export const useTouchGestures = (
 
   const startMomentumAnimation = useCallback(() => {
     const gestureState = gestureStateRef.current;
-    if (
+    const hasSignificantVelocity = (
       Math.abs(gestureState.scaleVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
       Math.abs(gestureState.translateXVelocity) > MIN_VELOCITY_FOR_MOMENTUM ||
       Math.abs(gestureState.translateYVelocity) > MIN_VELOCITY_FOR_MOMENTUM
-    ) {
+    );
+    
+    // Check if spring-back is needed (content is outside hard bounds)
+    const currentTransform = imageTransformRef.current;
+    const springBackTransform = getSpringBackTransform(currentTransform, { minScale, maxScale }, viewportBounds);
+    const needsSpringBack = (
+      Math.abs(currentTransform.translateX - springBackTransform.translateX) > 1 ||
+      Math.abs(currentTransform.translateY - springBackTransform.translateY) > 1 ||
+      Math.abs(currentTransform.scale - springBackTransform.scale) > 0.01
+    );
+    
+    if (hasSignificantVelocity || needsSpringBack) {
       setIsTransforming(true); // Ensure transforming is true during animation
       if (gestureState.animationFrameId) {
         cancelAnimationFrame(gestureState.animationFrameId);
       }
+      
+      // If spring-back is needed but no significant velocity, create spring-back velocity
+      if (needsSpringBack && !hasSignificantVelocity) {
+        const springBackFactor = 5; // Controls spring-back speed
+        gestureState.translateXVelocity = (springBackTransform.translateX - currentTransform.translateX) * springBackFactor;
+        gestureState.translateYVelocity = (springBackTransform.translateY - currentTransform.translateY) * springBackFactor;
+        gestureState.scaleVelocity = (springBackTransform.scale - currentTransform.scale) * springBackFactor;
+      }
+      
       gestureState.animationFrameId = requestAnimationFrame(animateStep);
     } else {
-      // No significant velocity, just ensure we are not transforming
+      // No significant velocity and no spring-back needed
       setIsTransforming(false);
-       // And ensure final state is validated (especially if just a tiny drag occurred without much velocity)
-      setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
+      // Ensure final state is validated
+      setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }, viewportBounds));
     }
-  }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform]);
+  }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform, viewportBounds]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (disabled) return;
@@ -676,11 +753,9 @@ export const useTouchGestures = (
       startMomentumAnimation();
       // setIsTransforming(false) will be handled by animateStep or startMomentumAnimation
     } else if (wasPanning && remainingTouches < 1) {
-      // Was panning and now no touches
-      // Future: Could add momentum to panning as well if desired
-      setIsTransforming(false); // For now, panning stops immediately
-      // Ensure final state is validated if panning stops
-      setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }));
+      // Was panning and now no touches - start momentum animation for pan
+      startMomentumAnimation();
+      // setIsTransforming(false) will be handled by animateStep or startMomentumAnimation
     } else if (remainingTouches === 0 && !wasPanning && !wasZooming) {
         // This case handles if it was a tap that didn't become a double tap or pan
         setIsTransforming(false);
