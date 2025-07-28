@@ -221,35 +221,6 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   
   return (
     <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 shadow-lg ${className}`}>
-      {/* Enhanced Timeline Header */}
-      <div className="px-4 py-3 border-b border-slate-700/30 bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-              <h3 className="text-white font-semibold text-sm">Interactive Timeline</h3>
-            </div>
-            <span className="text-slate-300 text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
-              Step {currentStepIndex + 1} of {timelineSteps.length}
-            </span>
-          </div>
-          
-          {/* Enhanced Playback Speed Control */}
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-xs font-medium">Speed:</span>
-            <select
-              value={playbackSpeed}
-              onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-              className="bg-gradient-to-r from-slate-700 to-slate-600 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200"
-            >
-              <option value={0.5}>0.5x</option>
-              <option value={1}>1x</option>
-              <option value={1.5}>1.5x</option>
-              <option value={2}>2x</option>
-            </select>
-          </div>
-        </div>
-      </div>
       
       {/* Enhanced Current Step Info */}
       {currentStep && (

@@ -42,6 +42,10 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
+  
+  // Auto-progression state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   // Auto-start functionality
   useEffect(() => {
@@ -113,6 +117,19 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const handleHotspotComplete = useCallback((hotspotId: string) => {
     setCompletedHotspots(prev => new Set([...prev, hotspotId]));
     setActiveHotspotId(null);
+  }, []);
+
+  // Auto-progression handlers
+  const handlePlay = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
+
+  const handlePause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const handleSpeedChange = useCallback((speed: number) => {
+    setPlaybackSpeed(speed);
   }, []);
 
   // Enhanced slide deck with viewer mode settings
@@ -202,6 +219,11 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         activeHotspotId={activeHotspotId}
         completedHotspots={completedHotspots}
         onHotspotFocus={handleHotspotFocus}
+        isPlaying={isPlaying}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        playbackSpeed={playbackSpeed}
+        onSpeedChange={handleSpeedChange}
         className="shadow-lg"
       />
 
@@ -224,6 +246,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               onSlideChange={handleSlideChange}
               onInteraction={handleInteraction}
               className="w-full h-full"
+              showTimeline={false}
             />
           )}
         </div>
