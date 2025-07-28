@@ -6,12 +6,14 @@
  * control the timeline navigation.
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { SlideDeck, SlideViewerState } from '../../../shared/slideTypes';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { SlideViewer } from './SlideViewer';
+import { SlideViewer, SlideViewerRef } from './SlideViewer';
 import HeaderTimeline from '../HeaderTimeline';
+import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
+import { TimelineEventData } from '../../../shared/types';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;
@@ -22,7 +24,7 @@ interface TimelineSlideViewerProps {
   className?: string;
 }
 
-interface TimelineEventData {
+interface TimelineSlideEvent {
   id: string;
   step: number;
   name: string;
@@ -32,6 +34,7 @@ interface TimelineEventData {
   elementId?: string; // Maps to specific slide elements
   duration?: number;
   message?: string;
+  timelineEventData?: TimelineEventData; // Original timeline event for converter
 }
 
 /**
@@ -59,9 +62,12 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
   
+  // Reference to SlideViewer for triggering effects
+  const slideViewerRef = useRef<SlideViewerRef>(null);
+  
   // Generate timeline events from slide elements
   const timelineEvents = useMemo(() => {
-    const events: TimelineEventData[] = [];
+    const events: TimelineSlideEvent[] = [];
     let stepCounter = 1;
     
     slideDeck.slides.forEach((slide, slideIndex) => {
@@ -79,6 +85,25 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       slide.elements.forEach((element) => {
         if (element.interactions && element.interactions.length > 0) {
           element.interactions.forEach((interaction) => {
+            // Create timeline event data for the converter
+            const timelineEventData: TimelineEventData = {
+              id: `${element.id}-${interaction.id}`,
+              step: stepCounter,
+              name: element.content.title || interaction.effect.type.replace('_', ' ').toUpperCase(),
+              type: getTimelineEventType(interaction.effect.type),
+              targetId: element.id,
+              // Map effect parameters to timeline event fields
+              spotlightX: (interaction.effect.parameters as any)?.spotlightX,
+              spotlightY: (interaction.effect.parameters as any)?.spotlightY,
+              targetX: (interaction.effect.parameters as any)?.targetX || (interaction.effect.parameters as any)?.targetPosition?.x,
+              targetY: (interaction.effect.parameters as any)?.targetY || (interaction.effect.parameters as any)?.targetPosition?.y,
+              zoomFactor: (interaction.effect.parameters as any)?.zoomLevel,
+              message: (interaction.effect.parameters as any)?.text || element.content.description,
+              videoUrl: (interaction.effect.parameters as any)?.mediaUrl && (interaction.effect.parameters as any)?.mediaType === 'video' ? (interaction.effect.parameters as any)?.mediaUrl : undefined,
+              audioUrl: (interaction.effect.parameters as any)?.mediaUrl && (interaction.effect.parameters as any)?.mediaType === 'audio' ? (interaction.effect.parameters as any)?.mediaUrl : undefined,
+              autoplay: (interaction.effect.parameters as any)?.autoplay
+            };
+            
             events.push({
               id: `${element.id}-${interaction.id}`,
               step: stepCounter++,
@@ -88,7 +113,8 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
               slideId: slide.id,
               elementId: element.id,
               duration: interaction.effect.duration,
-              message: element.content.title || element.content.description
+              message: element.content.title || element.content.description,
+              timelineEventData
             });
           });
         }
@@ -97,6 +123,25 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
     
     return events;
   }, [slideDeck]);
+  
+  // Helper function to map slide effect types to timeline event types
+  const getTimelineEventType = (effectType: string): string => {
+    switch (effectType) {
+      case 'spotlight':
+        return 'SPOTLIGHT';
+      case 'pan_zoom':
+        return 'PAN_ZOOM';
+      case 'show_text':
+        return 'SHOW_MESSAGE';
+      case 'play_media':
+      case 'play_video':
+        return 'SHOW_VIDEO';
+      case 'play_audio':
+        return 'SHOW_AUDIO_MODAL';
+      default:
+        return 'SPOTLIGHT'; // Default fallback
+    }
+  };
   
   // Create unique sorted steps for timeline
   const uniqueSortedSteps = useMemo(() => {
@@ -110,10 +155,13 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   
   // Handle timeline step selection
   const handleStepSelect = useCallback((step: number) => {
+    console.log('[TimelineSlideViewer] handleStepSelect called with step:', step);
     setCurrentStep(step);
     
     // Find the event for this step and navigate to its slide
     const stepEvent = timelineEvents.find(e => e.step === step);
+    console.log('[TimelineSlideViewer] Step event found:', stepEvent);
+    
     if (stepEvent) {
       const slideIndex = slideDeck.slides.findIndex(s => s.id === stepEvent.slideId);
       if (slideIndex !== -1 && slideIndex !== currentSlideIndex) {
@@ -123,7 +171,29 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         }
       }
       
-      // Trigger interaction if this step has an element interaction
+      // Trigger slide effect if this step has timeline event data
+      if (stepEvent.timelineEventData && stepEvent.elementId) {
+        console.log('[TimelineSlideViewer] Converting timeline event to slide effect');
+        const targetElement = slideDeck.slides[slideIndex]?.elements.find(el => el.id === stepEvent.elementId);
+        
+        const slideEffect = convertTimelineEventToSlideEffect(stepEvent.timelineEventData, {
+          slideDeck,
+          currentSlideIndex: slideIndex !== -1 ? slideIndex : currentSlideIndex,
+          targetElement,
+          deviceType
+        });
+        
+        console.log('[TimelineSlideViewer] Converted slide effect:', slideEffect);
+        
+        if (slideEffect && slideViewerRef.current?.triggerEffect) {
+          console.log('[TimelineSlideViewer] Triggering effect via SlideViewer');
+          slideViewerRef.current.triggerEffect(slideEffect);
+        } else {
+          console.log('[TimelineSlideViewer] No slide effect generated or SlideViewer ref not available');
+        }
+      }
+      
+      // Also call the original onInteraction for compatibility
       if (stepEvent.elementId && onInteraction) {
         onInteraction({
           type: stepEvent.type,
@@ -133,7 +203,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         });
       }
     }
-  }, [timelineEvents, slideDeck.slides, currentSlideIndex, onSlideChange, onInteraction]);
+  }, [timelineEvents, slideDeck, currentSlideIndex, onSlideChange, onInteraction]);
   
   // Handle previous step navigation
   const handlePrevStep = useCallback(() => {
@@ -256,6 +326,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       {/* Main slide viewer */}
       <div className="flex-1 relative">
         <SlideViewer
+          ref={slideViewerRef}
           slideDeck={slideDeck}
           initialSlideId={slideDeck.slides[currentSlideIndex]?.id}
           onSlideChange={handleSlideViewerChange}

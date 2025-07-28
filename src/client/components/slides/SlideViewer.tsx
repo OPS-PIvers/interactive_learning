@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SlideDeck, InteractiveSlide, SlideViewerState, DeviceType, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
+import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
 import { SlideElement } from './SlideElement';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
 import { SlideNavigation } from './SlideNavigation';
@@ -22,7 +23,7 @@ interface SlideViewerProps {
  * 
  * This replaces the complex coordinate system with predictable slide positioning
  */
-export const SlideViewer: React.FC<SlideViewerProps> = ({
+export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({ 
   slideDeck,
   initialSlideId,
   onSlideChange,
@@ -30,7 +31,7 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
   className = '',
   showTimeline = true,
   timelineAutoPlay = false
-}) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { deviceType, viewportInfo } = useDeviceDetection();
   
@@ -71,8 +72,20 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
     initialDistance: 0
   });
 
-  // Get current slide
-  const currentSlide = slideDeck.slides.find(slide => slide.id === viewerState.currentSlideId);
+  // Get current slide and ensure elements have interactions
+  const currentSlide = React.useMemo(() => {
+    const slide = slideDeck.slides.find(slide => slide.id === viewerState.currentSlideId);
+    if (!slide) return slide;
+    
+    // Ensure all elements have proper interactions
+    const slideWithInteractions = {
+      ...slide,
+      elements: ensureSlideElementInteractions(slide.elements)
+    };
+    
+    console.log('[SlideViewer] Current slide with interactions:', slideWithInteractions);
+    return slideWithInteractions;
+  }, [slideDeck.slides, viewerState.currentSlideId]);
 
   // Navigation functions
   const navigateToSlide = useCallback((slideId: string) => {
@@ -119,12 +132,20 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
 
   // Effect handling
   const triggerEffect = useCallback((effect: SlideEffect) => {
-    setActiveEffects(prev => [...prev, effect]);
+    console.log('[SlideViewer] triggerEffect called:', effect);
+    
+    setActiveEffects(prev => {
+      const newEffects = [...prev, effect];
+      console.log('[SlideViewer] Active effects updated:', newEffects);
+      return newEffects;
+    });
     
     // Auto-remove effect after duration
     if (effect.duration > 0) {
+      console.log('[SlideViewer] Setting effect auto-removal timer:', effect.duration + 'ms');
       setTimeout(() => {
         setActiveEffects(prev => prev.filter(e => e.id !== effect.id));
+        console.log('[SlideViewer] Effect auto-removed:', effect.id);
       }, effect.duration);
     }
   }, []);
@@ -132,16 +153,39 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
   const clearEffect = useCallback((effectId: string) => {
     setActiveEffects(prev => prev.filter(e => e.id !== effectId));
   }, []);
+  
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    triggerEffect,
+    clearEffect,
+    navigateToSlide
+  }), [triggerEffect, clearEffect, navigateToSlide]);
 
   // Element interaction handler
   const handleElementInteraction = useCallback((elementId: string, interactionId: string) => {
-    if (!currentSlide) return;
+    console.log('[SlideViewer] handleElementInteraction called:', { elementId, interactionId });
+    
+    if (!currentSlide) {
+      console.log('[SlideViewer] No current slide found');
+      return;
+    }
 
     const element = currentSlide.elements.find(el => el.id === elementId);
-    if (!element) return;
+    if (!element) {
+      console.log('[SlideViewer] Element not found:', elementId);
+      return;
+    }
+    
+    console.log('[SlideViewer] Element found:', element);
+    console.log('[SlideViewer] Element interactions:', element.interactions);
 
     const interaction = element.interactions.find(int => int.id === interactionId);
-    if (!interaction) return;
+    if (!interaction) {
+      console.log('[SlideViewer] Interaction not found:', interactionId);
+      return;
+    }
+    
+    console.log('[SlideViewer] Interaction found:', interaction);
 
     // Log interaction
     const interactionLog = {
@@ -551,6 +595,7 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
           effect={effect}
           containerRef={containerRef}
           deviceType={deviceType}
+          canvasDimensions={canvasDimensions}
           onComplete={() => clearEffect(effect.id)}
         />
       ))}
@@ -666,6 +711,8 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
       )}
     </div>
   );
-};
+});
+
+SlideViewer.displayName = 'SlideViewer';
 
 export default SlideViewer;

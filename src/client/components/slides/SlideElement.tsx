@@ -25,11 +25,18 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 
   // Handle interactions
   const handleClick = useCallback(() => {
+    console.log('[SlideElement] Click detected on element:', element.id);
+    console.log('[SlideElement] Element interactions:', element.interactions);
+    
     const clickInteraction = element.interactions.find(
       interaction => interaction.trigger === 'click'
     );
+    
     if (clickInteraction) {
+      console.log('[SlideElement] Click interaction found:', clickInteraction);
       onInteraction(element.id, clickInteraction.id);
+    } else {
+      console.log('[SlideElement] No click interaction found for element:', element.id);
     }
   }, [element.id, element.interactions, onInteraction]);
 

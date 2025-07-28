@@ -7,6 +7,7 @@ interface SlideEffectRendererProps {
   effect: SlideEffect;
   containerRef: React.RefObject<HTMLDivElement>;
   deviceType: DeviceType;
+  canvasDimensions?: { width: number; height: number; scale: number };
   onComplete: () => void;
 }
 
@@ -19,10 +20,37 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
   effect,
   containerRef,
   deviceType,
+  canvasDimensions,
   onComplete
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isVisible, setIsVisible] = useState(true);
+  
+  console.log('[SlideEffectRenderer] Rendering effect:', effect);
+  console.log('[SlideEffectRenderer] Container ref:', containerRef.current);
+  console.log('[SlideEffectRenderer] Device type:', deviceType);
+  
+  // Calculate slide canvas positioning for proper effect alignment
+  const slideCanvasInfo = React.useMemo(() => {
+    if (!containerRef.current) return null;
+    
+    const container = containerRef.current;
+    const slideCanvas = container.querySelector('.slide-canvas') as HTMLElement;
+    const canvasRect = slideCanvas ? slideCanvas.getBoundingClientRect() : container.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const scale = canvasDimensions?.scale || 1;
+    
+    return {
+      slideCanvas,
+      canvasRect,
+      containerRect,
+      offsetX: slideCanvas ? canvasRect.left - containerRect.left : 0,
+      offsetY: slideCanvas ? canvasRect.top - containerRect.top : 0,
+      scale,
+      scaledWidth: canvasRect.width,
+      scaledHeight: canvasRect.height
+    };
+  }, [containerRef.current, canvasDimensions]);
 
   useEffect(() => {
     if (effect.duration > 0) {
@@ -37,18 +65,16 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   // Render spotlight effect
   const renderSpotlightEffect = () => {
-    if (effect.type !== 'spotlight') return null;
+    if (effect.type !== 'spotlight' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as SpotlightParameters;
     const canvas = canvasRef.current;
-    const container = containerRef.current;
 
-    if (!canvas || !container) return null;
+    if (!canvas) return null;
 
-    // Set canvas size to match container
-    const containerRect = container.getBoundingClientRect();
-    canvas.width = containerRect.width;
-    canvas.height = containerRect.height;
+    // Set canvas size to match the slide canvas, not the full container
+    canvas.width = slideCanvasInfo.canvasRect.width;
+    canvas.height = slideCanvasInfo.canvasRect.height;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
@@ -61,32 +87,33 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     ctx.fillStyle = `rgba(0, 0, 0, ${0.8 * intensity})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Create spotlight cutout using exact position
+    // Create spotlight cutout using exact position with scaling applied
     ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
 
-    const centerX = params.position.x + params.position.width / 2;
-    const centerY = params.position.y + params.position.height / 2;
+    // Apply scaling to position coordinates
+    const scaledX = params.position.x * slideCanvasInfo.scale;
+    const scaledY = params.position.y * slideCanvasInfo.scale;
+    const scaledWidth = params.position.width * slideCanvasInfo.scale;
+    const scaledHeight = params.position.height * slideCanvasInfo.scale;
+    
+    const centerX = scaledX + scaledWidth / 2;
+    const centerY = scaledY + scaledHeight / 2;
 
     if (params.shape === 'circle') {
-      const radius = Math.max(params.position.width, params.position.height) / 2;
+      const radius = Math.max(scaledWidth, scaledHeight) / 2;
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.fill();
     } else if (params.shape === 'oval') {
-      const radiusX = params.position.width / 2;
-      const radiusY = params.position.height / 2;
+      const radiusX = scaledWidth / 2;
+      const radiusY = scaledHeight / 2;
       ctx.beginPath();
       ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
       ctx.fill();
     } else {
       // Rectangle
-      ctx.fillRect(
-        params.position.x,
-        params.position.y,
-        params.position.width,
-        params.position.height
-      );
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
     // Add soft edges if requested
@@ -115,7 +142,13 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
           >
             <motion.canvas
               ref={canvasRef}
-              className="absolute inset-0 w-full h-full"
+              className="absolute"
+              style={{
+                left: slideCanvasInfo?.offsetX || 0,
+                top: slideCanvasInfo?.offsetY || 0,
+                width: slideCanvasInfo?.canvasRect.width || '100%',
+                height: slideCanvasInfo?.canvasRect.height || '100%'
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -246,7 +279,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   // Render text effect
   const renderShowTextEffect = () => {
-    if (effect.type !== 'show_text') return null;
+    if (effect.type !== 'show_text' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as any;
 
@@ -258,10 +291,10 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
             microInteraction="subtle"
             className="text-effect absolute z-30"
             style={{
-              left: params.position.x,
-              top: params.position.y,
-              width: params.position.width,
-              height: params.position.height
+              left: slideCanvasInfo.offsetX + (params.position.x * slideCanvasInfo.scale),
+              top: slideCanvasInfo.offsetY + (params.position.y * slideCanvasInfo.scale),
+              width: params.position.width * slideCanvasInfo.scale,
+              height: params.position.height * slideCanvasInfo.scale
             }}
             isVisible={isVisible}
           >
@@ -296,7 +329,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   // Render pan and zoom effect
   const renderPanZoomEffect = () => {
-    if (effect.type !== 'pan_zoom') return null;
+    if (effect.type !== 'pan_zoom' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as PanZoomParameters;
     
@@ -304,7 +337,13 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="fixed inset-0 z-40 overflow-hidden"
+            className="absolute z-40 overflow-hidden"
+            style={{
+              left: slideCanvasInfo.offsetX,
+              top: slideCanvasInfo.offsetY,
+              width: slideCanvasInfo.canvasRect.width,
+              height: slideCanvasInfo.canvasRect.height
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -319,24 +358,24 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
               }}
               animate={{
                 scale: params.zoomLevel || 1.5,
-                x: params.targetX ? `-${params.targetX}px` : 0,
-                y: params.targetY ? `-${params.targetY}px` : 0
+                x: params.targetPosition ? `-${(params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale}px` : 0,
+                y: params.targetPosition ? `-${(params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale}px` : 0
               }}
               transition={{
                 duration: effect.duration / 1000,
-                ease: "easeInOut",
+                ease: params.easing || "easeInOut",
                 type: "spring",
                 damping: 20,
                 stiffness: 100
               }}
             >
               {/* Pan/Zoom target indicator */}
-              {params.targetX && params.targetY && (
+              {params.targetPosition && (
                 <motion.div
                   className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"
                   style={{
-                    left: params.targetX - 8,
-                    top: params.targetY - 8,
+                    left: (params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale - 8,
+                    top: (params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale - 8,
                     zIndex: 10
                   }}
                   initial={{ scale: 0, opacity: 0 }}
