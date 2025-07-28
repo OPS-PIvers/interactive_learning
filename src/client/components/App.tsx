@@ -20,7 +20,7 @@ import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import SlideEditorTestPage from './SlideEditorTestPage';
 import MigrationTestPage from './MigrationTestPage';
-import { setDynamicVhProperty } from '../utils/mobileUtils';
+import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 
 
 const LoadingScreen: React.FC = () => (
@@ -183,26 +183,7 @@ const MainApp: React.FC = () => {
       const projectWithSlideType = {
         ...newProject,
         projectType: 'slide' as const,
-        slideDeck: {
-          id: newProject.id,
-          title: newProject.title,
-          slides: [],
-          settings: {
-            autoAdvance: false,
-            allowNavigation: true,
-            showProgress: true,
-            showControls: true,
-            keyboardShortcuts: true,
-            touchGestures: true,
-            fullscreenMode: false,
-          },
-          metadata: {
-            created: Date.now(),
-            modified: Date.now(),
-            version: '1.0',
-            isPublic: false,
-          },
-        },
+        slideDeck: createDefaultSlideDeck(newProject.id, newProject.title),
       };
 
       // If demo data is provided, save it with the project
