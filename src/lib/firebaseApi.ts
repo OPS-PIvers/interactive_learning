@@ -460,28 +460,13 @@ export class FirebaseProjectAPI {
   }
 
   /**
-   * Save/update a project with all its data using enhanced error handling and retry logic
+   * Save/update a project with simplified logic to avoid hanging and timeout issues
    */
   async saveProject(project: Project): Promise<Project> {
-    const operationId = `save_${project.id}_${Date.now()}`;
-    const maxRetries = 3;
-    let lastError: Error | null = null;
-    
-    // Initialize monitoring
-    const monitoring = saveOperationMonitor.startOperation(
-      operationId, 
-      project.id, 
-      project.projectType || 'hotspot'
-    );
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        debugLog.log(`[FirebaseAPI] Save attempt ${attempt}/${maxRetries} for project ${project.id} (operation: ${operationId})`);
-        
-        // Update monitoring for retry attempts
-        if (attempt > 1) {
-          saveOperationMonitor.incrementAttempts(operationId);
-        }
+    try {
+      debugLog.log(`[FirebaseAPI] Starting simplified save for project ${project.id}`);
+      
+      await this.ensureFirebaseReady();
       const auth = firebaseManager.getAuth();
       const db = firebaseManager.getFirestore();
       
@@ -490,10 +475,8 @@ export class FirebaseProjectAPI {
         throw new Error('User must be authenticated to save projects');
       }
 
-      // Check if it's a new project before mutating the ID
+      // Check if it's a new project
       const isNewProject = project.id === NEW_PROJECT_ID;
-      
-      // If new project, set createdBy and generate ID
       if (isNewProject) {
         project.id = this.generateProjectId();
         project.createdBy = user.uid;
@@ -502,322 +485,50 @@ export class FirebaseProjectAPI {
       projectCache.clear();
       const projectRef = doc(db, 'projects', project.id);
 
-      // --- Thumbnail logic (pre-transaction) ---
-      const initialDocSnap = await getDoc(projectRef);
-      const existingData = initialDocSnap.data();
-      const existingBackgroundImage = existingData?.backgroundImage;
-      const existingThumbnailUrl = existingData?.thumbnailUrl;
-
-      let finalThumbnailUrl: string | null = existingThumbnailUrl || null;
-      let newBackgroundImageForUpdate: string | null | undefined = project.interactiveData.backgroundImage;
-      let oldThumbnailUrlToDeleteAfterCommit: string | null = null;
-
-      // Always use the new thumbnail if it's provided
-      if (project.thumbnailUrl && project.thumbnailUrl !== existingThumbnailUrl) {
-        finalThumbnailUrl = project.thumbnailUrl;
-        if (existingThumbnailUrl) {
-          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
+      // Simplified save - just save the main project document without complex validation
+      const updateData: any = {
+        title: project.title,
+        description: project.description,
+        thumbnailUrl: project.thumbnailUrl || null,
+        isPublished: project.isPublished || false,
+        projectType: project.projectType || 'slide',
+        updatedAt: serverTimestamp(),
+        createdBy: project.createdBy || user.uid,
+        interactiveData: {
+          backgroundImage: project.interactiveData?.backgroundImage || undefined,
+          imageFitMode: project.interactiveData?.imageFitMode || 'cover',
+          viewerModes: project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
+          hotspots: [],
+          timelineEvents: [],
         }
-        debugLog.log(`Using new or updated thumbnail: ${finalThumbnailUrl}`);
-      } else if (!newBackgroundImageForUpdate && existingBackgroundImage) {
-        if (existingThumbnailUrl) {
-          oldThumbnailUrlToDeleteAfterCommit = existingThumbnailUrl;
-        }
-        finalThumbnailUrl = null;
-      }
-      // --- End of Thumbnail logic ---
+      };
 
-      // ENHANCED VALIDATION: Comprehensive data validation before save
-      debugLog.log(`[FirebaseAPI] Starting enhanced validation for project ${project.id} (operation: ${operationId})`);
-      const validationStartTime = Date.now();
-      
-      // Validate project consistency between legacy and slide architectures
-      const consistencyCheck = DataSanitizer.validateProjectConsistency(project);
-      if (!consistencyCheck.isValid) {
-        const validationTime = Date.now() - validationStartTime;
-        saveOperationMonitor.recordValidation(operationId, consistencyCheck.errors.length, 0, validationTime);
-        throw new Error(`Project validation failed: ${consistencyCheck.errors.join(', ')}`);
-      }
-      
-      // Log warnings for migration recommendations
-      if (consistencyCheck.warnings.length > 0) {
-        debugLog.warn(`[FirebaseAPI] Project ${project.id} validation warnings:`, consistencyCheck.warnings);
-      }
-      
-      // Sanitize slide deck if present (slide-based projects)
-      let sanitizedSlideDeck = null;
+      // Add slide deck if it exists
       if (project.projectType === 'slide' && project.slideDeck) {
-        const slideDeckResult = DataSanitizer.sanitizeSlideDeck(project.slideDeck);
-        if (slideDeckResult.errors.length > 0) {
-          debugLog.error(`[FirebaseAPI] Slide deck validation errors for project ${project.id}:`, slideDeckResult.errors);
-          throw new Error(`Slide deck validation failed: ${slideDeckResult.errors.join(', ')}`);
-        }
-        sanitizedSlideDeck = slideDeckResult.sanitized;
-        debugLog.log(`[FirebaseAPI] Slide deck validated successfully for project ${project.id}:`, {
-          slideCount: sanitizedSlideDeck.slides?.length || 0,
-          totalElements: sanitizedSlideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
-        });
+        updateData.slideDeck = project.slideDeck;
+        debugLog.log(`[FirebaseAPI] Saving slide deck with ${project.slideDeck.slides?.length || 0} slides`);
+      }
+
+      // Add createdAt for new projects
+      if (isNewProject) {
+        updateData.createdAt = serverTimestamp();
       }
       
-      // Sanitize legacy data (hotspot-based projects)
-      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots || []);
-      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents || []);
+      // Simple save without transaction complexity
+      await setDoc(projectRef, updateData, { merge: true });
       
-      const validationTime = Date.now() - validationStartTime;
-      
-      // Record validation metrics
-      saveOperationMonitor.recordValidation(
-        operationId, 
-        consistencyCheck.errors.length, 
-        consistencyCheck.warnings.length, 
-        validationTime
-      );
-      
-      // Record data size metrics
-      saveOperationMonitor.recordDataSize(operationId, {
-        hotspotCount: sanitizedHotspots.length,
-        eventCount: sanitizedEvents.length,
-        slideCount: sanitizedSlideDeck?.slides?.length || 0,
-        elementCount: sanitizedSlideDeck?.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
-      });
-      
-      debugLog.log(`[FirebaseAPI] Enhanced validation completed for project ${project.id}:`, {
-        hasSlides: !!sanitizedSlideDeck,
-        hotspotCount: sanitizedHotspots.length,
-        eventCount: sanitizedEvents.length,
-        warningCount: consistencyCheck.warnings.length,
-        validationTime
-      });
-
-      const transactionStartTime = Date.now();
-      
-      // Variables to track orphaned refs for cleanup metrics
-      let orphanedHotspotRefs: any[] = [];
-      let orphanedEventRefs: any[] = [];
-      
-      await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
-        this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
-
-        const projectSnap = await transaction.get(projectRef);
-        if (projectSnap.exists()) {
-          const projectData = projectSnap.data();
-          if (projectData.createdBy && projectData.createdBy !== user.uid) {
-            throw new Error('You do not have permission to modify this project');
-          }
-          if (!projectData.createdBy) {
-            project.createdBy = user.uid;
-          }
-        } else if (!isNewProject) {
-          throw new Error('Project not found. Cannot update a non-existent project.');
-        }
-
-        // Define the structure for the project document in Firestore.
-        // This now includes 'interactiveData' as a map (object).
-        interface ProjectUpdateData {
-          title: string;
-          description: string;
-          thumbnailUrl: string | null;
-          isPublished: boolean;
-          projectType: 'hotspot' | 'slide';
-          slideDeck?: any;
-          updatedAt: any; // Firestore serverTimestamp
-          createdBy: string;
-          createdAt?: any; // Optional, only for new projects
-          interactiveData: InteractiveModuleState; // Nested object
-        }
-
-        // Prepare the data for Firestore update.
-        // All interactive data is now nested under the 'interactiveData' field.
-        // UNIFIED DATA ARCHITECTURE: Use subcollections as single source of truth
-        // interactiveData now only stores non-array metadata (background, settings, etc.)
-        const updateData: ProjectUpdateData = {
-          title: project.title,
-          description: project.description,
-          thumbnailUrl: finalThumbnailUrl,
-          isPublished: project.isPublished || false,
-          projectType: project.projectType || 'hotspot',
-          updatedAt: serverTimestamp(),
-          createdBy: project.createdBy,
-          // Store only non-collection data in interactiveData for consistency
-          interactiveData: {
-            backgroundImage: newBackgroundImageForUpdate || null,
-            imageFitMode: project.interactiveData.imageFitMode || 'cover',
-            viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
-            // NEVER store hotspots/timelineEvents arrays here - subcollections are authoritative
-            hotspots: [],
-            timelineEvents: [],
-          }
-        };
-
-        // Add validated and sanitized slide deck data for slide-based projects.
-        if (project.projectType === 'slide' && sanitizedSlideDeck) {
-          updateData.slideDeck = sanitizedSlideDeck;
-          debugLog.log(`[FirebaseAPI] Saving validated slide deck for project ${project.id}:`, {
-            slideCount: sanitizedSlideDeck.slides?.length || 0,
-            totalElements: sanitizedSlideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0,
-            validationPassed: true
-          });
-        }
-
-        // Add createdAt only for new projects.
-        if (isNewProject) {
-          updateData.createdAt = serverTimestamp();
-        }
-        
-        // Sanitize the entire updateData object to remove any undefined values
-        const sanitizedUpdateData = DataSanitizer.sanitizeObject(updateData);
-        
-        // Debug validation to catch undefined values in development
-        if (debugLog.isDebugEnabled()) {
-          const checkForUndefined = (obj: any, path = 'updateData'): void => {
-            for (const [key, value] of Object.entries(obj)) {
-              const currentPath = `${path}.${key}`;
-              if (value === undefined) {
-                debugLog.warn(`Found undefined value at ${currentPath} - this will be filtered out by sanitization`);
-              } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-                checkForUndefined(value, currentPath);
-              }
-            }
-          };
-          checkForUndefined(updateData);
-        }
-        
-        // Atomically set the document with the new structure.
-        transaction.set(projectRef, sanitizedUpdateData, { merge: true });
-
-        const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
-        const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');
-
-        // UNIFIED APPROACH: Atomic upsert with integrated cleanup
-        // All operations in single transaction to prevent race conditions
-        
-        const currentHotspotIds = new Set(sanitizedHotspots.map(h => h.id));
-        const currentEventIds = new Set(sanitizedEvents.map(e => e.id));
-        
-        debugLog.log(`[FirebaseAPI] Atomic save for project ${project.id}:`, {
-          hotspotsCount: sanitizedHotspots.length,
-          eventsCount: sanitizedEvents.length,
-          hotspotIds: Array.from(currentHotspotIds),
-          eventIds: Array.from(currentEventIds),
-          transactionId: Date.now()
-        });
-        
-        // Step 1: Get existing subcollection documents for cleanup identification
-        const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
-          getDocs(query(hotspotsColRef)),
-          getDocs(query(eventsColRef))
-        ]);
-        
-        // Step 2: Identify orphaned documents that need cleanup
-        orphanedHotspotRefs = existingHotspotsSnap.docs
-          .filter(doc => !currentHotspotIds.has(doc.id))
-          .map(doc => doc.ref);
-          
-        orphanedEventRefs = existingEventsSnap.docs
-          .filter(doc => !currentEventIds.has(doc.id))
-          .map(doc => doc.ref);
-        
-        debugLog.log(`[FirebaseAPI] Cleanup analysis for project ${project.id}:`, {
-          existingHotspots: existingHotspotsSnap.docs.map(d => d.id),
-          existingEvents: existingEventsSnap.docs.map(d => d.id),
-          orphanedHotspots: orphanedHotspotRefs.map(r => r.id),
-          orphanedEvents: orphanedEventRefs.map(r => r.id)
-        });
-        
-        // Step 3: Atomic upsert current data
-        for (const hotspot of sanitizedHotspots) {
-          const hotspotRef = doc(hotspotsColRef, hotspot.id!);
-          transaction.set(hotspotRef, { 
-            ...hotspot, 
-            updatedAt: serverTimestamp(),
-            version: '2.0' // Add versioning for data consistency tracking
-          });
-        }
-
-        for (const event of sanitizedEvents) {
-          const eventRef = doc(eventsColRef, event.id!);
-          transaction.set(eventRef, { 
-            ...event, 
-            updatedAt: serverTimestamp(), 
-            version: '2.0' // Add versioning for data consistency tracking
-          });
-        }
-        
-        // Step 4: Atomic cleanup of orphaned documents (within same transaction)
-        for (const orphanRef of [...orphanedHotspotRefs, ...orphanedEventRefs]) {
-          transaction.delete(orphanRef);
-        }
-        
-        debugLog.log(`[FirebaseAPI] Transaction operations for project ${project.id}:`, {
-          upserts: sanitizedHotspots.length + sanitizedEvents.length,
-          deletions: orphanedHotspotRefs.length + orphanedEventRefs.length,
-          totalOps: sanitizedHotspots.length + sanitizedEvents.length + orphanedHotspotRefs.length + orphanedEventRefs.length
-        });
-      });
-      
-      const transactionTime = Date.now() - transactionStartTime;
-      
-      // Record transaction metrics
-      saveOperationMonitor.recordTransaction(
-        operationId,
-        sanitizedHotspots.length + sanitizedEvents.length,
-        orphanedHotspotRefs.length + orphanedEventRefs.length,
-        transactionTime
-      );
-
-      debugLog.log(`Atomic transaction for project ${project.id} committed successfully with integrated cleanup.`);
-      
-      // Mark operation as completed
-      saveOperationMonitor.completeOperation(operationId);
-
-      if (oldThumbnailUrlToDeleteAfterCommit) {
-        debugLog.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
-        this._deleteImageFromStorage(oldThumbnailUrlToDeleteAfterCommit).catch(err => {
-          debugLog.error("Error during fire-and-forget deletion of old thumbnail:", err);
-        });
-      }
+      debugLog.log(`[FirebaseAPI] Project ${project.id} saved successfully`);
       
       return {
         ...project,
-        thumbnailUrl: finalThumbnailUrl,
-        interactiveData: {
-          ...project.interactiveData,
-          backgroundImage: newBackgroundImageForUpdate || null
-        }
+        thumbnailUrl: updateData.thumbnailUrl,
+        interactiveData: updateData.interactiveData
       };
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error occurred');
-        const isRetryableError = this.isRetryableError(lastError);
-        
-        // Record error in monitoring
-        saveOperationMonitor.failOperation(
-          operationId, 
-          lastError, 
-          error.constructor.name, 
-          isRetryableError
-        );
-        
-        debugLog.error(`[FirebaseAPI] Save attempt ${attempt}/${maxRetries} failed for project ${project.id} (operation: ${operationId}):`, {
-          error: lastError.message,
-          isRetryable: isRetryableError,
-          remainingAttempts: maxRetries - attempt
-        });
-        
-        // If this isn't the last attempt and error is retryable, continue to retry
-        if (attempt < maxRetries && isRetryableError) {
-          const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
-          debugLog.log(`[FirebaseAPI] Retrying save for project ${project.id} in ${delayMs}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
-          continue;
-        }
-        
-        // Either last attempt or non-retryable error - throw enhanced error
-        throw this.createEnhancedSaveError(lastError, project.id, operationId, attempt);
-      }
+      
+    } catch (error) {
+      debugLog.error(`[FirebaseAPI] Save failed for project ${project.id}:`, error);
+      throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    // This should never be reached, but TypeScript needs it
-    throw lastError || new Error('Unexpected error in save operation');
   }
 
   /**
