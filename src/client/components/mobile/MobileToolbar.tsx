@@ -67,6 +67,29 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   return (
     <div
       className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
+      style={{
+        /* Ensure fixed positioning over content */
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        /* Background and styling */
+        background: '#1e293b',
+        borderTop: '1px solid #334155',
+        /* Responsive padding with safe area awareness */
+        padding: '12px 16px',
+        paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+        /* Layout */
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px',
+        /* Height management */
+        height: 'var(--mobile-bottom-toolbar-height, 56px)',
+        minHeight: 'var(--mobile-bottom-toolbar-height, 56px)',
+        boxSizing: 'border-box'
+      }}
     >
       {menuItems.map((item) => (
         <button

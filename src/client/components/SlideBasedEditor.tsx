@@ -878,19 +878,30 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         <div className="flex-1 flex flex-col relative">
           {isMobile ? (
             <>
-              <MobileSlideEditor
-                slideDeck={editorSlideDeck}
-                currentSlideIndex={currentSlideIndex}
-                onSlideDeckChange={handleSlideDeckUpdate}
-                onClose={onClose}
-                className="flex-1"
-                deviceTypeOverride={effectiveDeviceType}
-                onAspectRatioChange={handleAspectRatioChange}
-                selectedElementId={selectedElementId}
-                onElementSelect={setSelectedElementId}
-                onElementUpdate={handleElementUpdate}
-                onSlideUpdate={handleSlideUpdate}
-              />
+              <div 
+                className="flex-1 relative"
+                style={{
+                  /* Add bottom margin to prevent content overlap with fixed toolbar */
+                  marginBottom: !isPreviewMode ? 'calc(var(--mobile-bottom-toolbar-height, 56px) + env(safe-area-inset-bottom, 0px))' : '0px',
+                  /* Ensure content area is properly constrained */
+                  maxHeight: !isPreviewMode ? 'calc(100vh - var(--mobile-bottom-toolbar-height, 56px) - env(safe-area-inset-bottom, 0px))' : '100vh',
+                  overflow: 'hidden'
+                }}
+              >
+                <MobileSlideEditor
+                  slideDeck={editorSlideDeck}
+                  currentSlideIndex={currentSlideIndex}
+                  onSlideDeckChange={handleSlideDeckUpdate}
+                  onClose={onClose}
+                  className="h-full"
+                  deviceTypeOverride={effectiveDeviceType}
+                  onAspectRatioChange={handleAspectRatioChange}
+                  selectedElementId={selectedElementId}
+                  onElementSelect={setSelectedElementId}
+                  onElementUpdate={handleElementUpdate}
+                  onSlideUpdate={handleSlideUpdate}
+                />
+              </div>
               
               {/* Mobile Toolbar */}
               {!isPreviewMode && (
