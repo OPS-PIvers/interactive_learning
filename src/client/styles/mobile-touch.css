@@ -356,17 +356,81 @@ body.touch-editing {
   transform: scale(0.95);
 }
 
-/* Mobile landscape optimizations */
-@media screen and (orientation: landscape) and (max-height: 500px) {
+/* Very small screen optimizations */
+@media screen and (max-height: 500px) {
   .mobile-toolbar {
-    padding: 6px 12px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-    gap: 8px;
+    padding: 8px 12px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 12px;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
   }
   
   .mobile-toolbar button {
-    width: 40px;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+  
+  .mobile-toolbar svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Extremely small screen optimizations */
+@media screen and (max-height: 400px) {
+  .mobile-toolbar {
+    padding: 6px 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
     height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+  }
+  
+  .mobile-toolbar button {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+  
+  .mobile-toolbar svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Ensure content area maintains minimum space */
+  .mobile-slide-editor .canvas-area {
+    min-height: 150px !important;
+  }
+  
+  .mobile-slide-canvas {
+    max-height: calc(100vh - 100px) !important;
+  }
+}
+
+/* Mobile landscape optimizations */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .mobile-toolbar {
+    padding: 6px 10px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    gap: 10px;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+  }
+  
+  .mobile-toolbar button {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+  
+  .mobile-toolbar svg {
+    width: 14px;
+    height: 14px;
   }
 }
 

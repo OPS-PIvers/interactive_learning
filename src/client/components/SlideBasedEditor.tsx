@@ -89,6 +89,14 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   // Check if device is in landscape mode
   const isLandscape = window.innerWidth > window.innerHeight;
   const shouldCollapsePanelOnMobile = isMobile && isLandscape;
+  
+  // Get responsive toolbar height based on screen size
+  const getResponsiveToolbarHeight = () => {
+    if (typeof window === 'undefined') return 56;
+    return window.innerHeight < 500 ? 44 : 56;
+  };
+  
+  const toolbarHeight = getResponsiveToolbarHeight();
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -882,9 +890,10 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 className="flex-1 relative"
                 style={{
                   /* Add bottom margin to prevent content overlap with fixed toolbar */
-                  marginBottom: !isPreviewMode ? 'calc(var(--mobile-bottom-toolbar-height, 56px) + env(safe-area-inset-bottom, 0px))' : '0px',
-                  /* Ensure content area is properly constrained */
-                  maxHeight: !isPreviewMode ? 'calc(100vh - var(--mobile-bottom-toolbar-height, 56px) - env(safe-area-inset-bottom, 0px))' : '100vh',
+                  marginBottom: !isPreviewMode ? `calc(${toolbarHeight}px + env(safe-area-inset-bottom, 0px))` : '0px',
+                  /* Ensure content area is properly constrained with minimum viable height */
+                  maxHeight: !isPreviewMode ? `max(200px, calc(100vh - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px) - 80px))` : '100vh',
+                  minHeight: !isPreviewMode ? '200px' : 'auto',
                   overflow: 'hidden'
                 }}
               >

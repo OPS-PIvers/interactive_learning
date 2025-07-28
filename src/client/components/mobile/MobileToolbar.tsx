@@ -17,12 +17,19 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onAspectRatioOpen,
   currentAspectRatio = '16:9'
 }) => {
+  // Determine if we're on a very small screen
+  const isVerySmallScreen = typeof window !== 'undefined' && window.innerHeight < 500;
+  const toolbarHeight = isVerySmallScreen ? 44 : 56;
+  const buttonSize = isVerySmallScreen ? 'p-2' : 'p-3';
+  const iconSize = isVerySmallScreen ? 'w-4 h-4' : 'w-5 h-5';
+  const gap = isVerySmallScreen ? '12px' : '16px';
+  const padding = isVerySmallScreen ? '8px 12px' : '12px 16px';
   const menuItems = [
     {
       id: 'slides',
       label: 'Slides',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       ),
@@ -33,7 +40,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       id: 'background',
       label: 'Background',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
@@ -44,7 +51,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       id: 'insert',
       label: 'Insert',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
       ),
@@ -55,7 +62,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       id: 'aspect-ratio',
       label: `Aspect Ratio (${currentAspectRatio})`,
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16v12H4V6z" />
         </svg>
       ),
@@ -70,7 +77,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       style={{
         /* FORCE fixed positioning over all content with !important level specificity */
         position: 'fixed',
-        bottom: isTimelineVisible ? '64px' : '0px',
+        bottom: isTimelineVisible ? (isVerySmallScreen ? '50px' : '64px') : '0px',
         left: '0px',
         right: '0px',
         width: '100vw',
@@ -81,18 +88,18 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(8px)',
         /* Responsive padding with safe area awareness */
-        padding: '12px 16px',
-        paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+        padding: padding,
+        paddingBottom: `calc(${padding.split(' ')[0]} + env(safe-area-inset-bottom, 0px))`,
         /* Layout - force flex display */
         display: 'flex !important' as any,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '16px',
+        gap: gap,
         flexDirection: 'row' as const,
-        /* Height management - use explicit px values as fallback */
-        height: '56px',
-        minHeight: '56px',
-        maxHeight: '56px',
+        /* Height management - responsive based on screen size */
+        height: `${toolbarHeight}px`,
+        minHeight: `${toolbarHeight}px`,
+        maxHeight: `${toolbarHeight}px`,
         boxSizing: 'border-box',
         /* Ensure visibility */
         visibility: 'visible',
@@ -107,7 +114,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         <button
           key={item.id}
           onClick={item.onClick}
-          className={`relative group ${item.color} text-white p-3 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg`}
+          className={`relative group ${item.color} text-white ${buttonSize} rounded-full transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg`}
           title={item.label}
           aria-label={item.label}
         >
