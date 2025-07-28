@@ -38,7 +38,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
   // THEN do conditional rendering WITHOUT early returns
   const content = isMobile ? (
     // Mobile layout - matches new SlideBasedEditor styling (single row)
-    <div className="bg-slate-800 border-b border-slate-700 text-white shadow-2xl">
+    <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
       {/* Single row: Back, Title, Mode Toggle, Profile */}
       <div className="px-3 py-3 flex items-center justify-between">
         {/* Left: Back button */}
@@ -97,7 +97,7 @@ const ViewerToolbar: React.FC<ViewerToolbarProps> = ({
     </div>
   ) : (
     // Desktop layout
-    <div className="fixed top-0 left-0 right-0 bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-50 h-16 shadow-lg" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', minHeight: 'calc(64px + env(safe-area-inset-top))' }}>
+    <div className="fixed bottom-0 left-0 right-0 bg-slate-800/90 backdrop-blur-md border-t border-slate-700 z-50 h-16 shadow-lg" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)', minHeight: 'calc(64px + env(safe-area-inset-bottom))' }}>
       <div className="max-w-screen-xl mx-auto flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
         {/* Left Section */}
         <div className="flex items-center gap-4">

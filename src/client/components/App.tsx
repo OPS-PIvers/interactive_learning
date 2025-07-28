@@ -20,6 +20,7 @@ import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import SlideEditorTestPage from './SlideEditorTestPage';
 import MigrationTestPage from './MigrationTestPage';
+import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
 
 
@@ -182,7 +183,8 @@ const MainApp: React.FC = () => {
       // Set project type to 'slide' for new projects (this is the slides-based app)
       const projectWithSlideType = {
         ...newProject,
-        projectType: 'slide' as const
+        projectType: 'slide' as const,
+        slideDeck: createDefaultSlideDeck(newProject.id, newProject.title),
       };
 
       // If demo data is provided, save it with the project
@@ -346,7 +348,8 @@ const MainApp: React.FC = () => {
     } catch (err: any) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err.message || ''}`);
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   }, [user, selectedProject, handleCloseModal]);
