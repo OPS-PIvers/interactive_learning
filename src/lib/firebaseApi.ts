@@ -19,6 +19,7 @@ import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from 
 import { SlideDeck } from '../shared/slideTypes'
 import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
+import { saveOperationMonitor } from './saveOperationMonitor'
 import { generateThumbnail } from '../client/utils/imageUtils'
 import { isMobileDevice } from '../client/utils/mobileUtils'
 import { networkMonitor } from '../client/utils/networkMonitor'
@@ -39,6 +40,105 @@ const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {
     debugLog.log(`Firebase ${operation}: ${count} operations`)
+  }
+
+  /**
+   * Determine if an error is retryable (transient) or permanent
+   */
+  private isRetryableError(error: Error): boolean {
+    const errorMessage = error.message.toLowerCase();
+    
+    // Retryable errors (network, timeout, capacity issues)
+    const retryablePatterns = [
+      'network',
+      'timeout',
+      'connection',
+      'temporary',
+      'unavailable',
+      'aborted',
+      'deadline-exceeded',
+      'resource-exhausted',
+      'failed-precondition', // Sometimes retryable for optimistic concurrency
+      'quota',
+      'rate-limit',
+      'too many requests'
+    ];
+    
+    // Non-retryable errors (permissions, validation, not found)
+    const nonRetryablePatterns = [
+      'permission',
+      'unauthorized',
+      'forbidden',
+      'not-found',
+      'already-exists',
+      'invalid-argument',
+      'failed precondition', // Specific Firebase auth/validation errors
+      'unauthenticated'
+    ];
+    
+    // Check non-retryable first (more specific)
+    if (nonRetryablePatterns.some(pattern => errorMessage.includes(pattern))) {
+      return false;
+    }
+    
+    // Check retryable patterns
+    if (retryablePatterns.some(pattern => errorMessage.includes(pattern))) {
+      return true;
+    }
+    
+    // Default to non-retryable for unknown errors to avoid infinite loops
+    return false;
+  }
+
+  /**
+   * Create an enhanced error with detailed context for save operations
+   */
+  private createEnhancedSaveError(originalError: Error, projectId: string, operationId: string, attempts: number): Error {
+    const errorMessage = originalError.message.toLowerCase();
+    let enhancedMessage = '';
+    let errorCategory = 'unknown';
+    
+    // Categorize errors with specific user-friendly messages
+    if (errorMessage.includes('permission') || errorMessage.includes('unauthorized')) {
+      errorCategory = 'permission';
+      enhancedMessage = `Permission denied: You don't have access to save this project. Please check your login status and try again.`;
+    } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+      errorCategory = 'network';
+      enhancedMessage = `Network error: Unable to connect to the server. Please check your internet connection and try again.`;
+    } else if (errorMessage.includes('timeout')) {
+      errorCategory = 'timeout';
+      enhancedMessage = `Operation timeout: The save operation took too long. This may be due to a slow connection or large project size.`;
+    } else if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+      errorCategory = 'quota';
+      enhancedMessage = `Service limit reached: Please try again in a few minutes or contact support if the issue persists.`;
+    } else if (errorMessage.includes('not-found') || errorMessage.includes('project not found')) {
+      errorCategory = 'not_found';
+      enhancedMessage = `Project not found: The project may have been deleted or you may not have access to it.`;
+    } else if (errorMessage.includes('transaction')) {
+      errorCategory = 'transaction';
+      enhancedMessage = `Data consistency error: Multiple users may be editing simultaneously. Please refresh and try again.`;
+    } else if (errorMessage.includes('storage')) {
+      errorCategory = 'storage';
+      enhancedMessage = `File storage error: ${originalError.message}`;
+    } else {
+      errorCategory = 'general';
+      enhancedMessage = `Save failed: ${originalError.message}`;
+    }
+    
+    // Add operation context
+    const contextMessage = `\\n\\nOperation details:\\n- Project ID: ${projectId}\\n- Operation ID: ${operationId}\\n- Attempts made: ${attempts}\\n- Error category: ${errorCategory}`;
+    
+    const error = new Error(enhancedMessage + contextMessage);
+    error.name = `SaveProjectError_${errorCategory}`;
+    
+    // Add custom properties for programmatic access
+    (error as any).operationId = operationId;
+    (error as any).projectId = projectId;
+    (error as any).errorCategory = errorCategory;
+    (error as any).attempts = attempts;
+    (error as any).originalError = originalError;
+    
+    return error;
   }
 
   private async ensureFirebaseReady(): Promise<void> {
@@ -360,10 +460,28 @@ export class FirebaseProjectAPI {
   }
 
   /**
-   * Save/update a project with all its data
+   * Save/update a project with all its data using enhanced error handling and retry logic
    */
   async saveProject(project: Project): Promise<Project> {
-    try {
+    const operationId = `save_${project.id}_${Date.now()}`;
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    // Initialize monitoring
+    const monitoring = saveOperationMonitor.startOperation(
+      operationId, 
+      project.id, 
+      project.projectType || 'hotspot'
+    );
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        debugLog.log(`[FirebaseAPI] Save attempt ${attempt}/${maxRetries} for project ${project.id} (operation: ${operationId})`);
+        
+        // Update monitoring for retry attempts
+        if (attempt > 1) {
+          saveOperationMonitor.incrementAttempts(operationId);
+        }
       const auth = firebaseManager.getAuth();
       const db = firebaseManager.getFirestore();
       
@@ -409,10 +527,70 @@ export class FirebaseProjectAPI {
       }
       // --- End of Thumbnail logic ---
 
-      // Sanitize data before transaction to make it accessible in cleanup
-      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots);
-      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents);
+      // ENHANCED VALIDATION: Comprehensive data validation before save
+      debugLog.log(`[FirebaseAPI] Starting enhanced validation for project ${project.id} (operation: ${operationId})`);
+      const validationStartTime = Date.now();
+      
+      // Validate project consistency between legacy and slide architectures
+      const consistencyCheck = DataSanitizer.validateProjectConsistency(project);
+      if (!consistencyCheck.isValid) {
+        const validationTime = Date.now() - validationStartTime;
+        saveOperationMonitor.recordValidation(operationId, consistencyCheck.errors.length, 0, validationTime);
+        throw new Error(`Project validation failed: ${consistencyCheck.errors.join(', ')}`);
+      }
+      
+      // Log warnings for migration recommendations
+      if (consistencyCheck.warnings.length > 0) {
+        debugLog.warn(`[FirebaseAPI] Project ${project.id} validation warnings:`, consistencyCheck.warnings);
+      }
+      
+      // Sanitize slide deck if present (slide-based projects)
+      let sanitizedSlideDeck = null;
+      if (project.projectType === 'slide' && project.slideDeck) {
+        const slideDeckResult = DataSanitizer.sanitizeSlideDeck(project.slideDeck);
+        if (slideDeckResult.errors.length > 0) {
+          debugLog.error(`[FirebaseAPI] Slide deck validation errors for project ${project.id}:`, slideDeckResult.errors);
+          throw new Error(`Slide deck validation failed: ${slideDeckResult.errors.join(', ')}`);
+        }
+        sanitizedSlideDeck = slideDeckResult.sanitized;
+        debugLog.log(`[FirebaseAPI] Slide deck validated successfully for project ${project.id}:`, {
+          slideCount: sanitizedSlideDeck.slides?.length || 0,
+          totalElements: sanitizedSlideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+        });
+      }
+      
+      // Sanitize legacy data (hotspot-based projects)
+      const sanitizedHotspots = DataSanitizer.sanitizeHotspots(project.interactiveData.hotspots || []);
+      const sanitizedEvents = DataSanitizer.sanitizeTimelineEvents(project.interactiveData.timelineEvents || []);
+      
+      const validationTime = Date.now() - validationStartTime;
+      
+      // Record validation metrics
+      saveOperationMonitor.recordValidation(
+        operationId, 
+        consistencyCheck.errors.length, 
+        consistencyCheck.warnings.length, 
+        validationTime
+      );
+      
+      // Record data size metrics
+      saveOperationMonitor.recordDataSize(operationId, {
+        hotspotCount: sanitizedHotspots.length,
+        eventCount: sanitizedEvents.length,
+        slideCount: sanitizedSlideDeck?.slides?.length || 0,
+        elementCount: sanitizedSlideDeck?.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+      });
+      
+      debugLog.log(`[FirebaseAPI] Enhanced validation completed for project ${project.id}:`, {
+        hasSlides: !!sanitizedSlideDeck,
+        hotspotCount: sanitizedHotspots.length,
+        eventCount: sanitizedEvents.length,
+        warningCount: consistencyCheck.warnings.length,
+        validationTime
+      });
 
+      const transactionStartTime = Date.now();
+      
       await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
         this.logUsage('TRANSACTION_SAVE_PROJECT', 1);
 
@@ -446,8 +624,8 @@ export class FirebaseProjectAPI {
 
         // Prepare the data for Firestore update.
         // All interactive data is now nested under the 'interactiveData' field.
-        // IMPORTANT: Clear hotspots and timelineEvents from interactiveData since 
-        // subcollections are the authoritative source to prevent data inconsistencies.
+        // UNIFIED DATA ARCHITECTURE: Use subcollections as single source of truth
+        // interactiveData now only stores non-array metadata (background, settings, etc.)
         const updateData: ProjectUpdateData = {
           title: project.title,
           description: project.description,
@@ -456,21 +634,24 @@ export class FirebaseProjectAPI {
           projectType: project.projectType || 'hotspot',
           updatedAt: serverTimestamp(),
           createdBy: project.createdBy,
+          // Store only non-collection data in interactiveData for consistency
           interactiveData: {
-            ...project.interactiveData,
             backgroundImage: newBackgroundImageForUpdate || null,
-            // Clear these arrays since subcollections are authoritative
+            imageFitMode: project.interactiveData.imageFitMode || 'cover',
+            viewerModes: project.interactiveData.viewerModes || { explore: true, selfPaced: true, timed: true },
+            // NEVER store hotspots/timelineEvents arrays here - subcollections are authoritative
             hotspots: [],
             timelineEvents: [],
           }
         };
 
-        // Add slide deck data for slide-based projects.
-        if (project.projectType === 'slide' && project.slideDeck) {
-          updateData.slideDeck = project.slideDeck;
-          debugLog.log(`[FirebaseAPI] Saving slide deck for project ${project.id}:`, {
-            slideCount: project.slideDeck.slides.length,
-            totalElements: project.slideDeck.slides.reduce((acc, slide) => acc + (slide.elements ? slide.elements.length : 0), 0)
+        // Add validated and sanitized slide deck data for slide-based projects.
+        if (project.projectType === 'slide' && sanitizedSlideDeck) {
+          updateData.slideDeck = sanitizedSlideDeck;
+          debugLog.log(`[FirebaseAPI] Saving validated slide deck for project ${project.id}:`, {
+            slideCount: sanitizedSlideDeck.slides?.length || 0,
+            totalElements: sanitizedSlideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0,
+            validationPassed: true
           });
         }
 
@@ -503,46 +684,87 @@ export class FirebaseProjectAPI {
         const hotspotsColRef = collection(db, 'projects', project.id, 'hotspots');
         const eventsColRef = collection(db, 'projects', project.id, 'timeline_events');
 
-        // NEW APPROACH: Use upsert logic instead of delete-then-recreate
-        // This prevents data loss if the transaction fails partway through
+        // UNIFIED APPROACH: Atomic upsert with integrated cleanup
+        // All operations in single transaction to prevent race conditions
         
         const currentHotspotIds = new Set(sanitizedHotspots.map(h => h.id));
         const currentEventIds = new Set(sanitizedEvents.map(e => e.id));
         
-        debugLog.log(`[FirebaseAPI] Saving project ${project.id}:`, {
+        debugLog.log(`[FirebaseAPI] Atomic save for project ${project.id}:`, {
           hotspotsCount: sanitizedHotspots.length,
           eventsCount: sanitizedEvents.length,
           hotspotIds: Array.from(currentHotspotIds),
-          eventIds: Array.from(currentEventIds)
+          eventIds: Array.from(currentEventIds),
+          transactionId: Date.now()
         });
         
-        // Upsert current hotspots and events
+        // Step 1: Get existing subcollection documents for cleanup identification
+        const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
+          getDocs(query(hotspotsColRef)),
+          getDocs(query(eventsColRef))
+        ]);
+        
+        // Step 2: Identify orphaned documents that need cleanup
+        const orphanedHotspotRefs = existingHotspotsSnap.docs
+          .filter(doc => !currentHotspotIds.has(doc.id))
+          .map(doc => doc.ref);
+          
+        const orphanedEventRefs = existingEventsSnap.docs
+          .filter(doc => !currentEventIds.has(doc.id))
+          .map(doc => doc.ref);
+        
+        debugLog.log(`[FirebaseAPI] Cleanup analysis for project ${project.id}:`, {
+          existingHotspots: existingHotspotsSnap.docs.map(d => d.id),
+          existingEvents: existingEventsSnap.docs.map(d => d.id),
+          orphanedHotspots: orphanedHotspotRefs.map(r => r.id),
+          orphanedEvents: orphanedEventRefs.map(r => r.id)
+        });
+        
+        // Step 3: Atomic upsert current data
         for (const hotspot of sanitizedHotspots) {
           const hotspotRef = doc(hotspotsColRef, hotspot.id!);
-          transaction.set(hotspotRef, { ...hotspot, updatedAt: serverTimestamp() });
+          transaction.set(hotspotRef, { 
+            ...hotspot, 
+            updatedAt: serverTimestamp(),
+            version: '2.0' // Add versioning for data consistency tracking
+          });
         }
 
         for (const event of sanitizedEvents) {
           const eventRef = doc(eventsColRef, event.id!);
-          transaction.set(eventRef, { ...event, updatedAt: serverTimestamp() });
+          transaction.set(eventRef, { 
+            ...event, 
+            updatedAt: serverTimestamp(), 
+            version: '2.0' // Add versioning for data consistency tracking
+          });
         }
+        
+        // Step 4: Atomic cleanup of orphaned documents (within same transaction)
+        for (const orphanRef of [...orphanedHotspotRefs, ...orphanedEventRefs]) {
+          transaction.delete(orphanRef);
+        }
+        
+        debugLog.log(`[FirebaseAPI] Transaction operations for project ${project.id}:`, {
+          upserts: sanitizedHotspots.length + sanitizedEvents.length,
+          deletions: orphanedHotspotRefs.length + orphanedEventRefs.length,
+          totalOps: sanitizedHotspots.length + sanitizedEvents.length + orphanedHotspotRefs.length + orphanedEventRefs.length
+        });
       });
+      
+      const transactionTime = Date.now() - transactionStartTime;
+      
+      // Record transaction metrics
+      saveOperationMonitor.recordTransaction(
+        operationId,
+        sanitizedHotspots.length + sanitizedEvents.length,
+        orphanedHotspotRefs.length + orphanedEventRefs.length,
+        transactionTime
+      );
 
-      debugLog.log(`Transaction for project ${project.id} committed successfully.`);
-
-      // Clean up orphaned documents in a separate transaction (after main save succeeds)
-      // This is safer than doing it in the same transaction
-      try {
-        debugLog.log(`[FirebaseAPI] Starting cleanup for project ${project.id}`);
-        await this.cleanupOrphanedSubcollectionDocs(project.id, 
-          sanitizedHotspots.map(h => h.id!), 
-          sanitizedEvents.map(e => e.id!)
-        );
-        debugLog.log(`[FirebaseAPI] Cleanup completed for project ${project.id}`);
-      } catch (cleanupError) {
-        debugLog.error(`[FirebaseAPI] Failed to clean up orphaned documents for project ${project.id}, but main save succeeded:`, cleanupError);
-        // Don't throw - main save was successful
-      }
+      debugLog.log(`Atomic transaction for project ${project.id} committed successfully with integrated cleanup.`);
+      
+      // Mark operation as completed
+      saveOperationMonitor.completeOperation(operationId);
 
       if (oldThumbnailUrlToDeleteAfterCommit) {
         debugLog.log(`Attempting to delete old thumbnail (fire-and-forget): ${oldThumbnailUrlToDeleteAfterCommit}`);
@@ -559,10 +781,39 @@ export class FirebaseProjectAPI {
           backgroundImage: newBackgroundImageForUpdate || null
         }
       };
-    } catch (error) {
-      debugLog.error('Error in saveProject (transaction or post-transaction storage deletion):', error);
-      throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error occurred');
+        const isRetryableError = this.isRetryableError(lastError);
+        
+        // Record error in monitoring
+        saveOperationMonitor.failOperation(
+          operationId, 
+          lastError, 
+          error.constructor.name, 
+          isRetryableError
+        );
+        
+        debugLog.error(`[FirebaseAPI] Save attempt ${attempt}/${maxRetries} failed for project ${project.id} (operation: ${operationId}):`, {
+          error: lastError.message,
+          isRetryable: isRetryableError,
+          remainingAttempts: maxRetries - attempt
+        });
+        
+        // If this isn't the last attempt and error is retryable, continue to retry
+        if (attempt < maxRetries && isRetryableError) {
+          const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+          debugLog.log(`[FirebaseAPI] Retrying save for project ${project.id} in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        
+        // Either last attempt or non-retryable error - throw enhanced error
+        throw this.createEnhancedSaveError(lastError, project.id, operationId, attempt);
+      }
     }
+    
+    // This should never be reached, but TypeScript needs it
+    throw lastError || new Error('Unexpected error in save operation');
   }
 
   /**
