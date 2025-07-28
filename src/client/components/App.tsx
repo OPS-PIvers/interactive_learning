@@ -21,6 +21,7 @@ import SlideBasedTestPage from './SlideBasedTestPage';
 import SlideEditorTestPage from './SlideEditorTestPage';
 import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
+import { setDynamicVhProperty } from '../utils/mobileUtils';
 
 
 const LoadingScreen: React.FC = () => (
@@ -347,7 +348,8 @@ const MainApp: React.FC = () => {
     } catch (err: any) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err.message || ''}`);
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   }, [user, selectedProject, handleCloseModal]);
