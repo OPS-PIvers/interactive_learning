@@ -457,8 +457,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
           ref={layoutRef}
           className={`h-full w-full bg-slate-900 relative overflow-hidden keyboard-aware-container ${keyboardInfo.isVisible ? 'keyboard-open' : ''}`}
           style={{ 
-            height: `${viewport.availableHeight}px`,
-            /* Remove the padding since the toolbar is positioned fixed and content has its own padding */
+            height: '100dvh',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           {renderCompactLayout()}
