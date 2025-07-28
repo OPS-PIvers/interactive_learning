@@ -7,8 +7,6 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerToolbar from './ViewerToolbar';
-import HeaderTimeline from './HeaderTimeline';
-import { MobileNavigationBar } from './mobile/MobileNavigationBar';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -183,50 +181,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }
 
   return (
-    <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${!isMobile ? 'pt-16' : ''}`}>
-      {/* Navigation Bar - Mobile vs Desktop */}
-      {isMobile ? (
-        <MobileNavigationBar
-          mode="viewer"
-          projectName={projectName}
-          onBack={onClose}
-          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
-          onStartLearning={handleStartLearning}
-          onStartExploring={handleStartExploring}
-          hasContent={slideDeck.slides.length > 0}
-          viewerModes={viewerModes}
-        />
-      ) : (
-        <ViewerToolbar
-          projectName={projectName}
-          onBack={onClose}
-          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
-          onStartLearning={handleStartLearning}
-          onStartExploring={handleStartExploring}
-          hasContent={slideDeck.slides.length > 0}
-          isMobile={isMobile}
-          viewerModes={viewerModes}
-        />
-      )}
-
-      {/* Persistent Timeline */}
-      <HeaderTimeline
-        slideDeck={enhancedSlideDeck}
-        currentSlideIndex={currentSlideIndex}
-        onSlideChange={handleSlideChange}
-        viewerMode={moduleState === 'learning' && viewerModes.timed ? 'auto-progression' : 
-                    moduleState === 'learning' ? 'guided' : 'explore'}
-        activeHotspotId={activeHotspotId}
-        completedHotspots={completedHotspots}
-        onHotspotFocus={handleHotspotFocus}
-        isPlaying={isPlaying}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        playbackSpeed={playbackSpeed}
-        onSpeedChange={handleSpeedChange}
-        className="shadow-lg"
-      />
-
+    <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800`}>
       {/* Slide viewer - use timeline viewer for guided/timed modes */}
       <div className="flex-1 flex flex-col relative">
         <div className="flex-1">
@@ -252,6 +207,16 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         </div>
 
       </div>
+      <ViewerToolbar
+        projectName={projectName}
+        onBack={onClose}
+        moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+        onStartLearning={handleStartLearning}
+        onStartExploring={handleStartExploring}
+        hasContent={slideDeck.slides.length > 0}
+        isMobile={isMobile}
+        viewerModes={viewerModes}
+      />
     </div>
   );
 };
