@@ -903,13 +903,16 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           {isMobile ? (
             <>
               <div 
-                className="flex-1 relative"
+                className="flex-1 relative flex flex-col"
                 style={{
-                  /* Use viewport-aware content height calculations that account for iOS Safari UI */
-                  height: !isPreviewMode ? contentAreaConfig.availableHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
-                  maxHeight: !isPreviewMode ? contentAreaConfig.maxHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
-                  minHeight: !isPreviewMode ? '200px' : 'auto',
-                  overflow: 'hidden',
+                  /* Use min-height instead of fixed height to allow flexible content sizing */
+                  minHeight: !isPreviewMode ? contentAreaConfig.availableHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
+                  /* Set a safe maxHeight that guarantees toolbar space */
+                  maxHeight: !isPreviewMode ? `calc(100vh - var(--mobile-header-height, 60px) - var(--mobile-toolbar-height, 56px) - 20px)` : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
+                  /* Allow content to shrink if needed */
+                  height: 'auto',
+                  /* Use overflow-auto instead of hidden to allow content scrolling if needed */
+                  overflow: 'auto',
                   /* Remove margin bottom to prevent double-spacing */
                   marginBottom: '0px',
                   /* Apply CSS variables from mobile toolbar system */

@@ -37,32 +37,50 @@ export function useMobileToolbar(isTimelineVisible: boolean = false): MobileTool
     safariUIHeight 
   } = useIOSSafariViewport();
 
-  // Responsive breakpoint logic
-  const isVerySmallScreen = useMemo(() => {
-    return viewportHeight < 500;
+  // Enhanced responsive breakpoint logic for better toolbar visibility
+  const screenSize = useMemo(() => {
+    if (viewportHeight < 400) return 'extraSmall';
+    if (viewportHeight < 600) return 'verySmall'; // Expanded threshold from 500px to 600px
+    return 'normal';
   }, [viewportHeight]);
+  
+  const isVerySmallScreen = screenSize !== 'normal';
+  const isExtraSmallScreen = screenSize === 'extraSmall';
 
-  // Calculate responsive dimensions
+  // Calculate responsive dimensions with enhanced sizing for different screen sizes
   const dimensions = useMemo((): ToolbarDimensions => {
-    const toolbarHeight = isVerySmallScreen ? 44 : 56;
-    const headerHeight = isVerySmallScreen ? 48 : 60;
-    const timelineOffset = isTimelineVisible ? (isVerySmallScreen ? 50 : 64) : 0;
+    // More aggressive size reduction for constrained viewports
+    const toolbarHeight = isExtraSmallScreen ? 40 : isVerySmallScreen ? 44 : 56;
+    const headerHeight = isExtraSmallScreen ? 44 : isVerySmallScreen ? 48 : 60;
+    const timelineOffset = isTimelineVisible ? (isExtraSmallScreen ? 40 : isVerySmallScreen ? 50 : 64) : 0;
     
-    // Calculate available content height accounting for all UI elements
-    const contentHeight = availableHeight 
+    // Add extra padding to ensure toolbar is never clipped
+    const safePadding = isExtraSmallScreen ? 8 : 12;
+    
+    // Calculate available content height with more conservative approach
+    const rawContentHeight = availableHeight 
       - headerHeight 
       - toolbarHeight 
       - timelineOffset 
-      - safariUIHeight;
+      - safariUIHeight 
+      - safePadding; // Extra safety margin
+    
+    // More aggressive minimum content height based on screen size
+    const minContentHeight = isExtraSmallScreen ? 150 : 200;
+    const contentHeight = Math.max(rawContentHeight, minContentHeight);
+    
+    // Ensure content doesn't exceed available space (preventing toolbar clipping)
+    const maxAllowedContent = availableHeight - headerHeight - toolbarHeight - 20; // 20px safety buffer
+    const finalContentHeight = Math.min(contentHeight, maxAllowedContent);
 
     return {
       toolbarHeight,
       headerHeight,
-      contentHeight: Math.max(contentHeight, 200), // Minimum content height
+      contentHeight: finalContentHeight,
       isVerySmallScreen,
       timelineOffset
     };
-  }, [isVerySmallScreen, availableHeight, safariUIHeight, isTimelineVisible]);
+  }, [screenSize, availableHeight, safariUIHeight, isTimelineVisible, isExtraSmallScreen, isVerySmallScreen]);
 
   // Calculate positioning based on current state
   const positioning = useMemo((): ToolbarPositioning => {
@@ -77,17 +95,19 @@ export function useMobileToolbar(isTimelineVisible: boolean = false): MobileTool
     };
   }, [dimensions.timelineOffset, isIOSSafariUIVisible, safariUIHeight]);
 
-  // Generate CSS variables for synchronization
+  // Generate CSS variables for synchronization with enhanced debugging info
   const cssVariables = useMemo(() => ({
     '--mobile-toolbar-height': `${dimensions.toolbarHeight}px`,
     '--mobile-header-height': `${dimensions.headerHeight}px`,
     '--mobile-content-height': `${dimensions.contentHeight}px`,
     '--mobile-timeline-offset': `${dimensions.timelineOffset}px`,
     '--mobile-very-small-screen': isVerySmallScreen ? '1' : '0',
+    '--mobile-extra-small-screen': isExtraSmallScreen ? '1' : '0',
+    '--mobile-screen-size': screenSize,
     '--mobile-safari-ui-offset': `${safariUIHeight}px`,
     '--mobile-available-height': `${availableHeight}px`,
     '--mobile-viewport-height': `${viewportHeight}px`
-  }), [dimensions, isVerySmallScreen, safariUIHeight, availableHeight, viewportHeight]);
+  }), [dimensions, isVerySmallScreen, isExtraSmallScreen, screenSize, safariUIHeight, availableHeight, viewportHeight]);
 
   // Synchronize CSS variables with DOM
   const updateCSSVariables = useCallback(() => {

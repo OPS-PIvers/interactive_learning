@@ -59,10 +59,11 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   }
 
   const { toolbarHeight, isVerySmallScreen } = dimensions;
-  const buttonSize = isVerySmallScreen ? 'p-2' : 'p-3';
-  const iconSize = isVerySmallScreen ? 'w-4 h-4' : 'w-5 h-5';
-  const gap = isVerySmallScreen ? '12px' : '16px';
-  const padding = isVerySmallScreen ? '8px 12px' : '12px 16px';
+  const isExtraSmallScreen = cssVariables['--mobile-extra-small-screen'] === '1';
+  const buttonSize = isExtraSmallScreen ? 'p-1.5' : isVerySmallScreen ? 'p-2' : 'p-3';
+  const iconSize = isExtraSmallScreen ? 'w-3.5 h-3.5' : isVerySmallScreen ? 'w-4 h-4' : 'w-5 h-5';
+  const gap = isExtraSmallScreen ? '8px' : isVerySmallScreen ? '12px' : '16px';
+  const padding = isExtraSmallScreen ? '6px 8px' : isVerySmallScreen ? '8px 12px' : '12px 16px';
   const menuItems = [
     {
       id: 'slides',
@@ -130,7 +131,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         backdropFilter: 'blur(8px)',
         /* Responsive padding with enhanced safe area awareness */
         padding: padding,
-        paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px)) !important' as any,
+        paddingBottom: `max(${isExtraSmallScreen ? '8px' : '12px'}, env(safe-area-inset-bottom, 0px)) !important` as any,
         /* Layout - force flex display with maximum priority */
         display: 'flex !important' as any,
         alignItems: 'center !important' as any,
