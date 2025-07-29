@@ -572,7 +572,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className={`slide-editor ${isMobile ? 'relative min-h-screen' : 'fixed inset-0'} w-full ${isMobile ? 'min-h-screen' : 'h-full'} flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? 'mobile-full-height mobile-viewport-fix' : 'overflow-hidden'}`}>
+      <div className={`slide-editor ${isMobile ? 'h-screen flex flex-col' : 'fixed inset-0'} w-full ${isMobile ? '' : 'h-full'} ${isMobile ? '' : 'flex flex-col'} bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? '' : 'overflow-hidden'}`}>
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {
@@ -902,23 +902,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         <div className="flex-1 flex flex-col relative">
           {isMobile ? (
             <>
-              <div 
-                className="flex-1 relative flex flex-col"
-                style={{
-                  /* Use min-height instead of fixed height to allow flexible content sizing */
-                  minHeight: !isPreviewMode ? contentAreaConfig.availableHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
-                  /* Set a safe maxHeight that guarantees toolbar space */
-                  maxHeight: !isPreviewMode ? `calc(100vh - var(--mobile-header-height, 60px) - var(--mobile-toolbar-height, 56px) - 20px)` : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
-                  /* Allow content to shrink if needed */
-                  height: 'auto',
-                  /* Use overflow-auto instead of hidden to allow content scrolling if needed */
-                  overflow: 'auto',
-                  /* Remove margin bottom to prevent double-spacing */
-                  marginBottom: '0px',
-                  /* Apply CSS variables from mobile toolbar system */
-                  ...mobileToolbarConfig.cssVariables
-                }}
-              >
+              <div className="flex-1 relative overflow-auto">
                 <MobileSlideEditor
                   slideDeck={editorSlideDeck}
                   currentSlideIndex={currentSlideIndex}
@@ -933,6 +917,20 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                   onSlideUpdate={handleSlideUpdate}
                 />
               </div>
+              
+              {/* Mobile Toolbar - Simple footer in flexbox layout */}
+              {!isPreviewMode && (
+                <div className="flex-none bg-slate-800 border-t border-slate-700">
+                  <MobileToolbar
+                    onSlidesOpen={handleMobileSlidesOpen}
+                    onBackgroundOpen={handleMobileBackgroundOpen}
+                    onInsertOpen={handleMobileInsertOpen}
+                    onAspectRatioOpen={handleMobileAspectRatioOpen}
+                    currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
+                    isTimelineVisible={isTimelineVisible}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <SlideEditor
@@ -1145,42 +1143,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           </>
         )}
       </div>
-      
-      {/* Mobile Toolbar - Rendered outside main container to avoid stacking context issues */}
-      {(() => {
-        const shouldShowToolbar = !isPreviewMode && isMobile;
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[SlideBasedEditor] Mobile Toolbar render check (outside container):', {
-            isPreviewMode,
-            isMobile,
-            shouldShowToolbar,
-            currentSlideIndex,
-            isLandscape,
-            shouldCollapsePanelOnMobile,
-            timestamp: new Date().toISOString()
-          });
-          
-          if (shouldShowToolbar) {
-            console.log('[SlideBasedEditor] ✅ Mobile Toolbar SHOULD be visible (outside container)');
-          } else {
-            console.log('[SlideBasedEditor] ❌ Mobile Toolbar will NOT render:', {
-              reason: isPreviewMode ? 'Preview mode is ON' : 'Not mobile device'
-            });
-          }
-        }
-        
-        return shouldShowToolbar ? (
-          <MobileToolbar
-            onSlidesOpen={handleMobileSlidesOpen}
-            onBackgroundOpen={handleMobileBackgroundOpen}
-            onInsertOpen={handleMobileInsertOpen}
-            onAspectRatioOpen={handleMobileAspectRatioOpen}
-            currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-            isTimelineVisible={isTimelineVisible}
-          />
-        ) : null;
-      })()}
     </ProjectThemeProvider>
   );
 };

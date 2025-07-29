@@ -1,5 +1,4 @@
 import React from 'react';
-import { useMobileToolbar } from '../../hooks/useMobileToolbar';
 
 interface MobileToolbarProps {
   onSlidesOpen: () => void;
@@ -18,52 +17,11 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onAspectRatioOpen,
   currentAspectRatio = '16:9'
 }) => {
-  const { dimensions, positioning, cssVariables, isReady } = useMobileToolbar(isTimelineVisible);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[MobileToolbar] Component called with props:', {
-      isTimelineVisible,
-      currentAspectRatio,
-      hasOnSlidesOpen: !!onSlidesOpen,
-      hasOnBackgroundOpen: !!onBackgroundOpen,
-      hasOnInsertOpen: !!onInsertOpen,
-      timestamp: new Date().toISOString()
-    });
-    
-    console.log('[MobileToolbar] Hook results:', {
-      isReady,
-      dimensions,
-      positioning,
-      cssVariables: Object.keys(cssVariables),
-      timestamp: new Date().toISOString()
-    });
-  }
-  
-  // Don't render until the toolbar system is ready
-  if (!isReady) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[MobileToolbar] ❌ Not ready to render - returning null');
-    }
-    return null;
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[MobileToolbar] ✅ RENDERING TOOLBAR with styles:', {
-      position: 'fixed',
-      bottom: positioning.bottom,
-      zIndex: Math.max(positioning.zIndex, 9999),
-      height: `${dimensions.toolbarHeight}px`,
-      background: '#1e293b',
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  const { toolbarHeight, isVerySmallScreen } = dimensions;
-  const isExtraSmallScreen = cssVariables['--mobile-extra-small-screen'] === '1';
-  const buttonSize = isExtraSmallScreen ? 'p-1.5' : isVerySmallScreen ? 'p-2' : 'p-3';
-  const iconSize = isExtraSmallScreen ? 'w-3.5 h-3.5' : isVerySmallScreen ? 'w-4 h-4' : 'w-5 h-5';
-  const gap = isExtraSmallScreen ? '8px' : isVerySmallScreen ? '12px' : '16px';
-  const padding = isExtraSmallScreen ? '6px 8px' : isVerySmallScreen ? '8px 12px' : '12px 16px';
+  // Simple responsive sizing without complex hooks
+  const buttonSize = 'p-3';
+  const iconSize = 'w-5 h-5';
+  const gap = '16px';
+  const padding = '12px 16px';
   const menuItems = [
     {
       id: 'slides',
@@ -113,58 +71,14 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
 
   return (
     <div
-      className={`mobile-toolbar-container ${isTimelineVisible ? 'timeline-visible' : ''}`}
+      className="flex items-center justify-center bg-slate-800 text-white"
       style={{
-        /* Apply CSS variables for synchronization */
-        ...cssVariables,
-        /* CRITICAL: FORCE fixed positioning with maximum priority - override any CSS classes */
-        position: 'fixed !important' as any,
-        bottom: '0px !important' as any, // Force bottom positioning regardless of calculations
-        left: '0px !important' as any,
-        right: '0px !important' as any,
-        width: '100vw !important' as any,
-        zIndex: '99999 !important' as any, // Maximum z-index to override any conflicting styles
-        /* Force positioning relative to viewport, not parent */
-        inset: 'auto 0px 0px 0px !important' as any,
-        /* Strong background to ensure visibility */
-        background: '#1e293b !important' as any,
-        borderTop: '1px solid #334155',
-        boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(8px)',
-        /* Responsive padding with enhanced safe area awareness */
         padding: padding,
-        paddingBottom: `max(${isExtraSmallScreen ? '8px' : '12px'}, env(safe-area-inset-bottom, 0px)) !important` as any,
-        /* Layout - force flex display with maximum priority */
-        display: 'flex !important' as any,
-        alignItems: 'center !important' as any,
-        justifyContent: 'center !important' as any,
+        paddingBottom: `max(12px, env(safe-area-inset-bottom, 0px))`,
         gap: gap,
-        flexDirection: 'row' as const,
-        /* Height management - responsive based on screen size */
-        height: `${toolbarHeight}px !important` as any,
-        minHeight: `${toolbarHeight}px !important` as any,
-        maxHeight: `${toolbarHeight}px !important` as any,
-        boxSizing: 'border-box',
-        /* Ensure visibility with maximum priority */
-        visibility: 'visible !important' as any,
-        opacity: '1 !important' as any,
-        /* Ensure it's not being clipped with maximum priority */
-        overflow: 'visible !important' as any,
-        /* Remove any transforms that might hide the toolbar */
-        transform: 'none !important' as any,
-        /* Ensure no parent can hide this */
-        pointerEvents: 'auto !important' as any,
-        /* Override any potential CSS resets or global styles */
-        margin: '0px !important' as any,
-        padding: padding,
-        boxSizing: 'border-box !important' as any,
-        /* Ensure it's positioned relative to viewport */
-        position: 'fixed !important' as any, // Duplicate to ensure it overrides everything
+        height: '56px',
+        minHeight: '56px'
       }}
-      // Add data attributes for debugging
-      data-mobile-toolbar="true"
-      data-timeline-visible={isTimelineVisible}
-      data-toolbar-height={toolbarHeight}
     >
       {menuItems.map((item) => (
         <button
