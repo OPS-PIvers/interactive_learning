@@ -941,8 +941,19 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                     isMobile,
                     shouldShowToolbar,
                     currentSlideIndex,
+                    isLandscape,
+                    shouldCollapsePanelOnMobile,
+                    migrationFooterHidden: !isMobile,
                     timestamp: new Date().toISOString()
                   });
+                  
+                  if (shouldShowToolbar) {
+                    console.log('[SlideBasedEditor] ✅ Mobile Toolbar SHOULD be visible');
+                  } else {
+                    console.log('[SlideBasedEditor] ❌ Mobile Toolbar will NOT render:', {
+                      reason: isPreviewMode ? 'Preview mode is ON' : 'Not mobile device'
+                    });
+                  }
                 }
                 
                 return shouldShowToolbar ? (
@@ -1051,8 +1062,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
         )}
       </div>
 
-      {/* Footer with migration info - hidden on mobile landscape for space */}
-      {migrationResult && !shouldCollapsePanelOnMobile && (
+      {/* Footer with migration info - hidden on mobile devices to prevent toolbar blocking */}
+      {migrationResult && !isMobile && (
         <div className="bg-slate-800 border-t border-slate-700 text-slate-400 p-3 text-xs">
           <div className="flex items-center justify-between">
             <div>
