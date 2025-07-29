@@ -25,9 +25,18 @@
     --ios-top-bar-height: 44px; /* Typical iOS status bar + URL bar */
     --ios-bottom-bar-height: 34px; /* Typical iOS home indicator */
     
-    /* Mobile toolbar heights */
-    --mobile-bottom-toolbar-height: 56px;
-    --mobile-header-height: 80px;
+    /* Mobile toolbar heights - synchronized with useMobileToolbar hook */
+    --mobile-toolbar-height: 56px; /* Responsive: 44px on small screens, 56px otherwise */
+    --mobile-header-height: 60px; /* Responsive: 48px on small screens, 60px otherwise */
+    --mobile-content-height: calc(100vh - var(--mobile-header-height) - var(--mobile-toolbar-height));
+    --mobile-timeline-offset: 0px; /* Dynamic: 50px/64px when timeline visible */
+    --mobile-very-small-screen: 0; /* 1 if screen height < 500px, 0 otherwise */
+    --mobile-safari-ui-offset: 0px; /* Compensation for iOS Safari UI */
+    --mobile-available-height: 100vh; /* Available height excluding iOS Safari UI */
+    --mobile-viewport-height: 100vh; /* Actual viewport height */
+    
+    /* Legacy variable support for backward compatibility */
+    --mobile-bottom-toolbar-height: var(--mobile-toolbar-height);
     
     /* Z-index layers for consistent stacking */
     --z-index-toolbar: 9000;
@@ -61,14 +70,28 @@
     touch-action: manipulation;
   }
   
-  /* Mobile editor active state */
+  /* Mobile editor active state with enhanced content calculation */
   body.mobile-editor-active {
     position: fixed;
     width: 100%;
-    height: 100%;
+    height: var(--mobile-available-height, 100vh);
     overflow: hidden;
     -webkit-overflow-scrolling: none;
     overscroll-behavior: none;
+  }
+
+  /* Content area that accounts for all mobile UI elements */
+  .mobile-content-area {
+    height: var(--mobile-content-height);
+    max-height: var(--mobile-content-height);
+    overflow: auto;
+    padding-bottom: calc(var(--mobile-timeline-offset) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Layout container that adapts to toolbar presence */
+  .mobile-layout-container {
+    min-height: calc(var(--mobile-available-height) - var(--mobile-header-height) - var(--mobile-toolbar-height) - var(--mobile-timeline-offset));
+    padding-bottom: calc(var(--mobile-toolbar-height) + var(--mobile-timeline-offset) + env(safe-area-inset-bottom, 0px));
   }
 
   /* Dynamic viewport height calculation with iOS Safari support */
@@ -594,14 +617,31 @@
     flex-shrink: 0;
   }
 
-  /* Enhanced mobile timeline container */
+  /* Enhanced mobile timeline container with synchronized positioning */
   .mobile-timeline-container {
-    position: relative;
+    position: fixed;
+    bottom: var(--mobile-toolbar-height, 56px);
+    left: 0;
+    right: 0;
     width: 100%;
+    height: calc(var(--mobile-timeline-offset) - 8px); /* Account for padding */
     background: rgba(30, 41, 59, 0.95);
     backdrop-filter: blur(8px);
     border-top: 1px solid #334155;
     padding: 12px 16px;
+    z-index: 900; /* Between content and toolbar */
+    transition: bottom 0.3s ease;
+    /* Ensure proper safe area handling */
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+  }
+
+  /* Timeline container when hidden */
+  .mobile-timeline-container.timeline-hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .mobile-timeline-scroll {
@@ -753,6 +793,34 @@
 
   .mobile-hidden {
     display: none;
+  }
+
+  /* Enhanced mobile positioning utilities */
+  .mobile-toolbar-aware {
+    margin-bottom: calc(var(--mobile-toolbar-height) + var(--mobile-timeline-offset) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-header-aware {
+    margin-top: calc(var(--mobile-header-height) + env(safe-area-inset-top, 0px));
+  }
+
+  .mobile-full-layout-aware {
+    padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--mobile-toolbar-height) + var(--mobile-timeline-offset) + env(safe-area-inset-bottom, 0px));
+    min-height: calc(var(--mobile-available-height) - var(--mobile-header-height) - var(--mobile-toolbar-height) - var(--mobile-timeline-offset));
+  }
+
+  /* Performance optimization classes */
+  .mobile-gpu-accelerated {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  .mobile-smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 
   .mobile-text-base {

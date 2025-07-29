@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMobileToolbar } from '../../hooks/useMobileToolbar';
 
 interface MobileToolbarProps {
   onSlidesOpen: () => void;
@@ -17,9 +18,14 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onAspectRatioOpen,
   currentAspectRatio = '16:9'
 }) => {
-  // Determine if we're on a very small screen
-  const isVerySmallScreen = typeof window !== 'undefined' && window.innerHeight < 500;
-  const toolbarHeight = isVerySmallScreen ? 44 : 56;
+  const { dimensions, positioning, cssVariables, isReady } = useMobileToolbar(isTimelineVisible);
+  
+  // Don't render until the toolbar system is ready
+  if (!isReady) {
+    return null;
+  }
+
+  const { toolbarHeight, isVerySmallScreen } = dimensions;
   const buttonSize = isVerySmallScreen ? 'p-2' : 'p-3';
   const iconSize = isVerySmallScreen ? 'w-4 h-4' : 'w-5 h-5';
   const gap = isVerySmallScreen ? '12px' : '16px';
@@ -75,21 +81,23 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
     <div
       className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
       style={{
-        /* FORCE fixed positioning over all content with !important level specificity */
+        /* Apply CSS variables for synchronization */
+        ...cssVariables,
+        /* FORCE fixed positioning over all content with enhanced positioning */
         position: 'fixed',
-        bottom: isTimelineVisible ? (isVerySmallScreen ? '50px' : '64px') : '0px',
+        bottom: positioning.bottom,
         left: '0px',
         right: '0px',
         width: '100vw',
-        zIndex: 999, // Increased z-index to ensure it's above everything
+        zIndex: positioning.zIndex,
         /* Strong background to ensure visibility */
         background: '#1e293b',
         borderTop: '1px solid #334155',
         boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(8px)',
-        /* Responsive padding with safe area awareness */
+        /* Responsive padding with enhanced safe area awareness */
         padding: padding,
-        paddingBottom: `calc(${padding.split(' ')[0]} + env(safe-area-inset-bottom, 0px))`,
+        paddingBottom: positioning.paddingBottom,
         /* Layout - force flex display */
         display: 'flex !important' as any,
         alignItems: 'center',
@@ -101,13 +109,15 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         minHeight: `${toolbarHeight}px`,
         maxHeight: `${toolbarHeight}px`,
         boxSizing: 'border-box',
-        /* Ensure visibility */
+        /* Ensure visibility with iOS Safari compensation */
         visibility: 'visible',
         opacity: 1,
-        /* Prevent any transforms that might hide it */
-        transform: 'none',
+        /* Apply iOS Safari UI compensation transform */
+        transform: positioning.transform,
         /* Ensure it's not being clipped */
-        overflow: 'visible'
+        overflow: 'visible',
+        /* Enhanced transition for smooth repositioning */
+        transition: 'transform 0.3s ease, bottom 0.3s ease'
       }}
     >
       {menuItems.map((item) => (
