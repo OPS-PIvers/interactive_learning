@@ -28,6 +28,7 @@ import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 import { ProjectThemeProvider } from '../hooks/useProjectTheme';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { MobileToolbar } from './mobile/MobileToolbar';
+import { useMobileToolbar, useContentAreaHeight } from '../hooks/useMobileToolbar';
 import { MobileSlidesModal } from './mobile/MobileSlidesModal';
 import { MobileBackgroundModal } from './mobile/MobileBackgroundModal';
 import { MobileInsertModal } from './mobile/MobileInsertModal';
@@ -90,20 +91,13 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const isLandscape = window.innerWidth > window.innerHeight;
   const shouldCollapsePanelOnMobile = isMobile && isLandscape;
   
-  // Get responsive toolbar height based on screen size
-  const getResponsiveToolbarHeight = () => {
-    if (typeof window === 'undefined') return 56;
-    return window.innerHeight < 500 ? 44 : 56;
-  };
+  // Use proper mobile toolbar dimensions for consistent height calculations
+  const mobileToolbarConfig = useMobileToolbar(timelineVisible); 
+  const contentAreaConfig = useContentAreaHeight(timelineVisible);
   
-  // Get responsive header height for mobile
-  const getMobileHeaderHeight = () => {
-    if (typeof window === 'undefined') return 60;
-    return window.innerHeight < 500 ? 48 : 60; // Smaller header for very small screens
-  };
-  
-  const toolbarHeight = getResponsiveToolbarHeight();
-  const headerHeight = getMobileHeaderHeight();
+  // Get responsive dimensions from the mobile toolbar hook
+  const toolbarHeight = mobileToolbarConfig.dimensions.toolbarHeight;
+  const headerHeight = mobileToolbarConfig.dimensions.headerHeight;
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -896,13 +890,15 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               <div 
                 className="flex-1 relative"
                 style={{
-                  /* Ensure content area is properly constrained with space for header and fixed toolbar */
-                  height: !isPreviewMode ? `calc(100vh - ${headerHeight}px - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px))` : `calc(100vh - ${headerHeight}px)`,
-                  maxHeight: !isPreviewMode ? `calc(100vh - ${headerHeight}px - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px))` : `calc(100vh - ${headerHeight}px)`,
+                  /* Use viewport-aware content height calculations that account for iOS Safari UI */
+                  height: !isPreviewMode ? contentAreaConfig.availableHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
+                  maxHeight: !isPreviewMode ? contentAreaConfig.maxHeight : `calc(var(--mobile-available-height, 100vh) - ${headerHeight}px)`,
                   minHeight: !isPreviewMode ? '200px' : 'auto',
                   overflow: 'hidden',
                   /* Remove margin bottom to prevent double-spacing */
-                  marginBottom: '0px'
+                  marginBottom: '0px',
+                  /* Apply CSS variables from mobile toolbar system */
+                  ...mobileToolbarConfig.cssVariables
                 }}
               >
                 <MobileSlideEditor
