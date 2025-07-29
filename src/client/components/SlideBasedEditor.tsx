@@ -96,7 +96,14 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
     return window.innerHeight < 500 ? 44 : 56;
   };
   
+  // Get responsive header height for mobile
+  const getMobileHeaderHeight = () => {
+    if (typeof window === 'undefined') return 60;
+    return window.innerHeight < 500 ? 48 : 60; // Smaller header for very small screens
+  };
+  
   const toolbarHeight = getResponsiveToolbarHeight();
+  const headerHeight = getMobileHeaderHeight();
 
   const currentSlide = slideDeck.slides[currentSlideIndex];
 
@@ -889,12 +896,13 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
               <div 
                 className="flex-1 relative"
                 style={{
-                  /* Add bottom margin to prevent content overlap with fixed toolbar */
-                  marginBottom: !isPreviewMode ? `calc(${toolbarHeight}px + env(safe-area-inset-bottom, 0px))` : '0px',
-                  /* Ensure content area is properly constrained with minimum viable height */
-                  maxHeight: !isPreviewMode ? `max(200px, calc(100vh - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px) - 80px))` : '100vh',
+                  /* Ensure content area is properly constrained with space for header and fixed toolbar */
+                  height: !isPreviewMode ? `calc(100vh - ${headerHeight}px - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px))` : `calc(100vh - ${headerHeight}px)`,
+                  maxHeight: !isPreviewMode ? `calc(100vh - ${headerHeight}px - ${toolbarHeight}px - env(safe-area-inset-bottom, 0px))` : `calc(100vh - ${headerHeight}px)`,
                   minHeight: !isPreviewMode ? '200px' : 'auto',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  /* Remove margin bottom to prevent double-spacing */
+                  marginBottom: '0px'
                 }}
               >
                 <MobileSlideEditor
