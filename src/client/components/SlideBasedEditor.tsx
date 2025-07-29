@@ -7,9 +7,8 @@ import { SlideEditor } from './slides/SlideEditor';
 import { MobileSlideEditor } from './slides/MobileSlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
-import HeaderInsertDropdown from './HeaderInsertDropdown';
 import EnhancedPropertiesPanel from './EnhancedPropertiesPanel';
-import AspectRatioSelector from './AspectRatioSelector';
+import { DesktopToolbar } from './desktop/DesktopToolbar';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
@@ -572,7 +571,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className={`slide-editor ${isMobile ? 'h-screen flex flex-col' : 'fixed inset-0'} w-full ${isMobile ? '' : 'h-full'} ${isMobile ? '' : 'flex flex-col'} bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? '' : 'overflow-hidden'}`}>
+      <div className={`slide-editor ${isMobile ? 'h-screen' : 'fixed inset-0 h-full'} w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? '' : 'overflow-hidden'}`}>
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {
@@ -693,28 +692,8 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             </div>
           </div>
 
-          {/* Center Section: Insert and Controls */}
-          <div className="flex items-center gap-3 flex-1 justify-center">
-            {/* Insert Dropdown */}
-            {!isPreviewMode && (
-              <>
-                <HeaderInsertDropdown
-                  onAddElement={handleAddElement}
-                  onAddBackgroundMedia={handleAddBackgroundMedia}
-                  isMobile={isMobile}
-                />
-                
-                {/* Aspect Ratio Selector */}
-                {currentSlide?.layout && (
-                  <AspectRatioSelector
-                    currentRatio={currentSlide.layout.aspectRatio || '16:9'}
-                    onRatioChange={(ratio) => handleAspectRatioChange(currentSlideIndex, ratio)}
-                    isMobile={isMobile}
-                  />
-                )}
-              </>
-            )}
-          </div>
+          {/* Center Section: Simplified for unified toolbar approach */}
+          <div className="flex-1"></div>
 
           {/* Right Section: Save + Settings + Auth */}
           <div className="flex items-center gap-3 flex-1 justify-end">
@@ -948,6 +927,18 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
             />
           )}
         </div>
+
+        {/* Desktop Toolbar - Unified footer toolbar for desktop */}
+        {!isPreviewMode && !isMobile && (
+          <DesktopToolbar
+            onSlidesOpen={handleMobileSlidesOpen}
+            onBackgroundOpen={handleMobileBackgroundOpen}
+            onInsertOpen={handleMobileInsertOpen}
+            onAspectRatioOpen={handleMobileAspectRatioOpen}
+            currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
+            isTimelineVisible={isTimelineVisible}
+          />
+        )}
 
         {/* Properties panel - hidden on mobile */}
         {!isPreviewMode && !isMobile && (
