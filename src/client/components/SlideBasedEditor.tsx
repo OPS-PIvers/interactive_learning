@@ -91,9 +91,10 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
   const isLandscape = window.innerWidth > window.innerHeight;
   const shouldCollapsePanelOnMobile = isMobile && isLandscape;
   
-  // Use proper mobile toolbar dimensions for consistent height calculations
-  const mobileToolbarConfig = useMobileToolbar(timelineVisible); 
-  const contentAreaConfig = useContentAreaHeight(timelineVisible);
+  // Timeline is not used in the editor context, only in viewer contexts
+  const isTimelineVisible = false;
+  const mobileToolbarConfig = useMobileToolbar(isTimelineVisible); 
+  const contentAreaConfig = useContentAreaHeight(isTimelineVisible);
   
   // Get responsive dimensions from the mobile toolbar hook
   const toolbarHeight = mobileToolbarConfig.dimensions.toolbarHeight;
@@ -924,7 +925,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                   onInsertOpen={handleMobileInsertOpen}
                   onAspectRatioOpen={handleMobileAspectRatioOpen}
                   currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-                  isTimelineVisible={false} // TODO: Check if timeline is actually visible
+                  isTimelineVisible={isTimelineVisible}
                 />
               )}
             </>
