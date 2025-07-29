@@ -113,17 +113,19 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
 
   return (
     <div
-      className={`mobile-toolbar ${isTimelineVisible ? 'timeline-visible' : ''}`}
+      className={`mobile-toolbar-container ${isTimelineVisible ? 'timeline-visible' : ''}`}
       style={{
         /* Apply CSS variables for synchronization */
         ...cssVariables,
-        /* CRITICAL: FORCE fixed positioning with maximum priority */
+        /* CRITICAL: FORCE fixed positioning with maximum priority - override any CSS classes */
         position: 'fixed !important' as any,
         bottom: '0px !important' as any, // Force bottom positioning regardless of calculations
         left: '0px !important' as any,
         right: '0px !important' as any,
         width: '100vw !important' as any,
-        zIndex: '9999 !important' as any, // Maximum z-index
+        zIndex: '99999 !important' as any, // Maximum z-index to override any conflicting styles
+        /* Force positioning relative to viewport, not parent */
+        inset: 'auto 0px 0px 0px !important' as any,
         /* Strong background to ensure visibility */
         background: '#1e293b !important' as any,
         borderTop: '1px solid #334155',
@@ -151,7 +153,13 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         /* Remove any transforms that might hide the toolbar */
         transform: 'none !important' as any,
         /* Ensure no parent can hide this */
-        pointerEvents: 'auto !important' as any
+        pointerEvents: 'auto !important' as any,
+        /* Override any potential CSS resets or global styles */
+        margin: '0px !important' as any,
+        padding: padding,
+        boxSizing: 'border-box !important' as any,
+        /* Ensure it's positioned relative to viewport */
+        position: 'fixed !important' as any, // Duplicate to ensure it overrides everything
       }}
       // Add data attributes for debugging
       data-mobile-toolbar="true"

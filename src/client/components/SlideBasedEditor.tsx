@@ -572,7 +572,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className={`slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? 'mobile-full-height mobile-viewport-fix' : 'overflow-hidden'}`}>
+      <div className={`slide-editor ${isMobile ? 'relative min-h-screen' : 'fixed inset-0'} w-full ${isMobile ? 'min-h-screen' : 'h-full'} flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? 'mobile-full-height mobile-viewport-fix' : 'overflow-hidden'}`}>
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {
@@ -933,43 +933,6 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                   onSlideUpdate={handleSlideUpdate}
                 />
               </div>
-              
-              {/* Mobile Toolbar - Enhanced with debugging */}
-              {(() => {
-                const shouldShowToolbar = !isPreviewMode && isMobile;
-                
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('[SlideBasedEditor] Mobile Toolbar render check:', {
-                    isPreviewMode,
-                    isMobile,
-                    shouldShowToolbar,
-                    currentSlideIndex,
-                    isLandscape,
-                    shouldCollapsePanelOnMobile,
-                    migrationFooterHidden: !isMobile,
-                    timestamp: new Date().toISOString()
-                  });
-                  
-                  if (shouldShowToolbar) {
-                    console.log('[SlideBasedEditor] ✅ Mobile Toolbar SHOULD be visible');
-                  } else {
-                    console.log('[SlideBasedEditor] ❌ Mobile Toolbar will NOT render:', {
-                      reason: isPreviewMode ? 'Preview mode is ON' : 'Not mobile device'
-                    });
-                  }
-                }
-                
-                return shouldShowToolbar ? (
-                  <MobileToolbar
-                    onSlidesOpen={handleMobileSlidesOpen}
-                    onBackgroundOpen={handleMobileBackgroundOpen}
-                    onInsertOpen={handleMobileInsertOpen}
-                    onAspectRatioOpen={handleMobileAspectRatioOpen}
-                    currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-                    isTimelineVisible={isTimelineVisible}
-                  />
-                ) : null;
-              })()}
             </>
           ) : (
             <SlideEditor
@@ -1182,6 +1145,42 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           </>
         )}
       </div>
+      
+      {/* Mobile Toolbar - Rendered outside main container to avoid stacking context issues */}
+      {(() => {
+        const shouldShowToolbar = !isPreviewMode && isMobile;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[SlideBasedEditor] Mobile Toolbar render check (outside container):', {
+            isPreviewMode,
+            isMobile,
+            shouldShowToolbar,
+            currentSlideIndex,
+            isLandscape,
+            shouldCollapsePanelOnMobile,
+            timestamp: new Date().toISOString()
+          });
+          
+          if (shouldShowToolbar) {
+            console.log('[SlideBasedEditor] ✅ Mobile Toolbar SHOULD be visible (outside container)');
+          } else {
+            console.log('[SlideBasedEditor] ❌ Mobile Toolbar will NOT render:', {
+              reason: isPreviewMode ? 'Preview mode is ON' : 'Not mobile device'
+            });
+          }
+        }
+        
+        return shouldShowToolbar ? (
+          <MobileToolbar
+            onSlidesOpen={handleMobileSlidesOpen}
+            onBackgroundOpen={handleMobileBackgroundOpen}
+            onInsertOpen={handleMobileInsertOpen}
+            onAspectRatioOpen={handleMobileAspectRatioOpen}
+            currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
+            isTimelineVisible={isTimelineVisible}
+          />
+        ) : null;
+      })()}
     </ProjectThemeProvider>
   );
 };
