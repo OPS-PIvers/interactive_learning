@@ -6,7 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
-import ViewerToolbar from './ViewerToolbar';
+import ViewerFooterToolbar from './ViewerFooterToolbar';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -44,6 +44,23 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // Auto-progression state
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  
+  // Navigation handlers for footer toolbar
+  const handlePreviousSlide = useCallback(() => {
+    if (currentSlideIndex > 0) {
+      const prevIndex = currentSlideIndex - 1;
+      setCurrentSlideIndex(prevIndex);
+      setCurrentSlideId(slideDeck.slides[prevIndex]?.id || '');
+    }
+  }, [currentSlideIndex, slideDeck.slides]);
+  
+  const handleNextSlide = useCallback(() => {
+    if (currentSlideIndex < slideDeck.slides.length - 1) {
+      const nextIndex = currentSlideIndex + 1;
+      setCurrentSlideIndex(nextIndex);
+      setCurrentSlideId(slideDeck.slides[nextIndex]?.id || '');
+    }
+  }, [currentSlideIndex, slideDeck.slides]);
 
   // Auto-start functionality
   useEffect(() => {
@@ -207,9 +224,15 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         </div>
 
       </div>
-      <ViewerToolbar
+      <ViewerFooterToolbar
         projectName={projectName}
         onBack={onClose}
+        currentSlideIndex={currentSlideIndex}
+        totalSlides={slideDeck.slides.length}
+        onPreviousSlide={handlePreviousSlide}
+        onNextSlide={handleNextSlide}
+        canGoPrevious={currentSlideIndex > 0}
+        canGoNext={currentSlideIndex < slideDeck.slides.length - 1}
         moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
         onStartLearning={handleStartLearning}
         onStartExploring={handleStartExploring}

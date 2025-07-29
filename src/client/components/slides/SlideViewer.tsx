@@ -62,10 +62,7 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
   // Active slide effects
   const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
   
-  // Timeline state
-  const [currentTimelineStep, setCurrentTimelineStep] = useState(0);
-  const [isTimelineVisible, setIsTimelineVisible] = useState(showTimeline);
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Removed timeline state - now handled by ViewerFooterToolbar
   
   // Touch gesture state for mobile
   const [touchState, setTouchState] = useState({
@@ -621,89 +618,7 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
         />
       )}
 
-      {/* Interactive Timeline */}
-      {isTimelineVisible && (
-        <div className="absolute bottom-0 left-0 right-0">
-          <SlideTimeline
-            slideDeck={slideDeck}
-            currentSlideIndex={viewerState.currentSlideIndex}
-            onStepChange={handleTimelineStepChange}
-            onEffectTrigger={handleTimelineEffectTrigger}
-            autoPlay={isPlaying}
-            className="border-t border-slate-700"
-          />
-        </div>
-      )}
 
-      {/* Modern Floating Viewer Controls */}
-      <div 
-        className="absolute left-1/2 transform -translate-x-1/2 z-[9999] bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl"
-        style={{
-          bottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 16px))',
-          /* Ensure it stays above mobile browser UI */
-          marginBottom: 'env(safe-area-inset-bottom, 0px)'
-        }}
-      >
-        {/* Previous Button */}
-        <button
-          onClick={navigateToPrevious}
-          disabled={viewerState.currentSlideIndex === 0}
-          className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-all duration-200 disabled:cursor-not-allowed"
-          title="Previous slide"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        {/* Modern Play/Pause Button */}
-        <button
-          onClick={isPlaying ? handlePause : handlePlay}
-          className="relative group p-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
-          title={isPlaying ? "Pause" : "Play"}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <div className="relative z-10">
-            {isPlaying ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            )}
-          </div>
-        </button>
-
-        {/* Next Button */}
-        <button
-          onClick={navigateToNext}
-          disabled={viewerState.currentSlideIndex === slideDeck.slides.length - 1}
-          className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-all duration-200 disabled:cursor-not-allowed"
-          title="Next slide"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Slide Counter */}
-        <div className="text-white text-sm font-medium px-2">
-          {viewerState.currentSlideIndex + 1}/{slideDeck.slides.length}
-        </div>
-
-        {/* Timeline Toggle */}
-        <button
-          onClick={() => setIsTimelineVisible(!isTimelineVisible)}
-          className="p-2 text-white hover:bg-slate-700 rounded-full transition-colors"
-          title={isTimelineVisible ? 'Hide timeline' : 'Show timeline'}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l7 7-7 6z" />
-          </svg>
-        </button>
-      </div>
 
       {/* Debug Info (development only) */}
       {process.env.NODE_ENV === 'development' && (
@@ -713,7 +628,7 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
           Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br/>
           Scale: {canvasDimensions.scale.toFixed(2)}<br/>
           Effects: {activeEffects.length}<br/>
-          Timeline Step: {currentTimelineStep + 1}
+          Timeline: External control
         </div>
       )}
     </div>

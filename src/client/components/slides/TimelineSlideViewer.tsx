@@ -11,7 +11,6 @@ import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideT
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
-import HeaderTimeline from '../HeaderTimeline';
 import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
 import { TimelineEventData } from '../../../shared/types';
 
@@ -310,21 +309,9 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   
   
   return (
-    <div className={`timeline-slide-viewer flex flex-col h-full ${className}`}>
-      {/* Persistent Timeline Header */}
-      <HeaderTimeline
-        slideDeck={slideDeck}
-        currentSlideIndex={currentSlideIndex}
-        onSlideChange={handleSlideViewerChange}
-        viewerMode={viewerMode}
-        activeHotspotId={activeHotspotId}
-        completedHotspots={completedHotspots}
-        onHotspotFocus={handleHotspotFocus}
-        className="shadow-lg"
-      />
-      
-      {/* Main slide viewer */}
-      <div className="flex-1 relative">
+    <div className={`timeline-slide-viewer h-full ${className}`}>
+      {/* Main slide viewer - now takes full height */}
+      <div className="h-full relative">
         <SlideViewer
           ref={slideViewerRef}
           slideDeck={slideDeck}
