@@ -138,7 +138,7 @@ export function useMobileToolbar(isTimelineVisible: boolean = false): MobileTool
     dimensions,
     positioning,
     cssVariables,
-    isReady: isReady && isMobile
+    isReady: isReady // Remove mobile dependency from isReady - let components handle mobile detection
   };
 }
 

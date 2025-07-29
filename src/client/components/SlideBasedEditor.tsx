@@ -572,7 +572,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className={`slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden ${isMobile ? 'mobile-full-height mobile-viewport-fix' : ''}`}>
+      <div className={`slide-editor fixed inset-0 w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${isMobile ? 'mobile-full-height mobile-viewport-fix' : 'overflow-hidden'}`}>
       {/* Custom scrollbar styles for slide list */}
       <style>{`
         .slide-list::-webkit-scrollbar {

@@ -20,26 +20,40 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
 }) => {
   const { dimensions, positioning, cssVariables, isReady } = useMobileToolbar(isTimelineVisible);
   
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[MobileToolbar] Component called with props:', {
+      isTimelineVisible,
+      currentAspectRatio,
+      hasOnSlidesOpen: !!onSlidesOpen,
+      hasOnBackgroundOpen: !!onBackgroundOpen,
+      hasOnInsertOpen: !!onInsertOpen,
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log('[MobileToolbar] Hook results:', {
+      isReady,
+      dimensions,
+      positioning,
+      cssVariables: Object.keys(cssVariables),
+      timestamp: new Date().toISOString()
+    });
+  }
+  
   // Don't render until the toolbar system is ready
   if (!isReady) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[MobileToolbar] Not ready to render:', {
-        isReady,
-        dimensions,
-        positioning,
-        timestamp: new Date().toISOString()
-      });
+      console.log('[MobileToolbar] ❌ Not ready to render - returning null');
     }
     return null;
   }
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('[MobileToolbar] Rendering toolbar:', {
-      isReady,
-      isTimelineVisible,
-      toolbarHeight: dimensions.toolbarHeight,
-      zIndex: positioning.zIndex,
+    console.log('[MobileToolbar] ✅ RENDERING TOOLBAR with styles:', {
+      position: 'fixed',
       bottom: positioning.bottom,
+      zIndex: Math.max(positioning.zIndex, 9999),
+      height: `${dimensions.toolbarHeight}px`,
+      background: '#1e293b',
       timestamp: new Date().toISOString()
     });
   }
@@ -102,46 +116,46 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       style={{
         /* Apply CSS variables for synchronization */
         ...cssVariables,
-        /* FORCE fixed positioning over all content with enhanced positioning */
-        position: 'fixed',
-        bottom: positioning.bottom,
-        left: '0px',
-        right: '0px',
-        width: '100vw',
-        zIndex: Math.max(positioning.zIndex, 9999), // Ensure it's above everything
+        /* CRITICAL: FORCE fixed positioning with maximum priority */
+        position: 'fixed !important' as any,
+        bottom: '0px !important' as any, // Force bottom positioning regardless of calculations
+        left: '0px !important' as any,
+        right: '0px !important' as any,
+        width: '100vw !important' as any,
+        zIndex: '9999 !important' as any, // Maximum z-index
         /* Strong background to ensure visibility */
-        background: '#1e293b',
+        background: '#1e293b !important' as any,
         borderTop: '1px solid #334155',
         boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.4)',
         backdropFilter: 'blur(8px)',
         /* Responsive padding with enhanced safe area awareness */
         padding: padding,
-        paddingBottom: positioning.paddingBottom,
-        /* Layout - force flex display */
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px)) !important' as any,
+        /* Layout - force flex display with maximum priority */
         display: 'flex !important' as any,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'center !important' as any,
+        justifyContent: 'center !important' as any,
         gap: gap,
         flexDirection: 'row' as const,
         /* Height management - responsive based on screen size */
-        height: `${toolbarHeight}px`,
-        minHeight: `${toolbarHeight}px`,
-        maxHeight: `${toolbarHeight}px`,
+        height: `${toolbarHeight}px !important` as any,
+        minHeight: `${toolbarHeight}px !important` as any,
+        maxHeight: `${toolbarHeight}px !important` as any,
         boxSizing: 'border-box',
-        /* Ensure visibility with iOS Safari compensation */
+        /* Ensure visibility with maximum priority */
         visibility: 'visible !important' as any,
         opacity: '1 !important' as any,
-        /* Force display */
-        display: 'flex !important' as any,
-        /* Apply iOS Safari UI compensation transform */
-        transform: positioning.transform,
-        /* Ensure it's not being clipped */
-        overflow: 'visible',
-        /* Enhanced transition for smooth repositioning */
-        transition: 'transform 0.3s ease, bottom 0.3s ease',
-        /* Additional fallback positioning */
-        inset: 'auto 0 0 0' as any
+        /* Ensure it's not being clipped with maximum priority */
+        overflow: 'visible !important' as any,
+        /* Remove any transforms that might hide the toolbar */
+        transform: 'none !important' as any,
+        /* Ensure no parent can hide this */
+        pointerEvents: 'auto !important' as any
       }}
+      // Add data attributes for debugging
+      data-mobile-toolbar="true"
+      data-timeline-visible={isTimelineVisible}
+      data-toolbar-height={toolbarHeight}
     >
       {menuItems.map((item) => (
         <button
