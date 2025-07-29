@@ -319,7 +319,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
           onSlideChange={handleSlideViewerChange}
           onInteraction={onInteraction}
           className="h-full"
-          showTimeline={false}
+          showTimeline={true}
         />
         
         {/* Mode indicator for guided/auto-progression */}

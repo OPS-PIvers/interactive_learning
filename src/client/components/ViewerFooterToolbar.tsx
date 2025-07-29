@@ -19,6 +19,10 @@ interface ViewerFooterToolbarProps {
   currentStep?: number;
   totalSteps?: number;
   stepLabel?: string;
+  onPreviousStep?: () => void;
+  onNextStep?: () => void;
+  canGoPreviousStep?: boolean;
+  canGoNextStep?: boolean;
   
   // Viewer mode controls
   moduleState: 'idle' | 'learning' | 'exploring';
@@ -49,6 +53,10 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   currentStep,
   totalSteps,
   stepLabel,
+  onPreviousStep,
+  onNextStep,
+  canGoPreviousStep = true,
+  canGoNextStep = true,
   moduleState,
   onStartLearning,
   onStartExploring,
@@ -77,13 +85,13 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
         {/* Center: Navigation + Status */}
         <div className="flex items-center gap-4">
           {/* Timeline navigation when in learning mode */}
-          {moduleState === 'learning' && (onPreviousSlide || onNextSlide) && (
+          {moduleState === 'learning' && (onPreviousSlide || onNextSlide || onPreviousStep || onNextStep) && (
             <div className="flex items-center gap-2">
               <button
-                onClick={onPreviousSlide}
-                disabled={!canGoPrevious}
+                onClick={onPreviousStep || onPreviousSlide}
+                disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
                 className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed"
-                title="Previous slide"
+                title={onPreviousStep ? "Previous step" : "Previous slide"}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -103,10 +111,10 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               </div>
               
               <button
-                onClick={onNextSlide}
-                disabled={!canGoNext}
+                onClick={onNextStep || onNextSlide}
+                disabled={onNextStep ? !canGoNextStep : !canGoNext}
                 className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed"
-                title="Next slide"
+                title={onNextStep ? "Next step" : "Next slide"}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -179,13 +187,13 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
         </div>
         
         {/* Center: Timeline Navigation */}
-        {moduleState === 'learning' && (onPreviousSlide || onNextSlide) && (
+        {moduleState === 'learning' && (onPreviousSlide || onNextSlide || onPreviousStep || onNextStep) && (
           <div className="flex items-center gap-6">
             <button
-              onClick={onPreviousSlide}
-              disabled={!canGoPrevious}
+              onClick={onPreviousStep || onPreviousSlide}
+              disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
               className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              title="Previous slide"
+              title={onPreviousStep ? "Previous step" : "Previous slide"}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -206,10 +214,10 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             </div>
             
             <button
-              onClick={onNextSlide}
-              disabled={!canGoNext}
+              onClick={onNextStep || onNextSlide}
+              disabled={onNextStep ? !canGoNextStep : !canGoNext}
               className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              title="Next slide"
+              title={onNextStep ? "Next step" : "Next slide"}
             >
               <span className="text-sm font-medium">Next</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

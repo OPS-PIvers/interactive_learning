@@ -218,7 +218,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               onSlideChange={handleSlideChange}
               onInteraction={handleInteraction}
               className="w-full h-full"
-              showTimeline={false}
+              showTimeline={true}
             />
           )}
         </div>

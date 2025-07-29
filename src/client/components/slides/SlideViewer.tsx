@@ -62,7 +62,9 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
   // Active slide effects
   const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
   
-  // Removed timeline state - now handled by ViewerFooterToolbar
+  // Timeline and playback state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTimelineStep, setCurrentTimelineStep] = useState(0);
   
   // Touch gesture state for mobile
   const [touchState, setTouchState] = useState({
@@ -618,7 +620,21 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
         />
       )}
 
-
+      {/* Timeline (when enabled) */}
+      {showTimeline && (
+        <SlideTimeline
+          slideDeck={slideDeck}
+          currentSlideIndex={viewerState.currentSlideIndex}
+          currentStep={currentTimelineStep}
+          onStepChange={handleTimelineStepChange}
+          onEffectTrigger={handleTimelineEffectTrigger}
+          isPlaying={isPlaying}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          deviceType={deviceType}
+          className="absolute bottom-0 left-0 right-0 z-30"
+        />
+      )}
 
       {/* Debug Info (development only) */}
       {process.env.NODE_ENV === 'development' && (
