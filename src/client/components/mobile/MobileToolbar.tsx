@@ -22,7 +22,26 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   
   // Don't render until the toolbar system is ready
   if (!isReady) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[MobileToolbar] Not ready to render:', {
+        isReady,
+        dimensions,
+        positioning,
+        timestamp: new Date().toISOString()
+      });
+    }
     return null;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[MobileToolbar] Rendering toolbar:', {
+      isReady,
+      isTimelineVisible,
+      toolbarHeight: dimensions.toolbarHeight,
+      zIndex: positioning.zIndex,
+      bottom: positioning.bottom,
+      timestamp: new Date().toISOString()
+    });
   }
 
   const { toolbarHeight, isVerySmallScreen } = dimensions;
@@ -89,7 +108,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         left: '0px',
         right: '0px',
         width: '100vw',
-        zIndex: positioning.zIndex,
+        zIndex: Math.max(positioning.zIndex, 9999), // Ensure it's above everything
         /* Strong background to ensure visibility */
         background: '#1e293b',
         borderTop: '1px solid #334155',
@@ -110,14 +129,18 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
         maxHeight: `${toolbarHeight}px`,
         boxSizing: 'border-box',
         /* Ensure visibility with iOS Safari compensation */
-        visibility: 'visible',
-        opacity: 1,
+        visibility: 'visible !important' as any,
+        opacity: '1 !important' as any,
+        /* Force display */
+        display: 'flex !important' as any,
         /* Apply iOS Safari UI compensation transform */
         transform: positioning.transform,
         /* Ensure it's not being clipped */
         overflow: 'visible',
         /* Enhanced transition for smooth repositioning */
-        transition: 'transform 0.3s ease, bottom 0.3s ease'
+        transition: 'transform 0.3s ease, bottom 0.3s ease',
+        /* Additional fallback positioning */
+        inset: 'auto 0 0 0' as any
       }}
     >
       {menuItems.map((item) => (

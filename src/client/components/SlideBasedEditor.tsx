@@ -323,9 +323,23 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
 
   // Toggle preview mode
   const handleTogglePreview = useCallback(() => {
-    setIsPreviewMode(prev => !prev);
+    setIsPreviewMode(prev => {
+      const newPreviewMode = !prev;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SlideBasedEditor] Preview mode toggle:', {
+          previousMode: prev,
+          newMode: newPreviewMode,
+          isMobile,
+          willShowToolbar: !newPreviewMode && isMobile,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      return newPreviewMode;
+    });
     setSelectedElementId(null);
-  }, []);
+  }, [isMobile]);
 
   // Handle device type change
   const handleDeviceTypeChange = useCallback((deviceType: DeviceType) => {
@@ -917,17 +931,31 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 />
               </div>
               
-              {/* Mobile Toolbar */}
-              {!isPreviewMode && (
-                <MobileToolbar
-                  onSlidesOpen={handleMobileSlidesOpen}
-                  onBackgroundOpen={handleMobileBackgroundOpen}
-                  onInsertOpen={handleMobileInsertOpen}
-                  onAspectRatioOpen={handleMobileAspectRatioOpen}
-                  currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-                  isTimelineVisible={isTimelineVisible}
-                />
-              )}
+              {/* Mobile Toolbar - Enhanced with debugging */}
+              {(() => {
+                const shouldShowToolbar = !isPreviewMode && isMobile;
+                
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('[SlideBasedEditor] Mobile Toolbar render check:', {
+                    isPreviewMode,
+                    isMobile,
+                    shouldShowToolbar,
+                    currentSlideIndex,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+                
+                return shouldShowToolbar ? (
+                  <MobileToolbar
+                    onSlidesOpen={handleMobileSlidesOpen}
+                    onBackgroundOpen={handleMobileBackgroundOpen}
+                    onInsertOpen={handleMobileInsertOpen}
+                    onAspectRatioOpen={handleMobileAspectRatioOpen}
+                    currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
+                    isTimelineVisible={isTimelineVisible}
+                  />
+                ) : null;
+              })()}
             </>
           ) : (
             <SlideEditor
