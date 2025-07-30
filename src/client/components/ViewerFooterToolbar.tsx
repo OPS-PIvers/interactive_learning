@@ -72,7 +72,13 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   
   const renderMobileLayout = () => (
     <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
-      <div className="px-3 py-3 flex items-center justify-between">
+      <div 
+        className="px-3 py-3 flex items-center justify-between"
+        style={{
+          paddingBottom: `max(12px, env(safe-area-inset-bottom, 0px))`,
+          minHeight: '56px'
+        }}
+      >
         {/* Left: Back button */}
         <button
           onClick={onBack}

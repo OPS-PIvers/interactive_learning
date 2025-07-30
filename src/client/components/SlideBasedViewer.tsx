@@ -198,48 +198,49 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }
 
   return (
-    <div className={`w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800`}>
-      {/* Slide viewer - use timeline viewer for guided/timed modes */}
-      <div className="flex-1 flex flex-col relative">
-        <div className="flex-1">
-          {(moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
-            <TimelineSlideViewer
-              slideDeck={enhancedSlideDeck}
-              viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
-              onSlideChange={handleSlideChange}
-              onInteraction={handleInteraction}
-              onClose={handleBackToMenu}
-              className="w-full h-full"
-            />
-          ) : (
-            <SlideViewer
-              slideDeck={enhancedSlideDeck}
-              initialSlideId={currentSlideId}
-              onSlideChange={handleSlideChange}
-              onInteraction={handleInteraction}
-              className="w-full h-full"
-              showTimeline={true}
-            />
-          )}
-        </div>
-
+    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+      {/* Slide viewer content area - use flex-1 for proper sizing */}
+      <div className="flex-1 overflow-auto">
+        {(moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
+          <TimelineSlideViewer
+            slideDeck={enhancedSlideDeck}
+            viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
+            onSlideChange={handleSlideChange}
+            onInteraction={handleInteraction}
+            onClose={handleBackToMenu}
+            className="w-full h-full"
+          />
+        ) : (
+          <SlideViewer
+            slideDeck={enhancedSlideDeck}
+            initialSlideId={currentSlideId}
+            onSlideChange={handleSlideChange}
+            onInteraction={handleInteraction}
+            className="w-full h-full"
+            showTimeline={true}
+          />
+        )}
       </div>
-      <ViewerFooterToolbar
-        projectName={projectName}
-        onBack={onClose}
-        currentSlideIndex={currentSlideIndex}
-        totalSlides={slideDeck.slides.length}
-        onPreviousSlide={handlePreviousSlide}
-        onNextSlide={handleNextSlide}
-        canGoPrevious={currentSlideIndex > 0}
-        canGoNext={currentSlideIndex < slideDeck.slides.length - 1}
-        moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
-        onStartLearning={handleStartLearning}
-        onStartExploring={handleStartExploring}
-        hasContent={slideDeck.slides.length > 0}
-        isMobile={isMobile}
-        viewerModes={viewerModes}
-      />
+
+      {/* Footer toolbar - use flex-none to ensure always visible */}
+      <div className="flex-none">
+        <ViewerFooterToolbar
+          projectName={projectName}
+          onBack={onClose}
+          currentSlideIndex={currentSlideIndex}
+          totalSlides={slideDeck.slides.length}
+          onPreviousSlide={handlePreviousSlide}
+          onNextSlide={handleNextSlide}
+          canGoPrevious={currentSlideIndex > 0}
+          canGoNext={currentSlideIndex < slideDeck.slides.length - 1}
+          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+          onStartLearning={handleStartLearning}
+          onStartExploring={handleStartExploring}
+          hasContent={slideDeck.slides.length > 0}
+          isMobile={isMobile}
+          viewerModes={viewerModes}
+        />
+      </div>
     </div>
   );
 };
