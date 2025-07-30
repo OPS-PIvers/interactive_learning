@@ -8,7 +8,7 @@ import SlideViewer from './slides/SlideViewer';
 import LoadingScreen from './shared/LoadingScreen';
 
 // Lazy load the heavy editor component
-const SlideBasedEditor = lazy(() => import('./SlideBasedEditor'));
+const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));
 
 // Note: This wrapper is now primarily for editing mode.
 // Viewing mode uses the separate ViewerView component with its own route.
@@ -95,7 +95,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
         {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ? (
           <Suspense fallback={<LoadingScreen title="Loading Slide Editor..." />}>
-            <SlideBasedEditor
+            <UnifiedSlideEditor
               slideDeck={slideDeck}
               projectName={selectedProject.title}
               projectId={selectedProject.id}

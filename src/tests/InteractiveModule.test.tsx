@@ -11,9 +11,9 @@ vi.mock('../client/components/SlideBasedViewer', () => ({
   __esModule: true,
   default: () => <div data-testid="slide-viewer" />,
 }));
-vi.mock('../client/components/SlideBasedEditor', () => ({
+vi.mock('../client/components/slides/UnifiedSlideEditor', () => ({
   __esModule: true,
-  default: () => <div data-testid="slide-editor" />,
+  default: () => <div data-testid="unified-slide-editor" />,
 }));
 vi.mock('../client/components/shared/LoadingScreen', () => ({
   __esModule: true,
@@ -64,23 +64,23 @@ describe('SlideBasedInteractiveModule', () => {
   test('renders viewer when not in editing mode', async () => {
     render(
       <ToastProvider>
-        <SlideBasedInteractiveModule {...getProps(false)} />
+          <SlideBasedInteractiveModule {...getProps(false)} />
       </ToastProvider>
     );
     await waitFor(() => {
       expect(screen.getByTestId('slide-viewer')).toBeInTheDocument();
     });
-    expect(screen.queryByTestId('slide-editor')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('unified-slide-editor')).not.toBeInTheDocument();
   });
 
   test('renders editor when in editing mode', async () => {
     render(
-      <ToastProvider>
-        <SlideBasedInteractiveModule {...getProps(true)} />
-      </ToastProvider>
+        <ToastProvider>
+            <SlideBasedInteractiveModule {...getProps(true)} />
+        </ToastProvider>
     );
     await waitFor(() => {
-      expect(screen.getByTestId('slide-editor')).toBeInTheDocument();
+      expect(screen.getByTestId('unified-slide-editor')).toBeInTheDocument();
     });
     expect(screen.queryByTestId('slide-viewer')).not.toBeInTheDocument();
   });
