@@ -31,8 +31,14 @@ describe('Concurrent Operations Integration Tests', () => {
   });
 
   afterAll(async () => {
+    // Clean up: sign out the anonymous user to ensure test isolation
     const auth = firebaseManager.getAuth();
-    await signOut(auth);
+    try {
+      await signOut(auth);
+      console.log('Signed out anonymous user successfully');
+    } catch (error) {
+      console.warn('Sign out failed:', error);
+    }
   });
 
   beforeEach(async () => {
