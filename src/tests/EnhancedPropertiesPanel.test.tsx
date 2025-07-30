@@ -78,9 +78,10 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
       expect(textInputs.some(input => input.getAttribute('type') === 'text')).toBe(true);
     });
 
-    test('shows style presets section open by default for hotspots', () => {
+    test('shows properties section with color swatches for hotspots', () => {
       render(<EnhancedPropertiesPanel {...defaultProps} />);
-      expect(screen.getByText('Style Presets')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Properties - Hotspot Element'));
+      expect(screen.getByText('Background Color')).toBeInTheDocument();
     });
 
 
@@ -140,9 +141,9 @@ describe('EnhancedPropertiesPanel Component Tests', () => {
         expect(screen.getByDisplayValue('60')).toBeVisible(); // position value
       });
 
-      // Note: Style Presets section should already be open by default for hotspots
-      // Check if style presets content is visible
-      expect(screen.getByText('Style Presets')).toBeVisible();
+      // Note: Properties section contains color controls and swatches
+      // Check if background color section is visible
+      expect(screen.getByText('Background Color')).toBeVisible();
     });
   });
 

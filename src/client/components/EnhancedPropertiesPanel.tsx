@@ -66,14 +66,12 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
   isMobile = false
 }) => {
   const [styleOpen, setStyleOpen] = useState(false);
-  const [presetsOpen, setPresetsOpen] = useState(selectedElement?.type === 'hotspot');
   const [contentOpen, setContentOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [interactionsOpen, setInteractionsOpen] = useState(selectedElement?.type === 'hotspot');
   const [backgroundOpen, setBackgroundOpen] = useState(false);
 
   useEffect(() => {
-    setPresetsOpen(selectedElement?.type === 'hotspot');
     setInteractionsOpen(selectedElement?.type === 'hotspot');
   }, [selectedElement]);
 
@@ -469,217 +467,35 @@ const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
                   className="mt-2 w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
                   placeholder="#3b82f6"
                 />
-              </div>
-            </div>
-          </CollapsibleSection>
-        )}
-
-        {/* Style Presets Section - Now second for hotspots */}
-        {selectedElement.type === 'hotspot' && (
-          <CollapsibleSection
-            title="Style Presets"
-            isOpen={presetsOpen}
-            onToggle={() => setPresetsOpen(!presetsOpen)}
-          >
-            <div className="space-y-3">
-              <div className="text-xs text-slate-400 mb-3">
-                Quick style presets for common hotspot designs
-              </div>
-              
-              {/* Preset Grid */}
-              <div className="grid grid-cols-2 gap-2">
-                {/* Blue Pulse Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 50,
-                    opacity: 0.9,
-                    animation: 'pulse'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#3b82f6' 
-                      ? 'border-blue-500 bg-blue-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-blue-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full mb-2 animate-pulse"
-                    style={{ backgroundColor: '#3b82f6' }}
-                  />
-                  <span className="text-xs text-slate-300">Blue Pulse</span>
-                </button>
-
-                {/* Red Alert Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#ef4444',
-                    borderRadius: 50,
-                    opacity: 0.85,
-                    animation: 'bounce'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#ef4444' 
-                      ? 'border-red-500 bg-red-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-red-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full mb-2"
-                    style={{ backgroundColor: '#ef4444' }}
-                  />
-                  <span className="text-xs text-slate-300">Red Alert</span>
-                </button>
-
-                {/* Green Success Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#10b981',
-                    borderRadius: 50,
-                    opacity: 0.9,
-                    animation: 'none'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#10b981' 
-                      ? 'border-green-500 bg-green-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-green-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full mb-2"
-                    style={{ backgroundColor: '#10b981' }}
-                  />
-                  <span className="text-xs text-slate-300">Green</span>
-                </button>
-
-                {/* Purple Gradient Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#8b5cf6',
-                    borderRadius: 50,
-                    opacity: 0.95,
-                    animation: 'glow'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#8b5cf6' 
-                      ? 'border-purple-500 bg-purple-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-purple-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full mb-2"
-                    style={{ backgroundColor: '#8b5cf6' }}
-                  />
-                  <span className="text-xs text-slate-300">Purple</span>
-                </button>
-
-                {/* Orange Warning Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#f97316',
-                    borderRadius: 50,
-                    opacity: 0.9,
-                    animation: 'flash'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#f97316' 
-                      ? 'border-orange-500 bg-orange-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-orange-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full mb-2"
-                    style={{ backgroundColor: '#f97316' }}
-                  />
-                  <span className="text-xs text-slate-300">Orange</span>
-                </button>
-
-                {/* Dark Minimal Preset */}
-                <button
-                  onClick={() => handleStyleChange({
-                    backgroundColor: '#374151',
-                    borderRadius: 8,
-                    opacity: 0.8,
-                    animation: 'none'
-                  })}
-                  className={`flex flex-col items-center p-3 rounded-lg transition-colors border ${
-                    selectedElement.style.backgroundColor === '#374151' 
-                      ? 'border-gray-500 bg-gray-500/20' 
-                      : 'border-transparent bg-slate-700 hover:bg-slate-600 hover:border-gray-500'
-                  }`}
-                >
-                  <div 
-                    className="w-6 h-6 rounded mb-2"
-                    style={{ backgroundColor: '#374151' }}
-                  />
-                  <span className="text-xs text-slate-300">Minimal</span>
-                </button>
-              </div>
-              
-              {/* Size Selector */}
-              <div className="mt-4">
-                <div className="text-xs text-slate-400 mb-3">
-                  Hotspot Size
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {hotspotSizePresets.map((sizePreset) => {
-                    const currentSize = selectedElement.content.customProperties?.size || 'medium';
-                    const isSelected = currentSize === sizePreset.value;
-                    
-                    return (
-                      <button
-                        key={sizePreset.value}
-                        onClick={() => handleSizeChange(sizePreset.value)}
-                        className={`flex flex-col items-center p-2 rounded-lg transition-colors border ${
-                          isSelected 
-                            ? 'border-purple-500 bg-purple-500/20' 
-                            : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-slate-500'
-                        }`}
-                        title={sizePreset.description}
-                      >
-                        <div 
-                          className={`rounded-full bg-blue-500 mb-1 ${
-                            sizePreset.value === 'x-small' ? 'w-2 h-2' :
-                            sizePreset.value === 'small' ? 'w-3 h-3' :
-                            sizePreset.value === 'medium' ? 'w-4 h-4' :
-                            'w-5 h-5'
-                          }`}
-                        />
-                        <span className={`text-xs ${
-                          isSelected ? 'text-purple-300' : 'text-slate-300'
-                        }`}>
-                          {sizePreset.value === 'x-small' ? 'XS' :
-                           sizePreset.value === 'small' ? 'S' :
-                           sizePreset.value === 'medium' ? 'M' : 'L'}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              {/* Opacity Control - moved from Style section */}
-              <div className="mt-4">
-                <div className="text-xs text-slate-400 mb-2">
-                  Opacity
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={selectedElement.style.opacity || 0.9}
-                    onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
-                    className="flex-1"
-                  />
-                  <span className="text-xs text-slate-400 w-12">
-                    {Math.round((selectedElement.style.opacity || 0.9) * 100)}%
-                  </span>
+                
+                {/* Quick color swatches */}
+                <div className="grid grid-cols-6 gap-2 mt-3">
+                  {[
+                    { color: '#3b82f6', name: 'Blue' },
+                    { color: '#ef4444', name: 'Red' },
+                    { color: '#10b981', name: 'Green' },
+                    { color: '#8b5cf6', name: 'Purple' },
+                    { color: '#f97316', name: 'Orange' },
+                    { color: '#374151', name: 'Dark' }
+                  ].map((swatch) => (
+                    <button
+                      key={swatch.color}
+                      onClick={() => handleStyleChange({ backgroundColor: swatch.color })}
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        selectedElement.style.backgroundColor === swatch.color 
+                          ? 'border-white scale-110' 
+                          : 'border-slate-600 hover:border-slate-400'
+                      }`}
+                      style={{ backgroundColor: swatch.color }}
+                      title={swatch.name}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
           </CollapsibleSection>
         )}
+
 
 
         {/* Element Content Section - Only for non-hotspot elements */}

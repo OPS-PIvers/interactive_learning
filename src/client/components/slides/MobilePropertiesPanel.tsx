@@ -154,10 +154,9 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   onDelete,
   onClose,
 }) => {
-  // Collapsible sections state - keep presets open for hotspots, style for others
+  // Collapsible sections state - keep properties open for hotspots, style for others
   const [openSections, setOpenSections] = useState({
     properties: selectedElement?.type === 'hotspot',
-    presets: selectedElement?.type === 'hotspot',
     style: selectedElement?.type !== 'hotspot',
     content: false,
     position: false,
@@ -448,214 +447,94 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
                     className="mt-3 w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
                     placeholder="#3b82f6"
                   />
-                </div>
-              </div>
-            </CollapsibleSection>
-          )}
-
-          {/* Style Presets Section - Hotspot Elements Only */}
-          {selectedElement.type === 'hotspot' && (
-            <CollapsibleSection
-              title="Style Presets"
-              isOpen={openSections.presets}
-              onToggle={() => toggleSection('presets')}
-            >
-              <div className="space-y-4">
-                <div className="text-sm text-slate-400 mb-4">
-                  Quick style presets for common hotspot designs
-                </div>
-                
-                {/* Preset Grid - Mobile optimized with larger touch targets */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Blue Pulse Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#3b82f6',
-                      borderRadius: 50,
-                      opacity: 0.9
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#3b82f6' 
-                        ? 'border-blue-500 bg-blue-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-blue-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full mb-2 animate-pulse"
-                      style={{ backgroundColor: '#3b82f6' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Blue Pulse</span>
-                  </button>
-
-                  {/* Red Alert Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#ef4444',
-                      borderRadius: 50,
-                      opacity: 0.85
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#ef4444' 
-                        ? 'border-red-500 bg-red-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-red-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full mb-2"
-                      style={{ backgroundColor: '#ef4444' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Red Alert</span>
-                  </button>
-
-                  {/* Green Success Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#10b981',
-                      borderRadius: 50,
-                      opacity: 0.9
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#10b981' 
-                        ? 'border-green-500 bg-green-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-green-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full mb-2"
-                      style={{ backgroundColor: '#10b981' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Green</span>
-                  </button>
-
-                  {/* Purple Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#8b5cf6',
-                      borderRadius: 50,
-                      opacity: 0.95
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#8b5cf6' 
-                        ? 'border-purple-500 bg-purple-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-purple-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full mb-2"
-                      style={{ backgroundColor: '#8b5cf6' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Purple</span>
-                  </button>
-
-                  {/* Orange Warning Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#f97316',
-                      borderRadius: 50,
-                      opacity: 0.9
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#f97316' 
-                        ? 'border-orange-500 bg-orange-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-orange-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full mb-2"
-                      style={{ backgroundColor: '#f97316' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Orange</span>
-                  </button>
-
-                  {/* Dark Minimal Preset */}
-                  <button
-                    onClick={() => handleStyleChange({
-                      backgroundColor: '#374151',
-                      borderRadius: 8,
-                      opacity: 0.8
-                    })}
-                    className={`flex flex-col items-center p-4 rounded-xl transition-all duration-200 border-2 min-h-[80px] ${
-                      selectedElement.style?.backgroundColor === '#374151' 
-                        ? 'border-gray-500 bg-gray-500/20 scale-105' 
-                        : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-gray-500 active:scale-95'
-                    }`}
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded mb-2"
-                      style={{ backgroundColor: '#374151' }}
-                    />
-                    <span className="text-sm text-slate-300 font-medium">Minimal</span>
-                  </button>
-                </div>
-                
-                {/* Size Selector */}
-                <div className="mt-6">
-                  <div className="text-sm text-slate-400 mb-4">
-                    Hotspot Size
+                  
+                  {/* Quick color swatches */}
+                  <div className="grid grid-cols-6 gap-2 mt-3">
+                    {[
+                      { color: '#3b82f6', name: 'Blue' },
+                      { color: '#ef4444', name: 'Red' },
+                      { color: '#10b981', name: 'Green' },
+                      { color: '#8b5cf6', name: 'Purple' },
+                      { color: '#f97316', name: 'Orange' },
+                      { color: '#374151', name: 'Dark' }
+                    ].map((swatch) => (
+                      <button
+                        key={swatch.color}
+                        onClick={() => handleStyleChange({ backgroundColor: swatch.color })}
+                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                          selectedElement.style?.backgroundColor === swatch.color 
+                            ? 'border-white scale-110' 
+                            : 'border-slate-600 hover:border-slate-400'
+                        }`}
+                        style={{ backgroundColor: swatch.color, touchAction: 'manipulation' }}
+                        title={swatch.name}
+                      />
+                    ))}
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {hotspotSizePresets.map((sizePreset) => {
-                      const currentSize = selectedElement.content?.customProperties?.size || 'medium';
-                      const isSelected = currentSize === sizePreset.value;
-                      
-                      return (
-                        <button
-                          key={sizePreset.value}
-                          onClick={() => handleSizeChange(sizePreset.value)}
-                          className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 border-2 min-h-[60px] ${
-                            isSelected 
-                              ? 'border-purple-500 bg-purple-500/20 scale-105' 
-                              : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-slate-500 active:scale-95'
-                          }`}
-                          style={{ touchAction: 'manipulation' }}
-                          title={sizePreset.description}
-                        >
-                          <div 
-                            className={`rounded-full bg-blue-500 mb-2 ${
-                              sizePreset.value === 'x-small' ? 'w-3 h-3' :
-                              sizePreset.value === 'small' ? 'w-4 h-4' :
-                              sizePreset.value === 'medium' ? 'w-5 h-5' :
-                              'w-6 h-6'
+                  
+                  {/* Size Selector */}
+                  <div className="mt-6">
+                    <div className="text-sm text-slate-400 mb-4">
+                      Hotspot Size
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                      {hotspotSizePresets.map((sizePreset) => {
+                        const currentSize = selectedElement.content?.customProperties?.size || 'medium';
+                        const isSelected = currentSize === sizePreset.value;
+                        
+                        return (
+                          <button
+                            key={sizePreset.value}
+                            onClick={() => handleSizeChange(sizePreset.value)}
+                            className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 border-2 min-h-[60px] ${
+                              isSelected 
+                                ? 'border-purple-500 bg-purple-500/20 scale-105' 
+                                : 'border-slate-600 bg-slate-700 hover:bg-slate-600 hover:border-slate-500 active:scale-95'
                             }`}
-                          />
-                          <span className={`text-xs font-medium ${
-                            isSelected ? 'text-purple-300' : 'text-slate-300'
-                          }`}>
-                            {sizePreset.value === 'x-small' ? 'XS' :
-                             sizePreset.value === 'small' ? 'S' :
-                             sizePreset.value === 'medium' ? 'M' : 'L'}
-                          </span>
-                        </button>
-                      );
-                    })}
+                            style={{ touchAction: 'manipulation' }}
+                            title={sizePreset.description}
+                          >
+                            <div 
+                              className={`rounded-full bg-blue-500 mb-2 ${
+                                sizePreset.value === 'x-small' ? 'w-3 h-3' :
+                                sizePreset.value === 'small' ? 'w-4 h-4' :
+                                sizePreset.value === 'medium' ? 'w-5 h-5' :
+                                'w-6 h-6'
+                              }`}
+                            />
+                            <span className={`text-xs font-medium ${
+                              isSelected ? 'text-purple-300' : 'text-slate-300'
+                            }`}>
+                              {sizePreset.value === 'x-small' ? 'XS' :
+                               sizePreset.value === 'small' ? 'S' :
+                               sizePreset.value === 'medium' ? 'M' : 'L'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Opacity Control */}
-                <div className="mt-6">
-                  <div className="text-sm text-slate-400 mb-3">
-                    Opacity
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={selectedElement.style?.opacity || 0.9}
-                      onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
-                      className="flex-1 h-2"
-                      style={{ touchAction: 'manipulation' }}
-                    />
-                    <span className="text-sm text-slate-400 w-12 text-right font-medium">
-                      {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
-                    </span>
+                  
+                  {/* Opacity Control */}
+                  <div className="mt-6">
+                    <div className="text-sm text-slate-400 mb-3">
+                      Opacity
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={selectedElement.style?.opacity || 0.9}
+                        onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
+                        className="flex-1 h-2"
+                        style={{ touchAction: 'manipulation' }}
+                      />
+                      <span className="text-sm text-slate-400 w-12 text-right font-medium">
+                        {Math.round((selectedElement.style?.opacity || 0.9) * 100)}%
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
