@@ -77,13 +77,23 @@ const mockSlideDeck: SlideDeck = {
       id: 'slide-1',
       title: 'First Slide',
       elements: [],
-      layout: { aspectRatio: '16:9' },
-    } as InteractiveSlide,
+      transitions: [],
+
+      layout: {
+        aspectRatio: '16:9',
+
+        containerWidth: 1200,
+        containerHeight: 800,
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      },
+    },
   ],
   metadata: {
       version: '3.0',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: '2023-01-01T00:00:00.000Z',
+      updatedAt: '2023-01-01T00:00:00.000Z',
   }
 };
 
