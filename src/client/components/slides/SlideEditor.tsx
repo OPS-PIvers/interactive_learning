@@ -31,6 +31,20 @@ interface DragState {
   startElementPosition: FixedPosition;
 }
 
+// Enhanced touch state for distinguishing tap vs drag
+interface TouchState {
+  isTouching: boolean;
+  isDragging: boolean;
+  elementId: string | null;
+  startPosition: { x: number; y: number };
+  startElementPosition: FixedPosition;
+  startTimestamp: number;
+}
+
+// Constants for touch interaction detection
+const DRAG_THRESHOLD_PIXELS = 60; // Movement threshold to initiate drag (matches useTouchGestures)
+const TAP_MAX_DURATION = 300; // Maximum duration for a touch to be considered a tap (ms)
+
 /**
  * SlideEditor - Visual drag-and-drop editor for creating slides
  * 
@@ -63,6 +77,18 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   // Use prop selectedElementId if provided, otherwise use internal state
   const selectedElementId = propSelectedElementId !== undefined ? propSelectedElementId : internalSelectedElementId;
   const setSelectedElementId = onElementSelect || setInternalSelectedElementId;
+  
+  // Enhanced touch state management for mobile drag vs tap detection
+  const [touchState, setTouchState] = useState<TouchState>({
+    isTouching: false,
+    isDragging: false,
+    elementId: null,
+    startPosition: { x: 0, y: 0 },
+    startElementPosition: { x: 0, y: 0, width: 0, height: 0 },
+    startTimestamp: 0
+  });
+  
+  // Keep dragState for backward compatibility and desktop interactions
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     elementId: null,
@@ -129,7 +155,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     );
   }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, isMobile]);
 
-  // Handle element drag start
+  // Handle element touch/drag start with enhanced mobile support
   const handleElementDragStart = useCallback((elementId: string, event: React.MouseEvent | React.TouchEvent) => {
     event.stopPropagation();
     
@@ -137,17 +163,30 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     if (!element) return;
 
     const startPosition = 'touches' in event ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : { x: event.clientX, y: event.clientY };
-    
     const position = element.position[deviceType];
-    setDragState({
-      isDragging: true,
-      elementId,
-      startPosition: startPosition,
-      startElementPosition: position
-    });
+    const startTimestamp = Date.now();
     
-    setSelectedElementId(elementId);
-  }, [currentSlide.elements, deviceType]);
+    if (isMobile && 'touches' in event) {
+      // Enhanced mobile touch handling - start with touch state only
+      setTouchState({
+        isTouching: true,
+        isDragging: false, // Don't set dragging immediately
+        elementId,
+        startPosition,
+        startElementPosition: position,
+        startTimestamp
+      });
+    } else {
+      // Desktop mouse handling - keep existing behavior
+      setDragState({
+        isDragging: true,
+        elementId,
+        startPosition,
+        startElementPosition: position
+      });
+      setSelectedElementId(elementId);
+    }
+  }, [currentSlide.elements, deviceType, isMobile]);
 
   // Handle mouse move during drag
   const handleMove = useCallback((event: MouseEvent | TouchEvent) => {
@@ -191,7 +230,87 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     });
   }, [dragState, slideDeck, currentSlideIndex, deviceType, onSlideDeckChange]);
 
-  // Handle mouse up (end drag)
+  // Enhanced touch move handler for mobile drag threshold detection
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    // Handle existing drag state for desktop compatibility
+    if (dragState.isDragging) {
+      handleMove(event);
+      return;
+    }
+    
+    // Handle mobile touch state progression
+    if (!touchState.isTouching || !touchState.elementId || touchState.isDragging) return;
+    
+    const currentPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    const deltaX = currentPosition.x - touchState.startPosition.x;
+    const deltaY = currentPosition.y - touchState.startPosition.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Check if movement exceeds drag threshold
+    if (distance > DRAG_THRESHOLD_PIXELS) {
+      // Upgrade to drag state
+      setTouchState(prev => ({ ...prev, isDragging: true }));
+      setDragState({
+        isDragging: true,
+        elementId: touchState.elementId,
+        startPosition: touchState.startPosition,
+        startElementPosition: touchState.startElementPosition
+      });
+      
+      // Trigger haptic feedback for drag start (mobile only)
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(10); // Short vibration for drag start feedback
+      }
+    }
+  }, [dragState, touchState, handleMove]);
+
+  // Enhanced touch end handler for mobile tap vs drag completion
+  const handleTouchEnd = useCallback(() => {
+    const currentTime = Date.now();
+    const touchDuration = currentTime - touchState.startTimestamp;
+    
+    if (touchState.isTouching && !touchState.isDragging && touchState.elementId) {
+      // This was a tap (not a drag) - trigger element selection/editing
+      if (touchDuration <= TAP_MAX_DURATION) {
+        setSelectedElementId(touchState.elementId);
+        
+        // Trigger synthetic click event on the element to activate onClick handler
+        const element = currentSlide.elements.find(el => el.id === touchState.elementId);
+        if (element) {
+          // Find the DOM element and trigger a click event
+          const domElement = document.querySelector(`[data-element-id="${touchState.elementId}"]`);
+          if (domElement) {
+            const clickEvent = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              clientX: touchState.startPosition.x,
+              clientY: touchState.startPosition.y
+            });
+            domElement.dispatchEvent(clickEvent);
+          }
+        }
+      }
+    }
+    
+    // Reset both touch and drag states
+    setTouchState({
+      isTouching: false,
+      isDragging: false,
+      elementId: null,
+      startPosition: { x: 0, y: 0 },
+      startElementPosition: { x: 0, y: 0, width: 0, height: 0 },
+      startTimestamp: 0
+    });
+    
+    setDragState({
+      isDragging: false,
+      elementId: null,
+      startPosition: { x: 0, y: 0 },
+      startElementPosition: { x: 0, y: 0, width: 0, height: 0 }
+    });
+  }, [touchState, currentSlide.elements, setSelectedElementId]);
+
+  // Handle mouse up (end drag) - desktop compatibility
   const handleDragEnd = useCallback(() => {
     setDragState({
       isDragging: false,
@@ -201,7 +320,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     });
   }, []);
 
-  // Attach global mouse event listeners
+  // Attach global event listeners for drag and touch interactions
   useEffect(() => {
     if (dragState.isDragging) {
       document.addEventListener('mousemove', handleMove);
@@ -217,6 +336,19 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       };
     }
   }, [dragState.isDragging, handleMove, handleDragEnd]);
+
+  // Attach touch-specific event listeners for mobile interaction detection
+  useEffect(() => {
+    if (touchState.isTouching) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+      
+      return () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [touchState.isTouching, handleTouchMove, handleTouchEnd]);
 
   // Delete selected element
   const handleDeleteElement = useCallback(() => {
@@ -761,11 +893,10 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                     onTouchStart={(e) => handleElementDragStart(element.id, e)}
                     onClick={(e) => handleElementClick(element, e)}
                     onTouchEnd={(e) => {
-                      // Handle touch end as a click for better mobile responsiveness
-                      // Only if we're not dragging
-                      if (!dragState.isDragging) {
-                        handleElementClick(element, e);
-                      }
+                      // Enhanced mobile touch handling - let the global handler manage tap vs drag
+                      // This prevents duplicate handling while the global touch end handler 
+                      // provides sophisticated tap vs drag detection
+                      e.stopPropagation();
                     }}
                   >
                     {/* Element Content Based on Type */}
