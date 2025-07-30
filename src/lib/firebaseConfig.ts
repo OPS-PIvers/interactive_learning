@@ -116,11 +116,11 @@ class FirebaseConnectionManager {
       }
 
       // Setup emulators for development
-      if (import.meta.env.DEV && typeof window !== 'undefined' && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
+      if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
         try {
-          connectFirestoreEmulator(this.db, 'localhost', 8080)
-          connectStorageEmulator(this.storage, 'localhost', 9199)
-          connectAuthEmulator(this.auth, 'http://localhost:9099')
+          connectFirestoreEmulator(this.db, '127.0.0.1', 8080)
+          connectStorageEmulator(this.storage, '127.0.0.1', 9199)
+          connectAuthEmulator(this.auth, 'http://127.0.0.1:9099')
           console.log('Connected to Firebase emulators')
         } catch (error) {
           console.log('Emulators not available or already connected:', error)

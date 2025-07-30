@@ -126,9 +126,14 @@ export default defineConfig(({ mode, command }) => {
         force: isDevelopment
       },
       test: {
+        root: '.', // Run tests from project root
         globals: true,
         environment: 'jsdom',
         setupFiles: './src/tests/setup.ts',
+        alias: {
+          '@firebase/analytics': path.resolve(__dirname, './src/tests/mocks/firebaseAnalytics.ts'),
+        },
+        hookTimeout: 60000,
       }
     };
 });

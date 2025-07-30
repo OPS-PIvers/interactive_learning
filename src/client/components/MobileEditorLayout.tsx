@@ -136,10 +136,8 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
     <div
       className="flex flex-col h-full"
       style={{
-        height: '100dvh',
+        height: '100%', // Fill parent
         minHeight: '-webkit-fill-available',
-        maxHeight: '100dvh',
-        ...cssVariables,
       }}
     >
       <MobileNavigationBar
@@ -272,7 +270,8 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
       ref={layoutRef}
       className={`h-full w-full bg-slate-900 relative overflow-hidden keyboard-aware-container ${keyboardInfo.isVisible ? 'keyboard-open' : ''}`}
       style={{
-        height: '100dvh',
+        ...cssVariables,
+        height: 'var(--mobile-viewport-height, 100dvh)',
         display: 'flex',
         flexDirection: 'column',
       }}

@@ -20,15 +20,14 @@ describe('Concurrent Operations Integration Tests', () => {
     }
     
     const auth = firebaseManager.getAuth();
-    await new Promise(resolve => {
-      const unsubscribe = auth.onAuthStateChanged(user => {
-        if (user) {
-          testUserId = user.uid;
-          unsubscribe();
-          resolve(user);
-        }
-      });
-    });
+    try {
+      const userCredential = await signInAnonymously(auth);
+      testUserId = userCredential.user.uid;
+      console.log(`Signed in with test user ID: ${testUserId}`);
+    } catch (error) {
+      console.error("Anonymous sign-in failed:", error);
+      throw error;
+    }
   });
 
   afterAll(async () => {

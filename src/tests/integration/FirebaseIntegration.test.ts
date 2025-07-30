@@ -22,19 +22,15 @@ describe('Firebase Integration Tests', () => {
       await firebaseManager.initialize();
     }
     
-    // Auth is handled by the bypass in the test environment
     const auth = firebaseManager.getAuth();
-    await new Promise(resolve => {
-      const unsubscribe = auth.onAuthStateChanged(user => {
-        if (user) {
-          testUserId = user.uid;
-          unsubscribe();
-          resolve(user);
-        }
-      });
-    });
-    
-    console.log(`Integration tests running with user ID: ${testUserId}`);
+    try {
+      const userCredential = await signInAnonymously(auth);
+      testUserId = userCredential.user.uid;
+      console.log(`Signed in with test user ID: ${testUserId}`);
+    } catch (error) {
+      console.error("Anonymous sign-in failed:", error);
+      throw error;
+    }
   });
 
   afterAll(async () => {
