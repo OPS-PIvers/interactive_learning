@@ -64,7 +64,7 @@ describe('SlideBasedInteractiveModule', () => {
   test('renders viewer when not in editing mode', async () => {
     render(
       <ToastProvider>
-          <SlideBasedInteractiveModule {...getProps(false)} />
+        <SlideBasedInteractiveModule {...getProps(false)} />
       </ToastProvider>
     );
     await waitFor(() => {
@@ -75,9 +75,9 @@ describe('SlideBasedInteractiveModule', () => {
 
   test('renders editor when in editing mode', async () => {
     render(
-        <ToastProvider>
-            <SlideBasedInteractiveModule {...getProps(true)} />
-        </ToastProvider>
+      <ToastProvider>
+        <SlideBasedInteractiveModule {...getProps(true)} />
+      </ToastProvider>
     );
     await waitFor(() => {
       expect(screen.getByTestId('unified-slide-editor')).toBeInTheDocument();

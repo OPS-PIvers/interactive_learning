@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 
-import { UnifiedSlideEditor } from '../../client/components/slides/UnifiedSlideEditor';
+import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
 import { SlideDeck, InteractiveSlide } from '../../shared/slideTypes';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { ToastProvider, useToast } from '../../client/hooks/useToast';
@@ -87,7 +87,7 @@ const mockSlideDeck: SlideDeck = {
   }
 };
 
-const renderEditor = (props = {}) => {
+const renderEditor = (props: Partial<UnifiedSlideEditorProps> = {}) => {
   const defaultProps = {
     slideDeck: mockSlideDeck,
     projectName: 'Unified Editor Test',
