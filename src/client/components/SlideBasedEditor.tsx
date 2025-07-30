@@ -26,12 +26,13 @@ import { DeviceType } from '../../shared/slideTypes';
 import { calculateContainerDimensions } from '../utils/aspectRatioUtils';
 import { ProjectThemeProvider } from '../hooks/useProjectTheme';
 import { firebaseAPI } from '../../lib/firebaseApi';
-import { MobileToolbar } from './mobile/MobileToolbar';
 import { useMobileToolbar, useContentAreaHeight } from '../hooks/useMobileToolbar';
 import { MobileSlidesModal } from './mobile/MobileSlidesModal';
 import { MobileBackgroundModal } from './mobile/MobileBackgroundModal';
 import { MobileInsertModal } from './mobile/MobileInsertModal';
 import { MobileAspectRatioModal } from './mobile/MobileAspectRatioModal';
+import { UniversalMobileToolbar } from './mobile/UniversalMobileToolbar';
+import { MobileEditorToolbarContent } from './mobile/MobileEditorToolbarContent';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
@@ -897,18 +898,26 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 />
               </div>
               
-              {/* Mobile Toolbar - Simple footer in flexbox layout */}
+              {/* Universal Mobile Toolbar - Consistent positioning across all devices */}
               {!isPreviewMode && (
-                <div className="flex-none bg-slate-800 border-t border-slate-700">
-                  <MobileToolbar
+                <UniversalMobileToolbar
+                  isTimelineVisible={isTimelineVisible}
+                  className="bg-slate-800 text-white"
+                >
+                  <MobileEditorToolbarContent
+                    currentSlideIndex={currentSlideIndex}
+                    totalSlides={slideDeck.slides.length}
+                    onSlideChange={handleSlideChange}
+                    onAddSlide={handleAddSlide}
                     onSlidesOpen={handleMobileSlidesOpen}
                     onBackgroundOpen={handleMobileBackgroundOpen}
                     onInsertOpen={handleMobileInsertOpen}
                     onAspectRatioOpen={handleMobileAspectRatioOpen}
                     currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-                    isTimelineVisible={isTimelineVisible}
+                    isLandscape={isLandscape}
+                    isVerySmall={contentAreaConfig.contentHeight < 400}
                   />
-                </div>
+                </UniversalMobileToolbar>
               )}
             </>
           ) : (
@@ -952,68 +961,21 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           />
         )}
         
-        {/* Mobile Landscape Floating Toolbar */}
-        {shouldCollapsePanelOnMobile && !isPreviewMode && (
-          <>
-            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-full px-4 py-2 flex items-center gap-3 shadow-lg">
+        {/* Mobile help hint - auto-dismisses after 5 seconds */}
+        {isMobile && showMobileHint && !isPreviewMode && (
+          <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-200">📱</span>
+              <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
               <button
-                onClick={() => handleSlideChange(Math.max(0, currentSlideIndex - 1))}
-                disabled={currentSlideIndex === 0}
-                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors"
-                title="Previous slide"
+                onClick={() => setShowMobileHint(false)}
+                className="ml-2 text-blue-200 hover:text-white"
+                aria-label="Dismiss hint"
               >
-                ←
-              </button>
-              
-              <span className="text-white text-sm font-medium px-2">
-                {currentSlideIndex + 1}/{slideDeck.slides.length}
-              </span>
-              
-              <button
-                onClick={() => handleSlideChange(Math.min(slideDeck.slides.length - 1, currentSlideIndex + 1))}
-                disabled={currentSlideIndex === slideDeck.slides.length - 1}
-                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors"
-                title="Next slide"
-              >
-                →
-              </button>
-              
-              <div className="w-px h-6 bg-slate-600 mx-1" />
-              
-              <button
-                onClick={handleAddSlide}
-                className="p-2 text-white hover:bg-slate-700 rounded-full transition-colors"
-                title="Add slide"
-              >
-                +
-              </button>
-              
-              <button
-                onClick={() => setIsSlidePanelCollapsed(!isSlidePanelCollapsed)}
-                className="p-2 text-white hover:bg-slate-700 rounded-full transition-colors"
-                title="Toggle slide panel"
-              >
-                ☰
+                ×
               </button>
             </div>
-            
-            {/* Mobile landscape help hint - auto-dismisses after 5 seconds */}
-            {showMobileHint && (
-              <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-200">📱</span>
-                  <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
-                  <button
-                    onClick={() => setShowMobileHint(false)}
-                    className="ml-2 text-blue-200 hover:text-white"
-                    aria-label="Dismiss hint"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
 

@@ -86,6 +86,51 @@ export const isSafari = () => /^((?!chrome|android).)*safari/i.test(navigator.us
 
 export const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+export const isIOSSafari = () => isIOS() && isSafari();
+
+export const getIOSSafariUIState = () => {
+  if (!isIOSSafari()) {
+    return {
+      isUIVisible: false,
+      uiHeight: 0,
+      dynamicUIHeight: 0,
+      isStandalone: false
+    };
+  }
+
+  const windowHeight = window.innerHeight;
+  const screenHeight = window.screen.height;
+  const visualViewportHeight = window.visualViewport?.height || windowHeight;
+  
+  // Check if running as PWA/standalone app
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+  
+  // Calculate UI heights
+  const totalUIHeight = screenHeight - windowHeight;
+  const dynamicUIHeight = windowHeight - visualViewportHeight;
+  const isUIVisible = totalUIHeight > 40 || dynamicUIHeight > 40;
+  
+  return {
+    isUIVisible,
+    uiHeight: totalUIHeight,
+    dynamicUIHeight,
+    isStandalone,
+    screenHeight,
+    windowHeight,
+    visualViewportHeight
+  };
+};
+
+export const getIOSSafariToolbarOffset = () => {
+  const uiState = getIOSSafariUIState();
+  if (!uiState.isUIVisible) return 0;
+  
+  // Return appropriate offset for toolbar positioning
+  // Account for home indicator (34px) and potential tab bar
+  return Math.max(34, Math.min(uiState.dynamicUIHeight, 80));
+};
+
 export const getMobileSafeAreaInsets = () => {
   // Return safe area inset values for mobile
   return {
