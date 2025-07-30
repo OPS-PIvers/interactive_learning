@@ -7,43 +7,40 @@ import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
-
-interface EnhancedPropertiesPanelProps {
-  selectedElement: SlideElement | null;
-  currentSlide: InteractiveSlide | null;
-  deviceType: DeviceType;
-  onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
-  onSlideUpdate: (slideUpdates: Partial<InteractiveSlide>) => void;
-  isMobile?: boolean;
-}
-
-interface CollapsibleSectionProps {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
+import { ExtendedPropertiesPanelProps, CollapsibleSectionProps } from './shared/BasePropertiesPanel';
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   title,
   isOpen,
   onToggle,
-  children
+  children,
+  icon,
+  collapsible = true
 }) => (
   <div className="border-b border-slate-700 last:border-b-0">
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
-      aria-expanded={isOpen}
-    >
-      <span className="font-medium text-white" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>{title}</span>
-      <ChevronDownIcon 
-        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-          isOpen ? 'rotate-180' : ''
-        }`} 
-      />
-    </button>
-    {isOpen && (
+    {collapsible ? (
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
+        aria-expanded={isOpen}
+      >
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-slate-400">{icon}</span>}
+          <span className="font-medium text-white" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>{title}</span>
+        </div>
+        <ChevronDownIcon 
+          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`} 
+        />
+      </button>
+    ) : (
+      <div className="p-3 flex items-center gap-2">
+        {icon && <span className="text-slate-400">{icon}</span>}
+        <span className="font-medium text-white" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>{title}</span>
+      </div>
+    )}
+    {(isOpen || !collapsible) && (
       <div className="p-3 pt-0 space-y-3">
         {children}
       </div>
@@ -57,7 +54,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
  * Features 3-section layout: header, content with collapsible sections, and footer actions.
  * Provides real-time element editing with immediate canvas updates.
  */
-const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = ({
+const EnhancedPropertiesPanel: React.FC<ExtendedPropertiesPanelProps> = ({
   selectedElement,
   currentSlide,
   deviceType,

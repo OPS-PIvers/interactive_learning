@@ -6,21 +6,10 @@ import InteractionEditor from '../interactions/InteractionEditor';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import { hotspotSizePresets, HotspotSize } from '../../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from '../ui/LiquidColorSelector';
+import { Z_INDEX_TAILWIND, Z_INDEX_PATTERNS } from '../../utils/zIndexLevels';
+import { useContentAreaHeight } from '../../hooks/useMobileToolbar';
+import { MobilePropertiesPanelProps, CollapsibleSectionProps, getDefaultSections } from '../shared/BasePropertiesPanel';
 
-interface MobilePropertiesPanelProps {
-  selectedElement: SlideElement | null;
-  deviceType: DeviceType;
-  onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
-  onDelete: () => void;
-  onClose: () => void;
-}
-
-interface CollapsibleSectionProps {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   title,
@@ -155,16 +144,15 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   onClose,
 }) => {
   // Collapsible sections state - keep properties open for hotspots, style for others
-  const [openSections, setOpenSections] = useState({
-    properties: selectedElement?.type === 'hotspot',
-    style: selectedElement?.type !== 'hotspot',
-    content: false,
-    position: false,
-    interactions: false
-  });
+  const [openSections, setOpenSections] = useState(() => 
+    getDefaultSections(selectedElement?.type)
+  );
   
   // Interaction editing state
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
+  
+  // Dynamic height calculation accounting for mobile toolbar
+  const { maxHeight } = useContentAreaHeight(false);
 
   const toggleSection = useCallback((section: keyof typeof openSections) => {
     setOpenSections(prev => ({
@@ -320,7 +308,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center"
+      className={`fixed inset-0 bg-black bg-opacity-50 ${Z_INDEX_TAILWIND.MOBILE_PROPERTIES_PANEL} flex items-end justify-center`}
       style={{ 
         paddingBottom: 'max(env(safe-area-inset-bottom), 16px)', 
         touchAction: 'none',
@@ -357,8 +345,8 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
       <div 
         className="bg-slate-800 w-full rounded-t-xl shadow-2xl overflow-hidden"
         style={{
-          /* Dynamic max height for iOS Safari with dvh support */
-          maxHeight: 'min(85dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))',
+          /* Dynamic max height accounting for mobile toolbar */
+          maxHeight: maxHeight,
         }}
       >
         {/* Header */}
