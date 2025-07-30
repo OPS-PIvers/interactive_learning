@@ -20,8 +20,15 @@ describe('Concurrent Operations Integration Tests', () => {
     }
     
     const auth = firebaseManager.getAuth();
-    const userCredential = await signInAnonymously(auth);
-    testUserId = userCredential.user.uid;
+    await new Promise(resolve => {
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        if (user) {
+          testUserId = user.uid;
+          unsubscribe();
+          resolve(user);
+        }
+      });
+    });
   });
 
   afterAll(async () => {

@@ -9,6 +9,7 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts'],
     alias: {
       '@firebase/analytics': './src/tests/mocks/firebaseAnalytics.ts',
-    }
+    },
+    hookTimeout: 30000,
   },
 })

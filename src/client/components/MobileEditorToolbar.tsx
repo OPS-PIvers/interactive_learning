@@ -1,5 +1,7 @@
 import React from 'react';
+import { useMobileToolbar } from '../hooks/useMobileToolbar'; // Corrected import path
 
+// Define a type for the component's props, including toolbar styling
 interface MobileEditorToolbarProps {
   onAddHotspot: () => void;
   isPlacingHotspot: boolean;
@@ -9,6 +11,7 @@ interface MobileEditorToolbarProps {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  isTimelineVisible?: boolean; // Make timeline visibility optional
 }
 
 const MobileEditorToolbar: React.FC<MobileEditorToolbarProps> = ({
@@ -20,33 +23,36 @@ const MobileEditorToolbar: React.FC<MobileEditorToolbarProps> = ({
   onRedo,
   canUndo,
   canRedo,
+  isTimelineVisible = false, // Default to false if not provided
 }) => {
+  // Use the centralized hook to get dynamic toolbar properties
+  const { dimensions, positioning, isReady } = useMobileToolbar(isTimelineVisible);
+
+  // Combine styles from the hook with base styles
+  const toolbarStyle: React.CSSProperties = {
+    ...positioning, // Apply dynamic positioning
+    height: `${dimensions.toolbarHeight}px`,
+    minHeight: `${dimensions.toolbarHeight}px`,
+    background: '#1e293b',
+    borderTop: '1px solid #334155',
+    padding: '8px 16px',
+    paddingBottom: positioning.paddingBottom,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    gap: '12px',
+    boxSizing: 'border-box',
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    transition: 'transform 0.3s ease-out, height 0.3s ease-out, bottom 0.3s ease-out',
+    opacity: isReady ? 1 : 0, // Prevent flash of unstyled content
+  };
+
   return (
     <div 
       className="mobile-bottom-toolbar"
-      style={{
-        /* Ensure fixed positioning over content */
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        /* Background and styling */
-        background: '#1e293b',
-        borderTop: '1px solid #334155',
-        /* Responsive padding with safe area awareness */
-        padding: '8px 16px',
-        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
-        /* Layout */
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-        gap: '12px',
-        /* Height management */
-        height: 'var(--mobile-bottom-toolbar-height, 56px)',
-        minHeight: 'var(--mobile-bottom-toolbar-height, 56px)',
-        boxSizing: 'border-box'
-      }}
+      style={toolbarStyle}
     >
       <button 
         onClick={onUndo} 
