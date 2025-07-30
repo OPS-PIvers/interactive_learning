@@ -4,7 +4,7 @@ import { vi, describe, test, expect, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 
 import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
-import { SlideDeck, InteractiveSlide } from '../../shared/slideTypes';
+import { SlideDeck } from '../../shared/slideTypes';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { ToastProvider, useToast } from '../../client/hooks/useToast';
 import { useIsMobile } from '../../client/hooks/useIsMobile';
@@ -90,8 +90,18 @@ const mockSlideDeck: SlideDeck = {
       },
     },
   ],
+  settings: {
+    autoAdvance: false,
+    allowNavigation: true,
+    showProgress: false,
+    showControls: false,
+    keyboardShortcuts: true,
+    touchGestures: false,
+    fullscreenMode: false,
+  },
   metadata: {
       version: '3.0',
+
       createdAt: '2023-01-01T00:00:00.000Z',
       updatedAt: '2023-01-01T00:00:00.000Z',
   }
