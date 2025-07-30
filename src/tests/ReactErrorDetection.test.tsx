@@ -8,9 +8,9 @@ import SlideBasedInteractiveModule from '../client/components/SlideBasedInteract
 import { SlideDeck, DeviceType } from '../shared/slideTypes';
 
 // Mock child components to isolate testing
-vi.mock('../client/components/SlideBasedEditor', () => ({
+vi.mock('../client/components/slides/UnifiedSlideEditor', () => ({
   __esModule: true,
-  default: () => <div data-testid="slide-based-editor">SlideBasedEditor</div>,
+  default: () => <div data-testid="unified-slide-editor-mock">UnifiedSlideEditor</div>,
 }));
 vi.mock('../client/components/SlideBasedViewer', () => ({
   __esModule: true,
@@ -100,7 +100,7 @@ describe('React Error Detection Tests', () => {
         </AuthProvider>
       );
       await waitFor(() => {
-        expect(screen.getByTestId('slide-based-editor')).toBeInTheDocument();
+        expect(screen.getByTestId('unified-slide-editor-mock')).toBeInTheDocument();
       });
       const hookErrors = consoleErrorSpy.mock.calls.filter(call =>
         call.some(arg => typeof arg === 'string' && arg.includes('Rules of Hooks'))

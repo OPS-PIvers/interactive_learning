@@ -59,3 +59,11 @@ Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
 });
 
 HTMLCanvasElement.prototype.getContext = vi.fn();
+
+Object.defineProperty(window, 'CSS', {
+  value: {
+    ...window.CSS,
+    supports: vi.fn(() => true),
+  },
+  writable: true,
+});
