@@ -94,7 +94,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
 
   const isTimelineVisible = activePanel === 'timeline';
   const { cssVariables } = useMobileToolbar(isTimelineVisible);
-  const { marginBottom, maxHeight } = useToolbarSpacing(isTimelineVisible);
+  const { marginBottom, maxHeight, paddingBottom } = useToolbarSpacing(isTimelineVisible);
   const keyboardInfo = useMobileKeyboard();
 
   useEffect(() => {
@@ -107,6 +107,19 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
   useEffect(() => {
     setShowHotspotEditor(!!selectedHotspot);
   }, [selectedHotspot]);
+
+  // Edge-swipe back gesture functionality
+  const handleBackGesture = useCallback((e: TouchEvent) => {
+    // Implement edge swipe detection for back navigation
+    if (e.touches[0]?.clientX < 20 && !keyboardInfo.isVisible) {
+      onBack();
+    }
+  }, [onBack, keyboardInfo.isVisible]);
+
+  useEffect(() => {
+    document.addEventListener('touchstart', handleBackGesture);
+    return () => document.removeEventListener('touchstart', handleBackGesture);
+  }, [handleBackGesture]);
 
   const layoutRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +139,6 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
         height: '100dvh',
         minHeight: '-webkit-fill-available',
         maxHeight: '100dvh',
-        minHeight: '100vh',
         ...cssVariables,
       }}
     >
@@ -213,7 +225,7 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = (props) => {
         <div
           className="flex-1 overflow-y-auto"
           style={{
-            paddingBottom: `${keyboardInfo.height + (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom')) || 0)}px`,
+            paddingBottom: `calc(${keyboardInfo.height}px + ${paddingBottom})`,
           }}
         >
           {selectedHotspot && onUpdateHotspot && onDeleteHotspot ? (
