@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useViewportHeight } from '../../hooks/useViewportHeight';
-import { isIOSSafari, getIOSSafariUIState, getIOSSafariToolbarOffset } from '../../utils/mobileUtils';
+import { isIOSSafari, getIOSSafariBottomUIState, getIOSSafariToolbarOffset } from '../../utils/mobileUtils';
 
 interface UniversalMobileToolbarProps {
   children: React.ReactNode;
@@ -33,8 +33,8 @@ export const UniversalMobileToolbar: React.FC<UniversalMobileToolbarProps> = ({
   const detectIOSSafariUI = useCallback(() => {
     if (!isIOSSafari()) return false;
     
-    const uiState = getIOSSafariUIState();
-    return uiState.isUIVisible;
+    const bottomUIState = getIOSSafariBottomUIState();
+    return bottomUIState.hasBottomUI;
   }, []);
 
   // Enhanced keyboard detection
@@ -49,36 +49,74 @@ export const UniversalMobileToolbar: React.FC<UniversalMobileToolbarProps> = ({
     return calculatedHeight > keyboardThreshold ? calculatedHeight : 0;
   }, []);
 
-  // Dynamic UI state monitoring
+  // Enhanced dynamic UI state monitoring with debouncing
   useEffect(() => {
+    let updateTimeoutId: NodeJS.Timeout | null = null;
+    
     const updateUIState = () => {
       setIsIOSSafariUIVisible(detectIOSSafariUI());
       setKeyboardHeight(detectKeyboard());
     };
 
+    // Debounced update to prevent excessive state changes during animations
+    const debouncedUpdateUIState = () => {
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
+      updateTimeoutId = setTimeout(updateUIState, 100); // 100ms debounce
+    };
+
+    // Immediate update for critical changes
+    const immediateUpdateUIState = () => {
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
+      updateUIState();
+    };
+
     // Initial check
     updateUIState();
 
-    // Monitor viewport changes
-    const events = ['resize', 'orientationchange', 'scroll'];
-    events.forEach(event => {
-      window.addEventListener(event, updateUIState);
+    // Enhanced event monitoring for iOS Safari
+    const debouncedEvents = ['resize', 'scroll'];
+    const immediateEvents = ['orientationchange'];
+    
+    // Add debounced listeners for resize and scroll
+    debouncedEvents.forEach(event => {
+      window.addEventListener(event, debouncedUpdateUIState, { passive: true });
+    });
+    
+    // Add immediate listeners for orientation changes
+    immediateEvents.forEach(event => {
+      window.addEventListener(event, immediateUpdateUIState);
     });
 
-    // Monitor visual viewport changes (iOS Safari specific)
+    // Enhanced Visual Viewport API monitoring for iOS Safari
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateUIState);
-      window.visualViewport.addEventListener('scroll', updateUIState);
+      // Debounced for resize (happens during URL bar show/hide)
+      window.visualViewport.addEventListener('resize', debouncedUpdateUIState);
+      
+      // Immediate for scroll (can indicate URL bar state change)
+      window.visualViewport.addEventListener('scroll', immediateUpdateUIState);
     }
 
+    // Cleanup function
     return () => {
-      events.forEach(event => {
-        window.removeEventListener(event, updateUIState);
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
+      
+      debouncedEvents.forEach(event => {
+        window.removeEventListener(event, debouncedUpdateUIState);
+      });
+      
+      immediateEvents.forEach(event => {
+        window.removeEventListener(event, immediateUpdateUIState);
       });
       
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateUIState);
-        window.visualViewport.removeEventListener('scroll', updateUIState);
+        window.visualViewport.removeEventListener('resize', debouncedUpdateUIState);
+        window.visualViewport.removeEventListener('scroll', immediateUpdateUIState);
       }
     };
   }, [detectIOSSafariUI, detectKeyboard]);
@@ -94,6 +132,9 @@ export const UniversalMobileToolbar: React.FC<UniversalMobileToolbarProps> = ({
       transition: 'bottom 0.2s ease-out, transform 0.2s ease-out',
     };
 
+    // Get enhanced iOS Safari bottom UI state for detailed positioning
+    const bottomUIState = getIOSSafariBottomUIState();
+    
     // Calculate bottom offset
     let bottomOffset = 0;
     
@@ -102,15 +143,24 @@ export const UniversalMobileToolbar: React.FC<UniversalMobileToolbarProps> = ({
       bottomOffset += 64; // Timeline height
     }
     
-    // Keyboard adjustment
+    // Keyboard adjustment (takes priority over Safari UI)
     if (keyboardHeight > 0) {
       bottomOffset += keyboardHeight;
+    } else if (isIOSSafariUIVisible && bottomUIState.hasBottomUI) {
+      // Enhanced iOS Safari UI compensation
+      bottomOffset += bottomUIState.recommendedOffset;
     }
     
-    // iOS Safari UI compensation using enhanced detection
-    if (isIOSSafariUIVisible && !keyboardHeight) {
-      // Use the enhanced iOS Safari toolbar offset calculation
-      bottomOffset += getIOSSafariToolbarOffset();
+    // Store debug info for development
+    if (process.env.NODE_ENV === 'development') {
+      (window as any).__toolbarDebug = {
+        isIOSSafariUIVisible,
+        keyboardHeight,
+        bottomUIState,
+        finalBottomOffset: bottomOffset,
+        viewportHeight,
+        timestamp: Date.now()
+      };
     }
 
     return {
@@ -148,28 +198,32 @@ export const UniversalMobileToolbar: React.FC<UniversalMobileToolbarProps> = ({
     >
       {children}
       
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '-60px',
-            left: '8px',
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            fontSize: '10px',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            pointerEvents: 'none',
-            zIndex: 10000,
-          }}
-        >
-          iOS UI: {isIOSSafariUIVisible ? 'Y' : 'N'} | 
-          KB: {keyboardHeight}px | 
-          VH: {viewportHeight}px |
-          Timeline: {isTimelineVisible ? 'Y' : 'N'}
-        </div>
-      )}
+      {/* Enhanced debug info in development */}
+      {process.env.NODE_ENV === 'development' && (() => {
+        const bottomUIState = getIOSSafariBottomUIState();
+        return (
+          <div 
+            style={{
+              position: 'absolute',
+              top: '-80px',
+              left: '8px',
+              background: 'rgba(0, 0, 0, 0.9)',
+              color: 'white',
+              fontSize: '9px',
+              padding: '6px 8px',
+              borderRadius: '4px',
+              pointerEvents: 'none',
+              zIndex: 10000,
+              maxWidth: '300px',
+              lineHeight: '1.2',
+            }}
+          >
+            <div>iOS UI: {isIOSSafariUIVisible ? 'Y' : 'N'} | KB: {keyboardHeight}px | VH: {viewportHeight}px</div>
+            <div>Bottom UI: {bottomUIState.hasBottomUI ? 'Y' : 'N'} | URL Bar: {bottomUIState.hasBottomURLBar ? 'Y' : 'N'}</div>
+            <div>Offset: {bottomUIState.recommendedOffset}px | Reduction: {bottomUIState.viewportReduction}px</div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -94,7 +94,10 @@ export const getIOSSafariUIState = () => {
       isUIVisible: false,
       uiHeight: 0,
       dynamicUIHeight: 0,
-      isStandalone: false
+      isStandalone: false,
+      bottomUIHeight: 0,
+      topUIHeight: 0,
+      hasBottomURLBar: false
     };
   }
 
@@ -111,6 +114,22 @@ export const getIOSSafariUIState = () => {
   const dynamicUIHeight = windowHeight - visualViewportHeight;
   const isUIVisible = totalUIHeight > 40 || dynamicUIHeight > 40;
   
+  // Enhanced bottom UI detection for iOS Safari
+  const estimatedTopUIHeight = Math.min(totalUIHeight, 100); // Status bar + top URL bar (typically 44-88px)
+  const remainingUIHeight = Math.max(0, totalUIHeight - estimatedTopUIHeight);
+  
+  // Detect if URL bar is at bottom (common in landscape or certain iOS versions)
+  const hasBottomURLBar = remainingUIHeight > 30 || // Bottom UI space suggests bottom URL bar
+                          (dynamicUIHeight > 40 && visualViewportHeight < windowHeight - 80); // Visual viewport significantly smaller
+  
+  // Calculate bottom UI height (URL bar + home indicator)
+  const homeIndicatorHeight = 34; // Standard iOS home indicator
+  const urlBarHeight = hasBottomURLBar ? 44 : 0; // iOS Safari URL bar height
+  const bottomUIHeight = homeIndicatorHeight + urlBarHeight + (hasBottomURLBar ? 6 : 0); // Extra padding for bottom URL bar
+  
+  // Calculate top UI height (status bar + potential top URL bar)
+  const topUIHeight = hasBottomURLBar ? 44 : Math.max(44, estimatedTopUIHeight); // Status bar minimum
+  
   return {
     isUIVisible,
     uiHeight: totalUIHeight,
@@ -118,17 +137,65 @@ export const getIOSSafariUIState = () => {
     isStandalone,
     screenHeight,
     windowHeight,
-    visualViewportHeight
+    visualViewportHeight,
+    bottomUIHeight,
+    topUIHeight,
+    hasBottomURLBar
+  };
+};
+
+export const getIOSSafariBottomUIState = () => {
+  const uiState = getIOSSafariUIState();
+  
+  if (!isIOSSafari() || uiState.isStandalone) {
+    return {
+      hasBottomUI: false,
+      bottomUIHeight: 0,
+      hasBottomURLBar: false,
+      recommendedOffset: 0
+    };
+  }
+  
+  const { bottomUIHeight, hasBottomURLBar, visualViewportHeight, windowHeight } = uiState;
+  
+  // Additional detection: if visual viewport is significantly smaller, likely bottom UI present
+  const viewportReduction = windowHeight - visualViewportHeight;
+  const hasSignificantReduction = viewportReduction > 60; // More than just home indicator
+  
+  const hasBottomUI = hasBottomURLBar || bottomUIHeight > 40 || hasSignificantReduction;
+  
+  // Calculate recommended offset for toolbar positioning
+  let recommendedOffset = 0;
+  if (hasBottomUI) {
+    if (hasBottomURLBar) {
+      // Bottom URL bar + home indicator + safety margin
+      recommendedOffset = Math.max(bottomUIHeight, 84); // 44px URL bar + 34px home indicator + 6px margin
+    } else {
+      // Just home indicator + safety margin  
+      recommendedOffset = Math.max(bottomUIHeight, 42); // 34px home indicator + 8px margin
+    }
+  }
+  
+  return {
+    hasBottomUI,
+    bottomUIHeight,
+    hasBottomURLBar,
+    recommendedOffset,
+    viewportReduction
   };
 };
 
 export const getIOSSafariToolbarOffset = () => {
-  const uiState = getIOSSafariUIState();
-  if (!uiState.isUIVisible) return 0;
+  const bottomUIState = getIOSSafariBottomUIState();
   
-  // Return appropriate offset for toolbar positioning
-  // Account for home indicator (34px) and potential tab bar
-  return Math.max(34, Math.min(uiState.dynamicUIHeight, 80));
+  // Use the enhanced bottom UI detection for precise offset calculation
+  if (!bottomUIState.hasBottomUI) {
+    // No bottom UI detected, use minimal safe area
+    return 8; // Small safety margin
+  }
+  
+  // Return the recommended offset from enhanced detection
+  return bottomUIState.recommendedOffset;
 };
 
 export const getMobileSafeAreaInsets = () => {

@@ -14,7 +14,17 @@ vi.mock('../client/utils/mobileUtils', () => ({
     isUIVisible: false,
     uiHeight: 0,
     dynamicUIHeight: 0,
-    isStandalone: false
+    isStandalone: false,
+    bottomUIHeight: 0,
+    topUIHeight: 0,
+    hasBottomURLBar: false
+  }),
+  getIOSSafariBottomUIState: () => ({
+    hasBottomUI: false,
+    bottomUIHeight: 0,
+    hasBottomURLBar: false,
+    recommendedOffset: 0,
+    viewportReduction: 0
   }),
   getIOSSafariToolbarOffset: () => 0
 }));
