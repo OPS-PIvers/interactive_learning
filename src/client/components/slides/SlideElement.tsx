@@ -161,7 +161,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
       tabIndex={element.interactions.length > 0 ? 0 : undefined}
       aria-label={element.content.title || `${element.type} element`}
       aria-roledescription={isInteractive ? `Interactive ${element.type}` : undefined}
-      aria-describedby={element.content.description ? `${element.id}-desc` : undefined}
+      aria-describedby={element.type === 'hotspot' && element.interactions.some(i => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}
     >
       {renderElementContent()}
     </div>
