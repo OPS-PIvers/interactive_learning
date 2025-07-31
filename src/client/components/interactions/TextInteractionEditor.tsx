@@ -129,7 +129,7 @@ export const TextInteractionEditor: React.FC<TextInteractionEditorProps> = ({
               id="clickable-close"
               role="switch"
               aria-checked={params.allowClickToClose !== false} // Default to true
-              onClick={() => handleParamChange('allowClickToClose', params.allowClickToClose === false)}
+              onClick={() => handleParamChange('allowClickToClose', !(params.allowClickToClose !== false))}
               className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${params.allowClickToClose !== false ? 'bg-green-500' : 'bg-gray-600'}`}
             >
               <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${params.allowClickToClose !== false ? 'translate-x-6' : 'translate-x-1'}`} />

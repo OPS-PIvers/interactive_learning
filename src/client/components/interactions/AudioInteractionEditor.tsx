@@ -92,7 +92,7 @@ export const AudioInteractionEditor: React.FC<AudioInteractionEditorProps> = ({
               id="show-player-controls"
               role="switch"
               aria-checked={params.showPlayerControls !== false}
-              onClick={() => handleParamChange('showPlayerControls', params.showPlayerControls === false)}
+              onClick={() => handleParamChange('showPlayerControls', !(params.showPlayerControls !== false))}
               className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${params.showPlayerControls !== false ? 'bg-green-500' : 'bg-gray-600'}`}
             >
               <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${params.showPlayerControls !== false ? 'translate-x-6' : 'translate-x-1'}`} />

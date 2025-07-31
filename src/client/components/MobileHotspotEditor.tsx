@@ -13,6 +13,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
 import MobilePanZoomEditor from './mobile/MobilePanZoomEditor';
+import EditorMovedNotice from './interactions/EditorMovedNotice';
 
 
 interface MobileHotspotEditorProps {
@@ -292,18 +293,10 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     if (editingEvent) {
       if (editingEvent.type === InteractionType.PLAY_AUDIO) {
         return (
-            <div className="text-center p-4 text-slate-400">
-                <p className="font-bold">Audio editing has moved!</p>
-                <p className="text-sm mt-2">
-                    To edit audio interactions, please use the "Interactions" section of the main properties panel for this element.
-                </p>
-                <button
-                    onClick={() => setEditingEvent(null)}
-                    className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md text-sm"
-                >
-                    Go Back
-                </button>
-            </div>
+          <EditorMovedNotice
+            interactionType="Audio"
+            onGoBack={() => setEditingEvent(null)}
+          />
         );
       }
       if (editingEvent.type === InteractionType.PLAY_VIDEO) {
@@ -320,18 +313,10 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
       }
       if (editingEvent.type === InteractionType.QUIZ) {
         return (
-            <div className="text-center p-4 text-slate-400">
-                <p className="font-bold">Quiz editing has moved!</p>
-                <p className="text-sm mt-2">
-                    To edit quizzes, please use the "Interactions" section of the main properties panel for this element.
-                </p>
-                <button
-                    onClick={() => setEditingEvent(null)}
-                    className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md text-sm"
-                >
-                    Go Back
-                </button>
-            </div>
+          <EditorMovedNotice
+            interactionType="Quiz"
+            onGoBack={() => setEditingEvent(null)}
+          />
         );
       }
       if (editingEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
@@ -349,18 +334,10 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         // This legacy component should no longer handle it.
         // We return a message to guide the user.
         return (
-            <div className="text-center p-4 text-slate-400">
-                <p className="font-bold">Text editing has moved!</p>
-                <p className="text-sm mt-2">
-                    To edit text, please use the "Interactions" section of the main properties panel for this element.
-                </p>
-                <button
-                    onClick={() => setEditingEvent(null)}
-                    className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md text-sm"
-                >
-                    Go Back
-                </button>
-            </div>
+          <EditorMovedNotice
+            interactionType="Text"
+            onGoBack={() => setEditingEvent(null)}
+          />
         );
       }
     }

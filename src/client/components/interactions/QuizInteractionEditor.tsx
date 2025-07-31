@@ -61,13 +61,24 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
   };
 
   const removeOption = (index: number) => {
+    // Prevent removing the last option
+    if ((params.quizOptions || []).length <= 1) {
+      return;
+    }
+    
     const newOptions = [...(params.quizOptions || [])];
     newOptions.splice(index, 1);
     handleParamChange('quizOptions', newOptions);
-    if (params.quizCorrectAnswer === index) {
+    
+    // Adjust correct answer index if needed
+    if (typeof params.quizCorrectAnswer === 'number') {
+      if (params.quizCorrectAnswer === index) {
+        // If we're removing the correct answer, set it to the first option
         handleParamChange('quizCorrectAnswer', 0);
-    } else if (typeof params.quizCorrectAnswer === 'number' && params.quizCorrectAnswer > index) {
+      } else if (params.quizCorrectAnswer > index) {
+        // If correct answer is after the removed option, shift it down
         handleParamChange('quizCorrectAnswer', params.quizCorrectAnswer - 1);
+      }
     }
   };
 
@@ -134,7 +145,16 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
                   >
                     ✓
                   </button>
-                  <button onClick={() => removeOption(index)} className="p-2 text-red-400 hover:text-red-300">
+                  <button 
+                    onClick={() => removeOption(index)} 
+                    className={`p-2 transition-colors ${
+                      (params.quizOptions || []).length <= 1
+                        ? 'text-slate-500 cursor-not-allowed'
+                        : 'text-red-400 hover:text-red-300'
+                    }`}
+                    disabled={(params.quizOptions || []).length <= 1}
+                    title={(params.quizOptions || []).length <= 1 ? 'Cannot remove the last option' : 'Remove option'}
+                  >
                     ✕
                   </button>
                 </div>

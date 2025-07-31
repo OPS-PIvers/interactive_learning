@@ -320,7 +320,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
     }
   }, [selectedElement]);
 
-  const handleTextEditorUpdate = useCallback((updates: Partial<ElementInteraction>) => {
+  const handleInteractionEditorUpdate = useCallback((updates: Partial<ElementInteraction>) => {
     if (!editingInteraction) return;
     handleInteractionUpdate(editingInteraction.id, updates);
   }, [editingInteraction, handleInteractionUpdate]);
@@ -776,21 +776,21 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
             {editingInteraction.effect.type === 'show_text' && (
               <TextInteractionEditor
                 interaction={editingInteraction}
-                onUpdate={handleTextEditorUpdate}
+                onUpdate={handleInteractionEditorUpdate}
                 onDone={() => setEditingInteraction(null)}
               />
             )}
             {editingInteraction.effect.type === 'play_audio' && (
               <AudioInteractionEditor
                 interaction={editingInteraction}
-                onUpdate={handleTextEditorUpdate}
+                onUpdate={handleInteractionEditorUpdate}
                 onDone={() => setEditingInteraction(null)}
               />
             )}
             {editingInteraction.effect.type === 'quiz' && (
                 <QuizInteractionEditor
                     interaction={editingInteraction}
-                    onUpdate={handleTextEditorUpdate}
+                    onUpdate={handleInteractionEditorUpdate}
                     onDone={() => setEditingInteraction(null)}
                 />
             )}
