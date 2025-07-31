@@ -36,45 +36,94 @@ jobs:
         run: npm run test:run
         continue-on-error: true
 
-      - name: Wait for Gemini review
+      - name: Wait for automated code reviews
         run: |
-          echo "Waiting 3 minutes for Gemini Code Assist to review PR..."
+          echo "Waiting 3 minutes for automated code review tools to complete..."
           sleep 180
 
-      - name: Fetch PR comments and extract Gemini feedback
-        id: gemini-feedback
+      - name: Fetch all PR comments and extract code review feedback
+        id: review-feedback
         uses: actions/github-script@v7
         with:
           script: |
             try {
-              const { data: comments } = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number
-              });
+              // Fetch both general PR comments and line-level review comments
+              const [{ data: comments }, { data: reviewComments }] = await Promise.all([
+                github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number
+                }),
+                github.rest.pulls.listReviewComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number
+                })
+              ]);
+              
+              // Combine both types of comments
+              const allComments = [
+                ...comments.map(c => ({ ...c, type: 'general', file: null, line: null })),
+                ...reviewComments.map(c => ({ ...c, type: 'review', file: c.path, line: c.line }))
+              ];
             
-            // Look for Gemini feedback in comments
-            let geminiFeedback = '';
-            for (const comment of comments) {
-              // Check if comment is from Gemini Code Assist
-              if (comment.user.login === 'gemini-code-assist' || 
-                  comment.user.login.includes('gemini-code-assist') ||
-                  comment.body.includes('Gemini Code Assist') ||
-                  comment.body.includes('@gemini-code-assist')) {
-                geminiFeedback = comment.body;
-                console.log(`Found Gemini feedback from ${comment.user.login}`);
-                break;
+            // Collect all relevant code review feedback
+            let allFeedback = [];
+            const qualityIndicators = [
+              'security', 'vulnerability', 'performance', 'bug', 'error', 'issue',
+              'improvement', 'optimize', 'refactor', 'best practice', 'convention',
+              'type safety', 'accessibility', 'responsive', 'mobile', 'test',
+              'memory leak', 'race condition', 'async', 'await', 'promise'
+            ];
+            
+            const codeReviewBots = [
+              'gemini-code-assist', 'github-copilot', 'copilot', 'sonarcloud',
+              'codeclimate', 'deepsource', 'codeacy', 'snyk-bot', 'dependabot'
+            ];
+            
+            for (const comment of allComments) {
+              const isFromBot = codeReviewBots.some(bot => 
+                comment.user.login.toLowerCase().includes(bot) ||
+                comment.body.toLowerCase().includes(bot)
+              );
+              
+              const hasQualityContent = qualityIndicators.some(indicator =>
+                comment.body.toLowerCase().includes(indicator)
+              );
+              
+              // Include comments from known code review tools or high-quality human feedback
+              if (isFromBot || hasQualityContent || comment.body.length > 100) {
+                const feedback = {
+                  author: comment.user.login,
+                  body: comment.body,
+                  created_at: comment.created_at,
+                  isBot: isFromBot,
+                  type: comment.type,
+                  file: comment.file,
+                  line: comment.line
+                };
+                allFeedback.push(feedback);
+                console.log(`Found ${isFromBot ? 'automated' : 'quality'} feedback from ${comment.user.login}`);
               }
             }
             
-            if (geminiFeedback) {
-              console.log('Gemini feedback found:', geminiFeedback.substring(0, 200) + '...');
-              core.setOutput('feedback', geminiFeedback);
+            if (allFeedback.length > 0) {
+              // Combine all feedback into a structured format
+              const combinedFeedback = allFeedback.map(f => {
+                const location = f.file ? ` (${f.file}${f.line ? `:${f.line}` : ''})` : '';
+                const typeLabel = f.type === 'review' ? 'Code Review' : 'General Comment';
+                return `**${typeLabel} from ${f.author}${location} (${f.isBot ? 'Automated Tool' : 'Reviewer'}):**\n${f.body}`;
+              }).join('\n\n---\n\n');
+              
+              console.log(`Found ${allFeedback.length} relevant feedback comments`);
+              core.setOutput('feedback', combinedFeedback);
               core.setOutput('has_feedback', 'true');
+              core.setOutput('feedback_count', allFeedback.length.toString());
             } else {
-              console.log('No Gemini feedback found in PR comments');
+              console.log('No relevant code review feedback found in PR comments');
               core.setOutput('feedback', '');
               core.setOutput('has_feedback', 'false');
+              core.setOutput('feedback_count', '0');
             }
             } catch (error) {
               console.error('Error fetching PR comments:', error);
@@ -89,11 +138,11 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_tools: bash
           direct_prompt: |
-            ${{ steps.gemini-feedback.outputs.has_feedback == 'true' && format('PRIORITY: Address the following feedback from Gemini Code Assist:
+            ${{ steps.review-feedback.outputs.has_feedback == 'true' && format('PRIORITY: Address the following feedback from code review tools and reviewers ({0} comments found):
             
-            {0}
+            {1}
             
-            Based on this feedback, review the PR and make the necessary changes. Additionally, ensure:', steps.gemini-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
+            Based on this feedback, review the PR and implement all valid suggestions. Additionally, ensure:', steps.review-feedback.outputs.feedback_count, steps.review-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
             1. Code follows project conventions in CLAUDE.md
             2. TypeScript types are correct
             3. All tests pass
