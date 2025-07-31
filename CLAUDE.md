@@ -66,6 +66,18 @@ src/
 - **State**: Use `useCallback` and `useMemo` for performance optimization
 - **Imports**: Direct imports over barrel exports for better tree-shaking
 
+## Viewer Architecture
+
+### ViewerFooterToolbar.tsx
+The `ViewerFooterToolbar.tsx` component is the primary user interface for navigating and controlling the viewer experience. It is a highly configurable component that adapts its layout and functionality based on the device (mobile or desktop) and the current viewing mode.
+
+**Key Features:**
+- **Responsive Design:** Provides distinct layouts for mobile and desktop screens to ensure an optimal user experience on any device.
+- **Timeline Navigation:** Includes controls for moving between slides, as well as a visual progress indicator with clickable dots.
+- **Step-Based Navigation:** Supports step-by-step navigation within a slide's timeline.
+- **Mode Controls:** Allows users to switch between different viewing modes, such as "Explore" and "Guided Tour."
+- **Accessibility:** Designed with accessibility in mind, featuring ARIA labels, keyboard navigation, and a shortcuts modal.
+
 ## Slide-Based Architecture
 - **SlideDeck** interface defines collection of interactive slides with metadata
 - **InteractiveSlide** interface for individual slides with elements, transitions, and layout
@@ -91,6 +103,9 @@ src/
 - Test files located in `src/tests/`
 - Run `npm run test:run` before committing
 - All tests must pass for PR approval
+
+### Viewer Component Testing
+As of Phase 4 of the viewer cleanup, all major viewer components now have comprehensive test coverage. The test for `ViewerFooterToolbar.tsx` can be found in `src/tests/ViewerFooterToolbar.test.tsx`. This test suite covers all functionality of the component, including responsive behavior and accessibility.
 
 ### Critical Error Detection Tests
 - `npm run test:run -- ReactErrorDetection` - Run React error detection tests
