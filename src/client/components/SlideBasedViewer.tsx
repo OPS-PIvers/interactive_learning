@@ -100,6 +100,13 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     }
   }, [moduleState]);
 
+  const handleSlideSelect = useCallback((slideId: string) => {
+    const slideIndex = slideDeck.slides.findIndex(s => s.id === slideId);
+    if (slideIndex !== -1) {
+      handleSlideChange(slideId, slideIndex);
+    }
+  }, [slideDeck.slides, handleSlideChange]);
+
   // Timeline navigation handler
   const handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
     if (stepSlideIndex >= 0 && stepSlideIndex < slideDeck.slides.length) {
@@ -239,6 +246,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           hasContent={slideDeck.slides.length > 0}
           isMobile={isMobile}
           viewerModes={viewerModes}
+          slides={slideDeck.slides}
+          onSlideSelect={handleSlideSelect}
+          showProgress={moduleState === 'learning'}
         />
       </div>
     </div>

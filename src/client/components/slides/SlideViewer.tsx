@@ -4,7 +4,6 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
 import { SlideElement } from './SlideElement';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
-import { SlideNavigation } from './SlideNavigation';
 import { SlideTimeline } from './SlideTimeline';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 
@@ -605,20 +604,6 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
           onComplete={() => clearEffect(effect.id)}
         />
       ))}
-
-      {/* Navigation Controls */}
-      {slideDeck.settings.showControls && (
-        <SlideNavigation
-          currentSlideIndex={viewerState.currentSlideIndex}
-          totalSlides={slideDeck.slides.length}
-          onPrevious={navigateToPrevious}
-          onNext={navigateToNext}
-          onSlideSelect={navigateToSlide}
-          slides={slideDeck.slides}
-          showProgress={slideDeck.settings.showProgress}
-          deviceType={deviceType}
-        />
-      )}
 
       {/* Timeline (when enabled) */}
       {showTimeline && (
