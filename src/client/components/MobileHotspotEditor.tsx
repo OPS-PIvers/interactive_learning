@@ -11,11 +11,9 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
-import PlayAudioEventEditor from './mobile/PlayAudioEventEditor';
 import MobilePlayVideoEditor from './MobilePlayVideoEditor';
-import MobileQuizEditor from './mobile/MobileQuizEditor';
 import MobilePanZoomEditor from './mobile/MobilePanZoomEditor';
-import MobileShowTextEditor from './mobile/MobileShowTextEditor';
+import EditorMovedNotice from './interactions/EditorMovedNotice';
 
 
 interface MobileHotspotEditorProps {
@@ -295,10 +293,9 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
     if (editingEvent) {
       if (editingEvent.type === InteractionType.PLAY_AUDIO) {
         return (
-          <PlayAudioEventEditor
-            event={editingEvent}
-            onUpdate={onUpdateTimelineEvent}
-            onClose={() => setEditingEvent(null)}
+          <EditorMovedNotice
+            interactionType="Audio"
+            onGoBack={() => setEditingEvent(null)}
           />
         );
       }
@@ -316,10 +313,9 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
       }
       if (editingEvent.type === InteractionType.QUIZ) {
         return (
-          <MobileQuizEditor
-            event={editingEvent}
-            onUpdate={onUpdateTimelineEvent}
-            onClose={() => setEditingEvent(null)}
+          <EditorMovedNotice
+            interactionType="Quiz"
+            onGoBack={() => setEditingEvent(null)}
           />
         );
       }
@@ -333,11 +329,14 @@ const MobileHotspotEditor: React.FC<MobileHotspotEditorProps> = ({
         );
       }
       if (editingEvent.type === InteractionType.SHOW_TEXT) {
+        // This is intentionally left blank.
+        // The new "show_text" interaction editing is handled by MobilePropertiesPanel.
+        // This legacy component should no longer handle it.
+        // We return a message to guide the user.
         return (
-          <MobileShowTextEditor
-            event={editingEvent}
-            onUpdate={onUpdateTimelineEvent}
-            onClose={() => setEditingEvent(null)}
+          <EditorMovedNotice
+            interactionType="Text"
+            onGoBack={() => setEditingEvent(null)}
           />
         );
       }

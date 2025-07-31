@@ -9,7 +9,7 @@ import React, { useMemo } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { UnifiedPropertiesPanelProps, PROPERTIES_PANEL_BREAKPOINTS } from '../shared/BasePropertiesPanel';
 import { MobilePropertiesPanel } from './MobilePropertiesPanel';
-import { EnhancedPropertiesPanel } from '../EnhancedPropertiesPanel';
+import EnhancedPropertiesPanel from '../EnhancedPropertiesPanel';
 
 /**
  * Responsive Properties Panel that switches between mobile and desktop implementations

@@ -9,6 +9,10 @@ import { LiquidColorSelector } from '../ui/LiquidColorSelector';
 import { Z_INDEX_TAILWIND, Z_INDEX_PATTERNS } from '../../utils/zIndexLevels';
 import { useContentAreaHeight } from '../../hooks/useMobileToolbar';
 import { MobilePropertiesPanelProps, CollapsibleSectionProps, getDefaultSections } from '../shared/BasePropertiesPanel';
+import ResponsiveModal from '../responsive/ResponsiveModal';
+import { TextInteractionEditor } from '../interactions/TextInteractionEditor';
+import { AudioInteractionEditor } from '../interactions/AudioInteractionEditor';
+import { QuizInteractionEditor } from '../interactions/QuizInteractionEditor';
 
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
@@ -150,6 +154,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   
   // Interaction editing state
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
+  const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
   
   // Dynamic height calculation accounting for mobile toolbar
   const { maxHeight } = useContentAreaHeight(false);
@@ -299,6 +304,26 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
     );
     onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
   }, [selectedElement, onElementUpdate]);
+
+  const handleInteractionSelect = useCallback((interactionId: string | null) => {
+    if (!interactionId) {
+      setSelectedInteractionId(null);
+      return;
+    }
+
+    const interaction = selectedElement?.interactions.find(i => i.id === interactionId);
+    if (interaction && (interaction.effect.type === 'show_text' || interaction.effect.type === 'play_audio' || interaction.effect.type === 'quiz')) {
+      setEditingInteraction(interaction);
+      setSelectedInteractionId(interactionId); // Keep it selected in the list
+    } else {
+      setSelectedInteractionId(interactionId);
+    }
+  }, [selectedElement]);
+
+  const handleInteractionEditorUpdate = useCallback((updates: Partial<ElementInteraction>) => {
+    if (!editingInteraction) return;
+    handleInteractionUpdate(editingInteraction.id, updates);
+  }, [editingInteraction, handleInteractionUpdate]);
 
   if (!selectedElement) {
     return null;
@@ -716,14 +741,14 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
               <InteractionsList
                 element={selectedElement}
                 selectedInteractionId={selectedInteractionId}
-                onInteractionSelect={setSelectedInteractionId}
+                onInteractionSelect={handleInteractionSelect}
                 onInteractionAdd={handleAddInteraction}
                 onInteractionRemove={handleRemoveInteraction}
                 isCompact={true}
               />
               
-              {/* Inline Interaction Editor */}
-              {selectedInteractionId && (
+              {/* Inline Interaction Editor for non-text interactions */}
+              {selectedInteractionId && !editingInteraction && (
                 <div className="border-t border-slate-600 pt-4">
                   <InteractionEditor
                     interaction={selectedElement.interactions.find(i => i.id === selectedInteractionId) || null}
@@ -736,6 +761,42 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
           </CollapsibleSection>
         </div>
         
+        {/* Interaction Editor Modal */}
+        {editingInteraction && (
+          <ResponsiveModal
+            type="properties"
+            isOpen={!!editingInteraction}
+            onClose={() => setEditingInteraction(null)}
+            title={`Edit ${
+              editingInteraction.effect.type === 'show_text' ? 'Text' :
+              editingInteraction.effect.type === 'play_audio' ? 'Audio' : 'Quiz'
+            } Content`}
+            size="fullscreen"
+          >
+            {editingInteraction.effect.type === 'show_text' && (
+              <TextInteractionEditor
+                interaction={editingInteraction}
+                onUpdate={handleInteractionEditorUpdate}
+                onDone={() => setEditingInteraction(null)}
+              />
+            )}
+            {editingInteraction.effect.type === 'play_audio' && (
+              <AudioInteractionEditor
+                interaction={editingInteraction}
+                onUpdate={handleInteractionEditorUpdate}
+                onDone={() => setEditingInteraction(null)}
+              />
+            )}
+            {editingInteraction.effect.type === 'quiz' && (
+                <QuizInteractionEditor
+                    interaction={editingInteraction}
+                    onUpdate={handleInteractionEditorUpdate}
+                    onDone={() => setEditingInteraction(null)}
+                />
+            )}
+          </ResponsiveModal>
+        )}
+
         {/* Footer Actions */}
         <div 
           className="p-4 border-t border-slate-700 space-y-3"
