@@ -2,9 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ViewerFooterToolbar } from '../client/components/ViewerFooterToolbar';
-import { AuthProvider } from '../lib/authContext';
+import { AuthContext } from '../lib/authContext';
+import { InteractiveSlide } from '../shared/slideTypes';
 
-// Mock the AuthProvider to provide a dummy user
+// Mock the AuthContext to provide a dummy user
 const mockAuth = {
     user: {
       displayName: "Test User",
@@ -20,13 +21,16 @@ const mockAuth = {
     switchAccount: vi.fn(),
   };
 
-  // Create a wrapper component that provides the mock auth context
+  // Test wrapper component that provides the mock auth context
+  const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <AuthContext.Provider value={mockAuth}>
+      {children}
+    </AuthContext.Provider>
+  );
+
+  // Helper function to render with auth context
   const renderWithAuthProvider = (ui: React.ReactElement) => {
-    return render(
-      <AuthProvider value={mockAuth}>
-        {ui}
-      </AuthProvider>
-    );
+    return render(ui, { wrapper: TestWrapper });
   };
 
   const mockOnBack = vi.fn();
@@ -38,10 +42,49 @@ const mockAuth = {
   const mockOnPreviousStep = vi.fn();
   const mockOnNextStep = vi.fn();
 
-  const mockSlides = [
-    { id: '1', title: 'First Slide', elements: [], layout: 'default' },
-    { id: '2', title: 'Second Slide', elements: [], layout: 'default' },
-    { id: '3', title: 'Third Slide', elements: [], layout: 'default' },
+  const mockSlides: InteractiveSlide[] = [
+    {
+      id: '1',
+      title: 'First Slide',
+      elements: [],
+      transitions: [],
+      layout: {
+        containerWidth: 1920,
+        containerHeight: 1080,
+        aspectRatio: '16:9',
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    },
+    {
+      id: '2',
+      title: 'Second Slide',
+      elements: [],
+      transitions: [],
+      layout: {
+        containerWidth: 1920,
+        containerHeight: 1080,
+        aspectRatio: '16:9',
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    },
+    {
+      id: '3',
+      title: 'Third Slide',
+      elements: [],
+      transitions: [],
+      layout: {
+        containerWidth: 1920,
+        containerHeight: 1080,
+        aspectRatio: '16:9',
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    },
   ];
 
   const defaultProps = {
@@ -101,11 +144,7 @@ const mockAuth = {
         const { rerender } = renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} currentSlideIndex={0} canGoPrevious={false} />);
         expect(screen.getByRole('button', { name: /Previous slide/i })).toBeDisabled();
 
-        rerender(
-            <AuthProvider value={mockAuth}>
-                <ViewerFooterToolbar {...defaultProps} currentSlideIndex={2} canGoNext={false} />
-            </AuthProvider>
-        );
+        rerender(<ViewerFooterToolbar {...defaultProps} currentSlideIndex={2} canGoNext={false} />);
         expect(screen.getByRole('button', { name: /Next slide/i })).toBeDisabled();
       });
 
