@@ -255,4 +255,4 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   );
 };
 
-export default SlideBasedViewer;
+export default React.memo(SlideBasedViewer);

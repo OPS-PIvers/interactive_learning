@@ -83,7 +83,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
             <div className="hotspot-indicator">
               <div className="hotspot-dot" />
               {element.interactions.some(i => i.trigger === 'hover') && (
-                <div className="hotspot-tooltip">
+                <div className="hotspot-tooltip" id={`${element.id}-tooltip`} role="tooltip">
                   <h4>{element.content.title}</h4>
                   {element.content.description && (
                     <p>{element.content.description}</p>
@@ -101,7 +101,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
               <h3 className="text-title">{element.content.title}</h3>
             )}
             {element.content.description && (
-              <p className="text-description">{element.content.description}</p>
+              <p className="text-description" id={`${element.id}-desc`}>{element.content.description}</p>
             )}
           </div>
         );
@@ -147,9 +147,11 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     }
   };
 
+  const isInteractive = element.interactions.length > 0;
+
   return (
     <div
-      className="slide-element"
+      className={`slide-element ${isInteractive ? 'transform-gpu hover:scale-105' : ''}`}
       style={elementStyle}
       onClick={handleClick}
       onMouseEnter={handleHover}
@@ -158,6 +160,8 @@ export const SlideElement: React.FC<SlideElementProps> = ({
       role={element.interactions.length > 0 ? 'button' : undefined}
       tabIndex={element.interactions.length > 0 ? 0 : undefined}
       aria-label={element.content.title || `${element.type} element`}
+      aria-roledescription={isInteractive ? `Interactive ${element.type}` : undefined}
+      aria-describedby={element.type === 'hotspot' && element.interactions.some(i => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}
     >
       {renderElementContent()}
     </div>

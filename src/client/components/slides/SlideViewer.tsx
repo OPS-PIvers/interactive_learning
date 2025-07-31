@@ -29,7 +29,7 @@ export interface SlideViewerRef {
  * 
  * This replaces the complex coordinate system with predictable slide positioning
  */
-export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({ 
+export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProps>(({
   slideDeck,
   initialSlideId,
   onSlideChange,
@@ -634,7 +634,7 @@ export const SlideViewer = forwardRef<SlideViewerRef, SlideViewerProps>(({
       )}
     </div>
   );
-});
+}));
 
 SlideViewer.displayName = 'SlideViewer';
 

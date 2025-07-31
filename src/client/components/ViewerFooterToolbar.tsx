@@ -73,11 +73,56 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   onSlideSelect,
   showProgress = false,
 }) => {
+  const [showShortcuts, setShowShortcuts] = React.useState(false);
+  const shortcutsButtonRef = React.useRef<HTMLButtonElement>(null);
   
   // Determine what buttons to show based on viewer modes
   const showExploreButton = viewerModes.explore && moduleState === 'idle';
   const showTourButton = (viewerModes.selfPaced || viewerModes.timed) && moduleState === 'idle';
   const showBackToMenuButton = moduleState !== 'idle';
+
+  const modalRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (showShortcuts) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setShowShortcuts(false);
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (!focusableElements || focusableElements.length === 0) return;
+
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      modalRef.current?.focus();
+
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        shortcutsButtonRef.current?.focus();
+      };
+    }
+  }, [showShortcuts]);
 
   const progressDots = React.useMemo(() => {
     if (!showProgress || !slides || !onSlideSelect) {
@@ -106,7 +151,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   const renderMobileLayout = () => (
     <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
       <div 
-        className="px-3 py-3 flex items-center justify-between"
+        className="px-3 py-3 flex items-center justify-between landscape:py-1 landscape:min-h-0"
         style={{
           paddingBottom: `max(12px, env(safe-area-inset-bottom, 0px))`,
           minHeight: '56px'
@@ -115,37 +160,38 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
         {/* Left: Back button */}
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700"
+          className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 hover:bg-slate-700 landscape:p-1"
           aria-label="Back to projects"
         >
-          <ChevronLeftIcon className="w-5 h-5" />
+          <ChevronLeftIcon className="w-5 h-5 landscape:w-4 landscape:h-4" />
         </button>
         
         {/* Center: Navigation + Status */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 landscape:gap-2">
           {/* Timeline navigation when in learning mode */}
           {moduleState === 'learning' && (onPreviousSlide || onNextSlide || onPreviousStep || onNextStep) && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 landscape:gap-1">
               <button
                 onClick={onPreviousStep || onPreviousSlide}
                 disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
-                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed"
+                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed landscape:p-1"
+                aria-label={onPreviousStep ? "Previous step" : "Previous slide"}
                 title={onPreviousStep ? "Previous step" : "Previous slide"}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               
               {/* Progress indicator */}
-              <div className="flex flex-col items-center gap-1 text-center min-w-0 px-2">
+              <div className="flex flex-col items-center gap-1 text-center min-w-0 px-2 landscape:px-1" aria-live="polite">
                 <div>
-                  <div className="text-sm font-medium text-white">
+                  <div className="text-sm font-medium text-white landscape:text-xs">
                     {stepLabel || `${currentSlideIndex + 1}/${totalSlides}`}
                   </div>
                   {currentStep && totalSteps && (
-                    <div className="text-xs text-slate-300">
-                      Step {currentStep}/{totalSlides}
+                    <div className="text-xs text-slate-300 landscape:hidden">
+                      Step {currentStep}/{totalSteps}
                     </div>
                   )}
                 </div>
@@ -155,10 +201,11 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               <button
                 onClick={onNextStep || onNextSlide}
                 disabled={onNextStep ? !canGoNextStep : !canGoNext}
-                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed"
+                className="p-2 text-white disabled:text-slate-500 hover:bg-slate-700 rounded-full transition-colors disabled:cursor-not-allowed landscape:p-1"
+                aria-label={onNextStep ? "Next step" : "Next slide"}
                 title={onNextStep ? "Next step" : "Next slide"}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -172,7 +219,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
                 <button
                   onClick={onStartExploring}
                   disabled={!hasContent}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:cursor-not-allowed landscape:px-2 landscape:py-1 landscape:text-xs"
                 >
                   Explore
                 </button>
@@ -182,7 +229,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
                 <button
                   onClick={onStartLearning}
                   disabled={!hasContent}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors disabled:cursor-not-allowed landscape:px-2 landscape:py-1 landscape:text-xs"
                 >
                   Tour
                 </button>
@@ -194,7 +241,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           {showBackToMenuButton && (
             <button
               onClick={onBack}
-              className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+              className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors landscape:px-2 landscape:py-1 landscape:text-xs"
             >
               Menu
             </button>
@@ -226,6 +273,16 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-xs">
             {projectName}
           </h1>
+          <button
+            ref={shortcutsButtonRef}
+            onClick={() => setShowShortcuts(true)}
+            className="text-slate-400 hover:text-white transition-colors"
+            title="Keyboard shortcuts"
+            aria-label="Show keyboard shortcuts"
+            aria-haspopup="dialog"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          </button>
         </div>
         
         {/* Center: Timeline Navigation */}
@@ -235,16 +292,17 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               onClick={onPreviousStep || onPreviousSlide}
               disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
               className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={onPreviousStep ? "Previous step" : "Previous slide"}
               title={onPreviousStep ? "Previous step" : "Previous slide"}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               <span className="text-sm font-medium">Previous</span>
             </button>
             
             {/* Progress indicator */}
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-3" aria-live="polite">
               {progressDots}
               <div className="text-center">
                 <div className="text-sm font-semibold text-white">
@@ -262,10 +320,11 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               onClick={onNextStep || onNextSlide}
               disabled={onNextStep ? !canGoNextStep : !canGoNext}
               className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={onNextStep ? "Next step" : "Next slide"}
               title={onNextStep ? "Next step" : "Next slide"}
             >
               <span className="text-sm font-medium">Next</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -321,6 +380,37 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           <AuthButton variant="default" size="medium" />
         </div>
       </div>
+      {showShortcuts && (
+        <div
+          ref={modalRef}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowShortcuts(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shortcuts-title"
+          tabIndex={-1}
+        >
+          <div
+            className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-slate-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 id="shortcuts-title" className="text-2xl font-bold text-white mb-6">Keyboard Shortcuts</h3>
+            <ul className="space-y-3">
+              <li className="flex justify-between items-center"><span className="font-semibold">Next Slide</span><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Right Arrow</kbd></li>
+              <li className="flex justify-between items-center"><span className="font-semibold">Previous Slide</span><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Left Arrow</kbd></li>
+              <li className="flex justify-between items-center"><span className="font-semibold">First Slide</span><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Home</kbd></li>
+              <li className="flex justify-between items-center"><span className="font-semibold">Last Slide</span><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">End</kbd></li>
+              <li className="flex justify-between items-center"><span className="font-semibold">Close Effects</span><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Esc</kbd></li>
+            </ul>
+            <button
+              onClick={() => setShowShortcuts(false)}
+              className="mt-8 w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
   
