@@ -27,57 +27,12 @@ import { getTouchDistance, getTouchCenter, getValidatedTransform, getSpringBackT
  * @param options Configuration options (minScale, maxScale, doubleTapZoomFactor, etc.).
  * @returns Touch event handlers and a method to check if a gesture is active.
  */
-// Throttle utility function for performance optimization
-const throttle = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): T & { cancel: () => void } => {
-  let timeoutId: number | null = null;
-  let lastExecTime = 0;
-
-  const throttled = ((...args: Parameters<T>) => {
-    const currentTime = Date.now();
-    const timeSinceLastExec = currentTime - lastExecTime;
-
-    if (timeSinceLastExec > delay) {
-      lastExecTime = currentTime;
-      // Clear any existing timeout that would execute the last call
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-      return func(...args);
-    } else {
-      // If a timeout is already set, clear it to reset the timer with the new call
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      // Set a new timeout to execute after the remaining delay
-      timeoutId = window.setTimeout(() => {
-        lastExecTime = Date.now();
-        func(...args);
-        timeoutId = null; // Clear the timeoutId after execution
-      }, delay - timeSinceLastExec);
-    }
-  }) as T & { cancel: () => void };
-
-  // Add cancel method to clear pending timeouts
-  throttled.cancel = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = null;
-    }
-  };
-
-  return throttled;
-};
-
 const DOUBLE_TAP_THRESHOLD = 300; // ms
 const PAN_THRESHOLD_PIXELS = 60; // For distinguishing tap from pan (research-backed optimal value for touch)
 
 // Constants for momentum and animation
-const DAMPING_FACTOR = 0.92; // Determines how quickly momentum fades
-const VELOCITY_THRESHOLD = 0.005; // Below this, momentum stops for scale and position
+const DAMPING_FACTOR = 0.93; // Determines how quickly momentum fades
+const VELOCITY_THRESHOLD = 0.004; // Below this, momentum stops for scale and position
 const MIN_VELOCITY_FOR_MOMENTUM = 0.05; // Minimum velocity to trigger momentum animation
 
 interface TouchGestureState {
