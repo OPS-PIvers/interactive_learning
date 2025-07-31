@@ -8,7 +8,6 @@ import { MobileSlideEditor } from './slides/MobileSlideEditor';
 import SlideEditorToolbar from './SlideEditorToolbar';
 import { generateId } from '../utils/generateId';
 import EnhancedPropertiesPanel from './EnhancedPropertiesPanel';
-import { DesktopToolbar } from './desktop/DesktopToolbar';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
@@ -31,8 +30,7 @@ import { MobileSlidesModal } from './mobile/MobileSlidesModal';
 import { MobileBackgroundModal } from './mobile/MobileBackgroundModal';
 import { MobileInsertModal } from './mobile/MobileInsertModal';
 import { MobileAspectRatioModal } from './mobile/MobileAspectRatioModal';
-import { UniversalMobileToolbar } from './mobile/UniversalMobileToolbar';
-import { MobileEditorToolbarContent } from './mobile/MobileEditorToolbarContent';
+import { ResponsiveToolbar } from './responsive/ResponsiveToolbar';
 
 interface SlideBasedEditorProps {
   slideDeck: SlideDeck;
@@ -898,27 +896,7 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
                 />
               </div>
               
-              {/* Universal Mobile Toolbar - Consistent positioning across all devices */}
-              {!isPreviewMode && (
-                <UniversalMobileToolbar
-                  isTimelineVisible={isTimelineVisible}
-                  className="bg-slate-800 text-white"
-                >
-                  <MobileEditorToolbarContent
-                    currentSlideIndex={currentSlideIndex}
-                    totalSlides={slideDeck.slides.length}
-                    onSlideChange={handleSlideChange}
-                    onAddSlide={handleAddSlide}
-                    onSlidesOpen={handleMobileSlidesOpen}
-                    onBackgroundOpen={handleMobileBackgroundOpen}
-                    onInsertOpen={handleMobileInsertOpen}
-                    onAspectRatioOpen={handleMobileAspectRatioOpen}
-                    currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-                    isLandscape={isLandscape}
-                    isVerySmall={contentAreaConfig.contentHeight < 400}
-                  />
-                </UniversalMobileToolbar>
-              )}
+              {/* Universal Mobile Toolbar is now part of ResponsiveToolbar */}
             </>
           ) : (
             <SlideEditor
@@ -937,15 +915,15 @@ const SlideBasedEditor: React.FC<SlideBasedEditorProps> = ({
           )}
         </div>
 
-        {/* Desktop Toolbar - Unified footer toolbar for desktop */}
-        {!isPreviewMode && !isMobile && (
-          <DesktopToolbar
+        {/* Responsive Toolbar for both Desktop and Mobile */}
+        {!isPreviewMode && (
+          <ResponsiveToolbar
             onSlidesOpen={handleMobileSlidesOpen}
             onBackgroundOpen={handleMobileBackgroundOpen}
             onInsertOpen={handleMobileInsertOpen}
             onAspectRatioOpen={handleMobileAspectRatioOpen}
-            currentAspectRatio={currentSlide?.layout?.aspectRatio || '16:9'}
-            isTimelineVisible={isTimelineVisible}
+            deviceType={effectiveDeviceType}
+            onDeviceTypeChange={handleDeviceTypeChange}
           />
         )}
 
