@@ -11,7 +11,7 @@ import { collection, getDocs, deleteDoc } from 'firebase/firestore';
  * Tests transaction atomicity, race conditions, and concurrent user scenarios
  * to ensure data consistency under high-load conditions.
  */
-describe.skip('Concurrent Operations Integration Tests', () => {
+describe('Concurrent Operations Integration Tests', () => {
   let testUserId: string;
   
   beforeAll(async () => {
