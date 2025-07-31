@@ -28,6 +28,12 @@ import { ResponsiveModal } from '../responsive/ResponsiveModal';
 import { UniversalMobileToolbar } from '../mobile/UniversalMobileToolbar';
 import { MobileEditorToolbarContent } from '../mobile/MobileEditorToolbarContent';
 
+// Import proper modal components
+import { MobileSlidesModal } from '../mobile/MobileSlidesModal';
+import { MobileBackgroundModal } from '../mobile/MobileBackgroundModal';
+import { MobileAspectRatioModal } from '../mobile/MobileAspectRatioModal';
+import { MobileInsertModal } from '../mobile/MobileInsertModal';
+
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;
   projectName: string;
@@ -231,6 +237,37 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     });
   }, [state.navigation.currentSlideIndex, currentSlide, handleSlideUpdate]);
   
+  // Handle background media changes
+  const handleBackgroundUpload = useCallback(async (file: File) => {
+    try {
+      const imageUrl = await firebaseAPI.uploadImage(file);
+      
+      const backgroundMedia: BackgroundMedia = {
+        type: file.type.startsWith('video/') ? 'video' : 'image',
+        url: imageUrl,
+        settings: {
+          size: 'cover',
+          position: 'center',
+          repeat: 'no-repeat',
+          attachment: 'scroll'
+        }
+      };
+      
+      handleSlideUpdate({ backgroundMedia });
+    } catch (error) {
+      console.error('Background upload failed:', error);
+      throw error;
+    }
+  }, [handleSlideUpdate]);
+
+  const handleBackgroundRemove = useCallback(() => {
+    handleSlideUpdate({ backgroundMedia: undefined });
+  }, [handleSlideUpdate]);
+
+  const handleBackgroundUpdate = useCallback((mediaConfig: BackgroundMedia) => {
+    handleSlideUpdate({ backgroundMedia: mediaConfig });
+  }, [handleSlideUpdate]);
+  
   // Handle theme changes
   const handleThemeChange = useCallback((theme: ThemePreset) => {
     // Theme changes would be handled at the project level
@@ -425,76 +462,51 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         )}
         
         {/* Responsive Modals */}
-        <ResponsiveModal
-          type="slides"
-          isOpen={state.ui.slidesModal}
-          onClose={() => actions.closeModal('slidesModal')}
-          title="Slides"
-        >
-          {/* Slides modal content */}
-          <div className="p-4">
-            <p>Slides management content will go here</p>
-          </div>
-        </ResponsiveModal>
+        {/* Use proper MobileSlidesModal instead of ResponsiveModal with placeholder */}
+        {state.ui.slidesModal && (
+          <MobileSlidesModal
+            slides={slideDeck.slides}
+            currentSlideIndex={state.ui.currentSlideIndex}
+            onSlideSelect={(index) => {
+              actions.setCurrentSlide(index);
+              actions.closeModal('slidesModal');
+            }}
+            onSlideAdd={handleAddSlide}
+            onSlideDelete={handleDeleteSlide}
+            onSlideDuplicate={handleDuplicateSlide}
+            onClose={() => actions.closeModal('slidesModal')}
+          />
+        )}
         
-        <ResponsiveModal
-          type="background"
-          isOpen={state.ui.backgroundModal}
-          onClose={() => actions.closeModal('backgroundModal')}
-          title="Background"
-        >
-          {/* Background modal content */}
-          <div className="p-4">
-            <p>Background settings content will go here</p>
-          </div>
-        </ResponsiveModal>
+        {/* Use proper MobileBackgroundModal instead of ResponsiveModal with placeholder */}
+        {state.ui.backgroundModal && currentSlide && (
+          <MobileBackgroundModal
+            currentSlide={currentSlide}
+            onAspectRatioChange={(ratio) => handleAspectRatioChange(state.navigation.currentSlideIndex, ratio)}
+            onBackgroundUpload={handleBackgroundUpload}
+            onBackgroundRemove={handleBackgroundRemove}
+            onBackgroundUpdate={handleBackgroundUpdate}
+            onClose={() => actions.closeModal('backgroundModal')}
+          />
+        )}
         
-        <ResponsiveModal
-          type="insert"
-          isOpen={state.ui.insertModal}
-          onClose={() => actions.closeModal('insertModal')}  
-          title="Insert Element"
-        >
-          {/* Insert element content */}
-          <div className="p-4 space-y-4">
-            <button
-              onClick={() => handleAddElement('hotspot')}
-              className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Hotspot
-            </button>
-            <button
-              onClick={() => handleAddElement('text')}
-              className="w-full p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Add Text
-            </button>
-            <button
-              onClick={() => handleAddElement('shape')}
-              className="w-full p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              Add Shape
-            </button>
-            <button
-              onClick={() => handleAddElement('media')}
-              className="w-full p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              Add Media
-            </button>
-          </div>
-        </ResponsiveModal>
+        {/* Use proper MobileInsertModal instead of ResponsiveModal */}
+        {state.ui.insertModal && (
+          <MobileInsertModal
+            onInsertElement={(type) => handleAddElement(type)}
+            onClose={() => actions.closeModal('insertModal')}
+          />
+        )}
         
-        <ResponsiveModal
-          type="aspectRatio"
-          isOpen={state.ui.aspectRatioModal}
-          onClose={() => actions.closeModal('aspectRatioModal')}
-          title="Aspect Ratio"
-        >
-          {/* Aspect ratio content */}
-          <div className="p-4">
-            <p>Aspect ratio settings content will go here</p>
-          </div>
-        </ResponsiveModal>
+        {/* Use proper MobileAspectRatioModal instead of ResponsiveModal with placeholder */}
+        {state.ui.aspectRatioModal && currentSlide && (
+          <MobileAspectRatioModal
+            isOpen={state.ui.aspectRatioModal}
+            currentRatio={currentSlide.layout?.aspectRatio || '16:9'}
+            onRatioChange={(ratio) => handleAspectRatioChange(state.navigation.currentSlideIndex, ratio)}
+            onClose={() => actions.closeModal('aspectRatioModal')}
+          />
+        )}
         
         <ResponsiveModal
           type="share"
