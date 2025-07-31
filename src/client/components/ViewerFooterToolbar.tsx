@@ -79,7 +79,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   const showTourButton = (viewerModes.selfPaced || viewerModes.timed) && moduleState === 'idle';
   const showBackToMenuButton = moduleState !== 'idle';
 
-  const renderProgressDots = () => {
+  const progressDots = React.useMemo(() => {
     if (!showProgress || !slides || !onSlideSelect) {
       return null;
     }
@@ -101,7 +101,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
         ))}
       </div>
     );
-  };
+  }, [showProgress, slides, onSlideSelect, currentSlideIndex]);
   
   const renderMobileLayout = () => (
     <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
@@ -149,7 +149,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
                     </div>
                   )}
                 </div>
-                {renderProgressDots()}
+                {progressDots}
               </div>
               
               <button
@@ -245,7 +245,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             
             {/* Progress indicator */}
             <div className="flex flex-col items-center gap-3">
-              {renderProgressDots()}
+              {progressDots}
               <div className="text-center">
                 <div className="text-sm font-semibold text-white">
                   {stepLabel || `Slide ${currentSlideIndex + 1} of ${totalSlides}`}
