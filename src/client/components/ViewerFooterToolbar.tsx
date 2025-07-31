@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import AuthButton from './AuthButton';
+import { InteractiveSlide } from '../../shared/slideTypes';
 
 interface ViewerFooterToolbarProps {
   // Project info
@@ -15,6 +16,11 @@ interface ViewerFooterToolbarProps {
   canGoPrevious?: boolean;
   canGoNext?: boolean;
   
+  // Slide selection for progress dots
+  slides?: InteractiveSlide[];
+  onSlideSelect?: (slideId: string) => void;
+  showProgress?: boolean;
+
   // Timeline step info
   currentStep?: number;
   totalSteps?: number;
@@ -62,13 +68,40 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   onStartExploring,
   hasContent,
   viewerModes = { explore: true, selfPaced: true, timed: true },
-  isMobile = false
+  isMobile = false,
+  slides,
+  onSlideSelect,
+  showProgress = false,
 }) => {
   
   // Determine what buttons to show based on viewer modes
   const showExploreButton = viewerModes.explore && moduleState === 'idle';
   const showTourButton = (viewerModes.selfPaced || viewerModes.timed) && moduleState === 'idle';
   const showBackToMenuButton = moduleState !== 'idle';
+
+  const renderProgressDots = () => {
+    if (!showProgress || !slides || !onSlideSelect) {
+      return null;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        {slides.map((slide, index) => (
+          <button
+            key={slide.id}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${
+              index === currentSlideIndex
+                ? 'bg-gradient-to-r from-purple-400 to-pink-500 shadow-lg scale-110'
+                : 'bg-slate-600 hover:bg-slate-500'
+            }`}
+            onClick={() => onSlideSelect(slide.id)}
+            aria-label={`Go to slide ${index + 1}: ${slide.title || ''}`}
+            title={slide.title || `Slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    );
+  };
   
   const renderMobileLayout = () => (
     <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
@@ -105,15 +138,18 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               </button>
               
               {/* Progress indicator */}
-              <div className="text-center min-w-0 px-2">
-                <div className="text-sm font-medium text-white">
-                  {stepLabel || `${currentSlideIndex + 1}/${totalSlides}`}
-                </div>
-                {currentStep && totalSteps && (
-                  <div className="text-xs text-slate-300">
-                    Step {currentStep}/{totalSteps}
+              <div className="flex flex-col items-center gap-1 text-center min-w-0 px-2">
+                <div>
+                  <div className="text-sm font-medium text-white">
+                    {stepLabel || `${currentSlideIndex + 1}/${totalSlides}`}
                   </div>
-                )}
+                  {currentStep && totalSteps && (
+                    <div className="text-xs text-slate-300">
+                      Step {currentStep}/{totalSlides}
+                    </div>
+                  )}
+                </div>
+                {renderProgressDots()}
               </div>
               
               <button
@@ -208,15 +244,18 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             </button>
             
             {/* Progress indicator */}
-            <div className="text-center">
-              <div className="text-lg font-bold text-white">
-                {stepLabel || `Slide ${currentSlideIndex + 1} of ${totalSlides}`}
-              </div>
-              {currentStep && totalSteps && (
-                <div className="text-sm text-slate-300">
-                  Step {currentStep} of {totalSteps}
+            <div className="flex flex-col items-center gap-3">
+              {renderProgressDots()}
+              <div className="text-center">
+                <div className="text-sm font-semibold text-white">
+                  {stepLabel || `Slide ${currentSlideIndex + 1} of ${totalSlides}`}
                 </div>
-              )}
+                {currentStep && totalSteps && (
+                  <div className="text-xs text-slate-300">
+                    Step {currentStep} of {totalSteps}
+                  </div>
+                )}
+              </div>
             </div>
             
             <button
