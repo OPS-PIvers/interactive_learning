@@ -34,11 +34,6 @@ describe('Import/Export Integrity Tests', () => {
       expect(typeof module.default).toBe('function');
     });
 
-    test('ViewerToolbar has default export', async () => {
-      const module = await import('../../client/components/ViewerToolbar');
-      expect(module.default).toBeDefined();
-      expect(typeof module.default).toBe('function');
-    });
 
     test('EnhancedPropertiesPanel has default export', async () => {
       const module = await import('../../client/components/EnhancedPropertiesPanel');
@@ -130,7 +125,6 @@ describe('Import/Export Integrity Tests', () => {
 
       const components = await Promise.all([
         loadComponent('../../client/components/SlideBasedInteractiveModule'),
-        loadComponent('../../client/components/ViewerToolbar'),
         loadComponent('../../client/components/EnhancedPropertiesPanel')
       ]);
 
@@ -155,10 +149,8 @@ describe('Import/Export Integrity Tests', () => {
 
     test('default exports work correctly', async () => {
       const SlideBasedInteractiveModule = (await import('../../client/components/SlideBasedInteractiveModule')).default;
-      const ViewerToolbar = (await import('../../client/components/ViewerToolbar')).default;
       
       expect(SlideBasedInteractiveModule).toBeDefined();
-      expect(ViewerToolbar).toBeDefined();
     });
   });
 

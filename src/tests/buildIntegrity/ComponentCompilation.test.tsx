@@ -36,12 +36,6 @@ describe('Component Compilation Integrity Tests', () => {
       }).not.toThrow();
     });
 
-    test('ViewerToolbar imports and compiles correctly', async () => {
-      expect(async () => {
-        const module = await import('../../client/components/ViewerToolbar');
-        expect(module.default).toBeDefined();
-      }).not.toThrow();
-    });
 
     test('AuthButton imports and compiles correctly', async () => {
       expect(async () => {
@@ -111,22 +105,6 @@ describe('Component Compilation Integrity Tests', () => {
   });
 
   describe('Component Instantiation', () => {
-    test('ViewerToolbar can be instantiated without crashing', async () => {
-      expect(async () => {
-        const ViewerToolbarModule = await import('../../client/components/ViewerToolbar');
-        const ViewerToolbar = ViewerToolbarModule.default;
-        render(
-          <ViewerToolbar 
-            projectName="Test"
-            onBack={() => {}}
-            moduleState="idle"
-            onStartLearning={() => {}}
-            onStartExploring={() => {}}
-            hasContent={true}
-          />
-        );
-      }).not.toThrow();
-    });
 
     test('SlideBasedInteractiveModule can be instantiated with minimal props', async () => {
       expect(async () => {
@@ -186,7 +164,6 @@ describe('Component Compilation Integrity Tests', () => {
     test('all critical components can be loaded simultaneously', async () => {
       const criticalComponents = [
         import('../../client/components/SlideBasedInteractiveModule'),
-        import('../../client/components/ViewerToolbar'),
         import('../../client/components/AuthButton'),
         import('../../client/components/EnhancedPropertiesPanel')
       ];
@@ -210,13 +187,12 @@ describe('Component Compilation Integrity Tests', () => {
 
       const concurrentLoads = [
         loadComponent('../../client/components/SlideBasedInteractiveModule'),
-        loadComponent('../../client/components/ViewerToolbar'),
         loadComponent('../../shared/slideTypes'),
         loadComponent('../../shared/types')
       ];
 
       const results = await Promise.all(concurrentLoads);
-      expect(results).toHaveLength(4);
+      expect(results).toHaveLength(3);
       results.forEach(result => expect(result).toBeDefined());
     });
   });
