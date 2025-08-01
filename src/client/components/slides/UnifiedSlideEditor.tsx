@@ -15,7 +15,7 @@ import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
 import { generateId } from '../../utils/generateId';
 import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { firebaseAPI } from '../../../lib/firebaseApi';
-import { useMobileToolbar, useContentAreaHeight } from '../../hooks/useMobileToolbar';
+// Mobile toolbar hooks removed - functionality moved to responsive design
 import { ProjectThemeProvider } from '../../hooks/useProjectTheme';
 
 // Import responsive components and modals (to be created)
@@ -67,9 +67,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     computed,
   } = useUnifiedEditorState();
   
-  // Mobile toolbar configuration
-  const mobileToolbarConfig = useMobileToolbar(false); // Not used in viewer context
-  const contentAreaConfig = useContentAreaHeight(false);
+  // Mobile toolbar configuration removed - using responsive design instead
   
   // Current slide and selected element
   const currentSlide = slideDeck.slides[state.navigation.currentSlideIndex];
