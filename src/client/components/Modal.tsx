@@ -70,26 +70,20 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   // Calculate modal height with unified scaling logic for all screen sizes  
   const getModalHeight = () => {
-    // Use consistent height calculation across all devices
-    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0; // Only account for mobile toolbar when present
-    const baseHeight = isMobile ? '85vh' : '90vh'; // Slightly smaller on mobile for better UX
+    // Account for toolbar height on all devices (mobile toolbar + desktop editor footer)
+    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
+    const baseHeight = isMobile ? '75vh' : '80vh'; // Reduced base heights to prevent overlap
     
-    if (toolbarHeight > 0) {
-      return `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
-    }
-    return `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
+    return `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
   };
 
   const getModalMaxHeight = () => {
-    // Unified max height calculation with consistent padding across all devices
-    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
+    // Unified max height calculation with toolbar space reserved on all devices
+    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
     const topPadding = '2rem'; // Consistent top padding
-    const bottomPadding = '2rem'; // Consistent bottom padding
+    const bottomPadding = '1rem'; // Reduced bottom padding since we're accounting for toolbar
     
-    if (toolbarHeight > 0) {
-      return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding})`;
-    }
-    return `calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding})`;
+    return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding})`;
   };
 
   return (

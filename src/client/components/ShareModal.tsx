@@ -195,12 +195,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   // Unified modal sizing for consistent behavior across all screen sizes
   const getModalStyle = () => {
-    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
-    const baseHeight = isMobile ? '85vh' : '90vh';
+    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
+    const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
     
-    const height = toolbarHeight > 0 
-      ? `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
-      : `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
+    const height = `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
     
     return {
       height,

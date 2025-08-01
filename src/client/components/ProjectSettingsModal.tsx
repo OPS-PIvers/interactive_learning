@@ -85,13 +85,11 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   const getModalStyle = () => {
-    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
-    const baseHeight = isMobile ? '95vh' : '90vh';
-    const padding = isMobile ? '0px' : '2rem';
+    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
+    const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
+    const padding = isMobile ? '0px' : '1rem'; // Reduced desktop padding
     
-    const height = toolbarHeight > 0 
-      ? `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`
-      : `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`;
+    const height = `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`;
     
     return {
       height,
