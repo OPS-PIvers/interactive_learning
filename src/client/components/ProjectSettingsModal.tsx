@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useMobileToolbar } from '../hooks/useMobileToolbar';
 import { useProjectTheme } from '../hooks/useProjectTheme';
 import { getAllThemes } from '../../shared/themePresets';
 import { ThemePreset } from '../../shared/slideTypes';
@@ -24,6 +25,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onShare
 }) => {
   const isMobile = useIsMobile();
+  const { dimensions } = useMobileToolbar();
   const { currentThemeId, setTheme, availableThemes } = useProjectTheme();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -75,11 +77,31 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Calculate mobile modal height accounting for toolbar
+  const getMobileModalClass = () => {
+    if (isMobile) {
+      return 'w-full flex flex-col';
+    }
+    return 'w-full max-w-2xl max-h-[90vh] flex flex-col';
+  };
+
+  const getMobileModalStyle = () => {
+    if (isMobile) {
+      const toolbarHeight = dimensions.toolbarHeight;
+      return {
+        height: `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`,
+        maxHeight: `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
+      };
+    }
+    return {};
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div 
         ref={modalRef}
-        className={`bg-slate-800 rounded-lg shadow-xl ${isMobile ? 'w-full h-full' : 'w-full max-w-2xl max-h-[90vh]'} flex flex-col`}
+        className={`bg-slate-800 rounded-lg shadow-xl ${getMobileModalClass()}`}
+        style={getMobileModalStyle()}
         tabIndex={-1}
       >
         {/* Header */}

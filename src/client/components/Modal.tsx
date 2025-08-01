@@ -1,6 +1,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { useMobileToolbar } from '../hooks/useMobileToolbar';
 
 interface ModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+  const isMobile = useIsMobile();
+  const { dimensions } = useMobileToolbar();
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +68,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   if (!isOpen) return null;
 
+  // Calculate modal height accounting for mobile toolbar
+  const getModalHeight = () => {
+    if (isMobile) {
+      // On mobile, account for toolbar height
+      const toolbarHeight = dimensions.toolbarHeight;
+      return `calc(90vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
+    }
+    return '95vh'; // Desktop unchanged
+  };
+
+  const getModalMaxHeight = () => {
+    if (isMobile) {
+      // On mobile, account for toolbar height
+      const toolbarHeight = dimensions.toolbarHeight;
+      return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)`;
+    }
+    return 'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)'; // Desktop unchanged
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out mobile-viewport-fix"
@@ -76,9 +99,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] h-[95vh] max-h-[calc(100vh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-2rem)] flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
+        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
         onTouchMove={(e) => e.stopPropagation()}
-        style={{ touchAction: 'pan-y' }}
+        style={{ 
+          touchAction: 'pan-y',
+          height: getModalHeight(),
+          maxHeight: getModalMaxHeight()
+        }}
       >
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">
           <h2 id="modal-title" className="text-xl sm:text-2xl font-semibold text-white">{title}</h2>

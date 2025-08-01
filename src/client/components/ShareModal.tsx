@@ -3,6 +3,7 @@ import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useMobileToolbar } from '../hooks/useMobileToolbar';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const isMobile = useIsMobile();
+  const { dimensions } = useMobileToolbar();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Handle body scroll lock and focus management
@@ -203,7 +205,12 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         <div 
           ref={modalRef}
           tabIndex={-1}
-          className="bg-slate-800 rounded-t-2xl shadow-xl w-full max-h-[90vh] overflow-y-auto" 
+          className="bg-slate-800 rounded-t-2xl shadow-xl w-full overflow-y-auto"
+          style={{
+            maxHeight: isMobile 
+              ? `calc(90vh - ${dimensions.toolbarHeight}px - env(safe-area-inset-bottom, 0px))`
+              : '90vh'
+          }} 
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -323,7 +330,12 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
       <div 
         ref={!isMobile ? modalRef : undefined}
         tabIndex={-1}
-        className="bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        className="bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full overflow-hidden"
+        style={{
+          maxHeight: isMobile 
+            ? `calc(90vh - ${dimensions.toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
+            : '90vh'
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
