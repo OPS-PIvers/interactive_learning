@@ -68,30 +68,36 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   if (!isOpen) return null;
 
-  // Calculate modal height with comprehensive toolbar overlap prevention
-  const getModalHeight = () => {
-    const toolbarHeight = dimensions.toolbarHeight;
-    // More conservative base heights to ensure no overlap
-    const baseHeight = isMobile ? '70vh' : '75vh';
-    // Additional safety margin for footer toolbars in editor contexts
-    const safetyMargin = isMobile ? '20px' : '10px';
+  // Calculate modal positioning to start just below header toolbar
+  const getModalStyle = () => {
+    // Header heights based on EditorToolbar implementation
+    const headerHeight = isMobile ? 56 : 56;
+    const safeAreaTop = 'env(safe-area-inset-top, 0px)';
+    const safeAreaBottom = 'env(safe-area-inset-bottom, 0px)';
     
-    return `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${safetyMargin})`;
+    // Calculate top position: header height + safe area top + small margin
+    const topMargin = isMobile ? '8px' : '12px';
+    const topPosition = `calc(${headerHeight}px + ${safeAreaTop} + ${topMargin})`;
+    
+    // Calculate available height for modal content
+    const toolbarHeight = dimensions.toolbarHeight;
+    const bottomMargin = isMobile ? '24px' : '16px'; // Extra margin for footer toolbar
+    const safetyBuffer = isMobile ? '20px' : '16px'; // Additional buffer for dynamic toolbars
+    
+    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${toolbarHeight}px - ${safetyBuffer})`;
+    
+    return {
+      top: topPosition,
+      maxHeight: maxHeight,
+      height: 'auto' // Let content determine height up to maxHeight
+    };
   };
 
-  const getModalMaxHeight = () => {
-    const toolbarHeight = dimensions.toolbarHeight;
-    // Conservative padding to prevent any overlap scenarios
-    const topPadding = isMobile ? '1.5rem' : '2rem';
-    const bottomPadding = isMobile ? '2rem' : '1rem'; // Extra bottom padding on mobile for footer toolbars
-    const safetyBuffer = isMobile ? '30px' : '20px'; // Additional buffer for dynamic toolbars
-    
-    return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding} - ${safetyBuffer})`;
-  };
+  const modalStyle = getModalStyle();
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-2 transition-opacity duration-300 ease-in-out mobile-viewport-fix"
+      className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 transition-opacity duration-300 ease-in-out mobile-viewport-fix"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -101,12 +107,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-[95vw] flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
+        className="absolute left-2 right-2 bg-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
         onTouchMove={(e) => e.stopPropagation()}
         style={{ 
           touchAction: 'pan-y',
-          height: getModalHeight(),
-          maxHeight: getModalMaxHeight()
+          top: modalStyle.top,
+          height: modalStyle.height,
+          maxHeight: modalStyle.maxHeight,
+          maxWidth: isMobile ? 'calc(100vw - 16px)' : '90vw'
         }}
       >
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">
