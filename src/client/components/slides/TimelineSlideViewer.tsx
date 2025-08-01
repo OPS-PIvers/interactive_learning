@@ -9,10 +9,9 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
 import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
-import { TimelineEventData } from '../../../shared/types';
+import { TimelineEventData, InteractionType } from '../../../shared/types';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;
@@ -52,7 +51,6 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   className = ''
 }) => {
   const { deviceType } = useDeviceDetection();
-  const isMobile = useIsMobile();
   
   // Timeline and navigation state
   const [currentStep, setCurrentStep] = useState(1);
@@ -124,21 +122,21 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   }, [slideDeck]);
   
   // Helper function to map slide effect types to timeline event types
-  const getTimelineEventType = (effectType: string): string => {
+  const getTimelineEventType = (effectType: string): InteractionType => {
     switch (effectType) {
       case 'spotlight':
-        return 'SPOTLIGHT';
+        return InteractionType.SPOTLIGHT;
       case 'pan_zoom':
-        return 'PAN_ZOOM';
+        return InteractionType.PAN_ZOOM;
       case 'show_text':
-        return 'SHOW_MESSAGE';
+        return InteractionType.SHOW_TEXT;
       case 'play_media':
       case 'play_video':
-        return 'SHOW_VIDEO';
+        return InteractionType.PLAY_VIDEO;
       case 'play_audio':
-        return 'SHOW_AUDIO_MODAL';
+        return InteractionType.PLAY_AUDIO;
       default:
-        return 'SPOTLIGHT'; // Default fallback
+        return InteractionType.SPOTLIGHT; // Default fallback
     }
   };
   

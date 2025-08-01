@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useViewportMobile } from '../hooks/useViewportMobile';
 import { useMobileToolbar } from '../hooks/useMobileToolbar';
 
 interface ModalProps {
@@ -14,7 +14,7 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const isMobile = useIsMobile();
+  const isMobile = useViewportMobile(768);
   const { dimensions } = useMobileToolbar();
 
   useEffect(() => {

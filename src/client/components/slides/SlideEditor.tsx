@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useViewportMobile } from '../../hooks/useViewportMobile';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import SlideTimelineAdapter from '../SlideTimelineAdapter';
@@ -65,7 +65,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
 }) => {
   const { deviceType: detectedDeviceType, viewportInfo } = useDeviceDetection();
   const deviceType = deviceTypeOverride || detectedDeviceType;
-  const isMobile = useIsMobile();
+  const isMobile = useViewportMobile(768); // Use 768px as mobile breakpoint
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   
@@ -693,7 +693,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     <div className={`slide-editor w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${className}`}>
       {isMobile && isMobilePanelOpen && (
         <MobilePropertiesPanel
-          selectedElement={selectedElement}
+          selectedElement={selectedElement || null}
           deviceType={deviceType}
           onElementUpdate={handleElementUpdate}
           onDelete={handleDeleteElement}
@@ -796,12 +796,17 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                 {/* YouTube Background */}
                 {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId && (
                   <div className="absolute inset-0 w-full h-full">
-                    {process.env.NODE_ENV === 'development' && console.log('[SlideEditor] Rendering YouTube background:', {
-                      slideIndex: currentSlideIndex,
-                      youtubeId: currentSlide.backgroundMedia.youtubeId,
-                      autoplay: currentSlide.backgroundMedia.autoplay,
-                      slideDeckLength: slideDeck.slides.length
-                    })}
+                    {(() => {
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('[SlideEditor] Rendering YouTube background:', {
+                          slideIndex: currentSlideIndex,
+                          youtubeId: currentSlide.backgroundMedia.youtubeId,
+                          autoplay: currentSlide.backgroundMedia.autoplay,
+                          slideDeckLength: slideDeck.slides.length
+                        });
+                      }
+                      return null;
+                    })()}
                     <iframe
                       src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
                         currentSlide.backgroundMedia.autoplay ? 1 : 0
@@ -887,7 +892,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       top: position.y * canvasDimensions.scale,
                       width: containerWidth * canvasDimensions.scale,
                       height: containerHeight * canvasDimensions.scale,
-                      zIndex: (element.zIndex || 0) + 20 // Ensure elements are above background media
+                      zIndex: (element.style.zIndex || 0) + 20 // Ensure elements are above background media
                     }}
                     onMouseDown={(e) => handleElementDragStart(element.id, e)}
                     onTouchStart={(e) => handleElementDragStart(element.id, e)}
@@ -912,8 +917,8 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                             // Use calculated dimensions instead of Tailwind classes for consistency
                             width: hotspotDimensions ? `${hotspotDimensions.width}px` : '20px',
                             height: hotspotDimensions ? `${hotspotDimensions.height}px` : '20px',
-                            backgroundColor: element.content?.style?.backgroundColor || '#3b82f6',
-                            opacity: element.content?.style?.opacity !== undefined ? element.content.style.opacity : 0.9
+                            backgroundColor: element.style?.backgroundColor || '#3b82f6',
+                            opacity: element.style?.opacity !== undefined ? element.style.opacity : 0.9
                           }}
                         />
                       </div>
@@ -923,8 +928,8 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       <div
                         className="w-full h-full p-2 rounded-xl shadow-2xl text-xs flex items-center justify-center text-center"
                         style={{
-                          backgroundColor: element.content?.style?.backgroundColor || 'rgba(30, 41, 59, 0.9)',
-                          color: element.content?.style?.color || '#ffffff'
+                          backgroundColor: element.style?.backgroundColor || 'rgba(30, 41, 59, 0.9)',
+                          color: element.style?.textColor || '#ffffff'
                         }}
                       >
                         <div>
@@ -940,8 +945,8 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
                       <div
                         className="w-full h-full shadow-2xl"
                         style={{
-                          backgroundColor: element.content?.style?.backgroundColor || '#8b5cf6',
-                          borderRadius: element.content?.style?.borderRadius || '8px'
+                          backgroundColor: element.style?.backgroundColor || '#8b5cf6',
+                          borderRadius: element.style?.borderRadius ? `${element.style.borderRadius}px` : '8px'
                         }}
                       />
                     )}

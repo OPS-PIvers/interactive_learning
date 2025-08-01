@@ -1,8 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { BackgroundMedia } from '../../shared/slideTypes';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useViewportMobile } from '../hooks/useViewportMobile';
 import FileUpload from './FileUpload';
-import MobileCameraCapture from './mobile/MobileCameraCapture';
 import { FirebaseProjectAPI } from '../../lib/firebaseApi';
 
 interface BackgroundMediaPanelProps {
@@ -24,11 +23,10 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   onClose,
   isOpen
 }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useViewportMobile(768);
   const [selectedTab, setSelectedTab] = useState<'image' | 'video' | 'youtube' | 'audio' | 'none'>('image');
   const [isUploading, setIsUploading] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [showCameraCapture, setShowCameraCapture] = useState(false);
 
   // Initialize state from current background media
   const [backgroundSettings, setBackgroundSettings] = useState<BackgroundMedia>({
@@ -83,7 +81,6 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   // Handle camera capture
   const handleCameraCapture = useCallback(async (file: File) => {
     await handleFileUpload(file);
-    setShowCameraCapture(false);
   }, [handleFileUpload]);
 
   // Handle YouTube URL input
@@ -107,10 +104,24 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
     const newSettings = { ...backgroundSettings };
     if (key.includes('.')) {
       const [parentKey, childKey] = key.split('.');
-      newSettings[parentKey as keyof BackgroundMedia] = {
-        ...(newSettings[parentKey as keyof BackgroundMedia] as any),
-        [childKey]: value
-      };
+      if (parentKey === 'overlay') {
+        newSettings.overlay = {
+          enabled: false,
+          opacity: 0.3,
+          color: '#000000',
+          ...newSettings.overlay,
+          [childKey]: value
+        };
+      } else if (parentKey === 'settings') {
+        newSettings.settings = {
+          size: 'cover',
+          position: 'center',
+          repeat: 'no-repeat',
+          attachment: 'scroll',
+          ...newSettings.settings,
+          [childKey]: value
+        };
+      }
     } else {
       (newSettings as any)[key] = value;
     }
@@ -189,16 +200,25 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
                   {isMobile && (
                     <div>
                       <h3 className="text-white font-medium mb-2">Camera Capture</h3>
-                      <button
-                        onClick={() => setShowCameraCapture(true)}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
-                      >
+                      <label className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         Take Photo
-                      </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleCameraCapture(file);
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
                   )}
                 </div>
@@ -410,23 +430,6 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Mobile Camera Capture Modal */}
-      {showCameraCapture && isMobile && (
-        <div className="fixed inset-0 bg-black z-60 flex items-center justify-center">
-          <div className="w-full h-full">
-            <MobileCameraCapture onCapture={handleCameraCapture} />
-            <button
-              onClick={() => setShowCameraCapture(false)}
-              className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useIsMobile } from '../hooks/useIsMobile';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import HotspotViewer from './HotspotViewer';
 import FileUpload from './FileUpload';
@@ -127,7 +126,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           );
 
         case InteractionType.SHOW_TEXT:
-        case InteractionType.SHOW_MESSAGE:
+        case InteractionType.SHOW_TEXT:
           return (
             <div
               key={`preview-text-${event.id}`}
@@ -145,7 +144,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
           );
 
         case InteractionType.PAN_ZOOM:
-        case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+        case InteractionType.PAN_ZOOM:
           // Apply zoom preview effect
           return (
             <div
@@ -179,7 +178,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
       e.step === currentStep &&
       e.targetId === hotspotId &&
       (e.type === InteractionType.SPOTLIGHT ||
-       e.type === InteractionType.PAN_ZOOM_TO_HOTSPOT)
+       e.type === InteractionType.PAN_ZOOM)
     );
   };
 
@@ -455,8 +454,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   }
 
                   // Render the appropriate overlay based on event type
-                  if (previewOverlayEvent.type === InteractionType.PAN_ZOOM || 
-                      previewOverlayEvent.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+                  if (previewOverlayEvent.type === InteractionType.PAN_ZOOM) {
                     return (
                       <PanZoomPreviewOverlay
                         event={previewOverlayEvent}
