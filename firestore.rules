@@ -62,6 +62,57 @@ service cloud.firestore {
              isValidFixedPosition(pos.mobile);
     }
 
+    // Content validation functions for different element types
+    function isValidHotspotContent(content) {
+      return content is map &&
+             content.keys().hasAll(['title', 'description']) &&
+             content.title is string && content.title.size() <= 200 &&
+             content.description is string && content.description.size() <= 1000;
+    }
+
+    function isValidTextContent(content) {
+      return content is map &&
+             content.keys().hasAll(['text']) &&
+             content.text is string && content.text.size() <= 5000;
+    }
+
+    function isValidMediaContent(content) {
+      return content is map &&
+             content.keys().hasAll(['src', 'type']) &&
+             content.src is string &&
+             content.type is string &&
+             (content.type == 'image' || content.type == 'video' || content.type == 'audio');
+    }
+
+    function isValidShapeContent(content) {
+      return content is map &&
+             content.keys().hasAll(['shapeType']) &&
+             content.shapeType is string &&
+             (content.shapeType == 'rectangle' || content.shapeType == 'circle' || content.shapeType == 'triangle');
+    }
+
+    function isValidElementStyle(style) {
+      return style is map &&
+             // Common style properties - all optional
+             (!style.keys().has('backgroundColor') || style.backgroundColor is string) &&
+             (!style.keys().has('borderColor') || style.borderColor is string) &&
+             (!style.keys().has('borderWidth') || style.borderWidth is number) &&
+             (!style.keys().has('borderRadius') || style.borderRadius is number) &&
+             (!style.keys().has('opacity') || (style.opacity is number && style.opacity >= 0 && style.opacity <= 1)) &&
+             (!style.keys().has('fontSize') || style.fontSize is number) &&
+             (!style.keys().has('fontWeight') || style.fontWeight is string) &&
+             (!style.keys().has('color') || style.color is string);
+    }
+
+    function isValidLayout(layout) {
+      return layout is map &&
+             // Layout properties - all optional
+             (!layout.keys().has('backgroundColor') || layout.backgroundColor is string) &&
+             (!layout.keys().has('backgroundImage') || layout.backgroundImage is string) &&
+             (!layout.keys().has('padding') || layout.padding is number) &&
+             (!layout.keys().has('margin') || layout.margin is number);
+    }
+
     function isValidSlideElement(element) {
       return element is map &&
              element.keys().hasAll(['id', 'type', 'position', 'content', 'style', 'isVisible']) &&
@@ -69,8 +120,14 @@ service cloud.firestore {
              element.type is string &&
              (element.type == 'hotspot' || element.type == 'text' || element.type == 'media' || element.type == 'shape') &&
              isValidResponsivePosition(element.position) &&
-             element.content is map && // Simplified check for content
-             element.style is map &&   // Simplified check for style
+             // Validate content based on element type
+             (
+               (element.type == 'hotspot' && isValidHotspotContent(element.content)) ||
+               (element.type == 'text' && isValidTextContent(element.content)) ||
+               (element.type == 'media' && isValidMediaContent(element.content)) ||
+               (element.type == 'shape' && isValidShapeContent(element.content))
+             ) &&
+             isValidElementStyle(element.style) &&
              element.isVisible is bool;
     }
 
@@ -82,8 +139,29 @@ service cloud.firestore {
              slide.title is string &&
              slide.title.size() < 200 &&
              slide.elements is list &&
-             (elements.size() == 0 || isValidSlideElement(elements[0])) && // Check first element as sample
-             slide.layout is map; // Simplified check
+             elements.size() <= 50 && // Reasonable limit for elements per slide
+             // Validate all elements up to a reasonable limit
+             (elements.size() < 1 || isValidSlideElement(elements[0])) &&
+             (elements.size() < 2 || isValidSlideElement(elements[1])) &&
+             (elements.size() < 3 || isValidSlideElement(elements[2])) &&
+             (elements.size() < 4 || isValidSlideElement(elements[3])) &&
+             (elements.size() < 5 || isValidSlideElement(elements[4])) &&
+             (elements.size() < 6 || isValidSlideElement(elements[5])) &&
+             (elements.size() < 7 || isValidSlideElement(elements[6])) &&
+             (elements.size() < 8 || isValidSlideElement(elements[7])) &&
+             (elements.size() < 9 || isValidSlideElement(elements[8])) &&
+             (elements.size() < 10 || isValidSlideElement(elements[9])) &&
+             (elements.size() < 11 || isValidSlideElement(elements[10])) &&
+             (elements.size() < 12 || isValidSlideElement(elements[11])) &&
+             (elements.size() < 13 || isValidSlideElement(elements[12])) &&
+             (elements.size() < 14 || isValidSlideElement(elements[13])) &&
+             (elements.size() < 15 || isValidSlideElement(elements[14])) &&
+             (elements.size() < 16 || isValidSlideElement(elements[15])) &&
+             (elements.size() < 17 || isValidSlideElement(elements[16])) &&
+             (elements.size() < 18 || isValidSlideElement(elements[17])) &&
+             (elements.size() < 19 || isValidSlideElement(elements[18])) &&
+             (elements.size() < 20 || isValidSlideElement(elements[19])) &&
+             isValidLayout(slide.layout);
     }
 
     function isValidDeckSettings(settings) {
@@ -111,7 +189,28 @@ service cloud.firestore {
              deck.id is string &&
              deck.title is string &&
              deck.slides is list &&
-             (slides.size() == 0 || isValidInteractiveSlide(slides[0])) && // Check first slide as a sample
+             slides.size() <= 100 && // Reasonable limit for slides per deck
+             // Validate all slides up to a reasonable limit
+             (slides.size() < 1 || isValidInteractiveSlide(slides[0])) &&
+             (slides.size() < 2 || isValidInteractiveSlide(slides[1])) &&
+             (slides.size() < 3 || isValidInteractiveSlide(slides[2])) &&
+             (slides.size() < 4 || isValidInteractiveSlide(slides[3])) &&
+             (slides.size() < 5 || isValidInteractiveSlide(slides[4])) &&
+             (slides.size() < 6 || isValidInteractiveSlide(slides[5])) &&
+             (slides.size() < 7 || isValidInteractiveSlide(slides[6])) &&
+             (slides.size() < 8 || isValidInteractiveSlide(slides[7])) &&
+             (slides.size() < 9 || isValidInteractiveSlide(slides[8])) &&
+             (slides.size() < 10 || isValidInteractiveSlide(slides[9])) &&
+             (slides.size() < 11 || isValidInteractiveSlide(slides[10])) &&
+             (slides.size() < 12 || isValidInteractiveSlide(slides[11])) &&
+             (slides.size() < 13 || isValidInteractiveSlide(slides[12])) &&
+             (slides.size() < 14 || isValidInteractiveSlide(slides[13])) &&
+             (slides.size() < 15 || isValidInteractiveSlide(slides[14])) &&
+             (slides.size() < 16 || isValidInteractiveSlide(slides[15])) &&
+             (slides.size() < 17 || isValidInteractiveSlide(slides[16])) &&
+             (slides.size() < 18 || isValidInteractiveSlide(slides[17])) &&
+             (slides.size() < 19 || isValidInteractiveSlide(slides[18])) &&
+             (slides.size() < 20 || isValidInteractiveSlide(slides[19])) &&
              isValidDeckSettings(deck.settings) &&
              isValidDeckMetadata(deck.metadata);
     }
