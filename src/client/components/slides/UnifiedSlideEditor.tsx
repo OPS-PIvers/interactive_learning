@@ -24,15 +24,13 @@ import { ResponsiveHeader } from '../responsive/ResponsiveHeader';
 import { ResponsiveSlideNavigation } from '../responsive/ResponsiveSlideNavigation';
 import { ResponsiveModal } from '../responsive/ResponsiveModal';
 
-// Mobile-specific components that will be unified
-import { UniversalMobileToolbar } from '../mobile/UniversalMobileToolbar';
-import { MobileEditorToolbarContent } from '../mobile/MobileEditorToolbarContent';
+// Mobile-specific components removed - functionality moved to ResponsiveToolbar
 
-// Import proper modal components
-import { MobileSlidesModal } from '../mobile/MobileSlidesModal';
-import { MobileBackgroundModal } from '../mobile/MobileBackgroundModal';
-import { MobileAspectRatioModal } from '../mobile/MobileAspectRatioModal';
-import { MobileInsertModal } from '../mobile/MobileInsertModal';
+// Import unified modal components
+import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
+import { ResponsiveBackgroundModal } from '../responsive/ResponsiveBackgroundModal';
+import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
+import { ResponsiveAspectRatioModal } from '../responsive/ResponsiveAspectRatioModal';
 
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;
@@ -524,9 +522,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         )}
         
         {/* Responsive Modals */}
-        {/* Use proper MobileSlidesModal instead of ResponsiveModal with placeholder */}
+        {/* Unified slides modal */}
         {state.ui.slidesModal && (
-          <MobileSlidesModal
+          <ResponsiveSlidesModal
             slides={slideDeck.slides}
             currentSlideIndex={state.ui.currentSlideIndex}
             onSlideSelect={(index) => {
@@ -540,9 +538,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           />
         )}
         
-        {/* Use proper MobileBackgroundModal instead of ResponsiveModal with placeholder */}
+        {/* Unified background modal */}
         {state.ui.backgroundModal && currentSlide && (
-          <MobileBackgroundModal
+          <ResponsiveBackgroundModal
             currentSlide={currentSlide}
             onAspectRatioChange={(ratio) => handleAspectRatioChange(state.navigation.currentSlideIndex, ratio)}
             onBackgroundUpload={handleBackgroundUpload}
@@ -552,17 +550,17 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           />
         )}
         
-        {/* Use proper MobileInsertModal instead of ResponsiveModal */}
+        {/* Unified insert modal */}
         {state.ui.insertModal && (
-          <MobileInsertModal
+          <ResponsiveInsertModal
             onInsertElement={(type) => handleAddElement(type)}
             onClose={() => actions.closeModal('insertModal')}
           />
         )}
         
-        {/* Use proper MobileAspectRatioModal instead of ResponsiveModal with placeholder */}
+        {/* Unified aspect ratio modal */}
         {state.ui.aspectRatioModal && currentSlide && (
-          <MobileAspectRatioModal
+          <ResponsiveAspectRatioModal
             isOpen={state.ui.aspectRatioModal}
             currentRatio={currentSlide.layout?.aspectRatio || '16:9'}
             onRatioChange={(ratio) => handleAspectRatioChange(state.navigation.currentSlideIndex, ratio)}

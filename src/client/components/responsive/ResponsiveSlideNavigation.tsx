@@ -8,7 +8,6 @@
 
 import React, { useState, useCallback } from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import { PlusIcon } from '../icons/PlusIcon';
 
@@ -41,9 +40,7 @@ export const ResponsiveSlideNavigation: React.FC<ResponsiveSlideNavigationProps>
   onToggleCollapse,
   activeDropdownId,
   onDropdownToggle,
-}) => {
-  const isMobile = useIsMobile();
-  
+}) => {  
   // Handle dropdown toggle
   const handleDropdownToggle = useCallback((slideId: string) => {
     onDropdownToggle(activeDropdownId === slideId ? null : slideId);

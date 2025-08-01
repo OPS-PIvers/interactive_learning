@@ -1,11 +1,18 @@
+/**
+ * Responsive Background Modal Component
+ * 
+ * Unified modal for slide background and aspect ratio management that adapts to all screen sizes.
+ * Progressive enhancement from mobile-first foundation to desktop features.
+ */
+
 import React, { useState } from 'react';
 import { InteractiveSlide, BackgroundMedia } from '../../../shared/slideTypes';
-import Modal from '../Modal';
+import { ResponsiveModal } from './ResponsiveModal';
 import AspectRatioSelector from '../AspectRatioSelector';
 import FileUpload from '../FileUpload';
 import { TrashIcon } from '../icons/TrashIcon';
 
-interface MobileBackgroundModalProps {
+interface ResponsiveBackgroundModalProps {
   currentSlide: InteractiveSlide;
   onAspectRatioChange: (ratio: string) => void;
   onBackgroundUpload: (file: File) => Promise<void>;
@@ -15,15 +22,9 @@ interface MobileBackgroundModalProps {
 }
 
 /**
- * MobileBackgroundModal - Modal for managing slide background and aspect ratio
- * 
- * Provides mobile-friendly interface for:
- * - Changing aspect ratio
- * - Uploading background images/videos
- * - Removing background media
- * - Adjusting background settings
+ * ResponsiveBackgroundModal - Unified modal for slide background and aspect ratio management
  */
-export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
+export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps> = ({
   currentSlide,
   onAspectRatioChange,
   onBackgroundUpload,
@@ -47,7 +48,7 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
       // Switch to background tab after successful upload
       setActiveTab('background');
     } catch (error) {
-      console.error('Mobile background upload failed:', error);
+      console.error('Background upload failed:', error);
       setUploadError(error instanceof Error ? error.message : 'Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
@@ -64,7 +65,10 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
     if (backgroundMedia) {
       onBackgroundUpdate({
         ...backgroundMedia,
-        size
+        settings: {
+          ...backgroundMedia.settings,
+          size
+        }
       });
     }
   };
@@ -73,16 +77,38 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
     if (backgroundMedia) {
       onBackgroundUpdate({
         ...backgroundMedia,
-        position
+        settings: {
+          ...backgroundMedia.settings,
+          position
+        }
       });
     }
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Background & Layout">
-      <div className="flex flex-col h-full">
+    <ResponsiveModal
+      type="standard"
+      isOpen={true}
+      onClose={onClose}
+    >
+      <div className="p-4 sm:p-6">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+            Background & Layout
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
         {/* Tab navigation */}
-        <div className="flex mb-4 bg-gray-100 rounded-lg p-1 mx-4 mt-4">
+        <div className="flex mb-4 sm:mb-6 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('aspectRatio')}
             className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
@@ -106,7 +132,7 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
         </div>
         
         {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4" style={{ maxHeight: 'calc(100% - 140px)' }}>
+        <div className="max-h-64 sm:max-h-96 overflow-y-auto">
 
           {/* Aspect Ratio Tab */}
           {activeTab === 'aspectRatio' && (
@@ -115,12 +141,12 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   Select Aspect Ratio
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {['16:9', '4:3', '1:1', '9:16'].map((ratio) => (
                     <button
                       key={ratio}
                       onClick={() => onAspectRatioChange(ratio)}
-                      className={`p-3 rounded-lg border-2 transition-all ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                         currentAspectRatio === ratio
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-200 hover:border-gray-300 text-gray-700'
@@ -138,8 +164,10 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
               </div>
               
               <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-                <strong>Current:</strong> {currentAspectRatio} • 
-                {currentSlide.layout?.containerWidth}×{currentSlide.layout?.containerHeight}px
+                <strong>Current:</strong> {currentAspectRatio}
+                {currentSlide.layout?.containerWidth && currentSlide.layout?.containerHeight && (
+                  <span> • {currentSlide.layout.containerWidth}×{currentSlide.layout.containerHeight}px</span>
+                )}
               </div>
             </div>
           )}
@@ -158,17 +186,17 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
                       <img
                         src={backgroundMedia.url}
                         alt="Background"
-                        className="w-full h-32 object-cover"
+                        className="w-full h-32 sm:h-40 object-cover"
                       />
                     ) : backgroundMedia.type === 'video' ? (
                       <video
                         src={backgroundMedia.url}
-                        className="w-full h-32 object-cover"
+                        className="w-full h-32 sm:h-40 object-cover"
                         muted
                       />
                     ) : (
                       <div 
-                        className="w-full h-32"
+                        className="w-full h-32 sm:h-40"
                         style={{ backgroundColor: backgroundMedia.url }}
                       />
                     )}
@@ -218,9 +246,9 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
 
               {/* Background settings */}
               {backgroundMedia && (
-                <div className="space-y-3">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Background Size
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -228,8 +256,8 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
                         <button
                           key={size}
                           onClick={() => handleBackgroundSizeChange(size)}
-                          className={`py-2 px-3 text-xs rounded-md border transition-colors ${
-                            backgroundMedia.size === size
+                          className={`py-2 px-3 text-xs sm:text-sm rounded-md border transition-colors ${
+                            backgroundMedia.settings?.size === size
                               ? 'border-blue-500 bg-blue-50 text-blue-700'
                               : 'border-gray-200 hover:border-gray-300 text-gray-700'
                           }`}
@@ -241,11 +269,11 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Background Position
                     </label>
                     <select
-                      value={backgroundMedia.position || 'center'}
+                      value={backgroundMedia.settings?.position || 'center'}
                       onChange={(e) => handleBackgroundPositionChange(e.target.value)}
                       className="w-full p-2 border border-gray-300 rounded-md text-sm"
                     >
@@ -267,18 +295,18 @@ export const MobileBackgroundModal: React.FC<MobileBackgroundModalProps> = ({
 
         </div>
         
-        {/* Fixed action buttons at bottom */}
-        <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 p-4">
+        {/* Action buttons */}
+        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
           >
             Done
           </button>
         </div>
       </div>
-    </Modal>
+    </ResponsiveModal>
   );
 };
 
-export default MobileBackgroundModal;
+export default ResponsiveBackgroundModal;

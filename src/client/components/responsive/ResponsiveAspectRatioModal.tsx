@@ -1,8 +1,14 @@
-import React from 'react';
-import { XMarkIcon } from '../icons/XMarkIcon';
-import { useMobileToolbar } from '../../hooks/useMobileToolbar';
+/**
+ * Responsive Aspect Ratio Modal Component
+ * 
+ * Unified modal for aspect ratio selection that adapts to all screen sizes.
+ * Progressive enhancement from mobile-first foundation to desktop features.
+ */
 
-interface MobileAspectRatioModalProps {
+import React from 'react';
+import { ResponsiveModal } from './ResponsiveModal';
+
+interface ResponsiveAspectRatioModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentRatio: string;
@@ -18,14 +24,15 @@ const aspectRatios = [
   { value: '21:9', label: '21:9 (Ultrawide)', description: 'Cinema format' }
 ];
 
-export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
+/**
+ * ResponsiveAspectRatioModal - Unified modal for aspect ratio selection
+ */
+export const ResponsiveAspectRatioModal: React.FC<ResponsiveAspectRatioModalProps> = ({
   isOpen,
   onClose,
   currentRatio,
   onRatioChange
 }) => {
-  const { dimensions } = useMobileToolbar();
-  
   if (!isOpen) return null;
 
   const handleRatioSelect = (ratio: string) => {
@@ -34,57 +41,58 @@ export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-      <div 
-        className="bg-slate-800 rounded-t-2xl w-full overflow-hidden"
-        style={{
-          /* Position above bottom toolbar and limit height */
-          marginBottom: `${dimensions.toolbarHeight}px`, // Space for responsive toolbar
-          maxHeight: `calc(70vh - ${dimensions.toolbarHeight}px - 30px)`, // Conservative height with safety margin
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h2 className="text-lg font-bold text-white">Aspect Ratio</h2>
+    <ResponsiveModal
+      type="standard"
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <div className="p-4 sm:p-6">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+            Aspect Ratio
+          </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1"
-            aria-label="Close aspect ratio selector"
+            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 max-h-[60vh] overflow-y-auto">
-          <p className="text-slate-400 text-sm mb-4">
-            Choose the aspect ratio for your slide canvas
-          </p>
-          
+        {/* Description */}
+        <p className="text-gray-600 text-sm mb-4 sm:mb-6">
+          Choose the aspect ratio for your slide canvas
+        </p>
+        
+        {/* Aspect ratio options */}
+        <div className="max-h-64 sm:max-h-96 overflow-y-auto mb-4 sm:mb-6">
           <div className="space-y-3">
             {aspectRatios.map((ratio) => (
               <button
                 key={ratio.value}
                 onClick={() => handleRatioSelect(ratio.value)}
-                className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                className={`w-full p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                   currentRatio === ratio.value
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-600 hover:border-slate-500 bg-slate-700/50'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-white">{ratio.label}</h3>
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{ratio.label}</h3>
                   {currentRatio === ratio.value && (
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   )}
                 </div>
-                <p className="text-slate-400 text-sm">{ratio.description}</p>
+                <p className="text-gray-600 text-xs sm:text-sm mb-3">{ratio.description}</p>
                 
                 {/* Visual preview */}
-                <div className="mt-3 flex justify-center">
+                <div className="flex justify-center">
                   <div 
-                    className={`border-2 border-slate-500 bg-slate-600/30 ${
-                      currentRatio === ratio.value ? 'border-blue-400' : ''
+                    className={`border-2 bg-gray-100 ${
+                      currentRatio === ratio.value ? 'border-blue-400' : 'border-gray-300'
                     }`}
                     style={{
                       width: ratio.value === '16:9' ? '48px' : 
@@ -105,18 +113,18 @@ export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-700">
+        {/* Action buttons */}
+        <div className="pt-3 sm:pt-4 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-medium transition-colors"
+            className="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
           >
             Cancel
           </button>
         </div>
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 
-export default MobileAspectRatioModal;
+export default ResponsiveAspectRatioModal;

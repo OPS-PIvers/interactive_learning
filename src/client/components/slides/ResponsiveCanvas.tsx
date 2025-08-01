@@ -9,7 +9,6 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
 import { ImageTransformState, InteractionType } from '../../../shared/types';
 import { ViewportBounds } from '../../utils/touchUtils';
@@ -72,7 +71,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   // Device detection
   const { deviceType: detectedDeviceType } = useDeviceDetection();
   const deviceType = deviceTypeOverride || detectedDeviceType;
-  const isMobile = useIsMobile();
   
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,30 +109,86 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   
   const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>();
   const [showMobilePropertiesPanel, setShowMobilePropertiesPanel] = useState(false);
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   
   // Current slide and elements
   const currentSlide = slideDeck.slides[currentSlideIndex];
   
-  // Debug logging for canvas rendering
+  // Enhanced debug logging for canvas rendering
   useEffect(() => {
     console.log('🎨 ResponsiveCanvas rendering with:', {
       currentSlideIndex,
       currentSlide: currentSlide ? {
         id: currentSlide.id,
+        title: currentSlide.title,
         hasBackgroundMedia: !!currentSlide.backgroundMedia,
         backgroundMedia: currentSlide.backgroundMedia,
+        backgroundMediaType: currentSlide.backgroundMedia?.type,
+        backgroundMediaUrl: currentSlide.backgroundMedia?.url,
         elementCount: currentSlide.elements?.length || 0,
-        layout: currentSlide.layout
+        layout: currentSlide.layout,
+        // Debug background rendering conditions
+        backgroundWillRender: !!(currentSlide.backgroundMedia && 
+          ((currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url) ||
+          (currentSlide.backgroundMedia.type === 'color'))),
       } : null,
       slideDeckSlideCount: slideDeck.slides.length,
       deviceType,
-      isMobile
+      canvasRef: !!canvasRef.current,
+      canvasContainerRef: !!canvasContainerRef.current
     });
     
     if (!currentSlide) {
       console.error('❌ ResponsiveCanvas: currentSlide is null/undefined!');
+    } else if (currentSlide.backgroundMedia) {
+      console.log('🖼️ Background media details:', {
+        type: currentSlide.backgroundMedia.type,
+        url: currentSlide.backgroundMedia.url,
+        color: currentSlide.backgroundMedia.color,
+        settings: currentSlide.backgroundMedia.settings,
+        willRenderImage: currentSlide.backgroundMedia.type === 'image' && !!currentSlide.backgroundMedia.url,
+        willRenderColor: currentSlide.backgroundMedia.type === 'color'
+      });
+    } else {
+      console.log('📝 No background media set for current slide');
     }
-  }, [currentSlide, currentSlideIndex, slideDeck, deviceType, isMobile]);
+  }, [currentSlide, currentSlideIndex, slideDeck, deviceType]);
+  
+  // Update container dimensions when layout changes
+  useEffect(() => {
+    const updateContainerDimensions = () => {
+      if (slideAreaRef.current) {
+        const rect = slideAreaRef.current.getBoundingClientRect();
+        setContainerDimensions({
+          width: rect.width || window.innerWidth - 64,
+          height: rect.height || window.innerHeight - 120
+        });
+      } else {
+        // Fallback to window dimensions
+        setContainerDimensions({
+          width: window.innerWidth - 64,
+          height: window.innerHeight - 120
+        });
+      }
+    };
+
+    // Initial update
+    updateContainerDimensions();
+
+    // Update on window resize
+    const handleResize = () => {
+      // Small delay to allow layout to settle
+      setTimeout(updateContainerDimensions, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);  
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
   
   const selectedElement = useMemo(() => {
     if (!selectedElementId || !currentSlide) return null;
@@ -187,11 +241,11 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       setInternalSelectedElementId(elementId);
     }
     
-    // Show mobile properties panel when element is selected on mobile
-    if (isMobile && elementId && isEditable) {
+    // Show properties panel when element is selected (responsive behavior handled by panel itself)
+    if (elementId && isEditable) {
       setShowMobilePropertiesPanel(true);
     }
-  }, [onElementSelect, isMobile, isEditable]);
+  }, [onElementSelect, isEditable]);
   
   // Element update handlers
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
@@ -218,9 +272,9 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     onSlideDeckChange(updatedSlideDeck);
   }, [onElementUpdate, slideDeck, currentSlideIndex, onSlideDeckChange]);
   
-  // Mouse event handlers for desktop
+  // Mouse event handlers (progressive enhancement - available on all devices)
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
-    if (!isEditable || isMobile) return;
+    if (!isEditable) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -241,10 +295,10 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     });
     
     handleElementSelect(elementId);
-  }, [isEditable, isMobile, currentSlide, deviceType, handleElementSelect]);
+  }, [isEditable, currentSlide, deviceType, handleElementSelect]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragState.isDragging || !dragState.elementId || isMobile) return;
+    if (!dragState.isDragging || !dragState.elementId) return;
     
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -265,7 +319,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         [deviceType]: newPosition,
       },
     });
-  }, [dragState, isMobile, deviceType, handleElementUpdate, currentSlide]);
+  }, [dragState, deviceType, handleElementUpdate, currentSlide]);
   
   const handleMouseUp = useCallback(() => {
     if (!dragState.isDragging) return;
@@ -278,9 +332,9 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     });
   }, [dragState.isDragging]);
   
-  // Touch event handlers for mobile
+  // Touch event handlers (mobile-first - available on all devices)
   const handleTouchStartElement = useCallback((e: React.TouchEvent, elementId: string) => {
-    if (!isEditable || !isMobile) return;
+    if (!isEditable) return;
     
     e.stopPropagation();
     
@@ -301,10 +355,10 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       startElementPosition: currentPosition,
       startTimestamp: Date.now(),
     });
-  }, [isEditable, isMobile, currentSlide, deviceType]);
+  }, [isEditable, currentSlide, deviceType]);
   
   const handleTouchMoveElement = useCallback((e: React.TouchEvent) => {
-    if (!touchState.isTouching || !touchState.elementId || !isMobile) return;
+    if (!touchState.isTouching || !touchState.elementId) return;
     
     const touch = e.touches[0];
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -336,7 +390,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         },
       });
     }
-  }, [touchState, isMobile, deviceType, handleElementUpdate, currentSlide]);
+  }, [touchState, deviceType, handleElementUpdate, currentSlide]);
   
   const handleTouchEndElement = useCallback((e: React.TouchEvent) => {
     if (!touchState.isTouching) return;
@@ -371,8 +425,42 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     if (!currentSlide) return { width: 800, height: 450 };
     
     const aspectRatio = currentSlide.layout?.aspectRatio || '16:9';
-    return calculateCanvasDimensions(aspectRatio, isMobile);
-  }, [currentSlide, isMobile]);
+    
+    // Use state-managed container dimensions with fallbacks
+    const containerWidth = containerDimensions.width > 0 ? containerDimensions.width : 800;
+    const containerHeight = containerDimensions.height > 0 ? containerDimensions.height : 600;
+    
+    const isLandscape = containerWidth > containerHeight;
+    const isSmallViewport = containerWidth < 768; // Use viewport size instead of device detection
+    const isCompactLandscape = isSmallViewport && isLandscape;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📏 Canvas dimension calculation:', {
+        aspectRatio,
+        containerWidth,
+        containerHeight,
+        containerDimensions,
+        deviceType,
+        isSmallViewport,
+        isCompactLandscape,
+        slideAreaRefExists: !!slideAreaRef.current
+      });
+    }
+    
+    const dimensions = calculateCanvasDimensions(
+      aspectRatio,
+      containerWidth,
+      containerHeight,
+      isCompactLandscape ? 8 : isSmallViewport ? 16 : 32, // Responsive padding based on viewport
+      isCompactLandscape
+    );
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📐 Calculated canvas dimensions:', dimensions);
+    }
+    
+    return dimensions;
+  }, [currentSlide, containerDimensions]);
   
   // Render slide elements
   const renderElements = useCallback(() => {
@@ -393,7 +481,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             top: position.y,
             width: position.width,
             height: position.height,
-            zIndex: isSelected ? 1000 : 1,
+            zIndex: isSelected ? 1000 : 10, // Ensure elements are above background (z-0)
           }}
           onMouseDown={(e) => handleMouseDown(e, element.id)}
           onTouchStart={(e) => handleTouchStartElement(e, element.id)}
@@ -401,7 +489,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           onTouchEnd={handleTouchEndElement}
         >
           {element.type === 'hotspot' && (
-            <div className={`${getHotspotSizeClasses(defaultHotspotSize, isMobile)} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center`}>
+            <div className={`${getHotspotSizeClasses(defaultHotspotSize, deviceType === 'mobile')} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center`}>
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
             </div>
           )}
@@ -433,7 +521,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         </div>
       );
     });
-  }, [currentSlide, deviceType, selectedElementId, isMobile, handleMouseDown, handleTouchStartElement, handleTouchMoveElement, handleTouchEndElement]);
+  }, [currentSlide, deviceType, selectedElementId, handleMouseDown, handleTouchStartElement, handleTouchMoveElement, handleTouchEndElement]);
   
   if (!currentSlide) {
     return (
@@ -458,13 +546,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           ref={canvasContainerRef}
           className="relative"
           style={{
-            transform: isMobile ? `scale(${canvasTransform.scale}) translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px)` : undefined,
+            transform: `scale(${canvasTransform.scale}) translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px)`,
             transformOrigin: 'center center',
             transition: isTransforming ? 'none' : 'transform 0.3s ease-out',
           }}
-          onTouchStart={isMobile ? handleTouchStart : undefined}
-          onTouchMove={isMobile ? handleTouchMove : undefined}
-          onTouchEnd={isMobile ? handleTouchEnd : undefined}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Main canvas */}
           <div
@@ -481,12 +569,44 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           >
             {/* Background */}
             {currentSlide?.backgroundMedia && (
-              <div className="absolute inset-0">
+              <div 
+                className="absolute inset-0 z-0"
+                style={{ 
+                  backgroundColor: '#f3f4f6', // Light gray fallback to show div exists
+                  border: process.env.NODE_ENV === 'development' ? '2px solid red' : 'none' // Debug border
+                }}
+              >
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="absolute top-2 left-2 bg-black/75 text-white text-xs p-1 rounded z-50">
+                    BG: {currentSlide.backgroundMedia.type} | {currentSlide.backgroundMedia.url ? 'has URL' : 'no URL'}
+                  </div>
+                )}
+                
                 {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url && (
                   <img
                     src={currentSlide.backgroundMedia.url}
                     alt="Slide background"
                     className="w-full h-full object-cover"
+                    onLoad={(e) => {
+                      console.log('✅ Background image loaded successfully:', {
+                        url: currentSlide.backgroundMedia?.url,
+                        naturalWidth: (e.target as HTMLImageElement).naturalWidth,
+                        naturalHeight: (e.target as HTMLImageElement).naturalHeight,
+                        slideId: currentSlide.id
+                      });
+                    }}
+                    onError={(e) => {
+                      console.error('❌ Background image failed to load:', {
+                        url: currentSlide.backgroundMedia?.url,
+                        error: e,
+                        slideId: currentSlide.id
+                      });
+                    }}
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                      display: 'block' // Ensure image displays
+                    }}
                   />
                 )}
                 {currentSlide.backgroundMedia.type === 'color' && (
@@ -495,6 +615,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
                     style={{ backgroundColor: currentSlide.backgroundMedia.color || '#ffffff' }}
                   />
                 )}
+              </div>
+            )}
+            
+            {/* Debug info when no background media */}
+            {process.env.NODE_ENV === 'development' && !currentSlide?.backgroundMedia && (
+              <div className="absolute top-2 left-2 bg-yellow-500/75 text-black text-xs p-1 rounded z-50">
+                No background media
               </div>
             )}
             
@@ -527,8 +654,8 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         </div>
       </div>
       
-      {/* Mobile properties panel */}
-      {isMobile && showMobilePropertiesPanel && selectedElement && (
+      {/* Properties panel (responsive - shows as overlay on small viewports) */}
+      {showMobilePropertiesPanel && selectedElement && (
         <MobilePropertiesPanel
           selectedElement={selectedElement}
           deviceType={deviceType}
@@ -557,8 +684,8 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         />
       )}
       
-      {/* Touch gesture feedback */}
-      {isMobile && isTransforming && (
+      {/* Transform feedback (shows during pan/zoom on any device) */}
+      {isTransforming && (
         <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
           Scale: {(canvasTransform.scale * 100).toFixed(0)}%
         </div>

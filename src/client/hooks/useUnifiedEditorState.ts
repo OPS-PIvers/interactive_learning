@@ -8,7 +8,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { DeviceType } from '../../shared/slideTypes';
-import { useIsMobile } from './useIsMobile';
 import { useDeviceDetection } from './useDeviceDetection';
 
 /**
@@ -110,10 +109,10 @@ export interface UseUnifiedEditorStateReturn {
   state: UnifiedEditorState;
   actions: EditorStateActions;
   computed: {
-    isMobile: boolean;
     deviceType: DeviceType;
     effectiveDeviceType: DeviceType;
     isLandscape: boolean;
+    isSmallViewport: boolean;
     hasActiveModal: boolean;
     canEdit: boolean;
   };
@@ -162,7 +161,6 @@ const createDefaultOperationState = (): OperationState => ({
  */
 export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   // Device detection
-  const isMobile = useIsMobile();
   const { deviceType } = useDeviceDetection();
   
   // Core state objects
@@ -175,6 +173,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const computed = useMemo(() => {
     const effectiveDeviceType = navigation.deviceTypeOverride || deviceType;
     const isLandscape = window.innerWidth > window.innerHeight;
+    const isSmallViewport = window.innerWidth < 768;
     const hasActiveModal = Object.values(ui).some((value, index, arr) => {
       // Check only boolean modal states, skip string/null values
       return typeof value === 'boolean' && value && index < 7; // First 7 are modal states
@@ -182,14 +181,14 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     const canEdit = !navigation.isPreviewMode && !operations.isSaving && !hasActiveModal;
     
     return {
-      isMobile,
       deviceType,
       effectiveDeviceType,
       isLandscape,
+      isSmallViewport,
       hasActiveModal,
       canEdit,
     };
-  }, [isMobile, deviceType, navigation.deviceTypeOverride, navigation.isPreviewMode, operations.isSaving, ui]);
+  }, [deviceType, navigation.deviceTypeOverride, navigation.isPreviewMode, operations.isSaving, ui]);
   
   // Navigation actions
   const setCurrentSlide = useCallback((index: number) => {
@@ -308,11 +307,11 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     }));
     setNavigation(prev => ({ ...prev, isPreviewMode: false }));
     
-    // Open properties panel if on desktop
-    if (!isMobile) {
+    // Open properties panel if on larger screens
+    if (window.innerWidth >= 768) {
       setUI(prev => ({ ...prev, propertiesPanel: true }));
     }
-  }, [isMobile]);
+  }, []);
   
   const exitEditMode = useCallback(() => {
     setEditing(prev => ({ 
@@ -328,13 +327,13 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   
   // Auto-dismiss mobile hint after 5 seconds
   React.useEffect(() => {
-    if (isMobile && ui.showMobileHint) {
+    if (window.innerWidth < 768 && ui.showMobileHint) {
       const timer = setTimeout(() => {
         dismissMobileHint();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [isMobile, ui.showMobileHint, dismissMobileHint]);
+  }, [ui.showMobileHint, dismissMobileHint]);
   
   return {
     state: {
