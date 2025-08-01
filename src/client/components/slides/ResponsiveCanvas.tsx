@@ -480,7 +480,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             onMouseLeave={handleMouseUp}
           >
             {/* Background */}
-            {currentSlide.backgroundMedia && (
+            {currentSlide?.backgroundMedia && (
               <div className="absolute inset-0">
                 {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url && (
                   <img
@@ -498,11 +498,22 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
               </div>
             )}
             
+            {/* Show empty state if no slide exists */}
+            {!currentSlide && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-50">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📄</div>
+                  <div className="text-lg font-medium mb-1">No slide available</div>
+                  <div className="text-sm">Create your first slide to get started</div>
+                </div>
+              </div>
+            )}
+            
             {/* Elements */}
             {renderElements()}
             
             {/* Timeline adapter for legacy support */}
-            {currentSlide.timeline && (
+            {currentSlide?.timeline && (
               <SlideTimelineAdapter
                 timeline={currentSlide.timeline}
                 onTimelineUpdate={(timeline) => {

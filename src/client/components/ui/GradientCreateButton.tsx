@@ -139,7 +139,7 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
 
       {/* Shine effect */}
       <div 
-        className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"
         style={{ animation: 'none' }}
       />
     </button>

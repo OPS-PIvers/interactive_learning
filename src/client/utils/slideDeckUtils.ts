@@ -1,10 +1,27 @@
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide } from '../../shared/slideTypes';
 
 export function createDefaultSlideDeck(id: string, title: string): SlideDeck {
+  // Create a default first slide so the canvas has something to render
+  const defaultSlide: InteractiveSlide = {
+    id: `${id}-slide-1`,
+    title: 'Slide 1',
+    elements: [], // Start with no elements
+    transitions: [],
+    layout: {
+      aspectRatio: '16:9',
+      backgroundFit: 'cover'
+    },
+    metadata: {
+      created: Date.now(),
+      modified: Date.now(),
+      version: '1.0'
+    }
+  };
+
   return {
     id,
     title,
-    slides: [],
+    slides: [defaultSlide], // Include one default slide instead of empty array
     settings: {
       autoAdvance: false,
       allowNavigation: true,
