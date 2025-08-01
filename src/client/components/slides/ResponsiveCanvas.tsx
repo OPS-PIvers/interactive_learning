@@ -114,6 +114,28 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   
   // Current slide and elements
   const currentSlide = slideDeck.slides[currentSlideIndex];
+  
+  // Debug logging for canvas rendering
+  useEffect(() => {
+    console.log('🎨 ResponsiveCanvas rendering with:', {
+      currentSlideIndex,
+      currentSlide: currentSlide ? {
+        id: currentSlide.id,
+        hasBackgroundMedia: !!currentSlide.backgroundMedia,
+        backgroundMedia: currentSlide.backgroundMedia,
+        elementCount: currentSlide.elements?.length || 0,
+        layout: currentSlide.layout
+      } : null,
+      slideDeckSlideCount: slideDeck.slides.length,
+      deviceType,
+      isMobile
+    });
+    
+    if (!currentSlide) {
+      console.error('❌ ResponsiveCanvas: currentSlide is null/undefined!');
+    }
+  }, [currentSlide, currentSlideIndex, slideDeck, deviceType, isMobile]);
+  
   const selectedElement = useMemo(() => {
     if (!selectedElementId || !currentSlide) return null;
     return currentSlide.elements?.find(el => el.id === selectedElementId) || null;

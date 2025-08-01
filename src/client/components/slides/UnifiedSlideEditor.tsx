@@ -82,8 +82,14 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((updatedSlideDeck: SlideDeck) => {
+    console.log('🔄 handleSlideDeckUpdate called with:', {
+      slideCount: updatedSlideDeck.slides.length,
+      currentSlideIndex: state.navigation.currentSlideIndex,
+      currentSlide: updatedSlideDeck.slides[state.navigation.currentSlideIndex],
+      hasBackgroundMedia: !!updatedSlideDeck.slides[state.navigation.currentSlideIndex]?.backgroundMedia
+    });
     onSlideDeckChange(updatedSlideDeck);
-  }, [onSlideDeckChange]);
+  }, [onSlideDeckChange, state.navigation.currentSlideIndex]);
   
   // Handle element updates
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
@@ -106,12 +112,20 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle slide updates
   const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>) => {
+    console.log('📝 handleSlideUpdate called with:', {
+      slideUpdates,
+      currentSlideIndex: state.navigation.currentSlideIndex,
+      existingSlide: slideDeck.slides[state.navigation.currentSlideIndex]
+    });
+    
     const updatedSlideDeck = {
       ...slideDeck,
       slides: slideDeck.slides.map((slide, index) => 
         index === state.navigation.currentSlideIndex ? { ...slide, ...slideUpdates } : slide
       ),
     };
+    
+    console.log('📝 Updated slide after merge:', updatedSlideDeck.slides[state.navigation.currentSlideIndex]);
     
     handleSlideDeckUpdate(updatedSlideDeck);
   }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
@@ -239,8 +253,18 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle background media changes
   const handleBackgroundUpload = useCallback(async (file: File) => {
+    console.log('🖼️ Background upload starting:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      currentSlideIndex: state.navigation.currentSlideIndex,
+      currentSlide: currentSlide
+    });
+    
     try {
+      console.log('☁️ Uploading to Firebase Storage...');
       const imageUrl = await firebaseAPI.uploadImage(file);
+      console.log('✅ Firebase Storage upload successful:', imageUrl);
       
       const backgroundMedia: BackgroundMedia = {
         type: file.type.startsWith('video/') ? 'video' : 'image',
@@ -253,12 +277,17 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         }
       };
       
+      console.log('🎨 Created backgroundMedia object:', backgroundMedia);
+      console.log('🔄 Calling handleSlideUpdate with backgroundMedia...');
+      
       handleSlideUpdate({ backgroundMedia });
+      
+      console.log('✅ Background upload process completed successfully');
     } catch (error) {
-      console.error('Background upload failed:', error);
+      console.error('❌ Background upload failed:', error);
       throw error;
     }
-  }, [handleSlideUpdate]);
+  }, [handleSlideUpdate, state.navigation.currentSlideIndex, currentSlide]);
 
   const handleBackgroundRemove = useCallback(() => {
     handleSlideUpdate({ backgroundMedia: undefined });
@@ -276,29 +305,54 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle save operation
   const handleSave = useCallback(async () => {
+    console.log('💾 handleSave called with:', {
+      projectId,
+      projectName,
+      slideCount: slideDeck.slides.length,
+      currentSlideIndex: state.navigation.currentSlideIndex
+    });
+    
     actions.setSaving(true);
     actions.setError(null);
     
     try {
+      console.log('🔄 Calling onSave with slideDeck...');
       await onSave(slideDeck);
       actions.showSuccessMessage();
       
       // Auto-save to Firebase if projectId exists
       if (projectId) {
-        await firebaseAPI.saveProject(projectId, {
-          name: projectName,
+        console.log('☁️ Auto-saving to Firebase...');
+        const projectData = {
+          id: projectId,
+          title: projectName,
+          description: '',
+          projectType: 'slide' as const,
           slideDeck,
           theme: projectTheme,
           lastModified: new Date().toISOString(),
+          createdBy: '', // Will be set by Firebase API
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isPublished: false
+        };
+        
+        console.log('📊 Project data for Firebase save:', {
+          projectId: projectData.id,
+          title: projectData.title,
+          slideCount: projectData.slideDeck?.slides?.length
         });
+        
+        await firebaseAPI.saveProject(projectData);
+        console.log('✅ Auto-save to Firebase completed');
       }
     } catch (error) {
+      console.error('❌ Save error:', error);
       actions.setError(error instanceof Error ? error.message : 'Failed to save project');
-      console.error('Save error:', error);
     } finally {
       actions.setSaving(false);
     }
-  }, [actions, onSave, slideDeck, projectId, projectName, projectTheme]);
+  }, [actions, onSave, slideDeck, projectId, projectName, projectTheme, state.navigation.currentSlideIndex]);
   
   // Auto-dismiss mobile hint
   useEffect(() => {

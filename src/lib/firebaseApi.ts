@@ -481,7 +481,12 @@ export class FirebaseProjectAPI {
    */
   async saveProject(project: Project): Promise<Project> {
     try {
-      debugLog.log(`[FirebaseAPI] Starting simplified save for project ${project.id}`);
+      console.log('💾 [FirebaseAPI] Starting save for project:', {
+        projectId: project.id,
+        projectType: project.projectType,
+        hasSlideDeck: !!project.slideDeck,
+        slideCount: project.slideDeck?.slides?.length || 0
+      });
       
       await this.ensureFirebaseReady();
       const db = firebaseManager.getFirestore();
@@ -494,10 +499,26 @@ export class FirebaseProjectAPI {
       if (isNewProject) {
         project.id = this.generateProjectId();
         project.createdBy = currentUser.uid;
+        console.log('🆕 Creating new project with ID:', project.id);
       }
 
       projectCache.clear();
       const projectRef = doc(db, 'projects', project.id);
+
+      // Log slide deck structure before saving
+      if (project.slideDeck) {
+        console.log('📊 Slide deck structure before save:', {
+          slideCount: project.slideDeck.slides.length,
+          slides: project.slideDeck.slides.map((slide, index) => ({
+            index,
+            id: slide.id,
+            hasBackgroundMedia: !!slide.backgroundMedia,
+            backgroundMedia: slide.backgroundMedia,
+            elementCount: slide.elements?.length || 0,
+            layout: slide.layout
+          }))
+        });
+      }
 
       // Simplified save - just save the main project document without complex validation
       const updateData: any = {
@@ -520,7 +541,10 @@ export class FirebaseProjectAPI {
       // Add slide deck if it exists
       if (project.projectType === 'slide' && project.slideDeck) {
         updateData.slideDeck = project.slideDeck;
-        debugLog.log(`[FirebaseAPI] Saving slide deck with ${project.slideDeck.slides?.length || 0} slides`);
+        console.log('📁 Adding slide deck to Firestore data:', {
+          slideCount: project.slideDeck.slides?.length || 0,
+          slideDeckSize: JSON.stringify(project.slideDeck).length
+        });
       }
 
       // Add createdAt for new projects
@@ -528,10 +552,11 @@ export class FirebaseProjectAPI {
         updateData.createdAt = serverTimestamp();
       }
       
+      console.log('💾 Saving to Firestore...');
       // Simple save without transaction complexity
       await setDoc(projectRef, updateData, { merge: true });
       
-      debugLog.log(`[FirebaseAPI] Project ${project.id} saved successfully`);
+      console.log('✅ [FirebaseAPI] Project saved successfully:', project.id);
       
       return {
         ...project,
@@ -540,7 +565,7 @@ export class FirebaseProjectAPI {
       };
       
     } catch (error) {
-      debugLog.error(`[FirebaseAPI] Save failed for project ${project.id}:`, error);
+      console.error('❌ [FirebaseAPI] Save failed for project:', project.id, error);
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
