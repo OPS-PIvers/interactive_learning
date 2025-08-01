@@ -68,23 +68,28 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   if (!isOpen) return null;
 
-  // Calculate modal height accounting for mobile toolbar
+  // Calculate modal height with unified scaling logic for all screen sizes  
   const getModalHeight = () => {
-    if (isMobile) {
-      // On mobile, account for toolbar height
-      const toolbarHeight = dimensions.toolbarHeight;
-      return `calc(90vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
+    // Use consistent height calculation across all devices
+    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0; // Only account for mobile toolbar when present
+    const baseHeight = isMobile ? '85vh' : '90vh'; // Slightly smaller on mobile for better UX
+    
+    if (toolbarHeight > 0) {
+      return `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
     }
-    return '95vh'; // Desktop unchanged
+    return `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
   };
 
   const getModalMaxHeight = () => {
-    if (isMobile) {
-      // On mobile, account for toolbar height
-      const toolbarHeight = dimensions.toolbarHeight;
-      return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)`;
+    // Unified max height calculation with consistent padding across all devices
+    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
+    const topPadding = '2rem'; // Consistent top padding
+    const bottomPadding = '2rem'; // Consistent bottom padding
+    
+    if (toolbarHeight > 0) {
+      return `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding})`;
     }
-    return 'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)'; // Desktop unchanged
+    return `calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${topPadding} - ${bottomPadding})`;
   };
 
   return (

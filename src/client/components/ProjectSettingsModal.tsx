@@ -77,31 +77,34 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Calculate mobile modal height accounting for toolbar
-  const getMobileModalClass = () => {
-    if (isMobile) {
-      return 'w-full flex flex-col';
-    }
-    return 'w-full max-w-2xl max-h-[90vh] flex flex-col';
+  // Unified modal sizing for consistent behavior across all screen sizes
+  const getModalClass = () => {
+    return isMobile 
+      ? 'w-full flex flex-col' 
+      : 'w-full max-w-2xl flex flex-col';
   };
 
-  const getMobileModalStyle = () => {
-    if (isMobile) {
-      const toolbarHeight = dimensions.toolbarHeight;
-      return {
-        height: `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`,
-        maxHeight: `calc(100vh - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
-      };
-    }
-    return {};
+  const getModalStyle = () => {
+    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
+    const baseHeight = isMobile ? '95vh' : '90vh';
+    const padding = isMobile ? '0px' : '2rem';
+    
+    const height = toolbarHeight > 0 
+      ? `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`
+      : `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`;
+    
+    return {
+      height,
+      maxHeight: height
+    };
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div 
         ref={modalRef}
-        className={`bg-slate-800 rounded-lg shadow-xl ${getMobileModalClass()}`}
-        style={getMobileModalStyle()}
+        className={`bg-slate-800 rounded-lg shadow-xl ${getModalClass()}`}
+        style={getModalStyle()}
         tabIndex={-1}
       >
         {/* Header */}

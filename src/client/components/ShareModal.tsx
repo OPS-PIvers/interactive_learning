@@ -193,6 +193,21 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const shareUrl = generateShareUrl();
   const embedCode = generateEmbedCode();
 
+  // Unified modal sizing for consistent behavior across all screen sizes
+  const getModalStyle = () => {
+    const toolbarHeight = isMobile ? dimensions.toolbarHeight : 0;
+    const baseHeight = isMobile ? '85vh' : '90vh';
+    
+    const height = toolbarHeight > 0 
+      ? `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
+      : `calc(${baseHeight} - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;
+    
+    return {
+      height,
+      maxHeight: height
+    };
+  };
+
   if (isMobile) {
     return (
         <div 
@@ -206,11 +221,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
           ref={modalRef}
           tabIndex={-1}
           className="bg-slate-800 rounded-t-2xl shadow-xl w-full overflow-y-auto"
-          style={{
-            maxHeight: isMobile 
-              ? `calc(90vh - ${dimensions.toolbarHeight}px - env(safe-area-inset-bottom, 0px))`
-              : '90vh'
-          }} 
+          style={getModalStyle()} 
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -331,11 +342,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         ref={!isMobile ? modalRef : undefined}
         tabIndex={-1}
         className="bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full overflow-hidden"
-        style={{
-          maxHeight: isMobile 
-            ? `calc(90vh - ${dimensions.toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`
-            : '90vh'
-        }}
+        style={getModalStyle()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
