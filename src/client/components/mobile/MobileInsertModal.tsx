@@ -57,7 +57,7 @@ export const MobileInsertModal: React.FC<MobileInsertModalProps> = ({
 
   return (
     <Modal isOpen={true} onClose={onClose} title="Insert Element">
-      <div className="p-4">
+      <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100% - 120px)' }}>
         <div className="grid grid-cols-1 gap-3">
           {insertOptions.map((option) => (
             <button
@@ -99,16 +99,16 @@ export const MobileInsertModal: React.FC<MobileInsertModalProps> = ({
             <li>• Shapes can be used for backgrounds or decorations</li>
           </ul>
         </div>
-
-        {/* Cancel button */}
-        <div className="mt-4">
-          <button
-            onClick={onClose}
-            className="w-full py-3 px-4 text-gray-600 hover:text-gray-800 font-medium transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
+      </div>
+      
+      {/* Fixed Cancel button at bottom */}
+      <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 p-4">
+        <button
+          onClick={onClose}
+          className="w-full py-3 px-4 bg-slate-600 hover:bg-slate-500 text-white font-medium transition-colors rounded-lg"
+        >
+          Cancel
+        </button>
       </div>
     </Modal>
   );

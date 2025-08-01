@@ -40,7 +40,7 @@ export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
         style={{
           /* Position above bottom toolbar and limit height */
           marginBottom: `${dimensions.toolbarHeight}px`, // Space for responsive toolbar
-          maxHeight: `calc(75vh - ${dimensions.toolbarHeight}px)`, // Account for responsive toolbar height
+          maxHeight: `calc(70vh - ${dimensions.toolbarHeight}px - 30px)`, // Conservative height with safety margin
         }}
       >
         {/* Header */}
