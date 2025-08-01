@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { extractYouTubeVideoId } from '../../shared/types';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface ColorScheme {
   name: string;
@@ -200,7 +201,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
     <>
       {/* Modal Overlay */}
       <div 
-        className="fixed inset-0 bg-black/50 z-70 flex items-center justify-center p-4"
+        className={`fixed inset-0 bg-black/50 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} flex items-center justify-center p-4`}
         onClick={onClose}
       >
         {/* Modal Content */}

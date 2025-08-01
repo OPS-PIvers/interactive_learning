@@ -38,9 +38,10 @@ This platform allows you to transform your content into dynamic, slide-based pre
 ### Technical Capabilities
 - **Modern Tech Stack**: Built with React 18, TypeScript, and Vite for a fast and reliable experience
 - **Real-time Data Sync**: Powered by Firebase for live updates and collaboration
+- **Unified Modal System**: Intelligent modal positioning that prevents toolbar overlap across all device types
 - **Optimized Performance**: Designed for smooth animations and fast loading times
 - **Extensible Architecture**: The slide-based model is easy to extend with new features and components
-- **Cross-Device Compatibility**: Automatic scaling between desktop and mobile
+- **Cross-Device Compatibility**: Automatic scaling between desktop and mobile with unified responsive behavior
 
 ## 🚀 Getting Started
 
@@ -84,7 +85,8 @@ npm run test:ui      # Run tests with UI
 - **Tailwind CSS** for responsive styling and design system
 - **dnd-kit** for accessible, high-performance drag-and-drop
 - **Framer Motion** for smooth animations and transitions
-- **Custom Hooks** for mobile detection, touch gestures, and positioning
+- **Custom Hooks** for unified device detection, viewport management, and modal constraints
+- **Responsive Design System** with centralized z-index management and layout constraints
 
 ### Backend & Data
 - **Firebase Firestore** for real-time NoSQL database
@@ -126,17 +128,27 @@ The application is built on a slide-based architecture, which provides a more pr
 
 ### Component Structure
 ```
-src/client/components/
-├── slides/                  # Slide-specific components and effects
-│   ├── SlideEditor.tsx      # Main slide editor component
-│   ├── SlideViewer.tsx      # Component for viewing interactive slides
-│   └── effects/             # Effect settings and rendering
-├── SlideBasedEditor.tsx     # Main editor component
-├── SlideBasedViewer.tsx     # Main viewer component
-├── mobile/                  # Mobile-optimized interfaces
-├── desktop/                 # Desktop modal components
-├── icons/                   # Custom icon components
-└── interactions/            # Interaction system components
+src/client/
+├── components/
+│   ├── slides/              # Slide-specific components and effects
+│   │   ├── SlideEditor.tsx  # Main slide editor component
+│   │   ├── SlideViewer.tsx  # Component for viewing interactive slides
+│   │   └── effects/         # Effect settings and rendering
+│   ├── responsive/          # Unified responsive components
+│   │   └── ResponsiveModal.tsx # Unified modal system
+│   ├── SlideBasedEditor.tsx # Main editor component
+│   ├── SlideBasedViewer.tsx # Main viewer component
+│   ├── mobile/              # Mobile-optimized interfaces
+│   ├── desktop/             # Desktop modal components
+│   ├── icons/               # Custom icon components
+│   └── interactions/        # Interaction system components
+├── hooks/
+│   ├── useDeviceDetection.ts    # Unified device type detection
+│   ├── useViewportHeight.ts     # Viewport management with iOS Safari support
+│   └── useLayoutConstraints.ts  # Modal constraint system
+└── utils/
+    ├── ModalLayoutManager.ts    # Modal positioning utilities
+    └── zIndexLevels.ts          # Centralized z-index management
 ```
 
 ### Data Layer

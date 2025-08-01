@@ -21,7 +21,7 @@ Interactive web application for creating slide-based multimedia training modules
 - **Mobile-First Design**: Comprehensive mobile component library under `mobile/` directory
 - **Mobile Detection**: `useIsMobile()` hook drives conditional rendering with debounced resize handling
 - **Touch Handling**: `useTouchGestures` hook with momentum physics for pan/zoom coordination
-- **Modal System**: Enhanced modals with mobile-specific variants and event editing capabilities
+- **Modal System**: Unified modal constraint system preventing toolbar overlap with responsive positioning
 - **Accessibility**: `useScreenReaderAnnouncements` hook with live regions for screen reader support
 
 ## Key Dependencies
@@ -114,6 +114,33 @@ As of Phase 4 of the viewer cleanup, all major viewer components now have compre
 - Validates proper hook order and component lifecycle management
 - **Slide Architecture Validation**: Tests ensure slide components properly handle ResponsivePosition calculations
 
+## Modal Layout Constraint System
+The application features a comprehensive modal layout constraint system that prevents modal dialogs from overlapping with fixed toolbars across all device types.
+
+### Key Components
+- **useLayoutConstraints Hook** (`src/client/hooks/useLayoutConstraints.ts`)
+  - Unified constraint system for safe modal positioning
+  - Uses `useDeviceDetection` and `useViewportHeight` for responsive behavior
+  - Provides `useModalConstraints` and `useConstraintAwareSpacing` specialized hooks
+  - Device-aware z-index management and CSS variable generation
+
+- **ModalLayoutManager Class** (`src/client/utils/ModalLayoutManager.ts`)
+  - Centralized utility for modal positioning and constraint calculations
+  - Placement validation and responsive behavior
+  - Support for standard, properties, confirmation, fullscreen, and drawer modal types
+
+- **ResponsiveModal Component** (`src/client/components/responsive/ResponsiveModal.tsx`)
+  - Unified modal supporting both desktop and mobile layouts
+  - Integrated with constraint system for consistent positioning
+  - Uses centralized z-index system from `zIndexLevels.ts`
+
+### Features
+- **Toolbar Overlap Prevention**: Systematic prevention of modal-toolbar conflicts
+- **Unified Z-Index Management**: Centralized system eliminates hardcoded values
+- **Device-Aware Positioning**: Automatic responsive adjustments for desktop/tablet/mobile
+- **Safe Area Handling**: Respects device safe areas and system UI elements
+- **Keyboard Awareness**: Optional keyboard avoidance for mobile devices
+
 ## Firebase Integration
 - Firestore for data storage
 - Firebase Storage for images/media
@@ -131,7 +158,8 @@ As of Phase 4 of the viewer cleanup, all major viewer components now have compre
 
 ## Custom Hook Patterns
 - **Device Detection**: `useDeviceDetection()` for responsive positioning and viewport calculations
-- **Mobile Detection**: `useIsMobile()` with debounced resize handling for device-specific rendering
+- **Viewport Management**: `useViewportHeight()` with iOS Safari support and dynamic viewport units
+- **Modal Constraints**: `useLayoutConstraints()` and `useModalConstraints()` for toolbar-aware positioning
 - **Touch Gestures**: `useTouchGestures` with momentum physics and gesture coordination  
 - **Performance**: `useIntersectionObserver` for efficient rendering of large slide collections
 - **Accessibility**: `useScreenReaderAnnouncements` with live regions

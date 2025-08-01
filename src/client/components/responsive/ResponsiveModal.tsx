@@ -7,8 +7,8 @@
  */
 
 import React, { useEffect, useCallback, useMemo } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { useContentAreaHeight, useMobileToolbar } from '../../hooks/useMobileToolbar';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
+import { useModalConstraints } from '../../hooks/useLayoutConstraints';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 export interface ResponsiveModalProps {
@@ -37,13 +37,20 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   className = '',
   preventCloseOnBackdropClick = false,
 }) => {
-  const isMobile = useIsMobile();
-  const { contentAreaHeight } = useContentAreaHeight(false);
-  const { dimensions } = useMobileToolbar();
+  const { deviceType, isMobile } = useDeviceDetection();
+  
+  // Use the unified constraint system for responsive modal positioning
+  const { constraints, styles, tailwindClasses } = useModalConstraints({
+    type: type === 'properties' ? 'properties' : 'standard',
+    position,
+    size,
+    preventToolbarOverlap: true,
+    respectKeyboard: true,
+  });
   
   // Auto-determine position based on device and modal type
   const effectivePosition = position === 'auto' 
-    ? isMobile 
+    ? deviceType === 'mobile'
       ? (type === 'properties' ? 'bottom' : 'center')
       : (type === 'properties' ? 'right' : 'center')
     : position;
@@ -78,84 +85,20 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     }
   }, [onClose, preventCloseOnBackdropClick]);
   
-  // Mobile touch handler to prevent scrolling behind modal
+  // Mobile touch handler to prevent scrolling behind modal  
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isMobile) {
+    if (deviceType === 'mobile') {
       e.stopPropagation();
     }
-  }, [isMobile]);
+  }, [deviceType]);
   
   if (!isOpen) return null;
   
-  // Size mappings for different screen sizes
-  const getSizeClasses = () => {
-    if (isMobile) {
-      switch (size) {
-        case 'small':
-          return 'w-full max-w-sm';
-        case 'medium':
-          return 'w-full max-w-md';
-        case 'large':
-          return 'w-full max-w-lg';
-        case 'fullscreen':
-          return 'w-full h-full';
-        default:
-          return 'w-full max-w-md';
-      }
-    } else {
-      switch (size) {
-        case 'small':
-          return 'w-full max-w-md';
-        case 'medium':
-          return 'w-full max-w-lg';
-        case 'large':
-          return 'w-full max-w-2xl';
-        case 'fullscreen':
-          return 'w-full h-full';
-        default:
-          return 'w-full max-w-lg';
-      }
-    }
-  };
-  
-  // Position classes
-  const getPositionClasses = () => {
-    switch (effectivePosition) {
-      case 'bottom':
-        return 'items-end justify-center';
-      case 'right':
-        return 'items-center justify-end';
-      case 'center':
-      default:
-        return 'items-center justify-center';
-    }
-  };
-  
-  // Modal content height for mobile - accounts for bottom toolbar
-  const getModalHeight = useCallback((): number | undefined => {
-    if (!isMobile) return undefined;
-    
-    // Use responsive toolbar height from useMobileToolbar hook
-    const toolbarHeight = dimensions.toolbarHeight;
-    const availableHeight = contentAreaHeight - toolbarHeight;
-    
-    if (size === 'fullscreen') {
-      return availableHeight;
-    }
-    
-    if (effectivePosition === 'bottom') {
-      // For bottom modals, ensure they don't overlap the toolbar
-      return Math.min(availableHeight * 0.8, 600);
-    }
-    
-    // For center modals, leave more space above toolbar
-    return Math.min(availableHeight * 0.85, 500);
-  }, [isMobile, dimensions.toolbarHeight, contentAreaHeight, size, effectivePosition]);
-  
   return (
     <div
-      className={`fixed inset-0 ${Z_INDEX_TAILWIND.MOBILE_MODAL_SYSTEM} flex ${getPositionClasses()}`}
+      className={`fixed inset-0 ${tailwindClasses.backdrop} flex`}
       style={{
+        ...styles.backdrop,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(4px)',
         WebkitBackdropFilter: 'blur(4px)',
@@ -165,18 +108,10 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     >
       <div
         className={`
-          ${getSizeClasses()}
-          ${effectivePosition === 'bottom' && isMobile ? 'rounded-t-2xl' : 'rounded-lg'}
-          ${effectivePosition === 'right' && !isMobile ? 'rounded-l-lg rounded-r-none' : ''}
           bg-slate-800 text-white shadow-2xl overflow-hidden
           ${className}
         `}
-        style={{
-          height: getModalHeight(),
-          maxHeight: isMobile ? getModalHeight() : '90vh',
-          marginBottom: effectivePosition === 'bottom' && isMobile ? `${dimensions.toolbarHeight}px` : undefined, // Space for toolbar
-          marginRight: effectivePosition === 'right' && !isMobile ? 0 : undefined,
-        }}
+        style={styles.content}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

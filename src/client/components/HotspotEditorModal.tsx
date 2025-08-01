@@ -13,6 +13,7 @@ import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import MobilePlayAudioEditor from './MobilePlayAudioEditor';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
@@ -318,7 +319,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       <>
         <div 
           className={`
-            fixed top-0 right-0 z-[70] h-screen
+            fixed top-0 right-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} h-screen
             transform transition-transform duration-300 ease-out
             ${isOpen ? 'translate-x-0' : 'translate-x-full'}
           `}

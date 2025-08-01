@@ -12,7 +12,8 @@ ExpliCoLearning is a web application designed for creating and delivering slide-
 *   **Responsive Element Positioning:** Elements use fixed pixel positioning with responsive breakpoints for desktop, tablet, and mobile devices.
 *   **Visual Drag-and-Drop Editor:** Slide editor with native drag-and-drop API for precise element positioning within slide canvas.
 *   **Interactive Element System:** Support for various element interactions and effects with device-responsive controls.
-*   **Multi-Device Support:** Mobile-first design with comprehensive touch gesture support and device detection.
+*   **Multi-Device Support:** Mobile-first design with comprehensive touch gesture support and unified device detection.
+*   **Modal Layout System:** Unified modal constraint system preventing toolbar overlap with responsive positioning.
 *   **Real-time Collaboration:** The Firebase backend enables real-time data synchronization.
 
 ## Technology Stack
@@ -43,14 +44,15 @@ ExpliCoLearning is a web application designed for creating and delivering slide-
 ## Project Structure
 
 *   `src/client/`: Contains all the client-side application code.
-    *   `components/`: Reusable React components (80+ components).
-        *   `slides/`: 7 slide-specific components for slide-based architecture.
-        *   `mobile/`: 38 mobile-specific components with touch optimization.
+    *   `components/`: Reusable React components (130+ components).
+        *   `slides/`: 14 slide-specific components for slide-based architecture.
+        *   `mobile/`: 14 mobile-specific components with touch optimization.
         *   `desktop/`: 6 desktop modal components.
-        *   `icons/`: 19 custom icon components.
+        *   `responsive/`: Unified responsive components including ResponsiveModal.
+        *   `icons/`: 24 custom icon components.
         *   `shared/`: Error boundaries and loading states.
-    *   `hooks/`: Custom React hooks for shared logic (14 hooks).
-    *   `utils/`: Utility functions (22 utility modules).
+    *   `hooks/`: Custom React hooks for shared logic (19 hooks including constraint system).
+    *   `utils/`: Utility functions (22 utility modules including ModalLayoutManager).
     *   `styles/`: Global and component-specific styles.
 *   `src/lib/`: Core application logic, including Firebase integration and data handling.
     *   `firebaseApi.ts`: Interacts with Firebase services.
@@ -150,3 +152,36 @@ interface FixedPosition {
 *   **Automatic Migration**: Legacy hotspot-based projects automatically convert to slide format
 *   **Data Preservation**: Existing timeline events and interactions are preserved during migration
 *   **Legacy Support**: Backward compatibility maintained for existing projects while leveraging new architecture
+
+## Modal Layout Constraint System
+
+The application features a comprehensive modal layout constraint system that prevents modal dialogs from overlapping with fixed toolbars across all device types.
+
+### Key Components
+*   **useLayoutConstraints Hook** (`src/client/hooks/useLayoutConstraints.ts`):
+    *   Unified constraint system for safe modal positioning
+    *   Uses `useDeviceDetection` and `useViewportHeight` for responsive behavior
+    *   Provides `useModalConstraints` and `useConstraintAwareSpacing` specialized hooks
+    *   Device-aware z-index management and CSS variable generation
+
+*   **ModalLayoutManager Class** (`src/client/utils/ModalLayoutManager.ts`):
+    *   Centralized utility for modal positioning and constraint calculations
+    *   Placement validation and responsive behavior
+    *   Support for standard, properties, confirmation, fullscreen, and drawer modal types
+
+*   **ResponsiveModal Component** (`src/client/components/responsive/ResponsiveModal.tsx`):
+    *   Unified modal supporting both desktop and mobile layouts
+    *   Integrated with constraint system for consistent positioning
+    *   Uses centralized z-index system from `zIndexLevels.ts`
+
+### Features
+*   **Toolbar Overlap Prevention**: Systematic prevention of modal-toolbar conflicts
+*   **Unified Z-Index Management**: Centralized system eliminates hardcoded values  
+*   **Device-Aware Positioning**: Automatic responsive adjustments for desktop/tablet/mobile
+*   **Safe Area Handling**: Respects device safe areas and system UI elements
+*   **Keyboard Awareness**: Optional keyboard avoidance for mobile devices
+
+### Device Detection System
+*   **useDeviceDetection Hook**: Unified responsive detection replacing mobile-specific hooks
+*   **Viewport Management**: `useViewportHeight` with iOS Safari support and dynamic viewport units
+*   **Responsive Breakpoints**: Desktop (1024+), tablet (768-1023), mobile (<768) with automatic detection

@@ -65,14 +65,18 @@ src/
 │   │   ├── desktop/                 # 6 desktop modal components
 │   │   ├── icons/                   # 19 custom icon components
 │   │   └── shared/                  # Error boundaries and loading states
-│   ├── hooks/          # Custom React hooks (14 files)
+│   ├── hooks/          # Custom React hooks (19 files)
 │   │   ├── useIsMobile.ts           # Mobile detection
-│   │   ├── useDeviceDetection.ts    # Device type and viewport detection (NEW)
+│   │   ├── useDeviceDetection.ts    # Device type and viewport detection
+│   │   ├── useViewportHeight.ts     # Viewport management with iOS Safari support
+│   │   ├── useLayoutConstraints.ts  # Modal constraint system (NEW)
 │   │   ├── useTouchGestures.ts      # Touch handling
 │   │   └── useScreenReaderAnnouncements.ts  # Accessibility
 │   ├── utils/          # Client-side utility functions (22 files)
 │   │   ├── touchUtils.ts            # Touch event utilities
-│   │   └── mobileUtils.ts           # Mobile-specific utilities
+│   │   ├── mobileUtils.ts           # Mobile-specific utilities
+│   │   ├── ModalLayoutManager.ts    # Modal constraint system (NEW)
+│   │   └── zIndexLevels.ts          # Centralized z-index management
 │   └── styles/         # CSS and styling files
 ├── lib/              # Core logic, Firebase utilities
 │   ├── firebaseApi.ts           # Firebase integration
@@ -115,6 +119,7 @@ vitest.config.ts  # Vitest test runner configuration
 // State management: React useState with slide-based state patterns
 // Touch handling: Native drag API for element positioning, useTouchGestures for gestures
 // Device detection: useDeviceDetection() hook for responsive positioning calculations
+// Modal system: useLayoutConstraints() for toolbar-aware modal positioning
 // Properties system: MobilePropertiesPanel for touch-optimized element editing
 
 ## Mobile Development
@@ -244,6 +249,56 @@ const position = element.position[deviceType] || element.position.desktop;
 // - Preserve existing timeline events during migration
 // - Maintain backward compatibility with existing projects
 // - Test migration with various legacy project formats
+
+## Modal Layout Constraint System
+The application features a unified modal layout constraint system preventing toolbar overlap across all device types.
+
+### Key Components for Jules:
+```typescript
+// Use these hooks for modal positioning:
+import { useLayoutConstraints, useModalConstraints } from '../hooks/useLayoutConstraints';
+import { ModalLayoutManager, createModalLayoutManager } from '../utils/ModalLayoutManager';
+
+// Unified device detection:
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
+import { useViewportHeight } from '../hooks/useViewportHeight';
+
+// Z-index management:
+import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+```
+
+### Modal Development Patterns:
+```typescript
+// ✅ CORRECT - Use constraint system for new modals:
+const { constraints, styles, tailwindClasses } = useModalConstraints({
+  type: 'standard', // 'properties' | 'confirmation' | 'fullscreen'
+  size: 'medium',   // 'small' | 'large' | 'fullscreen'
+  position: 'auto', // 'center' | 'bottom' | 'right'
+  preventToolbarOverlap: true,
+  respectKeyboard: true
+});
+
+// ✅ CORRECT - Device-aware responsive behavior:
+const { deviceType, viewportInfo, isMobile } = useDeviceDetection();
+
+// ❌ NEVER DO - Hardcoded z-index values:
+className="z-[70]" // Use Z_INDEX_TAILWIND constants instead
+```
+
+### ResponsiveModal Usage:
+```typescript
+// ✅ CORRECT - Use ResponsiveModal for new modals:
+<ResponsiveModal
+  type="properties"
+  isOpen={isOpen}
+  onClose={onClose}
+  title="Modal Title"
+  size="medium"
+  position="auto" // Auto-detects best position per device
+>
+  {children}
+</ResponsiveModal>
+```
 
 ## Slide System Architecture
 // Use SlideDeck, InteractiveSlide, SlideElement interfaces from slideTypes.ts
@@ -516,6 +571,17 @@ npm run dev
 - ✅ Added native drag-and-drop for slide element positioning
 - ✅ Established migration utilities for legacy project conversion
 - ✅ Updated all documentation (CLAUDE.md, GEMINI.md, AGENTS.md)
+
+### Modal Layout Constraint System (Completed)
+**Status:** ✅ COMPLETED (August 1, 2025)
+**Major Changes:**
+- ✅ Created unified modal constraint system preventing toolbar overlap
+- ✅ Implemented useLayoutConstraints and useModalConstraints hooks
+- ✅ Built ModalLayoutManager class for centralized positioning logic
+- ✅ Fixed z-index violations using centralized Z_INDEX_TAILWIND system
+- ✅ Updated ResponsiveModal to use unified device detection
+- ✅ Modernized to use useDeviceDetection and useViewportHeight instead of legacy mobile hooks
+- ✅ All tests passing with production build successful
 
 ### UI Enhancements Implementation (Current Priority)
 **Status:** Planning completed, implementation pending
