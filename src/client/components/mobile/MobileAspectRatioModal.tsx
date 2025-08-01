@@ -1,5 +1,6 @@
 import React from 'react';
 import { XMarkIcon } from '../icons/XMarkIcon';
+import { useMobileToolbar } from '../../hooks/useMobileToolbar';
 
 interface MobileAspectRatioModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
   currentRatio,
   onRatioChange
 }) => {
+  const { dimensions } = useMobileToolbar();
+  
   if (!isOpen) return null;
 
   const handleRatioSelect = (ratio: string) => {
@@ -32,7 +35,14 @@ export const MobileAspectRatioModal: React.FC<MobileAspectRatioModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-      <div className="bg-slate-800 rounded-t-2xl w-full max-h-[80vh] overflow-hidden">
+      <div 
+        className="bg-slate-800 rounded-t-2xl w-full overflow-hidden"
+        style={{
+          /* Position above bottom toolbar and limit height */
+          marginBottom: `${dimensions.toolbarHeight}px`, // Space for responsive toolbar
+          maxHeight: `calc(75vh - ${dimensions.toolbarHeight}px)`, // Account for responsive toolbar height
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <h2 className="text-lg font-bold text-white">Aspect Ratio</h2>

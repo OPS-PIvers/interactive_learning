@@ -340,7 +340,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       (uniqueSortedSteps.findIndex(step => step === currentStep) / (uniqueSortedSteps.length - 1)) * 100 : 0;
 
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-20">
+      <div className="fixed left-0 right-0 z-20" style={{ bottom: isMobile ? '56px' : '0' }}>
         {/* Modern glassmorphism container with gradient accents */}
         <div
           className="w-full bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50"

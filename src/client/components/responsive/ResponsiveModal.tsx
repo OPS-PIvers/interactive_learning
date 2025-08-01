@@ -6,9 +6,9 @@
  * desktop and mobile modal implementations.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { useContentAreaHeight } from '../../hooks/useMobileToolbar';
+import { useContentAreaHeight, useMobileToolbar } from '../../hooks/useMobileToolbar';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 export interface ResponsiveModalProps {
@@ -39,6 +39,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { contentAreaHeight } = useContentAreaHeight(false);
+  const { dimensions } = useMobileToolbar();
   
   // Auto-determine position based on device and modal type
   const effectivePosition = position === 'auto' 
@@ -130,20 +131,26 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     }
   };
   
-  // Modal content height for mobile
-  const getModalHeight = () => {
+  // Modal content height for mobile - accounts for bottom toolbar
+  const getModalHeight = useCallback((): number | undefined => {
     if (!isMobile) return undefined;
     
+    // Use responsive toolbar height from useMobileToolbar hook
+    const toolbarHeight = dimensions.toolbarHeight;
+    const availableHeight = contentAreaHeight - toolbarHeight;
+    
     if (size === 'fullscreen') {
-      return contentAreaHeight;
+      return availableHeight;
     }
     
     if (effectivePosition === 'bottom') {
-      return Math.min(contentAreaHeight * 0.8, 600);
+      // For bottom modals, ensure they don't overlap the toolbar
+      return Math.min(availableHeight * 0.8, 600);
     }
     
-    return Math.min(contentAreaHeight * 0.9, 500);
-  };
+    // For center modals, leave more space above toolbar
+    return Math.min(availableHeight * 0.85, 500);
+  }, [isMobile, dimensions.toolbarHeight, contentAreaHeight, size, effectivePosition]);
   
   return (
     <div
@@ -166,8 +173,8 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
         `}
         style={{
           height: getModalHeight(),
-          maxHeight: isMobile ? contentAreaHeight : '90vh',
-          marginBottom: effectivePosition === 'bottom' && isMobile ? 0 : undefined,
+          maxHeight: isMobile ? getModalHeight() : '90vh',
+          marginBottom: effectivePosition === 'bottom' && isMobile ? `${dimensions.toolbarHeight}px` : undefined, // Space for toolbar
           marginRight: effectivePosition === 'right' && !isMobile ? 0 : undefined,
         }}
         onClick={(e) => e.stopPropagation()}

@@ -5,6 +5,7 @@ import MobileEditorToolbar from './MobileEditorToolbar';
 import MobileHotspotEditor from './MobileHotspotEditor';
 import MobileNavigationBar from './mobile/MobileNavigationBar';
 import { useMobileKeyboard } from '../hooks/useMobileKeyboard';
+import { useMobileToolbar } from '../hooks/useMobileToolbar';
 
 interface MobileEditorLayoutProps {
   project: Project;
@@ -126,6 +127,9 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
   
   // Mobile keyboard handling
   const keyboardInfo = useMobileKeyboard();
+  
+  // Mobile toolbar dimensions
+  const { dimensions } = useMobileToolbar();
 
   const handlePreviewEvent = useCallback((event: TimelineEventData) => {
     setPreviewingEventId(event.id);
@@ -364,14 +368,14 @@ const MobileEditorLayout: React.FC<MobileEditorLayoutProps> = ({
       
       {/* Modal Content */}
       <div 
-        className="fixed inset-x-0 bottom-0 z-50 bg-slate-900 rounded-t-2xl flex flex-col"
+        className="fixed inset-x-0 z-50 bg-slate-900 rounded-t-2xl flex flex-col"
         style={{
-          /* Dynamic max height for iOS Safari */
-          maxHeight: 'min(80dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))',
+          /* Position above the bottom toolbar using dynamic height */
+          bottom: `calc(${dimensions.toolbarHeight}px + env(safe-area-inset-bottom, 0px))`,
+          /* Dynamic max height accounting for responsive toolbar */
+          maxHeight: `min(75dvh, calc(100vh - env(safe-area-inset-top, 44px) - ${dimensions.toolbarHeight}px - 32px))`,
           /* Fallback for browsers without dvh support */
-          maxHeight: '80vh',
-          /* Ensure modal stays above iOS Safari UI */
-          bottom: 'env(safe-area-inset-bottom, 0px)',
+          maxHeight: `calc(75vh - ${dimensions.toolbarHeight}px)`,
           zIndex: 150 // Higher z-index for iOS Safari
         }}
       >
