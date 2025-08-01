@@ -23,6 +23,7 @@ import { saveOperationMonitor } from './saveOperationMonitor'
 import { generateThumbnail } from '../client/utils/imageUtils'
 import { isMobileDevice } from '../client/utils/mobileUtils'
 import { networkMonitor } from '../client/utils/networkMonitor'
+import { DevAuthBypass } from './testAuthUtils'
 
 // Thumbnail Parameters
 const THUMBNAIL_WIDTH = 400;
@@ -40,6 +41,34 @@ const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {
     debugLog.log(`Firebase ${operation}: ${count} operations`)
+  }
+
+  /**
+   * Get current user with development bypass support
+   * @returns User object with uid and email, or throws if not authenticated
+   */
+  private getCurrentUser(): { uid: string; email: string } {
+    // Check for development bypass first
+    const devBypass = DevAuthBypass.getInstance();
+    if (devBypass.isEnabled()) {
+      const bypassUser = devBypass.getBypassUser();
+      if (bypassUser) {
+        debugLog.log(`Using development bypass user: ${bypassUser.email}`);
+        return { uid: bypassUser.uid, email: bypassUser.email || '' };
+      }
+    }
+    
+    // Fallback to Firebase auth
+    const auth = firebaseManager.getAuth();
+    if (!auth.currentUser) {
+      throw new Error('User must be authenticated to access projects');
+    }
+    
+    if (!auth.currentUser.uid) {
+      throw new Error('Invalid authentication state - missing user ID');
+    }
+    
+    return { uid: auth.currentUser.uid, email: auth.currentUser.email || '' };
   }
 
   /**
@@ -189,17 +218,8 @@ export class FirebaseProjectAPI {
    */
   async listProjects(): Promise<Project[]> {
     return this.withMobileErrorHandling(async () => {
-      const auth = firebaseManager.getAuth();
-      
-      // Enhanced authentication validation for mobile browsers
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to access projects');
-      }
-      
-      if (!auth.currentUser.uid) {
-        throw new Error('Invalid authentication state - missing user ID');
-      }
-
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
 
       this.logUsage('READ_OPERATIONS', 1);
       const db = firebaseManager.getFirestore();
@@ -208,7 +228,7 @@ export class FirebaseProjectAPI {
       // Query projects created by the current user
       const userProjectsQuery = query(
         projectsRef, 
-        where('createdBy', '==', auth.currentUser.uid),
+        where('createdBy', '==', currentUser.uid),
         orderBy('updatedAt', 'desc')
       );
       
@@ -250,7 +270,7 @@ export class FirebaseProjectAPI {
       })
 
 
-      debugLog.log(`Loaded ${projects.length} projects for user ${auth.currentUser.uid}`);
+      debugLog.log(`Loaded ${projects.length} projects for user ${currentUser.uid}`);
       return projects
     }, 'listProjects');
   }
@@ -411,12 +431,9 @@ export class FirebaseProjectAPI {
 
   async createProject(title: string, description: string): Promise<Project> {
     try {
-      const auth = firebaseManager.getAuth();
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to create projects');
-      }
 
       const projectId = this.generateProjectId();
       
@@ -426,7 +443,7 @@ export class FirebaseProjectAPI {
         id: projectId,
         title,
         description,
-        createdBy: auth.currentUser.uid, // Add user ID
+        createdBy: currentUser.uid, // Add user ID
         createdAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         updatedAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
@@ -467,19 +484,16 @@ export class FirebaseProjectAPI {
       debugLog.log(`[FirebaseAPI] Starting simplified save for project ${project.id}`);
       
       await this.ensureFirebaseReady();
-      const auth = firebaseManager.getAuth();
       const db = firebaseManager.getFirestore();
       
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('User must be authenticated to save projects');
-      }
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
 
       // Check if it's a new project
       const isNewProject = project.id === NEW_PROJECT_ID;
       if (isNewProject) {
         project.id = this.generateProjectId();
-        project.createdBy = user.uid;
+        project.createdBy = currentUser.uid;
       }
 
       projectCache.clear();
@@ -493,7 +507,7 @@ export class FirebaseProjectAPI {
         isPublished: project.isPublished || false,
         projectType: project.projectType || 'slide',
         updatedAt: serverTimestamp(),
-        createdBy: project.createdBy || user.uid,
+        createdBy: project.createdBy || currentUser.uid,
         interactiveData: {
           backgroundImage: project.interactiveData?.backgroundImage || undefined,
           imageFitMode: project.interactiveData?.imageFitMode || 'cover',
@@ -536,12 +550,9 @@ export class FirebaseProjectAPI {
    */
   async deleteProject(projectId: string): Promise<{ success: boolean; projectId: string }> {
     try {
-      const auth = firebaseManager.getAuth();
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to delete projects');
-      }
 
       const projectRef = doc(db, 'projects', projectId);
       let thumbnailUrlToDelete: string | null = null;
@@ -550,7 +561,7 @@ export class FirebaseProjectAPI {
       const projectSnap = await getDoc(projectRef);
       if (projectSnap.exists()) {
         const projectData = projectSnap.data();
-        if (projectData.createdBy !== auth.currentUser.uid) {
+        if (projectData.createdBy !== currentUser.uid) {
           throw new Error('You do not have permission to delete this project');
         }
         thumbnailUrlToDelete = projectData.thumbnailUrl || null;
@@ -603,12 +614,8 @@ export class FirebaseProjectAPI {
    */
   async uploadImage(file: File, projectId?: string): Promise<string> {
     try {
-      const auth = firebaseManager.getAuth();
-      
-      // Verify authentication before upload
-      if (!auth.currentUser) {
-        throw new Error('auth/user-not-authenticated: User must be authenticated to upload images');
-      }
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
 
       // Validate file before upload
       if (!file || file.size === 0) {
@@ -619,7 +626,7 @@ export class FirebaseProjectAPI {
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `images/${auth.currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
+      const fileName = `images/${currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
       
       const storage = firebaseManager.getStorage();
       const imageRef = ref(storage, fileName);
@@ -632,7 +639,7 @@ export class FirebaseProjectAPI {
         customMetadata: {
           projectId: projectId || 'general',
           uploadedAt: new Date().toISOString(),
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           originalName: file.name
         }
       };
@@ -720,12 +727,8 @@ export class FirebaseProjectAPI {
    */
   async uploadThumbnail(file: File, projectId: string): Promise<string> {
     try {
-      const auth = firebaseManager.getAuth();
-      
-      // Verify authentication before upload
-      if (!auth.currentUser) {
-        throw new Error('auth/user-not-authenticated: User must be authenticated to upload thumbnails');
-      }
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
       
       // Validate inputs
       if (!file || file.size === 0) {
@@ -755,7 +758,7 @@ export class FirebaseProjectAPI {
         customMetadata: {
           projectId: projectId,
           uploadedAt: new Date().toISOString(),
-          ownerId: auth.currentUser.uid, // Required by storage rules
+          ownerId: currentUser.uid, // Required by storage rules
           originalName: file.name,
           thumbnailType: 'project'
         }
@@ -833,10 +836,12 @@ export class FirebaseProjectAPI {
     projectId?: string
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const auth = firebaseManager.getAuth();
-      
-      if (!auth.currentUser) {
-        return reject(new Error('auth/user-not-authenticated: User must be authenticated to upload files'));
+      // Get current user with bypass support
+      let currentUser;
+      try {
+        currentUser = this.getCurrentUser();
+      } catch (error) {
+        return reject(error);
       }
 
       if (!file || file.size === 0) {
@@ -846,7 +851,7 @@ export class FirebaseProjectAPI {
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `uploads/${auth.currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
+      const fileName = `uploads/${currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
 
       const storage = firebaseManager.getStorage();
       const fileRef = ref(storage, fileName);
@@ -856,7 +861,7 @@ export class FirebaseProjectAPI {
         customMetadata: {
           projectId: projectId || 'general',
           uploadedAt: new Date().toISOString(),
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           originalName: file.name,
         },
       };
@@ -1056,12 +1061,9 @@ export class FirebaseProjectAPI {
 
   async updateProject(projectId: string, updates: Partial<Project>): Promise<void> {
     try {
-      const auth = firebaseManager.getAuth();
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to update project');
-      }
       
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
@@ -1071,7 +1073,7 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
-      if (projectData.createdBy !== auth.currentUser.uid) {
+      if (projectData.createdBy !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
 
@@ -1102,12 +1104,9 @@ export class FirebaseProjectAPI {
 
   async updateProjectPublishedStatus(projectId: string, isPublished: boolean): Promise<void> {
     try {
-      const auth = firebaseManager.getAuth();
+      // Get current user with bypass support
+      const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to update project status');
-      }
       
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
@@ -1117,7 +1116,7 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
-      if (projectData.createdBy !== auth.currentUser.uid) {
+      if (projectData.createdBy !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
 
