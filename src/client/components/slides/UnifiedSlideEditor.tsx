@@ -21,7 +21,6 @@ import { ProjectThemeProvider } from '../../hooks/useProjectTheme';
 // Import responsive components and modals (to be created)
 import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
 import { ResponsiveHeader } from '../responsive/ResponsiveHeader';
-import { ResponsiveSlideNavigation } from '../responsive/ResponsiveSlideNavigation';
 import { ResponsiveModal } from '../responsive/ResponsiveModal';
 
 // Mobile-specific components removed - functionality moved to ResponsiveToolbar
@@ -416,20 +415,6 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         {/* Main editor content */}
         <div className="flex-1 flex overflow-hidden">
           
-          {/* Responsive slide navigation panel */}
-          <ResponsiveSlideNavigation
-            slides={slideDeck.slides}
-            currentSlideIndex={state.navigation.currentSlideIndex}
-            isCollapsed={state.navigation.isSlidePanelCollapsed}
-            isVisible={false}
-            onSlideSelect={actions.setCurrentSlide}
-            onSlideAdd={handleAddSlide}
-            onSlideDuplicate={handleDuplicateSlide}
-            onSlideDelete={handleDeleteSlide}
-            onToggleCollapse={actions.toggleSlidePanelCollapse}
-            activeDropdownId={state.ui.activeDropdownId}
-            onDropdownToggle={actions.setActiveDropdown}
-          />
           
           {/* Main canvas area */}
           <div className="flex-1 flex flex-col relative min-h-0">
@@ -444,7 +429,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
               onElementUpdate={handleElementUpdate}
               onSlideUpdate={handleSlideUpdate}
               deviceTypeOverride={state.navigation.deviceTypeOverride}
-              className="flex-grow"
+              className="flex-grow overflow-hidden"
               isEditable={!state.navigation.isPreviewMode}
               onAspectRatioChange={handleAspectRatioChange}
             />
