@@ -336,7 +336,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           isPublished: false,
           // Required interactiveData field
           interactiveData: {
-            backgroundImage: undefined,
+            backgroundImage: null,
             imageFitMode: 'cover' as const,
             viewerModes: { explore: true, selfPaced: true, timed: true },
             hotspots: [],

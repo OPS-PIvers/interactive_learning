@@ -447,7 +447,7 @@ export class FirebaseProjectAPI {
         createdAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         updatedAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
-          backgroundImage: undefined,
+          backgroundImage: null,
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
@@ -530,7 +530,7 @@ export class FirebaseProjectAPI {
         updatedAt: serverTimestamp(),
         createdBy: project.createdBy || currentUser.uid,
         interactiveData: {
-          backgroundImage: project.interactiveData?.backgroundImage || undefined,
+          backgroundImage: project.interactiveData?.backgroundImage || null,
           imageFitMode: project.interactiveData?.imageFitMode || 'cover',
           viewerModes: project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
           hotspots: [],
