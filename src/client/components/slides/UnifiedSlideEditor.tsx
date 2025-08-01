@@ -421,7 +421,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             slides={slideDeck.slides}
             currentSlideIndex={state.navigation.currentSlideIndex}
             isCollapsed={state.navigation.isSlidePanelCollapsed}
-            isVisible={!computed.isMobile && !state.navigation.isPreviewMode}
+            isVisible={false}
             onSlideSelect={actions.setCurrentSlide}
             onSlideAdd={handleAddSlide}
             onSlideDuplicate={handleDuplicateSlide}
@@ -432,7 +432,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           />
           
           {/* Main canvas area */}
-          <div className="flex-1 flex flex-col relative">
+          <div className="flex-1 flex flex-col relative min-h-0">
             
             {/* Responsive Canvas */}
             <ResponsiveCanvas
@@ -444,7 +444,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
               onElementUpdate={handleElementUpdate}
               onSlideUpdate={handleSlideUpdate}
               deviceTypeOverride={state.navigation.deviceTypeOverride}
-              className="flex-1"
+              className="flex-grow"
               isEditable={!state.navigation.isPreviewMode}
               onAspectRatioChange={handleAspectRatioChange}
             />

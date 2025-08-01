@@ -18,7 +18,6 @@ import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
 import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
-import SlideEditorTestPage from './SlideEditorTestPage';
 import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicVhProperty } from '../utils/mobileUtils';
@@ -548,7 +547,6 @@ const App: React.FC = () => {
             </div>
           } />
           <Route path="/slide-test" element={<SlideBasedTestPage />} />
-          <Route path="/slide-editor" element={<SlideEditorTestPage />} />
           <Route path="/migration-test" element={<MigrationTestPage />} />
         </Routes>
       </Router>
