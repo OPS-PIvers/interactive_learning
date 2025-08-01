@@ -330,17 +330,25 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           projectType: 'slide' as const,
           slideDeck,
           theme: projectTheme,
-          lastModified: new Date().toISOString(),
           createdBy: '', // Will be set by Firebase API
           createdAt: new Date(),
           updatedAt: new Date(),
-          isPublished: false
+          isPublished: false,
+          // Required interactiveData field
+          interactiveData: {
+            backgroundImage: undefined,
+            imageFitMode: 'cover' as const,
+            viewerModes: { explore: true, selfPaced: true, timed: true },
+            hotspots: [],
+            timelineEvents: []
+          }
         };
         
         console.log('📊 Project data for Firebase save:', {
           projectId: projectData.id,
           title: projectData.title,
-          slideCount: projectData.slideDeck?.slides?.length
+          slideCount: projectData.slideDeck?.slides?.length,
+          hasInteractiveData: !!projectData.interactiveData
         });
         
         await firebaseAPI.saveProject(projectData);
