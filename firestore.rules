@@ -11,17 +11,20 @@ service cloud.firestore {
     }
     
     function isValidProject() {
-      return request.resource.data.keys().hasAll(['title', 'description', 'createdBy']) &&
-             request.resource.data.title is string &&
-             request.resource.data.description is string &&
-             request.resource.data.createdBy is string &&
-             request.resource.data.title.size() <= 200 &&
-             request.resource.data.description.size() <= 1000 &&
-             // Optional fields validation
-             (request.resource.data.keys().hasAny(['thumbnailUrl']) == false || request.resource.data.thumbnailUrl is string || request.resource.data.thumbnailUrl == null) &&
-             (request.resource.data.keys().hasAny(['backgroundImage']) == false || request.resource.data.backgroundImage is string || request.resource.data.backgroundImage == null) &&
-             (request.resource.data.keys().hasAny(['imageFitMode']) == false || request.resource.data.imageFitMode is string) &&
-             (request.resource.data.keys().hasAny(['viewerModes']) == false || request.resource.data.viewerModes is map);
+      let data = request.resource.data;
+      return data.keys().hasAll(['title', 'description', 'createdBy']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.createdBy is string &&
+             // Optional legacy fields
+             (!data.keys().has('thumbnailUrl') || data.thumbnailUrl is string || data.thumbnailUrl == null) &&
+             (!data.keys().has('backgroundImage') || data.backgroundImage is string || data.backgroundImage == null) &&
+             (!data.keys().has('imageFitMode') || data.imageFitMode is string) &&
+             (!data.keys().has('viewerModes') || data.viewerModes is map) &&
+             // --- New Slide Deck Validation ---
+             // The slideDeck field is optional. If it doesn't exist, this is true.
+             // If it does exist, it must be a valid slide deck.
+             (!data.keys().has('slideDeck') || (data.slideDeck is map && isValidSlideDeck(data.slideDeck)));
     }
     
     function isValidHotspot() {
@@ -40,6 +43,77 @@ service cloud.firestore {
              request.resource.data.step > 0 &&
              request.resource.data.name is string &&
              request.resource.data.name.size() <= 100;
+    }
+
+    // --- Slide-Based Architecture Validation Functions ---
+
+    function isValidFixedPosition(pos) {
+      return pos is map &&
+             pos.keys().hasAll(['x', 'y', 'width', 'height']) &&
+             pos.x is number && pos.y is number &&
+             pos.width is number && pos.height is number;
+    }
+
+    function isValidResponsivePosition(pos) {
+      return pos is map &&
+             pos.keys().hasAll(['desktop', 'tablet', 'mobile']) &&
+             isValidFixedPosition(pos.desktop) &&
+             isValidFixedPosition(pos.tablet) &&
+             isValidFixedPosition(pos.mobile);
+    }
+
+    function isValidSlideElement(element) {
+      return element is map &&
+             element.keys().hasAll(['id', 'type', 'position', 'content', 'style', 'isVisible']) &&
+             element.id is string &&
+             element.type is string &&
+             (element.type == 'hotspot' || element.type == 'text' || element.type == 'media' || element.type == 'shape') &&
+             isValidResponsivePosition(element.position) &&
+             element.content is map && // Simplified check for content
+             element.style is map &&   // Simplified check for style
+             element.isVisible is bool;
+    }
+
+    function isValidInteractiveSlide(slide) {
+      let elements = slide.get('elements', []);
+      return slide is map &&
+             slide.keys().hasAll(['id', 'title', 'elements', 'layout']) &&
+             slide.id is string &&
+             slide.title is string &&
+             slide.title.size() < 200 &&
+             slide.elements is list &&
+             (elements.size() == 0 || isValidSlideElement(elements[0])) && // Check first element as sample
+             slide.layout is map; // Simplified check
+    }
+
+    function isValidDeckSettings(settings) {
+        return settings is map &&
+               settings.keys().hasAll(['autoAdvance', 'allowNavigation', 'showProgress', 'showControls']) &&
+               settings.autoAdvance is bool &&
+               settings.allowNavigation is bool &&
+               settings.showProgress is bool &&
+               settings.showControls is bool;
+    }
+
+    function isValidDeckMetadata(metadata) {
+        return metadata is map &&
+               metadata.keys().hasAll(['created', 'modified', 'version', 'isPublic']) &&
+               metadata.created is number &&
+               metadata.modified is number &&
+               metadata.version is string &&
+               metadata.isPublic is bool;
+    }
+
+    function isValidSlideDeck(deck) {
+      let slides = deck.get('slides', []);
+      return deck is map &&
+             deck.keys().hasAll(['id', 'title', 'slides', 'settings', 'metadata']) &&
+             deck.id is string &&
+             deck.title is string &&
+             deck.slides is list &&
+             (slides.size() == 0 || isValidInteractiveSlide(slides[0])) && // Check first slide as a sample
+             isValidDeckSettings(deck.settings) &&
+             isValidDeckMetadata(deck.metadata);
     }
     
     // Projects collection - require authentication and ownership
