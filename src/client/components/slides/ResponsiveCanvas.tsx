@@ -15,7 +15,6 @@ import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
-import SlideTimelineAdapter from '../SlideTimelineAdapter';
 import MobilePropertiesPanel from './MobilePropertiesPanel';
 
 export interface ResponsiveCanvasProps {
@@ -638,18 +637,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             
             {/* Elements */}
             {renderElements()}
-            
-            {/* Timeline adapter for legacy support */}
-            {currentSlide?.timeline && (
-              <SlideTimelineAdapter
-                timeline={currentSlide.timeline}
-                onTimelineUpdate={(timeline) => {
-                  if (onSlideUpdate) {
-                    onSlideUpdate({ timeline });
-                  }
-                }}
-              />
-            )}
           </div>
         </div>
       </div>

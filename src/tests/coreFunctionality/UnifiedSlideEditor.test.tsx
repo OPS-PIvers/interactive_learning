@@ -136,7 +136,12 @@ describe('UnifiedSlideEditor', () => {
 
   test('renders the editor with the project name', () => {
     renderEditor();
-    expect(screen.getByText('Unified Editor Test')).toBeInTheDocument();
+    // The project name might be rendered in multiple places in the responsive header
+    const projectTitles = screen.getAllByText('Unified Editor Test');
+    expect(projectTitles.length).toBeGreaterThan(0);
+    projectTitles.forEach(title => {
+      expect(title).toBeInTheDocument();
+    });
   });
 
   test('adds a new element when "Add Text" is clicked', async () => {
@@ -164,7 +169,12 @@ describe('UnifiedSlideEditor', () => {
     const onSlideDeckChange = vi.fn();
     renderEditor({ onSlideDeckChange });
 
-    const addSlideButton = screen.getByRole('button', { name: /add slide/i });
+    // Open the slides modal
+    const slidesButton = screen.getByRole('button', { name: /slides/i });
+    fireEvent.click(slidesButton);
+
+    // Click the "Add New Slide" button in the modal
+    const addSlideButton = await screen.findByRole('button', { name: /add new slide/i });
     fireEvent.click(addSlideButton);
 
     await waitFor(() => {
