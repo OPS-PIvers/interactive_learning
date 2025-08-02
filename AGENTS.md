@@ -43,8 +43,10 @@ npm run auth:test
 // Functional components with hooks only
 // Implement proper useEffect cleanup
 // Use custom hooks for complex logic (see src/client/hooks/)
-// Mobile/desktop split with useIsMobile() hook
+// Unified responsive design with useIsMobile() hook for conditional rendering
+// Always use centralized z-index values from zIndexLevels.ts
 // Include ARIA attributes for accessibility
+// Avoid creating separate Mobile*/Desktop* components - use unified responsive components
 
 ## File Structure
 ```
@@ -52,30 +54,33 @@ npm run auth:test
 scripts/          # Utility scripts (e.g., backup-data.ts)
 src/
 ├── client/       # Frontend application (React)
-│   ├── components/     # React components (80+ files)
+│   ├── components/     # React components (132 unified responsive components)
 │   │   ├── SlideBasedEditor.tsx     # Main slide editor container
 │   │   ├── SlideBasedViewer.tsx     # Main slide viewer container  
-│   │   ├── slides/                  # 7 slide-specific components (NEW)
+│   │   ├── slides/                  # Slide-specific components including effects/
 │   │   │   ├── SlideEditor.tsx      # Visual drag-and-drop editor
 │   │   │   ├── SlideViewer.tsx      # Slide presentation viewer
 │   │   │   ├── SlideNavigation.tsx  # Slide navigation controls
-│   │   │   ├── SlideElement.tsx     # Individual slide elements
-│   │   │   └── MobilePropertiesPanel.tsx # Touch-optimized properties
-│   │   ├── mobile/                  # 38 mobile-specific components
-│   │   ├── desktop/                 # 6 desktop modal components
-│   │   ├── icons/                   # 19 custom icon components
+│   │   │   └── SlideElement.tsx     # Individual slide elements
+│   │   ├── responsive/              # Unified responsive modal components
+│   │   ├── icons/                   # Custom icon components
+│   │   ├── interactions/            # Interaction system components
+│   │   ├── animations/              # Animation and transition components
+│   │   ├── touch/                   # Touch gesture handling components
+│   │   ├── ui/                      # Reusable UI components
+│   │   ├── views/                   # Page-level view components
 │   │   └── shared/                  # Error boundaries and loading states
-│   ├── hooks/          # Custom React hooks (19 files)
+│   ├── hooks/          # Custom React hooks (20 files)
 │   │   ├── useIsMobile.ts           # Mobile detection
 │   │   ├── useDeviceDetection.ts    # Device type and viewport detection
 │   │   ├── useViewportHeight.ts     # Viewport management with iOS Safari support
-│   │   ├── useLayoutConstraints.ts  # Modal constraint system (NEW)
+│   │   ├── useLayoutConstraints.ts  # Modal constraint system
 │   │   ├── useTouchGestures.ts      # Touch handling
 │   │   └── useScreenReaderAnnouncements.ts  # Accessibility
-│   ├── utils/          # Client-side utility functions (22 files)
+│   ├── utils/          # Client-side utility functions (33 files)
 │   │   ├── touchUtils.ts            # Touch event utilities
 │   │   ├── mobileUtils.ts           # Mobile-specific utilities
-│   │   ├── ModalLayoutManager.ts    # Modal constraint system (NEW)
+│   │   ├── ModalLayoutManager.ts    # Modal constraint system
 │   │   └── zIndexLevels.ts          # Centralized z-index management
 │   └── styles/         # CSS and styling files
 ├── lib/              # Core logic, Firebase utilities
@@ -83,7 +88,7 @@ src/
 │   ├── firebaseConfig.ts        # Firebase configuration
 │   └── safeMathUtils.ts         # Mathematical utilities
 ├── shared/           # Types and logic shared between client/server
-│   ├── slideTypes.ts            # Slide-based architecture interfaces (NEW)
+│   ├── slideTypes.ts            # Slide-based architecture interfaces
 │   ├── types.ts                 # Legacy TypeScript interfaces
 │   ├── interactiveTypes.ts      # Interactive elements and viewer modes
 │   └── migrationUtils.ts        # Legacy-to-slide conversion utilities
@@ -120,7 +125,8 @@ vitest.config.ts  # Vitest test runner configuration
 // Touch handling: Native drag API for element positioning, useTouchGestures for gestures
 // Device detection: useDeviceDetection() hook for responsive positioning calculations
 // Modal system: useLayoutConstraints() for toolbar-aware modal positioning
-// Properties system: MobilePropertiesPanel for touch-optimized element editing
+// Z-index management: Centralized system in zIndexLevels.ts for consistent layering
+// Responsive design: Unified components with conditional rendering instead of separate mobile/desktop components
 
 ## Mobile Development
 // Always use useIsMobile() hook for responsive behavior
@@ -240,8 +246,9 @@ const position = element.position[deviceType] || element.position.desktop;
 // - Use native drag API, not react-dnd
 // - Calculate positions relative to slide canvas
 // - Implement proper touch event handling for mobile
-// - Use MobilePropertiesPanel for mobile element editing
+// - Use responsive property panels that adapt to device type
 // - Follow existing drag state patterns in SlideEditor.tsx
+// - Always use centralized z-index values for proper layering
 
 ### Migration Support
 // When handling legacy data:
@@ -374,8 +381,32 @@ npm run test:run -- ReactErrorDetection
 // Do NOT remove existing accessibility features
 // Do NOT break mobile responsiveness
 // Do NOT skip test writing for new features
+// Do NOT create separate Mobile*/Desktop* components - use unified responsive design
+// Do NOT use hardcoded z-index values - always use zIndexLevels.ts
 // ASK BEFORE major architectural changes
 // ASK BEFORE adding new dependencies
+
+## Legacy Code Cleanup Guidelines for Jules
+// The application is migrating from separate mobile/desktop components to unified responsive design
+// Proactively identify and clean up deprecated patterns:
+
+### Deprecated Patterns to Remove:
+// - Components with Mobile*/Desktop* prefixes that duplicate functionality
+// - Hardcoded z-index values (replace with Z_INDEX or Z_INDEX_TAILWIND constants)
+// - Separate mobile/ and desktop/ component directories
+// - Duplicate responsive logic across multiple components
+
+### Preferred Modern Patterns:
+// - Single components with useIsMobile() hook for conditional rendering
+// - Centralized z-index management through zIndexLevels.ts
+// - Responsive CSS classes and conditional className logic
+// - Unified modal components using ResponsiveModal patterns
+
+### Code Cleanup Priorities:
+// 1. Replace hardcoded z-index values with centralized constants
+// 2. Identify Mobile*/Desktop* component pairs that can be unified
+// 3. Remove unused legacy components after successful migration
+// 4. Update import statements to use unified components instead of device-specific ones
 
 ## Success Criteria
 // All tests passing

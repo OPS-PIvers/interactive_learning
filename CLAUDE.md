@@ -16,12 +16,12 @@ Interactive web application for creating slide-based multimedia training modules
 ## Architecture Context
 - **Main Components**: `src/client/components/SlideBasedEditor.tsx` and `src/client/components/SlideBasedViewer.tsx` - Core containers for slide-based editing and viewing
 - **Slide Editor**: `src/client/components/slides/SlideEditor.tsx` - Visual drag-and-drop editor with responsive positioning
-- **Dual Mode System**: Clean separation between slide-based editing and viewing with enhanced component architecture
+- **Unified Responsive Design**: Single components that adapt to mobile/desktop through conditional rendering and responsive CSS
 - **State Management**: React useState with callback patterns and complex interdependencies
-- **Mobile-First Design**: Comprehensive mobile component library under `mobile/` directory
 - **Mobile Detection**: `useIsMobile()` hook drives conditional rendering with debounced resize handling
 - **Touch Handling**: `useTouchGestures` hook with momentum physics for pan/zoom coordination
 - **Modal System**: Unified modal constraint system preventing toolbar overlap with responsive positioning
+- **Z-Index Management**: Centralized system in `zIndexLevels.ts` for consistent layering across all components
 - **Accessibility**: `useScreenReaderAnnouncements` hook with live regions for screen reader support
 
 ## Key Dependencies
@@ -38,16 +38,18 @@ Interactive web application for creating slide-based multimedia training modules
 ```
 src/
 ├── client/
-│   ├── components/          # 130+ React components
-│   │   ├── slides/         # 14 slide-specific components including effects/
-│   │   ├── mobile/         # 14 mobile-specific components
-│   │   ├── desktop/        # 6 desktop modal components  
-│   │   ├── icons/          # 24 custom icon components
-│   │   ├── interactions/   # 3 interaction system components
-│   │   ├── animations/     # 3 animation and transition components
+│   ├── components/          # 132 React components (unified responsive design)
+│   │   ├── slides/         # Slide-specific components including effects/
+│   │   ├── responsive/     # Unified responsive modal components
+│   │   ├── icons/          # Custom icon components
+│   │   ├── interactions/   # Interaction system components
+│   │   ├── animations/     # Animation and transition components
+│   │   ├── touch/          # Touch gesture handling components
+│   │   ├── ui/             # Reusable UI components
+│   │   ├── views/          # Page-level view components
 │   │   └── shared/         # Error boundaries and loading states
-│   ├── hooks/              # 19 custom hooks
-│   ├── utils/              # 22 utility modules
+│   ├── hooks/              # 20 custom hooks for responsive behavior
+│   ├── utils/              # 33 utility modules including zIndexLevels.ts
 │   ├── contexts/           # React context providers
 │   └── styles/             # CSS modules and stylesheets
 ├── lib/                    # Firebase integration and core utilities
@@ -56,27 +58,34 @@ src/
 ```
 
 ## Component Conventions
-- **Naming**: PascalCase with descriptive prefixes (`Mobile*`, `Desktop*`, `Enhanced*`)
+- **Naming**: PascalCase with descriptive prefixes (avoid `Mobile*`/`Desktop*` - use unified responsive components)
 - **Props**: TypeScript interfaces for all component props (never use `any`)
 - **Exports**: Default exports for components, named exports for utilities
 - **Cleanup**: Implement proper cleanup in useEffect hooks with dependency arrays
 - **Architecture**: Compound component patterns for modals, editors, and viewers
-- **Mobile-First**: Separate mobile and desktop rendering logic with mobile-specific components
+- **Responsive Design**: Unified components with conditional rendering based on `useIsMobile()` hook
+- **Z-Index Integration**: Always use centralized z-index values from `zIndexLevels.ts`
 - **Accessibility**: Include proper ARIA attributes and use accessibility hooks
 - **State**: Use `useCallback` and `useMemo` for performance optimization
 - **Imports**: Direct imports over barrel exports for better tree-shaking
+- **Legacy Cleanup**: Proactively identify and remove deprecated mobile/desktop-specific components
 
 ## Viewer Architecture
 
-### ViewerFooterToolbar.tsx
-The `ViewerFooterToolbar.tsx` component is the primary user interface for navigating and controlling the viewer experience. It is a highly configurable component that adapts its layout and functionality based on the device (mobile or desktop) and the current viewing mode.
+### Unified Toolbar Architecture
+The application uses unified toolbar components that adapt responsively to different device types:
 
-**Key Features:**
-- **Responsive Design:** Provides distinct layouts for mobile and desktop screens to ensure an optimal user experience on any device.
-- **Timeline Navigation:** Includes controls for moving between slides, as well as a visual progress indicator with clickable dots.
-- **Step-Based Navigation:** Supports step-by-step navigation within a slide's timeline.
-- **Mode Controls:** Allows users to switch between different viewing modes, such as "Explore" and "Guided Tour."
-- **Accessibility:** Designed with accessibility in mind, featuring ARIA labels, keyboard navigation, and a shortcuts modal.
+**ViewerFooterToolbar.tsx** - Primary navigation interface for the viewer experience
+- **Unified Responsive Design:** Single component with conditional rendering for mobile/desktop layouts
+- **Z-Index Integration:** Uses centralized z-index system for proper mobile visibility (MOBILE_TOOLBAR: 9999, NAVIGATION: 1000)
+- **Timeline Navigation:** Slide navigation controls with visual progress indicators
+- **Mode Controls:** Switch between viewing modes ("Explore", "Guided Tour")
+- **Accessibility:** ARIA labels, keyboard navigation, and shortcuts modal
+
+**Editor Toolbars** - Consistent editing interface across all devices
+- **SlideEditorToolbar.tsx:** Modern slide-based editing toolbar with unified responsive design
+- **EditorToolbar.tsx:** Legacy editor toolbar (being phased out in favor of SlideEditorToolbar)
+- **Z-Index Compliance:** All toolbars use centralized z-index values for proper layering
 
 ## Slide-Based Architecture
 - **SlideDeck** interface defines collection of interactive slides with metadata
@@ -93,7 +102,7 @@ The `ViewerFooterToolbar.tsx` component is the primary user interface for naviga
 - Use `ResponsivePosition` interface for consistent cross-device positioning
 - dnd-kit drag-and-drop API for accessible element positioning within slide canvas
 - Element editing uses slide-specific property panels with device-responsive controls
-- **Mobile Editing**: `MobilePropertiesPanel` component with touch-optimized controls
+- **Responsive Editing**: Property panels adapt to device type with touch-optimized controls on mobile
 - **Element Types**: Support for hotspots, text, media, and shape elements
 - **Device Detection**: `useDeviceDetection()` hook for responsive positioning calculations
 - **Canvas System**: Slide editor canvas with visual drag-and-drop interface
@@ -134,12 +143,21 @@ The application features a comprehensive modal layout constraint system that pre
   - Integrated with constraint system for consistent positioning
   - Uses centralized z-index system from `zIndexLevels.ts`
 
+### Z-Index Management System
+- **Centralized Z-Index** (`src/client/utils/zIndexLevels.ts`)
+  - Single source of truth for all z-index values across the application
+  - Organized hierarchically to prevent layering conflicts
+  - Provides both numeric values (`Z_INDEX`) and Tailwind classes (`Z_INDEX_TAILWIND`)
+  - Special iOS Safari compatibility with MOBILE_TOOLBAR (9999) for mobile visibility
+  - Mobile-specific hierarchy with values up to 11000 for emergency overlays
+
 ### Features
 - **Toolbar Overlap Prevention**: Systematic prevention of modal-toolbar conflicts
 - **Unified Z-Index Management**: Centralized system eliminates hardcoded values
 - **Device-Aware Positioning**: Automatic responsive adjustments for desktop/tablet/mobile
 - **Safe Area Handling**: Respects device safe areas and system UI elements
 - **Keyboard Awareness**: Optional keyboard avoidance for mobile devices
+- **iOS Safari Compatibility**: Special z-index handling for mobile browser quirks
 
 ## Firebase Integration
 - Firestore for data storage
@@ -151,7 +169,7 @@ The application features a comprehensive modal layout constraint system that pre
 - **Mobile Detection**: Use `useIsMobile()` hook with debounced resize handling for responsive behavior
 - **Performance**: Implement debounced inputs and throttled touch events for optimal performance
 - **Touch Feedback**: Provide proper haptic feedback using `triggerHapticFeedback` utility
-- **Mobile Components**: Use mobile-specific components under `mobile/` directory
+- **Responsive Components**: Use unified components with `useIsMobile()` hook for device-specific behavior
 - **Viewport Handling**: Use `useViewportHeight` hook for mobile viewport quirks
 - **Keyboard Management**: Use `useMobileKeyboard` for keyboard interaction handling
 - **Testing**: Test on actual mobile devices when possible, use mobile-specific test cases
@@ -247,12 +265,34 @@ claude "Login to app, navigate to interactive module editor, test creating hotsp
 claude "Set mobile viewport, navigate to app, authenticate, test touch interactions, screenshot mobile view"
 ```
 
+## Legacy Code Cleanup Guidelines
+The application is transitioning from separate mobile/desktop components to a unified responsive architecture. Claude Code should proactively identify and clean up legacy patterns:
+
+### Deprecated Patterns to Remove
+- **Separate Mobile/Desktop Components**: Components with `Mobile*` or `Desktop*` prefixes that duplicate functionality
+- **Hardcoded Z-Index Values**: Replace with centralized `Z_INDEX` or `Z_INDEX_TAILWIND` constants
+- **Device-Specific Directories**: Avoid creating new `mobile/` or `desktop/` component directories
+- **Duplicate Responsive Logic**: Consolidate conditional rendering into unified components
+
+### Preferred Modern Patterns
+- **Unified Components**: Single components with `useIsMobile()` hook for responsive behavior
+- **Centralized Z-Index**: Always use `zIndexLevels.ts` for layering
+- **Responsive CSS**: Use Tailwind responsive classes and conditional className logic
+- **Legacy Migration**: Convert deprecated components to unified responsive versions
+
+### Code Janitor Priorities
+1. **Identify duplicate mobile/desktop components** that can be unified
+2. **Replace hardcoded z-index values** with centralized constants
+3. **Remove unused legacy components** after migration
+4. **Update import statements** to use unified components
+
 ## Known Limitations & Architecture Notes
 - **Large Datasets**: Image files and large hotspot collections may impact performance
 - **Touch Coordination**: Complex gesture coordination between pan/zoom and hotspot interaction
 - **Firebase Setup**: Firebase emulator setup required for local development and testing
 - **Mobile Viewport**: iOS Safari viewport quirks require specialized handling
 - **Puppeteer Stability**: Complex automation sequences can become unstable; chunk work appropriately
+- **Legacy Components**: Some `Mobile*` components still exist and should be gradually replaced with unified responsive versions
 
 ## Claude Development Workflows
 
