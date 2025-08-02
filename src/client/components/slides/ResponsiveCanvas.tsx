@@ -648,7 +648,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           currentSlide={currentSlide}
           deviceType={deviceType}
           onElementUpdate={(updates) => handleElementUpdate(selectedElement.id, updates)}
-          onSlideUpdate={handleSlideUpdate}
+          onSlideUpdate={onSlideUpdate}
           onDelete={() => {
             // Remove element from slide
             const updatedSlideDeck = {
