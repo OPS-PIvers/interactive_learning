@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import AuthButton from './AuthButton';
 import { InteractiveSlide } from '../../shared/slideTypes';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface ViewerFooterToolbarProps {
   // Project info
@@ -149,7 +150,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   }, [showProgress, slides, onSlideSelect, currentSlideIndex]);
   
   const renderMobileLayout = () => (
-    <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
+    <div className={`bg-slate-800 border-t border-slate-700 text-white shadow-2xl ${Z_INDEX_TAILWIND.MOBILE_TOOLBAR}`}>
       <div 
         className="px-3 py-3 flex items-center justify-between landscape:py-1 landscape:min-h-0"
         style={{
@@ -257,7 +258,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   );
   
   const renderDesktopLayout = () => (
-    <div className="bg-slate-800 border-t border-slate-700 text-white shadow-2xl">
+    <div className={`bg-slate-800 border-t border-slate-700 text-white shadow-2xl ${Z_INDEX_TAILWIND.NAVIGATION}`}>
       <div className="px-6 py-4 flex items-center justify-between">
         {/* Left: Back + Project Name */}
         <div className="flex items-center gap-4">
@@ -383,7 +384,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
       {showShortcuts && (
         <div
           ref={modalRef}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
           onClick={() => setShowShortcuts(false)}
           role="dialog"
           aria-modal="true"
