@@ -54,6 +54,10 @@ export interface LayoutConstraints {
   isMobile: boolean;
   layoutMode: 'compact' | 'standard' | 'expanded';
   orientation: 'portrait' | 'landscape';
+
+  // Key UI element dimensions
+  toolbarHeight: number;
+  headerHeight: number;
 }
 
 export interface ModalConstraintOptions {
@@ -79,6 +83,10 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
   const { deviceType, viewportInfo, isMobile } = useDeviceDetection();
   const { height: viewportHeight, availableHeight } = useViewportHeight();
 
+  // Define key UI element heights for consistent calculations
+  const headerHeight = isMobile ? 44 : 0; // Represents mobile status bar area
+  const toolbarHeight = preventToolbarOverlap ? (deviceType === 'mobile' ? 56 : 64) : 0;
+
   // Calculate safe area boundaries based on device type and viewport
   const safeArea = useMemo(() => {
     // Base safe area from CSS env() variables or defaults
@@ -91,19 +99,15 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
 
     // Add device-specific safe areas
     if (isMobile) {
-      // Mobile devices need safe area insets
-      base.top = 44; // Status bar + safe area
+      base.top = headerHeight; // Status bar + safe area
       base.bottom = 34; // Home indicator safe area
     }
 
-    if (preventToolbarOverlap) {
-      // Standard toolbar heights by device type
-      const toolbarHeight = deviceType === 'mobile' ? 56 : 64;
-      base.bottom += toolbarHeight;
-    }
+    // Account for toolbar height if overlap prevention is on
+    base.bottom += toolbarHeight;
 
     return base;
-  }, [deviceType, isMobile, preventToolbarOverlap]);
+  }, [isMobile, headerHeight, toolbarHeight]);
 
   // Calculate modal constraints based on safe area
   const modal = useMemo(() => {
@@ -234,6 +238,8 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     isMobile,
     layoutMode: deviceType === 'mobile' ? 'compact' : deviceType === 'tablet' ? 'standard' : 'expanded',
     orientation: viewportInfo.orientation,
+    toolbarHeight,
+    headerHeight,
   };
 }
 
