@@ -1,7 +1,6 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@import './styles/mobile.css';
 @import './styles/custom-scrollbar.css'; /* Custom scrollbar styles we added */
 @import './styles/high-contrast.css'; /* High contrast mode styles */
 @import './styles/slide-components.css'; /* Slide-based architecture styles */

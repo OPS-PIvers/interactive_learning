@@ -15,7 +15,7 @@ import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
-import MobilePropertiesPanel from './MobilePropertiesPanel';
+import UnifiedPropertiesPanel from '../UnifiedPropertiesPanel';
 
 export interface ResponsiveCanvasProps {
   slideDeck: SlideDeck;
@@ -107,7 +107,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   });
   
   const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>();
-  const [showMobilePropertiesPanel, setShowMobilePropertiesPanel] = useState(false);
+  const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   
   // Current slide and elements
@@ -242,7 +242,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     
     // Show properties panel when element is selected (responsive behavior handled by panel itself)
     if (elementId && isEditable) {
-      setShowMobilePropertiesPanel(true);
+      setShowPropertiesPanel(true);
     }
   }, [onElementSelect, isEditable]);
   
@@ -415,7 +415,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === canvasRef.current) {
       handleElementSelect(null);
-      setShowMobilePropertiesPanel(false);
+      setShowPropertiesPanel(false);
     }
   }, [handleElementSelect]);
   
@@ -642,11 +642,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       </div>
       
       {/* Properties panel (responsive - shows as overlay on small viewports) */}
-      {showMobilePropertiesPanel && selectedElement && (
-        <MobilePropertiesPanel
+      {showPropertiesPanel && selectedElement && (
+        <UnifiedPropertiesPanel
           selectedElement={selectedElement}
+          currentSlide={currentSlide}
           deviceType={deviceType}
-          onElementUpdate={handleElementUpdate}
+          onElementUpdate={(updates) => handleElementUpdate(selectedElement.id, updates)}
+          onSlideUpdate={handleSlideUpdate}
           onDelete={() => {
             // Remove element from slide
             const updatedSlideDeck = {
@@ -661,11 +663,11 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
               }),
             };
             onSlideDeckChange(updatedSlideDeck);
-            setShowMobilePropertiesPanel(false);
+            setShowPropertiesPanel(false);
             handleElementSelect(null);
           }}
           onClose={() => {
-            setShowMobilePropertiesPanel(false);
+            setShowPropertiesPanel(false);
             handleElementSelect(null);
           }}
         />

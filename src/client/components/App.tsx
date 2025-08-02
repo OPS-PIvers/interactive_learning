@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import '../styles/mobile-touch.css';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { AuthModal } from './AuthModal';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';

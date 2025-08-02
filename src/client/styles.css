@@ -1,5 +1,3 @@
-/* Import mobile-specific fixes */
-@import './styles/mobile-fixes.css';
 
 @tailwind base;
 @tailwind components;
