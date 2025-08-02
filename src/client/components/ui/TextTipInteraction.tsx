@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 interface TextTipInteractionProps {
   text: string;
@@ -31,7 +31,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [actualPosition, setActualPosition] = useState(position);
   const tipRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
+  const { isMobile } = useDeviceDetection();
 
   // Calculate smart positioning to avoid viewport edges
   const calculatePosition = useCallback(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { BackgroundMedia } from '../../shared/slideTypes';
-import { useViewportMobile } from '../hooks/useViewportMobile';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import FileUpload from './FileUpload';
 import { FirebaseProjectAPI } from '../../lib/firebaseApi';
 
@@ -23,7 +23,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   onClose,
   isOpen
 }) => {
-  const isMobile = useViewportMobile(768);
+  const { isMobile } = useDeviceDetection();
   const [selectedTab, setSelectedTab] = useState<'image' | 'video' | 'youtube' | 'audio' | 'none'>('image');
   const [isUploading, setIsUploading] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');

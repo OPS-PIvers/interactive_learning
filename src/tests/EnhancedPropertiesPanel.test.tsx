@@ -6,8 +6,8 @@ import { SlideElement, DeviceType } from '../shared/slideTypes';
 import { vi } from 'vitest';
 
 // Mock dependencies
-vi.mock('../client/hooks/useIsMobile', () => ({
-  useIsMobile: () => true,
+vi.mock('../client/hooks/useDeviceDetection', () => ({
+  useDeviceDetection: () => ({ isMobile: true, deviceType: 'mobile', isTablet: false, isDesktop: false }),
 }));
 
 vi.mock('../client/components/mobile/MobileColorPicker', () => ({

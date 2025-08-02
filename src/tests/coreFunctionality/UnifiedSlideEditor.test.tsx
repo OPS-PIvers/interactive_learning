@@ -7,7 +7,7 @@ import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/compon
 import { SlideDeck } from '../../shared/slideTypes';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { ToastProvider, useToast } from '../../client/hooks/useToast';
-import { useIsMobile } from '../../client/hooks/useIsMobile';
+import { useDeviceDetection } from '../../client/hooks/useDeviceDetection';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';
 
@@ -28,8 +28,8 @@ vi.mock('../../client/hooks/useToast', async () => {
     };
 });
 
-vi.mock('../../client/hooks/useIsMobile', () => ({
-  useIsMobile: () => false,
+vi.mock('../../client/hooks/useDeviceDetection', () => ({
+  useDeviceDetection: () => ({ isMobile: false, deviceType: 'desktop', isTablet: false, isDesktop: true }),
 }));
 
 vi.mock('../../lib/firebaseApi', () => ({

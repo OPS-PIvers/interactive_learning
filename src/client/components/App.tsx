@@ -13,7 +13,7 @@ import { appScriptProxy } from '../../lib/firebaseProxy';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { GradientCreateButton } from './ui/GradientCreateButton';
 import { SettingsIcon } from './icons/SettingsIcon';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import AuthButton from './AuthButton';
 import SharedModuleViewer from './SharedModuleViewer';
 import ViewerView from './views/ViewerView';
@@ -44,7 +44,7 @@ const MainApp: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showInitialAnimation, setShowInitialAnimation] = useState(true);
-  const isMobile = useIsMobile();
+  const { isMobile } = useDeviceDetection();
 
   useEffect(() => {
     const cleanupVhUpdater = setDynamicVhProperty();

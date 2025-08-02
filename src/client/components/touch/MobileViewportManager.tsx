@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 export interface ViewportState {
   width: number;
@@ -54,7 +54,7 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
     enableAutoScale = true
   } = config;
 
-  const isMobile = useIsMobile();
+  const { isMobile } = useDeviceDetection();
   const [viewport, setViewport] = useState<ViewportState>({
     width: window.innerWidth,
     height: window.innerHeight,

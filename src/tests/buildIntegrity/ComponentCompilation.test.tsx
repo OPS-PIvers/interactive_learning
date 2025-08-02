@@ -14,8 +14,8 @@ vi.mock('../../client/hooks/useToast', () => ({
   useToast: () => ({ showToast: vi.fn() })
 }));
 
-vi.mock('../../client/hooks/useIsMobile', () => ({
-  useIsMobile: () => false
+vi.mock('../../client/hooks/useDeviceDetection', () => ({
+  useDeviceDetection: () => ({ isMobile: false, deviceType: 'desktop', isTablet: false, isDesktop: true })
 }));
 
 // Mock Firebase to prevent initialization during tests
@@ -58,7 +58,7 @@ describe('Component Compilation Integrity Tests', () => {
   describe('Hook Imports', () => {
     test('custom hooks import correctly', async () => {
       const hooks = [
-        '../../client/hooks/useIsMobile',
+        '../../client/hooks/useDeviceDetection',
         '../../client/hooks/useToast'
       ];
 
@@ -71,9 +71,9 @@ describe('Component Compilation Integrity Tests', () => {
     });
 
     test('hooks export expected functions', async () => {
-      const useIsMobileModule = await import('../../client/hooks/useIsMobile');
-      expect(useIsMobileModule.useIsMobile).toBeDefined();
-      expect(typeof useIsMobileModule.useIsMobile).toBe('function');
+      const useDeviceDetectionModule = await import('../../client/hooks/useDeviceDetection');
+      expect(useDeviceDetectionModule.useDeviceDetection).toBeDefined();
+      expect(typeof useDeviceDetectionModule.useDeviceDetection).toBe('function');
 
       const useToastModule = await import('../../client/hooks/useToast');
       expect(useToastModule.useToast).toBeDefined();

@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { useViewportMobile } from '../../hooks/useViewportMobile';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { UnifiedPropertiesPanelProps, PROPERTIES_PANEL_BREAKPOINTS } from '../shared/BasePropertiesPanel';
 import { MobilePropertiesPanel } from './MobilePropertiesPanel';
 import EnhancedPropertiesPanel from '../EnhancedPropertiesPanel';
@@ -21,7 +21,7 @@ export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = 
   style,
   ...props
 }) => {
-  const isMobile = useViewportMobile(PROPERTIES_PANEL_BREAKPOINTS.MOBILE_THRESHOLD);
+  const { isMobile } = useDeviceDetection();
   
   // Determine which mode to use based on configuration and device detection
   const effectiveMode = useMemo(() => {
@@ -73,7 +73,7 @@ export const useResponsivePropertiesPanel = (
   userMode: 'mobile' | 'desktop' | 'auto' = 'auto',
   forceMobile?: boolean
 ) => {
-  const isMobile = useViewportMobile(PROPERTIES_PANEL_BREAKPOINTS.MOBILE_THRESHOLD);
+  const { isMobile } = useDeviceDetection();
   
   return useMemo(() => {
     const effectiveMode = forceMobile ? 'mobile' : 

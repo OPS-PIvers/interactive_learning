@@ -357,25 +357,23 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     }
   }, [actions, onSave, slideDeck, projectId, projectName, projectTheme, state.navigation.currentSlideIndex]);
   
-  // Auto-dismiss mobile hint
+  // Auto-dismiss help hint
   useEffect(() => {
-    if (computed.isMobile && state.ui.showMobileHint) {
+    if (state.ui.showHelpHint) {
       const timer = setTimeout(() => {
-        actions.dismissMobileHint();
+        actions.dismissHelpHint();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [computed.isMobile, state.ui.showMobileHint, actions]);
+  }, [state.ui.showHelpHint, actions]);
   
-  // Add mobile body classes
+  // Add editor body classes
   useEffect(() => {
-    if (computed.isMobile) {
-      document.body.classList.add('mobile-editor-active');
-      return () => {
-        document.body.classList.remove('mobile-editor-active');
-      };
-    }
-  }, [computed.isMobile]);
+    document.body.classList.add('unified-editor-active');
+    return () => {
+      document.body.classList.remove('unified-editor-active');
+    };
+  }, []);
   
   // Generate viewer config for sharing
   const viewerConfig = useMemo(() => ({
@@ -386,17 +384,17 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       showProgress: false,
       showControls: false,
       keyboardShortcuts: true,
-      touchGestures: computed.isMobile,
+      touchGestures: computed.effectiveDeviceType === 'mobile',
       fullscreenMode: false,
     },
-  }), [slideDeck, computed.isMobile]);
+  }), [slideDeck, computed.effectiveDeviceType]);
   
   return (
     <ProjectThemeProvider 
       initialThemeId={projectTheme}
       onThemeChange={handleThemeChange}
     >
-      <div className={`unified-slide-editor ${computed.isMobile ? 'h-screen' : 'fixed inset-0 h-full'} w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 ${computed.isMobile ? '' : 'overflow-hidden'}`}>
+      <div className="unified-slide-editor fixed inset-0 h-full w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
         
         {/* Responsive Header */}
         <ResponsiveHeader
@@ -450,7 +448,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           </div>
           
           {/* Responsive Properties Panel */}
-          {!state.navigation.isPreviewMode && !computed.isMobile && selectedElement && (
+          {!state.navigation.isPreviewMode && selectedElement && (
             <ResponsivePropertiesPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide}
@@ -472,14 +470,14 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           )}
         </div>
         
-        {/* Mobile help hint */}
-        {computed.isMobile && state.ui.showMobileHint && !state.navigation.isPreviewMode && (
+        {/* Help hint */}
+        {state.ui.showHelpHint && !state.navigation.isPreviewMode && (
           <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
             <div className="flex items-center gap-2">
-              <span className="text-blue-200">📱</span>
-              <span>Pinch to zoom, swipe to navigate slides, tap elements to select</span>
+              <span className="text-blue-200">✨</span>
+              <span>Use touch/mouse to zoom, navigate slides, and select elements</span>
               <button
-                onClick={actions.dismissMobileHint}
+                onClick={actions.dismissHelpHint}
                 className="ml-2 text-blue-200 hover:text-white"
               >
                 ✕
@@ -489,7 +487,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         )}
         
         {/* Migration info footer */}
-        {migrationResult && !computed.isMobile && (
+        {migrationResult && (
           <div className="bg-slate-800 border-t border-slate-700 text-slate-400 p-3 text-xs">
             <div className="flex items-center justify-between">
               <div>

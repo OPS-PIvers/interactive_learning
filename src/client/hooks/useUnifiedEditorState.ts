@@ -43,7 +43,7 @@ export interface UIVisibilityState {
   propertiesPanel: boolean;
   
   // UI elements
-  showMobileHint: boolean;
+  showHelpHint: boolean;
   showSuccessMessage: boolean;
   activeDropdownId: string | null;
 }
@@ -83,11 +83,11 @@ export interface EditorStateActions {
   setTransforming: (isTransforming: boolean) => void;
   
   // UI visibility actions
-  openModal: (modalType: keyof Omit<UIVisibilityState, 'showMobileHint' | 'showSuccessMessage' | 'activeDropdownId'>) => void;
-  closeModal: (modalType: keyof Omit<UIVisibilityState, 'showMobileHint' | 'showSuccessMessage' | 'activeDropdownId'>) => void;
+  openModal: (modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => void;
+  closeModal: (modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => void;
   closeAllModals: () => void;
   setActiveDropdown: (dropdownId: string | null) => void;
-  dismissMobileHint: () => void;
+  dismissHelpHint: () => void;
   showSuccessMessage: () => void;
   hideSuccessMessage: () => void;
   
@@ -142,7 +142,7 @@ const createDefaultUIVisibilityState = (): UIVisibilityState => ({
   shareModal: false,
   settingsModal: false,
   propertiesPanel: false,
-  showMobileHint: true,
+  showHelpHint: true,
   showSuccessMessage: false,
   activeDropdownId: null,
 });
@@ -225,7 +225,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   }, []);
   
   // UI visibility actions
-  const openModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showMobileHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
+  const openModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
     setUI(prev => ({ 
       ...prev, 
       [modalType]: true,
@@ -240,7 +240,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     }));
   }, []);
   
-  const closeModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showMobileHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
+  const closeModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
     setUI(prev => ({ ...prev, [modalType]: false }));
   }, []);
   
@@ -261,8 +261,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setUI(prev => ({ ...prev, activeDropdownId: dropdownId }));
   }, []);
   
-  const dismissMobileHint = useCallback(() => {
-    setUI(prev => ({ ...prev, showMobileHint: false }));
+  const dismissHelpHint = useCallback(() => {
+    setUI(prev => ({ ...prev, showHelpHint: false }));
   }, []);
   
   const showSuccessMessage = useCallback(() => {
@@ -325,15 +325,15 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setUI(prev => ({ ...prev, propertiesPanel: false }));
   }, []);
   
-  // Auto-dismiss mobile hint after 5 seconds
+  // Auto-dismiss help hint after 5 seconds
   React.useEffect(() => {
-    if (window.innerWidth < 768 && ui.showMobileHint) {
+    if (ui.showHelpHint) {
       const timer = setTimeout(() => {
-        dismissMobileHint();
+        dismissHelpHint();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [ui.showMobileHint, dismissMobileHint]);
+  }, [ui.showHelpHint, dismissHelpHint]);
   
   return {
     state: {
@@ -354,7 +354,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       closeModal,
       closeAllModals,
       setActiveDropdown,
-      dismissMobileHint,
+      dismissHelpHint,
       showSuccessMessage,
       hideSuccessMessage,
       setSaving,

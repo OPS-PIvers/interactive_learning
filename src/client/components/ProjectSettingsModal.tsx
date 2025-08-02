@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { useMobileToolbar } from '../hooks/useMobileToolbar';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
+import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 import { useProjectTheme } from '../hooks/useProjectTheme';
 import { getAllThemes } from '../../shared/themePresets';
 import { ThemePreset } from '../../shared/slideTypes';
@@ -24,8 +24,8 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   isPublished = false,
   onShare
 }) => {
-  const isMobile = useIsMobile();
-  const { dimensions } = useMobileToolbar();
+  const { isMobile } = useDeviceDetection();
+  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
   const { currentThemeId, setTheme, availableThemes } = useProjectTheme();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -85,7 +85,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   const getModalStyle = () => {
-    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
+    const toolbarHeight = constraints.toolbarHeight; // Always account for toolbar
     const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
     const padding = isMobile ? '0px' : '1rem'; // Reduced desktop padding
     

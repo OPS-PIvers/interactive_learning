@@ -43,10 +43,10 @@ describe('Import/Export Integrity Tests', () => {
   });
 
   describe('Hook Module Structure', () => {
-    test('useIsMobile hook exports correctly', async () => {
-      const module = await import('../../client/hooks/useIsMobile');
-      expect(module.useIsMobile).toBeDefined();
-      expect(typeof module.useIsMobile).toBe('function');
+    test('useDeviceDetection hook exports correctly', async () => {
+      const module = await import('../../client/hooks/useDeviceDetection');
+      expect(module.useDeviceDetection).toBeDefined();
+      expect(typeof module.useDeviceDetection).toBe('function');
     });
 
     test('useToast hook exports correctly', async () => {
@@ -87,7 +87,7 @@ describe('Import/Export Integrity Tests', () => {
 
     test('hooks can import required utilities', async () => {
       const hooks = await Promise.all([
-        import('../../client/hooks/useIsMobile'),
+        import('../../client/hooks/useDeviceDetection'),
         import('../../client/hooks/useToast')
       ]);
       
@@ -105,7 +105,7 @@ describe('Import/Export Integrity Tests', () => {
         import('../../shared/slideTypes'),
         import('../../shared/types'),
         import('../../lib/firebaseConfig'),
-        import('../../client/hooks/useIsMobile'),
+        import('../../client/hooks/useDeviceDetection'),
         import('../../client/hooks/useToast')
       ]);
       
@@ -138,13 +138,13 @@ describe('Import/Export Integrity Tests', () => {
   describe('Tree-Shaking Compatibility', () => {
     test('named exports support selective importing', async () => {
       // Test that named exports can be imported selectively
-      const { useIsMobile } = await import('../../client/hooks/useIsMobile');
+      const { useDeviceDetection } = await import('../../client/hooks/useDeviceDetection');
       
       // DeviceType is a type alias, so we test it compiles correctly
       const testDevice: import('../../shared/slideTypes').DeviceType = 'desktop';
       expect(testDevice).toBe('desktop');
       
-      expect(useIsMobile).toBeDefined();
+      expect(useDeviceDetection).toBeDefined();
     });
 
     test('default exports work correctly', async () => {
@@ -162,7 +162,7 @@ describe('Import/Export Integrity Tests', () => {
       const modules = await Promise.all([
         import('../../shared/slideTypes'),
         import('../../lib/firebaseConfig'),
-        import('../../client/hooks/useIsMobile')
+        import('../../client/hooks/useDeviceDetection')
       ]);
       
       modules.forEach(module => {

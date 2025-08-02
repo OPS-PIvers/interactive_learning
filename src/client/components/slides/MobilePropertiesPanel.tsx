@@ -7,7 +7,7 @@ import ChevronDownIcon from '../icons/ChevronDownIcon';
 import { hotspotSizePresets, HotspotSize } from '../../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from '../ui/LiquidColorSelector';
 import { Z_INDEX_TAILWIND, Z_INDEX_PATTERNS } from '../../utils/zIndexLevels';
-import { useContentAreaHeight } from '../../hooks/useMobileToolbar';
+import { useLayoutConstraints } from '../../hooks/useLayoutConstraints';
 import { MobilePropertiesPanelProps, CollapsibleSectionProps, getDefaultSections } from '../shared/BasePropertiesPanel';
 import ResponsiveModal from '../responsive/ResponsiveModal';
 import { TextInteractionEditor } from '../interactions/TextInteractionEditor';
@@ -157,7 +157,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
   
   // Dynamic height calculation accounting for mobile toolbar
-  const { maxHeight } = useContentAreaHeight(false);
+  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
 
   const toggleSection = useCallback((section: keyof typeof openSections) => {
     setOpenSections(prev => ({
@@ -371,7 +371,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
         className="bg-slate-800 w-full rounded-t-xl shadow-2xl overflow-hidden"
         style={{
           /* Dynamic max height accounting for mobile toolbar */
-          maxHeight: maxHeight,
+          maxHeight: `calc(100vh - ${constraints.toolbarHeight}px - ${constraints.headerHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 40px)`,
         }}
       >
         {/* Header */}

@@ -2,8 +2,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
 import { firebaseAPI } from '../../lib/firebaseApi';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { useMobileToolbar } from '../hooks/useMobileToolbar';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
+import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -36,8 +36,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const embedInputRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const isMobile = useIsMobile();
-  const { dimensions } = useMobileToolbar();
+  const { isMobile } = useDeviceDetection();
+  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Handle body scroll lock and focus management
@@ -195,7 +195,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   // Unified modal sizing for consistent behavior across all screen sizes
   const getModalStyle = () => {
-    const toolbarHeight = dimensions.toolbarHeight; // Always account for toolbar
+    const toolbarHeight = constraints.toolbarHeight; // Always account for toolbar
     const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
     
     const height = `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;

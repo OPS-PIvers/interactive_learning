@@ -15,8 +15,8 @@ vi.mock('../../client/hooks/useToast', () => ({
   useToast: () => ({ showToast: vi.fn() })
 }));
 
-vi.mock('../../client/hooks/useIsMobile', () => ({
-  useIsMobile: () => false
+vi.mock('../../client/hooks/useDeviceDetection', () => ({
+  useDeviceDetection: () => ({ isMobile: false, deviceType: 'desktop', isTablet: false, isDesktop: true })
 }));
 
 vi.mock('../../lib/firebaseApi', () => ({

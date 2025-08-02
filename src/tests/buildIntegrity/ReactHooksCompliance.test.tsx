@@ -124,10 +124,10 @@ describe('React Hooks Compliance Tests', () => {
   });
 
   describe('Specific Hook Implementation Compliance', () => {
-    test('useIsMobile hook maintains consistent behavior', async () => {
-      const { useIsMobile } = await import('../../client/hooks/useIsMobile');
+    test('useDeviceDetection hook maintains consistent behavior', async () => {
+      const { useDeviceDetection } = await import('../../client/hooks/useDeviceDetection');
 
-      const { result, rerender } = renderHook(() => useIsMobile());
+      const { result, rerender } = renderHook(() => useDeviceDetection());
 
       // Should not cause hook order violations on re-render
       expect(() => {
@@ -136,8 +136,9 @@ describe('React Hooks Compliance Tests', () => {
         rerender();
       }).not.toThrow();
 
-      // Result should be boolean
-      expect(typeof result.current).toBe('boolean');
+      // Result should have expected properties
+      expect(typeof result.current.isMobile).toBe('boolean');
+      expect(typeof result.current.deviceType).toBe('string');
     });
 
     test('useToast hook maintains consistent behavior', async () => {

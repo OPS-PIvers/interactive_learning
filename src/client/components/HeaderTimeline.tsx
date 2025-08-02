@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { PauseIcon } from './icons/PauseIcon';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useIOSSafariViewport } from '../hooks/useViewportHeight';
 import { getIOSZIndexStyle, getIOSSafeAreaStyle, IOS_Z_INDEX } from '../utils/iosZIndexManager';
 
@@ -62,7 +62,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
   playbackSpeed = 1,
   onSpeedChange
 }) => {
-  const isMobile = useIsMobile();
+  const { isMobile } = useDeviceDetection();
   const { isIOSSafariUIVisible } = useIOSSafariViewport();
   // Generate timeline steps from slides
   const timelineSteps = useMemo((): TimelineStep[] => {

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
-import { useIsMobile } from '../hooks/useIsMobile';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
@@ -31,8 +30,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   onClose,
   migrationResult
 }) => {
-  const isMobile = useIsMobile();
-  const { deviceType } = useDeviceDetection();
+  const { isMobile, deviceType } = useDeviceDetection();
   
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');

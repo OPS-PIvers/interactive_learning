@@ -1,8 +1,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { useViewportMobile } from '../hooks/useViewportMobile';
-import { useMobileToolbar } from '../hooks/useMobileToolbar';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
+import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 
 interface ModalProps {
   isOpen: boolean;
@@ -14,8 +14,8 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const isMobile = useViewportMobile(768);
-  const { dimensions } = useMobileToolbar();
+  const { isMobile } = useDeviceDetection();
+  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
 
   useEffect(() => {
     if (isOpen) {
@@ -79,12 +79,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     const topMargin = isMobile ? '8px' : '12px';
     const topPosition = `calc(${headerHeight}px + ${safeAreaTop} + ${topMargin})`;
     
-    // Calculate available height for modal content
-    const toolbarHeight = dimensions.toolbarHeight;
+    // Calculate available height for modal content using unified constraints
     const bottomMargin = isMobile ? '24px' : '16px'; // Extra margin for footer toolbar
     const safetyBuffer = isMobile ? '20px' : '16px'; // Additional buffer for dynamic toolbars
     
-    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${toolbarHeight}px - ${safetyBuffer})`;
+    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${constraints.toolbarHeight}px - ${safetyBuffer})`;
     
     return {
       top: topPosition,
