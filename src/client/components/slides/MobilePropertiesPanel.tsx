@@ -333,7 +333,7 @@ export const MobilePropertiesPanel: React.FC<MobilePropertiesPanelProps> = ({
 
   return (
     <div 
-      className={`fixed inset-0 bg-black bg-opacity-50 ${Z_INDEX_TAILWIND.MOBILE_PROPERTIES_PANEL} flex items-end justify-center`}
+      className={`fixed inset-0 bg-black bg-opacity-50 ${Z_INDEX_TAILWIND.PROPERTIES_PANEL} flex items-end justify-center`}
       style={{ 
         paddingBottom: 'max(env(safe-area-inset-bottom), 16px)', 
         touchAction: 'none',

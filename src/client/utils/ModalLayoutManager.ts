@@ -186,18 +186,18 @@ export class ModalLayoutManager {
 
     switch (type) {
       case 'properties':
-        backdrop = isMobile ? Z_INDEX.MOBILE_PROPERTIES_PANEL : Z_INDEX.MODAL_BACKDROP;
-        content = backdrop + 1;
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.PROPERTIES_PANEL;
         break;
 
       case 'confirmation':
-        backdrop = Z_INDEX.CONFIRMATION_DIALOG;
-        content = backdrop + 1;
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.CONFIRMATION_DIALOG;
         break;
 
       case 'fullscreen':
-        backdrop = isMobile ? Z_INDEX.MOBILE_MODAL_SYSTEM : Z_INDEX.MODAL_BACKDROP;
-        content = backdrop + 1;
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.SYSTEM_MODAL;
         break;
 
       case 'drawer':

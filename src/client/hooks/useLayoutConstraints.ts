@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 import { useDeviceDetection } from './useDeviceDetection';
 import { useViewportHeight } from './useViewportHeight';
 import { DeviceType } from '../../shared/slideTypes';
-import { Z_INDEX, Z_INDEX_TAILWIND, MOBILE_Z_INDEX, DESKTOP_Z_INDEX } from '../utils/zIndexLevels';
+import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 export interface LayoutConstraints {
   // Available space calculations
@@ -157,48 +157,29 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     };
   }, [viewportInfo, availableHeight, viewportHeight, safeArea, size, deviceType, respectKeyboard]);
 
-  // Z-index management based on modal type and device
+  // Z-index management based on modal type using unified system
   const zIndex = useMemo(() => {
     let backdrop: number;
     let content: number;
 
-    if (isMobile) {
-      switch (type) {
-        case 'properties':
-          backdrop = MOBILE_Z_INDEX.PROPERTIES_MODAL;
-          content = MOBILE_Z_INDEX.PROPERTIES_MODAL + 1;
-          break;
-        case 'confirmation':
-          backdrop = Z_INDEX.CONFIRMATION_DIALOG;
-          content = Z_INDEX.CONFIRMATION_DIALOG + 1;
-          break;
-        case 'fullscreen':
-          backdrop = Z_INDEX.MOBILE_MODAL_SYSTEM;
-          content = Z_INDEX.MOBILE_MODAL_SYSTEM + 1;
-          break;
-        case 'standard':
-        default:
-          backdrop = Z_INDEX.MODAL_BACKDROP;
-          content = Z_INDEX.MODAL_CONTENT;
-          break;
-      }
-    } else {
-      // Desktop z-index assignment
-      switch (type) {
-        case 'properties':
-          backdrop = DESKTOP_Z_INDEX.MODAL_OVERLAY;
-          content = DESKTOP_Z_INDEX.MODAL_DIALOG;
-          break;
-        case 'confirmation':
-          backdrop = Z_INDEX.CONFIRMATION_DIALOG;
-          content = Z_INDEX.CONFIRMATION_DIALOG + 1;
-          break;
-        case 'standard':
-        default:
-          backdrop = Z_INDEX.MODAL_BACKDROP;
-          content = Z_INDEX.MODAL_CONTENT;
-          break;
-      }
+    switch (type) {
+      case 'properties':
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.PROPERTIES_PANEL;
+        break;
+      case 'confirmation':
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.CONFIRMATION_DIALOG;
+        break;
+      case 'fullscreen':
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.SYSTEM_MODAL;
+        break;
+      case 'standard':
+      default:
+        backdrop = Z_INDEX.MODAL_BACKDROP;
+        content = Z_INDEX.MODAL_CONTENT;
+        break;
     }
 
     return {
@@ -207,7 +188,7 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
       tailwindBackdrop: `z-[${backdrop}]`,
       tailwindContent: `z-[${content}]`
     };
-  }, [type, isMobile]);
+  }, [type]);
 
   // Generate CSS variables for consistent styling
   const cssVariables = useMemo(() => ({
