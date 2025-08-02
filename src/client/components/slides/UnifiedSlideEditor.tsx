@@ -417,7 +417,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           
           
           {/* Main canvas area */}
-          <div className="flex-1 flex flex-col relative min-h-0">
+          <div className="flex-1 flex flex-col relative min-h-0 z-10">
             
             {/* Responsive Canvas */}
             <ResponsiveCanvas
