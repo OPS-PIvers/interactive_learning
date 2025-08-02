@@ -1,23 +1,23 @@
 /**
- * Centralized Z-Index Management System
+ * Unified Z-Index Management System
  * 
- * This file provides a single source of truth for all z-index values across the application.
- * Organized hierarchically to prevent layering conflicts and ensure consistent behavior.
+ * Single source of truth for all z-index values across the application.
+ * Organized hierarchically to prevent layering conflicts. Works on all device types.
  * 
  * Usage:
  * ```typescript
  * import { Z_INDEX } from '../utils/zIndexLevels';
  * 
  * // In component styles
- * style={{ zIndex: Z_INDEX.MODAL }}
+ * style={{ zIndex: Z_INDEX.MODAL_CONTENT }}
  * 
  * // In Tailwind classes
- * className={`fixed inset-0 ${Z_INDEX.MODAL_TAILWIND}`}
+ * className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
  * ```
  */
 
 /**
- * Z-Index hierarchy levels organized by functional layers
+ * Unified Z-Index hierarchy for all devices and screen sizes
  */
 export const Z_INDEX = {
   // Base content layer (0-99)
@@ -50,17 +50,16 @@ export const Z_INDEX = {
   NESTED_MODAL: 9000,
   CONFIRMATION_DIALOG: 9500,
 
-  // Critical system UI (10000+)
-  MOBILE_TOOLBAR: 9999,           // iOS Safari compatibility requirement
-  MOBILE_MODAL_SYSTEM: 10000,     // Above mobile toolbar
-  MOBILE_PROPERTIES_PANEL: 10100, // Above modal system
-  DEBUG_OVERLAY: 10500,           // Development/debugging
-  EMERGENCY_OVERLAY: 11000,       // Absolute highest priority
+  // System UI (10000+) - High enough for all device types including iOS Safari
+  TOOLBAR: 9999,              // Unified toolbar level (works on all devices)
+  PROPERTIES_PANEL: 10000,    // Unified properties panel
+  SYSTEM_MODAL: 10100,        // System-level modals
+  DEBUG_OVERLAY: 10500,       // Development/debugging
+  EMERGENCY_OVERLAY: 11000,   // Absolute highest priority
 } as const;
 
 /**
  * Tailwind CSS class mappings for z-index values
- * Use these for Tailwind-based styling
  */
 export const Z_INDEX_TAILWIND = {
   BASE: 'z-0',
@@ -83,50 +82,13 @@ export const Z_INDEX_TAILWIND = {
   MODAL_CONTENT: 'z-[8500]',
   NESTED_MODAL: 'z-[9000]',
   CONFIRMATION_DIALOG: 'z-[9500]',
-  MOBILE_TOOLBAR: 'z-[9999]',
-  MOBILE_MODAL_SYSTEM: 'z-[10000]',
-  MOBILE_PROPERTIES_PANEL: 'z-[10100]',
+  TOOLBAR: 'z-[9999]',
+  PROPERTIES_PANEL: 'z-[10000]',
+  SYSTEM_MODAL: 'z-[10100]',
   DEBUG_OVERLAY: 'z-[10500]',
   EMERGENCY_OVERLAY: 'z-[11000]',
 } as const;
 
-/**
- * Mobile-specific z-index hierarchy
- * Special considerations for iOS Safari and mobile interactions
- */
-export const MOBILE_Z_INDEX = {
-  // Mobile base layers
-  SLIDE_CANVAS: Z_INDEX.BASE,
-  TOUCH_OVERLAY: Z_INDEX.SLIDE_ELEMENTS,
-  GESTURE_FEEDBACK: Z_INDEX.SELECTED_ELEMENTS,
-
-  // Mobile UI components
-  BOTTOM_TOOLBAR: Z_INDEX.MOBILE_TOOLBAR,
-  PROPERTIES_MODAL: Z_INDEX.MOBILE_PROPERTIES_PANEL,
-  SHARE_MODAL: Z_INDEX.MOBILE_MODAL_SYSTEM,
-  CONFIRMATION_MODAL: Z_INDEX.NESTED_MODAL,
-
-  // iOS Safari specific (must exceed browser UI)
-  IOS_SAFE_MINIMUM: 9999,
-  IOS_UI_OVERRIDE: Z_INDEX.MOBILE_MODAL_SYSTEM,
-} as const;
-
-/**
- * Desktop-specific z-index hierarchy
- * Optimized for mouse interactions and larger screens
- */
-export const DESKTOP_Z_INDEX = {
-  // Desktop base layers
-  SIDEBAR: Z_INDEX.NAVIGATION,
-  PROPERTIES_PANEL: Z_INDEX.FLOATING_CONTROLS,
-  TOOLBAR: Z_INDEX.STICKY_HEADERS,
-
-  // Desktop modals
-  MODAL_OVERLAY: Z_INDEX.MODAL_BACKDROP,
-  MODAL_DIALOG: Z_INDEX.MODAL_CONTENT,
-  CONTEXT_MENU: Z_INDEX.DROPDOWNS,
-  TOOLTIP: Z_INDEX.TOOLTIPS,
-} as const;
 
 /**
  * Layer validation utilities
@@ -144,22 +106,6 @@ export const validateZIndex = (value: number, context: string = 'unknown'): numb
   return value;
 };
 
-/**
- * Dynamic z-index calculation for responsive behavior
- */
-export const getResponsiveZIndex = (
-  baseLevel: keyof typeof Z_INDEX,
-  isMobile: boolean = false
-): number => {
-  const baseValue = Z_INDEX[baseLevel];
-  
-  // Mobile adjustments for iOS Safari compatibility
-  if (isMobile && baseValue >= Z_INDEX.MODAL_BACKDROP) {
-    return Math.max(baseValue, MOBILE_Z_INDEX.IOS_SAFE_MINIMUM);
-  }
-  
-  return baseValue;
-};
 
 /**
  * Z-index conflict detection (development only)
@@ -198,11 +144,11 @@ export const Z_INDEX_PATTERNS = {
     closeButton: Z_INDEX.MODAL_CONTENT + 1,
   },
   
-  // Mobile properties panel pattern
-  MOBILE_PROPERTIES: {
-    backdrop: Z_INDEX.MOBILE_MODAL_SYSTEM,
-    panel: Z_INDEX.MOBILE_PROPERTIES_PANEL,
-    controls: Z_INDEX.MOBILE_PROPERTIES_PANEL + 1,
+  // Unified properties panel pattern
+  PROPERTIES_PANEL: {
+    backdrop: Z_INDEX.MODAL_BACKDROP,
+    panel: Z_INDEX.PROPERTIES_PANEL,
+    controls: Z_INDEX.PROPERTIES_PANEL + 1,
   },
   
   // Drag and drop pattern

@@ -58,32 +58,32 @@ src/
 ```
 
 ## Component Conventions
-- **Naming**: PascalCase with descriptive prefixes (avoid `Mobile*`/`Desktop*` - use unified responsive components)
+- **Naming**: PascalCase with descriptive prefixes (no `Mobile*`/`Desktop*` - unified components only)
 - **Props**: TypeScript interfaces for all component props (never use `any`)
 - **Exports**: Default exports for components, named exports for utilities
 - **Cleanup**: Implement proper cleanup in useEffect hooks with dependency arrays
 - **Architecture**: Compound component patterns for modals, editors, and viewers
-- **Responsive Design**: Unified components with conditional rendering based on `useIsMobile()` hook
+- **Responsive Design**: CSS-only responsive design using Tailwind breakpoints (`sm:`, `md:`, `lg:`)
 - **Z-Index Integration**: Always use centralized z-index values from `zIndexLevels.ts`
 - **Accessibility**: Include proper ARIA attributes and use accessibility hooks
 - **State**: Use `useCallback` and `useMemo` for performance optimization
 - **Imports**: Direct imports over barrel exports for better tree-shaking
-- **Legacy Cleanup**: Proactively identify and remove deprecated mobile/desktop-specific components
+- **Touch-First Design**: Design for touch interactions that also work with mouse/keyboard
 
 ## Viewer Architecture
 
 ### Unified Toolbar Architecture
-The application uses unified toolbar components that adapt responsively to different device types:
+The application uses unified toolbar components that adapt automatically to all screen sizes:
 
 **ViewerFooterToolbar.tsx** - Primary navigation interface for the viewer experience
-- **Unified Responsive Design:** Single component with conditional rendering for mobile/desktop layouts
-- **Z-Index Integration:** Uses centralized z-index system for proper mobile visibility (MOBILE_TOOLBAR: 9999, NAVIGATION: 1000)
+- **CSS-Only Responsive Design:** Single component using Tailwind breakpoints for layout adaptation
+- **Z-Index Integration:** Uses centralized z-index system (TOOLBAR: 9999)
 - **Timeline Navigation:** Slide navigation controls with visual progress indicators
 - **Mode Controls:** Switch between viewing modes ("Explore", "Guided Tour")
 - **Accessibility:** ARIA labels, keyboard navigation, and shortcuts modal
 
-**Editor Toolbars** - Consistent editing interface across all devices
-- **SlideEditorToolbar.tsx:** Modern slide-based editing toolbar with unified responsive design
+**Editor Toolbars** - Consistent editing interface across all screen sizes
+- **SlideEditorToolbar.tsx:** Modern slide-based editing toolbar with responsive CSS design
 - **EditorToolbar.tsx:** Legacy editor toolbar (being phased out in favor of SlideEditorToolbar)
 - **Z-Index Compliance:** All toolbars use centralized z-index values for proper layering
 
@@ -148,16 +148,16 @@ The application features a comprehensive modal layout constraint system that pre
   - Single source of truth for all z-index values across the application
   - Organized hierarchically to prevent layering conflicts
   - Provides both numeric values (`Z_INDEX`) and Tailwind classes (`Z_INDEX_TAILWIND`)
-  - Special iOS Safari compatibility with MOBILE_TOOLBAR (9999) for mobile visibility
-  - Mobile-specific hierarchy with values up to 11000 for emergency overlays
+  - Unified values work on all devices including iOS Safari
+  - Values up to 11000 for emergency overlays
 
 ### Features
 - **Toolbar Overlap Prevention**: Systematic prevention of modal-toolbar conflicts
 - **Unified Z-Index Management**: Centralized system eliminates hardcoded values
-- **Device-Aware Positioning**: Automatic responsive adjustments for desktop/tablet/mobile
-- **Safe Area Handling**: Respects device safe areas and system UI elements
-- **Keyboard Awareness**: Optional keyboard avoidance for mobile devices
-- **iOS Safari Compatibility**: Special z-index handling for mobile browser quirks
+- **CSS-Based Responsive Layout**: Automatic responsive adjustments using Tailwind breakpoints
+- **Safe Area Handling**: Respects device safe areas using CSS env() variables
+- **Progressive Enhancement**: Touch-first design that enhances for keyboard/mouse
+- **Cross-Platform Compatibility**: Works consistently across all browsers and devices
 
 ## Firebase Integration
 - Firestore for data storage
@@ -165,24 +165,24 @@ The application features a comprehensive modal layout constraint system that pre
 - Use transactions for data consistency
 - Implement proper error handling for network operations
 
-## Mobile Development Notes
-- **Mobile Detection**: Use `useIsMobile()` hook with debounced resize handling for responsive behavior
-- **Performance**: Implement debounced inputs and throttled touch events for optimal performance
-- **Touch Feedback**: Provide proper haptic feedback using `triggerHapticFeedback` utility
-- **Responsive Components**: Use unified components with `useIsMobile()` hook for device-specific behavior
-- **Viewport Handling**: Use `useViewportHeight` hook for mobile viewport quirks
-- **Keyboard Management**: Use `useMobileKeyboard` for keyboard interaction handling
-- **Testing**: Test on actual mobile devices when possible, use mobile-specific test cases
+## Responsive Design Notes
+- **CSS-First Approach**: Use Tailwind responsive classes (`sm:`, `md:`, `lg:`) instead of JavaScript device detection
+- **Performance**: Implement debounced inputs and throttled events for optimal performance
+- **Touch-First Design**: Design for touch interactions that also work with mouse/keyboard
+- **Progressive Enhancement**: Start with mobile-optimized design, enhance for larger screens
+- **Viewport Handling**: Use CSS viewport units and `env()` for safe areas
+- **Accessibility**: Ensure components work with screen readers and keyboard navigation
+- **Testing**: Test across all device types and screen sizes
 
 ## Custom Hook Patterns
-- **Device Detection**: `useDeviceDetection()` for responsive positioning and viewport calculations
-- **Viewport Management**: `useViewportHeight()` with iOS Safari support and dynamic viewport units
-- **Modal Constraints**: `useLayoutConstraints()` and `useModalConstraints()` for toolbar-aware positioning
-- **Touch Gestures**: `useTouchGestures` with momentum physics and gesture coordination  
+- **Layout Calculations**: `useDeviceDetection()` and `useLayoutConstraints()` for mathematical positioning only
+- **Viewport Management**: `useViewportHeight()` with CSS viewport unit support
+- **Touch Gestures**: `useTouchGestures` with momentum physics for canvas interactions
 - **Performance**: `useIntersectionObserver` for efficient rendering of large slide collections
 - **Accessibility**: `useScreenReaderAnnouncements` with live regions
 - **Cleanup**: Always include proper dependency arrays and cleanup functions
 - **State Optimization**: Use `useCallback` and `useMemo` to prevent unnecessary re-renders
+- **No UI Branching**: Avoid using device detection hooks for conditional UI rendering
 
 ## TypeScript Best Practices
 - **Strict Types**: Use strict TypeScript interfaces, avoid `any` type
