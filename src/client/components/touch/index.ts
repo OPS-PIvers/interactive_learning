@@ -1,5 +1,5 @@
 export { TouchContainer } from './TouchContainer';
-export { MobileViewportManager } from './MobileViewportManager';
+export { ViewportManager, MobileViewportManager } from './ViewportManager';
 
 // Re-export main types
 export type {
@@ -10,6 +10,9 @@ export type {
 
 export type {
   ViewportState,
-  MobileViewportConfig,
-  MobileViewportManagerProps
-} from './MobileViewportManager';
+  ViewportConfig,
+  ViewportManagerProps,
+  // Maintain backward compatibility
+  ViewportConfig as MobileViewportConfig,
+  ViewportManagerProps as MobileViewportManagerProps
+} from './ViewportManager';

@@ -129,7 +129,7 @@ The application has migrated from complex coordinate systems to a predictable sl
 *   **SlideBasedEditor** (`src/client/components/SlideBasedEditor.tsx`): Main editing interface
 *   **SlideBasedViewer** (`src/client/components/SlideBasedViewer.tsx`): Presentation and viewing interface  
 *   **SlideEditor** (`src/client/components/slides/SlideEditor.tsx`): Visual drag-and-drop editor with canvas
-*   **MobilePropertiesPanel** (`src/client/components/slides/MobilePropertiesPanel.tsx`): Touch-optimized property editing
+*   **ResponsivePropertiesPanel** (`src/client/components/slides/ResponsivePropertiesPanel.tsx`): Unified properties panel with responsive design
 
 ### Responsive Positioning System
 Elements use fixed pixel coordinates with responsive breakpoints:

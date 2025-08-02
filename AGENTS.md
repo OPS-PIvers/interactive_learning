@@ -621,7 +621,7 @@ npm run dev
 - SlideBasedEditor.tsx (toolbar cleanup, panel system)
 - SlideEditor.tsx (aspect ratio selector, background settings)  
 - EditorToolbar.tsx (remove broken controls)
-- MobilePropertiesPanel.tsx (eliminate scrollbars)
+- Properties panel components (eliminate scrollbars)
 
 **Current Phase:** Phase 1 - Critical Fixes & Cleanup
 - Fix Settings button component errors

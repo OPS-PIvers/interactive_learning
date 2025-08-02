@@ -15,7 +15,7 @@ export interface ViewportState {
   };
 }
 
-export interface MobileViewportConfig {
+export interface ViewportConfig {
   minScale?: number;
   maxScale?: number;
   portraitPadding?: number;
@@ -24,21 +24,22 @@ export interface MobileViewportConfig {
   enableAutoScale?: boolean;
 }
 
-export interface MobileViewportManagerProps {
+export interface ViewportManagerProps {
   children: React.ReactNode;
-  config?: MobileViewportConfig;
+  config?: ViewportConfig;
   className?: string;
   onViewportChange?: (viewport: ViewportState) => void;
   onScaleChange?: (scale: number) => void;
 }
 
 /**
- * MobileViewportManager - Handles responsive scaling and viewport management
+ * ViewportManager - Unified responsive scaling and viewport management
  * 
  * Automatically scales content to fit mobile screens optimally in both
- * portrait and landscape orientations
+ * portrait and landscape orientations. On desktop, simply acts as a passthrough
+ * container unless explicitly configured otherwise.
  */
-export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
+export const ViewportManager: React.FC<ViewportManagerProps> = ({
   children,
   config = {},
   className = '',
@@ -255,9 +256,18 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
     boxSizing: 'border-box'
   };
 
+  // On desktop, render simplified container unless scaling is explicitly enabled
+  if (!isMobile && !enableAutoScale) {
+    return (
+      <div className={`viewport-manager ${className}`}>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div className={`mobile-viewport-manager ${className}`} style={containerStyle}>
-      <div className="mobile-viewport-content" style={contentStyle}>
+    <div className={`viewport-manager ${className}`} style={containerStyle}>
+      <div className="viewport-content" style={contentStyle}>
         {children}
       </div>
       
@@ -275,4 +285,6 @@ export const MobileViewportManager: React.FC<MobileViewportManagerProps> = ({
   );
 };
 
-export default MobileViewportManager;
+// Export both the new name and maintain backward compatibility
+export const MobileViewportManager = ViewportManager;
+export default ViewportManager;

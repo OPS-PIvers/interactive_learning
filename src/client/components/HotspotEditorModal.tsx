@@ -14,7 +14,6 @@ import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import MobilePlayAudioEditor from './MobilePlayAudioEditor';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
 interface EnhancedHotspotEditorModalProps {
@@ -589,14 +588,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           )}
           {editingEvent &&
             editingEvent.type === InteractionType.PLAY_AUDIO && (
-              <MobilePlayAudioEditor
-                event={editingEvent}
-                onUpdate={(updatedEvent) => {
-                  handleEventUpdate(updatedEvent);
-                  setEditingEvent(null);
-                }}
-                onClose={() => setEditingEvent(null)}
-              />
+              <div className="p-4 text-center text-gray-500">
+                <p>Audio interaction editing is handled in the unified properties panel.</p>
+                <button 
+                  onClick={() => setEditingEvent(null)}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Close
+                </button>
+              </div>
             )}
           {editingEvent && editingEvent.type === InteractionType.PAN_ZOOM && (
             <PanZoomSettings
