@@ -12,6 +12,7 @@ import ShareModal from './ShareModal';
 import AuthButton from './AuthButton';
 import { Project } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface EditorToolbarProps {
   projectName: string;
@@ -113,7 +114,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
 
     return (
       <>
-        <div className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50 flex items-center justify-between px-2" style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', paddingBottom: '8px', minHeight: '56px' }}>
+        <div className={`fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 ${Z_INDEX_TAILWIND.MOBILE_TOOLBAR} flex items-center justify-between px-2`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', paddingBottom: '8px', minHeight: '56px' }}>
           {/* Left: Back Button & Title */}
           <div className="flex items-center gap-2">
             <button
@@ -195,7 +196,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
   return (
     <>
       {/* Minimal Top Bar with Settings Button */}
-      <div className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50 h-14" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', minHeight: 'calc(56px + env(safe-area-inset-top))' }}>
+      <div className={`fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 ${Z_INDEX_TAILWIND.NAVIGATION} h-14`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', minHeight: 'calc(56px + env(safe-area-inset-top))' }}>
         <div className="flex items-center justify-between h-full px-4">
           {/* Left Section */}
           <div className="flex items-center gap-4">

@@ -7,6 +7,7 @@ import { ShareIcon } from './icons/ShareIcon';
 import AuthButton from './AuthButton';
 import ShareModal from './ShareModal';
 import { Project } from '../../shared/types';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface SlideEditorToolbarProps {
   projectName: string;
@@ -56,7 +57,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   if (isMobile) {
     return (
       <>
-        <div className="slide-editor-toolbar bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl">
+        <div className={`slide-editor-toolbar bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl ${Z_INDEX_TAILWIND.MOBILE_TOOLBAR}`}>
           {/* Left: Back button and project name */}
           <div className="flex items-center space-x-3">
             <button
@@ -131,7 +132,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   // Desktop toolbar
   return (
     <>
-      <div className="slide-editor-toolbar bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl">
+      <div className={`slide-editor-toolbar bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between shadow-2xl ${Z_INDEX_TAILWIND.NAVIGATION}`}>
         {/* Left: Back button and project info */}
         <div className="flex items-center space-x-4">
           <button

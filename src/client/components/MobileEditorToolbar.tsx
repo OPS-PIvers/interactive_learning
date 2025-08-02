@@ -1,4 +1,5 @@
 import React from 'react';
+import { Z_INDEX } from '../utils/zIndexLevels';
 
 interface MobileEditorToolbarProps {
   onAddHotspot: () => void;
@@ -30,7 +31,7 @@ const MobileEditorToolbar: React.FC<MobileEditorToolbarProps> = ({
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 100,
+        zIndex: Z_INDEX.MOBILE_TOOLBAR,
         /* Background and styling */
         background: '#1e293b',
         borderTop: '1px solid #334155',
