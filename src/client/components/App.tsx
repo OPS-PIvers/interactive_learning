@@ -19,7 +19,7 @@ import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
-import { setDynamicVhProperty } from '../utils/mobileUtils';
+import { setDynamicViewportProperties } from '../utils/viewportUtils';
 
 
 const LoadingScreen: React.FC = () => (
@@ -43,21 +43,22 @@ const MainApp: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showInitialAnimation, setShowInitialAnimation] = useState(true);
-  const { isMobile } = useDeviceDetection();
-
   useEffect(() => {
-    const cleanupVhUpdater = setDynamicVhProperty();
+    const cleanupVhUpdater = setDynamicViewportProperties();
     
-    // Add touch editing body class for mobile optimizations
-    if (isMobile) {
+    // Add touch editing body class for touch-capable devices
+    const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (hasTouchSupport) {
       document.body.classList.add('touch-editing');
     }
     
     return () => {
       cleanupVhUpdater();
-      document.body.classList.remove('touch-editing');
+      if (hasTouchSupport) {
+        document.body.classList.remove('touch-editing');
+      }
     };
-  }, [isMobile]);
+  }, []);
 
   // Handle initial animation timing
   useEffect(() => {
@@ -497,7 +498,6 @@ const MainApp: React.FC = () => {
           <InteractiveModuleWrapper
             selectedProject={selectedProject}
             isEditingMode={isEditingMode}
-            isMobile={isMobile}
             onClose={handleCloseModal}
             onSave={handleSaveProjectData}
             onImageUpload={handleImageUpload}
