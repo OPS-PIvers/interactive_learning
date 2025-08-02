@@ -6,7 +6,7 @@ interface HeaderInsertDropdownProps {
   onAddElement: (elementType: 'hotspot' | 'text' | 'media' | 'shape') => void;
   onAddBackgroundMedia: () => void;
   isDisabled?: boolean;
-  isMobile?: boolean;
+  // Responsive design uses CSS breakpoints
 }
 
 /**
@@ -19,7 +19,6 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
   onAddElement,
   onAddBackgroundMedia,
   isDisabled = false,
-  isMobile = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -129,20 +128,20 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
             : isOpen
             ? 'bg-blue-700 text-white'
             : 'bg-blue-600 hover:bg-blue-700 text-white'
-        } ${isMobile ? 'px-2 py-1' : ''}`}
+        } px-2 py-1 sm:px-3 sm:py-2`}
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="Insert element menu"
       >
-        <PlusIcon className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
-        {!isMobile && <span>Insert</span>}
-        <ChevronDownIcon className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <PlusIcon className="w-4 h-4" />
+        <span className="hidden sm:inline">Insert</span>
+        <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div
           className={`origin-top-center absolute z-50 mt-2 w-56 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
-            isMobile ? 'right-0' : 'left-1/2 transform -translate-x-1/2'
+'right-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:right-auto'
           }`}
           role="menu"
           aria-orientation="vertical"
@@ -166,9 +165,7 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
                 <span className="text-base">{item.icon}</span>
                 <div className="flex-1">
                   <div className="font-medium">{item.label}</div>
-                  {!isMobile && (
-                    <div className="text-xs text-slate-400">{item.description}</div>
-                  )}
+                  <div className="hidden sm:block text-xs text-slate-400">{item.description}</div>
                 </div>
               </button>
             ))}

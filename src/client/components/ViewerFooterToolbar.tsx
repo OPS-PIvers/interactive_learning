@@ -44,8 +44,7 @@ interface ViewerFooterToolbarProps {
     timed?: boolean;
   };
   
-  // Responsive
-  isMobile?: boolean;
+  // Responsive design uses CSS breakpoints only
 }
 
 export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
@@ -69,7 +68,6 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   onStartExploring,
   hasContent,
   viewerModes = { explore: true, selfPaced: true, timed: true },
-  isMobile = false,
   slides,
   onSlideSelect,
   showProgress = false,
@@ -415,7 +413,122 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
     </div>
   );
   
-  return isMobile ? renderMobileLayout() : renderDesktopLayout();
+  // Unified responsive layout using CSS breakpoints
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 z-[9999]">
+      {/* Timeline Progress */}
+      {showProgress && slides && slides.length > 0 && (
+        <div className="px-4 py-2 bg-slate-800/60">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs text-slate-300 font-medium">Progress</span>
+            <span className="text-xs text-slate-400">
+              {currentSlideIndex + 1} of {totalSlides}
+            </span>
+          </div>
+          <div className="w-full bg-slate-700/50 rounded-full h-1.5">
+            <div 
+              className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300"
+              style={{ width: `${((currentSlideIndex + 1) / totalSlides) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Main Toolbar */}
+      <div className="flex items-center justify-between px-4 py-3 min-h-[64px] md:min-h-[56px]">
+        {/* Left Section */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors duration-200 px-2 py-1 rounded hover:bg-slate-700/50"
+            title="Back to Dashboard"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            <span className="hidden sm:inline font-medium">Back</span>
+          </button>
+        </div>
+
+        {/* Center Section - Navigation */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onPreviousSlide}
+            disabled={!canGoPrevious}
+            className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            title="Previous Slide (←)"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </button>
+
+          <div className="text-center px-3">
+            <div className="text-white font-semibold text-sm">
+              {currentSlideIndex + 1} / {totalSlides}
+            </div>
+            <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
+              {projectName}
+            </div>
+          </div>
+
+          <button
+            onClick={onNextSlide}
+            disabled={!canGoNext}
+            className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            title="Next Slide (→)"
+          >
+            <ChevronRightIcon className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowShortcuts(true)}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+            title="Keyboard Shortcuts"
+          >
+            <span className="text-sm font-medium hidden sm:inline mr-1">Help</span>
+            <QuestionMarkCircleIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-white mb-4">Keyboard Shortcuts</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Previous Slide</span>
+                <kbd className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm">←</kbd>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Next Slide</span>
+                <kbd className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm">→</kbd>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">First Slide</span>
+                <kbd className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm">Home</kbd>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Last Slide</span>
+                <kbd className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm">End</kbd>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Close Help</span>
+                <kbd className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm">Esc</kbd>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowShortcuts(false)}
+              className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ViewerFooterToolbar;

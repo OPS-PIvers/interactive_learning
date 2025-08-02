@@ -1,5 +1,17 @@
 // Network monitoring utilities for upload operations
-import { getNetworkDetails } from './mobileUploadUtils';
+
+// Get current network connection details
+function getNetworkDetails() {
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  
+  return {
+    online: navigator.onLine,
+    connectionType: connection?.type || 'unknown',
+    effectiveType: connection?.effectiveType || 'unknown',
+    downlink: connection?.downlink || 0,
+    rtt: connection?.rtt || 0
+  };
+}
 
 export interface NetworkState {
   online: boolean;

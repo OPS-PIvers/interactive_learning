@@ -4,7 +4,7 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getPerformance } from 'firebase/performance'
 import { getAnalytics, isSupported } from 'firebase/analytics'
-import { isMobileDevice } from '../client/utils/mobileUtils'
+// Firebase configuration and initialization
 
 // Debug environment variables (development only)
 if (import.meta.env.DEV) {

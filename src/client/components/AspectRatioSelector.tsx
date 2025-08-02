@@ -5,7 +5,7 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 interface AspectRatioSelectorProps {
   currentRatio: string;
   onRatioChange: (ratio: string) => void;
-  isMobile?: boolean;
+  // Responsive design uses CSS breakpoints
   disabled?: boolean;
 }
 
@@ -18,7 +18,6 @@ interface AspectRatioSelectorProps {
 const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
   currentRatio,
   onRatioChange,
-  isMobile = false,
   disabled = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -131,16 +130,17 @@ const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
             : isOpen
             ? 'bg-slate-600 text-white'
             : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-        } ${isMobile ? 'px-2 py-1' : ''}`}
+        } px-2 py-1 sm:px-3 sm:py-2`}
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="Select aspect ratio"
       >
-        <span className={`${isMobile ? 'text-xs' : ''}`}>
-          {isMobile ? currentRatio.split(' ')[0] : displayName}
+        <span className="text-xs sm:text-sm">
+          <span className="sm:hidden">{currentRatio.split(' ')[0]}</span>
+          <span className="hidden sm:inline">{displayName}</span>
         </span>
         <ChevronDownIcon 
-          className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} transition-transform duration-200 ${
+          className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -149,7 +149,7 @@ const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
       {isOpen && (
         <div
           className={`origin-top-right absolute z-50 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
-            isMobile ? 'right-0 w-56' : 'left-0'
+'right-0 w-56 sm:left-0 sm:w-auto sm:right-auto'
           }`}
           role="menu"
           aria-orientation="vertical"

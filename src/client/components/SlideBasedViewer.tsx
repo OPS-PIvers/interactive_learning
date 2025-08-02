@@ -30,7 +30,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   onClose,
   migrationResult
 }) => {
-  const { isMobile, deviceType } = useDeviceDetection();
+  const { deviceType } = useDeviceDetection();
   
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
@@ -162,10 +162,10 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       showProgress: moduleState === 'learning',
       showControls: true,
       keyboardShortcuts: true,
-      touchGestures: isMobile,
+      touchGestures: deviceType === 'mobile',
       fullscreenMode: false
     }
-  }), [slideDeck, moduleState, viewerModes, isMobile]);
+  }), [slideDeck, moduleState, viewerModes, deviceType]);
 
   // Initial overlay when in idle state
   if (moduleState === 'idle') {
@@ -242,7 +242,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           onStartLearning={handleStartLearning}
           onStartExploring={handleStartExploring}
           hasContent={slideDeck.slides.length > 0}
-          isMobile={isMobile}
           viewerModes={viewerModes}
           slides={slideDeck.slides}
           onSlideSelect={handleSlideSelect}

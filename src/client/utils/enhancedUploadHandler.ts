@@ -1,19 +1,162 @@
-// Enhanced upload handler for mobile devices
+// Enhanced upload handler for all devices
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { compressImage } from './imageCompression';
 import { generateThumbnail } from './imageUtils';
-import { 
-  getMobileOptimizedSettings, 
-  createMobileUploadError, 
-  getUploadErrorMessage, 
-  getNetworkDetails, 
-  getAuthDetails, 
-  checkNetworkConnectivity,
-  logUploadError 
-} from './mobileUploadUtils';
-import { isMobileDevice } from './mobileUtils';
 import { retryWithBackoff, refreshAuthTokenIfNeeded, RetryContext } from './retryUtils';
 import { networkMonitor, waitForNetwork, NetworkState } from './networkMonitor';
+import { auth } from '../../lib/firebaseConfig';
+
+// Error types for upload handling
+export interface UploadError {
+  code: 'AUTH_ERROR' | 'SIZE_ERROR' | 'NETWORK_ERROR' | 'COMPRESSION_ERROR' | 'CONNECTIVITY_ERROR' | 'TIMEOUT_ERROR' | 'FIREBASE_ERROR' | 'UNKNOWN_ERROR';
+  message: string;
+  originalError?: Error;
+  timestamp?: number;
+}
+
+// Unified upload settings (no device-specific branching)
+const getUploadSettings = () => ({
+  compression: {
+    maxSizeMB: 1.5,
+    maxWidthOrHeight: 1920,
+    useWebWorker: false, // Disabled for stability across all devices
+    quality: 0.8,
+    fileType: 'image/jpeg' as const, // Force JPEG for consistency
+  },
+  upload: {
+    timeout: 45000, // Longer timeout for all devices
+    maxFileSize: 8 * 1024 * 1024, // 8MB for all devices
+    retryAttempts: 2,
+  }
+});
+
+// Get current network connection details
+const getNetworkDetails = () => {
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  
+  return {
+    online: navigator.onLine,
+    connectionType: connection?.type || 'unknown',
+    effectiveType: connection?.effectiveType || 'unknown',
+    downlink: connection?.downlink || 0,
+    rtt: connection?.rtt || 0
+  };
+};
+
+// Get authentication details for debugging
+const getAuthDetails = async () => {
+  try {
+    const user = auth.currentUser;
+    
+    if (!user) {
+      return {
+        userPresent: false,
+        tokenValid: false
+      };
+    }
+
+    try {
+      const token = await user.getIdToken(false);
+      const tokenResult = await user.getIdTokenResult(false);
+      
+      return {
+        userPresent: true,
+        tokenValid: !!token,
+        tokenExpiry: new Date(tokenResult.expirationTime).getTime()
+      };
+    } catch (tokenError) {
+      return {
+        userPresent: true,
+        tokenValid: false
+      };
+    }
+  } catch (error) {
+    return {
+      userPresent: false,
+      tokenValid: false
+    };
+  }
+};
+
+// Create standardized upload error
+const createUploadError = (
+  message: string,
+  code: UploadError['code'],
+  originalError?: Error
+): UploadError => {
+  return { 
+    message, 
+    code, 
+    originalError, 
+    timestamp: Date.now()
+  };
+};
+
+// Check network connectivity before upload
+const checkNetworkConnectivity = async () => {
+  if (!navigator.onLine) {
+    return { connected: false, quality: 'offline' as const };
+  }
+
+  try {
+    if (auth.currentUser) {
+      const startTime = Date.now();
+      await auth.currentUser.getIdToken(true);
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      return {
+        connected: true,
+        quality: responseTime < 2000 ? 'good' as const : 'poor' as const
+      };
+    } else {
+      return { connected: true, quality: 'good' as const };
+    }
+  } catch (error) {
+    console.warn('Network connectivity test failed:', error);
+    return { connected: false, quality: 'offline' as const };
+  }
+};
+
+// Get user-friendly error message
+const getUploadErrorMessage = (error: unknown): string => {
+  if (typeof error === 'object' && error && 'code' in error) {
+    const uploadError = error as UploadError;
+    switch (uploadError.code) {
+      case 'AUTH_ERROR':
+        return 'Authentication failed. Please sign in again and try uploading.';
+      case 'SIZE_ERROR':
+        return uploadError.message;
+      case 'NETWORK_ERROR':
+        return 'Network error occurred during upload. Please check your connection and try again.';
+      case 'CONNECTIVITY_ERROR':
+        return 'No internet connection. Please check your network and try again.';
+      case 'TIMEOUT_ERROR':
+        return 'Upload timed out. Please try again with a smaller image or better connection.';
+      case 'FIREBASE_ERROR':
+        return 'Server error occurred. Please try again in a few moments.';
+      case 'COMPRESSION_ERROR':
+        return 'Image processing failed. Try a different image or restart the app.';
+      default:
+        return uploadError.message || 'Upload failed. Please try again.';
+    }
+  }
+  
+  if (error instanceof Error) {
+    if (error.message.includes('auth/')) {
+      return 'Authentication error. Please sign in again.';
+    }
+    if (error.message.includes('storage/')) {
+      return 'Storage error. Please try again.';
+    }
+    if (error.message.includes('network') || error.message.includes('fetch')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    return error.message;
+  }
+  
+  return 'Upload failed. Please try again.';
+};
 
 // Thumbnail Parameters (match firebaseApi.ts)
 const THUMBNAIL_WIDTH = 400;
@@ -83,13 +226,12 @@ export async function handleEnhancedImageUpload(
         await waitForNetwork(30000); // Wait up to 30 seconds
         onProgress?.('Network connection restored, continuing...');
       } catch (waitError) {
-        const error = createMobileUploadError(
+        const error = createUploadError(
           'No internet connection available',
           'CONNECTIVITY_ERROR',
-          waitError as Error,
-          networkDetails
+          waitError as Error
         );
-        logUploadError(error, 'Pre-upload connectivity check');
+        console.error('Pre-upload connectivity check error:', error);
         throw error;
       }
     }
@@ -99,46 +241,36 @@ export async function handleEnhancedImageUpload(
     // Phase 1: Enhanced authentication validation
     const authDetails = await getAuthDetails();
     if (!authDetails.userPresent || !authDetails.tokenValid) {
-      const error = createMobileUploadError(
+      const error = createUploadError(
         'User authentication failed or token expired',
-        'AUTH_ERROR',
-        undefined,
-        networkDetails,
-        authDetails
+        'AUTH_ERROR'
       );
-      logUploadError(error, 'Pre-upload authentication check');
+      console.error('Pre-upload authentication check error:', error);
       throw error;
     }
 
     onProgress?.('Validating file...');
 
-    // Get mobile-optimized settings
-    const settings = getMobileOptimizedSettings();
-    const isMobile = isMobileDevice();
+    // Get unified upload settings
+    const settings = getUploadSettings();
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      const error = createMobileUploadError(
+      const error = createUploadError(
         'Please select an image file',
-        'SIZE_ERROR',
-        undefined,
-        networkDetails,
-        authDetails
+        'SIZE_ERROR'
       );
-      logUploadError(error, 'File validation');
+      console.error('File validation error:', error);
       throw error;
     }
 
     // Validate file size
     if (file.size > settings.upload.maxFileSize) {
-      const error = createMobileUploadError(
+      const error = createUploadError(
         `File too large: ${Math.round(file.size / (1024 * 1024))}MB. Max: ${Math.round(settings.upload.maxFileSize / (1024 * 1024))}MB`,
-        'SIZE_ERROR',
-        undefined,
-        networkDetails,
-        authDetails
+        'SIZE_ERROR'
       );
-      logUploadError(error, 'File size validation');
+      console.error('File size validation error:', error);
       throw error;
     }
 
@@ -154,14 +286,12 @@ export async function handleEnhancedImageUpload(
       
       // If compression fails and file is too large, throw error
       if (file.size > settings.upload.maxFileSize) {
-        const error = createMobileUploadError(
+        const error = createUploadError(
           'Image too large and compression failed',
           'COMPRESSION_ERROR',
-          compressionError as Error,
-          networkDetails,
-          authDetails
+          compressionError as Error
         );
-        logUploadError(error, 'Image compression');
+        console.error('Image compression error:', error);
         throw error;
       }
     }
@@ -270,20 +400,18 @@ export async function handleEnhancedImageUpload(
           }
         }
         
-        const error = createMobileUploadError(
+        const error = createUploadError(
           errorMessage,
           errorCode,
-          uploadError as Error,
-          currentNetworkDetails,
-          currentAuthDetails
+          uploadError as Error
         );
-        logUploadError(error, `Upload attempt ${context.attempt}`);
+        console.error(`Upload attempt ${context.attempt} error:`, error);
         throw error;
       }
     }, {
       maxAttempts: settings.upload.retryAttempts + 1,
-      baseDelay: isMobile ? 2000 : 1000,
-      maxDelay: isMobile ? 30000 : 15000,
+      baseDelay: 2000, // Unified delay for all devices
+      maxDelay: 30000, // Unified max delay for all devices
       retryCondition: (error) => {
         // Don't retry authentication errors, file size errors, or permission errors
         if (error instanceof Error) {
@@ -313,21 +441,17 @@ export async function handleEnhancedImageUpload(
     // Ensure cleanup happens even on error
     cleanup();
     
-    // Log the error with full context if it's our custom error type
+    // Log the error with full context
     if (typeof error === 'object' && error && 'code' in error) {
-      logUploadError(error as any, 'Enhanced upload handler');
+      console.error('Enhanced upload handler error:', error);
     } else {
       // Create a generic error for logging
-      const networkDetails = getNetworkDetails();
-      const authDetails = await getAuthDetails();
-      const genericError = createMobileUploadError(
+      const genericError = createUploadError(
         error instanceof Error ? error.message : 'Unknown error',
         'UNKNOWN_ERROR',
-        error as Error,
-        networkDetails,
-        authDetails
+        error as Error
       );
-      logUploadError(genericError, 'Enhanced upload handler');
+      console.error('Enhanced upload handler error:', genericError);
     }
     
     const errorMessage = getUploadErrorMessage(error);
@@ -344,7 +468,7 @@ export async function handleEnhancedImageUpload(
  * Enhanced upload handler that can be used as drop-in replacement
  * for existing handleImageUpload in InteractiveModule
  */
-export function createMobileOptimizedUploadHandler(
+export function createOptimizedUploadHandler(
   projectId: string,
   setImageLoading: (loading: boolean) => void,
   setBackgroundImage: (url: string) => void,
@@ -363,10 +487,9 @@ export function createMobileOptimizedUploadHandler(
       if (!confirmReplace) return;
     }
     
-    debugLog('Image', 'Enhanced mobile upload started', { 
+    debugLog('Image', 'Enhanced upload started', { 
       fileName: file.name, 
-      fileSize: file.size,
-      isMobile: isMobileDevice()
+      fileSize: file.size
     });
 
     const result = await handleEnhancedImageUpload(file, projectId, {

@@ -1,5 +1,4 @@
 // Retry utilities for network operations with exponential backoff
-import { isMobileDevice } from './mobileUtils';
 import { auth } from '../../lib/firebaseConfig';
 
 export interface RetryOptions {
@@ -19,15 +18,13 @@ export interface RetryContext {
 }
 
 /**
- * Get default retry options based on device type
+ * Get default retry options (unified for all devices)
  */
 export function getDefaultRetryOptions(): RetryOptions {
-  const isMobile = isMobileDevice();
-  
   return {
-    maxAttempts: isMobile ? 3 : 2,
-    baseDelay: isMobile ? 2000 : 1000, // Start with longer delays on mobile
-    maxDelay: isMobile ? 30000 : 15000,
+    maxAttempts: 3, // Unified retry attempts for all devices
+    baseDelay: 2000, // Unified base delay
+    maxDelay: 30000, // Unified max delay
     backoffFactor: 2,
     jitter: true,
     retryCondition: (error) => {

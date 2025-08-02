@@ -21,7 +21,7 @@ import { debugLog } from '../client/utils/debugUtils'
 import { DataSanitizer } from './dataSanitizer'
 import { saveOperationMonitor } from './saveOperationMonitor'
 import { generateThumbnail } from '../client/utils/imageUtils'
-import { isMobileDevice } from '../client/utils/mobileUtils'
+// Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor'
 import { DevAuthBypass } from './testAuthUtils'
 
@@ -182,36 +182,34 @@ export class FirebaseProjectAPI {
     }
   }
 
-  private async withMobileErrorHandling<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
+  private async withErrorHandling<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
     try {
       await this.ensureFirebaseReady()
       return await operation()
     } catch (error) {
-      debugLog.error(`Mobile Firebase operation failed (${operationName}):`, error)
+      debugLog.error(`Firebase operation failed (${operationName}):`, error)
       
-      if (isMobileDevice()) {
-        // Enhanced mobile-specific error handling
-        const errorMessage = error instanceof Error ? error.message.toLowerCase() : ''
-        
-        if (errorMessage.includes('network') || errorMessage.includes('offline')) {
-          // Network-related error on mobile
-          const networkState = networkMonitor.getState()
-          debugLog.log('Network state during error:', networkState)
+      // Enhanced error handling for all devices
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : ''
+      
+      if (errorMessage.includes('network') || errorMessage.includes('offline')) {
+        // Network-related error
+        const networkState = networkMonitor.getCurrentState()
+        debugLog.log('Network state during error:', networkState)
           
-          if (!networkState.online) {
-            throw new Error('No internet connection. Please check your network and try again.')
-          } else if (networkState.effectiveType === 'slow-2g' || networkState.effectiveType === '2g') {
-            throw new Error('Slow network connection detected. Please try again or move to a better network area.')
-          }
+        if (!networkState?.online) {
+          throw new Error('No internet connection. Please check your network and try again.')
+        } else if (networkState.effectiveType === 'slow-2g' || networkState.effectiveType === '2g') {
+          throw new Error('Slow network connection detected. Please try again or move to a better network area.')
         }
-        
-        if (errorMessage.includes('webchannelconnection') || errorMessage.includes('rpc')) {
-          throw new Error('Connection to server failed. This may be due to network issues on mobile. Please try again.')
-        }
-        
-        if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
-          throw new Error('Service temporarily unavailable. Please try again in a few moments.')
-        }
+      }
+      
+      if (errorMessage.includes('webchannelconnection') || errorMessage.includes('rpc')) {
+        throw new Error('Connection to server failed. This may be due to network issues. Please try again.')
+      }
+      
+      if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+        throw new Error('Service temporarily unavailable. Please try again in a few moments.')
       }
       
       throw error
@@ -222,7 +220,7 @@ export class FirebaseProjectAPI {
    * List all projects with their hotspots and timeline events
    */
   async listProjects(): Promise<Project[]> {
-    return this.withMobileErrorHandling(async () => {
+    return this.withErrorHandling(async () => {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
 
@@ -926,7 +924,7 @@ export class FirebaseProjectAPI {
    * Get hotspots for a project
    */
   private async getHotspots(projectId: string): Promise<HotspotData[]> {
-    return this.withMobileErrorHandling(async () => {
+    return this.withErrorHandling(async () => {
       console.log('Debug getHotspots: Starting, projectId:', projectId);
       console.log('Debug getHotspots: firebaseManager exists:', !!firebaseManager);
       console.log('Debug getHotspots: collection function exists:', !!collection);
@@ -954,7 +952,7 @@ export class FirebaseProjectAPI {
    * Get timeline events for a project
    */
   private async getTimelineEvents(projectId: string): Promise<TimelineEventData[]> {
-    return this.withMobileErrorHandling(async () => {
+    return this.withErrorHandling(async () => {
       console.log('Debug getTimelineEvents: Starting, projectId:', projectId);
       console.log('Debug getTimelineEvents: firebaseManager exists:', !!firebaseManager);
       console.log('Debug getTimelineEvents: collection function exists:', !!collection);

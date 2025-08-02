@@ -1,5 +1,4 @@
 import imageCompression, { type Options } from 'browser-image-compression';
-import { isMobileDevice } from './mobileUtils';
 
 /**
  * The maximum size of an image in megabytes after compression.
@@ -13,12 +12,10 @@ const IMAGE_COMPRESSION_MAX_SIZE_MB = 2;
 const IMAGE_COMPRESSION_MAX_DIMENSION_PX = 2048;
 
 export const compressImage = async (file: File, customOptions?: Partial<Options>): Promise<File> => {
-  const isMobile = isMobileDevice();
-  
   const defaultOptions: Partial<Options> = {
     maxSizeMB: IMAGE_COMPRESSION_MAX_SIZE_MB,
     maxWidthOrHeight: IMAGE_COMPRESSION_MAX_DIMENSION_PX,
-    useWebWorker: !isMobile, // Disable web workers on mobile for better stability
+    useWebWorker: false, // Disabled for stability across all devices
   };
   
   // Merge custom options with defaults
@@ -26,16 +23,21 @@ export const compressImage = async (file: File, customOptions?: Partial<Options>
   
   try {
     const compressedFile = await imageCompression(file, options);
-    console.log(`Compressed file size: ${compressedFile.size / 1024 / 1024} MB (mobile: ${isMobile})`);
+    console.log(`Compressed file size: ${compressedFile.size / 1024 / 1024} MB`);
     return compressedFile;
   } catch (error) {
     console.error('Image compression failed:', error);
     
-    // If compression fails on mobile and we were using web workers, try without them
-    if (isMobile && options.useWebWorker) {
-      console.log('Retrying compression without web workers...');
+    // If compression fails, try with more aggressive settings
+    if (options.maxSizeMB > 0.5) {
+      console.log('Retrying with more aggressive compression...');
       try {
-        const fallbackOptions = { ...options, useWebWorker: false };
+        const fallbackOptions = { 
+          ...options, 
+          maxSizeMB: 0.5,
+          quality: 0.6,
+          useWebWorker: false 
+        };
         const fallbackCompressed = await imageCompression(file, fallbackOptions);
         console.log(`Fallback compression successful: ${fallbackCompressed.size / 1024 / 1024} MB`);
         return fallbackCompressed;

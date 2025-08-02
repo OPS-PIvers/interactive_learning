@@ -40,7 +40,7 @@ interface ImageEditCanvasProps {
 
   // Props for MemoizedHotspotViewer that were sourced from InteractiveModule's state/props
   isEditing: boolean;
-  isMobile: boolean;
+  // Responsive design uses CSS breakpoints
   currentStep?: number; // Optional, as it's for dimming logic which might be specific
   timelineEvents?: TimelineEventData[]; // Optional for dimming
 
@@ -88,7 +88,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   onHotspotPositionChange,
   onDragStateChange,
   isEditing,
-  isMobile,
   currentStep,
   timelineEvents,
   onImageUpload,
@@ -293,7 +292,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
       }}
     >
       <div
-          className={`relative flex items-center justify-center ${isMobile ? 'w-full h-full' : 'min-w-full min-h-full'} ${
+          className={`relative flex items-center justify-center w-full h-full min-w-full min-h-full ${
             isDragModeActive ? 'drag-mode-active' : ''
           }`}
         style={{
@@ -315,7 +314,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
               transformOrigin: 'center',
               transition: 'transform 0.2s ease-out',
               // zIndex for desktop, mobile canvas is simpler
-              zIndex: !isMobile && editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
+              zIndex: editingZoom > 1 ? Z_INDEX.IMAGE_TRANSFORMED : Z_INDEX.IMAGE_BASE,
             }}
           >
             {backgroundImage && (
@@ -323,11 +322,11 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 ref={actualImageRef}
                 src={backgroundImage}
                 alt="Interactive module background"
-                className={isMobile ? "w-full h-full object-contain" : "block max-w-none"}
-                style={!isMobile ? { // Desktop specific styles from original
+                className="w-full h-full object-contain sm:block sm:max-w-none"
+                style={{
                   width: scrollableContainerRef.current?.clientWidth || 'auto',
                   height: 'auto',
-                } : {}}
+                }}
                 onLoad={onImageLoad}
                 onError={() => {
                   console.error('Failed to load background image in editor:', backgroundImage);
@@ -358,7 +357,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 key={hotspot.id}
                 className="hotspot-viewer"
                 style={{
-                  touchAction: isMobile ? 'none' : 'auto', // Better mobile drag performance
+                  touchAction: 'manipulation', // Optimized touch handling
                   pointerEvents: 'auto', // Ensure pointer events are enabled
                   zIndex: isEditing ? Z_INDEX.MODAL : Z_INDEX.HOTSPOTS // Higher z-index in editing mode for better interaction
                 }}
@@ -376,7 +375,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   onPositionChange={onHotspotPositionChange}
                   onDragStateChange={onDragStateChange}
                   isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
-                  isMobile={isMobile}
                   dragContainerRef={zoomedImageContainerRef} // Pass the ref here
                 />
               </div>

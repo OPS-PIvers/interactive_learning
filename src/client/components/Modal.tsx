@@ -14,7 +14,7 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const { isMobile } = useDeviceDetection();
+  // Uses CSS responsive breakpoints for layout
   const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
 
   useEffect(() => {
@@ -71,17 +71,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   // Calculate modal positioning to start just below header toolbar
   const getModalStyle = () => {
     // Header heights based on EditorToolbar implementation
-    const headerHeight = isMobile ? 56 : 56;
+    const headerHeight = 56; // Unified header height
     const safeAreaTop = 'env(safe-area-inset-top, 0px)';
     const safeAreaBottom = 'env(safe-area-inset-bottom, 0px)';
     
     // Calculate top position: header height + safe area top + small margin
-    const topMargin = isMobile ? '8px' : '12px';
+    const topMargin = '12px'; // Unified top margin
     const topPosition = `calc(${headerHeight}px + ${safeAreaTop} + ${topMargin})`;
     
     // Calculate available height for modal content using unified constraints
-    const bottomMargin = isMobile ? '24px' : '16px'; // Extra margin for footer toolbar
-    const safetyBuffer = isMobile ? '20px' : '16px'; // Additional buffer for dynamic toolbars
+    const bottomMargin = '24px'; // Unified bottom margin for footer toolbar
+    const safetyBuffer = '20px'; // Unified safety buffer for dynamic toolbars
     
     const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${constraints.toolbarHeight}px - ${safetyBuffer})`;
     
@@ -113,7 +113,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
           top: modalStyle.top,
           height: modalStyle.height,
           maxHeight: modalStyle.maxHeight,
-          maxWidth: isMobile ? 'calc(100vw - 16px)' : '90vw'
+          maxWidth: 'min(90vw, calc(100vw - 16px))' // Responsive max width
         }}
       >
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">

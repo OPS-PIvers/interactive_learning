@@ -15,7 +15,6 @@ const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));
 interface InteractiveModuleWrapperProps {
   selectedProject: Project;
   isEditingMode: boolean;
-  isMobile: boolean;
   onClose: () => void;
   onSave: (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string, slideDeck?: SlideDeck) => void;
   onImageUpload: (file: File) => Promise<void>;
@@ -26,7 +25,6 @@ interface InteractiveModuleWrapperProps {
 const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   selectedProject,
   isEditingMode,
-  isMobile,
   onClose,
   onSave,
   onImageUpload,
@@ -60,34 +58,14 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   
   // ✅ Determine wrapper type - now simplified since viewer mode uses separate route
   const WrapperComponent = useMemo(() => {
-    // Use Fragment (full-screen) for all slide editing modes
-    if (slideDeck && isEditingMode) {
-      return Fragment; // All slide editing uses full-screen
-    }
-    if (isEditingMode && !isMobile) {
-      return Modal; // Legacy desktop editing uses modal
-    }
-    return Fragment; // Mobile editing uses full-screen
-  }, [isEditingMode, isMobile, slideDeck]);
+    // Use Fragment (full-screen) for unified responsive editing
+    return Fragment;
+  }, [isEditingMode, slideDeck]);
   
   const wrapperProps = useMemo(() => {
-    // Only use modal props for legacy non-slide projects
-    if (isEditingMode && !isMobile && !slideDeck) {
-      return {
-        isOpen: isModalOpen,
-        onClose: () => {
-          setIsModalOpen(false);
-          onClose();
-        },
-        title: selectedProject.title
-      };
-    }
-    return {
-      isOpen: true, // Default for non-modal usage
-      onClose: () => {},
-      title: ''
-    };
-  }, [isEditingMode, isMobile, slideDeck, isModalOpen, onClose, selectedProject.title]);
+    // No modal props needed - unified full-screen editing approach
+    return {};
+  }, [isEditingMode, slideDeck, isModalOpen, onClose, selectedProject.title]);
   
   return (
     <div className={`fixed inset-0 z-50 mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
