@@ -30,7 +30,7 @@ export const ResponsiveToolbar: React.FC<ResponsiveToolbarProps> = ({
   onDeviceTypeChange,
 }) => {
   return (
-    <div className={`bg-slate-800 border-t border-slate-700 p-2 sm:p-4 ${Z_INDEX_TAILWIND.STICKY_HEADERS}`}>
+    <div className={`bg-slate-800 border-t border-slate-700 p-2 sm:p-4 flex-shrink-0 ${Z_INDEX_TAILWIND.MOBILE_TOOLBAR}`}>
       <div className="flex items-center justify-between gap-2">
         {/* Left section - Main actions */}
         <div className="flex items-center gap-1 sm:gap-3 flex-wrap">

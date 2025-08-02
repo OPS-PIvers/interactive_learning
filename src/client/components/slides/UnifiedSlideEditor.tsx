@@ -417,24 +417,26 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           
           
           {/* Main canvas area */}
-          <div className="flex-1 flex flex-col relative min-h-0 z-10">
+          <div className="flex-1 flex flex-col relative min-h-0">
             
-            {/* Responsive Canvas */}
-            <ResponsiveCanvas
-              slideDeck={slideDeck}
-              currentSlideIndex={state.navigation.currentSlideIndex}
-              onSlideDeckChange={handleSlideDeckUpdate}
-              selectedElementId={state.editing.selectedElementId}
-              onElementSelect={actions.selectElement}
-              onElementUpdate={handleElementUpdate}
-              onSlideUpdate={handleSlideUpdate}
-              deviceTypeOverride={state.navigation.deviceTypeOverride}
-              className="flex-grow overflow-hidden"
-              isEditable={!state.navigation.isPreviewMode}
-              onAspectRatioChange={handleAspectRatioChange}
-            />
+            {/* Responsive Canvas - with proper height constraint */}
+            <div className="flex-1 overflow-hidden relative">
+              <ResponsiveCanvas
+                slideDeck={slideDeck}
+                currentSlideIndex={state.navigation.currentSlideIndex}
+                onSlideDeckChange={handleSlideDeckUpdate}
+                selectedElementId={state.editing.selectedElementId}
+                onElementSelect={actions.selectElement}
+                onElementUpdate={handleElementUpdate}
+                onSlideUpdate={handleSlideUpdate}
+                deviceTypeOverride={state.navigation.deviceTypeOverride}
+                className="w-full h-full"
+                isEditable={!state.navigation.isPreviewMode}
+                onAspectRatioChange={handleAspectRatioChange}
+              />
+            </div>
             
-            {/* Responsive Toolbar */}
+            {/* Responsive Toolbar - positioned at bottom */}
             {!state.navigation.isPreviewMode && (
               <ResponsiveToolbar
                 onSlidesOpen={() => actions.openModal('slidesModal')}
