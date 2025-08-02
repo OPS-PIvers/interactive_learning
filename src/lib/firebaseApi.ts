@@ -58,6 +58,11 @@ export class FirebaseProjectAPI {
       }
     }
     
+    // Ensure Firebase is initialized before accessing auth
+    if (!firebaseManager.isReady()) {
+      throw new Error('Firebase not initialized. Please try again.');
+    }
+    
     // Fallback to Firebase auth
     const auth = firebaseManager.getAuth();
     if (!auth.currentUser) {

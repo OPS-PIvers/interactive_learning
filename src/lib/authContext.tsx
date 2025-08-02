@@ -10,7 +10,8 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
-import { auth, firebaseManager } from './firebaseConfig';
+import { auth } from './firebaseConfig';
+import { firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
 
 interface AuthContextType {
@@ -54,12 +55,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // Setup auth state listener with better error handling
+    let unsubscribe: (() => void) | undefined;
+    
+    try {
+      unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      }, (error) => {
+        console.error('Auth state change error:', error);
+        setLoading(false);
+      });
+    } catch (error) {
+      console.error('Failed to setup auth listener:', error);
       setLoading(false);
-    });
+    }
 
-    return unsubscribe;
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
