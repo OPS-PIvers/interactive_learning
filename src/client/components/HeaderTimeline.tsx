@@ -4,7 +4,6 @@ import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { PauseIcon } from './icons/PauseIcon';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useIOSSafariViewport } from '../hooks/useViewportHeight';
 import { getIOSZIndexStyle, getIOSSafeAreaStyle, IOS_Z_INDEX } from '../utils/iosZIndexManager';
 
@@ -62,7 +61,6 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
   playbackSpeed = 1,
   onSpeedChange
 }) => {
-  const { isMobile } = useDeviceDetection();
   const { isIOSSafariUIVisible } = useIOSSafariViewport();
   // Generate timeline steps from slides
   const timelineSteps = useMemo((): TimelineStep[] => {
@@ -125,48 +123,40 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
     ...getIOSZIndexStyle('FLOATING_MENU'),
     ...getIOSSafeAreaStyle({ 
       includeTop: true,
-      additionalPadding: isMobile ? 8 : 4
+      additionalPadding: 4
     })
   };
-
-  // Adjust height and spacing for mobile
-  const timelineHeight = isMobile ? 'h-16' : 'h-14';
-  const timelinePadding = isMobile ? 'px-4 py-2' : 'px-4';
-  const buttonSize = isMobile ? 'w-11 h-11' : 'w-9 h-9';
-  const stepSize = isMobile ? 'w-8 h-8' : 'w-7 h-7';
 
   return (
     <div 
       className={`header-timeline bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 sticky top-0 ${className}`}
       style={containerStyle}
     >
-      <div className={`flex items-center ${timelineHeight} ${timelinePadding}`}>
+      <div className="flex items-center h-16 md:h-14 px-4 py-2 md:px-4">
         {/* Mode-specific left control */}
         {viewerMode === 'guided' ? (
           <button
             onClick={handlePrevSlide}
             disabled={currentSlideIndex === 0}
-            className={`flex items-center justify-center ${buttonSize} rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md ${isMobile ? 'active:scale-95 touch-manipulation' : ''}`}
+            className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
             aria-label="Previous slide"
-            style={isMobile ? { minHeight: '44px', minWidth: '44px' } : undefined}
           >
-            <ChevronLeftIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+            <ChevronLeftIcon className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         ) : viewerMode === 'auto-progression' ? (
           <button
             onClick={isPlaying ? onPause : onPlay}
-            className={`flex items-center justify-center ${buttonSize} rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-all duration-200 shadow-sm hover:shadow-md ${isMobile ? 'active:scale-95 touch-manipulation' : ''}`}
+            className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
             aria-label={isPlaying ? "Pause auto-progression" : "Play auto-progression"}
-            style={isMobile ? { minHeight: '44px', minWidth: '44px' } : undefined}
           >
             {isPlaying ? (
-              <PauseIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              <PauseIcon className="w-5 h-5 md:w-4 md:h-4" />
             ) : (
-              <PlayIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              <PlayIcon className="w-5 h-5 md:w-4 md:h-4" />
             )}
           </button>
         ) : (
-          <div className={`flex items-center justify-center ${buttonSize}`}>
+          <div className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9">
             {/* Empty space for explore mode */}
           </div>
         )}
@@ -192,16 +182,15 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                 <button
                   key={step.slideId}
                   onClick={() => handleStepClick(index)}
-                  className={`relative flex items-center justify-center ${stepSize} rounded-full transition-all duration-300 transform ${isMobile ? 'active:scale-95 touch-manipulation' : 'hover:scale-110'} focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
+                  className={`relative flex items-center justify-center w-8 h-8 md:w-7 md:h-7 rounded-full transition-all duration-300 transform active:scale-95 md:hover:scale-110 touch-manipulation focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
                     isActive 
-                      ? `bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 ${isMobile ? 'scale-110' : 'scale-125'} z-10` 
+                      ? "bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 scale-110 md:scale-125 z-10"
                       : isCompleted
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:shadow-lg'
                         : 'bg-slate-500 text-slate-300 hover:bg-gradient-to-r hover:from-slate-400 hover:to-slate-300 shadow-sm'
                   }`}
                   title={`${step.title}${step.hotspotCount > 0 ? ` (${step.hotspotCount} hotspots)` : ''}`}
                   aria-label={`Go to ${step.title}${isActive ? ' (current)' : ''}`}
-                  style={isMobile ? { minHeight: '32px', minWidth: '32px' } : undefined}
                 >
                   {/* Enhanced step number or status indicator */}
                   <span className="text-xs font-bold transition-all duration-200 group-hover:scale-110">
@@ -264,17 +253,16 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
           <button
             onClick={handleNextSlide}
             disabled={currentSlideIndex === slideDeck.slides.length - 1}
-            className={`flex items-center justify-center ${buttonSize} rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md ${isMobile ? 'active:scale-95 touch-manipulation' : ''}`}
+            className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
             aria-label="Next slide"
-            style={isMobile ? { minHeight: '44px', minWidth: '44px' } : undefined}
           >
-            <ChevronRightIcon className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+            <ChevronRightIcon className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         ) : viewerMode === 'auto-progression' && onSpeedChange ? (
           <select
             value={playbackSpeed}
             onChange={(e) => onSpeedChange(Number(e.target.value))}
-            className={`bg-gradient-to-r from-slate-700 to-slate-600 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200 ${buttonSize.includes('h-11') ? 'h-11' : 'h-9'}`}
+            className="bg-gradient-to-r from-slate-700 to-slate-600 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200 h-11 md:h-9"
             aria-label="Playback speed"
           >
             <option value={0.5}>0.5x</option>
@@ -283,7 +271,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
             <option value={2}>2x</option>
           </select>
         ) : (
-          <div className={`flex items-center justify-center ${buttonSize}`}>
+          <div className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9">
             {/* Empty space for explore mode */}
           </div>
         )}
@@ -304,15 +292,13 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
         )}
 
         {/* Enhanced progress text - responsive sizing */}
-        <div className={`${isMobile ? 'ml-2' : 'ml-3'} text-center ${isMobile ? 'min-w-0' : ''}`}>
-          <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-slate-300 font-semibold whitespace-nowrap`}>
+        <div className="ml-2 md:ml-3 text-center min-w-0">
+          <div className="text-xs text-slate-300 font-semibold whitespace-nowrap">
             {currentSlideIndex + 1} / {slideDeck.slides.length}
           </div>
-          {!isMobile && (
-            <div className="text-xs text-slate-500 font-medium">
-              {Math.round(progressPercentage)}%
-            </div>
-          )}
+          <div className="hidden md:block text-xs text-slate-500 font-medium">
+            {Math.round(progressPercentage)}%
+          </div>
         </div>
       </div>
     </div>

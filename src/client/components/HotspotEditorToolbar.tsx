@@ -1,3 +1,9 @@
+/**
+ * @deprecated Legacy hotspot editor toolbar - incompatible with slide architecture.
+ * This component is designed for hotspot-specific functionality and is replaced by
+ * the unified slide-based editor components.
+ * Scheduled for removal in a future version.
+ */
 import React, { useState } from 'react';
 import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
 import { PlusIcon } from './icons/PlusIcon';

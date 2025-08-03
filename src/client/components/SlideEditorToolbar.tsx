@@ -152,7 +152,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
             <div className="hidden md:block h-6 w-px bg-slate-600" />
 
             {/* Auth Button */}
-            <AuthButton />
+            <AuthButton variant="toolbar" />
           </div>
         </div>
       </div>

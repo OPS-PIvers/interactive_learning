@@ -1,3 +1,8 @@
+/**
+ * @deprecated Legacy editor toolbar component - use SlideEditorToolbar.tsx instead
+ * This component contains hotspot-specific functionality incompatible with slide architecture
+ * Scheduled for removal in next major version
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
