@@ -134,3 +134,16 @@ npm run test:run
 
 **Last Updated**: 2025-08-03  
 **Current Focus**: Editor Toolbar Cleanup Phase 2
+
+
+----
+
+● Update Todos
+  ⎿  ☒ Fix InteractionsList crash - Update UnifiedPropertiesPanel to pass element prop instead of interactions array
+     ☒ Add defensive validation in InteractionsList with optional chaining for element.interactions
+     ☐ Integrate HotspotEditorModal into UnifiedSlideEditor for desktop hotspot editing
+     ☐ Connect hotspot click handlers to modal opening through proper state management
+     ☐ Create unified responsive mobile editor toolbar with slide/background/element controls
+     ☐ Enhance mobile editing flow with touch gestures and context-aware toolbar
+     ☐ Mark EditorToolbar.tsx as deprecated and fix SlideEditorToolbar AuthButton issues
+     ☐ Clean up remaining mobile/desktop branching patterns for architecture consistency

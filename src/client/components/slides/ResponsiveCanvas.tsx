@@ -25,6 +25,7 @@ export interface ResponsiveCanvasProps {
   onElementSelect?: (elementId: string | null) => void;
   onElementUpdate?: (elementId: string, updates: Partial<SlideElement>) => void;
   onSlideUpdate?: (slideUpdates: Partial<InteractiveSlide>) => void;
+  onHotspotDoubleClick?: (elementId: string) => void;
   deviceTypeOverride?: DeviceType;
   className?: string;
   isEditable?: boolean;
@@ -50,6 +51,7 @@ interface TouchState {
 // Constants for interaction detection
 const DRAG_THRESHOLD_PIXELS = 60;
 const TAP_MAX_DURATION = 300;
+const DOUBLE_CLICK_DELAY = 300;
 
 /**
  * ResponsiveCanvas - Unified canvas supporting both touch and mouse interactions
@@ -62,6 +64,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   onElementSelect,
   onElementUpdate,
   onSlideUpdate,
+  onHotspotDoubleClick,
   deviceTypeOverride,
   className = '',
   isEditable = true,
@@ -105,6 +108,10 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
     startTimestamp: 0,
   });
+  
+  // Double-click detection state
+  const [lastClickTime, setLastClickTime] = useState<number>(0);
+  const [lastClickedElementId, setLastClickedElementId] = useState<string | null>(null);
   
   const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>();
   const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
@@ -232,6 +239,36 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     viewportBounds
   );
   
+  // Handle double-click detection for hotspots
+  const handleHotspotClick = useCallback((elementId: string, element: SlideElement) => {
+    if (!isEditable || element.type !== 'hotspot') return;
+    
+    const now = Date.now();
+    const timeDiff = now - lastClickTime;
+    
+    console.log('🖱️ Hotspot click detected:', {
+      elementId,
+      timeDiff,
+      lastClickedElementId,
+      isDoubleClick: timeDiff < DOUBLE_CLICK_DELAY && lastClickedElementId === elementId
+    });
+    
+    if (timeDiff < DOUBLE_CLICK_DELAY && lastClickedElementId === elementId) {
+      // Double-click detected
+      console.log('🎯 Double-click on hotspot, opening editor:', elementId);
+      if (onHotspotDoubleClick) {
+        onHotspotDoubleClick(elementId);
+      }
+      setLastClickTime(0);
+      setLastClickedElementId(null);
+    } else {
+      // Single click - select element
+      handleElementSelect(elementId);
+      setLastClickTime(now);
+      setLastClickedElementId(elementId);
+    }
+  }, [isEditable, lastClickTime, lastClickedElementId, onHotspotDoubleClick]);
+  
   // Element selection handlers
   const handleElementSelect = useCallback((elementId: string | null) => {
     if (onElementSelect) {
@@ -293,8 +330,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       startElementPosition: currentPosition,
     });
     
-    handleElementSelect(elementId);
-  }, [isEditable, currentSlide, deviceType, handleElementSelect]);
+    // Handle hotspot clicks
+    if (element.type === 'hotspot') {
+      handleHotspotClick(elementId, element);
+    } else {
+      handleElementSelect(elementId);
+    }
+  }, [isEditable, currentSlide, deviceType, handleHotspotClick, handleElementSelect]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragState.isDragging || !dragState.elementId) return;
@@ -396,9 +438,14 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     
     const touchDuration = Date.now() - touchState.startTimestamp;
     
-    // If it was a quick tap without dragging, select the element
+    // If it was a quick tap without dragging, handle as click
     if (!touchState.isDragging && touchDuration < TAP_MAX_DURATION && touchState.elementId) {
-      handleElementSelect(touchState.elementId);
+      const element = currentSlide?.elements?.find(el => el.id === touchState.elementId);
+      if (element && element.type === 'hotspot') {
+        handleHotspotClick(touchState.elementId, element);
+      } else {
+        handleElementSelect(touchState.elementId);
+      }
     }
     
     setTouchState({
@@ -409,7 +456,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
       startTimestamp: 0,
     });
-  }, [touchState, handleElementSelect]);
+  }, [touchState, handleHotspotClick, handleElementSelect, currentSlide]);
   
   // Canvas click handler for deselecting elements
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
@@ -488,8 +535,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           onTouchEnd={handleTouchEndElement}
         >
           {element.type === 'hotspot' && (
-            <div className={`${getHotspotSizeClasses(defaultHotspotSize, deviceType === 'mobile')} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center`}>
+            <div className={`${getHotspotSizeClasses(defaultHotspotSize, deviceType === 'mobile')} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 hover:bg-opacity-30 transition-colors`}>
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
+              {isEditable && (
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs bg-black bg-opacity-75 text-white px-1 py-0.5 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Double-click to edit
+                </div>
+              )}
             </div>
           )}
           
@@ -520,7 +572,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         </div>
       );
     });
-  }, [currentSlide, deviceType, selectedElementId, handleMouseDown, handleTouchStartElement, handleTouchMoveElement, handleTouchEndElement]);
+  }, [currentSlide, deviceType, selectedElementId, handleMouseDown, handleTouchStartElement, handleTouchMoveElement, handleTouchEndElement, isEditable]);
   
   if (!currentSlide) {
     return (

@@ -93,6 +93,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const [contentOpen, setContentOpen] = useState(false);
   const [interactionsOpen, setInteractionsOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
+  const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
   const [backgroundOpen, setBackgroundOpen] = useState(false);
 
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
@@ -107,8 +108,17 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     });
   }, [selectedElement.content, onElementUpdate]);
 
-  const handleInteractionAdd = useCallback((interaction: ElementInteraction) => {
-    const updatedInteractions = [...(selectedElement.interactions || []), interaction];
+  const handleInteractionAdd = useCallback((type: InteractionType) => {
+    const newInteraction: ElementInteraction = {
+      id: `interaction-${Date.now()}`,
+      trigger: 'click',
+      effect: {
+        type: type as SlideEffectType,
+        duration: 300,
+        parameters: {}
+      }
+    };
+    const updatedInteractions = [...(selectedElement.interactions || []), newInteraction];
     onElementUpdate({ interactions: updatedInteractions });
   }, [selectedElement.interactions, onElementUpdate]);
 
@@ -119,10 +129,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     setEditingInteraction(null);
   }, [selectedElement.interactions, onElementUpdate]);
 
-  const handleInteractionDelete = useCallback((index: number) => {
-    const updatedInteractions = selectedElement.interactions?.filter((_, i) => i !== index) || [];
+  const handleInteractionRemove = useCallback((id: string) => {
+    const updatedInteractions = selectedElement.interactions?.filter(interaction => interaction.id !== id) || [];
     onElementUpdate({ interactions: updatedInteractions });
-  }, [selectedElement.interactions, onElementUpdate]);
+    // Clear selection if the removed interaction was selected
+    if (selectedInteractionId === id) {
+      setSelectedInteractionId(null);
+    }
+  }, [selectedElement.interactions, onElementUpdate, selectedInteractionId]);
 
   const handleSizePresetSelect = useCallback((preset: HotspotSize) => {
     handleStyleChange({
@@ -351,12 +365,12 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
             ) : (
               <div className="space-y-4 lg:space-y-3">
                 <InteractionsList
-                  interactions={selectedElement.interactions || []}
-                  onEdit={(interaction) => setEditingInteraction(interaction)}
-                  onDelete={handleInteractionDelete}
-                />
-                <InteractionEditor
-                  onAdd={handleInteractionAdd}
+                  element={selectedElement}
+                  selectedInteractionId={selectedInteractionId}
+                  onInteractionSelect={setSelectedInteractionId}
+                  onInteractionAdd={handleInteractionAdd}
+                  onInteractionRemove={handleInteractionRemove}
+                  isCompact={deviceType === 'mobile'}
                 />
               </div>
             )}

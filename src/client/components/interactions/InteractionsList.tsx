@@ -41,15 +41,15 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
   return (
     <div data-testid="interactions-list" className={`space-y-3 ${className}`}>
       {/* Current Interactions List */}
-      {element.interactions.length > 0 ? (
+      {element.interactions && element.interactions.length > 0 ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-300">
-              Current Interactions ({element.interactions.length})
+              Current Interactions ({element.interactions?.length || 0})
             </span>
           </div>
           
-          {element.interactions.map((interaction) => {
+          {element.interactions?.map((interaction) => {
             const preset = interactionPresets[interaction.effect.type as InteractionType];
             const isSelected = selectedInteractionId === interaction.id;
             

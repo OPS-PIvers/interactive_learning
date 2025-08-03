@@ -30,6 +30,15 @@ export interface ElementEditingState {
 }
 
 /**
+ * Hotspot editor modal state
+ */
+export interface HotspotEditorState {
+  isOpen: boolean;
+  selectedHotspotId: string | null;
+  isCollapsed: boolean;
+}
+
+/**
  * UI visibility and modal state
  */
 export interface UIVisibilityState {
@@ -41,6 +50,7 @@ export interface UIVisibilityState {
   shareModal: boolean;
   settingsModal: boolean;
   propertiesPanel: boolean;
+  hotspotEditorModal: boolean;
   
   // UI elements
   showHelpHint: boolean;
@@ -65,6 +75,7 @@ export interface UnifiedEditorState {
   editing: ElementEditingState;
   ui: UIVisibilityState;
   operations: OperationState;
+  hotspotEditor: HotspotEditorState;
 }
 
 /**
@@ -81,6 +92,11 @@ export interface EditorStateActions {
   selectElement: (elementId: string | null) => void;
   setDragging: (isDragging: boolean) => void;
   setTransforming: (isTransforming: boolean) => void;
+  
+  // Hotspot editor actions
+  openHotspotEditor: (hotspotId: string) => void;
+  closeHotspotEditor: () => void;
+  toggleHotspotEditorCollapse: () => void;
   
   // UI visibility actions
   openModal: (modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => void;
@@ -134,6 +150,12 @@ const createDefaultElementEditingState = (): ElementEditingState => ({
   isTransforming: false,
 });
 
+const createDefaultHotspotEditorState = (): HotspotEditorState => ({
+  isOpen: false,
+  selectedHotspotId: null,
+  isCollapsed: false,
+});
+
 const createDefaultUIVisibilityState = (): UIVisibilityState => ({
   slidesModal: false,
   backgroundModal: false,
@@ -142,6 +164,7 @@ const createDefaultUIVisibilityState = (): UIVisibilityState => ({
   shareModal: false,
   settingsModal: false,
   propertiesPanel: false,
+  hotspotEditorModal: false,
   showHelpHint: true,
   showSuccessMessage: false,
   activeDropdownId: null,
@@ -168,6 +191,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const [editing, setEditing] = useState<ElementEditingState>(createDefaultElementEditingState);
   const [ui, setUI] = useState<UIVisibilityState>(createDefaultUIVisibilityState);
   const [operations, setOperations] = useState<OperationState>(createDefaultOperationState);
+  const [hotspotEditor, setHotspotEditor] = useState<HotspotEditorState>(createDefaultHotspotEditorState);
   
   // Computed values
   const computed = useMemo(() => {
@@ -176,8 +200,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     const isSmallViewport = window.innerWidth < 768;
     const hasActiveModal = Object.values(ui).some((value, index, arr) => {
       // Check only boolean modal states, skip string/null values
-      return typeof value === 'boolean' && value && index < 7; // First 7 are modal states
-    });
+      return typeof value === 'boolean' && value && index < 8; // First 8 are modal states
+    }) || hotspotEditor.isOpen;
     const canEdit = !navigation.isPreviewMode && !operations.isSaving && !hasActiveModal;
     
     return {
@@ -188,19 +212,23 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       hasActiveModal,
       canEdit,
     };
-  }, [deviceType, navigation.deviceTypeOverride, navigation.isPreviewMode, operations.isSaving, ui]);
+  }, [deviceType, navigation.deviceTypeOverride, navigation.isPreviewMode, operations.isSaving, ui, hotspotEditor.isOpen]);
   
   // Navigation actions
   const setCurrentSlide = useCallback((index: number) => {
     setNavigation(prev => ({ ...prev, currentSlideIndex: index }));
     // Clear element selection when changing slides
     setEditing(prev => ({ ...prev, selectedElementId: null }));
+    // Close hotspot editor when changing slides
+    setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
   }, []);
   
   const togglePreviewMode = useCallback(() => {
     setNavigation(prev => ({ ...prev, isPreviewMode: !prev.isPreviewMode }));
     // Clear element selection when entering preview mode
     setEditing(prev => ({ ...prev, selectedElementId: null }));
+    // Close hotspot editor in preview mode
+    setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
   }, []);
   
   const toggleSlidePanelCollapse = useCallback(() => {
@@ -224,8 +252,39 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setEditing(prev => ({ ...prev, isTransforming }));
   }, []);
   
+  // Hotspot editor actions
+  const openHotspotEditor = useCallback((hotspotId: string) => {
+    setHotspotEditor(prev => ({ ...prev, isOpen: true, selectedHotspotId: hotspotId }));
+    // Close other modals when opening hotspot editor
+    setUI(prev => ({
+      ...prev,
+      slidesModal: false,
+      backgroundModal: false,
+      insertModal: false,
+      aspectRatioModal: false,
+      shareModal: false,
+      settingsModal: false,
+      propertiesPanel: false,
+      hotspotEditorModal: true,
+    }));
+  }, []);
+  
+  const closeHotspotEditor = useCallback(() => {
+    setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
+    setUI(prev => ({ ...prev, hotspotEditorModal: false }));
+  }, []);
+  
+  const toggleHotspotEditorCollapse = useCallback(() => {
+    setHotspotEditor(prev => ({ ...prev, isCollapsed: !prev.isCollapsed }));
+  }, []);
+  
   // UI visibility actions
   const openModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
+    // Close hotspot editor when opening other modals
+    if (modalType !== 'hotspotEditorModal') {
+      setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
+    }
+    
     setUI(prev => ({ 
       ...prev, 
       [modalType]: true,
@@ -237,11 +296,17 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       shareModal: modalType === 'shareModal' ? true : false,
       settingsModal: modalType === 'settingsModal' ? true : false,
       propertiesPanel: modalType === 'propertiesPanel' ? true : prev.propertiesPanel,
+      hotspotEditorModal: modalType === 'hotspotEditorModal' ? true : false,
     }));
   }, []);
   
   const closeModal = useCallback((modalType: keyof Omit<UIVisibilityState, 'showHelpHint' | 'showSuccessMessage' | 'activeDropdownId'>) => {
     setUI(prev => ({ ...prev, [modalType]: false }));
+    
+    // Close hotspot editor if closing the hotspot editor modal
+    if (modalType === 'hotspotEditorModal') {
+      setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
+    }
   }, []);
   
   const closeAllModals = useCallback(() => {
@@ -254,7 +319,11 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       shareModal: false,
       settingsModal: false,
       propertiesPanel: false,
+      hotspotEditorModal: false,
     }));
+    
+    // Close hotspot editor too
+    setHotspotEditor(prev => ({ ...prev, isOpen: false, selectedHotspotId: null }));
   }, []);
   
   const setActiveDropdown = useCallback((dropdownId: string | null) => {
@@ -296,6 +365,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setEditing(createDefaultElementEditingState());
     setUI(createDefaultUIVisibilityState());
     setOperations(createDefaultOperationState());
+    setHotspotEditor(createDefaultHotspotEditorState());
   }, []);
   
   const enterEditMode = useCallback((elementId: string) => {
@@ -341,6 +411,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       editing,
       ui,
       operations,
+      hotspotEditor,
     },
     actions: {
       setCurrentSlide,
@@ -350,6 +421,9 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       selectElement,
       setDragging,
       setTransforming,
+      openHotspotEditor,
+      closeHotspotEditor,
+      toggleHotspotEditorCollapse,
       openModal,
       closeModal,
       closeAllModals,

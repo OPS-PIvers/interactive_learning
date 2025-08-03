@@ -8,6 +8,7 @@
 
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType } from '../../../shared/slideTypes';
+import { HotspotData, TimelineEventData } from '../../../shared/types';
 import { MigrationResult } from '../../../shared/migrationUtils';
 import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';
 import { ResponsiveCanvas } from './ResponsiveCanvas';
@@ -30,6 +31,17 @@ import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
 import { ResponsiveBackgroundModal } from '../responsive/ResponsiveBackgroundModal';
 import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
 import { ResponsiveAspectRatioModal } from '../responsive/ResponsiveAspectRatioModal';
+
+// Import hotspot editor modal and bridge utilities
+import HotspotEditorModal from '../HotspotEditorModal';
+import { 
+  slideElementToHotspotData, 
+  hotspotDataToSlideElement, 
+  extractTimelineEventsFromElement,
+  timelineEventToSlideInteraction,
+  getHotspotsFromSlide,
+  getCanvasDimensionsFromSlide 
+} from '../../utils/hotspotEditorBridge';
 
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;
@@ -74,6 +86,56 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     if (!state.editing.selectedElementId || !currentSlide) return null;
     return currentSlide.elements?.find(el => el.id === state.editing.selectedElementId) || null;
   }, [state.editing.selectedElementId, currentSlide]);
+  
+  // Hotspot editor data - prepare legacy format for the modal
+  const hotspotEditorData = useMemo(() => {
+    if (!state.hotspotEditor.isOpen || !state.hotspotEditor.selectedHotspotId || !currentSlide) {
+      return null;
+    }
+    
+    const selectedHotspotElement = currentSlide.elements?.find(
+      el => el.id === state.hotspotEditor.selectedHotspotId && el.type === 'hotspot'
+    );
+    
+    if (!selectedHotspotElement) return null;
+    
+    // Get canvas dimensions for coordinate conversion
+    const containerDimensions = { width: 1200, height: 800 }; // Default, will be refined
+    const canvasDimensions = getCanvasDimensionsFromSlide(currentSlide, containerDimensions);
+    
+    try {
+      // Convert slide element to legacy hotspot data
+      const hotspotData = slideElementToHotspotData(
+        selectedHotspotElement,
+        computed.effectiveDeviceType,
+        canvasDimensions
+      );
+      
+      // Extract timeline events from element interactions
+      const timelineEvents = extractTimelineEventsFromElement(selectedHotspotElement, 1);
+      
+      // Get all hotspots from current slide for context
+      const allHotspots = getHotspotsFromSlide(currentSlide).map(element => 
+        slideElementToHotspotData(element, computed.effectiveDeviceType, canvasDimensions)
+      );
+      
+      // Get background image URL if available
+      const backgroundImage = currentSlide.backgroundMedia?.type === 'image' 
+        ? currentSlide.backgroundMedia.url || ''
+        : '';
+      
+      return {
+        selectedHotspot: hotspotData,
+        relatedEvents: timelineEvents,
+        allHotspots,
+        backgroundImage,
+        canvasDimensions,
+      };
+    } catch (error) {
+      console.error('Error preparing hotspot editor data:', error);
+      return null;
+    }
+  }, [state.hotspotEditor.isOpen, state.hotspotEditor.selectedHotspotId, currentSlide, computed.effectiveDeviceType]);
   
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((updatedSlideDeck: SlideDeck) => {
@@ -124,6 +186,130 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     
     handleSlideDeckUpdate(updatedSlideDeck);
   }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
+  
+  // Handle hotspot double-click to open editor
+  const handleHotspotDoubleClick = useCallback((elementId: string) => {
+    console.log('🎯 Opening hotspot editor for:', elementId);
+    actions.openHotspotEditor(elementId);
+  }, [actions]);
+  
+  // Handle hotspot updates from the editor modal
+  const handleHotspotUpdate = useCallback((updatedHotspotData: HotspotData) => {
+    if (!hotspotEditorData || !currentSlide) return;
+    
+    console.log('🔄 Updating hotspot data:', updatedHotspotData);
+    
+    try {
+      // Convert updated hotspot data back to slide element
+      const existingElement = currentSlide.elements?.find(el => el.id === updatedHotspotData.id);
+      const updatedElement = hotspotDataToSlideElement(
+        updatedHotspotData,
+        computed.effectiveDeviceType,
+        hotspotEditorData.canvasDimensions,
+        existingElement
+      );
+      
+      handleElementUpdate(updatedHotspotData.id, updatedElement);
+    } catch (error) {
+      console.error('Error updating hotspot element:', error);
+    }
+  }, [hotspotEditorData, currentSlide, computed.effectiveDeviceType, handleElementUpdate]);
+  
+  // Handle hotspot deletion from the editor modal
+  const handleHotspotDelete = useCallback((hotspotId: string) => {
+    console.log('🗑️ Deleting hotspot:', hotspotId);
+    
+    const updatedSlideDeck = {
+      ...slideDeck,
+      slides: slideDeck.slides.map((slide, index) => {
+        if (index !== state.navigation.currentSlideIndex) return slide;
+        
+        return {
+          ...slide,
+          elements: slide.elements?.filter(el => el.id !== hotspotId) || [],
+        };
+      }),
+    };
+    
+    handleSlideDeckUpdate(updatedSlideDeck);
+    actions.closeHotspotEditor();
+  }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate, actions]);
+  
+  // Handle adding timeline events from the editor modal
+  const handleAddTimelineEvent = useCallback((event: TimelineEventData) => {
+    if (!currentSlide || !state.hotspotEditor.selectedHotspotId) return;
+    
+    console.log('➕ Adding timeline event:', event);
+    
+    try {
+      // Convert timeline event to slide interaction
+      const interaction = timelineEventToSlideInteraction(event);
+      
+      // Find the hotspot element and add the interaction
+      const updatedElements = currentSlide.elements?.map(element => {
+        if (element.id === state.hotspotEditor.selectedHotspotId) {
+          return {
+            ...element,
+            interactions: [...(element.interactions || []), interaction],
+          };
+        }
+        return element;
+      }) || [];
+      
+      handleSlideUpdate({ elements: updatedElements });
+    } catch (error) {
+      console.error('Error adding timeline event:', error);
+    }
+  }, [currentSlide, state.hotspotEditor.selectedHotspotId, handleSlideUpdate]);
+  
+  // Handle updating timeline events from the editor modal
+  const handleUpdateTimelineEvent = useCallback((event: TimelineEventData) => {
+    if (!currentSlide || !state.hotspotEditor.selectedHotspotId) return;
+    
+    console.log('🔄 Updating timeline event:', event);
+    
+    try {
+      // Convert timeline event to slide interaction
+      const updatedInteraction = timelineEventToSlideInteraction(event);
+      
+      // Find the hotspot element and update the interaction
+      const updatedElements = currentSlide.elements?.map(element => {
+        if (element.id === state.hotspotEditor.selectedHotspotId) {
+          return {
+            ...element,
+            interactions: element.interactions?.map(interaction => 
+              interaction.id === event.id ? updatedInteraction : interaction
+            ) || [],
+          };
+        }
+        return element;
+      }) || [];
+      
+      handleSlideUpdate({ elements: updatedElements });
+    } catch (error) {
+      console.error('Error updating timeline event:', error);
+    }
+  }, [currentSlide, state.hotspotEditor.selectedHotspotId, handleSlideUpdate]);
+  
+  // Handle deleting timeline events from the editor modal
+  const handleDeleteTimelineEvent = useCallback((eventId: string) => {
+    if (!currentSlide || !state.hotspotEditor.selectedHotspotId) return;
+    
+    console.log('🗑️ Deleting timeline event:', eventId);
+    
+    // Find the hotspot element and remove the interaction
+    const updatedElements = currentSlide.elements?.map(element => {
+      if (element.id === state.hotspotEditor.selectedHotspotId) {
+        return {
+          ...element,
+          interactions: element.interactions?.filter(interaction => interaction.id !== eventId) || [],
+        };
+      }
+      return element;
+    }) || [];
+    
+    handleSlideUpdate({ elements: updatedElements });
+  }, [currentSlide, state.hotspotEditor.selectedHotspotId, handleSlideUpdate]);
   
   // Handle adding new slides
   const handleAddSlide = useCallback((insertAfterIndex?: number) => {
@@ -427,6 +613,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 onElementSelect={actions.selectElement}
                 onElementUpdate={handleElementUpdate}
                 onSlideUpdate={handleSlideUpdate}
+                onHotspotDoubleClick={handleHotspotDoubleClick}
                 deviceTypeOverride={state.navigation.deviceTypeOverride}
                 className="w-full h-full"
                 isEditable={!state.navigation.isPreviewMode}
@@ -475,7 +662,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
             <div className="flex items-center gap-2">
               <span className="text-blue-200">✨</span>
-              <span>Use touch/mouse to zoom, navigate slides, and select elements</span>
+              <span>Use touch/mouse to zoom, navigate slides, and select elements. Double-click hotspots to edit.</span>
               <button
                 onClick={actions.dismissHelpHint}
                 className="ml-2 text-blue-200 hover:text-white"
@@ -504,12 +691,31 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           </div>
         )}
         
+        {/* Hotspot Editor Modal */}
+        {state.hotspotEditor.isOpen && hotspotEditorData && (
+          <HotspotEditorModal
+            isOpen={state.hotspotEditor.isOpen}
+            selectedHotspot={hotspotEditorData.selectedHotspot}
+            relatedEvents={hotspotEditorData.relatedEvents}
+            currentStep={1}
+            backgroundImage={hotspotEditorData.backgroundImage}
+            onUpdateHotspot={handleHotspotUpdate}
+            onDeleteHotspot={handleHotspotDelete}
+            onAddEvent={handleAddTimelineEvent}
+            onUpdateEvent={handleUpdateTimelineEvent}
+            onDeleteEvent={handleDeleteTimelineEvent}
+            onClose={actions.closeHotspotEditor}
+            allHotspots={hotspotEditorData.allHotspots}
+            onCollapseChange={actions.toggleHotspotEditorCollapse}
+          />
+        )}
+        
         {/* Responsive Modals */}
         {/* Unified slides modal */}
         {state.ui.slidesModal && (
           <ResponsiveSlidesModal
             slides={slideDeck.slides}
-            currentSlideIndex={state.ui.currentSlideIndex}
+            currentSlideIndex={state.navigation.currentSlideIndex}
             onSlideSelect={(index) => {
               actions.setCurrentSlide(index);
               actions.closeModal('slidesModal');
