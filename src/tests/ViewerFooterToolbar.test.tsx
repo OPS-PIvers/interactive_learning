@@ -103,7 +103,6 @@ const mockAuth = {
     onStartLearning: mockOnStartLearning,
     onStartExploring: mockOnStartExploring,
     hasContent: true,
-    isMobile: false,
     viewerModes: { explore: true, selfPaced: true, timed: true },
   };
 
@@ -114,7 +113,7 @@ const mockAuth = {
 
     describe('Desktop Layout', () => {
       it('renders project name and back button', () => {
-        renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} />);
+        renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} moduleState="idle" />);
         expect(screen.getByText('My Awesome Project')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Back to projects/i })).toBeInTheDocument();
       });
@@ -202,7 +201,7 @@ const mockAuth = {
     });
 
     describe('Mobile Layout', () => {
-      const mobileProps = { ...defaultProps, isMobile: true };
+      const mobileProps = { ...defaultProps };
 
       it('renders mobile layout correctly', () => {
         renderWithAuthProvider(<ViewerFooterToolbar {...mobileProps} />);

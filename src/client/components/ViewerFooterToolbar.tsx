@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import AuthButton from './AuthButton';
 import { InteractiveSlide } from '../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -329,54 +330,33 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             </button>
           </div>
         )}
-        
-        {/* Mode buttons when idle */}
-        {moduleState === 'idle' && (
-          <div className="flex items-center gap-4">
-            {showExploreButton && (
-              <button
-                onClick={onStartExploring}
-                disabled={!hasContent}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span>Explore Mode</span>
-              </button>
-            )}
-            
-            {showTourButton && (
-              <button
-                onClick={onStartLearning}
-                disabled={!hasContent}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M12 5.5V3a1 1 0 00-1-1H9a1 1 0 00-1 1v2.5" />
-                </svg>
-                <span>Guided Tour</span>
-              </button>
-            )}
-          </div>
-        )}
-        
-        {/* Back to menu when in learning/exploring mode */}
-        {showBackToMenuButton && (
+
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          {/* Back to menu when in learning/exploring mode */}
+          {showBackToMenuButton && (
+            <button
+              onClick={onBack} 
+              className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              aria-label="Back to Menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Back to Menu</span>
+            </button>
+          )}
+          
           <button
-            onClick={onBack} 
-            className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            onClick={() => setShowShortcuts(true)}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+            title="Keyboard Shortcuts"
+            aria-label="Show keyboard shortcuts"
+            aria-haspopup="dialog"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span>Back to Menu</span>
+            <span className="text-sm font-medium hidden sm:inline mr-1">Help</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zM12 17.25h.008v.008H12v-.008z" /></svg>
           </button>
-        )}
-        
-        {/* Right: Auth */}
-        <div className="flex items-center">
-          <AuthButton variant="default" size="medium" />
         </div>
       </div>
       {showShortcuts && (
@@ -441,54 +421,123 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors duration-200 px-2 py-1 rounded hover:bg-slate-700/50"
-            title="Back to Dashboard"
+            title="Back to projects"
+            aria-label="Back to projects"
           >
-            <ArrowLeftIcon className="w-4 h-4" />
+            <ChevronLeftIcon className="w-4 h-4" />
             <span className="hidden sm:inline font-medium">Back</span>
           </button>
         </div>
 
         {/* Center Section - Navigation */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onPreviousSlide}
-            disabled={!canGoPrevious}
-            className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            title="Previous Slide (←)"
-          >
-            <ChevronLeftIcon className="w-4 h-4" />
-          </button>
-
-          <div className="text-center px-3">
-            <div className="text-white font-semibold text-sm">
-              {currentSlideIndex + 1} / {totalSlides}
+        {moduleState === 'learning' && (onPreviousSlide || onNextSlide || onPreviousStep || onNextStep) ? (
+          <div className="flex items-center gap-6">
+            <button
+              onClick={onPreviousStep || onPreviousSlide}
+              disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={onPreviousStep ? "Previous step" : "Previous slide"}
+              title={onPreviousStep ? "Previous step" : "Previous slide"}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Previous</span>
+            </button>
+            
+            {/* Progress indicator */}
+            <div className="flex flex-col items-center gap-3" aria-live="polite">
+              {progressDots}
+              <div className="text-center">
+                <div className="text-sm font-semibold text-white">
+                  {stepLabel || `Slide ${currentSlideIndex + 1} of ${totalSlides}`}
+                </div>
+                {currentStep && totalSteps && (
+                  <div className="text-xs text-slate-300">
+                    Step {currentStep} of {totalSteps}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
-              {projectName}
-            </div>
+            
+            <button
+              onClick={onNextStep || onNextSlide}
+              disabled={onNextStep ? !canGoNextStep : !canGoNext}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={onNextStep ? "Next step" : "Next slide"}
+              title={onNextStep ? "Next step" : "Next slide"}
+            >
+              <span className="text-sm font-medium">Next</span>
+              <ChevronRightIcon className="w-4 h-4" />
+            </button>
           </div>
+        ) : moduleState === 'idle' ? (
+          <div className="flex items-center gap-4">
+            <div className="text-center px-3">
+              <div className="text-white font-semibold text-sm">
+                {currentSlideIndex + 1} / {totalSlides}
+              </div>
+              <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
+                {projectName}
+              </div>
+            </div>
+            
+            {showExploreButton && (
+              <button
+                onClick={onStartExploring}
+                disabled={!hasContent}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
+                aria-label="Explore Mode"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>Explore Mode</span>
+              </button>
+            )}
+            
+            {showTourButton && (
+              <button
+                onClick={onStartLearning}
+                disabled={!hasContent}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
+                aria-label="Guided Tour"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M12 5.5V3a1 1 0 00-1-1H9a1 1 0 00-1 1v2.5" />
+                </svg>
+                <span>Guided Tour</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onPreviousSlide}
+              disabled={!canGoPrevious}
+              className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              title="Previous Slide (←)"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </button>
 
-          <button
-            onClick={onNextSlide}
-            disabled={!canGoNext}
-            className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            title="Next Slide (→)"
-          >
-            <ChevronRightIcon className="w-4 h-4" />
-          </button>
-        </div>
+            <div className="text-center px-3">
+              <div className="text-white font-semibold text-sm">
+                {currentSlideIndex + 1} / {totalSlides}
+              </div>
+              <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
+                {projectName}
+              </div>
+            </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowShortcuts(true)}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
-            title="Keyboard Shortcuts"
-          >
-            <span className="text-sm font-medium hidden sm:inline mr-1">Help</span>
-            <QuestionMarkCircleIcon className="w-4 h-4" />
-          </button>
-        </div>
+            <button
+              onClick={onNextSlide}
+              disabled={!canGoNext}
+              className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              title="Next Slide (→)"
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Keyboard Shortcuts Modal */}

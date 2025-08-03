@@ -35,7 +35,7 @@ interface EnhancedHotspotEditorModalProps {
 }
 
 // Event Type Selector Component
-const EventTypeSelector: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
+const EventTypeGrid: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
   const eventTypes: { type: InteractionType; label: string }[] = [
     { type: InteractionType.SPOTLIGHT, label: 'Spotlight' },
     { type: InteractionType.PAN_ZOOM, label: 'Pan & Zoom' },
@@ -556,7 +556,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                       <XMarkIcon className="w-5 h-5" />
                     </button>
                   </div>
-                  <EventTypeSelector onSelectEventType={(type) => {
+                  <EventTypeGrid onSelectEventType={(type) => {
                     handleAddEvent(type);
                     setShowEventTypeSelector(false); // Optionally hide after selection
                   }} />
