@@ -64,6 +64,7 @@ src/
 - **Cleanup**: Implement proper cleanup in useEffect hooks with dependency arrays
 - **Architecture**: Compound component patterns for modals, editors, and viewers
 - **Responsive Design**: CSS-only responsive design using Tailwind breakpoints (`sm:`, `md:`, `lg:`)
+- **STRICT RULE - NO DEVICE BRANCHING**: NEVER use JavaScript for device-specific UI logic (`isMobile`, `window.innerWidth`, `isDesktop` checks are FORBIDDEN)
 - **Z-Index Integration**: Always use centralized z-index values from `zIndexLevels.ts`
 - **Accessibility**: Include proper ARIA attributes and use accessibility hooks
 - **State**: Use `useCallback` and `useMemo` for performance optimization
@@ -167,6 +168,9 @@ The application features a comprehensive modal layout constraint system that pre
 
 ## Responsive Design Notes
 - **CSS-First Approach**: Use Tailwind responsive classes (`sm:`, `md:`, `lg:`) instead of JavaScript device detection
+- **FORBIDDEN PATTERNS**: Never use `isMobile`, `window.innerWidth < 768`, `isDesktop`, or any JavaScript device detection for UI rendering
+- **CORRECT PATTERN**: `<div className="h-16 py-2 md:h-14 md:py-0">` (CSS-only responsive)
+- **INCORRECT PATTERN**: `const height = isMobile ? '64px' : '56px'` (JavaScript device branching)
 - **Performance**: Implement debounced inputs and throttled events for optimal performance
 - **Touch-First Design**: Design for touch interactions that also work with mouse/keyboard
 - **Progressive Enhancement**: Start with mobile-optimized design, enhance for larger screens
@@ -175,14 +179,15 @@ The application features a comprehensive modal layout constraint system that pre
 - **Testing**: Test across all device types and screen sizes
 
 ## Custom Hook Patterns
-- **Layout Calculations**: `useDeviceDetection()` and `useLayoutConstraints()` for mathematical positioning only
+- **Layout Calculations**: `useDeviceDetection()` and `useLayoutConstraints()` for mathematical positioning calculations ONLY - NEVER for UI rendering
+- **STRICT LIMITATION**: Device detection hooks are ONLY for mathematical calculations (drag boundaries, canvas dimensions) - NEVER for conditional UI rendering
 - **Viewport Management**: `useViewportHeight()` with CSS viewport unit support
 - **Touch Gestures**: `useTouchGestures` with momentum physics for canvas interactions
 - **Performance**: `useIntersectionObserver` for efficient rendering of large slide collections
 - **Accessibility**: `useScreenReaderAnnouncements` with live regions
 - **Cleanup**: Always include proper dependency arrays and cleanup functions
 - **State Optimization**: Use `useCallback` and `useMemo` to prevent unnecessary re-renders
-- **No UI Branching**: Avoid using device detection hooks for conditional UI rendering
+- **No UI Branching**: Device detection hooks are FORBIDDEN for conditional UI rendering - use CSS breakpoints instead
 
 ## TypeScript Best Practices
 - **Strict Types**: Use strict TypeScript interfaces, avoid `any` type
