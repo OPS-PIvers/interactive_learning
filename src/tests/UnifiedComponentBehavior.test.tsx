@@ -42,7 +42,7 @@ describe('Unified Component Behavior Tests', () => {
 
   afterEach(cleanup);
 
-  const renderComponent = (props: any) => {
+  const renderComponent = (props: React.ComponentProps<typeof SlideBasedInteractiveModule>) => {
     return render(
       <AuthProvider>
         <ToastProvider>
@@ -52,18 +52,22 @@ describe('Unified Component Behavior Tests', () => {
     );
   };
 
+  const setupMatchMedia = (isMobile: boolean) => {
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: isMobile,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  };
+
   describe('When on a desktop device', () => {
     beforeEach(() => {
-      window.matchMedia = vi.fn().mockImplementation(query => ({
-        matches: false, // Simulate desktop
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      }));
+      setupMatchMedia(false); // Simulate desktop
     });
 
     test('should render the desktop editor layout', async () => {
@@ -76,16 +80,7 @@ describe('Unified Component Behavior Tests', () => {
 
   describe('When on a mobile device', () => {
     beforeEach(() => {
-      window.matchMedia = vi.fn().mockImplementation(query => ({
-        matches: true, // Simulate mobile
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      }));
+      setupMatchMedia(true); // Simulate mobile
     });
 
     test('should render the mobile editor layout', async () => {

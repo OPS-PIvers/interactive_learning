@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { firebaseAPI } from '../../lib/firebaseApi';
-vi.mock('@firebase/analytics', () => ({
-  getAnalytics: vi.fn(),
-  isSupported: vi.fn().mockResolvedValue(false),
-}));
 import { firebaseManager } from '../../lib/firebaseConfig';
 import { Project } from '../../shared/types';
 import { signInAnonymously, signOut } from 'firebase/auth';

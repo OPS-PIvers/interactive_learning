@@ -324,11 +324,11 @@ describe('React Hooks Compliance Tests', () => {
   describe('Error Boundary Integration with Hooks', () => {
     describe('when global error handler is paused', () => {
       beforeEach(() => {
-        (global as any).pauseGlobalErrorHandler();
+        global.pauseGlobalErrorHandler();
       });
 
       afterEach(() => {
-        (global as any).resumeGlobalErrorHandler();
+        global.resumeGlobalErrorHandler();
       });
 
       test('hooks errors are properly caught by error boundaries', () => {

@@ -56,8 +56,8 @@ const stopListening = () => {
 startListening();
 
 // Expose control to tests
-(global as any).pauseGlobalErrorHandler = stopListening;
-(global as any).resumeGlobalErrorHandler = startListening;
+global.pauseGlobalErrorHandler = stopListening;
+global.resumeGlobalErrorHandler = startListening;
 
 afterEach(() => {
   if (unhandledErrors.length > 0) {
