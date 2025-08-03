@@ -4,7 +4,7 @@ import { InteractionType } from '../../shared/types';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import ChevronDownIcon from './icons/ChevronDownIcon';
-import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
+import { hotspotSizePresets, HotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 import { TextInteractionEditor } from './interactions/TextInteractionEditor';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
@@ -97,7 +97,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
   const elementStyle = selectedElement.style || {};
   const elementContent = selectedElement.content || {};
-  const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop;
+  const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop || {};
 
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
     onElementUpdate({
@@ -206,14 +206,22 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                         onClick={() => handleSizePresetSelect(preset)}
                         className={`
                           p-3 lg:p-2 text-sm lg:text-xs rounded border transition-all
-                          ${elementPosition?.width === preset.width && elementPosition?.height === preset.height
+                          ${(() => {
+                            const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
+                            return elementPosition?.width === dimensions.width && elementPosition?.height === dimensions.height;
+                          })()
                             ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
                           }
                         `}
                       >
                         <div className="font-medium">{preset.name}</div>
-                        <div className="text-xs opacity-75">{preset.width}×{preset.height}</div>
+                        <div className="text-xs opacity-75">
+                          {(() => {
+                            const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
+                            return `${dimensions.width}×${dimensions.height}`;
+                          })()}
+                        </div>
                       </button>
                     ))}
                   </div>
