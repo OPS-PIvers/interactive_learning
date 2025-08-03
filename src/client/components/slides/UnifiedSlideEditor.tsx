@@ -628,8 +628,17 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 onBackgroundOpen={() => actions.openModal('backgroundModal')}
                 onInsertOpen={() => actions.openModal('insertModal')}
                 onAspectRatioOpen={() => actions.openModal('aspectRatioModal')}
+                onPropertiesOpen={() => {
+                  // Properties panel is automatically shown when element is selected
+                  // This button can serve as a visual indicator or could scroll to element
+                  if (selectedElement) {
+                    // Properties panel is already visible, this could focus it or scroll to element
+                    console.log('Properties panel is already visible for selected element');
+                  }
+                }}
                 deviceType={computed.effectiveDeviceType}
                 onDeviceTypeChange={actions.setDeviceTypeOverride}
+                hasSelectedElement={!!selectedElement}
               />
             )}
           </div>

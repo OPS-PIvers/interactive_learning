@@ -41,36 +41,36 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   icon,
   collapsible = true
 }) => (
-  <div className="border-b border-slate-600 lg:border-slate-700 last:border-b-0">
+  <div className="border-b border-slate-600 last:border-b-0">
     {collapsible ? (
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 lg:p-3 text-left hover:bg-slate-700/50 transition-colors"
+        className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
         style={{ touchAction: 'manipulation' }}
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2">
           {icon && <span className="text-slate-400">{icon}</span>}
-          <span className="font-medium text-white text-lg lg:text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
+          <span className="font-medium text-white text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
             {title}
           </span>
         </div>
         <ChevronDownIcon 
-          className={`w-5 h-5 lg:w-4 lg:h-4 text-slate-400 transition-transform duration-200 ${
+          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
       </button>
     ) : (
-      <div className="p-4 lg:p-3 flex items-center gap-2">
+      <div className="p-3 flex items-center gap-2">
         {icon && <span className="text-slate-400">{icon}</span>}
-        <span className="font-medium text-white text-lg lg:text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
+        <span className="font-medium text-white text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
           {title}
         </span>
       </div>
     )}
     {(isOpen || !collapsible) && (
-      <div className="px-4 pb-4 lg:p-3 lg:pt-0 space-y-4 lg:space-y-3">
+      <div className="px-3 pb-3 space-y-3">
         {children}
       </div>
     )}
@@ -148,48 +148,44 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   return (
     <div 
       className={`
-        /* Mobile: Full-screen modal overlay */
-        fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-end
-        /* Desktop: Right sidebar */
-        lg:relative lg:inset-auto lg:bg-transparent lg:backdrop-blur-none lg:z-auto
-        lg:flex lg:items-stretch lg:w-80 lg:h-full
+        /* Modal overlay for all screen sizes */
+        fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4
         ${className}
       `}
       style={style}
       onClick={(e) => {
-        // Close modal when clicking backdrop on mobile
+        // Close modal when clicking backdrop
         if (e.target === e.currentTarget) {
           onClose?.();
         }
       }}
     >
       <div className="
-        /* Mobile: Slide-up panel */
-        bg-slate-800 w-full rounded-t-xl shadow-2xl overflow-hidden
-        max-h-[80vh] flex flex-col
-        /* Desktop: Full height sidebar */
-        lg:rounded-none lg:max-h-none lg:h-full lg:shadow-none
-        lg:border-l lg:border-slate-700
+        /* Modal dialog for all screen sizes */
+        bg-slate-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden
+        max-h-[90vh] flex flex-col
       ">
-        {/* Header - Mobile shows close button, Desktop shows minimal header */}
+        {/* Header with close button */}
         <div className="
-          flex items-center justify-between p-4 lg:p-3 
+          flex items-center justify-between p-4 
           border-b border-slate-700 shrink-0
         ">
           <div>
-            <h2 className="text-xl lg:text-lg font-semibold text-white">Properties</h2>
-            <div className="text-sm text-slate-400 mt-1 lg:mt-0 capitalize">
+            <h2 className="text-lg font-semibold text-white">Properties</h2>
+            <div className="text-sm text-slate-400 capitalize">
               {selectedElement.type} Element
             </div>
           </div>
-          {/* Close button only visible on mobile */}
+          {/* Close button */}
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors text-lg lg:hidden"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
               aria-label="Close properties"
             >
-              ✕
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           )}
         </div>
@@ -203,19 +199,19 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
               isOpen={stylesOpen}
               onToggle={() => setStylesOpen(!stylesOpen)}
             >
-              <div className="space-y-4 lg:space-y-3">
+              <div className="space-y-3">
                 {/* Size Presets */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Size Presets
                   </label>
-                  <div className="grid grid-cols-3 lg:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {hotspotSizePresets.map((preset) => (
                       <button
                         key={preset.name}
                         onClick={() => handleSizePresetSelect(preset)}
                         className={`
-                          p-3 lg:p-2 text-sm lg:text-xs rounded border transition-all
+                          p-2 text-xs rounded border transition-all
                           ${selectedElement.style.width === preset.width && selectedElement.style.height === preset.height
                             ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
@@ -231,19 +227,19 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
                 {/* Color Selection */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Color
                   </label>
                   <LiquidColorSelector
                     selectedColor={selectedElement.style.backgroundColor || '#3b82f6'}
                     onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
-                    size="large"
+                    size="medium"
                   />
                 </div>
 
                 {/* Opacity */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Opacity: {Math.round((selectedElement.style.opacity || 1) * 100)}%
                   </label>
                   <input
@@ -259,7 +255,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
                 {/* Border Radius */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Border Radius: {selectedElement.style.borderRadius || 8}px
                   </label>
                   <input
@@ -282,32 +278,32 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
               isOpen={contentOpen}
               onToggle={() => setContentOpen(!contentOpen)}
             >
-              <div className="space-y-4 lg:space-y-3">
+              <div className="space-y-3">
                 {/* Title */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Title
                   </label>
                   <input
                     type="text"
                     value={selectedElement.content.title || ''}
                     onChange={(e) => handleContentChange({ title: e.target.value })}
-                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 lg:px-2 lg:py-1 text-white text-base lg:text-xs"
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm"
                     placeholder="Element title"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Description
                   </label>
                   <textarea
                     value={selectedElement.content.description || ''}
                     onChange={(e) => handleContentChange({ description: e.target.value })}
-                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 lg:px-2 lg:py-1 text-white text-base lg:text-xs resize-none"
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm resize-none"
                     placeholder="Element description"
-                    rows={4}
+                    rows={3}
                   />
                 </div>
               </div>
@@ -321,14 +317,16 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
             onToggle={() => setInteractionsOpen(!interactionsOpen)}
           >
             {editingInteraction ? (
-              <div className="space-y-4 lg:space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg lg:text-base font-medium text-white">Edit Interaction</h3>
+                  <h3 className="text-base font-medium text-white">Edit Interaction</h3>
                   <button
                     onClick={() => setEditingInteraction(null)}
-                    className="text-slate-400 hover:text-white text-lg lg:text-base"
+                    className="text-slate-400 hover:text-white"
                   >
-                    ✕
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
                 {editingInteraction.type === InteractionType.SHOW_TEXT && (
@@ -363,14 +361,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                 )}
               </div>
             ) : (
-              <div className="space-y-4 lg:space-y-3">
+              <div className="space-y-3">
                 <InteractionsList
                   element={selectedElement}
                   selectedInteractionId={selectedInteractionId}
                   onInteractionSelect={setSelectedInteractionId}
                   onInteractionAdd={handleInteractionAdd}
                   onInteractionRemove={handleInteractionRemove}
-                  isCompact={deviceType === 'mobile'}
+                  isCompact={true}
                 />
               </div>
             )}
@@ -390,14 +388,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
             </CollapsibleSection>
           )}
 
-          {/* Delete Button - Mobile gets larger touch target */}
+          {/* Delete Button */}
           {onDelete && (
-            <div className="p-4 lg:p-3 border-t border-slate-700">
+            <div className="p-3 border-t border-slate-700">
               <button
                 onClick={onDelete}
                 className="
-                  w-full p-3 lg:p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg
-                  transition-colors font-medium text-base lg:text-sm
+                  w-full p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg
+                  transition-colors font-medium text-sm
                 "
               >
                 Delete Element
