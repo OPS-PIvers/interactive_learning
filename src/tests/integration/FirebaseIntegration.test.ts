@@ -1,4 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+vi.mock('@firebase/analytics', () => ({
+  getAnalytics: vi.fn(),
+  isSupported: vi.fn().mockResolvedValue(false),
+}));
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';
 import { DataSanitizer } from '../../lib/dataSanitizer';

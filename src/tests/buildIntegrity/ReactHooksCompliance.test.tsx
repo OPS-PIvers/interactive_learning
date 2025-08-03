@@ -322,8 +322,17 @@ describe('React Hooks Compliance Tests', () => {
   });
 
   describe('Error Boundary Integration with Hooks', () => {
-    test('hooks errors are properly caught by error boundaries', () => {
-      const ProblematicComponent: React.FC = () => {
+    describe('when global error handler is paused', () => {
+      beforeEach(() => {
+        (global as any).pauseGlobalErrorHandler();
+      });
+
+      afterEach(() => {
+        (global as any).resumeGlobalErrorHandler();
+      });
+
+      test('hooks errors are properly caught by error boundaries', () => {
+        const ProblematicComponent: React.FC = () => {
         const [count, setCount] = useState(0);
 
         // Intentionally cause an error in useEffect
@@ -377,6 +386,7 @@ describe('React Hooks Compliance Tests', () => {
       fireEvent.click(screen.getByTestId('trigger-error'));
 
       expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
+    });
     });
   });
 });

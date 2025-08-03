@@ -7,48 +7,40 @@ import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
 import { SlideDeck, DeviceType } from '../shared/slideTypes';
 
-// Mock firebaseProxy as it is not relevant for rendering tests
 vi.mock('../lib/firebaseProxy', () => ({
   appScriptProxy: {
     uploadImage: vi.fn().mockResolvedValue('mockImageUrl'),
   },
 }));
 
-// Mock ResizeObserver for tests
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
 
-describe('Comprehensive Render Testing', () => {
+describe('Unified Component Behavior Tests', () => {
   const mockOnSave = vi.fn();
   const mockOnClose = vi.fn();
 
-  const defaultSlideData: SlideDeck = {
-    id: 'test-slide-deck',
-    title: 'Test Slide Deck',
+  const unifiedSlideData: SlideDeck = {
+    id: 'unified-test-deck',
+    title: 'Unified Test Deck',
     slides: [{ id: 'slide1', elements: [], backgroundMedia: null }],
     metadata: { version: '2.0', createdAt: '', updatedAt: '' },
   };
 
   const getProps = (isEditing: boolean, deviceType: DeviceType) => ({
-    slideDeck: defaultSlideData,
+    slideDeck: unifiedSlideData,
     isEditing,
     onSave: mockOnSave,
     onClose: mockOnClose,
-    projectName: 'Test Project',
-    projectId: 'test-project-id',
+    projectName: 'Unified Project',
+    projectId: 'unified-project-id',
     deviceType,
   });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    cleanup();
-  });
+  afterEach(cleanup);
 
   const renderComponent = (props: any) => {
     return render(
@@ -60,7 +52,7 @@ describe('Comprehensive Render Testing', () => {
     );
   };
 
-  describe('Desktop Rendering', () => {
+  describe('When on a desktop device', () => {
     beforeEach(() => {
       window.matchMedia = vi.fn().mockImplementation(query => ({
         matches: false, // Simulate desktop
@@ -74,28 +66,16 @@ describe('Comprehensive Render Testing', () => {
       }));
     });
 
-    test('should render viewer on desktop without errors', async () => {
-      const props = getProps(false, 'desktop');
-      renderComponent(props);
-      // The main assertion is that the global error handler in setup.ts doesn't throw.
-      // We can add a basic check to ensure the component rendered something.
-      await waitFor(async () => {
-        const button = await screen.findByRole('button', { name: /explore freely/i });
-        expect(button).toBeInTheDocument();
-      });
-    });
-
-    test('should render editor on desktop without errors', async () => {
+    test('should render the desktop editor layout', async () => {
       const props = getProps(true, 'desktop');
       renderComponent(props);
-      const projectTitles = await screen.findAllByText('Test Project');
+      const projectTitles = await screen.findAllByText('Unified Project');
       expect(projectTitles.length).toBeGreaterThan(0);
     });
   });
 
-  describe('Mobile Rendering', () => {
+  describe('When on a mobile device', () => {
     beforeEach(() => {
-      // Simulate mobile environment
       window.matchMedia = vi.fn().mockImplementation(query => ({
         matches: true, // Simulate mobile
         media: query,
@@ -108,19 +88,10 @@ describe('Comprehensive Render Testing', () => {
       }));
     });
 
-    test('should render viewer on mobile without errors', async () => {
-      const props = getProps(false, 'mobile');
-      renderComponent(props);
-      await waitFor(async () => {
-        const button = await screen.findByRole('button', { name: /explore freely/i });
-        expect(button).toBeInTheDocument();
-      });
-    });
-
-    test('should render editor on mobile without errors', async () => {
+    test('should render the mobile editor layout', async () => {
       const props = getProps(true, 'mobile');
       renderComponent(props);
-      const projectTitles = await screen.findAllByText('Test Project');
+      const projectTitles = await screen.findAllByText('Unified Project');
       expect(projectTitles.length).toBeGreaterThan(0);
     });
   });

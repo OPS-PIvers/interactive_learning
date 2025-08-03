@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
 
 // Mock Firebase Analytics
 vi.mock('@firebase/analytics', () => ({
@@ -10,20 +10,72 @@ vi.mock('@firebase/analytics', () => ({
 const noop = () => {};
 Object.defineProperty(window, 'scrollTo', { value: noop, writable: true });
 
-// Mock window.matchMedia for mobile detection tests
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+// Mock window.matchMedia for mobile detection tests.
+// This can be overridden in individual tests to simulate different devices.
+window.matchMedia = vi.fn().mockImplementation(query => ({
+  matches: false, // Default to desktop
+  media: query,
+  onchange: null,
+  addListener: vi.fn(), // deprecated
+  removeListener: vi.fn(), // deprecated
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+}));
+
+// Global error handler to catch unhandled exceptions and promise rejections
+let unhandledErrors: (Error | PromiseRejectionEvent)[] = [];
+
+const errorListener = (event: ErrorEvent) => {
+  // Don't fail tests for errors caught by React Error Boundaries
+  if (
+    event.message.includes('The above error occurred in the') ||
+    (event.error && event.error.__suppressFlushSyncWarning)
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  unhandledErrors.push(event.error);
+};
+
+const rejectionListener = (event: PromiseRejectionEvent) => {
+  unhandledErrors.push(event);
+};
+
+const startListening = () => {
+  window.addEventListener('error', errorListener);
+  window.addEventListener('unhandledrejection', rejectionListener);
+};
+
+const stopListening = () => {
+  window.removeEventListener('error', errorListener);
+  window.removeEventListener('unhandledrejection', rejectionListener);
+};
+
+startListening();
+
+// Expose control to tests
+(global as any).pauseGlobalErrorHandler = stopListening;
+(global as any).resumeGlobalErrorHandler = startListening;
+
+afterEach(() => {
+  if (unhandledErrors.length > 0) {
+    const errors = [...unhandledErrors];
+    unhandledErrors = []; // Clear for the next test
+    const errorMessages = errors.map(err => {
+      if (err instanceof Error) {
+        return err.stack || err.message;
+      }
+      if (err instanceof PromiseRejectionEvent) {
+        return err.reason?.stack || err.reason;
+      }
+      return 'Unknown error';
+    }).join('\\n');
+    throw new Error(`The following errors were caught by the global error handler:\\n${errorMessages}`);
+  }
 });
+
 
 // Mock window.visualViewport
 Object.defineProperty(window, 'visualViewport', {
