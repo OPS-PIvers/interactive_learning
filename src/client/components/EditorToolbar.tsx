@@ -232,7 +232,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
               Zoom controls not applicable to slide editing
             </div>
 
-            <div className="h-6 w-px bg-slate-600 mx-2" /> {/* Divider */
+            <div className="h-6 w-px bg-slate-600 mx-2" /> {/* Divider */}
 
             {/* Quick Save Button */}
             <button
@@ -304,7 +304,6 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         {...props}
-        // Pass background props
         backgroundImage={props.backgroundImage}
         backgroundType={props.backgroundType}
         backgroundVideoType={props.backgroundVideoType}

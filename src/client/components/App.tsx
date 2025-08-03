@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { AuthModal } from './AuthModal';
 import { Project, InteractiveModuleState, InteractionType } from '../../shared/types';
+import { SlideDeck } from '../../shared/slideTypes';
 import { demoModuleData } from '../../shared/demoModuleData';
 import ProjectCard from './ProjectCard';
 import Modal from './Modal';
