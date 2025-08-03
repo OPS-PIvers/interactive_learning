@@ -95,16 +95,17 @@ const MainApp: React.FC = () => {
   }, [user]);
 
   // Initialize Firebase once when app starts
-  useEffect(() => {
-    const initializeFirebase = async () => {
-      try {
-        await appScriptProxy.init();
-      } catch (error) {
-        console.error('Failed to initialize Firebase:', error);
-      }
-    };
-    initializeFirebase();
-  }, []);
+  // Temporarily disabled Firebase initialization
+  // useEffect(() => {
+  //   const initializeFirebase = async () => {
+  //     try {
+  //       await appScriptProxy.init();
+  //     } catch (error) {
+  //       console.error('Failed to initialize Firebase:', error);
+  //     }
+  //   };
+  //   initializeFirebase();
+  // }, []);
 
   // Load projects when user authentication state changes
   useEffect(() => {

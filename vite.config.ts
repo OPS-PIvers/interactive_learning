@@ -26,9 +26,9 @@ export default defineConfig(({ mode, command }) => {
       ],
       root: 'src/client',
       server: {
-        host: isCodespaces ? '0.0.0.0' : 'localhost',
+        host: '0.0.0.0',
         port: 3000,
-        open: !isCodespaces,
+        open: false,
       },
       preview: {
         host: isCodespaces ? '0.0.0.0' : 'localhost',

@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @import './styles/custom-scrollbar.css'; /* Custom scrollbar styles we added */
 @import './styles/high-contrast.css'; /* High contrast mode styles */
 @import './styles/slide-components.css'; /* Slide-based architecture styles */
@@ -10,12 +10,11 @@
 /* These styles supplement Tailwind CSS */
 
 body {
-  font-family: 'Inter', sans-serif; /* Ensure Inter is loaded or fallback gracefully */
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Default background/text colors, can be overridden by components like SharedModuleViewer */
-  @apply bg-slate-900 text-slate-100;
-  /* Mobile viewport support */
+  background-color: #0f172a;
+  color: #f1f5f9;
   min-height: 100vh;
   min-height: -webkit-fill-available;
   min-height: calc(var(--vh, 1vh) * 100);
