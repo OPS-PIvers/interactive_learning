@@ -151,8 +151,13 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
             {/* Divider - desktop only */}
             <div className="hidden md:block h-6 w-px bg-slate-600" />
 
-            {/* Auth Button */}
-            <AuthButton />
+            {/* Auth Button - Responsive */}
+            <div className="hidden md:block">
+              <AuthButton variant="toolbar" />
+            </div>
+            <div className="md:hidden">
+              <AuthButton variant="compact" />
+            </div>
           </div>
         </div>
       </div>
