@@ -50,7 +50,7 @@ describe('Comprehensive Render Testing', () => {
     cleanup();
   });
 
-  const renderComponent = (props: any) => {
+  const renderComponent = (props: React.ComponentProps<typeof SlideBasedInteractiveModule>) => {
     return render(
       <AuthProvider>
         <ToastProvider>
@@ -79,10 +79,8 @@ describe('Comprehensive Render Testing', () => {
       renderComponent(props);
       // The main assertion is that the global error handler in setup.ts doesn't throw.
       // We can add a basic check to ensure the component rendered something.
-      await waitFor(async () => {
-        const button = await screen.findByRole('button', { name: /explore freely/i });
-        expect(button).toBeInTheDocument();
-      });
+      const button = await screen.findByRole('button', { name: /explore freely/i });
+      expect(button).toBeInTheDocument();
     });
 
     test('should render editor on desktop without errors', async () => {
@@ -111,10 +109,8 @@ describe('Comprehensive Render Testing', () => {
     test('should render viewer on mobile without errors', async () => {
       const props = getProps(false, 'mobile');
       renderComponent(props);
-      await waitFor(async () => {
-        const button = await screen.findByRole('button', { name: /explore freely/i });
-        expect(button).toBeInTheDocument();
-      });
+      const button = await screen.findByRole('button', { name: /explore freely/i });
+      expect(button).toBeInTheDocument();
     });
 
     test('should render editor on mobile without errors', async () => {

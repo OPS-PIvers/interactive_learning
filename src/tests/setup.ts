@@ -71,8 +71,8 @@ afterEach(() => {
         return err.reason?.stack || err.reason;
       }
       return 'Unknown error';
-    }).join('\\n');
-    throw new Error(`The following errors were caught by the global error handler:\\n${errorMessages}`);
+    }).join('\n');
+    throw new Error(`The following errors were caught by the global error handler:\n${errorMessages}`);
   }
 });
 

@@ -68,7 +68,7 @@ describe('Mobile Experience Tests', () => {
 
   afterEach(cleanup);
 
-  const renderComponent = (props: any) => {
+  const renderComponent = (props: React.ComponentProps<typeof SlideBasedInteractiveModule>) => {
     return render(
       <AuthProvider>
         <ToastProvider>
@@ -82,15 +82,13 @@ describe('Mobile Experience Tests', () => {
     const props = getProps(true);
     renderComponent(props);
 
-    await waitFor(() => {
-      const slideElement = screen.getByText('Hello Mobile');
-      expect(slideElement).toBeInTheDocument();
+    const slideElement = await screen.findByText('Hello Mobile');
+    expect(slideElement).toBeInTheDocument();
 
-      // Simple drag simulation with touch events
-      fireEvent.touchStart(slideElement, { touches: [{ clientX: 10, clientY: 10 }] });
-      fireEvent.touchMove(slideElement, { touches: [{ clientX: 50, clientY: 50 }] });
-      fireEvent.touchEnd(slideElement);
-    });
+    // Simple drag simulation with touch events
+    fireEvent.touchStart(slideElement, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchMove(slideElement, { touches: [{ clientX: 50, clientY: 50 }] });
+    fireEvent.touchEnd(slideElement);
 
     // In a real scenario, we would assert that the element's position has changed.
     // For now, the goal is to ensure this interaction doesn't crash the app.
