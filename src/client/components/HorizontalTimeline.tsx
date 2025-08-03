@@ -53,7 +53,7 @@ const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSP
        <div key={step} className="relative group">
                   <button
                     onClick={(event) => handleStepClick(step, event)}
-                    className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out transform hover:scale-110
+                    className={`relative w-8 h-8 md:w-6 md:h-6 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out transform hover:scale-110
                       ${isActive 
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-2 ring-purple-300/50 scale-125 shadow-lg shadow-purple-500/25' 
                         : isCompleted
@@ -66,25 +66,25 @@ const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSP
                     aria-current={isActive ? "step" : undefined}
                     title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
                   >
-                     {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>}
+                     {isActive && <span className="absolute w-3 h-3 md:w-2.5 md:h-2.5 bg-white rounded-full animate-pulse"></span>}
                      {isCompleted && !isActive && (
-                       <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                       <svg className="w-4 h-4 md:w-3.5 md:h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                        </svg>
                      )}
                      {!isActive && !isCompleted && (
-                       <span className="text-xs font-bold text-white">{index + 1}</span>
+                       <span className="text-xs md:text-xs font-bold text-white">{index + 1}</span>
                      )}
                   </button>
                   
-                  {/* Enhanced hotspot indicators for desktop */}
-                  <div className="absolute top-full mt-2 flex space-x-1 justify-center w-full opacity-80 group-hover:opacity-100 transition-opacity">
+                  {/* Responsive hotspot indicators */}
+                  <div className="absolute top-full mt-1.5 md:mt-2 flex space-x-1 justify-center w-full opacity-80 group-hover:opacity-100 transition-opacity">
                     {stepEvents.slice(0, 5).map((event: TimelineEventData) => {
                       const hotspot = hotspots.find((h: HotspotData) => h.id === event.targetId);
                       return hotspot ? (
                         <div
                           key={`${event.id}-${hotspot.id}`}
-                          className="w-2 h-2 rounded-full border border-white/30 shadow-sm transition-transform duration-200 hover:scale-125"
+                          className="w-3 h-3 md:w-2 md:h-2 rounded-full border border-white/30 shadow-sm transition-transform duration-200 hover:scale-125"
                           style={{ 
                             backgroundColor: hotspot.color || '#64748b',
                             boxShadow: isActive ? `0 0 6px ${hotspot.color || '#64748b'}50` : undefined
@@ -95,7 +95,7 @@ const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSP
                     })}
                     {stepEvents.length > 5 && (
                       <div
-                        className="w-2 h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-400 border border-white/30 flex items-center justify-center"
+                        className="w-3 h-3 md:w-2 md:h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-400 border border-white/30 flex items-center justify-center"
                         title={`+${stepEvents.length - 5} more hotspots`}
                       >
                         <span className="text-xs text-white leading-none font-bold">+</span>
@@ -142,6 +142,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   const prevCurrentStepIndexRef = useRef<number | undefined>(currentStepIndex);
 
   useEffect(() => {
+    // Only provide haptic feedback on mobile devices
     if (isMobile && typeof prevCurrentStepIndexRef.current !== 'undefined' && prevCurrentStepIndexRef.current !== currentStepIndex) {
       triggerHapticFeedback('milestone');
     }
@@ -297,26 +298,28 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     if (isEditing || moduleState !== 'learning') return null;
     
     return (
-      <div className="flex items-center justify-center gap-4 py-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+      <div className="flex items-center justify-center gap-2 md:gap-4 py-2 px-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
         <button
           onClick={onPrevStep}
           disabled={currentStepIndex === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+          className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed text-sm md:text-base"
         >
           <ChevronLeftIcon className="w-4 h-4" />
-          Previous
+          <span className="hidden sm:inline">Previous</span>
+          <span className="sm:hidden">Prev</span>
         </button>
         
-        <span className="text-slate-300 text-sm">
+        <span className="text-slate-300 text-xs md:text-sm px-2 text-center min-w-0 flex-shrink-0">
           Step {(currentStepIndex || 0) + 1} of {totalSteps}
         </span>
         
         <button
           onClick={onNextStep}
           disabled={currentStepIndex !== undefined && totalSteps !== undefined && currentStepIndex >= totalSteps - 1}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+          className="flex items-center gap-1 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed text-sm md:text-base"
         >
-          Next
+          <span className="hidden sm:inline">Next</span>
+          <span className="sm:hidden">Next</span>
           <ChevronRightIcon className="w-4 h-4" />
         </button>
       </div>
@@ -336,29 +339,25 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
 
   return (
     <div className="w-full" aria-label="Module Timeline"
-      onTouchStart={isMobile ? handleTouchStart : undefined}
-      onTouchMove={isMobile ? handleTouchMove : undefined}
-      onTouchEnd={isMobile ? handleTouchEnd : undefined}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Enhanced desktop timeline container */}
+      {/* Unified responsive timeline container */}
       <div
-        className="relative w-full overflow-x-auto flex items-center justify-center py-6 bg-slate-800/30 backdrop-blur-sm border-y border-slate-700/50 md:py-0"
-        style={{ height: isMobile ? 'auto' : '80px' }}
+        className="relative w-full overflow-x-auto flex items-center justify-center py-4 md:py-6 bg-slate-800/30 backdrop-blur-sm border-y border-slate-700/50"
+        style={{ height: '80px' }}
         ref={viewerTimelineRef}
       >
-        {/* Mobile timeline */}
-        <div className="md:hidden w-full">
-          {/* ... mobile timeline rendering logic ... */}
-        </div>
-        {/* Desktop timeline */}
-        <div className="hidden md:block w-full">
-          {/* Modern gradient timeline track */}
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2" />
+        {/* Unified timeline implementation */}
+        <div className="w-full">
+          {/* Responsive gradient timeline track */}
+          <div className="absolute top-1/2 left-0 w-full h-0.5 md:h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2" />
           <FixedSizeList
             height={80}
             width={viewerTimelineRef.current?.offsetWidth || 0}
             itemCount={uniqueSortedSteps.length}
-            itemSize={ITEM_WIDTH}
+            itemSize={isMobile ? 56 : ITEM_WIDTH}
             layout="horizontal"
             itemData={itemData}
             className="custom-scrollbar"
@@ -367,19 +366,20 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           </FixedSizeList>
         </div>
       </div>
-      {activePreview && showPreviews && !isMobile && (
-        <EventPreviewCard
-          step={activePreview}
-          events={timelineEvents}
-          hotspots={hotspots}
-          position={previewPosition}
-          onClose={() => setActivePreview(null)}
-        />
+      {/* Event preview (hidden on small screens due to space constraints) */}
+      {activePreview && showPreviews && (
+        <div className="hidden md:block">
+          <EventPreviewCard
+            step={activePreview}
+            events={timelineEvents}
+            hotspots={hotspots}
+            position={previewPosition}
+            onClose={() => setActivePreview(null)}
+          />
+        </div>
       )}
+      {/* Unified navigation controls */}
       {renderNavigationControls()}
-      <div className="md:hidden">
-        {renderNavigationControls()}
-      </div>
     </div>
   );
 };
