@@ -95,17 +95,21 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
   const [backgroundOpen, setBackgroundOpen] = useState(false);
 
+  const elementStyle = selectedElement.style || {};
+  const elementContent = selectedElement.content || {};
+  const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop;
+
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
     onElementUpdate({
-      style: { ...selectedElement.style, ...updates }
+      style: { ...elementStyle, ...updates }
     });
-  }, [selectedElement.style, onElementUpdate]);
+  }, [elementStyle, onElementUpdate]);
 
   const handleContentChange = useCallback((updates: Partial<ElementContent>) => {
     onElementUpdate({
-      content: { ...selectedElement.content, ...updates }
+      content: { ...elementContent, ...updates }
     });
-  }, [selectedElement.content, onElementUpdate]);
+  }, [elementContent, onElementUpdate]);
 
   const handleInteractionAdd = useCallback((interaction: ElementInteraction) => {
     const updatedInteractions = [...(selectedElement.interactions || []), interaction];
@@ -202,7 +206,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                         onClick={() => handleSizePresetSelect(preset)}
                         className={`
                           p-3 lg:p-2 text-sm lg:text-xs rounded border transition-all
-                          ${selectedElement.style.width === preset.width && selectedElement.style.height === preset.height
+                          ${elementPosition?.width === preset.width && elementPosition?.height === preset.height
                             ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
                           }
@@ -221,7 +225,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     Color
                   </label>
                   <LiquidColorSelector
-                    selectedColor={selectedElement.style.backgroundColor || '#3b82f6'}
+                    selectedColor={elementStyle.backgroundColor || '#3b82f6'}
                     onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
                     size="large"
                   />
@@ -230,14 +234,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                 {/* Opacity */}
                 <div>
                   <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
-                    Opacity: {Math.round((selectedElement.style.opacity || 1) * 100)}%
+                    Opacity: {Math.round((elementStyle.opacity || 1) * 100)}%
                   </label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
-                    value={selectedElement.style.opacity || 1}
+                    value={elementStyle.opacity || 1}
                     onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
                     className="w-full accent-blue-500"
                   />
@@ -246,13 +250,13 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                 {/* Border Radius */}
                 <div>
                   <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
-                    Border Radius: {selectedElement.style.borderRadius || 8}px
+                    Border Radius: {elementStyle.borderRadius || 8}px
                   </label>
                   <input
                     type="range"
                     min="0"
                     max="50"
-                    value={selectedElement.style.borderRadius || 8}
+                    value={elementStyle.borderRadius || 8}
                     onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
                     className="w-full accent-blue-500"
                   />
@@ -276,7 +280,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={selectedElement.content.title || ''}
+                    value={elementContent.title || ''}
                     onChange={(e) => handleContentChange({ title: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 lg:px-2 lg:py-1 text-white text-base lg:text-xs"
                     placeholder="Element title"
@@ -289,7 +293,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     Description
                   </label>
                   <textarea
-                    value={selectedElement.content.description || ''}
+                    value={elementContent.description || ''}
                     onChange={(e) => handleContentChange({ description: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 lg:px-2 lg:py-1 text-white text-base lg:text-xs resize-none"
                     placeholder="Element description"
