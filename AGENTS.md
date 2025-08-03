@@ -1,205 +1,218 @@
-# AGENTS.md - Jules AI Instructions
+# AGENTS.md - AI Agent Instructions for Unified Architecture
 
 ## Purpose
-This file provides instructions for Jules AI (Google Labs async coding agent) working on this ExpliCoLearning project. Jules reads this file to understand project context, patterns, and requirements.
+This file provides instructions for AI agents working on the ExpliCoLearning project. All agents must read this file to understand the unified responsive architecture, prohibited patterns, and development requirements.
 
-**IMPORTANT**: The application has migrated from hotspot-based architecture to slide-based architecture. All new development should use the slide system.
+**CRITICAL**: This application uses 100% unified responsive architecture. Device-specific JavaScript branching is STRICTLY FORBIDDEN.
 
-## Project Context for Jules
+## Project Context
 
-// Interactive web application for creating slide-based multimedia training modules with element-based learning experiences
+Interactive web application for creating slide-based multimedia training modules with unified responsive design across all devices.
 
 ### Tech Stack
 - React 18.3.1 + TypeScript + Vite
-- Firebase 11.9.1 (Firestore + Storage) 
-- Tailwind CSS styling
+- Firebase 11.9.1 (Firestore + Storage)
+- Tailwind CSS styling (CSS-first responsive design)
 - Vitest testing
-- Key deps: react-dnd, lodash.debounce
+- Key deps: @dnd-kit/core, lodash.debounce, framer-motion
 
 ## Essential Commands
-// Always run tests before committing
+```bash
+# Always run tests before committing
 npm run test:run
 
-// Development server
+# Development server
 npm run dev
 
-// Production build  
+# Production build
 npm run build
 
-// MCP testing and validation
+# MCP testing and validation
 npm run mcp:workflow test
 npm run mcp:validate
 npm run auth:test
+```
+
+## STRICT ARCHITECTURAL RULES
+
+### 🚫 ABSOLUTELY FORBIDDEN PATTERNS
+```typescript
+// ❌ NEVER DO - Device-specific JavaScript branching
+const isMobile = window.innerWidth < 768;
+const { isMobile } = useIsMobile(); // This hook doesn't exist!
+const height = isMobile ? '64px' : '56px';
+if (deviceType === 'mobile') { /* render mobile UI */ }
+
+// ❌ NEVER DO - Separate Mobile/Desktop components
+import MobileComponent from './MobileComponent';
+import DesktopComponent from './DesktopComponent';
+return isMobile ? <MobileComponent /> : <DesktopComponent />;
+
+// ❌ NEVER DO - Hardcoded z-index values
+className="z-[70]" // Use Z_INDEX_TAILWIND constants
+style={{ zIndex: 999 }} // Use centralized system
+```
+
+### ✅ REQUIRED UNIFIED PATTERNS
+```typescript
+// ✅ CORRECT - CSS-first responsive design
+<div className="h-16 py-2 md:h-14 md:py-0">
+  <button className="w-11 h-11 md:w-9 md:h-9">
+    <Icon className="w-5 h-5 md:w-4 md:h-4" />
+  </button>
+</div>
+
+// ✅ CORRECT - Single unified component
+const UnifiedComponent: React.FC = () => {
+  return (
+    <div className="flex flex-col md:flex-row">
+      <div className="p-4 md:p-6">
+        {/* Content adapts via CSS only */}
+      </div>
+    </div>
+  );
+};
+
+// ✅ CORRECT - Centralized z-index
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+<Modal className={Z_INDEX_TAILWIND.MODAL} />
+```
 
 ## Before Making Changes
-// Read CLAUDE.md first - contains essential project architecture
-// Check existing patterns in similar components
-// Verify dependencies exist in package.json
-// Run tests to ensure current state works
+1. **Read CLAUDE.md first** - contains essential unified architecture principles
+2. **Check existing unified patterns** in similar components
+3. **Verify dependencies** exist in package.json
+4. **Run tests** to ensure current state works
+5. **NEVER create Mobile*/Desktop* components** - use unified responsive design
 
-## Code Standards for Jules
+## Code Standards
 
-// Use strict TypeScript - all props need interfaces, avoid `any` types
-// Functional components with hooks only
-// Implement proper useEffect cleanup
-// Use custom hooks for complex logic (see src/client/hooks/)
-// Unified responsive design with useIsMobile() hook for conditional rendering
-// Always use centralized z-index values from zIndexLevels.ts
-// Include ARIA attributes for accessibility
-// Avoid creating separate Mobile*/Desktop* components - use unified responsive components
+### Unified Responsive Design
+```typescript
+// ✅ CORRECT - CSS-only responsive behavior
+interface UnifiedComponentProps {
+  title: string;
+  onAction: () => void;
+}
 
-## File Structure
+const UnifiedComponent: React.FC<UnifiedComponentProps> = ({ title, onAction }) => {
+  return (
+    <div className="bg-white p-4 md:p-6 lg:p-8">
+      <h2 className="text-lg md:text-xl lg:text-2xl font-bold">
+        {title}
+      </h2>
+      <button 
+        onClick={onAction}
+        className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 
+                   text-white rounded-lg transition-colors"
+      >
+        Action
+      </button>
+    </div>
+  );
+};
 ```
-.github/          # GitHub Actions workflows
-scripts/          # Utility scripts (e.g., backup-data.ts)
-src/
-├── client/       # Frontend application (React)
-│   ├── components/     # React components (132 unified responsive components)
-│   │   ├── SlideBasedEditor.tsx     # Main slide editor container
-│   │   ├── SlideBasedViewer.tsx     # Main slide viewer container  
-│   │   ├── slides/                  # Slide-specific components including effects/
-│   │   │   ├── SlideEditor.tsx      # Visual drag-and-drop editor
-│   │   │   ├── SlideViewer.tsx      # Slide presentation viewer
-│   │   │   ├── SlideNavigation.tsx  # Slide navigation controls
-│   │   │   └── SlideElement.tsx     # Individual slide elements
-│   │   ├── responsive/              # Unified responsive modal components
-│   │   ├── icons/                   # Custom icon components
-│   │   ├── interactions/            # Interaction system components
-│   │   ├── animations/              # Animation and transition components
-│   │   ├── touch/                   # Touch gesture handling components
-│   │   ├── ui/                      # Reusable UI components
-│   │   ├── views/                   # Page-level view components
-│   │   └── shared/                  # Error boundaries and loading states
-│   ├── hooks/          # Custom React hooks (20 files)
-│   │   ├── useIsMobile.ts           # Mobile detection
-│   │   ├── useDeviceDetection.ts    # Device type and viewport detection
-│   │   ├── useViewportHeight.ts     # Viewport management with iOS Safari support
-│   │   ├── useLayoutConstraints.ts  # Modal constraint system
-│   │   ├── useTouchGestures.ts      # Touch handling
-│   │   └── useScreenReaderAnnouncements.ts  # Accessibility
-│   ├── utils/          # Client-side utility functions (33 files)
-│   │   ├── touchUtils.ts            # Touch event utilities
-│   │   ├── mobileUtils.ts           # Mobile-specific utilities
-│   │   ├── ModalLayoutManager.ts    # Modal constraint system
-│   │   └── zIndexLevels.ts          # Centralized z-index management
-│   └── styles/         # CSS and styling files
-├── lib/              # Core logic, Firebase utilities
-│   ├── firebaseApi.ts           # Firebase integration
-│   ├── firebaseConfig.ts        # Firebase configuration
-│   └── safeMathUtils.ts         # Mathematical utilities
-├── shared/           # Types and logic shared between client/server
-│   ├── slideTypes.ts            # Slide-based architecture interfaces
-│   ├── types.ts                 # Legacy TypeScript interfaces
-│   ├── interactiveTypes.ts      # Interactive elements and viewer modes
-│   └── migrationUtils.ts        # Legacy-to-slide conversion utilities
-└── tests/            # Test files (Vitest)
-    ├── safeMathUtils.test.ts
-    └── ReactErrorDetection.test.ts
 
-# Key Configuration Files
-AGENTS.md         # Instructions for AI agents (this file)
-CLAUDE.md         # Project architecture overview
-GEMINI.md         # Gemini codebase context
-README.md         # Main project documentation
-firebase.json     # Firebase hosting and services configuration
-firestore.rules   # Firestore security rules
-storage.rules     # Firebase Storage security rules
-package.json      # Project dependencies and scripts
-tsconfig.json     # TypeScript configuration
-vite.config.ts    # Vite build configuration
-vitest.config.ts  # Vitest test runner configuration
+### Hook Usage Rules
+```typescript
+// ✅ CORRECT - Device detection for MATHEMATICAL CALCULATIONS ONLY
+const { deviceType, viewportInfo } = useDeviceDetection();
+const canvasWidth = viewportInfo.width * 0.8; // Math calculation OK
+const dragBounds = calculateDragBounds(deviceType); // Position calculation OK
+
+// ❌ FORBIDDEN - Device detection for UI rendering
+const { deviceType } = useDeviceDetection();
+return deviceType === 'mobile' ? <MobileUI /> : <DesktopUI />; // NEVER DO THIS
+
+// ✅ CORRECT - Layout constraints for positioning calculations
+const { constraints } = useLayoutConstraints();
+const modalTop = constraints.safeArea.top; // Math calculation OK
+```
+
+### TypeScript Standards
+- **Strict types**: All props need interfaces, avoid `any` types
+- **Functional components**: with hooks only
+- **Proper cleanup**: Implement useEffect cleanup with dependency arrays
+- **Centralized z-index**: Always use values from `zIndexLevels.ts`
+- **Accessibility**: Include ARIA attributes for all interactive elements
+
+## Current File Structure
+```
+src/
+├── client/                     # Frontend application (React)
+│   ├── components/            # React components (unified responsive design)
+│   │   ├── SlideBasedInteractiveModule.tsx  # Main slide module container
+│   │   ├── SlideBasedViewer.tsx            # Slide presentation viewer
+│   │   ├── SlideEditorToolbar.tsx          # Modern unified editor toolbar
+│   │   ├── ViewerFooterToolbar.tsx         # Unified viewer navigation
+│   │   ├── UnifiedPropertiesPanel.tsx      # Unified element properties
+│   │   ├── animations/        # Animation and transition components
+│   │   ├── icons/            # Custom icon components  
+│   │   ├── interactions/     # Interaction system components
+│   │   ├── responsive/       # Unified responsive modal components
+│   │   │   ├── ResponsiveModal.tsx          # Base unified modal
+│   │   │   ├── ResponsiveBackgroundModal.tsx
+│   │   │   └── ResponsiveInsertModal.tsx
+│   │   ├── slides/          # Slide-specific components
+│   │   │   ├── UnifiedSlideEditor.tsx       # Main slide editor
+│   │   │   ├── ResponsiveCanvas.tsx         # Unified drag-drop canvas
+│   │   │   ├── SlideViewer.tsx             # Individual slide viewer
+│   │   │   └── effects/     # Slide effect components
+│   │   ├── touch/           # Touch gesture handling components
+│   │   ├── ui/              # Reusable UI components
+│   │   ├── views/           # Page-level view components
+│   │   └── shared/          # Error boundaries and loading states
+│   ├── hooks/               # Custom React hooks (17 files)
+│   │   ├── useDeviceDetection.ts       # Device type detection (MATH ONLY)
+│   │   ├── useLayoutConstraints.ts     # Modal constraint system
+│   │   ├── useViewportHeight.ts        # Viewport management
+│   │   ├── useTouchGestures.ts         # Touch handling
+│   │   ├── useScreenReaderAnnouncements.ts # Accessibility
+│   │   └── useUnifiedEditorState.ts    # Unified editor state
+│   ├── utils/               # Client-side utilities (34 files)
+│   │   ├── ModalLayoutManager.ts       # Modal constraint system
+│   │   ├── zIndexLevels.ts            # Centralized z-index management
+│   │   ├── touchUtils.ts              # Touch event utilities
+│   │   └── viewportUtils.ts           # Viewport calculations
+│   └── styles/             # CSS and styling files
+├── lib/                    # Core logic, Firebase utilities
+├── shared/                 # Types and shared logic
+│   ├── slideTypes.ts       # Slide-based architecture interfaces
+│   ├── types.ts           # Core TypeScript interfaces
+│   └── migrationUtils.ts  # Legacy-to-slide conversion
+└── tests/                 # Test files (Vitest)
 ```
 
 ## Naming Conventions
-// Components: PascalCase (InteractiveModule.tsx)
-// Hooks: camelCase with 'use' prefix (useIsMobile.ts)
-// Utilities: camelCase (safeMathUtils.ts)
-// Types/Interfaces: PascalCase (InteractionType)
+- **Components**: PascalCase, unified responsive (UnifiedComponent.tsx)
+- **Hooks**: camelCase with 'use' prefix (useDeviceDetection.ts)
+- **Utilities**: camelCase (viewportUtils.ts)
+- **Types/Interfaces**: PascalCase (ResponsivePosition)
+- **NO Mobile*/Desktop* prefixes** - unified components only
 
 ## Key Architecture Points
 
-// Main components: SlideBasedEditor.tsx and SlideBasedViewer.tsx
-// Slide system: SlideDeck -> InteractiveSlide -> SlideElement architecture
-// Positioning: ResponsivePosition with fixed pixel coordinates for desktop/tablet/mobile
-// State management: React useState with slide-based state patterns
-// Touch handling: Native drag API for element positioning, useTouchGestures for gestures
-// Device detection: useDeviceDetection() hook for responsive positioning calculations
-// Modal system: useLayoutConstraints() for toolbar-aware modal positioning
-// Z-index management: Centralized system in zIndexLevels.ts for consistent layering
-// Responsive design: Unified components with conditional rendering instead of separate mobile/desktop components
+### Unified Responsive System
+- **Single Components**: One component adapts to all screen sizes via CSS
+- **CSS-First Design**: Tailwind breakpoints (`sm:`, `md:`, `lg:`) exclusively
+- **No JavaScript Branching**: Device detection only for mathematical calculations
+- **Constraint System**: Unified modal positioning preventing toolbar overlap
 
-## Mobile Development
-// Always use useIsMobile() hook for responsive behavior
-// Implement debounced inputs for performance
-// Coordinate touch gestures between pan/zoom and hotspot interactions
-// Test touch interactions thoroughly
-
-## Firebase Integration
-// Use Firestore for data storage
-// Firebase Storage for images/media
-// Implement transactions for data consistency
-// Always include proper error handling for network operations
-// Use Firebase emulator for local development
-
-## MCP Integration & Browser Automation
-// Puppeteer MCP servers configured: puppeteer-hisma and puppeteer-custom
-// Authentication bypass available: VITE_DEV_AUTH_BYPASS=true
-// Test credentials: TEST_USER_EMAIL=test@localhost.dev
-
-### MCP Development Workflow
-// Validate MCP configuration before testing
-npm run mcp:validate
-
-// Test authentication system 
-npm run auth:test
-
-// Run MCP demonstration
-npm run mcp:demo
-
-// Debug MCP server issues
-npm run mcp:workflow debug-hisma
-
-### Authentication Setup for Testing
-// Quick development bypass in .env.local:
-VITE_DEV_AUTH_BYPASS=true
-VITE_DEV_USER_EMAIL=dev@localhost
-VITE_DEV_USER_NAME=Development User
-
-// Test user credentials:
-TEST_USER_EMAIL=test@localhost.dev
-TEST_USER_PASSWORD=TestPassword123!
-
-### MCP Usage Patterns
-// Agent can use these MCP tools for browser automation:
-// puppeteer_navigate, puppeteer_screenshot, puppeteer_click, 
-// puppeteer_fill, puppeteer_login, puppeteer_logout, puppeteer_auth_status
-
-// Example commands:
-// "Navigate to localhost:3000, login with bypass method, test slide editor"
-// "Screenshot the slide canvas with drag-and-drop elements"
-// "Test slide element positioning across different device sizes"
-// "Test authentication flow: login, verify, logout"
-
-## Slide-Based Development Guidelines
-
-### Core Slide Interfaces
+### Slide-Based Architecture
 ```typescript
-// Always use these interfaces from slideTypes.ts:
+// Core interfaces from slideTypes.ts
 interface SlideDeck {
   id: string;
   title: string;
   slides: InteractiveSlide[];
   settings: DeckSettings;
-  metadata: DeckMetadata;
 }
 
 interface InteractiveSlide {
   id: string;
   title: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
   elements: SlideElement[];
-  transitions: SlideTransition[];
+  backgroundMedia?: BackgroundMedia;
   layout: SlideLayout;
 }
 
@@ -210,441 +223,307 @@ interface SlideElement {
   content: ElementContent;
   interactions: ElementInteraction[];
   style: ElementStyle;
-  isVisible: boolean;
 }
 ```
 
 ### Responsive Positioning System
 ```typescript
-// All elements MUST use ResponsivePosition for cross-device compatibility:
+// All elements use ResponsivePosition for cross-device compatibility
 interface ResponsivePosition {
   desktop: FixedPosition;  // 1920x1080+ displays
-  tablet: FixedPosition;   // 768-1919px displays  
+  tablet: FixedPosition;   // 768-1919px displays
   mobile: FixedPosition;   // <768px displays
 }
 
 interface FixedPosition {
   x: number;      // Exact pixel position from left
-  y: number;      // Exact pixel position from top  
+  y: number;      // Exact pixel position from top
   width: number;  // Element width in pixels
   height: number; // Element height in pixels
 }
 ```
 
-### Device Detection Patterns
+## Device Detection - MATHEMATICAL USE ONLY
+
+### Correct Usage Pattern
 ```typescript
-// Always use device detection for responsive behavior:
+// ✅ CORRECT - Mathematical calculations only
 const { deviceType, viewportInfo } = useDeviceDetection();
-const isMobile = useIsMobile();
 
-// Get appropriate position for current device:
-const position = element.position[deviceType] || element.position.desktop;
+// Calculate canvas dimensions
+const canvasWidth = viewportInfo.width * 0.8;
+const canvasHeight = viewportInfo.height * 0.6;
+
+// Calculate drag boundaries
+const dragBounds = {
+  minX: 0,
+  maxX: canvasWidth - elementWidth,
+  minY: 0,
+  maxY: canvasHeight - elementHeight
+};
+
+// Get responsive position for current device
+const currentPosition = element.position[deviceType] || element.position.desktop;
 ```
 
-### Slide Editor Development
-// When working with slide editor components:
-// - Use native drag API, not react-dnd
-// - Calculate positions relative to slide canvas
-// - Implement proper touch event handling for mobile
-// - Use responsive property panels that adapt to device type
-// - Follow existing drag state patterns in SlideEditor.tsx
-// - Always use centralized z-index values for proper layering
-
-### Migration Support
-// When handling legacy data:
-// - Use migrationUtils.ts for converting hotspot-based projects
-// - Preserve existing timeline events during migration
-// - Maintain backward compatibility with existing projects
-// - Test migration with various legacy project formats
-
-## Modal Layout Constraint System
-The application features a unified modal layout constraint system preventing toolbar overlap across all device types.
-
-### Key Components for Jules:
+### Forbidden Usage Pattern
 ```typescript
-// Use these hooks for modal positioning:
-import { useLayoutConstraints, useModalConstraints } from '../hooks/useLayoutConstraints';
-import { ModalLayoutManager, createModalLayoutManager } from '../utils/ModalLayoutManager';
+// ❌ FORBIDDEN - UI rendering decisions
+const { deviceType } = useDeviceDetection();
 
-// Unified device detection:
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
-import { useViewportHeight } from '../hooks/useViewportHeight';
+// NEVER do conditional rendering based on device
+if (deviceType === 'mobile') {
+  return <MobileComponent />;
+} else {
+  return <DesktopComponent />;
+}
 
-// Z-index management:
-import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+// NEVER do device-specific styling
+const styles = deviceType === 'mobile' 
+  ? { fontSize: '14px' } 
+  : { fontSize: '16px' };
 ```
 
-### Modal Development Patterns:
+## Modal System - Unified Architecture
+
+### ResponsiveModal Usage
 ```typescript
-// ✅ CORRECT - Use constraint system for new modals:
-const { constraints, styles, tailwindClasses } = useModalConstraints({
-  type: 'standard', // 'properties' | 'confirmation' | 'fullscreen'
-  size: 'medium',   // 'small' | 'large' | 'fullscreen'
-  position: 'auto', // 'center' | 'bottom' | 'right'
+// ✅ CORRECT - Unified modal that adapts to all devices
+import { ResponsiveModal } from '../responsive/ResponsiveModal';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+
+const MyModal: React.FC = () => {
+  return (
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Modal Title"
+      type="properties"      // 'standard' | 'properties' | 'confirmation' | 'fullscreen'
+      size="medium"         // 'small' | 'medium' | 'large'
+      position="auto"       // Auto-detects best position per device
+      className={Z_INDEX_TAILWIND.MODAL}
+    >
+      <div className="p-4 md:p-6">
+        {/* Content adapts via CSS breakpoints */}
+      </div>
+    </ResponsiveModal>
+  );
+};
+```
+
+### Layout Constraints
+```typescript
+// ✅ CORRECT - Use constraint system for positioning calculations
+const { constraints, styles } = useLayoutConstraints({
+  type: 'modal',
   preventToolbarOverlap: true,
   respectKeyboard: true
 });
 
-// ✅ CORRECT - Device-aware responsive behavior:
-const { deviceType, viewportInfo, isMobile } = useDeviceDetection();
-
-// ❌ NEVER DO - Hardcoded z-index values:
-className="z-[70]" // Use Z_INDEX_TAILWIND constants instead
+// Apply calculated styles (mathematical positioning)
+<div style={styles.container}>
+  {/* Modal content */}
+</div>
 ```
 
-### ResponsiveModal Usage:
-```typescript
-// ✅ CORRECT - Use ResponsiveModal for new modals:
-<ResponsiveModal
-  type="properties"
-  isOpen={isOpen}
-  onClose={onClose}
-  title="Modal Title"
-  size="medium"
-  position="auto" // Auto-detects best position per device
->
-  {children}
-</ResponsiveModal>
+## Firebase Integration
+- **Firestore**: for data storage with transactions
+- **Firebase Storage**: for images/media with security rules
+- **Authentication**: with development bypass for testing
+- **Emulator**: required for local development
+- **Error Handling**: proper async/await patterns with try/catch
+
+## MCP Integration & Browser Automation
+
+### Authentication Setup
+```bash
+# Development bypass in .env.local
+VITE_DEV_AUTH_BYPASS=true
+VITE_DEV_USER_EMAIL=dev@localhost
+VITE_DEV_USER_NAME=Development User
+
+# Test credentials
+TEST_USER_EMAIL=test@localhost.dev  
+TEST_USER_PASSWORD=TestPassword123!
 ```
 
-## Slide System Architecture
-// Use SlideDeck, InteractiveSlide, SlideElement interfaces from slideTypes.ts
-// ResponsivePosition system with desktop/tablet/mobile breakpoints
-// ElementInteraction interface for element-based interactions and effects
-// SlideTransition interface for navigation and animation between slides
-// Migration utilities for converting legacy hotspot-based projects
-// Backward compatibility maintained with legacy timeline events
+### MCP Tools Available
+- `puppeteer_navigate`, `puppeteer_screenshot`, `puppeteer_click`
+- `puppeteer_fill`, `puppeteer_login`, `puppeteer_logout`, `puppeteer_auth_status`
 
 ## Testing Requirements
-// Write unit tests for all new utilities and hooks
-// Test components with user interactions
-// Verify mobile-specific behaviors
-// Test Firebase integration with mocked services
-// ALWAYS run npm run test:run before committing
 
-### Critical React Error Detection
-// Must run before any component changes are committed
+### Critical Tests
+```bash
+# React error detection (must pass before commits)
 npm run test:run -- ReactErrorDetection
 
-// This test validates:
-// - No React Hook Error #310 violations
-// - No Temporal Dead Zone (TDZ) errors
-// - No component lifecycle violations
-// - Proper hook order maintenance
-// - Memory leak prevention
+# Build integrity tests
+npm run test:run
+
+# Type checking
+npx tsc --noEmit
+```
+
+### Test Validation Checklist
+- [ ] No device-specific conditional rendering
+- [ ] All components use CSS-first responsive design
+- [ ] No hardcoded z-index values
+- [ ] Proper TypeScript interfaces
+- [ ] Accessibility attributes present
+- [ ] No circular imports
 
 ## Security & Performance
-// Never commit API keys or secrets
-// Validate all user inputs
-// Use Firebase security rules appropriately
-// Sanitize file uploads
-// Use lodash.debounce for expensive operations
-// Implement lazy loading for large images
-// Use React.memo for expensive components
-// Monitor bundle size with build process
+- **Never commit**: API keys, secrets, or credentials
+- **Input validation**: All user inputs sanitized
+- **File uploads**: Proper validation and compression
+- **Performance**: debounced inputs, lazy loading, React.memo
+- **Bundle optimization**: Direct imports, tree-shaking
 
-## Common Prompts for Jules
+## Development Workflow
 
-// Refactor {specific component} to use slide-based architecture
-// Add unit tests for slide positioning and responsive breakpoints
-// Fix mobile responsiveness issue in slide element positioning
-// Implement {specific slide feature} following existing patterns
-// Debug slide migration from legacy hotspot system
-// Add accessibility features to slide navigation and elements
-// Optimize performance of slide canvas rendering and drag operations
-// Create new slide element type following ResponsivePosition system
+### Creating New Components
+```typescript
+// ✅ CORRECT - Unified responsive component template
+interface MyComponentProps {
+  title: string;
+  onAction: () => void;
+  variant?: 'primary' | 'secondary';
+}
 
-## Known Issues & Patterns
-// Large slide collections impact performance - use lazy loading
-// Touch gesture coordination between canvas pan/zoom and element drag operations
-// ResponsivePosition calculations require device detection accuracy
-// Slide migration from legacy hotspot system requires careful data preservation
-// Firebase emulator setup required for local development
-// Complex state interdependencies in slide editor components
-// Use VS Code with TypeScript extensions
-// Use Firebase emulator for local development
-// Use React Developer Tools for debugging
-// Use Vitest UI for test debugging
+const MyComponent: React.FC<MyComponentProps> = ({ 
+  title, 
+  onAction, 
+  variant = 'primary' 
+}) => {
+  return (
+    <div className="bg-white border rounded-lg p-4 md:p-6">
+      <h3 className="text-lg md:text-xl font-semibold mb-4">
+        {title}
+      </h3>
+      <button
+        onClick={onAction}
+        className={`w-full md:w-auto px-4 py-2 rounded-lg transition-colors ${
+          variant === 'primary' 
+            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+            : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+        }`}
+      >
+        Action
+      </button>
+    </div>
+  );
+};
 
-## Documentation Guidelines
-// Update CLAUDE.md when changing core architecture
-// Update this file when changing development workflows
-// Document complex business logic with comments
-// Explain non-obvious technical decisions
-// Add TODO comments for known technical debt
-// Use JSDoc for public APIs
+export default MyComponent;
+```
 
-## Restrictions for Jules
-// Do NOT create new files in root directory
-// Do NOT modify package.json dependencies without verification
-// Do NOT change core Firebase configuration
-// Do NOT remove existing accessibility features
-// Do NOT break mobile responsiveness
-// Do NOT skip test writing for new features
-// Do NOT create separate Mobile*/Desktop* components - use unified responsive design
-// Do NOT use hardcoded z-index values - always use zIndexLevels.ts
-// ASK BEFORE major architectural changes
-// ASK BEFORE adding new dependencies
+### Modifying Existing Components
+1. **Check current patterns** in the component
+2. **Maintain unified architecture** - no device-specific branching
+3. **Use existing CSS classes** and responsive patterns
+4. **Update TypeScript interfaces** if needed
+5. **Test across all breakpoints** using browser dev tools
+6. **Run test suite** before committing
 
-## Legacy Code Cleanup Guidelines for Jules
-// The application is migrating from separate mobile/desktop components to unified responsive design
-// Proactively identify and clean up deprecated patterns:
+## Common Development Tasks
 
-### Deprecated Patterns to Remove:
-// - Components with Mobile*/Desktop* prefixes that duplicate functionality
-// - Hardcoded z-index values (replace with Z_INDEX or Z_INDEX_TAILWIND constants)
-// - Separate mobile/ and desktop/ component directories
-// - Duplicate responsive logic across multiple components
+### Adding Responsive Behavior
+```typescript
+// ✅ CORRECT - CSS-first responsive design
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="bg-white p-4 md:p-6 rounded-lg">
+    <h3 className="text-base md:text-lg font-semibold">
+      Card Title
+    </h3>
+    <p className="text-sm md:text-base text-gray-600 mt-2">
+      Description text that adapts to screen size.
+    </p>
+  </div>
+</div>
+```
 
-### Preferred Modern Patterns:
-// - Single components with useIsMobile() hook for conditional rendering
-// - Centralized z-index management through zIndexLevels.ts
-// - Responsive CSS classes and conditional className logic
-// - Unified modal components using ResponsiveModal patterns
+### Working with Modals
+```typescript
+// ✅ CORRECT - Use ResponsiveModal for all modal dialogs
+import { ResponsiveModal } from '../responsive/ResponsiveModal';
 
-### Code Cleanup Priorities:
-// 1. Replace hardcoded z-index values with centralized constants
-// 2. Identify Mobile*/Desktop* component pairs that can be unified
-// 3. Remove unused legacy components after successful migration
-// 4. Update import statements to use unified components instead of device-specific ones
+const [isModalOpen, setIsModalOpen] = useState(false);
+
+return (
+  <>
+    <button 
+      onClick={() => setIsModalOpen(true)}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+    >
+      Open Modal
+    </button>
+    
+    <ResponsiveModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      title="Modal Title"
+      type="standard"
+      size="medium"
+    >
+      <div className="p-4 md:p-6">
+        {/* Modal content */}
+      </div>
+    </ResponsiveModal>
+  </>
+);
+```
+
+## Restrictions for AI Agents
+
+### ABSOLUTE PROHIBITIONS
+- **NO device-specific JavaScript branching** (`isMobile`, `window.innerWidth`, etc.)
+- **NO separate Mobile*/Desktop* components** - unified design only
+- **NO hardcoded z-index values** - use centralized system
+- **NO conditional rendering based on device type**
+- **NO modification of package.json** without verification
+- **NO changes to core Firebase configuration**
+- **NO removal of accessibility features**
+
+### Required Practices
+- **ALWAYS use CSS-first responsive design** with Tailwind breakpoints
+- **ALWAYS use centralized z-index values** from `zIndexLevels.ts`
+- **ALWAYS write TypeScript interfaces** for component props
+- **ALWAYS include accessibility attributes** (ARIA labels, roles)
+- **ALWAYS run tests** before committing changes
+- **ASK BEFORE major architectural changes**
 
 ## Success Criteria
-// All tests passing
-// TypeScript compilation without errors
-// No console errors in development
-// Accessible to screen readers
-// Responsive on mobile devices
-// Performance within acceptable ranges
+- All tests passing (`npm run test:run`)
+- TypeScript compilation without errors
+- No console errors in development
+- Responsive behavior works across all breakpoints
+- Accessibility features intact (screen readers, keyboard navigation)
+- Performance within acceptable ranges
+- Uses unified responsive architecture patterns
 
 ## Final Checklist
-// Tests written and passing
-// TypeScript compilation successful
-// Mobile responsiveness verified
-// Accessibility features intact
-// Performance impact assessed
-// Documentation updated if needed
+- [ ] Component uses CSS-first responsive design (no JavaScript device detection)
+- [ ] TypeScript interfaces defined for all props
+- [ ] Accessibility attributes included (ARIA labels, roles, etc.)
+- [ ] Centralized z-index values used (from `zIndexLevels.ts`)
+- [ ] Tests written and passing
+- [ ] No hardcoded device-specific values
+- [ ] Responsive behavior tested across breakpoints (sm, md, lg)
+- [ ] No circular imports or dependency issues
 
 ---
 
-## 🚨 CRITICAL: TDZ (Temporal Dead Zone) ERROR PREVENTION
+## 🚨 CRITICAL: Unified Architecture Enforcement
 
-**EVERY DEVELOPMENT TASK MUST FOLLOW THESE RULES TO PREVENT TDZ ERRORS:**
+**This application uses 100% unified responsive architecture. Any violation of these principles will break the system's consistency and maintainability.**
 
-### Import/Export Order Rules:
-```typescript
-// ✅ CORRECT ORDER:
-// 1. React imports first
-import React, { useState, useEffect, useCallback } from 'react';
-// 2. Third-party imports
-import { DndProvider } from 'react-dnd';
-// 3. Internal types and interfaces
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
-// 4. Internal components (no circular imports!)
-import { MobileSlider } from './MobileSlider';
-// 5. Relative imports last
-import './styles.css';
+### Before Every Change:
+1. **Verify** no device-specific JavaScript branching
+2. **Confirm** CSS-first responsive design only
+3. **Check** centralized z-index usage
+4. **Test** across all breakpoints
+5. **Validate** TypeScript compilation
+6. **Run** complete test suite
 
-// ❌ NEVER DO:
-import { ComponentThatImportsThis } from './ComponentThatImportsThis'; // Circular!
-```
-
-### Component Declaration Rules:
-```typescript
-// ✅ CORRECT - Declare interfaces before components:
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-}
-
-// ✅ CORRECT - Use const declarations for components:
-const MyComponent: React.FC<Props> = ({ value, onChange }) => {
-  // Component logic here
-};
-
-// ✅ CORRECT - Export after declaration:
-export default MyComponent;
-
-// ❌ NEVER DO - Function declarations can cause hoisting issues:
-function MyComponent() { } // Avoid this pattern
-```
-
-### State Initialization Rules:
-```typescript
-// ✅ CORRECT - Initialize all state with proper defaults:
-const [eventSettings, setEventSettings] = useState<EventSettings>({
-  type: InteractionType.SHOW_TEXT,
-  enabled: false,
-  // Always provide complete initial state
-});
-
-// ✅ CORRECT - Use callback pattern for expensive initialization:
-const [computedState, setComputedState] = useState(() => {
-  return expensiveComputation();
-});
-
-// ❌ NEVER DO - Undefined initial state:
-const [settings, setSettings] = useState<Settings>(); // TDZ risk!
-```
-
-### Hook Dependencies Rules:
-```typescript
-// ✅ CORRECT - List all dependencies:
-useEffect(() => {
-  if (hotspot && eventType) {
-    updateEvent();
-  }
-}, [hotspot, eventType, updateEvent]); // All dependencies listed
-
-// ✅ CORRECT - Use useCallback for functions used in dependencies:
-const updateEvent = useCallback(() => {
-  // function logic
-}, [dependency1, dependency2]);
-
-// ❌ NEVER DO - Missing dependencies:
-useEffect(() => {
-  updateEvent();
-}, []); // Missing dependencies causes stale closures
-```
-
-### Variable Access Rules:
-```typescript
-// ✅ CORRECT - Check existence before access:
-const handleUpdate = () => {
-  if (selectedHotspot?.id) {
-    processHotspot(selectedHotspot.id);
-  }
-};
-
-// ✅ CORRECT - Use optional chaining:
-const title = hotspot?.title || 'Default Title';
-
-// ❌ NEVER DO - Access without checking:
-const id = selectedHotspot.id; // TDZ error if selectedHotspot is undefined
-```
-
-### Component Integration Rules:
-```typescript
-// ✅ CORRECT - Always check props before rendering:
-if (!isOpen || !hotspot) {
-  return null;
-}
-
-// ✅ CORRECT - Provide fallbacks for undefined props:
-const eventList = events || [];
-
-// ❌ NEVER DO - Render without checking:
-return <div>{hotspot.title}</div>; // TDZ error if hotspot is undefined
-```
-
-**VALIDATION CHECKLIST FOR EVERY TASK:**
-- [ ] No circular imports between new and existing files
-- [ ] All imports follow correct order (React → 3rd party → internal → relative)
-- [ ] All state initialized with proper defaults
-- [ ] All useEffect dependencies properly listed
-- [ ] All props checked before use
-- [ ] All optional chaining used where needed
-- [ ] No access to variables before declaration
-- [ ] All exports come after declarations
-
-### TDZ Error Prevention Validation
-**MUST be run after EVERY completed task**
-
-**TDZ Testing Checklist:**
-```bash
-# 1. Build test - catches most TDZ errors
-npm run build
-
-# 2. TypeScript check
-npm run type-check
-
-# 3. Start dev server and check console
-npm run dev
-# Look for errors like:
-# - "Cannot access 'X' before initialization"
-# - "X is not defined"
-# - "Cannot read property of undefined"
-
-# 4. Test specific user flows:
-# - Open mobile editor
-# - Create new hotspot
-# - Add different event types
-# - Preview events
-# - Switch between tabs
-# - Save and reload
-
-# 5. Check browser console for any errors during these flows
-```
-
-**Common TDZ Error Patterns to Check:**
-- Components that don't render (blank screens)
-- State that resets unexpectedly
-- Functions that are undefined when called
-- Import errors in dev tools
-- Circular dependency warnings
-
-**If TDZ errors found:**
-1. Check import order in affected files
-2. Verify all state has default values
-3. Check for circular imports between components
-4. Ensure all variables declared before use
-5. Add optional chaining where needed
-
----
-
-## ACTIVE TASKS
-
-### Slide Architecture Migration (Completed)
-**Status:** ✅ COMPLETED
-**Major Changes:**
-- ✅ Migrated from hotspot-based to slide-based architecture
-- ✅ Implemented ResponsivePosition system with device breakpoints
-- ✅ Created SlideBasedEditor and SlideBasedViewer components
-- ✅ Added native drag-and-drop for slide element positioning
-- ✅ Established migration utilities for legacy project conversion
-- ✅ Updated all documentation (CLAUDE.md, GEMINI.md, AGENTS.md)
-
-### Modal Layout Constraint System (Completed)
-**Status:** ✅ COMPLETED (August 1, 2025)
-**Major Changes:**
-- ✅ Created unified modal constraint system preventing toolbar overlap
-- ✅ Implemented useLayoutConstraints and useModalConstraints hooks
-- ✅ Built ModalLayoutManager class for centralized positioning logic
-- ✅ Fixed z-index violations using centralized Z_INDEX_TAILWIND system
-- ✅ Updated ResponsiveModal to use unified device detection
-- ✅ Modernized to use useDeviceDetection and useViewportHeight instead of legacy mobile hooks
-- ✅ All tests passing with production build successful
-
-### UI Enhancements Implementation (Current Priority)
-**Status:** Planning completed, implementation pending
-**Reference:** UI_enhancements_todo.md contains detailed task breakdown
-**Files to modify:** 
-- SlideBasedEditor.tsx (toolbar cleanup, panel system)
-- SlideEditor.tsx (aspect ratio selector, background settings)  
-- EditorToolbar.tsx (remove broken controls)
-- Properties panel components (eliminate scrollbars)
-
-**Current Phase:** Phase 1 - Critical Fixes & Cleanup
-- Fix Settings button component errors
-- Remove broken zoom controls
-- Eliminate right panel scrollbars
-- Implement dynamic panel resizing
-
-### Slide Performance Optimization (Ongoing)
-**Status:** Partial completion
-**Files to monitor:** All slide components, especially SlideEditor.tsx
-
-**Optimizations needed:**
-- Lazy loading for large slide collections
-- Canvas rendering optimization for drag operations
-- Memory management for slide element interactions
-- Device-specific performance tuning
-
-**Completed optimizations:**
-- ✅ Native drag API implementation (replaced react-dnd)
-- ✅ ResponsivePosition calculation optimization
-- ✅ Device detection performance improvements
-
----
-
-// This is a complex interactive application with mobile-first design and accessibility requirements
-// Always prioritize user experience and code maintainability over feature velocity
+**Remember: One codebase, one responsive design system, zero device-specific branching.**
