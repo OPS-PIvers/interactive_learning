@@ -114,7 +114,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
 
     return (
       <>
-        <div className={`fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 ${Z_INDEX_TAILWIND.MOBILE_TOOLBAR} flex items-center justify-between px-2`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', paddingBottom: '8px', minHeight: '56px' }}>
+        <div className={`fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 ${Z_INDEX_TAILWIND.TOOLBAR} flex items-center justify-between px-2`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)', paddingBottom: '8px', minHeight: '56px' }}>
           {/* Left: Back Button & Title */}
           <div className="flex items-center gap-2">
             <button
