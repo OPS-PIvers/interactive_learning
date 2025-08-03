@@ -211,15 +211,15 @@ const mockAuth = {
 
       it('renders compact navigation in learning mode', () => {
         renderWithAuthProvider(<ViewerFooterToolbar {...mobileProps} moduleState="learning" />);
-        expect(screen.getByText('2/3')).toBeInTheDocument();
+        expect(screen.getByText('Slide 2 of 3')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Previous slide/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Next slide/i })).toBeInTheDocument();
       });
 
       it('renders compact mode buttons in idle state', () => {
         renderWithAuthProvider(<ViewerFooterToolbar {...mobileProps} moduleState="idle" />);
-        expect(screen.getByRole('button', { name: 'Explore' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Tour' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Explore Mode' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Guided Tour' })).toBeInTheDocument();
       });
 
       it('renders "Menu" button in learning/exploring state', () => {
