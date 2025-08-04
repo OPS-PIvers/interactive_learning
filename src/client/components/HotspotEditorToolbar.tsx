@@ -336,6 +336,10 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
                   onUpdate={handleUpdateEvent}
                   onDelete={handleDeleteEvent}
                   onJumpToStep={onJumpToStep}
+                  onEdit={() => {
+                    // No-op for this deprecated component.
+                    // The modern editor handles this with a modal.
+                  }}
                   moveCard={() => {}} // TODO: Implement proper drag and drop
                   onTogglePreview={() => {}} // TODO: Implement preview functionality
                   isPreviewing={false}
