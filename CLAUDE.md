@@ -270,6 +270,97 @@ claude "Login to app, navigate to interactive module editor, test creating hotsp
 claude "Set mobile viewport, navigate to app, authenticate, test touch interactions, screenshot mobile view"
 ```
 
+## Playwright MCP Integration
+The project now includes the Microsoft Playwright MCP server for comprehensive cross-browser testing and automation. Playwright offers superior browser support and more reliable automation compared to Puppeteer, with support for Chromium, Firefox, and WebKit browsers.
+
+### MCP Server Configuration
+- **Microsoft Playwright MCP**: Official server using `@playwright/mcp@latest`
+- **Installation**: `claude mcp add playwright -s user -- npx @playwright/mcp@latest`
+- **Status**: Automatically configured and connected in Claude Code
+
+### Available Browser Automation Tools
+- **Navigation**: `browser_navigate`, `browser_navigate_back`, `browser_navigate_forward`
+- **Interaction**: `browser_click`, `browser_hover`, `browser_type`, `browser_press_key`
+- **Forms**: `browser_select_option`, `browser_file_upload`
+- **Viewport**: `browser_resize`, `browser_take_screenshot`
+- **JavaScript**: `browser_evaluate` for custom script execution
+- **Waiting**: `browser_wait_for` for dynamic content
+- **Advanced**: `browser_drag`, `browser_snapshot` (accessibility tree)
+- **Tab Management**: `browser_tab_new`, `browser_tab_close`, `browser_tab_list`, `browser_tab_select`
+- **Debugging**: `browser_console_messages`, `browser_network_requests`
+
+### Multi-Browser Support
+Playwright supports multiple browser engines:
+- **Chromium**: Default browser, includes Chrome and Edge
+- **Firefox**: Mozilla Firefox engine
+- **WebKit**: Safari browser engine
+- **Device Emulation**: Mobile devices like "iPhone 15", "Pixel 5"
+
+### Configuration Options
+```bash
+# Browser selection
+--browser chromium|firefox|webkit|msedge
+
+# Device emulation
+--device "iPhone 15"
+
+# Viewport control
+--viewport-size "1280,720"
+
+# Performance options
+--headless  # Run without UI (faster)
+--isolated  # Clean browser profile
+--no-sandbox  # For CI environments
+```
+
+### Environment Configuration
+```bash
+# Playwright Settings
+PLAYWRIGHT_TEST_URL=http://localhost:3000
+PLAYWRIGHT_BROWSER=chromium
+PLAYWRIGHT_HEADLESS=true
+PLAYWRIGHT_DEVICE="Desktop Chrome"
+
+# Development Bypass (same as Puppeteer)
+VITE_DEV_AUTH_BYPASS=true
+VITE_DEV_USER_EMAIL=dev@localhost
+VITE_DEV_USER_NAME=Development User
+```
+
+### Cross-Browser Testing Workflow
+```bash
+# Test on multiple browsers
+claude "Test login flow on Chromium, Firefox, and WebKit browsers"
+
+# Mobile testing
+claude "Test responsive design on iPhone 15 and Pixel 5 viewports"
+
+# Performance testing
+claude "Run accessibility snapshot and measure page load times"
+
+# Cross-platform validation
+claude "Test interactive hotspots on desktop and mobile browsers"
+```
+
+### Playwright vs Puppeteer Advantages
+- **Multi-Browser Support**: Tests on Chromium, Firefox, and WebKit
+- **Better Reliability**: More stable automation with better wait strategies
+- **Mobile Testing**: Superior mobile device emulation
+- **Accessibility**: Built-in accessibility tree snapshots
+- **Performance**: Faster execution and better resource management
+- **Modern APIs**: More intuitive and comprehensive automation APIs
+
+### Best Practices
+- **Browser Diversity**: Test critical flows across all three engines
+- **Device Testing**: Include both desktop and mobile viewports
+- **Wait Strategies**: Use `browser_wait_for` instead of fixed delays
+- **Accessibility**: Leverage `browser_snapshot` for accessibility validation
+- **Error Handling**: Check console messages and network requests for issues
+- **Cross-Platform**: Validate behavior across different operating systems
+
+### Migration from Puppeteer
+Playwright MCP provides superior capabilities while maintaining familiar automation patterns. Consider migrating complex Puppeteer workflows to Playwright for better reliability and cross-browser support.
+
 ## Legacy Code Cleanup Guidelines
 The application is transitioning from separate mobile/desktop components to a unified responsive architecture. Claude Code should proactively identify and clean up legacy patterns:
 
