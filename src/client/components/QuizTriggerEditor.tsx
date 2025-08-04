@@ -32,9 +32,10 @@ const QuizTriggerEditor: React.FC<QuizTriggerEditorProps> = ({
     if (trigger.quiz.options.length <= 2) return; // Minimum 2 options
     
     const newOptions = trigger.quiz.options.filter((_, i) => i !== optionIndex);
-    const newCorrectAnswer = trigger.quiz.correctAnswer >= optionIndex && trigger.quiz.correctAnswer > 0
-      ? trigger.quiz.correctAnswer - 1
-      : trigger.quiz.correctAnswer;
+    const currentCorrect = typeof trigger.quiz.correctAnswer === 'number' ? trigger.quiz.correctAnswer : parseInt(trigger.quiz.correctAnswer as string, 10);
+    const newCorrectAnswer = currentCorrect >= optionIndex && currentCorrect > 0
+      ? currentCorrect - 1
+      : currentCorrect;
     
     updateQuiz({ options: newOptions, correctAnswer: newCorrectAnswer });
   };

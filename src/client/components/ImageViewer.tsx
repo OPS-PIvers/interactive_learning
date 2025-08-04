@@ -54,7 +54,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         initialScale={1}
         minScale={ZOOM_LIMITS.minScale}
         maxScale={ZOOM_LIMITS.maxScale}
-        doubleClick={{ zoomIn: ZOOM_LIMITS.doubleTapZoomFactor, zoomOut: 1 }}
+        doubleClick={{ step: ZOOM_LIMITS.doubleTapZoomFactor, mode: "zoomIn" }}
         wheel={{ step: 0.2 }}
       >
         <>

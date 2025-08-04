@@ -25,7 +25,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onShare
 }) => {
   const { isMobile } = useDeviceDetection();
-  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
+  const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
   const { currentThemeId, setTheme, availableThemes } = useProjectTheme();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -85,7 +85,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   const getModalStyle = () => {
-    const toolbarHeight = constraints.toolbarHeight; // Always account for toolbar
+    const toolbarHeight = layoutConstraints.toolbarHeight; // Always account for toolbar
     const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
     const padding = isMobile ? '0px' : '1rem'; // Reduced desktop padding
     

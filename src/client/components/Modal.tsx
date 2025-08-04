@@ -15,7 +15,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   // Uses CSS responsive breakpoints for layout
-  const { constraints } = useLayoutConstraints({ preventToolbarOverlap: true });
+  const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
 
   useEffect(() => {
     if (isOpen) {
@@ -83,7 +83,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     const bottomMargin = '24px'; // Unified bottom margin for footer toolbar
     const safetyBuffer = '20px'; // Unified safety buffer for dynamic toolbars
     
-    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${constraints.toolbarHeight}px - ${safetyBuffer})`;
+    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${layoutConstraints.toolbarHeight}px - ${safetyBuffer})`;
     
     return {
       top: topPosition,

@@ -122,7 +122,7 @@ export interface ElementStyle {
   zIndex?: number;
   animation?: ElementAnimation;
   // Enhanced styling from previous build
-  size?: 'small' | 'medium' | 'large';
+  size?: 'x-small' | 'small' | 'medium' | 'large';
   color?: string; // Legacy hotspot color support
   shadowColor?: string;
   shadowSize?: number;

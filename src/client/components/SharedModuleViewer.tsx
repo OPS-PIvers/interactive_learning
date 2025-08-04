@@ -17,7 +17,8 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
   // Parse URL parameters for customization
   const isEmbedMode = searchParams.get('embed') === 'true';
-  const theme = searchParams.get('theme') || 'dark';
+  const themeParam = searchParams.get('theme');
+  const theme: 'light' | 'dark' = (themeParam === 'light' || themeParam === 'dark') ? themeParam : 'dark';
   const showBranding = searchParams.get('branding') !== 'false';
   const autoStart = searchParams.get('autostart') === 'true';
 
@@ -164,6 +165,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           isSharedView={true}
           theme={theme} // Pass theme to InteractiveModule
           autoStart={autoStart} // Pass autoStart to InteractiveModule
+          onImageUpload={() => Promise.resolve()} // No-op for shared viewer
         />
       </main>
 

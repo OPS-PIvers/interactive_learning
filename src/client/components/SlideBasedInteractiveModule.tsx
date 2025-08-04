@@ -182,7 +182,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   if (initError || !currentSlideDeck) {
     return (
       <ErrorScreen 
-        error={initError || 'Failed to load slide deck'} 
+        error={initError ? new Error(initError) : new Error('Failed to load slide deck')} 
         onReload={onReloadRequest} 
       />
     );
@@ -191,7 +191,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   // Route to appropriate component
   if (isEditing) {
     return (
-      <Suspense fallback={<LoadingScreen title="Loading Editor..." />}>
+      <Suspense fallback={<LoadingScreen message="Loading Editor..." />}>
         <UnifiedSlideEditor
           slideDeck={currentSlideDeck}
           projectName={projectName}
