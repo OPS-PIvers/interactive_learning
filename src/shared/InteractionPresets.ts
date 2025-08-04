@@ -1,5 +1,5 @@
-// src/shared/InteractionPresets.ts - NEW FILE
-import { InteractionType } from './types';
+// src/shared/InteractionPresets.ts - NEW FILE  
+import { InteractionType } from './enums';
 
 export interface InteractionPreset {
   icon: string;

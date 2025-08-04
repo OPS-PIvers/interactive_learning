@@ -2,31 +2,8 @@
 import { Timestamp } from 'firebase/firestore';
 import { SlideDeck } from './slideTypes';
 
-export enum InteractionType {
-  // Essential interaction types
-  PAN_ZOOM = 'PAN_ZOOM',
-  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
-  SHOW_IMAGE = 'SHOW_IMAGE',
-  QUIZ = 'QUIZ',
-  
-  // === UNIFIED EVENT TYPES ===
-  PLAY_VIDEO = 'PLAY_VIDEO',
-  PLAY_AUDIO = 'PLAY_AUDIO',
-  SHOW_TEXT = 'SHOW_TEXT',
-  SHOW_MESSAGE = 'SHOW_MESSAGE',
-  SPOTLIGHT = 'SPOTLIGHT',
-  
-  // === MEDIA INTERACTION TYPES ===
-  SHOW_VIDEO = 'SHOW_VIDEO',
-  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
-  SHOW_YOUTUBE = 'SHOW_YOUTUBE',
-  
-  // === SLIDE-BASED INTERACTION TYPES ===
-  MODAL = 'modal',
-  TRANSITION = 'transition', 
-  SOUND = 'sound',
-  TOOLTIP = 'tooltip'
-}
+// Re-export InteractionType from dedicated enum file
+export { InteractionType } from './enums';
 
 
 export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';

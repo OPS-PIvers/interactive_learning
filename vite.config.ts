@@ -47,6 +47,11 @@ export default defineConfig(({ mode, command }) => {
             assetFileNames: 'assets/[name].[hash].[ext]',
             format: 'es',
             manualChunks: (id) => {
+              // Core shared code should stay in main bundle to prevent import issues
+              if (id.includes('src/shared/')) {
+                return undefined; // Keep in main bundle
+              }
+              
               // Firebase dependencies - largest external dependency
               if (id.includes('firebase')) {
                 return 'firebase';
@@ -62,11 +67,6 @@ export default defineConfig(({ mode, command }) => {
                 return 'animations';
               }
               
-              // DnD libraries
-              if (id.includes('dnd-kit') || id.includes('react-dnd')) {
-                return 'dnd';
-              }
-              
               // Utility libraries
               if (id.includes('lodash') || id.includes('qrcode') || id.includes('uuid')) {
                 return 'utils';
@@ -75,16 +75,6 @@ export default defineConfig(({ mode, command }) => {
               // Large editor components (>500 lines)
               if (id.includes('UnifiedSlideEditor') || id.includes('SlideEditor')) {
                 return 'editor-core';
-              }
-              
-              // Mobile-specific components
-              if (id.includes('/mobile/') || id.includes('Mobile') && id.includes('components')) {
-                return 'mobile-components';
-              }
-              
-              // Desktop-specific components  
-              if (id.includes('/desktop/') || id.includes('Desktop') && id.includes('components')) {
-                return 'desktop-components';
               }
               
               // Slide system components
