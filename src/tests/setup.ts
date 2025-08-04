@@ -1,10 +1,25 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
-// Mock Firebase Analytics
+// Mock Firebase Analytics - both module formats
 vi.mock('@firebase/analytics', () => ({
-  getAnalytics: vi.fn(),
-  isSupported: vi.fn().mockResolvedValue(false),
+  getAnalytics: vi.fn(() => ({})),
+  isSupported: vi.fn(() => Promise.resolve(false)),
+  logEvent: vi.fn(),
+  setAnalyticsCollectionEnabled: vi.fn(),
+  initializeAnalytics: vi.fn(),
+  setUserId: vi.fn(),
+  setUserProperties: vi.fn(),
+}));
+
+vi.mock('firebase/analytics', () => ({
+  getAnalytics: vi.fn(() => ({})),
+  isSupported: vi.fn(() => Promise.resolve(false)),
+  logEvent: vi.fn(),
+  setAnalyticsCollectionEnabled: vi.fn(),
+  initializeAnalytics: vi.fn(),
+  setUserId: vi.fn(),
+  setUserProperties: vi.fn(),
 }));
 
 const noop = () => {};
