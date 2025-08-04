@@ -162,7 +162,7 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
                 max="10000"
                 step="100"
                 value={parameters.returnDelay || 1000}
-                onChange={(e) => handleParameterUpdate({ returnDelay: parseInt(e.target.value) })}
+                onChange={(e) => handleParameterUpdate({ returnDelay: parseInt(e.target.value) || 1000 })}
                 className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               />
             </div>

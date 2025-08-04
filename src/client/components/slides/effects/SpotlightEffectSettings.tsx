@@ -107,7 +107,7 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
             max="500"
             value={position.width}
             onChange={(e) => {
-              const value = parseInt(e.target.value);
+              const value = parseInt(e.target.value) || 150;
               if (isCircle) {
                 handlePositionUpdate({ width: value, height: value });
               } else {
@@ -134,7 +134,7 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
               min="50"
               max="500"
               value={position.height}
-              onChange={(e) => handlePositionUpdate({ height: parseInt(e.target.value) })}
+              onChange={(e) => handlePositionUpdate({ height: parseInt(e.target.value) || 150 })}
               className="flex-1"
             />
             <span className="text-xs text-slate-400 w-12">
@@ -156,7 +156,7 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
             max="100"
             step="1"
             value={parameters.intensity || 70}
-            onChange={(e) => handleParameterUpdate({ intensity: parseInt(e.target.value) })}
+            onChange={(e) => handleParameterUpdate({ intensity: parseInt(e.target.value) || 70 })}
             className="flex-1"
           />
           <span className="text-xs text-slate-400 w-12">

@@ -69,7 +69,7 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
     setChoices(newChoices);
     
     // Adjust correct answer index if needed
-    if (typeof correctAnswer === 'number') {
+    if (typeof parameters.correctAnswer === 'number') {
       if (correctAnswer === index) {
         setCorrectAnswer(0);
       } else if (correctAnswer > index) {

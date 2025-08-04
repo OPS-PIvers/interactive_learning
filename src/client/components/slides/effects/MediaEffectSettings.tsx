@@ -23,11 +23,15 @@ export const MediaEffectSettings: React.FC<MediaEffectSettingsProps> = ({
   const handleParameterUpdate = useCallback((paramUpdates: Partial<PlayVideoParameters | PlayAudioParameters>) => {
     onUpdate({
       parameters: {
-        ...(effect.parameters as any),
+        ...(isVideoEffect
+          ? (effect.parameters as PlayVideoParameters)
+          : isAudioEffect
+            ? (effect.parameters as PlayAudioParameters)
+            : {}),
         ...paramUpdates
       }
     });
-  }, [effect.parameters, onUpdate]);
+  }, [effect.parameters, onUpdate, isVideoEffect, isAudioEffect]);
 
   const renderVideoSettings = () => {
     const parameters = effect.parameters as PlayVideoParameters;
@@ -88,7 +92,7 @@ export const MediaEffectSettings: React.FC<MediaEffectSettingsProps> = ({
                   type="number"
                   min="0"
                   value={parameters.youtubeStartTime || 0}
-                  onChange={e => handleParameterUpdate({ youtubeStartTime: parseInt(e.target.value) })}
+                  onChange={e => handleParameterUpdate({ youtubeStartTime: parseInt(e.target.value) || 0 })}
                   className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
                 />
               </div>
@@ -98,7 +102,7 @@ export const MediaEffectSettings: React.FC<MediaEffectSettingsProps> = ({
                   type="number"
                   min="0"
                   value={parameters.youtubeEndTime || 0}
-                  onChange={e => handleParameterUpdate({ youtubeEndTime: parseInt(e.target.value) })}
+                  onChange={e => handleParameterUpdate({ youtubeEndTime: parseInt(e.target.value) || 0 })}
                   className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
                   placeholder="Full duration"
                 />
