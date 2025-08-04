@@ -15,7 +15,6 @@ import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
-import UnifiedPropertiesPanel from '../UnifiedPropertiesPanel';
 
 export interface ResponsiveCanvasProps {
   slideDeck: SlideDeck;
@@ -37,6 +36,7 @@ interface DragState {
   elementId: string | null;
   startPosition: { x: number; y: number };
   startElementPosition: FixedPosition;
+  hasMovedBeyondThreshold: boolean; // Track if user has actually dragged beyond threshold
 }
 
 interface TouchState {
@@ -98,6 +98,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     elementId: null,
     startPosition: { x: 0, y: 0 },
     startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
+    hasMovedBeyondThreshold: false,
   });
   
   const [touchState, setTouchState] = useState<TouchState>({
@@ -114,7 +115,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const [lastClickedElementId, setLastClickedElementId] = useState<string | null>(null);
   
   const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>();
-  const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   
   // Current slide and elements
@@ -277,10 +277,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       setInternalSelectedElementId(elementId);
     }
     
-    // Show properties panel when element is selected (responsive behavior handled by panel itself)
-    if (elementId && isEditable) {
-      setShowPropertiesPanel(true);
-    }
+    // Element selection handled - properties panel managed by parent component
   }, [onElementSelect, isEditable]);
   
   // Element update handlers
@@ -328,14 +325,11 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       elementId,
       startPosition: { x: e.clientX - rect.left, y: e.clientY - rect.top },
       startElementPosition: currentPosition,
+      hasMovedBeyondThreshold: false,
     });
     
-    // Handle hotspot clicks
-    if (element.type === 'hotspot') {
-      handleHotspotClick(elementId, element);
-    } else {
-      handleElementSelect(elementId);
-    }
+    // Note: Click handling moved to mouse up to allow dragging
+    // Selection will be handled after determining if this is a click or drag
   }, [isEditable, currentSlide, deviceType, handleHotspotClick, handleElementSelect]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -347,31 +341,51 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     const currentMousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     const deltaX = currentMousePos.x - dragState.startPosition.x;
     const deltaY = currentMousePos.y - dragState.startPosition.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    const newPosition = {
-      ...dragState.startElementPosition,
-      x: Math.max(0, dragState.startElementPosition.x + deltaX),
-      y: Math.max(0, dragState.startElementPosition.y + deltaY),
-    };
+    // Check if we've moved beyond the drag threshold (similar to touch events)
+    if (!dragState.hasMovedBeyondThreshold && distance > DRAG_THRESHOLD_PIXELS) {
+      setDragState(prev => ({ ...prev, hasMovedBeyondThreshold: true }));
+    }
     
-    handleElementUpdate(dragState.elementId, {
-      position: {
-        ...currentSlide?.elements?.find(el => el.id === dragState.elementId)?.position,
-        [deviceType]: newPosition,
-      },
-    });
+    // Only update position if we're actively dragging (beyond threshold)
+    if (dragState.hasMovedBeyondThreshold) {
+      const newPosition = {
+        ...dragState.startElementPosition,
+        x: Math.max(0, dragState.startElementPosition.x + deltaX),
+        y: Math.max(0, dragState.startElementPosition.y + deltaY),
+      };
+      
+      handleElementUpdate(dragState.elementId, {
+        position: {
+          ...currentSlide?.elements?.find(el => el.id === dragState.elementId)?.position,
+          [deviceType]: newPosition,
+        },
+      });
+    }
   }, [dragState, deviceType, handleElementUpdate, currentSlide]);
   
   const handleMouseUp = useCallback(() => {
     if (!dragState.isDragging) return;
+    
+    // If no significant dragging occurred, treat as click
+    if (!dragState.hasMovedBeyondThreshold && dragState.elementId) {
+      const element = currentSlide?.elements?.find(el => el.id === dragState.elementId);
+      if (element && element.type === 'hotspot') {
+        handleHotspotClick(dragState.elementId, element);
+      } else if (element) {
+        handleElementSelect(dragState.elementId);
+      }
+    }
     
     setDragState({
       isDragging: false,
       elementId: null,
       startPosition: { x: 0, y: 0 },
       startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
+      hasMovedBeyondThreshold: false,
     });
-  }, [dragState.isDragging]);
+  }, [dragState.isDragging, dragState.hasMovedBeyondThreshold, dragState.elementId, currentSlide, handleHotspotClick, handleElementSelect]);
   
   // Touch event handlers (mobile-first - available on all devices)
   const handleTouchStartElement = useCallback((e: React.TouchEvent, elementId: string) => {
@@ -462,7 +476,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === canvasRef.current) {
       handleElementSelect(null);
-      setShowPropertiesPanel(false);
     }
   }, [handleElementSelect]);
   
@@ -693,37 +706,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         </div>
       </div>
       
-      {/* Properties panel (responsive - shows as overlay on small viewports) */}
-      {showPropertiesPanel && selectedElement && (
-        <UnifiedPropertiesPanel
-          selectedElement={selectedElement}
-          currentSlide={currentSlide}
-          deviceType={deviceType}
-          onElementUpdate={(updates) => handleElementUpdate(selectedElement.id, updates)}
-          onSlideUpdate={onSlideUpdate}
-          onDelete={() => {
-            // Remove element from slide
-            const updatedSlideDeck = {
-              ...slideDeck,
-              slides: slideDeck.slides.map((slide, index) => {
-                if (index !== currentSlideIndex) return slide;
-                
-                return {
-                  ...slide,
-                  elements: slide.elements?.filter(el => el.id !== selectedElement.id) || [],
-                };
-              }),
-            };
-            onSlideDeckChange(updatedSlideDeck);
-            setShowPropertiesPanel(false);
-            handleElementSelect(null);
-          }}
-          onClose={() => {
-            setShowPropertiesPanel(false);
-            handleElementSelect(null);
-          }}
-        />
-      )}
       
       {/* Transform feedback (shows during pan/zoom on any device) */}
       {isTransforming && (

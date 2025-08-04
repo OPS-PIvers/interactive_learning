@@ -56,6 +56,9 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
   };
 
   const handleColorSelect = useCallback((colorOption: ColorOption, event: React.MouseEvent | React.TouchEvent) => {
+    console.log('🎨 LiquidColorSelector: handleColorSelect called with color:', colorOption.color);
+    console.log('🎨 LiquidColorSelector: onColorChange callback exists:', !!onColorChange);
+    
     // Create ripple effect
     if (showLiquidAnimation) {
       const rect = event.currentTarget.getBoundingClientRect();
@@ -70,6 +73,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
       setTimeout(() => setRippleEffect(null), 600);
     }
 
+    console.log('🎨 LiquidColorSelector: Calling onColorChange with:', colorOption.color);
     onColorChange(colorOption.color);
   }, [onColorChange, showLiquidAnimation]);
 
@@ -84,7 +88,10 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
             <div key={colorOption.id} className={styles.colorOption}>
               {/* Main color button */}
               <button
-                onClick={(e) => handleColorSelect(colorOption, e)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleColorSelect(colorOption, e);
+                }}
                 onMouseEnter={() => setHoveredColor(colorOption.id)}
                 onMouseLeave={() => setHoveredColor(null)}
                 className={`
@@ -155,17 +162,6 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 )}
               </button>
 
-              {/* Liquid border animation */}
-              {isSelected && showLiquidAnimation && (
-                <div 
-                  className={styles.liquidBorder}
-                  style={{
-                    background: `conic-gradient(from 0deg, ${colorOption.color}, transparent, ${colorOption.color})`
-                  }}
-                >
-                  <div className={styles.liquidBorderInner} />
-                </div>
-              )}
 
               {/* Hover glow effect */}
               {isHovered && showLiquidAnimation && (

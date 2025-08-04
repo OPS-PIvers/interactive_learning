@@ -45,14 +45,6 @@ describe('Component Compilation Integrity Tests', () => {
     });
   });
 
-  describe('Slide Component Imports', () => {
-    test('EnhancedPropertiesPanel imports correctly', async () => {
-      expect(async () => {
-        const module = await import('../../client/components/EnhancedPropertiesPanel');
-        expect(module.default).toBeDefined();
-      }).not.toThrow();
-    });
-  });
 
 
   describe('Hook Imports', () => {
@@ -164,8 +156,7 @@ describe('Component Compilation Integrity Tests', () => {
     test('all critical components can be loaded simultaneously', async () => {
       const criticalComponents = [
         import('../../client/components/SlideBasedInteractiveModule'),
-        import('../../client/components/AuthButton'),
-        import('../../client/components/EnhancedPropertiesPanel')
+        import('../../client/components/AuthButton')
       ];
 
       const results = await Promise.allSettled(criticalComponents);

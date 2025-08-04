@@ -73,7 +73,7 @@ export default defineConfig(({ mode, command }) => {
               }
               
               // Large editor components (>500 lines)
-              if (id.includes('UnifiedSlideEditor') || id.includes('SlideEditor') || id.includes('EnhancedPropertiesPanel')) {
+              if (id.includes('UnifiedSlideEditor') || id.includes('SlideEditor')) {
                 return 'editor-core';
               }
               

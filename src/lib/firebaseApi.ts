@@ -556,8 +556,11 @@ export class FirebaseProjectAPI {
       }
       
       console.log('💾 Saving to Firestore...');
+      // Sanitize data to remove undefined values before saving
+      const sanitizedData = this.sanitizeForFirestore(updateData);
+      console.log('🧹 Data sanitized, original size:', JSON.stringify(updateData).length, 'sanitized size:', JSON.stringify(sanitizedData).length);
       // Simple save without transaction complexity
-      await setDoc(projectRef, updateData, { merge: true });
+      await setDoc(projectRef, sanitizedData, { merge: true });
       
       console.log('✅ [FirebaseAPI] Project saved successfully:', project.id);
       
@@ -571,6 +574,34 @@ export class FirebaseProjectAPI {
       console.error('❌ [FirebaseAPI] Save failed for project:', project.id, error);
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Recursively sanitize data to remove undefined values for Firestore
+   */
+  private sanitizeForFirestore(data: any): any {
+    if (data === null || data === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(data)) {
+      return data.map(item => this.sanitizeForFirestore(item)).filter(item => item !== null && item !== undefined);
+    }
+    
+    if (typeof data === 'object' && data.constructor === Object) {
+      const sanitized: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        const sanitizedValue = this.sanitizeForFirestore(value);
+        // Only add to result if the value is not undefined
+        if (sanitizedValue !== undefined) {
+          sanitized[key] = sanitizedValue;
+        }
+      }
+      return sanitized;
+    }
+    
+    // Primitive values (string, number, boolean) - return as is unless undefined
+    return data === undefined ? null : data;
   }
 
   /**

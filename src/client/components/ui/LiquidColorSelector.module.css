@@ -132,25 +132,6 @@
   z-index: -1;
 }
 
-/* Liquid border animation - namespaced */
-.liquidBorder {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  padding: 3px;
-  animation: colorSelectorLiquidFlow 2s ease-in-out infinite;
-  pointer-events: none;
-  mask: radial-gradient(circle, transparent 60%, black 62%);
-  -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
-  z-index: 15;
-}
-
-.liquidBorderInner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: var(--bg-primary, #0f172a);
-}
 
 /* Hover glow effect - namespaced */
 .hoverGlow {
@@ -179,16 +160,6 @@
 }
 
 /* Namespaced keyframe animations to prevent conflicts */
-@keyframes colorSelectorLiquidFlow {
-  0%, 100% { 
-    transform: rotate(0deg) scale(1); 
-    opacity: 0.8;
-  }
-  50% { 
-    transform: rotate(180deg) scale(1.05); 
-    opacity: 1;
-  }
-}
 
 @keyframes colorSelectorRipple {
   0% {
@@ -291,7 +262,6 @@
   .colorButton,
   .innerGlow,
   .liquidSelection,
-  .liquidBorder,
   .hoverGlow,
   .ripple {
     animation: none !important;

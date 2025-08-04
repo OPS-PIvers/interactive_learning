@@ -61,7 +61,10 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
                     ? 'border-purple-400 bg-purple-500/10 shadow-sm'
                     : 'border-slate-600 hover:border-slate-500 bg-slate-700/30 hover:bg-slate-700/50'
                 }`}
-                onClick={() => onInteractionSelect(interaction.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteractionSelect(interaction.id);
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -138,7 +141,10 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
             return (
               <button
                 key={type}
-                onClick={() => onInteractionAdd(type)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteractionAdd(type);
+                }}
                 className="flex items-center gap-2 p-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 hover:border-purple-500/50 rounded-lg transition-all duration-200 text-left group"
                 title={preset.description}
               >

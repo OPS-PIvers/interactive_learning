@@ -154,9 +154,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   };
 
   const renderSettings = () => {
-    // ... (all the existing renderSettings logic with updated classes as per previous diff)
-    // For brevity, assuming the input styling changes from the previous diff are included here.
-    // I will re-paste just one case for an example of the styling.
+    const settingsContent = (() => {
       switch (event.type) {
       case InteractionType.SPOTLIGHT:
         return (
@@ -722,7 +720,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
           </button>
         </div>
       </div>
-      {isEditingTitle ? null : renderSettings()}
+      {renderSettings()}
     </div>
   );
 };

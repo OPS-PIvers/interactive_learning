@@ -3,6 +3,7 @@ import { BackgroundMedia } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import FileUpload from './FileUpload';
 import { FirebaseProjectAPI } from '../../lib/firebaseApi';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface BackgroundMediaPanelProps {
   currentBackgroundMedia: BackgroundMedia | null;
@@ -138,7 +139,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div className={`fixed inset-0 bg-black/50 flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`} onClick={onClose}>
       <div 
         className={`bg-slate-800 rounded-lg shadow-2xl border border-slate-700 ${
           isMobile ? 'w-full h-full m-0 rounded-none' : 'w-[90vw] max-w-4xl max-h-[90vh]'

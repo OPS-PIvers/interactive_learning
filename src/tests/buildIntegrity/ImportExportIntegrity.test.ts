@@ -35,11 +35,6 @@ describe('Import/Export Integrity Tests', () => {
     });
 
 
-    test('EnhancedPropertiesPanel has default export', async () => {
-      const module = await import('../../client/components/EnhancedPropertiesPanel');
-      expect(module.default).toBeDefined();
-      expect(typeof module.default).toBe('function');
-    });
   });
 
   describe('Hook Module Structure', () => {
@@ -124,8 +119,7 @@ describe('Import/Export Integrity Tests', () => {
       };
 
       const components = await Promise.all([
-        loadComponent('../../client/components/SlideBasedInteractiveModule'),
-        loadComponent('../../client/components/EnhancedPropertiesPanel')
+        loadComponent('../../client/components/SlideBasedInteractiveModule')
       ]);
 
       components.forEach(({ module, loadTime }) => {

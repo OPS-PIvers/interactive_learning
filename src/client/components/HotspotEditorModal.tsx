@@ -13,6 +13,7 @@ import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
+import InteractionEditor from './interactions/InteractionEditor';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
@@ -402,7 +403,10 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                       key={preset.name}
                       onClick={() => {
                         if (localHotspot) {
-                          setLocalHotspot(applyStylePreset(localHotspot, preset));
+                          const updatedHotspot = applyStylePreset(localHotspot, preset);
+                          setLocalHotspot(updatedHotspot);
+                          // Immediately update the hotspot in the editor for real-time preview
+                          onUpdateHotspot(updatedHotspot);
                         }
                       }}
                       className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"

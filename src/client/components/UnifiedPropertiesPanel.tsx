@@ -1,22 +1,22 @@
-import React, { useState, useCallback } from 'react';
-import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide, BackgroundMedia } from '../../shared/slideTypes';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { InteractionType } from '../../shared/types';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import ChevronDownIcon from './icons/ChevronDownIcon';
-import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
+import { hotspotSizePresets, HotspotSize, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 import { TextInteractionEditor } from './interactions/TextInteractionEditor';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
 import { QuizInteractionEditor } from './interactions/QuizInteractionEditor';
-import BackgroundMediaPanel from './BackgroundMediaPanel';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 // Unified interfaces without device-specific distinctions
 interface UnifiedPropertiesPanelProps {
   selectedElement: SlideElement;
   currentSlide?: InteractiveSlide;
   deviceType: DeviceType;
-  onElementUpdate: (updates: Partial<SlideElement>) => void;
+  onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
   onSlideUpdate?: (updates: Partial<InteractiveSlide>) => void;
   onDelete?: () => void;
   onClose?: () => void;
@@ -40,42 +40,66 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   children,
   icon,
   collapsible = true
-}) => (
-  <div className="border-b border-slate-600 last:border-b-0">
-    {collapsible ? (
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
-        style={{ touchAction: 'manipulation' }}
-        aria-expanded={isOpen}
-      >
-        <div className="flex items-center gap-2">
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number>(0);
+
+  // Measure content height when it changes
+  useEffect(() => {
+    if (contentRef.current) {
+      const height = contentRef.current.scrollHeight;
+      setContentHeight(height);
+    }
+  }, [children, isOpen]);
+
+  return (
+    <div className="border-b border-slate-600 last:border-b-0">
+      {collapsible ? (
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-700/50 transition-colors"
+          style={{ touchAction: 'manipulation' }}
+          aria-expanded={isOpen}
+        >
+          <div className="flex items-center gap-2">
+            {icon && <span className="text-slate-400">{icon}</span>}
+            <span className="font-medium text-white text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
+              {title}
+            </span>
+          </div>
+          <ChevronDownIcon 
+            className={`w-4 h-4 text-slate-400 transition-transform duration-300 ease-in-out ${
+              isOpen ? 'rotate-180' : ''
+            }`} 
+          />
+        </button>
+      ) : (
+        <div className="p-3 flex items-center gap-2">
           {icon && <span className="text-slate-400">{icon}</span>}
           <span className="font-medium text-white text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
             {title}
           </span>
         </div>
-        <ChevronDownIcon 
-          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`} 
-        />
-      </button>
-    ) : (
-      <div className="p-3 flex items-center gap-2">
-        {icon && <span className="text-slate-400">{icon}</span>}
-        <span className="font-medium text-white text-base" data-testid={title === 'Interactions' ? 'interactions-header' : undefined}>
-          {title}
-        </span>
+      )}
+      
+      {/* Animated content container */}
+      <div 
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{
+          maxHeight: (isOpen || !collapsible) ? `${contentHeight}px` : '0px',
+          opacity: (isOpen || !collapsible) ? 1 : 0
+        }}
+      >
+        <div 
+          ref={contentRef}
+          className="px-3 pb-3 space-y-3"
+        >
+          {children}
+        </div>
       </div>
-    )}
-    {(isOpen || !collapsible) && (
-      <div className="px-3 pb-3 space-y-3">
-        {children}
-      </div>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   selectedElement,
@@ -94,67 +118,167 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const [interactionsOpen, setInteractionsOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
-  const [backgroundOpen, setBackgroundOpen] = useState(false);
 
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
-    onElementUpdate({
+    onElementUpdate(selectedElement.id, {
       style: { ...selectedElement.style, ...updates }
     });
-  }, [selectedElement.style, onElementUpdate]);
+  }, [selectedElement.id, selectedElement.style, onElementUpdate]);
 
   const handleContentChange = useCallback((updates: Partial<ElementContent>) => {
-    onElementUpdate({
+    onElementUpdate(selectedElement.id, {
       content: { ...selectedElement.content, ...updates }
     });
-  }, [selectedElement.content, onElementUpdate]);
+  }, [selectedElement.id, selectedElement.content, onElementUpdate]);
+
+  // Type mapping from InteractionType to SlideEffectType with proper parameters
+  const createInteractionEffect = useCallback((interactionType: InteractionType): { type: SlideEffectType; parameters: any } => {
+    const effectId = `effect-${Date.now()}`;
+    
+    switch (interactionType) {
+      case InteractionType.MODAL:
+        return {
+          type: 'show_text',
+          parameters: {
+            text: 'Modal content',
+            position: { x: 100, y: 100, width: 300, height: 200 },
+            style: {
+              fontSize: 16,
+              color: '#ffffff',
+              backgroundColor: '#1f2937'
+            },
+            displayMode: 'modal',
+            autoClose: false
+          }
+        };
+      case InteractionType.TRANSITION:
+        return {
+          type: 'transition',
+          parameters: {
+            targetSlideId: 'next',
+            direction: 'next',
+            transitionType: 'slide'
+          }
+        };
+      case InteractionType.SOUND:
+        return {
+          type: 'play_audio',
+          parameters: {
+            mediaUrl: '',
+            mediaType: 'audio',
+            autoplay: true,
+            controls: false,
+            volume: 0.8
+          }
+        };
+      case InteractionType.TOOLTIP:
+        return {
+          type: 'show_text',
+          parameters: {
+            text: 'Tooltip text',
+            position: { x: 0, y: 0, width: 200, height: 50 },
+            style: {
+              fontSize: 14,
+              color: '#ffffff',
+              backgroundColor: '#374151'
+            },
+            displayMode: 'tooltip',
+            autoClose: true,
+            autoCloseDuration: 3000
+          }
+        };
+      case InteractionType.SPOTLIGHT:
+        return {
+          type: 'spotlight', 
+          parameters: {
+            position: { x: 100, y: 100, width: 200, height: 200 },
+            shape: 'circle',
+            intensity: 80,
+            fadeEdges: true,
+            message: 'Focus area'
+          }
+        };
+      case InteractionType.PAN_ZOOM:
+        return {
+          type: 'pan_zoom',
+          parameters: {
+            targetX: 50,
+            targetY: 50,
+            zoomLevel: 2.0,
+            smooth: true,
+            duration: 1000
+          }
+        };
+      default:
+        // Fallback for any unmapped types
+        return {
+          type: 'show_text',
+          parameters: {
+            text: `${interactionType} interaction`,
+            position: { x: 100, y: 100, width: 200, height: 100 },
+            style: {
+              fontSize: 16,
+              color: '#ffffff',
+              backgroundColor: '#1f2937'
+            },
+            displayMode: 'modal',
+            autoClose: false
+          }
+        };
+    }
+  }, []);
 
   const handleInteractionAdd = useCallback((type: InteractionType) => {
+    const effectData = createInteractionEffect(type);
     const newInteraction: ElementInteraction = {
       id: `interaction-${Date.now()}`,
       trigger: 'click',
       effect: {
-        type: type as SlideEffectType,
+        id: `effect-${Date.now()}`,
+        type: effectData.type,
         duration: 300,
-        parameters: {}
+        parameters: effectData.parameters
       }
     };
     const updatedInteractions = [...(selectedElement.interactions || []), newInteraction];
-    onElementUpdate({ interactions: updatedInteractions });
-  }, [selectedElement.interactions, onElementUpdate]);
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+  }, [selectedElement.id, selectedElement.interactions, onElementUpdate, createInteractionEffect]);
 
   const handleInteractionUpdate = useCallback((index: number, interaction: ElementInteraction) => {
     const updatedInteractions = [...(selectedElement.interactions || [])];
     updatedInteractions[index] = interaction;
-    onElementUpdate({ interactions: updatedInteractions });
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
     setEditingInteraction(null);
-  }, [selectedElement.interactions, onElementUpdate]);
+  }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 
   const handleInteractionRemove = useCallback((id: string) => {
     const updatedInteractions = selectedElement.interactions?.filter(interaction => interaction.id !== id) || [];
-    onElementUpdate({ interactions: updatedInteractions });
+    onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
     // Clear selection if the removed interaction was selected
     if (selectedInteractionId === id) {
       setSelectedInteractionId(null);
     }
-  }, [selectedElement.interactions, onElementUpdate, selectedInteractionId]);
+  }, [selectedElement.id, selectedElement.interactions, onElementUpdate, selectedInteractionId]);
 
-  const handleSizePresetSelect = useCallback((preset: HotspotSize) => {
+  const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
+    // Use the utility function to convert Tailwind classes to pixel dimensions
+    const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
     handleStyleChange({
-      width: preset.width,
-      height: preset.height
+      width: dimensions.width,
+      height: dimensions.height
     });
-  }, [handleStyleChange]);
+  }, [handleStyleChange, deviceType]);
 
   return (
     <div 
       className={`
         /* Modal overlay for all screen sizes */
-        fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4
+        fixed inset-0 bg-black/50 backdrop-blur-sm ${Z_INDEX_TAILWIND.PROPERTIES_PANEL} flex items-center justify-center p-4
         ${className}
       `}
       style={style}
       onClick={(e) => {
-        // Close modal when clicking backdrop
+        // Only close modal when clicking the actual backdrop (not any child elements)
         if (e.target === e.currentTarget) {
           onClose?.();
         }
@@ -209,7 +333,11 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     {hotspotSizePresets.map((preset) => (
                       <button
                         key={preset.name}
-                        onClick={() => handleSizePresetSelect(preset)}
+                        onClick={(e) => {
+                          console.log('📏 Size preset button clicked:', preset.name);
+                          e.stopPropagation();
+                          handleSizePresetSelect(preset);
+                        }}
                         className={`
                           p-2 text-xs rounded border transition-all
                           ${selectedElement.style.width === preset.width && selectedElement.style.height === preset.height
@@ -248,7 +376,10 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     max="1"
                     step="0.1"
                     value={selectedElement.style.opacity || 1}
-                    onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
+                    onChange={(e) => {
+                      console.log('🔆 Opacity slider changed to:', e.target.value);
+                      handleStyleChange({ opacity: parseFloat(e.target.value) });
+                    }}
                     className="w-full accent-blue-500"
                   />
                 </div>
@@ -263,7 +394,10 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     min="0"
                     max="50"
                     value={selectedElement.style.borderRadius || 8}
-                    onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
+                    onChange={(e) => {
+                      console.log('🔄 Border radius slider changed to:', e.target.value);
+                      handleStyleChange({ borderRadius: parseInt(e.target.value) });
+                    }}
                     className="w-full accent-blue-500"
                   />
                 </div>
@@ -374,19 +508,6 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
             )}
           </CollapsibleSection>
 
-          {/* Background Section - Only shown when editing slides */}
-          {currentSlide && onSlideUpdate && (
-            <CollapsibleSection
-              title="Background"
-              isOpen={backgroundOpen}
-              onToggle={() => setBackgroundOpen(!backgroundOpen)}
-            >
-              <BackgroundMediaPanel
-                backgroundMedia={currentSlide.backgroundMedia}
-                onBackgroundChange={(media) => onSlideUpdate({ backgroundMedia: media })}
-              />
-            </CollapsibleSection>
-          )}
 
           {/* Delete Button */}
           {onDelete && (
