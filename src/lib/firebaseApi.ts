@@ -935,7 +935,7 @@ export class FirebaseProjectAPI {
         },
         (error) => {
           debugLog.error('Error uploading file:', error);
-          reject(new Error(`Failed to upload file: ${error.message}`));
+          reject(new Error(`Failed to upload file: ${(error as Error).message}`));
         },
         async () => {
           try {
@@ -944,7 +944,7 @@ export class FirebaseProjectAPI {
             resolve(downloadURL);
           } catch (error) {
             debugLog.error('Error getting download URL:', error);
-            reject(new Error(`Failed to get download URL: ${error.message}`));
+            reject(new Error(`Failed to get download URL: ${(error as Error).message}`));
           }
         }
       );

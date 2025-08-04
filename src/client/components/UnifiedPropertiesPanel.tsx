@@ -261,13 +261,22 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate, selectedInteractionId]);
 
   const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
-    // Use the utility function to convert Tailwind classes to pixel dimensions
     const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
-    handleStyleChange({
-      width: dimensions.width,
-      height: dimensions.height
+    onElementUpdate(selectedElement.id, {
+        position: {
+            ...selectedElement.position,
+            [deviceType]: {
+                ...selectedElement.position[deviceType],
+                width: dimensions.width,
+                height: dimensions.height,
+            }
+        },
+        style: {
+            ...selectedElement.style,
+            size: preset.value,
+        }
     });
-  }, [handleStyleChange, deviceType]);
+  }, [onElementUpdate, selectedElement, deviceType]);
 
   return (
     <div 
@@ -340,14 +349,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                         }}
                         className={`
                           p-2 text-xs rounded border transition-all
-                          ${selectedElement.style.width === preset.width && selectedElement.style.height === preset.height
+                          ${selectedElement.style.size === preset.value
                             ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
                           }
                         `}
                       >
                         <div className="font-medium">{preset.name}</div>
-                        <div className="text-xs opacity-75">{preset.width}×{preset.height}</div>
+                        <div className="text-xs opacity-75">{getHotspotPixelDimensions(preset.value, deviceType === 'mobile').width}×{getHotspotPixelDimensions(preset.value, deviceType === 'mobile').height}</div>
                       </button>
                     ))}
                   </div>
@@ -463,34 +472,34 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     </svg>
                   </button>
                 </div>
-                {editingInteraction.type === InteractionType.SHOW_TEXT && (
+                {editingInteraction.effect.type === 'show_text' && (
                   <TextInteractionEditor
                     interaction={editingInteraction}
                     onUpdate={(updated) => {
                       const index = selectedElement.interactions?.findIndex(i => i.id === editingInteraction.id) ?? -1;
-                      if (index >= 0) handleInteractionUpdate(index, updated);
+                      if (index >= 0) handleInteractionUpdate(index, { ...editingInteraction, ...updated });
                     }}
-                    onCancel={() => setEditingInteraction(null)}
+                    onDone={() => setEditingInteraction(null)}
                   />
                 )}
-                {editingInteraction.type === InteractionType.PLAY_AUDIO && (
+                {editingInteraction.effect.type === 'play_audio' && (
                   <AudioInteractionEditor
                     interaction={editingInteraction}
                     onUpdate={(updated) => {
                       const index = selectedElement.interactions?.findIndex(i => i.id === editingInteraction.id) ?? -1;
-                      if (index >= 0) handleInteractionUpdate(index, updated);
+                      if (index >= 0) handleInteractionUpdate(index, { ...editingInteraction, ...updated });
                     }}
-                    onCancel={() => setEditingInteraction(null)}
+                    onDone={() => setEditingInteraction(null)}
                   />
                 )}
-                {editingInteraction.type === InteractionType.QUIZ && (
+                {editingInteraction.effect.type === 'quiz' && (
                   <QuizInteractionEditor
                     interaction={editingInteraction}
                     onUpdate={(updated) => {
                       const index = selectedElement.interactions?.findIndex(i => i.id === editingInteraction.id) ?? -1;
-                      if (index >= 0) handleInteractionUpdate(index, updated);
+                      if (index >= 0) handleInteractionUpdate(index, { ...editingInteraction, ...updated });
                     }}
-                    onCancel={() => setEditingInteraction(null)}
+                    onDone={() => setEditingInteraction(null)}
                   />
                 )}
               </div>

@@ -98,7 +98,7 @@ function createSpotlightEffect(
   }
   
   return {
-    id: generateId('effect'),
+    id: generateId(),
     type: 'spotlight',
     duration: 3000,
     parameters: {
@@ -151,7 +151,7 @@ function createPanZoomEffect(
   }
   
   return {
-    id: generateId('effect'),
+    id: generateId(),
     type: 'pan_zoom',
     duration: 2000,
     parameters: {
@@ -193,7 +193,7 @@ function createShowTextEffect(
   }
   
   return {
-    id: generateId('effect'),
+    id: generateId(),
     type: 'show_text',
     duration: 5000,
     parameters: {
@@ -235,7 +235,7 @@ function createPlayMediaEffect(
   }
   
   return {
-    id: generateId('effect'),
+    id: generateId(),
     type: 'play_media',
     duration: 0, // Duration depends on media
     parameters: {
@@ -277,7 +277,7 @@ export function createSlideEffectFromElement(
   
   // Create default spotlight effect
   return createSpotlightEffect({
-    id: generateId('timeline-event'),
+    id: generateId(),
     step: 1,
     name: element.content.title || 'Element Effect',
     type: 'SPOTLIGHT'

@@ -598,6 +598,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
       default:
         return null;
     }
+    })();
+    
+    return settingsContent;
   };
 
   const cardBaseClasses = `p-3 mb-2 rounded-lg shadow transition-opacity dark:shadow-md`;
