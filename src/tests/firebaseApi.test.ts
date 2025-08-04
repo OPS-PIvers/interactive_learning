@@ -173,7 +173,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
       const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.metadata.createdAt).toBeDefined();
+      expect(savedData.slideDeck.metadata.created).toBeDefined();
       expect(savedData.updatedAt).toBeDefined();
       expect(savedData.slideDeck.metadata.version).toBe('2.0');
     });
