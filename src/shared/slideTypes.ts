@@ -170,6 +170,7 @@ export interface SlideEffect {
   id: string;
   type: SlideEffectType;
   duration: number;
+  delay?: number;
   easing?: string;
   parameters: EffectParameters;
 }
@@ -184,7 +185,10 @@ export type SlideEffectType =
   | 'play_video'
   | 'play_audio'
   | 'quiz'
-  | 'pan_zoom';
+  | 'pan_zoom'
+  | 'modal'
+  | 'sound'
+  | 'tooltip';
 
 // Effect parameters
 export type EffectParameters = 
@@ -197,7 +201,10 @@ export type EffectParameters =
   | PlayVideoParameters
   | PlayAudioParameters
   | QuizParameters
-  | PanZoomParameters;
+  | PanZoomParameters
+  | ModalParameters
+  | SoundParameters
+  | TooltipParameters;
 
 export interface SpotlightParameters {
   position: FixedPosition; // Exact spotlight position
@@ -300,6 +307,37 @@ export interface PanZoomParameters {
   easing?: string;
   returnToOriginal?: boolean; // Return to original position after duration
   returnDelay?: number; // Delay before returning
+}
+
+export interface ModalParameters {
+  title?: string;
+  content: string;
+  position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
+  width?: number;
+  height?: number;
+  showCloseButton?: boolean;
+  backdrop?: boolean;
+  animation?: 'fade' | 'slide' | 'zoom';
+}
+
+export interface SoundParameters {
+  audioUrl: string;
+  volume?: number;
+  loop?: boolean;
+  fadeIn?: boolean;
+  fadeOut?: boolean;
+  startTime?: number;
+  endTime?: number;
+}
+
+export interface TooltipParameters {
+  text: string;
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
+  width?: number;
+  maxWidth?: number;
+  arrow?: boolean;
+  delay?: number;
+  duration?: number;
 }
 
 export interface TextStyle {

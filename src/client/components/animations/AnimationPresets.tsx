@@ -122,7 +122,8 @@ export const animationPresets: AnimationPreset[] = [
     preview: ({ isActive }: { isActive: boolean }) => (
       <motion.div
         className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-        animate={isActive ? elementAnimationVariants.pulse.animate : {}}
+        animate={isActive ? 'animate' : 'initial'}
+        variants={elementAnimationVariants.pulse}
       >
         P
       </motion.div>

@@ -8,11 +8,18 @@ interface AudioInteractionEditorProps {
 }
 
 // Define the structure of our audio interaction parameters
-interface AudioParameters extends EffectParameters {
+interface AudioParameters {
   audioUrl?: string;
   autoStartPlayback?: boolean;
   showPlayerControls?: boolean;
   allowPlaybackSpeedAdjustment?: boolean;
+  displayMode?: 'background' | 'modal' | 'mini-player';
+  showControls?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  volume?: number;
+  startTime?: number;
+  endTime?: number;
 }
 
 export const AudioInteractionEditor: React.FC<AudioInteractionEditorProps> = ({
@@ -38,7 +45,7 @@ export const AudioInteractionEditor: React.FC<AudioInteractionEditorProps> = ({
     onUpdate({
       effect: {
         ...interaction.effect,
-        parameters: params,
+        parameters: params as EffectParameters,
       },
     });
     onDone();

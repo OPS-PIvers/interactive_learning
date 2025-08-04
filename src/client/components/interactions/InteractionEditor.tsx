@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ElementInteraction } from '../../../shared/slideTypes';
+import { ElementInteraction, SlideEffectType, EffectParameters } from '../../../shared/slideTypes';
 import { InteractionType } from '../../../shared/types';
 import { interactionPresets } from '../../../shared/InteractionPresets';
 
@@ -27,14 +27,14 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
     onInteractionUpdate(interaction.id, { trigger: trigger as any });
   }, [interaction, onInteractionUpdate]);
 
-  const handleEffectTypeChange = useCallback((effectType: InteractionType) => {
+  const handleEffectTypeChange = useCallback((effectType: SlideEffectType) => {
     if (!interaction) return;
     onInteractionUpdate(interaction.id, { 
       effect: { 
         ...interaction.effect, 
         type: effectType,
         // Reset parameters when changing effect type
-        parameters: {}
+        parameters: {} as EffectParameters
       } 
     });
   }, [interaction, onInteractionUpdate]);
@@ -115,7 +115,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
         </label>
         <select
           value={interaction.effect.type}
-          onChange={(e) => handleEffectTypeChange(e.target.value as InteractionType)}
+          onChange={(e) => handleEffectTypeChange(e.target.value as SlideEffectType)}
           className="w-full p-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         >
           {Object.entries(interactionPresets).map(([type, preset]) => (
@@ -304,7 +304,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
         </div>
       )}
 
-      {interaction.effect.type === 'SPOTLIGHT' && (
+      {interaction.effect.type === 'spotlight' && (
         <div className="space-y-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
           <h4 className="text-sm font-medium text-slate-200 flex items-center gap-2">
             💡 Spotlight Settings
@@ -405,7 +405,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
         </div>
       )}
 
-      {interaction.effect.type === 'PAN_ZOOM' && (
+      {interaction.effect.type === 'pan_zoom' && (
         <div className="space-y-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
           <h4 className="text-sm font-medium text-slate-200 flex items-center gap-2">
             🔍 Pan & Zoom Settings

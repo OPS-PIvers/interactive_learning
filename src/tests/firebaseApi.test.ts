@@ -68,8 +68,9 @@ describe('FirebaseAPI - Slide Architecture', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          created: Date.now(),
+          modified: Date.now(),
+          isPublic: false
         }
       };
 
@@ -111,8 +112,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -155,8 +156,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         slides: [],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -196,8 +197,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -258,8 +259,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -327,8 +328,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -362,8 +363,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         slides: [],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 
@@ -390,8 +391,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         slides: [],
         metadata: {
           version: '2.0',
-          createdAt: '2023-01-01T00:00:00.000Z',
-          updatedAt: '2023-01-01T00:00:00.000Z'
+          created: 1672531200000,
+          modified: 1672531200000
         }
       };
 

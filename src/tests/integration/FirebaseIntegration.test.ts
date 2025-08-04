@@ -170,8 +170,9 @@ describe.skip('Firebase Integration Tests', () => {
         ],
         metadata: {
           version: '2.0',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          created: Date.now(),
+          modified: Date.now(),
+          isPublic: false
         }
       };
       
