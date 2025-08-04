@@ -6,8 +6,8 @@
  * of the existing hotspot editor with the new unified slide system.
  */
 
-import { SlideElement, SlideDeck, InteractiveSlide, DeviceType, FixedPosition, ElementInteraction, SlideEffect } from '../../shared/slideTypes';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { SlideElement, SlideDeck, InteractiveSlide, DeviceType, FixedPosition, ElementInteraction, SlideEffect, EffectParameters, SpotlightParameters, ZoomParameters, ShowTextParameters, PlayMediaParameters, TextStyle, SlideEffectType } from '../../shared/slideTypes';
+import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
 import { defaultHotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 
 /**
@@ -36,7 +36,7 @@ export function slideElementToHotspotData(
     title: element.content?.title || 'Hotspot',
     description: element.content?.description || '',
     color: element.style?.backgroundColor || '#3b82f6',
-    size: element.style?.size || 'medium',
+    size: (element.style?.size || 'medium') as HotspotSize,
     displayHotspotInEvent: element.style?.displayInEvent || false,
     pulseAnimation: element.style?.pulseAnimation || false,
     pulseType: element.style?.pulseType || 'loop',
@@ -86,7 +86,7 @@ export function hotspotDataToSlideElement(
     },
     style: {
       backgroundColor: hotspotData.color,
-      size: hotspotData.size,
+      size: (hotspotData.size === 'x-small' ? 'small' : hotspotData.size) as 'small' | 'medium' | 'large',
       displayInEvent: hotspotData.displayHotspotInEvent,
       pulseAnimation: hotspotData.pulseAnimation,
       pulseType: hotspotData.pulseType,
@@ -130,41 +130,43 @@ export function extractTimelineEventsFromElement(
     // Map effect parameters to event properties based on effect type
     switch (effect.type) {
       case 'spotlight':
-        if (effect.parameters.position && typeof effect.parameters.position === 'object') {
-          const pos = effect.parameters.position as FixedPosition;
+        const spotlightParams = effect.parameters as SpotlightParameters;
+        if (spotlightParams.position && typeof spotlightParams.position === 'object') {
+          const pos = spotlightParams.position as FixedPosition;
           event = {
             ...event,
-            spotlightShape: effect.parameters.shape || 'circle',
+            spotlightShape: spotlightParams.shape || 'circle',
             spotlightX: pos.x,
             spotlightY: pos.y,
             spotlightWidth: pos.width,
             spotlightHeight: pos.height,
-            backgroundDimPercentage: (effect.parameters.backgroundDim || 0.8) * 100,
-            spotlightOpacity: effect.parameters.opacity || 0,
+            backgroundDimPercentage: (spotlightParams.intensity || 0.8) * 100,
           };
         }
         break;
 
       case 'zoom':
-        if (effect.parameters.targetX !== undefined && effect.parameters.targetY !== undefined) {
+        const zoomParams = effect.parameters as ZoomParameters;
+        if (zoomParams.targetPosition) {
           event = {
             ...event,
-            zoomLevel: effect.parameters.zoomLevel || 2,
-            targetX: effect.parameters.targetX,
-            targetY: effect.parameters.targetY,
-            smooth: effect.parameters.smooth !== false,
+            zoomLevel: zoomParams.zoomLevel || 2,
+            targetX: zoomParams.targetPosition.x,
+            targetY: zoomParams.targetPosition.y,
+            smooth: true, // `smooth` is not on ZoomParameters, but is on TimelineEventData.
           };
         }
         break;
 
       case 'show_text':
+        const showTextParams = effect.parameters as ShowTextParameters;
         event = {
           ...event,
-          textContent: effect.parameters.content || '',
-          textPosition: typeof effect.parameters.position === 'string' ? effect.parameters.position : 'custom',
+          textContent: showTextParams.text || '',
+          textPosition: 'custom',
         };
-        if (typeof effect.parameters.position === 'object') {
-          const pos = effect.parameters.position as FixedPosition;
+        if (typeof showTextParams.position === 'object') {
+          const pos = showTextParams.position as FixedPosition;
           event.textX = pos.x;
           event.textY = pos.y;
           event.textWidth = pos.width;
@@ -173,21 +175,22 @@ export function extractTimelineEventsFromElement(
         break;
 
       case 'play_media':
+        const playMediaParams = effect.parameters as PlayMediaParameters;
         event = {
           ...event,
-          type: effect.parameters.mediaType === 'video' ? InteractionType.PLAY_VIDEO : InteractionType.PLAY_AUDIO,
-          autoplay: effect.parameters.autoplay !== false,
-          loop: effect.parameters.loop || false,
-          volume: effect.parameters.volume || 1.0,
+          type: playMediaParams.mediaType === 'video' ? InteractionType.PLAY_VIDEO : InteractionType.PLAY_AUDIO,
+          autoplay: playMediaParams.autoplay !== false,
+          loop: false,
+          volume: playMediaParams.volume || 1.0,
         };
         
-        if (effect.parameters.mediaType === 'video') {
-          event.videoUrl = effect.parameters.url;
-          event.videoShowControls = effect.parameters.controls !== false;
+        if (playMediaParams.mediaType === 'video') {
+          event.videoUrl = playMediaParams.mediaUrl;
+          event.videoShowControls = playMediaParams.controls !== false;
           event.videoDisplayMode = 'modal';
         } else {
-          event.audioUrl = effect.parameters.url;
-          event.audioShowControls = effect.parameters.controls !== false;
+          event.audioUrl = playMediaParams.mediaUrl;
+          event.audioShowControls = playMediaParams.controls !== false;
           event.audioDisplayMode = 'background';
         }
         break;
@@ -202,7 +205,7 @@ export function extractTimelineEventsFromElement(
 /**
  * Map slide effect type to interaction type
  */
-function mapEffectTypeToInteractionType(effectType: string): InteractionType {
+function mapEffectTypeToInteractionType(effectType: SlideEffectType): InteractionType {
   switch (effectType) {
     case 'spotlight':
       return InteractionType.SPOTLIGHT;
@@ -210,7 +213,6 @@ function mapEffectTypeToInteractionType(effectType: string): InteractionType {
     case 'pan_zoom':
       return InteractionType.PAN_ZOOM;
     case 'show_text':
-    case 'text':
       return InteractionType.SHOW_TEXT;
     case 'play_media':
       return InteractionType.PLAY_VIDEO; // Default to video, will be refined by parameters
@@ -239,6 +241,11 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
   };
 
   // Map event properties to effect parameters
+  const defaultTextStyle: TextStyle = {
+    fontSize: 16,
+    color: '#000000',
+  };
+
   switch (event.type) {
     case InteractionType.SPOTLIGHT:
       baseInteraction.effect.parameters = {
@@ -249,50 +256,61 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
           width: event.spotlightWidth || 100,
           height: event.spotlightHeight || 100,
         },
-        opacity: event.spotlightOpacity || 0,
-        backgroundDim: (event.backgroundDimPercentage || 80) / 100,
-      };
+        intensity: (event.backgroundDimPercentage || 80) / 100,
+        fadeEdges: false,
+      } as SpotlightParameters;
       break;
 
     case InteractionType.PAN_ZOOM:
       baseInteraction.effect.parameters = {
+        targetPosition: {
+          x: event.targetX || 0,
+          y: event.targetY || 0,
+          width: 100,
+          height: 100,
+        },
         zoomLevel: event.zoomLevel || 2,
-        targetX: event.targetX || 0,
-        targetY: event.targetY || 0,
-        smooth: event.smooth !== false,
-      };
+        centerOnTarget: true,
+      } as ZoomParameters;
       break;
 
     case InteractionType.SHOW_TEXT:
-      baseInteraction.effect.parameters = {
-        content: event.textContent || '',
-        position: event.textPosition === 'center' ? 'center' : {
+      let position: FixedPosition;
+      if (event.textPosition === 'center') {
+        position = { x: 45, y: 45, width: 10, height: 10 }; // Default centered position
+      } else {
+        position = {
           x: event.textX || 0,
           y: event.textY || 0,
           width: event.textWidth || 300,
           height: event.textHeight || 100,
-        },
-      };
+        };
+      }
+      baseInteraction.effect.parameters = {
+        text: event.textContent || '',
+        position: position,
+        style: defaultTextStyle,
+      } as ShowTextParameters;
       break;
 
     case InteractionType.PLAY_VIDEO:
       baseInteraction.effect.parameters = {
-        url: event.videoUrl || '',
+        mediaUrl: event.videoUrl || '',
         mediaType: 'video',
         autoplay: event.autoplay !== false,
         controls: event.videoShowControls !== false,
         loop: event.loop || false,
-      };
+      } as PlayMediaParameters;
       break;
 
     case InteractionType.PLAY_AUDIO:
       baseInteraction.effect.parameters = {
-        url: event.audioUrl || '',
+        mediaUrl: event.audioUrl || '',
         mediaType: 'audio',
         autoplay: event.autoplay !== false,
         controls: event.audioShowControls !== false,
         loop: event.loop || false,
-      };
+      } as PlayMediaParameters;
       break;
   }
 
@@ -302,7 +320,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
 /**
  * Map interaction type to effect type
  */
-function mapInteractionTypeToEffectType(interactionType: InteractionType): string {
+function mapInteractionTypeToEffectType(interactionType: InteractionType): SlideEffectType {
   switch (interactionType) {
     case InteractionType.SPOTLIGHT:
       return 'spotlight';

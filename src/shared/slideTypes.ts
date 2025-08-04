@@ -246,6 +246,7 @@ export interface PlayMediaParameters {
   autoplay: boolean;
   controls: boolean;
   volume?: number;
+  loop?: boolean;
 }
 
 export interface PlayVideoParameters {
