@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { SlideEffect, ShowTextParameters } from '../../../../shared/slideTypes';
+import { SlideEffect, ShowTextParameters, TextStyle } from '../../../../shared/slideTypes';
 
 interface TextEffectSettingsProps {
   effect: SlideEffect;
@@ -28,6 +28,15 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
       }
     });
   }, [parameters, onUpdate]);
+
+  const handleStyleUpdate = useCallback((styleUpdates: Partial<TextStyle>) => {
+    handleParameterUpdate({
+      style: {
+        ...parameters.style,
+        ...styleUpdates
+      }
+    });
+  }, [parameters, handleParameterUpdate]);
 
   const handleTextBlur = useCallback(() => {
     handleParameterUpdate({ text: textContent });
@@ -100,12 +109,12 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
             type="range"
             min="10"
             max="48"
-            value={parameters.fontSize || 16}
-            onChange={(e) => handleParameterUpdate({ fontSize: parseInt(e.target.value) })}
+            value={parameters.style?.fontSize || 16}
+            onChange={(e) => handleStyleUpdate({ fontSize: parseInt(e.target.value) })}
             className="flex-1"
           />
           <span className="text-xs text-slate-400 w-12">
-            {parameters.fontSize || 16}px
+            {parameters.style?.fontSize || 16}px
           </span>
         </div>
       </div>
@@ -119,9 +128,9 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
           {['left', 'center', 'right'].map((align) => (
             <button
               key={align}
-              onClick={() => handleParameterUpdate({ textAlign: align as any })}
+              onClick={() => handleStyleUpdate({ textAlign: align as any })}
               className={`p-2 rounded border text-xs font-medium transition-colors ${
-                (parameters.textAlign || 'center') === align
+                (parameters.style?.textAlign || 'center') === align
                   ? 'bg-purple-600 border-purple-500 text-white'
                   : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
               }`}
@@ -227,14 +236,14 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={parameters.backgroundColor || '#1e293b'}
-              onChange={(e) => handleParameterUpdate({ backgroundColor: e.target.value })}
+              value={parameters.style?.backgroundColor || '#1e293b'}
+              onChange={(e) => handleStyleUpdate({ backgroundColor: e.target.value })}
               className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
             />
             <input
               type="text"
-              value={parameters.backgroundColor || '#1e293b'}
-              onChange={(e) => handleParameterUpdate({ backgroundColor: e.target.value })}
+              value={parameters.style?.backgroundColor || '#1e293b'}
+              onChange={(e) => handleStyleUpdate({ backgroundColor: e.target.value })}
               className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               placeholder="#1e293b"
             />
@@ -248,12 +257,12 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
                 min="0"
                 max="1"
                 step="0.1"
-                value={parameters.backgroundOpacity || 0.9}
-                onChange={(e) => handleParameterUpdate({ backgroundOpacity: parseFloat(e.target.value) })}
+                value={parameters.style?.backgroundOpacity || 0.9}
+                onChange={(e) => handleStyleUpdate({ backgroundOpacity: parseFloat(e.target.value) })}
                 className="flex-1"
               />
               <span className="text-xs text-slate-400 w-12">
-                {Math.round((parameters.backgroundOpacity || 0.9) * 100)}%
+                {Math.round((parameters.style?.backgroundOpacity || 0.9) * 100)}%
               </span>
             </div>
           </div>

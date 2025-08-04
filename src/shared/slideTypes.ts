@@ -232,6 +232,12 @@ export interface ShowTextParameters {
   position: FixedPosition;
   style: TextStyle;
   displayDuration?: number;
+  displayMode?: 'modal' | 'tooltip' | 'banner' | 'overlay';
+  modalWidth?: number;
+  modalMaxHeight?: number;
+  modalPosition?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'element';
+  autoClose?: boolean;
+  autoCloseDuration?: number;
 }
 
 export interface PlayMediaParameters {
@@ -301,6 +307,7 @@ export interface TextStyle {
   fontWeight?: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
   color: string;
   backgroundColor?: string;
+  backgroundOpacity?: number;
   padding?: number;
   borderRadius?: number;
   textAlign?: 'left' | 'center' | 'right';

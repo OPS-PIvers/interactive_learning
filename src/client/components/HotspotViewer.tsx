@@ -359,12 +359,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   const getCustomStyles = () => {
     const styles: React.CSSProperties = {};
     
-    // Apply opacity from multiple sources (priority: customProperties -> hotspot.opacity)
+    // Apply opacity from customProperties, which may be passed for slide-based elements
     const customOpacity = (hotspot as any).customProperties?.opacity;
-    const opacity = customOpacity !== undefined ? customOpacity : hotspot.opacity;
     
-    if (opacity !== undefined) {
-      styles.opacity = opacity;
+    if (customOpacity !== undefined) {
+      styles.opacity = customOpacity;
     }
     
     return styles;
