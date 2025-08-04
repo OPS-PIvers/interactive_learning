@@ -56,10 +56,14 @@ This codebase has **409 TypeScript errors** that are currently not being caught 
 #### Effects and Interaction Components
 ✅ **File:** `src/client/components/slides/effects/TextEffectSettings.tsx` (26 errors)
 - **Fix:** Corrected all 26 errors by updating the `ShowTextParameters` and `TextStyle` interfaces and refactoring the component to access nested style properties correctly.
-**File:** `src/client/components/slides/effects/QuizEffectSettings.tsx` (21 errors)
-**File:** `src/client/components/slides/effects/SpotlightEffectSettings.tsx` (17 errors)
-**File:** `src/client/components/slides/effects/MediaEffectSettings.tsx` (16 errors)
-**File:** `src/client/components/slides/effects/PanZoomEffectSettings.tsx` (11 errors)
+✅ **File:** `src/client/components/slides/effects/QuizEffectSettings.tsx` (21 errors)
+- **Fix:** Corrected type mismatches in `QuizParameters`, renamed `options` to `choices`, removed invalid properties, and ensured type safety.
+✅ **File:** `src/client/components/slides/effects/SpotlightEffectSettings.tsx` (17 errors)
+- **Fix:** Refactored to use the nested `position` object, corrected property names (e.g. `intensity`), and added missing UI for `fadeEdges` and `message`.
+✅ **File:** `src/client/components/slides/effects/MediaEffectSettings.tsx` (16 errors)
+- **Fix:** Reworked the component to handle `play_video` and `play_audio` effects separately, using the correct properties and types for each.
+✅ **File:** `src/client/components/slides/effects/PanZoomEffectSettings.tsx` (11 errors)
+- **Fix:** Corrected usage of `targetPosition`, renamed properties to match the type definition, and removed UI for non-existent properties.
 
 - **Common Issues:** Property mismatches, type incompatibilities, missing interfaces
 - **Impact:** Slide effects configuration may be unstable

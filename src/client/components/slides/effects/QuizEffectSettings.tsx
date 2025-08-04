@@ -20,7 +20,7 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
   const parameters = effect.parameters as QuizParameters;
   
   const [question, setQuestion] = useState(parameters.question || '');
-  const [options, setOptions] = useState(parameters.options || ['']);
+  const [choices, setChoices] = useState(parameters.choices || ['']);
   const [correctAnswer, setCorrectAnswer] = useState(parameters.correctAnswer || 0);
   const [explanation, setExplanation] = useState(parameters.explanation || '');
 
@@ -37,7 +37,7 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
   useEffect(() => {
     const updatedParams: Partial<QuizParameters> = {
       question,
-      options,
+      choices,
       correctAnswer,
       explanation
     };
@@ -45,36 +45,38 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
     // Only update if there are actual changes
     const hasChanges = 
       question !== parameters.question ||
-      JSON.stringify(options) !== JSON.stringify(parameters.options) ||
+      JSON.stringify(choices) !== JSON.stringify(parameters.choices) ||
       correctAnswer !== parameters.correctAnswer ||
       explanation !== parameters.explanation;
     
     if (hasChanges) {
       handleParameterUpdate(updatedParams);
     }
-  }, [question, options, correctAnswer, explanation, parameters, handleParameterUpdate]);
+  }, [question, choices, correctAnswer, explanation, parameters, handleParameterUpdate]);
 
-  const handleOptionChange = useCallback((index: number, value: string) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
-    setOptions(newOptions);
-  }, [options]);
+  const handleChoiceChange = useCallback((index: number, value: string) => {
+    const newChoices = [...choices];
+    newChoices[index] = value;
+    setChoices(newChoices);
+  }, [choices]);
 
-  const addOption = useCallback(() => {
-    setOptions([...options, '']);
-  }, [options]);
+  const addChoice = useCallback(() => {
+    setChoices([...choices, '']);
+  }, [choices]);
 
-  const removeOption = useCallback((index: number) => {
-    const newOptions = options.filter((_, i) => i !== index);
-    setOptions(newOptions);
+  const removeChoice = useCallback((index: number) => {
+    const newChoices = choices.filter((_, i) => i !== index);
+    setChoices(newChoices);
     
     // Adjust correct answer index if needed
-    if (correctAnswer === index) {
-      setCorrectAnswer(0);
-    } else if (correctAnswer > index) {
-      setCorrectAnswer(correctAnswer - 1);
+    if (typeof correctAnswer === 'number') {
+      if (correctAnswer === index) {
+        setCorrectAnswer(0);
+      } else if (correctAnswer > index) {
+        setCorrectAnswer(correctAnswer - 1);
+      }
     }
-  }, [options, correctAnswer]);
+  }, [choices, correctAnswer]);
 
   return (
     <div className="space-y-4">
@@ -85,12 +87,12 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
         </label>
         <select
           value={parameters.questionType || 'multiple-choice'}
-          onChange={(e) => handleParameterUpdate({ questionType: e.target.value as any })}
+          onChange={(e) => handleParameterUpdate({ questionType: e.target.value as QuizParameters['questionType'] })}
           className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
         >
           <option value="multiple-choice">Multiple Choice</option>
           <option value="true-false">True/False</option>
-          <option value="fill-blank">Fill in the Blank</option>
+          <option value="fill-in-the-blank">Fill in the Blank</option>
         </select>
       </div>
 
@@ -109,12 +111,12 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
       </div>
 
       {/* Options (for multiple choice and true/false) */}
-      {(parameters.questionType !== 'fill-blank') && (
+      {(parameters.questionType !== 'fill-in-the-blank') && (
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-2">
             Answer Options
           </label>
-          {options.map((option, index) => (
+          {choices.map((option, index) => (
             <div key={index} className="flex items-center space-x-2 mb-2">
               <input
                 type="radio"
@@ -126,13 +128,13 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
               <input
                 type="text"
                 value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
+                onChange={(e) => handleChoiceChange(index, e.target.value)}
                 className="flex-1 p-2 bg-slate-700 border border-slate-600 rounded text-white text-xs"
                 placeholder={`Option ${index + 1}`}
               />
-              {options.length > 1 && (
+              {choices.length > 1 && (
                 <button
-                  onClick={() => removeOption(index)}
+                  onClick={() => removeChoice(index)}
                   className="p-2 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors"
                   title={`Remove option ${index + 1}`}
                 >
@@ -142,9 +144,9 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
             </div>
           ))}
           
-          {parameters.questionType !== 'true-false' && options.length < 6 && (
+          {parameters.questionType !== 'true-false' && choices.length < 6 && (
             <button
-              onClick={addOption}
+              onClick={addChoice}
               className="w-full p-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium transition-colors"
             >
               + Add Option
@@ -153,16 +155,16 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
         </div>
       )}
 
-      {/* Correct Answer (for fill-blank) */}
-      {parameters.questionType === 'fill-blank' && (
+      {/* Correct Answer (for fill-in-the-blank) */}
+      {parameters.questionType === 'fill-in-the-blank' && (
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-2">
             Correct Answer
           </label>
           <input
             type="text"
-            value={parameters.correctAnswerText || ''}
-            onChange={(e) => handleParameterUpdate({ correctAnswerText: e.target.value })}
+            value={typeof parameters.correctAnswer === 'string' ? parameters.correctAnswer : ''}
+            onChange={(e) => handleParameterUpdate({ correctAnswer: e.target.value })}
             className="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white text-xs"
             placeholder="Enter the correct answer"
           />
@@ -192,50 +194,13 @@ export const QuizEffectSettings: React.FC<QuizEffectSettingsProps> = ({
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={parameters.shuffleOptions || false}
-              onChange={(e) => handleParameterUpdate({ shuffleOptions: e.target.checked })}
-              className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
-            />
-            <span className="text-xs text-slate-300">Shuffle answer options</span>
-          </label>
-          
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={parameters.showExplanation !== false}
-              onChange={(e) => handleParameterUpdate({ showExplanation: e.target.checked })}
-              className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
-            />
-            <span className="text-xs text-slate-300">Show explanation after answer</span>
-          </label>
-          
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={parameters.allowRetry || false}
-              onChange={(e) => handleParameterUpdate({ allowRetry: e.target.checked })}
+              checked={parameters.allowMultipleAttempts || false}
+              onChange={(e) => handleParameterUpdate({ allowMultipleAttempts: e.target.checked })}
               className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
             />
             <span className="text-xs text-slate-300">Allow retry on wrong answer</span>
           </label>
         </div>
-      </div>
-
-      {/* Display Settings */}
-      <div>
-        <label className="block text-xs font-medium text-slate-300 mb-2">
-          Display Mode
-        </label>
-        <select
-          value={parameters.displayMode || 'modal'}
-          onChange={(e) => handleParameterUpdate({ displayMode: e.target.value as any })}
-          className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
-        >
-          <option value="modal">Modal</option>
-          <option value="overlay">Overlay</option>
-          <option value="sidebar">Sidebar</option>
-          <option value="inline">Inline</option>
-        </select>
       </div>
 
       {/* Scoring */}

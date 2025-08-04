@@ -28,6 +28,15 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
     });
   }, [parameters, onUpdate]);
 
+  const handlePositionUpdate = useCallback((positionUpdates: Partial<SpotlightParameters['position']>) => {
+    handleParameterUpdate({
+      position: {
+        ...parameters.position,
+        ...positionUpdates
+      }
+    });
+  }, [parameters, handleParameterUpdate]);
+
   const handleDurationUpdate = useCallback((duration: number) => {
     onUpdate({ duration });
   }, [onUpdate]);
@@ -35,9 +44,11 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
   const shapes = [
     { value: 'circle', label: 'Circle' },
     { value: 'rectangle', label: 'Rectangle' },
+    { value: 'oval', label: 'Oval' },
   ] as const;
 
   const isCircle = parameters.shape === 'circle';
+  const position = parameters.position || { x: 0, y: 0, width: 150, height: 150 };
 
   return (
     <div className="space-y-4">
@@ -67,7 +78,7 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
         <label className="block text-xs font-medium text-slate-300 mb-2">
           Spotlight Shape
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {shapes.map((shape) => (
             <button
               key={shape.value}
@@ -94,24 +105,24 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
             type="range"
             min="50"
             max="500"
-            value={parameters.width || 150}
+            value={position.width}
             onChange={(e) => {
               const value = parseInt(e.target.value);
               if (isCircle) {
-                handleParameterUpdate({ width: value, height: value });
+                handlePositionUpdate({ width: value, height: value });
               } else {
-                handleParameterUpdate({ width: value });
+                handlePositionUpdate({ width: value });
               }
             }}
             className="flex-1"
           />
           <span className="text-xs text-slate-400 w-12">
-            {parameters.width || 150}px
+            {position.width}px
           </span>
         </div>
       </div>
 
-      {/* Height (for rectangle only) */}
+      {/* Height (for rectangle/oval) */}
       {!isCircle && (
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-2">
@@ -122,56 +133,63 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
               type="range"
               min="50"
               max="500"
-              value={parameters.height || 150}
-              onChange={(e) => handleParameterUpdate({ height: parseInt(e.target.value) })}
+              value={position.height}
+              onChange={(e) => handlePositionUpdate({ height: parseInt(e.target.value) })}
               className="flex-1"
             />
             <span className="text-xs text-slate-400 w-12">
-              {parameters.height || 150}px
+              {position.height}px
             </span>
           </div>
         </div>
       )}
 
-      {/* Spotlight Opacity */}
+      {/* Spotlight Intensity */}
       <div>
         <label className="block text-xs font-medium text-slate-300 mb-2">
-          Spotlight Opacity
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={parameters.spotlightOpacity || 0}
-            onChange={(e) => handleParameterUpdate({ spotlightOpacity: parseFloat(e.target.value) })}
-            className="flex-1"
-          />
-          <span className="text-xs text-slate-400 w-12">
-            {Math.round((parameters.spotlightOpacity || 0) * 100)}%
-          </span>
-        </div>
-      </div>
-
-      {/* Background Dim */}
-      <div>
-        <label className="block text-xs font-medium text-slate-300 mb-2">
-          Background Dim
+          Intensity
         </label>
         <div className="flex items-center gap-2">
           <input
             type="range"
             min="0"
             max="100"
-            value={parameters.backgroundDimPercentage || 70}
-            onChange={(e) => handleParameterUpdate({ backgroundDimPercentage: parseInt(e.target.value) })}
+            step="1"
+            value={parameters.intensity || 70}
+            onChange={(e) => handleParameterUpdate({ intensity: parseInt(e.target.value) })}
             className="flex-1"
           />
           <span className="text-xs text-slate-400 w-12">
-            {parameters.backgroundDimPercentage || 70}%
+            {parameters.intensity || 70}%
           </span>
         </div>
+      </div>
+
+      {/* Fade Edges */}
+      <div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={parameters.fadeEdges || false}
+            onChange={(e) => handleParameterUpdate({ fadeEdges: e.target.checked })}
+            className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+          />
+          <span className="text-xs text-slate-300">Fade Edges</span>
+        </label>
+      </div>
+
+      {/* Message */}
+      <div>
+        <label className="block text-xs font-medium text-slate-300 mb-2">
+          Message (Optional)
+        </label>
+        <input
+          type="text"
+          value={parameters.message || ''}
+          onChange={(e) => handleParameterUpdate({ message: e.target.value })}
+          className="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white text-xs"
+          placeholder="Enter an optional message..."
+        />
       </div>
 
       {/* Position Override */}
@@ -181,32 +199,28 @@ export const SpotlightEffectSettings: React.FC<SpotlightEffectSettingsProps> = (
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs text-slate-400 mb-1">X (%)</label>
+            <label className="block text-xs text-slate-400 mb-1">X (px)</label>
             <input
               type="number"
-              min="0"
-              max="100"
-              value={parameters.x || 0}
-              onChange={(e) => handleParameterUpdate({ x: parseFloat(e.target.value) })}
+              value={position.x}
+              onChange={(e) => handlePositionUpdate({ x: parseInt(e.target.value) || 0 })}
               className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               placeholder="Auto"
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Y (%)</label>
+            <label className="block text-xs text-slate-400 mb-1">Y (px)</label>
             <input
               type="number"
-              min="0"
-              max="100"
-              value={parameters.y || 0}
-              onChange={(e) => handleParameterUpdate({ y: parseFloat(e.target.value) })}
+              value={position.y}
+              onChange={(e) => handlePositionUpdate({ y: parseInt(e.target.value) || 0 })}
               className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               placeholder="Auto"
             />
           </div>
         </div>
         <div className="text-xs text-slate-400 mt-1">
-          Leave blank to use element position
+          Uses element position by default
         </div>
       </div>
     </div>
