@@ -1,5 +1,12 @@
 import { HotspotData, TimelineEventData } from './types';
 
+// Pan/Zoom Event Interface
+export interface PanZoomEvent {
+  x: number;
+  y: number;
+  scale: number;
+}
+
 // Common props shared between viewer and editor
 export interface InteractiveModuleBaseProps {
   projectName: string;

@@ -5,6 +5,7 @@ import { SlideDeck } from './slideTypes';
 export enum InteractionType {
   // Essential interaction types
   PAN_ZOOM = 'PAN_ZOOM',
+  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
   SHOW_IMAGE = 'SHOW_IMAGE',
   QUIZ = 'QUIZ',
   
@@ -12,7 +13,13 @@ export enum InteractionType {
   PLAY_VIDEO = 'PLAY_VIDEO',
   PLAY_AUDIO = 'PLAY_AUDIO',
   SHOW_TEXT = 'SHOW_TEXT',
+  SHOW_MESSAGE = 'SHOW_MESSAGE',
   SPOTLIGHT = 'SPOTLIGHT',
+  
+  // === MEDIA INTERACTION TYPES ===
+  SHOW_VIDEO = 'SHOW_VIDEO',
+  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
+  SHOW_YOUTUBE = 'SHOW_YOUTUBE',
   
   // === SLIDE-BASED INTERACTION TYPES ===
   MODAL = 'modal',
@@ -192,6 +199,7 @@ export interface TimelineEventData {
   
   // === UNIFIED PAN_ZOOM PROPERTIES ===
   zoomLevel?: number;    // Zoom level for pan/zoom events (default: 2.0)
+  zoom?: number;         // Alias for zoomLevel for backwards compatibility
   targetX?: number;      // Pan/zoom target X coordinate (0-100 percentage, defaults to hotspot center)
   targetY?: number;      // Pan/zoom target Y coordinate (0-100 percentage, defaults to hotspot center)
   smooth?: boolean;      // Smooth zoom animation (default: true)
