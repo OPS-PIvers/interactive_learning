@@ -1,42 +1,41 @@
-│ │ Fix Production Build Breaking Issues                                                                                                                              │ │
+│ ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Fix Persistent InteractionType Undefined Error                                                                                                                    │ │
 │ │                                                                                                                                                                   │ │
-│ │ Root Problem: InteractionType enum is undefined in production, causing cascading failures.                                                                        │ │
+│ │ Root Issue: Despite our enum isolation fix, InteractionType is still undefined in production.                                                                     │ │
 │ │                                                                                                                                                                   │ │
-│ │ Multi-pronged approach needed:                                                                                                                                    │ │
+│ │ Deep Fix Strategy:                                                                                                                                                │ │
 │ │                                                                                                                                                                   │ │
-│ │ Phase 1: Fix Import/Export Issues (High Priority)                                                                                                                 │ │
+│ │ Phase 1: Module System Fixes (Critical)                                                                                                                           │ │
 │ │                                                                                                                                                                   │ │
-│ │ 1. Add barrel exports - Create proper index.ts files for cleaner imports                                                                                          │ │
-│ │ 2. Fix circular dependencies - Restructure InteractionPresets to avoid circular imports                                                                           │ │
-│ │ 3. Consolidate enum exports - Ensure InteractionType is properly exported/imported                                                                                │ │
+│ │ 1. Change to const assertions - Replace enum with const object + type union for better production compatibility                                                   │ │
+│ │ 2. Add explicit default export - Ensure module can be properly imported in all environments                                                                       │ │
+│ │ 3. Use immediate export pattern - Prevent any hoisting or execution order issues                                                                                  │ │
 │ │                                                                                                                                                                   │ │
-│ │ Phase 2: Build Configuration (High Priority)                                                                                                                      │ │
+│ │ Phase 2: Build System Deep Fix (Critical)                                                                                                                         │ │
 │ │                                                                                                                                                                   │ │
-│ │ 1. Simplify Vite chunking - Remove aggressive code splitting that might break dependencies                                                                        │ │
-│ │ 2. Fix module resolution - Ensure proper chunk loading order                                                                                                      │ │
-│ │ 3. Add build debugging - Enable better error visibility in production                                                                                             │ │
+│ │ 1. Force no tree-shaking for enums - Add explicit Vite configuration to preserve enum                                                                             │ │
+│ │ 2. Test local production build - Use npm run preview to debug locally                                                                                             │ │
+│ │ 3. Add build debugging - Enable verbose logging to see module loading order                                                                                       │ │
 │ │                                                                                                                                                                   │ │
-│ │ Phase 3: Address TypeScript Issues (Medium Priority)                                                                                                              │ │
+│ │ Phase 3: Alternative Approaches (If needed)                                                                                                                       │ │
 │ │                                                                                                                                                                   │ │
-│ │ 1. Fix critical TS errors - The 150+ TypeScript errors might cause runtime issues                                                                                 │ │
-│ │ 2. Enum compilation - Ensure enums compile correctly for production                                                                                               │ │
-│ │ 3. Type safety - Fix type/value namespace conflicts                                                                                                               │ │
+│ │ 1. Inline enum values - Replace enum references with string literals as fallback                                                                                  │ │
+│ │ 2. Runtime enum creation - Create enum at runtime instead of import time                                                                                          │ │
+│ │ 3. Module concatenation - Merge InteractionPresets and enum into single file                                                                                      │ │
 │ │                                                                                                                                                                   │ │
-│ │ Phase 4: Testing & Validation (High Priority)                                                                                                                     │ │
+│ │ Phase 4: Validation                                                                                                                                               │ │
 │ │                                                                                                                                                                   │ │
-│ │ 1. Local production build testing - Test production build locally first                                                                                           │ │
-│ │ 2. Source map analysis - Use source maps to debug exact failure points                                                                                            │ │
-│ │ 3. Progressive deployment - Fix issues incrementally                                                                                                              │ │
+│ │ 1. Local production test - Verify fix works with npm run preview                                                                                                  │ │
+│ │ 2. Source map debugging - Use browser dev tools to check actual compiled code                                                                                     │ │
+│ │ 3. Progressive deployment - Test incrementally                                                                                                                    │ │
 │ │                                                                                                                                                                   │ │
-│ │ Expected Impact: This will likely fix multiple cascading issues beyond just InteractionPresets, including Firebase, routing, and state management failures.       │ │
+│ │ Expected Root Cause: ES6 enum import/export transpilation issues in production build. The enum exists but isn't accessible at object initialization time.         │ │
 │ │                                                                                                                                                                   │ │
-│ │ Root cause: Production build optimization breaking module dependency chains.  
+│ │ Primary Fix: Replace enum with const assertion pattern that's more production-build friendly.    
 
 
 ● Update Todos
-  ⎿  ☒ Fix InteractionType enum undefined error in production build
-     ☒ Add barrel exports for cleaner module imports
-     ☒ Simplify Vite chunking to prevent dependency breaking
-     ☒ Fix Firebase Analytics window error in test environment
-     ☐ Test production build locally to verify fixes
-     ☐ Continue fixing remaining ~150 TypeScript errors over time
+  ⎿  ☐ Replace enum with const assertion pattern for production compatibility
+     ☐ Add build debugging and test local production build
+     ☐ Fix InteractionType enum undefined error in production build
+     ☐ Monitor production deployment for white page fix

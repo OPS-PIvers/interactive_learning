@@ -115,6 +115,11 @@ export default defineConfig(({ mode, command }) => {
         // Force pre-bundling in development for consistency
         force: isDevelopment
       },
+      // Add specific handling for enum/const files
+      esbuild: {
+        // Ensure const assertions are preserved in production
+        keepNames: true,
+      },
       test: {
         globals: true,
         environment: 'jsdom',
