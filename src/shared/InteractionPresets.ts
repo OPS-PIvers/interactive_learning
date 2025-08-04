@@ -18,6 +18,13 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     settings: ['targetX', 'targetY', 'zoomLevel', 'smooth'],
     description: 'Pan and zoom to specific coordinates on the image'
   },
+  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: {
+    icon: '🎯',
+    name: 'Zoom to Hotspot',
+    color: 'bg-teal-500',
+    settings: ['targetId', 'zoomLevel', 'smooth'],
+    description: 'Pan and zoom to a specific hotspot'
+  },
   [InteractionType.SHOW_IMAGE]: {
     icon: '🖼️',
     name: 'Show Image',
@@ -68,10 +75,38 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     ],
     description: 'Play audio from any source with flexible display options'
   },
+  [InteractionType.SHOW_VIDEO]: {
+    icon: '🎬',
+    name: 'Show Video',
+    color: 'bg-rose-500',
+    settings: ['videoUrl', 'videoDisplayMode'],
+    description: 'Show a video in a modal or inline'
+  },
+  [InteractionType.SHOW_AUDIO_MODAL]: {
+    icon: '🎶',
+    name: 'Show Audio',
+    color: 'bg-purple-500',
+    settings: ['audioUrl', 'audioTitle', 'audioArtist'],
+    description: 'Show an audio player in a modal'
+  },
+  [InteractionType.SHOW_YOUTUBE]: {
+    icon: '📺',
+    name: 'Show YouTube',
+    color: 'bg-red-600',
+    settings: ['youtubeVideoId', 'youtubeStartTime', 'youtubeEndTime'],
+    description: 'Embed a YouTube video'
+  },
   
   // === UNIFIED TEXT AND SPOTLIGHT ===
-  [InteractionType.SHOW_TEXT]: {
+  [InteractionType.SHOW_MESSAGE]: {
     icon: '💬',
+    name: 'Show Message',
+    color: 'bg-sky-500',
+    settings: ['textContent', 'textPosition'],
+    description: 'Display a simple text message'
+  },
+  [InteractionType.SHOW_TEXT]: {
+    icon: '📝',
     name: 'Show Text',
     color: 'bg-blue-500',
     settings: [

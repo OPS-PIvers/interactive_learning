@@ -142,7 +142,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       if (!event.videoSource && videoUrl) {
         if (extractYouTubeVideoId(videoUrl)) {
           videoSource = 'youtube';
-          youtubeVideoId = extractYouTubeVideoId(videoUrl);
+          youtubeVideoId = extractYouTubeVideoId(videoUrl) || undefined;
         } else {
           videoSource = 'url';
         }
@@ -454,6 +454,7 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
         // Create a dummy timeline event for conversion
         const dummyEvent: TimelineEventData = {
           id: generateId(),
+          name: hotspot.title || 'Untitled Event',
           type: InteractionType.SHOW_TEXT,
           step: 1,
           targetId: hotspot.id,
