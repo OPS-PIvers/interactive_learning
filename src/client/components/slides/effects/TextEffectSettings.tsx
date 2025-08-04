@@ -89,7 +89,7 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
         </label>
         <select
           value={parameters.displayMode || 'modal'}
-          onChange={(e) => handleParameterUpdate({ displayMode: e.target.value as any })}
+          onChange={(e) => handleParameterUpdate({ displayMode: e.target.value as 'modal' | 'tooltip' | 'banner' | 'overlay' })}
           className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
         >
           <option value="modal">Modal</option>
@@ -125,10 +125,10 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
           Text Alignment
         </label>
         <div className="grid grid-cols-3 gap-2">
-          {['left', 'center', 'right'].map((align) => (
+          {(['left', 'center', 'right'] as const).map((align) => (
             <button
               key={align}
-              onClick={() => handleStyleUpdate({ textAlign: align as any })}
+              onClick={() => handleStyleUpdate({ textAlign: align })}
               className={`p-2 rounded border text-xs font-medium transition-colors ${
                 (parameters.style?.textAlign || 'center') === align
                   ? 'bg-purple-600 border-purple-500 text-white'
@@ -180,7 +180,7 @@ export const TextEffectSettings: React.FC<TextEffectSettingsProps> = ({
             </label>
             <select
               value={parameters.modalPosition || 'center'}
-              onChange={(e) => handleParameterUpdate({ modalPosition: e.target.value as any })}
+              onChange={(e) => handleParameterUpdate({ modalPosition: e.target.value as 'center' | 'top' | 'bottom' | 'left' | 'right' | 'element' })}
               className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
             >
               <option value="center">Center</option>
