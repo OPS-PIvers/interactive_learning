@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { SlideElement, DeviceType, ElementStyle, ElementContent, InteractiveSlide, BackgroundMedia, ElementInteraction } from '../../shared/slideTypes';
+import { SlideElement, DeviceType, ElementStyle, ElementContent, InteractiveSlide, BackgroundMedia, ElementInteraction, SlideEffectType, EffectParameters } from '../../shared/slideTypes';
 import { InteractionType } from '../../shared/types';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import BackgroundMediaPanel from './BackgroundMediaPanel';
@@ -8,6 +8,85 @@ import InteractionEditor from './interactions/InteractionEditor';
 import { hotspotSizePresets, HotspotSize } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 import { ExtendedPropertiesPanelProps, CollapsibleSectionProps } from './shared/BasePropertiesPanel';
+
+// Mapping functions to convert between InteractionType and SlideEffectType
+function mapInteractionTypeToSlideEffectType(interactionType: InteractionType): SlideEffectType {
+  switch (interactionType) {
+    case InteractionType.SPOTLIGHT:
+      return 'spotlight';
+    case InteractionType.PAN_ZOOM:
+    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+      return 'pan_zoom';
+    case InteractionType.SHOW_TEXT:
+    case InteractionType.SHOW_MESSAGE:
+      return 'show_text';
+    case InteractionType.PLAY_VIDEO:
+    case InteractionType.SHOW_VIDEO:
+      return 'play_video';
+    case InteractionType.PLAY_AUDIO:
+      return 'play_audio';
+    case InteractionType.QUIZ:
+      return 'quiz';
+    default:
+      return 'show_text';
+  }
+}
+
+function getDefaultParametersForEffect(interactionType: InteractionType): EffectParameters {
+  switch (interactionType) {
+    case InteractionType.SPOTLIGHT:
+      return {
+        shape: 'circle',
+        width: 150,
+        height: 150,
+        dimPercentage: 80
+      };
+    case InteractionType.PAN_ZOOM:
+    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+      return {
+        x: 0,
+        y: 0,
+        zoomLevel: 2,
+        smooth: true
+      };
+    case InteractionType.SHOW_TEXT:
+    case InteractionType.SHOW_MESSAGE:
+      return {
+        text: '',
+        position: 'center',
+        backgroundColor: '#000000',
+        textColor: '#ffffff'
+      };
+    case InteractionType.PLAY_VIDEO:
+    case InteractionType.SHOW_VIDEO:
+      return {
+        url: '',
+        autoplay: false,
+        loop: false,
+        controls: true
+      };
+    case InteractionType.PLAY_AUDIO:
+      return {
+        url: '',
+        autoplay: false,
+        loop: false,
+        volume: 100
+      };
+    case InteractionType.QUIZ:
+      return {
+        question: '',
+        options: [],
+        correctAnswer: 0
+      };
+    default:
+      return {
+        text: '',
+        position: 'center',
+        backgroundColor: '#000000',
+        textColor: '#ffffff'
+      };
+  }
+}
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   title,
@@ -121,12 +200,7 @@ const EnhancedPropertiesPanel: React.FC<ExtendedPropertiesPanelProps> = ({
       
       elementUpdates.content = {
         ...selectedElement.content,
-        customProperties: customProps,
-        // Update content.style for SlideEditor compatibility
-        style: {
-          ...selectedElement.content.style,
-          ...styleUpdates
-        }
+        customProperties: customProps
       };
     }
     
@@ -181,7 +255,7 @@ const EnhancedPropertiesPanel: React.FC<ExtendedPropertiesPanelProps> = ({
     if (!currentSlide) return;
     
     onSlideUpdate({
-      backgroundMedia: backgroundMedia
+      backgroundMedia: backgroundMedia || undefined
     });
   }, [currentSlide, onSlideUpdate]);
 
@@ -197,8 +271,8 @@ const EnhancedPropertiesPanel: React.FC<ExtendedPropertiesPanelProps> = ({
       id: `interaction_${Date.now()}`,
       trigger: 'click',
       effect: {
-        type: interactionType,
-        parameters: {},
+        type: mapInteractionTypeToSlideEffectType(interactionType),
+        parameters: getDefaultParametersForEffect(interactionType),
         duration: 500,
         delay: 0
       }

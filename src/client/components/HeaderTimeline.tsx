@@ -74,8 +74,8 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
         hasInteractions: slide.elements.some(element => element.interactions && element.interactions.length > 0),
         hotspotCount: hotspotElements.length,
         hotspots: hotspotElements.map(element => {
-          const backgroundColor = element.style?.backgroundColor || element.customProperties?.backgroundColor;
-          const color = element.style?.color || element.customProperties?.color;
+          const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.backgroundColor;
+          const color = element.style?.color || element.content.customProperties?.color;
           
           return {
             id: element.id,

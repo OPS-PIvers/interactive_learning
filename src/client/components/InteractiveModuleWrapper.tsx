@@ -72,7 +72,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
       <WrapperComponent {...wrapperProps}>
         {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ? (
-          <Suspense fallback={<LoadingScreen title="Loading Slide Editor..." />}>
+          <Suspense fallback={<LoadingScreen message="Loading Slide Editor..." />}>
             <UnifiedSlideEditor
               slideDeck={slideDeck}
               projectName={selectedProject.title}
@@ -107,7 +107,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
               // Handle both legacy data and full project objects
               if (projectData.slideDeck && projectData.projectType === 'slide') {
                 // New slide-based project with slide deck data
-                onSave(selectedProject.id, projectData.interactiveData, projectData.thumbnailUrl, projectData.slideDeck);
+                onSave(selectedProject.id, projectData, projectData.thumbnailUrl, projectData.slideDeck);
               } else {
                 // Legacy project format
                 onSave(selectedProject.id, projectData, projectData.thumbnailUrl);

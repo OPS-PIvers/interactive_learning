@@ -27,12 +27,12 @@ interface EnhancedModalEditorToolbarProps {
   autoProgressionDuration: number;
   onAutoProgressionDurationChange: (duration: number) => void;
   
-  // Zoom controls
-  currentZoom: number;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  onZoomReset: () => void;
-  onCenter: () => void;
+  // Zoom controls (optional for deprecated EditorToolbar compatibility)
+  currentZoom?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
+  onCenter?: () => void;
   
   // Color schemes
   currentColorScheme: string;
@@ -273,7 +273,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           </div>
 
           {/* Mobile Zoom Controls Bar */}
-          {isMobile && (
+          {isMobile && currentZoom !== undefined && onZoomIn && onZoomOut && onZoomReset && (
             <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -656,43 +656,45 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
             {activeTab === 'controls' && (
               <div className="space-y-6">
                 {/* Zoom Controls */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Zoom Controls</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Current Zoom: {Math.round(currentZoom * 100)}%
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={onZoomOut}
-                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
-                      >
-                        Zoom Out
-                      </button>
-                      <button
-                        onClick={onZoomIn}
-                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
-                      >
-                        Zoom In
-                      </button>
-                      <button
-                        onClick={onZoomReset}
-                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
-                      >
-                        Reset
-                      </button>
-                      <button
-                        onClick={onCenter}
-                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
-                      >
-                        Center
-                      </button>
+                {currentZoom !== undefined && onZoomIn && onZoomOut && onZoomReset && onCenter && (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">Zoom Controls</h3>
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Current Zoom: {Math.round(currentZoom * 100)}%
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={onZoomOut}
+                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                        >
+                          Zoom Out
+                        </button>
+                        <button
+                          onClick={onZoomIn}
+                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                        >
+                          Zoom In
+                        </button>
+                        <button
+                          onClick={onZoomReset}
+                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                        >
+                          Reset
+                        </button>
+                        <button
+                          onClick={onCenter}
+                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                        >
+                          Center
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

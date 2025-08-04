@@ -16,7 +16,7 @@ interface MigrationOptions {
   canvasHeight?: number; // Target canvas height for calculations
 }
 
-interface MigrationResult {
+export interface MigrationResult {
   slideDeck: SlideDeck;
   warnings: string[];
   elementsConverted: number;

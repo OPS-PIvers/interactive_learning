@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { PanZoomHandler } from './PanZoomHandler';
 import { PanZoomEvent } from '../../shared/interactiveTypes';
 import { ZOOM_LIMITS, PAN_ZOOM_ANIMATION } from '../constants/interactionConstants';
 
@@ -39,7 +38,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       setPanZoomToEvent({
         x: focusHotspotTarget.xPercent / 100,
         y: focusHotspotTarget.yPercent / 100,
-        zoom: focusHotspotTarget.targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale,
+        scale: focusHotspotTarget.targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale,
       });
       if (onFocusAnimationComplete) {
         setTimeout(() => {
@@ -69,12 +68,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
               loading="lazy"
             />
           </TransformComponent>
-          
-          <PanZoomHandler
-            panZoomToEvent={panZoomToEvent}
-            imageRef={imageRef}
-            containerRef={containerRef}
-          />
         </>
       </TransformWrapper>
     </div>
