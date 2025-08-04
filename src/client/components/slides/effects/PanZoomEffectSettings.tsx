@@ -28,9 +28,20 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
     });
   }, [parameters, onUpdate]);
 
+  const handlePositionUpdate = useCallback((positionUpdates: Partial<PanZoomParameters['targetPosition']>) => {
+    handleParameterUpdate({
+      targetPosition: {
+        ...parameters.targetPosition,
+        ...positionUpdates
+      }
+    });
+  }, [parameters, handleParameterUpdate]);
+
   const handleDurationUpdate = useCallback((duration: number) => {
     onUpdate({ duration });
   }, [onUpdate]);
+
+  const targetPosition = parameters.targetPosition || { x: 0, y: 0, width: 0, height: 0 };
 
   return (
     <div className="space-y-4">
@@ -83,27 +94,21 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs text-slate-400 mb-1">X (%)</label>
+            <label className="block text-xs text-slate-400 mb-1">X (px)</label>
             <input
               type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={parameters.targetX || 0}
-              onChange={(e) => handleParameterUpdate({ targetX: parseFloat(e.target.value) })}
+              value={targetPosition.x}
+              onChange={(e) => handlePositionUpdate({ x: parseInt(e.target.value) || 0 })}
               className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               placeholder="Auto"
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Y (%)</label>
+            <label className="block text-xs text-slate-400 mb-1">Y (px)</label>
             <input
               type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={parameters.targetY || 0}
-              onChange={(e) => handleParameterUpdate({ targetY: parseFloat(e.target.value) })}
+              value={targetPosition.y}
+              onChange={(e) => handlePositionUpdate({ y: parseInt(e.target.value) || 0 })}
               className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               placeholder="Auto"
             />
@@ -114,24 +119,6 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
         </div>
       </div>
 
-      {/* Animation Settings */}
-      <div>
-        <label className="block text-xs font-medium text-slate-300 mb-2">
-          Animation
-        </label>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={parameters.smooth !== false}
-              onChange={(e) => handleParameterUpdate({ smooth: e.target.checked })}
-              className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
-            />
-            <span className="text-xs text-slate-300">Smooth animation</span>
-          </label>
-        </div>
-      </div>
-
       {/* Easing Type */}
       <div>
         <label className="block text-xs font-medium text-slate-300 mb-2">
@@ -139,7 +126,7 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
         </label>
         <select
           value={parameters.easing || 'ease-in-out'}
-          onChange={(e) => handleParameterUpdate({ easing: e.target.value as any })}
+          onChange={(e) => handleParameterUpdate({ easing: e.target.value })}
           className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
         >
           <option value="ease">Ease</option>
@@ -150,32 +137,32 @@ export const PanZoomEffectSettings: React.FC<PanZoomEffectSettingsProps> = ({
         </select>
       </div>
 
-      {/* Reset to Original Position */}
+      {/* Return to Original Position */}
       <div>
         <label className="block text-xs font-medium text-slate-300 mb-2">
-          Reset Options
+          Return Options
         </label>
         <div className="space-y-2">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={parameters.resetAfterDuration || false}
-              onChange={(e) => handleParameterUpdate({ resetAfterDuration: e.target.checked })}
+              checked={parameters.returnToOriginal || false}
+              onChange={(e) => handleParameterUpdate({ returnToOriginal: e.target.checked })}
               className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
             />
-            <span className="text-xs text-slate-300">Reset after duration</span>
+            <span className="text-xs text-slate-300">Return to original after duration</span>
           </label>
           
-          {parameters.resetAfterDuration && (
+          {parameters.returnToOriginal && (
             <div className="ml-6">
-              <label className="block text-xs text-slate-400 mb-1">Reset Delay (ms)</label>
+              <label className="block text-xs text-slate-400 mb-1">Return Delay (ms)</label>
               <input
                 type="number"
                 min="0"
                 max="10000"
                 step="100"
-                value={parameters.resetDelay || 1000}
-                onChange={(e) => handleParameterUpdate({ resetDelay: parseInt(e.target.value) })}
+                value={parameters.returnDelay || 1000}
+                onChange={(e) => handleParameterUpdate({ returnDelay: parseInt(e.target.value) || 1000 })}
                 className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs"
               />
             </div>
