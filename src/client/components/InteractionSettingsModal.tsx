@@ -6,8 +6,23 @@ import SpotlightSettings from './SpotlightSettings';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
-const TextInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (updates: Partial<TimelineEventData>) => void }> = ({ event, onUpdate }) => {
+interface InteractionEditorProps {
+  event: TimelineEventData;
+  onUpdate: (updates: Partial<TimelineEventData>) => void;
+}
+
+/**
+ * Placeholder component for editing text interactions.
+ * 
+ * This is a temporary implementation. The final version should include:
+ * - Rich text editing capabilities
+ * - Text formatting options (bold, italic, colors)
+ * - Advanced positioning and sizing controls
+ * - Text animation and transition effects
+ */
+const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
 
@@ -85,7 +100,16 @@ const TextInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (upd
     );
 };
 
-const AudioInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (updates: Partial<TimelineEventData>) => void }> = ({ event, onUpdate }) => {
+/**
+ * Placeholder component for editing audio interactions.
+ * 
+ * This is a temporary implementation. The final version should include:
+ * - Audio file upload and management
+ * - Waveform visualization and editing
+ * - Advanced playback controls and timing
+ * - Audio effects and processing options
+ */
+const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
@@ -162,7 +186,16 @@ const AudioInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (up
     );
 };
 
-const VideoInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (updates: Partial<TimelineEventData>) => void }> = ({ event, onUpdate }) => {
+/**
+ * Placeholder component for editing video interactions.
+ * 
+ * This is a temporary implementation. The final version should include:
+ * - Video file upload and management
+ * - Video preview and thumbnail generation
+ * - Advanced timing and clipping controls
+ * - Video quality and compression options
+ */
+const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
@@ -286,7 +319,16 @@ const VideoInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (up
     );
 };
 
-const QuizInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (updates: Partial<TimelineEventData>) => void }> = ({ event, onUpdate }) => {
+/**
+ * Placeholder component for editing quiz interactions.
+ * 
+ * This is a temporary implementation. The final version should include:
+ * - Advanced question types (multiple choice, fill-in-the-blank, drag-and-drop)
+ * - Question randomization and shuffling
+ * - Detailed explanation and feedback systems
+ * - Quiz analytics and progress tracking
+ */
+const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
 
@@ -297,7 +339,7 @@ const QuizInteractionEditor: React.FC<{ event: TimelineEventData, onUpdate: (upd
     };
 
     const handleAddOption = () => {
-        const newOptions = [...(event.quizOptions || []), `New Option ${ (event.quizOptions?.length || 0) + 1}`];
+        const newOptions = [...(event.quizOptions || []), `New Option ${(event.quizOptions?.length || 0) + 1}`];
         onUpdate({ quizOptions: newOptions });
     };
 
@@ -405,12 +447,12 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
         );
       case InteractionType.SPOTLIGHT:
         return (
-            <SpotlightSettings
-                shape={event.spotlightShape || 'circle'}
-                onShapeChange={(shape) => handleUpdate({ spotlightShape: shape })}
-                dimPercentage={event.backgroundDimPercentage || 70}
-                onDimPercentageChange={(dim) => handleUpdate({ backgroundDimPercentage: dim })}
-            />
+          <SpotlightSettings
+            shape={event.spotlightShape || 'circle'}
+            onShapeChange={(shape) => handleUpdate({ spotlightShape: shape })}
+            dimPercentage={event.backgroundDimPercentage || 70}
+            onDimPercentageChange={(dim) => handleUpdate({ backgroundDimPercentage: dim })}
+          />
         );
       case InteractionType.SHOW_TEXT:
         return <TextInteractionEditor event={event} onUpdate={handleUpdate} />;
@@ -426,7 +468,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-[80] flex items-center justify-center" onClick={onClose}>
+    <div className={`fixed inset-0 bg-black bg-opacity-60 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} flex items-center justify-center`} onClick={onClose}>
       <div className="bg-gray-800 text-white rounded-lg shadow-xl p-4 w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
           <h2 className="text-lg font-semibold">Edit: {event.name}</h2>

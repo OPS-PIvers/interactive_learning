@@ -27,9 +27,9 @@ const InteractionParameterPreview: React.FC<InteractionParameterPreviewProps> = 
 
   const parametersToShow = preset.settings;
 
-  const renderParameter = (key: string) => {
-    const value = (event as any)[key];
-    return <ParameterItem key={key} label={key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} value={value} />;
+  const renderParameter = (key: keyof TimelineEventData) => {
+    const value = event[key];
+    return <ParameterItem key={key} label={key.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase())} value={value} />;
   };
 
   return (
