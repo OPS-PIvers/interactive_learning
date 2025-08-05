@@ -20,6 +20,9 @@
     "deps:check": "madge --circular src/",
     "deps:graph": "madge --image dependency-graph.svg src/",
     "deps:summary": "madge --summary src/",
+    "test:errors": "npm run test:run -- ReactErrorDetection",
+    "lint:comprehensive": "npm run typecheck && npm run lint:eslint && npm run deps:check",
+    "verify:production": "npm run lint:comprehensive && npm run test:errors && npm run build",
     "firebase:build": "NODE_ENV=production npm run build",
     "firebase:deploy": "firebase deploy --only hosting",
     "firebase:serve": "firebase serve --only hosting --host 0.0.0.0",
@@ -70,6 +73,8 @@
     "react-zoom-pan-pinch": "^3.7.0"
   },
   "devDependencies": {
+    "@babel/parser": "^7.28.0",
+    "@babel/traverse": "^7.28.0",
     "@eslint/eslintrc": "^3.3.1",
     "@hisma/server-puppeteer": "^0.6.5",
     "@modelcontextprotocol/sdk": "^1.16.0",

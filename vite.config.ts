@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import circularDependency from 'vite-plugin-circular-dependency';
+import { tdzDetectionPlugin } from './vite-plugins/tdz-detection.js';
 
 export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
@@ -38,6 +39,11 @@ export default defineConfig(({ mode, command }) => {
           warningOnly: isDevelopment,
           // Include import statements in analysis
           include: [/\.[jt]sx?$/],
+        }),
+        // Custom TDZ and runtime error detection
+        tdzDetectionPlugin({
+          failOnError: false, // Always warn, don't fail build
+          warningOnly: true,
         })
       ],
       root: 'src/client',

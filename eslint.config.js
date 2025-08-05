@@ -72,6 +72,17 @@ export default [
         ignoreExternal: true,
       }],
       
+      // TDZ and variable usage detection - CRITICAL for runtime errors
+      'no-use-before-define': ['error', {
+        functions: false, // Function hoisting is safe
+        classes: true,    // Class TDZ errors
+        variables: true,  // Variable TDZ errors
+        allowNamedExports: false,
+      }],
+      'no-undef': 'error', // Undefined variable usage
+      'no-unused-vars': 'off', // Handled by TypeScript rule
+      'no-redeclare': 'error', // Variable redeclaration issues
+      
       // Additional import rules for code quality
       'import/no-self-import': 'error',
       'import/no-useless-path-segments': 'error',
@@ -118,15 +129,46 @@ export default [
       'react/no-unknown-property': 'warn',
       'react/self-closing-comp': 'warn',
       
-      // React Hooks rules
+      // React Hooks rules - ENHANCED for error detection
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': ['error', {
+        additionalHooks: '(useIsomorphicLayoutEffect|useAsyncEffect)'
+      }],
+      
+      // Enhanced React error detection
+      'react/no-access-state-in-setstate': 'error',
+      'react/no-did-mount-set-state': 'error',
+      'react/no-did-update-set-state': 'error',
+      'react/no-will-update-set-state': 'error',
+      'react/no-redundant-should-component-update': 'error',
+      'react/no-unused-state': 'warn',
+      'react/no-array-index-key': 'warn',
+      
+      // Runtime safety rules - CRITICAL for reference errors
+      'no-implicit-globals': 'error',
+      'no-implied-eval': 'error',
+      'no-unsafe-optional-chaining': 'error',
+      'no-unsafe-negation': 'error',
+      'no-unreachable': 'error',
+      'no-unreachable-loop': 'error',
+      'no-unused-private-class-members': 'warn',
+      'no-useless-escape': 'warn',
+      'accessor-pairs': 'error',
+      'array-callback-return': ['error', { allowImplicit: true }],
+      'no-constructor-return': 'error',
+      'no-promise-executor-return': 'error',
+      'no-self-compare': 'error',
+      'no-unmodified-loop-condition': 'error',
+      'no-unused-expressions': ['warn', {
+        allowShortCircuit: true,
+        allowTernary: true,
+        allowTaggedTemplates: true,
+      }],
       
       // General code quality rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-duplicate-imports': 'error',
-      'no-unused-expressions': 'warn',
       'prefer-const': 'warn',
       'no-var': 'error',
       'eqeqeq': ['error', 'always'],

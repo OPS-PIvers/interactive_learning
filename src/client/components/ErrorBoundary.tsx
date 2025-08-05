@@ -11,6 +11,8 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
+  errorInfo?: React.ErrorInfo;
+  errorType?: 'tdz' | 'reference' | 'hook' | 'runtime' | 'unknown';
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -20,16 +22,81 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    // Classify error type for better reporting
+    const errorType = ErrorBoundary.classifyError(error);
+    return { hasError: true, error, errorType };
+  }
+
+  static classifyError(error: Error): 'tdz' | 'reference' | 'hook' | 'runtime' | 'unknown' {
+    const message = error.message.toLowerCase();
+    const stack = error.stack?.toLowerCase() || '';
+    
+    // Temporal Dead Zone errors
+    if (message.includes('cannot access') && message.includes('before initialization')) {
+      return 'tdz';
+    }
+    
+    // Reference errors (undefined variables, null property access)
+    if (error.name === 'ReferenceError' || 
+        message.includes('is not defined') ||
+        message.includes('cannot read property') ||
+        message.includes('cannot read properties of null') ||
+        message.includes('cannot read properties of undefined')) {
+      return 'reference';
+    }
+    
+    // React Hook errors
+    if (message.includes('rules of hooks') ||
+        message.includes('hook') && (message.includes('conditional') || message.includes('loop'))) {
+      return 'hook';
+    }
+    
+    // General runtime errors
+    if (error.name === 'TypeError' || error.name === 'RangeError' || error.name === 'SyntaxError') {
+      return 'runtime';
+    }
+    
+    return 'unknown';
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    const errorType = this.state.errorType || 'unknown';
+    console.error(`ErrorBoundary caught a ${errorType} error:`, error, errorInfo);
+    
+    // Enhanced error reporting with classification
+    this.reportError(error, errorInfo, errorType);
+    
+    // Store error info for better debugging
+    this.setState({ errorInfo });
     
     // Call the optional onError callback
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
+  }
+
+  private reportError(error: Error, errorInfo: React.ErrorInfo, errorType: string) {
+    // In production, this could send to error tracking service
+    const errorReport = {
+      type: errorType,
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+    };
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.group(`🔴 ${errorType.toUpperCase()} Error Report`);
+      console.error('Error:', error);
+      console.error('Component Stack:', errorInfo.componentStack);
+      console.error('Full Report:', errorReport);
+      console.groupEnd();
+    }
+    
+    // TODO: In production, send to error tracking service
+    // e.g., Sentry, LogRocket, or custom analytics
   }
 
   render() {

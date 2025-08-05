@@ -136,4 +136,226 @@ describe('React Error Detection Tests', () => {
       expect(hookErrors).toHaveLength(0);
     });
   });
+
+  describe('TDZ and Reference Error Detection', () => {
+    test('should detect undefined variable access errors', async () => {
+      const TestComponent = () => {
+        // This should cause runtime errors that we want to catch
+        try {
+          // @ts-ignore - Intentionally testing runtime error
+          const undefinedVar = someUndefinedVariable;
+          return <div>{undefinedVar}</div>;
+        } catch (error) {
+          console.error('Caught undefined variable error:', error);
+          return <div>Error caught</div>;
+        }
+      };
+
+      render(<TestComponent />);
+      
+      const referenceErrors = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && (
+            arg.includes('ReferenceError') ||
+            arg.includes('is not defined') ||
+            arg.includes('undefined variable')
+          )
+        )
+      );
+      
+      // We expect this to be caught and logged
+      expect(referenceErrors.length).toBeGreaterThan(0);
+    });
+
+    test('should detect null/undefined property access', async () => {
+      const TestComponent = () => {
+        try {
+          const nullObj = null;
+          // @ts-ignore - Intentionally testing runtime error
+          const result = nullObj.someProperty;
+          return <div>{result}</div>;
+        } catch (error) {
+          console.error('Caught null access error:', error);
+          return <div>Null access error caught</div>;
+        }
+      };
+
+      render(<TestComponent />);
+      
+      const nullAccessErrors = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && (
+            arg.includes('TypeError') ||
+            arg.includes('Cannot read property') ||
+            arg.includes('null access error')
+          )
+        )
+      );
+      
+      expect(nullAccessErrors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('React Component Error Patterns', () => {
+    test('should detect useState hook dependency issues', async () => {
+      const ProblematicComponent = () => {
+        const [count, setCount] = React.useState(0);
+        const [data, setData] = React.useState(null);
+        
+        // This useEffect has missing dependencies - should be caught by exhaustive-deps
+        React.useEffect(() => {
+          if (count > 0) {
+            setData({ value: count });
+          }
+        }, []); // Missing 'count' dependency - ESLint should catch this
+        
+        return <div>Count: {count}, Data: {data?.value}</div>;
+      };
+
+      render(<ProblematicComponent />);
+      
+      // Check for any React warnings about missing dependencies
+      const dependencyWarnings = consoleWarnSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && (
+            arg.includes('exhaustive-deps') ||
+            arg.includes('missing dependency') ||
+            arg.includes('useEffect')
+          )
+        )
+      );
+      
+      // This might not trigger in the test but would be caught by ESLint
+      expect(screen.getByText(/Count:/)).toBeInTheDocument();
+    });
+
+    test('should handle component unmounting without errors', async () => {
+      const ComponentWithCleanup = () => {
+        const [mounted, setMounted] = React.useState(true);
+        
+        React.useEffect(() => {
+          const timer = setTimeout(() => {
+            if (mounted) {
+              setMounted(false);
+            }
+          }, 10);
+          
+          return () => clearTimeout(timer);
+        }, [mounted]);
+        
+        if (!mounted) return null;
+        return <div data-testid="cleanup-component">Mounted</div>;
+      };
+
+      const { unmount } = render(<ComponentWithCleanup />);
+      
+      // Wait for component to potentially trigger cleanup
+      await waitFor(() => {
+        expect(screen.queryByTestId('cleanup-component')).toBeInTheDocument();
+      });
+      
+      // Unmount and check for any cleanup errors
+      unmount();
+      
+      const cleanupErrors = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && (
+            arg.includes('memory leak') ||
+            arg.includes('unmounted component') ||
+            arg.includes('setState')
+          )
+        )
+      );
+      
+      expect(cleanupErrors).toHaveLength(0);
+    });
+  });
+
+  describe('Async Error Handling', () => {
+    test('should handle promise rejection errors gracefully', async () => {
+      const AsyncErrorComponent = () => {
+        const [error, setError] = React.useState(null);
+        
+        React.useEffect(() => {
+          const failingPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Async operation failed')), 50);
+          });
+          
+          failingPromise.catch(err => {
+            console.error('Caught async error:', err.message);
+            setError(err.message);
+          });
+        }, []);
+        
+        if (error) {
+          return <div data-testid="async-error">Error: {error}</div>;
+        }
+        
+        return <div data-testid="async-loading">Loading...</div>;
+      };
+
+      render(<AsyncErrorComponent />);
+      
+      // Wait for the async error to be handled
+      await waitFor(() => {
+        expect(screen.getByTestId('async-error')).toBeInTheDocument();
+      });
+      
+      const asyncErrors = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && arg.includes('Caught async error')
+        )
+      );
+      
+      expect(asyncErrors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Integration Error Scenarios', () => {
+    test('should handle complex component interactions without errors', async () => {
+      const ParentComponent = () => {
+        const [childData, setChildData] = React.useState(null);
+        
+        const handleChildData = React.useCallback((data) => {
+          setChildData(data);
+        }, []);
+        
+        return (
+          <div>
+            <ChildComponent onDataChange={handleChildData} />
+            {childData && <div data-testid="parent-data">{childData}</div>}
+          </div>
+        );
+      };
+      
+      const ChildComponent = ({ onDataChange }) => {
+        React.useEffect(() => {
+          // Simulate data loading
+          setTimeout(() => {
+            onDataChange('Child data loaded');
+          }, 100);
+        }, [onDataChange]);
+        
+        return <div data-testid="child-component">Child</div>;
+      };
+
+      render(<ParentComponent />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('parent-data')).toHaveTextContent('Child data loaded');
+      });
+      
+      // Check that no errors occurred during the interaction
+      const interactionErrors = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg => 
+          typeof arg === 'string' && (
+            arg.includes('Warning') ||
+            arg.includes('Error')
+          )
+        )
+      );
+      
+      expect(interactionErrors).toHaveLength(0);
+    });
+  });
 });

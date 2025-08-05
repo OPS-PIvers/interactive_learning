@@ -17,12 +17,26 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
 
-    /* Linting */
+    /* Linting - ENHANCED for error detection */
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": false,
+    
+    /* Additional strict checks for TDZ and runtime safety */
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
 
     /* CSS imports support */
     "types": ["vite/client", "@types/react", "@types/react-dom", "jest"],
