@@ -2,7 +2,7 @@
 export * from './types';
 export * from './slideTypes';
 export * from './enums';
-export * from './InteractionPresets';
+// Removed InteractionPresets export to break circular dependency
 
 // Default exports
 export { DataMigration } from './DataMigration';
