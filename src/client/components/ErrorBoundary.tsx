@@ -79,12 +79,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // In production, this could send to error tracking service
     const errorReport = {
       type: errorType,
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
+      message: error?.message || 'Unknown error',
+      stack: error?.stack || 'No stack trace available',
+      componentStack: errorInfo?.componentStack || 'No component stack available',
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: navigator?.userAgent || 'Unknown user agent',
+      url: window?.location?.href || 'Unknown URL',
     };
     
     if (process.env['NODE_ENV'] === 'development') {
@@ -99,7 +99,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // e.g., Sentry, LogRocket, or custom analytics
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
@@ -126,8 +126,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               <details className="mt-4 p-3 bg-red-800/30 rounded text-xs">
                 <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
                 <pre className="mt-2 text-red-100 whitespace-pre-wrap">
-                  {this.state.error.message}
-                  {this.state.error.stack}
+                  {this.state.error?.message || 'No error message'}
+                  {this.state.error?.stack || 'No stack trace'}
                 </pre>
               </details>
             )}
@@ -157,8 +157,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <details className="mt-4 p-4 bg-red-100 rounded text-sm">
               <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
               <pre className="mt-2 text-red-800 whitespace-pre-wrap">
-                {this.state.error.message}
-                {this.state.error.stack}
+                {this.state.error?.message || 'No error message'}
+                {this.state.error?.stack || 'No stack trace'}
               </pre>
             </details>
           )}

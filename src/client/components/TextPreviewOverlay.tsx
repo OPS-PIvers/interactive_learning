@@ -152,6 +152,7 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   if (!containerBounds) return null;

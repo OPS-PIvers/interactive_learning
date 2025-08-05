@@ -563,6 +563,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [state.ui.showHelpHint, actions]);
   
   // Add editor body classes

@@ -11,16 +11,16 @@
  */
 export const getActualViewportHeight = (): number => {
   // Use Visual Viewport API when available (modern browsers)
-  if (window.visualViewport) {
-    const viewportHeight = window.visualViewport.height;
-    if (viewportHeight > 0) {
+  if (window?.visualViewport) {
+    const viewportHeight = window.visualViewport?.height;
+    if (viewportHeight && viewportHeight > 0) {
       return viewportHeight;
     }
   }
   
   // Fallback to window.innerHeight with validation
-  const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-  return Math.max(windowHeight, window.screen.height || 600);
+  const windowHeight = window?.innerHeight || document?.documentElement?.clientHeight || 0;
+  return Math.max(windowHeight, window?.screen?.height || 600);
 };
 
 /**
@@ -28,8 +28,8 @@ export const getActualViewportHeight = (): number => {
  * Works across all devices that have virtual keyboards
  */
 export const getKeyboardHeight = (): number => {
-  const windowHeight = window.innerHeight;
-  const visualViewportHeight = window.visualViewport?.height || windowHeight;
+  const windowHeight = window?.innerHeight || 0;
+  const visualViewportHeight = window?.visualViewport?.height || windowHeight;
   
   return Math.max(0, windowHeight - visualViewportHeight);
 };
@@ -50,7 +50,7 @@ export const setDynamicViewportProperties = (): (() => void) => {
   const updateViewport = () => {
     try {
       const actualHeight = getActualViewportHeight();
-      const actualWidth = window.innerWidth;
+      const actualWidth = window?.innerWidth || 0;
       
       if (actualHeight > 0 && actualWidth > 0) {
         // Set CSS custom properties for responsive use
@@ -65,8 +65,8 @@ export const setDynamicViewportProperties = (): (() => void) => {
     } catch (error) {
       console.warn('Failed to update viewport properties:', error);
       // Fallback to basic calculation
-      const vh = window.innerHeight * 0.01;
-      const vw = window.innerWidth * 0.01;
+      const vh = (window?.innerHeight || 0) * 0.01;
+      const vw = (window?.innerWidth || 0) * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
       document.documentElement.style.setProperty('--vw', `${vw}px`);
     }

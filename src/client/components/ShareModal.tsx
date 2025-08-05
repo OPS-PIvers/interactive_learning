@@ -51,6 +51,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         previouslyFocusedElement.current?.focus();
       };
     }
+    return undefined; // Explicit return for else case
   }, [isOpen]);
 
   // Handle keyboard events
@@ -67,6 +68,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isOpen, onClose]);
 
   const handlePublishToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +188,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
       const timer = setTimeout(() => setCopySuccess(''), 2000);
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [copySuccess]);
 
   if (!isOpen) return null;

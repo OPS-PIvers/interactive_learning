@@ -82,6 +82,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [isVisible, autoHideDelay, onClose]);
 
   // Handle escape key
@@ -96,6 +97,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
+    return undefined; // Explicit return for else case
   }, [isVisible, onClose]);
 
   // Handle click outside (mobile)
@@ -114,6 +116,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
         document.removeEventListener('click', handleClickOutside);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isVisible, isMobile, onClose]);
 
   if (!isVisible && !isAnimating) return null;

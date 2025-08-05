@@ -271,6 +271,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [viewerMode, currentStepIndex, currentStep, slideDeck, handleNextStep, uniqueSortedSteps.length]);
   
   
@@ -304,6 +305,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       document.addEventListener('keydown', handleKeyPress);
       return () => document.removeEventListener('keydown', handleKeyPress);
     }
+    return undefined; // Explicit return for else case
   }, [handlePrevStep, handleNextStep, viewerMode, onClose, slideDeck.settings.keyboardShortcuts]);
   
   

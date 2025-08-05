@@ -356,11 +356,11 @@ describe('React Hooks Compliance Tests', () => {
           return { hasError: true };
         }
 
-        componentDidCatch(error: Error) {
+        override componentDidCatch(error: Error) {
           expect(error.message).toBe('Intentional hook error');
         }
 
-        render() {
+        override render() {
           if (this.state.hasError) {
             return <div data-testid="error-boundary">Error caught</div>;
           }

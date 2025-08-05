@@ -69,6 +69,7 @@ const SpotlightPreview: React.FC<SpotlightPreviewProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const clipPath = shape === 'circle' 

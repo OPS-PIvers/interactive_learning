@@ -119,6 +119,7 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   if (!containerBounds) return null;

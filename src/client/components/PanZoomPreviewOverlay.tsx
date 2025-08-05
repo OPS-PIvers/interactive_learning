@@ -146,6 +146,7 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+    return undefined; // Explicit return for else case
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   // Add CSS for the slider styling

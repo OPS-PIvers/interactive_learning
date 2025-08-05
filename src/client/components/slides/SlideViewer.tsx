@@ -85,12 +85,12 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     // Ensure all elements have proper interactions
     const slideWithInteractions = {
       ...slide,
-      elements: ensureSlideElementInteractions(slide.elements)
+      elements: ensureSlideElementInteractions(slide?.elements || [])
     };
     
     console.log('[SlideViewer] Current slide with interactions:', slideWithInteractions);
     return slideWithInteractions;
-  }, [slideDeck.slides, viewerState.currentSlideId]);
+  }, [slideDeck?.slides, viewerState?.currentSlideId]);
 
   // Navigation functions
   const navigateToSlide = useCallback((slideId: string) => {
@@ -234,17 +234,17 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Touch gesture handlers for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!slideDeck.settings.touchGestures) return;
+    if (!slideDeck?.settings?.touchGestures) return;
     
-    const touch = e.touches[0];
+    const touch = e?.touches?.[0];
     const now = Date.now();
     
-    if (e.touches.length === 1) {
+    if (e?.touches?.length === 1) {
       // Single touch - prepare for swipe or pan
       setTouchState(prev => ({
         ...prev,
-        startX: touch.clientX,
-        startY: touch.clientY,
+        startX: touch?.clientX || 0,
+        startY: touch?.clientY || 0,
         startTime: now,
         isDragging: false
       }));
@@ -330,10 +330,10 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Keyboard navigation
   useEffect(() => {
-    if (!slideDeck.settings.keyboardShortcuts) return;
+    if (!slideDeck?.settings?.keyboardShortcuts) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
+      switch (event?.key) {
         case 'ArrowRight':
         case ' ':
           event.preventDefault();
@@ -409,7 +409,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: currentSlide.backgroundColor || '#0f172a', // slate-900
+    backgroundColor: currentSlide?.backgroundColor || '#0f172a', // slate-900
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'

@@ -61,6 +61,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [effect.duration, onComplete]);
 
   // Render spotlight effect

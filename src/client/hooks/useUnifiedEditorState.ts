@@ -403,6 +403,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [ui.showHelpHint, dismissHelpHint]);
   
   return {

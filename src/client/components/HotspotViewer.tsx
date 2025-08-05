@@ -351,6 +351,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       }, hotspot.pulseDuration * 1000);
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for else case
   }, [hotspot.pulseAnimation, hotspot.pulseType, hotspot.pulseDuration]);
 
   const shouldPulse = isContinuouslyPulsing || (hotspot.pulseAnimation && hotspot.pulseType === 'loop') || isTimedPulseActive;

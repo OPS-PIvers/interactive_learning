@@ -50,7 +50,7 @@ class HookErrorBoundary extends Component<Props, State> {
     }
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return this.props.fallback || (
         <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">

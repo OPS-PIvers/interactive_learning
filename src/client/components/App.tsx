@@ -88,7 +88,7 @@ const MainApp: React.FC = () => {
       setProjects(fetchedProjects);
     } catch (err: any) {
       console.error("Failed to load projects:", err);
-      setError(`Could not load projects: ${err.message || 'Please try again later.'}`);
+      setError(`Could not load projects: ${err?.message || 'Please try again later.'}`);
       setProjects([]); 
     } finally {
       setIsLoading(false);
@@ -165,7 +165,7 @@ const MainApp: React.FC = () => {
       setIsModalOpen(true);
     } catch (err: any) {
       console.error(`Failed to load project details for ${project.id}:`, err);
-      setError(`Could not load project details: ${err.message || 'Please try again.'}`);
+      setError(`Could not load project details: ${err?.message || 'Please try again.'}`);
       setSelectedProject(null);
     } finally {
       setIsProjectDetailsLoading(false);
@@ -223,7 +223,7 @@ const MainApp: React.FC = () => {
       setIsModalOpen(true);
     } catch (err: any) {
       console.error("Failed to create project:", err);
-      setError(`Failed to create new project: ${err.message || ''}`);
+      setError(`Failed to create new project: ${err?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -293,7 +293,7 @@ const MainApp: React.FC = () => {
       console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
-      setError(`Failed to save project data: ${err.message || ''}`);
+      setError(`Failed to save project data: ${err?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -326,7 +326,7 @@ const MainApp: React.FC = () => {
       await handleSaveProjectData(selectedProject.id, updatedData);
     } catch (err: any) {
       console.error("Failed to upload image:", err);
-      setError(`Failed to upload image: ${err.message || ''}`);
+      setError(`Failed to upload image: ${err?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -351,7 +351,7 @@ const MainApp: React.FC = () => {
       console.log('Project deletion initiated via proxy:', projectId);
     } catch (err: any) {
       console.error("Failed to delete project:", err);
-      setError(`Failed to delete project: ${err.message || ''}`);
+      setError(`Failed to delete project: ${err?.message || ''}`);
     }
     finally {
       setIsLoading(false);

@@ -66,6 +66,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         document.body.style.overflow = 'unset';
       };
     }
+    return undefined; // Explicit return for else case
   }, [isOpen, onClose]);
 
   // Focus management
