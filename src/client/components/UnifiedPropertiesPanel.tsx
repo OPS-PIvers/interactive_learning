@@ -118,6 +118,12 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const [interactionsOpen, setInteractionsOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
+  const [isEditingParameters, setIsEditingParameters] = useState(false);
+
+  // Reset parameter editing when interaction selection changes
+  useEffect(() => {
+    setIsEditingParameters(false);
+  }, [selectedInteractionId]);
 
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
     onElementUpdate(selectedElement.id, {
@@ -138,17 +144,10 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     switch (interactionType) {
       case InteractionType.MODAL:
         return {
-          type: 'show_text',
+          type: 'modal',
           parameters: {
-            text: 'Modal content',
-            position: { x: 100, y: 100, width: 300, height: 200 },
-            style: {
-              fontSize: 16,
-              color: '#ffffff',
-              backgroundColor: '#1f2937'
-            },
-            displayMode: 'modal',
-            autoClose: false
+            title: 'Modal Title',
+            message: 'Modal content'
           }
         };
       case InteractionType.TRANSITION:
@@ -259,6 +258,22 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
       setSelectedInteractionId(null);
     }
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate, selectedInteractionId]);
+
+  // Handler for updating interaction parameters via InteractionEditor
+  const handleInteractionParameterUpdate = useCallback((interactionId: string, updates: Partial<ElementInteraction>) => {
+    const updatedInteractions = [...(selectedElement.interactions || [])];
+    const interactionIndex = updatedInteractions.findIndex(i => i.id === interactionId);
+    if (interactionIndex >= 0) {
+      const currentInteraction = updatedInteractions[interactionIndex];
+      updatedInteractions[interactionIndex] = {
+        id: currentInteraction.id,
+        trigger: updates.trigger ?? currentInteraction.trigger,
+        effect: updates.effect ?? currentInteraction.effect,
+        conditions: updates.conditions ?? currentInteraction.conditions
+      };
+      onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+    }
+  }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 
   const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
     const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
@@ -502,6 +517,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     onDone={() => setEditingInteraction(null)}
                   />
                 )}
+                {/* General InteractionEditor for other interaction types */}
+                {!['show_text', 'play_audio', 'quiz'].includes(editingInteraction.effect.type) && (
+                  <InteractionEditor
+                    interaction={editingInteraction}
+                    onInteractionUpdate={handleInteractionParameterUpdate}
+                    isCompact={true}
+                  />
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -513,6 +536,48 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                   onInteractionRemove={handleInteractionRemove}
                   isCompact={true}
                 />
+                
+                {/* Show parameter editing interface when an interaction is selected and user wants to edit parameters */}
+                {selectedInteractionId && isEditingParameters && (() => {
+                  const selectedInteraction = selectedElement.interactions?.find(i => i.id === selectedInteractionId);
+                  if (!selectedInteraction) return null;
+                  
+                  return (
+                    <div className="border-t border-slate-600 pt-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-medium text-white">Edit Parameters</h3>
+                        <button
+                          onClick={() => setIsEditingParameters(false)}
+                          className="text-slate-400 hover:text-white"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <InteractionEditor
+                        interaction={selectedInteraction}
+                        onInteractionUpdate={handleInteractionParameterUpdate}
+                        isCompact={true}
+                      />
+                    </div>
+                  );
+                })()}
+                
+                {/* Show edit button when an interaction is selected but not yet editing parameters */}
+                {selectedInteractionId && !isEditingParameters && (
+                  <div className="border-t border-slate-600 pt-3">
+                    <button
+                      onClick={() => setIsEditingParameters(true)}
+                      className="w-full p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit Parameters
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </CollapsibleSection>
