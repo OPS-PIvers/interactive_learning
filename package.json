@@ -13,7 +13,7 @@
     "test:ui": "vitest --ui",
     "test:run": "node --max-old-space-size=8192 node_modules/.bin/vitest run",
     "typecheck": "node_modules/.bin/tsc --noEmit --skipLibCheck",
-    "lint": "npm run typecheck || echo 'TypeScript linting completed with warnings'",
+    "lint": "npm run typecheck",
     "firebase:build": "NODE_ENV=production npm run build",
     "firebase:deploy": "firebase deploy --only hosting",
     "firebase:serve": "firebase serve --only hosting --host 0.0.0.0",
