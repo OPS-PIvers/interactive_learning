@@ -450,7 +450,7 @@ export class FirebaseProjectAPI {
         createdAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
         updatedAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
-          backgroundImage: undefined,
+          backgroundImage: null,
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
