@@ -62,7 +62,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     try {
       // If we have a slide deck passed in, use it directly (for published slide projects)
       if (slideDeck) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env['NODE_ENV'] === 'development') {
           console.log('📄 Using existing slide deck:', {
             projectName,
             projectType,
@@ -86,7 +86,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         }
       );
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env['NODE_ENV'] === 'development') {
         console.log('🔄 Hotspot → Slide Migration:', {
           projectName,
           projectType,
@@ -140,12 +140,13 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
 
     // Create updated interactive data that preserves the original structure 
     // but includes any legacy compatibility needs
+    const newBackgroundImage = currentSlideDeck.slides[0]?.backgroundMedia?.type === 'image'
+        ? currentSlideDeck.slides[0].backgroundMedia.url
+        : initialData.backgroundImage;
     const updatedData: InteractiveModuleState = {
       ...initialData,
       // Preserve any legacy properties while ensuring background compatibility
-      backgroundImage: currentSlideDeck.slides[0]?.backgroundMedia?.type === 'image' 
-        ? currentSlideDeck.slides[0].backgroundMedia.url 
-        : initialData.backgroundImage
+      ...(newBackgroundImage && { backgroundImage: newBackgroundImage })
     };
 
     // CRITICAL FIX: Create a proper project object with slide deck data
@@ -183,7 +184,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     return (
       <ErrorScreen 
         error={initError ? new Error(initError) : new Error('Failed to load slide deck')} 
-        onReload={onReloadRequest} 
+        {...(onReloadRequest && { onReload: onReloadRequest })}
       />
     );
   }
@@ -195,7 +196,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         <UnifiedSlideEditor
           slideDeck={currentSlideDeck}
           projectName={projectName}
-          projectId={projectId}
+          {...(projectId && { projectId })}
           onSlideDeckChange={handleSlideDeckChange}
           onSave={handleSave}
           onImageUpload={onImageUpload}

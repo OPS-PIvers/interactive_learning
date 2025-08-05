@@ -31,7 +31,7 @@ export function convertTimelineEventToSlideEffect(
   // Find target element if not provided
   let element = targetElement;
   if (!element && timelineEvent.targetId) {
-    element = currentSlide.elements.find(el => el.id === timelineEvent.targetId);
+    element = currentSlide.elements?.find(el => el.id === timelineEvent.targetId);
   }
   
   console.log('[TimelineConverter] Converting timeline event:', timelineEvent);
@@ -173,7 +173,7 @@ function createShowTextEffect(
   element?: SlideElement,
   deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
 ): SlideEffect {
-  const text = timelineEvent.message || element?.content.title || element?.content.description || 'Message';
+  const text = timelineEvent.message || element?.content?.title || element?.content?.description || 'Message';
   
   let position = {
     x: 200,
@@ -267,19 +267,19 @@ export function createSlideEffectFromElement(
   element: SlideElement, 
   deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
 ): SlideEffect | null {
-  const clickInteraction = element.interactions.find(
+  const clickInteraction = element.interactions?.find(
     interaction => interaction.trigger === 'click'
   );
   
   if (clickInteraction) {
-    return clickInteraction.effect;
+    return clickInteraction.effect ?? null;
   }
   
   // Create default spotlight effect
   return createSpotlightEffect({
     id: generateId(),
     step: 1,
-    name: element.content.title || 'Element Effect',
+    name: element.content?.title || 'Element Effect',
     type: 'SPOTLIGHT'
   } as TimelineEventData, element, deviceType);
 }

@@ -470,7 +470,16 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                      id={`youtubeStart-${event.id}`}
                      type="number"
                      value={event.youtubeStartTime === undefined ? '' : event.youtubeStartTime}
-                     onChange={(e) => onUpdate({ ...event, youtubeStartTime: e.target.value ? parseInt(e.target.value) : undefined })}
+                     onChange={(e) => {
+                       const newTime = e.target.value ? parseInt(e.target.value) : undefined;
+                       const updatedEvent = { ...event };
+                       if (newTime === undefined) {
+                         delete updatedEvent.youtubeStartTime;
+                       } else {
+                         updatedEvent.youtubeStartTime = newTime;
+                       }
+                       onUpdate(updatedEvent);
+                     }}
                      className={inputBaseClasses}
                      placeholder="Start (s)"
                    />
@@ -481,7 +490,16 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                      id={`youtubeEnd-${event.id}`}
                      type="number"
                      value={event.youtubeEndTime === undefined ? '' : event.youtubeEndTime}
-                     onChange={(e) => onUpdate({ ...event, youtubeEndTime: e.target.value ? parseInt(e.target.value) : undefined })}
+                     onChange={(e) => {
+                        const newTime = e.target.value ? parseInt(e.target.value) : undefined;
+                        const updatedEvent = { ...event };
+                        if (newTime === undefined) {
+                          delete updatedEvent.youtubeEndTime;
+                        } else {
+                          updatedEvent.youtubeEndTime = newTime;
+                        }
+                        onUpdate(updatedEvent);
+                     }}
                      className={inputBaseClasses}
                      placeholder="End (s)"
                    />
@@ -554,13 +572,14 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                     onClick={() => {
                       const newOptions = [...(event.quizOptions || [])];
                       newOptions.splice(idx, 1);
+                      const updatedEvent = { ...event, quizOptions: newOptions };
                       let newCorrectAnswer = event.quizCorrectAnswer;
                       if (newCorrectAnswer === idx) {
-                        newCorrectAnswer = undefined;
+                        delete updatedEvent.quizCorrectAnswer;
                       } else if (newCorrectAnswer && newCorrectAnswer > idx) {
-                        newCorrectAnswer -= 1;
+                        updatedEvent.quizCorrectAnswer = newCorrectAnswer - 1;
                       }
-                      onUpdate({ ...event, quizOptions: newOptions, quizCorrectAnswer: newCorrectAnswer });
+                      onUpdate(updatedEvent);
                     }}
                     className="p-1.5 text-red-500 hover:text-red-400 dark:text-red-600 dark:hover:text-red-500 shrink-0 rounded-md hover:bg-slate-700 dark:hover:bg-slate-800"
                     aria-label="Delete option"
@@ -585,7 +604,16 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               <select
                 id={`quizTarget-${event.id}`}
                 value={event.targetHotspotId || ''}
-                onChange={(e) => onUpdate({ ...event, targetHotspotId: e.target.value || undefined })}
+                onChange={(e) => {
+                  const newTargetId = e.target.value || undefined;
+                  const updatedEvent = { ...event };
+                  if (newTargetId === undefined) {
+                    delete updatedEvent.targetHotspotId;
+                  } else {
+                    updatedEvent.targetHotspotId = newTargetId;
+                  }
+                  onUpdate(updatedEvent);
+                }}
                 className={inputBaseClasses}
               >
                 <option value="">None</option>

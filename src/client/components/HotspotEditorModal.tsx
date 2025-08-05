@@ -176,7 +176,6 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       
       // === UNIFIED VIDEO PROPERTIES ===
       ...(type === InteractionType.PLAY_VIDEO && {
-        videoSource: undefined, // User will select
         videoDisplayMode: 'inline',
         videoShowControls: true,
         autoplay: false,
@@ -523,9 +522,16 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     value={localHotspot.pulseDuration ?? ''}
                     onChange={e => {
                       const newDuration = parseFloat(e.target.value);
-                      setLocalHotspot(prev => 
-                        prev ? { ...prev, pulseDuration: isNaN(newDuration) ? undefined : newDuration } : null
-                      );
+                      setLocalHotspot(prev => {
+                        if (!prev) return null;
+                        const updatedHotspot = { ...prev };
+                        if (isNaN(newDuration)) {
+                          delete updatedHotspot.pulseDuration;
+                        } else {
+                          updatedHotspot.pulseDuration = newDuration;
+                        }
+                        return updatedHotspot;
+                      });
                     }}
                     className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
                     min="0"

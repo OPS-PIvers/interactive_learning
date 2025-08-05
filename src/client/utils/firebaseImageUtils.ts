@@ -61,12 +61,18 @@ export function validateFirebaseUrl(url: string): {
   cleanUrl?: string;
   issues: string[];
 } {
-  const result = {
+  const result: {
+    isValid: boolean;
+    isFirebase: boolean;
+    hasToken: boolean;
+    hasAlt: boolean;
+    cleanUrl?: string;
+    issues: string[];
+  } = {
     isValid: false,
     isFirebase: false,
     hasToken: false,
     hasAlt: false,
-    cleanUrl: undefined as string | undefined,
     issues: [] as string[]
   };
 

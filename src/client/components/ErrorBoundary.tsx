@@ -59,7 +59,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     return 'unknown';
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const errorType = this.state.errorType || 'unknown';
     console.error(`ErrorBoundary caught a ${errorType} error:`, error, errorInfo);
     
@@ -87,7 +87,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       url: window.location.href,
     };
     
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.group(`🔴 ${errorType.toUpperCase()} Error Report`);
       console.error('Error:', error);
       console.error('Component Stack:', errorInfo.componentStack);
@@ -122,7 +122,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             >
               Try Again
             </button>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {process.env['NODE_ENV'] === 'development' && this.state.error && (
               <details className="mt-4 p-3 bg-red-800/30 rounded text-xs">
                 <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
                 <pre className="mt-2 text-red-100 whitespace-pre-wrap">
@@ -153,7 +153,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           >
             Try Again
           </button>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {process.env['NODE_ENV'] === 'development' && this.state.error && (
             <details className="mt-4 p-4 bg-red-100 rounded text-sm">
               <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
               <pre className="mt-2 text-red-800 whitespace-pre-wrap">

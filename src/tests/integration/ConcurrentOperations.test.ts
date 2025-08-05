@@ -44,7 +44,7 @@ describe.skip('Concurrent Operations Integration Tests', () => {
       const snapshot = await getDocs(projectsRef);
       
       const deletePromises = snapshot.docs
-        .filter(doc => doc.data().title?.includes('CONCURRENT_TEST'))
+        .filter(doc => doc.data()['title']?.includes('CONCURRENT_TEST'))
         .map(doc => deleteDoc(doc.ref));
       
       await Promise.all(deletePromises);

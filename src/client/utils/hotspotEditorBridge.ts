@@ -41,8 +41,8 @@ export function slideElementToHotspotData(
     displayHotspotInEvent: element.style?.displayInEvent || false,
     pulseAnimation: element.style?.pulseAnimation || false,
     pulseType: element.style?.pulseType || 'loop',
-    pulseDuration: element.style?.pulseDuration,
-    link: element.content?.link,
+    ...(element.style?.pulseDuration && { pulseDuration: element.style.pulseDuration }),
+    ...(element.content?.link && { link: element.content.link }),
   };
 
   return hotspotData;
@@ -83,15 +83,15 @@ export function hotspotDataToSlideElement(
     content: {
       title: hotspotData.title,
       description: hotspotData.description,
-      link: hotspotData.link,
+      ...(hotspotData.link && { link: hotspotData.link }),
     },
     style: {
-      backgroundColor: hotspotData.color,
+      ...(hotspotData.color && { backgroundColor: hotspotData.color }),
       size: (hotspotData.size === 'x-small' ? 'small' : hotspotData.size) as 'small' | 'medium' | 'large',
-      displayInEvent: hotspotData.displayHotspotInEvent,
-      pulseAnimation: hotspotData.pulseAnimation,
-      pulseType: hotspotData.pulseType,
-      pulseDuration: hotspotData.pulseDuration,
+      ...(hotspotData.displayHotspotInEvent && { displayInEvent: hotspotData.displayHotspotInEvent }),
+      ...(hotspotData.pulseAnimation && { pulseAnimation: hotspotData.pulseAnimation }),
+      ...(hotspotData.pulseType && { pulseType: hotspotData.pulseType }),
+      ...(hotspotData.pulseDuration && { pulseDuration: hotspotData.pulseDuration }),
     },
     interactions: existingElement?.interactions || [],
     isVisible: existingElement?.isVisible !== false,

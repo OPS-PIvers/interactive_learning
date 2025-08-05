@@ -2,10 +2,10 @@
 
 let debugEnabled: boolean;
 try {
-  debugEnabled = process.env.NODE_ENV === 'development' || 
+  debugEnabled = process.env['NODE_ENV'] === 'development' ||
     (typeof localStorage !== 'undefined' && localStorage.getItem('debug_enabled') === 'true');
 } catch {
-  debugEnabled = process.env.NODE_ENV === 'development';
+  debugEnabled = process.env['NODE_ENV'] === 'development';
 }
 
 export const debugLog = {

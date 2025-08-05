@@ -84,12 +84,15 @@ const createUploadError = (
   code: UploadError['code'],
   originalError?: Error
 ): UploadError => {
-  return { 
-    message, 
-    code, 
-    originalError, 
+  const error: UploadError = {
+    message,
+    code,
     timestamp: Date.now()
   };
+  if (originalError) {
+    error.originalError = originalError;
+  }
+  return error;
 };
 
 // Check network connectivity before upload
@@ -429,11 +432,14 @@ export async function handleEnhancedImageUpload(
     cleanup(); // Stop network monitoring
     onComplete?.(imageUrl!, thumbnailUrl);
     
-    return {
+    const result: UploadResult = {
       success: true,
       imageUrl: imageUrl!,
-      thumbnailUrl
     };
+    if (thumbnailUrl) {
+      result.thumbnailUrl = thumbnailUrl;
+    }
+    return result;
 
   } catch (error) {
     console.error('📱 Enhanced image upload failed:', error);

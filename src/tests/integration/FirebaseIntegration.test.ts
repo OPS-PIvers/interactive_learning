@@ -56,7 +56,7 @@ describe.skip('Firebase Integration Tests', () => {
       const snapshot = await getDocs(projectsRef);
       
       const deletePromises = snapshot.docs
-        .filter(doc => doc.data().title?.includes('TEST_PROJECT'))
+        .filter(doc => doc.data()['title']?.includes('TEST_PROJECT'))
         .map(doc => deleteDoc(doc.ref));
       
       await Promise.all(deletePromises);

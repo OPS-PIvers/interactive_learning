@@ -89,7 +89,6 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: undefined, // This should be converted to null by our fix
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true },
           hotspots: [],
@@ -118,7 +117,6 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: undefined, // This should be accepted
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true },
           hotspots: [],
@@ -180,7 +178,6 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: undefined, // Start with undefined
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true },
           hotspots: [],
@@ -343,7 +340,6 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: undefined, // Firestore rules expect: string | undefined
           imageFitMode: 'cover', // Firestore rules expect: string
           viewerModes: { explore: true, selfPaced: true, timed: true }, // Firestore rules expect: map
           hotspots: [], // Firestore rules expect: array

@@ -151,7 +151,7 @@ describe('Import/Export Integrity Tests', () => {
   describe('Development vs Production Imports', () => {
     test('all modules work in test environment', async () => {
       // Verify that modules work correctly in the test environment
-      expect(process.env.NODE_ENV).toBeDefined();
+      expect(process.env['NODE_ENV']).toBeDefined();
       
       const modules = await Promise.all([
         import('../../shared/slideTypes'),
@@ -167,12 +167,12 @@ describe('Import/Export Integrity Tests', () => {
 
     test('environment-specific imports work correctly', async () => {
       // Test that environment-specific code paths work
-      process.env.VITE_USE_FIREBASE_EMULATOR = 'true';
+      process.env['VITE_USE_FIREBASE_EMULATOR'] = 'true';
       const firebaseConfig = await import('../../lib/firebaseConfig');
       
       // In test environment, should have test configuration
       expect(firebaseConfig.firebaseManager).toBeDefined();
-      expect(process.env.VITE_USE_FIREBASE_EMULATOR).toBe('true');
+      expect(process.env['VITE_USE_FIREBASE_EMULATOR']).toBe('true');
     });
   });
 

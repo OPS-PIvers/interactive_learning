@@ -140,14 +140,15 @@ const MainApp: React.FC = () => {
           console.warn(`No details returned for project ${project.id}, using empty data`);
         }
         
+        const newBackgroundImage = details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage;
         const updatedProject = {
           ...project,
           interactiveData: {
             ...project.interactiveData,
             hotspots: details.hotspots || [],
             timelineEvents: details.timelineEvents || [],
-            backgroundImage: details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage,
-            imageFitMode: details.imageFitMode || project.interactiveData.imageFitMode,
+            ...(newBackgroundImage !== undefined && { backgroundImage: newBackgroundImage }),
+            ...(details.imageFitMode && { imageFitMode: details.imageFitMode }),
           }
         };
         
@@ -269,11 +270,12 @@ const MainApp: React.FC = () => {
       return;
     }
 
+    const newThumbnailUrl = thumbnailUrl || projectToSave.thumbnailUrl;
     const projectDataToSend: Project = {
       ...projectToSave,
       interactiveData: data,
-      thumbnailUrl: thumbnailUrl || projectToSave.thumbnailUrl, // Use new thumbnail or keep existing
-      slideDeck: slideDeck || projectToSave.slideDeck,
+      ...(newThumbnailUrl && { thumbnailUrl: newThumbnailUrl }),
+      ...(slideDeck && { slideDeck: slideDeck }),
     };
     
     setIsLoading(true);
@@ -363,8 +365,8 @@ const MainApp: React.FC = () => {
         ...selectedProject,
         interactiveData: {
           ...selectedProject.interactiveData,
-          hotspots: undefined,
-          timelineEvents: undefined,
+          hotspots: [],
+          timelineEvents: [],
         }
       };
       await loadProjectDetailsAndOpenEditor(projectToReload as Project);
@@ -505,7 +507,7 @@ const MainApp: React.FC = () => {
             onSave={handleSaveProjectData}
             onImageUpload={handleImageUpload}
             onReloadRequest={handleModuleReloadRequest}
-            isPublished={selectedProject.isPublished}
+            isPublished={selectedProject.isPublished ?? false}
           />
         </HookErrorBoundary>
       )}

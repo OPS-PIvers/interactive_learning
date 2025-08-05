@@ -42,24 +42,24 @@ export class DataMigration {
     
     const data = projectData as Record<string, unknown>;
     
-    if (!data.timelineEvents || !Array.isArray(data.timelineEvents)) {
+    if (!data['timelineEvents'] || !Array.isArray(data['timelineEvents'])) {
       throw new Error('Invalid project data: missing or invalid timelineEvents');
     }
     
     // Ensure we have a valid InteractiveModuleState structure
     const migratedData: InteractiveModuleState = {
-      hotspots: Array.isArray(data.hotspots) ? data.hotspots as HotspotData[] : [],
-      timelineEvents: data.timelineEvents.map(this.convertLegacyEvent),
-      backgroundImage: typeof data.backgroundImage === 'string' ? data.backgroundImage : undefined,
-      backgroundType: (data.backgroundType as any) === 'video' ? 'video' : 'image',
-      backgroundVideoType: (data.backgroundVideoType as any) === 'mp4' || (data.backgroundVideoType as any) === 'youtube' 
-        ? data.backgroundVideoType as 'mp4' | 'youtube' 
+      hotspots: Array.isArray(data['hotspots']) ? data['hotspots'] as HotspotData[] : [],
+      timelineEvents: data['timelineEvents'].map(this.convertLegacyEvent),
+      ...(typeof data['backgroundImage'] === 'string' && { backgroundImage: data['backgroundImage'] }),
+      backgroundType: (data['backgroundType'] as any) === 'video' ? 'video' : 'image',
+      backgroundVideoType: (data['backgroundVideoType'] as any) === 'mp4' || (data['backgroundVideoType'] as any) === 'youtube'
+        ? data['backgroundVideoType'] as 'mp4' | 'youtube'
         : undefined,
-      imageFitMode: ['cover', 'contain', 'fill'].includes(data.imageFitMode as any) 
-        ? data.imageFitMode as 'cover' | 'contain' | 'fill' 
+      imageFitMode: ['cover', 'contain', 'fill'].includes(data['imageFitMode'] as any)
+        ? data['imageFitMode'] as 'cover' | 'contain' | 'fill'
         : undefined,
-      viewerModes: typeof data.viewerModes === 'object' && data.viewerModes !== null 
-        ? data.viewerModes as InteractiveModuleState['viewerModes']
+      viewerModes: typeof data['viewerModes'] === 'object' && data['viewerModes'] !== null
+        ? data['viewerModes'] as InteractiveModuleState['viewerModes']
         : undefined
     };
     

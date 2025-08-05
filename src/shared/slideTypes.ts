@@ -383,8 +383,8 @@ export interface TransitionCondition {
 
 // Slide layout
 export interface SlideLayout {
-  containerWidth: number;
-  containerHeight: number;
+  containerWidth?: number;
+  containerHeight?: number;
   aspectRatio: string; // '16:9', '4:3', '1:1', etc.
   scaling: 'fit' | 'fill' | 'stretch' | 'none';
   backgroundSize: 'cover' | 'contain' | 'auto';
@@ -424,7 +424,7 @@ export interface DeckMetadata {
 
 // Viewer state
 export interface SlideViewerState {
-  currentSlideId: string;
+  currentSlideId?: string | null;
   currentSlideIndex: number;
   isPlaying: boolean;
   playbackSpeed: number;

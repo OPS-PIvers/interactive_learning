@@ -247,13 +247,11 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
         onTap?.(touch.x, touch.y);
       }
       
-      setGestureState(prev => ({
-        ...prev,
-        isActive: false,
-        gestureType: 'none',
-        touches: [],
-        initialDistance: undefined
-      }));
+      setGestureState(prev => {
+        const newState = { ...prev, isActive: false, gestureType: 'none' as const, touches: [] };
+        delete newState.initialDistance;
+        return newState;
+      });
       
       onGestureEnd?.();
     } else {
@@ -262,12 +260,11 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       
       if (remainingTouchPoints.length === 1 && gestureState.gestureType === 'pinch') {
         // Switched from pinch to potential pan
-        setGestureState(prev => ({
-          ...prev,
-          gestureType: 'tap',
-          touches: remainingTouchPoints,
-          initialDistance: undefined
-        }));
+        setGestureState(prev => {
+          const newState = { ...prev, gestureType: 'tap' as const, touches: remainingTouchPoints };
+          delete newState.initialDistance;
+          return newState;
+        });
       } else {
         setGestureState(prev => ({
           ...prev,

@@ -180,6 +180,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
         slides: [
           {
             ...existingSlideDeck.slides[0],
+            id: 'slide-1',
             title: 'Updated Slide Title'
           }
         ]
@@ -376,6 +377,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
         slides: [
           {
             ...slideDeck.slides[0],
+            id: 'slide-1',
             elements: [
               {
                 ...slideDeck.slides[0].elements[0],
