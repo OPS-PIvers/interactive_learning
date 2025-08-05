@@ -76,7 +76,7 @@ describe('TypeScript Integration Tests', () => {
         },
         style: {
           backgroundColor: '#ff0000',
-          borderRadius: '50%',
+          borderRadius: 50,
           opacity: 0.8
         },
         content: {
@@ -222,20 +222,24 @@ describe('TypeScript Integration Tests', () => {
     test('SlideTransition type supports navigation transitions', () => {
       const transition: SlideTransition = {
         id: 'transition-1',
-        trigger: 'auto',
-        targetSlideId: 'next-slide',
-        delay: 3000,
-        animation: {
+        fromSlideId: 'current-slide',
+        toSlideId: 'next-slide',
+        trigger: 'timer',
+        effect: {
           type: 'slide',
           direction: 'left',
           duration: 500
-        }
+        },
+        conditions: [{
+          type: 'timeout',
+          value: 3000
+        }]
       };
 
       expect(transition.id).toBe('transition-1');
-      expect(transition.trigger).toBe('auto');
-      expect(transition.targetSlideId).toBe('next-slide');
-      expect(transition.animation?.type).toBe('slide');
+      expect(transition.trigger).toBe('timer');
+      expect(transition.toSlideId).toBe('next-slide');
+      expect(transition.effect.type).toBe('slide');
     });
   });
 
@@ -283,13 +287,17 @@ describe('TypeScript Integration Tests', () => {
             transitions: [
               {
                 id: 'auto-transition',
-                trigger: 'auto',
-                targetSlideId: 'slide-2',
-                delay: 5000,
-                animation: {
+                fromSlideId: 'slide-1',
+                toSlideId: 'slide-2',
+                trigger: 'timer',
+                effect: {
                   type: 'fade',
                   duration: 1000
-                }
+                },
+                conditions: [{
+                  type: 'timeout',
+                  value: 5000
+                }]
               }
             ],
             layout: {

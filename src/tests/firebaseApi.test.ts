@@ -14,6 +14,8 @@ vi.mock('../lib/firebaseConfig', () => ({
   },
 }));
 
+import { Firestore, Transaction } from 'firebase/firestore';
+
 vi.mock('firebase/firestore', async () => {
   const actual = await vi.importActual('firebase/firestore');
   return {
@@ -21,7 +23,7 @@ vi.mock('firebase/firestore', async () => {
     doc: vi.fn((...args) => ({ path: args.join('/') })),
     setDoc: vi.fn(),
     getDoc: vi.fn(),
-    runTransaction: vi.fn(async (firestore, updateFunction) => {
+    runTransaction: vi.fn(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
       // Mock the transaction
       const transaction = {
         get: vi.fn(),
@@ -68,13 +70,31 @@ describe('FirebaseAPI - Slide Architecture', () => {
                 isVisible: true,
               }
             ],
-          } as InteractiveSlide
+            transitions: [],
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
+          }
         ],
         metadata: {
           version: '2.0',
           created: Date.now(),
           modified: Date.now(),
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -82,8 +102,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -126,6 +148,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -136,8 +167,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
           data: () => ({ ...existingSlideDeck, createdBy: 'test-user' })
         }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -171,6 +204,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -178,8 +220,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -220,6 +264,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -291,6 +344,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -301,8 +363,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
           data: () => ({...slideDeck, createdBy: 'test-user' })
         }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -315,7 +379,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
             elements: [
               {
                 ...slideDeck.slides[0].elements[0],
-                content: { text: 'Updated text' }
+                content: { textContent: 'Updated text' }
               }
             ]
           }
@@ -325,7 +389,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
       const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.slides[0].elements[0].content.text).toBe('Updated text');
+      expect(savedData.slideDeck.slides[0].elements[0].content.textContent).toBe('Updated text');
     });
 
     it('should handle responsive positioning in elements', async () => {
@@ -369,6 +433,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -376,8 +449,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -405,6 +480,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -412,8 +496,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 
@@ -434,6 +520,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
           created: 1672531200000,
           modified: 1672531200000,
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -441,8 +536,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),
+        set: vi.fn(),
+        delete: vi.fn(),
       };
-      (runTransaction as any).mockImplementation(async (firestore, updateFunction) => {
+      (runTransaction as any).mockImplementation(async (firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<any>) => {
         await updateFunction(transaction);
       });
 

@@ -5,6 +5,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
 import { InteractiveModuleState } from '../shared/types';
+import { InteractiveSlide } from '../shared/slideTypes';
 
 // Mock child components
 vi.mock('../client/components/SlideBasedViewer', () => ({
@@ -40,14 +41,39 @@ describe('SlideBasedInteractiveModule', () => {
     slides: [
       {
         id: 'slide1',
+        title: 'Test Slide',
         elements: [],
         backgroundMedia: { type: 'image', url: 'test-image.jpg' },
-      },
+        transitions: [],
+        layout: {
+          aspectRatio: '16:9',
+          backgroundSize: 'contain',
+          containerWidth: 1920,
+          containerHeight: 1080,
+          scaling: 'fit',
+          backgroundPosition: 'center center'
+        }
+      } as InteractiveSlide,
     ],
+    metadata: {
+      version: '2.0',
+      created: Date.now(),
+      modified: Date.now(),
+      isPublic: false,
+    },
+    settings: {
+      autoAdvance: false,
+      allowNavigation: true,
+      showProgress: true,
+      showControls: true,
+      keyboardShortcuts: true,
+      touchGestures: true,
+      fullscreenMode: false,
+    }
   };
 
   const getProps = (isEditing = false) => ({
-    initialData: null,
+    initialData: {},
     slideDeck,
     isEditing,
     onSave: mockOnSave,

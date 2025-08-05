@@ -107,15 +107,26 @@ describe('Component Compilation Integrity Tests', () => {
           title: 'Test',
           description: 'Test',
           slides: [],
-          metadata: { version: '2.0', createdAt: '', updatedAt: '' }
+          metadata: { version: '2.0', created: Date.now(), modified: Date.now(), isPublic: false },
+          settings: {
+            autoAdvance: false,
+            allowNavigation: true,
+            showProgress: true,
+            showControls: true,
+            keyboardShortcuts: true,
+            touchGestures: true,
+            fullscreenMode: false,
+          }
         };
         
         render(
           <SlideBasedInteractiveModule 
+            initialData={{}}
             slideDeck={mockSlideDeck}
             isEditing={false}
             onSave={vi.fn()}
             onClose={vi.fn()}
+            onImageUpload={vi.fn()}
             projectName="Test"
           />
         );
