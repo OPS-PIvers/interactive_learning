@@ -186,8 +186,8 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           {...props}
           isMobile={true} // Pass isMobile to the modal as well
           // Pass background props
-          backgroundImage={props.backgroundImage}
-          backgroundType={props.backgroundType}
+          backgroundImage={props.backgroundImage || ''}
+          backgroundType={props.backgroundType || 'image'}
           backgroundVideoType={props.backgroundVideoType}
           onBackgroundImageChange={props.onBackgroundImageChange}
           onBackgroundTypeChange={props.onBackgroundTypeChange}
@@ -304,8 +304,8 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         {...props}
-        backgroundImage={props.backgroundImage}
-        backgroundType={props.backgroundType}
+        backgroundImage={props.backgroundImage || ''}
+        backgroundType={props.backgroundType || 'image'}
         backgroundVideoType={props.backgroundVideoType}
         onBackgroundImageChange={props.onBackgroundImageChange}
         onBackgroundTypeChange={props.onBackgroundTypeChange}

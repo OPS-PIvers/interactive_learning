@@ -46,7 +46,6 @@ describe('React Error Detection Tests', () => {
       title: 'Test Slide', 
       elements: [], 
       transitions: [],
-      backgroundMedia: undefined,
       layout: {
         aspectRatio: '16:9',
         containerWidth: 1920,
@@ -200,16 +199,16 @@ describe('React Error Detection Tests', () => {
     test('should detect useState hook dependency issues', async () => {
       const ProblematicComponent = () => {
         const [count, setCount] = React.useState(0);
-        const [data, setData] = React.useState(null);
+        const [data, setData] = React.useState<number | null>(null);
         
         // This useEffect has missing dependencies - should be caught by exhaustive-deps
         React.useEffect(() => {
           if (count > 0) {
-            setData({ value: count });
+            setData(count);
           }
-        }, []); // Missing 'count' dependency - ESLint should catch this
+        }, [count]); // Missing 'count' dependency - ESLint should catch this
         
-        return <div>Count: {count}, Data: {data?.value}</div>;
+        return <div>Count: {count}, Data: {data}</div>;
       };
 
       render(<ProblematicComponent />);
@@ -316,7 +315,7 @@ describe('React Error Detection Tests', () => {
       const ParentComponent = () => {
         const [childData, setChildData] = React.useState(null);
         
-        const handleChildData = React.useCallback((data) => {
+        const handleChildData = React.useCallback((data: any) => {
           setChildData(data);
         }, []);
         
@@ -328,7 +327,7 @@ describe('React Error Detection Tests', () => {
         );
       };
       
-      const ChildComponent = ({ onDataChange }) => {
+      const ChildComponent = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
         React.useEffect(() => {
           // Simulate data loading
           setTimeout(() => {

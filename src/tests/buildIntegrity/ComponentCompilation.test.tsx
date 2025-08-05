@@ -137,8 +137,8 @@ describe('Component Compilation Integrity Tests', () => {
   describe('Environment Configuration', () => {
     test('test environment variables are properly configured', () => {
       // Test that required environment variables for testing are available
-      expect(process.env.NODE_ENV).toBeDefined();
-      expect(process.env.VITEST).toBe('true');
+      expect(process.env['NODE_ENV']).toBeDefined();
+      expect(process.env['VITEST']).toBe('true');
     });
   });
 

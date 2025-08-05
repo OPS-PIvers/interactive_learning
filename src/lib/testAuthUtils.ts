@@ -85,7 +85,7 @@ export class DevAuthBypass {
 
   private constructor() {
     // Check environment variables for bypass configuration
-    this.bypassEnabled = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+    this.bypassEnabled = import.meta.env['VITE_DEV_AUTH_BYPASS'] === 'true';
     
     // Also check session storage for runtime bypass (set by Puppeteer)
     if (typeof window !== 'undefined') {
@@ -131,9 +131,9 @@ export class DevAuthBypass {
     // Fall back to environment variables
     if (!userData) {
       userData = {
-        uid: import.meta.env.VITE_DEV_USER_ID || TEST_USERS.DEVELOPER.uid,
-        email: import.meta.env.VITE_DEV_USER_EMAIL || TEST_USERS.DEVELOPER.email,
-        displayName: import.meta.env.VITE_DEV_USER_NAME || TEST_USERS.DEVELOPER.displayName,
+        uid: import.meta.env['VITE_DEV_USER_ID'] || TEST_USERS.DEVELOPER.uid,
+        email: import.meta.env['VITE_DEV_USER_EMAIL'] || TEST_USERS.DEVELOPER.email,
+        displayName: import.meta.env['VITE_DEV_USER_NAME'] || TEST_USERS.DEVELOPER.displayName,
         emailVerified: true
       };
     }
@@ -175,17 +175,17 @@ export class DevAuthBypass {
 // Environment-based test credentials
 export function getTestCredentials() {
   return {
-    email: process.env.TEST_USER_EMAIL || 'test@example.com',
-    password: process.env.TEST_USER_PASSWORD || 'TestPassword123!',
-    displayName: process.env.TEST_USER_DISPLAY_NAME || 'Test User'
+    email: process.env['TEST_USER_EMAIL'] || 'test@example.com',
+    password: process.env['TEST_USER_PASSWORD'] || 'TestPassword123!',
+    displayName: process.env['TEST_USER_DISPLAY_NAME'] || 'Test User'
   };
 }
 
 export function getAdminCredentials() {
   return {
-    email: process.env.TEST_ADMIN_EMAIL || 'admin@example.com',
-    password: process.env.TEST_ADMIN_PASSWORD || 'AdminPassword123!',
-    displayName: process.env.TEST_ADMIN_DISPLAY_NAME || 'Test Admin'
+    email: process.env['TEST_ADMIN_EMAIL'] || 'admin@example.com',
+    password: process.env['TEST_ADMIN_PASSWORD'] || 'AdminPassword123!',
+    displayName: process.env['TEST_ADMIN_DISPLAY_NAME'] || 'Test Admin'
   };
 }
 
@@ -214,8 +214,8 @@ export async function waitForAuth(timeout = 5000): Promise<void> {
 // Utility to check if we're in a testing environment
 export function isTestEnvironment(): boolean {
   return (
-    process.env.NODE_ENV === 'test' ||
-    process.env.VITEST === 'true' ||
+    process.env['NODE_ENV'] === 'test' ||
+    process.env['VITEST'] === 'true' ||
     typeof window !== 'undefined' && window.location.hostname === 'localhost'
   );
 }

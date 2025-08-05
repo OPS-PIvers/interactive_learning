@@ -111,7 +111,7 @@ export const validateZIndex = (value: number, context: string = 'unknown'): numb
  * Z-index conflict detection (development only)
  */
 export const detectZIndexConflicts = (): void => {
-  if (process.env.NODE_ENV !== 'development') return;
+  if (process.env['NODE_ENV'] !== 'development') return;
   
   const usedValues = new Set<number>();
   const conflicts: Array<{ level: string; value: number }> = [];
@@ -129,7 +129,7 @@ export const detectZIndexConflicts = (): void => {
 };
 
 // Development-only conflict detection
-if (process.env.NODE_ENV === 'development') {
+if (process.env['NODE_ENV'] === 'development') {
   detectZIndexConflicts();
 }
 

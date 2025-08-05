@@ -57,8 +57,8 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         videoUrl: event.youtubeVideoId ? `https://youtube.com/watch?v=${event.youtubeVideoId}` : '',
         videoDisplayMode: 'modal' as const,
         videoShowControls: true,
-        youtubeStartTime: event.youtubeStartTime,
-        youtubeEndTime: event.youtubeEndTime,
+        ...(event.youtubeStartTime && { youtubeStartTime: event.youtubeStartTime }),
+        ...(event.youtubeEndTime && { youtubeEndTime: event.youtubeEndTime }),
         autoplay: event.autoplay || false,
       };
     }
@@ -208,7 +208,11 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
 
 // Helper function to migrate a single event
 export const migrateSingleEvent = (event: TimelineEventData): TimelineEventData => {
-  return migrateEventTypes([event])[0];
+  const migrated = migrateEventTypes([event])[0];
+  if (!migrated) {
+    throw new Error('Failed to migrate event');
+  }
+  return migrated;
 };
 
 // Enhanced migration function that can set target coordinates for pan & zoom events
@@ -222,6 +226,7 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
   return events.map(event => {
     // First apply the standard migration
     const migratedEvent = migrateEventTypes([event])[0];
+    if (!migratedEvent) return undefined;
     
     // Additional processing for pan & zoom events that might be missing target coordinates
     if (migratedEvent.type === InteractionType.PAN_ZOOM &&
@@ -299,7 +304,7 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
     }
     
     return migratedEvent;
-  });
+  }).filter((event): event is TimelineEventData => event !== undefined);
 };
 
 // Check if an event needs migration
@@ -416,7 +421,7 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
   const slide: InteractiveSlide = {
     id: generateId(),
     title: 'Migrated Slide',
-    backgroundImage: module.backgroundImage,
+    ...(module.backgroundImage && { backgroundImage: module.backgroundImage }),
     elements: [],
     transitions: [],
     layout: {

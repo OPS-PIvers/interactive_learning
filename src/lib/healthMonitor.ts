@@ -151,8 +151,8 @@ class DatabaseHealthMonitor {
       });
 
       // Check data consistency
-      const hasSlides = !!projectData.slideDeck;
-      const projectType = projectData.projectType || 'hotspot';
+      const hasSlides = !!projectData['slideDeck'];
+      const projectType = projectData['projectType'] || 'hotspot';
 
       if (projectType === 'slide' && !hasSlides) {
         checks.push({
@@ -312,27 +312,10 @@ class DatabaseHealthMonitor {
         const projectData = projectDoc.data();
 
         try {
-          // Check subcollection consistency
-          const hotspotsRef = collection(db, 'projects', projectId, 'hotspots');
-          const eventsRef = collection(db, 'projects', projectId, 'timeline_events');
-
-          const [hotspotsSnap, eventsSnap] = await Promise.all([
-            getDocs(hotspotsRef),
-            getDocs(eventsRef)
-          ]);
-
-          totalHotspots += hotspotsSnap.size;
-          totalEvents += eventsSnap.size;
-
-          // Check for data consistency issues
-          const hasSlides = !!projectData.slideDeck;
-          const projectType = projectData.projectType || 'hotspot';
-
-          if ((projectType === 'slide' && !hasSlides) || 
-              (projectType === 'hotspot' && hotspotsSnap.size === 0 && eventsSnap.size === 0)) {
+          const projectChecks = await this.checkSingleProject(projectId);
+          if (projectChecks.some(c => !c.passed)) {
             inconsistentProjects++;
           }
-
         } catch (error) {
           debugLog.warn(`[HealthMonitor] Error checking project ${projectId}:`, error);
           inconsistentProjects++;

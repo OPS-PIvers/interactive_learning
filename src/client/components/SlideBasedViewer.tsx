@@ -89,7 +89,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     setCurrentSlideId(slideId);
     setCurrentSlideIndex(slideIndex);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.log('[SlideBasedViewer] Slide changed:', {
         slideId,
         slideIndex,
@@ -117,7 +117,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Interaction handler
   const handleInteraction = useCallback((interaction: any) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.log('[SlideBasedViewer] Interaction:', interaction);
     }
   }, []);

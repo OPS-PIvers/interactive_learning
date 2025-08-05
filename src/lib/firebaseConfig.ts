@@ -7,24 +7,24 @@ import { getAnalytics, isSupported } from 'firebase/analytics'
 // Firebase configuration and initialization
 
 // Debug environment variables (development only)
-if (import.meta.env.DEV) {
+if (import.meta.env['DEV']) {
   console.log('Environment variables:', {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'MISSING',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'MISSING',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'MISSING',
+    apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || 'MISSING',
+    authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || 'MISSING',
+    projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || 'MISSING',
     allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
     fullEnv: import.meta.env
   });
 }
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "interactive-learning-278.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "interactive-learning-278",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "interactive-learning-278.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "559846873035",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:559846873035:web:f0abe20a8d354b02a9084e",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-FQZK3QEV9L"
+  apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
+  authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || "interactive-learning-278.firebaseapp.com",
+  projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || "interactive-learning-278",
+  storageBucket: import.meta.env['VITE_FIREBASE_STORAGE_BUCKET'] || "interactive-learning-278.firebasestorage.app",
+  messagingSenderId: import.meta.env['VITE_FIREBASE_MESSAGING_SENDER_ID'] || "559846873035",
+  appId: import.meta.env['VITE_FIREBASE_APP_ID'] || "1:559846873035:web:f0abe20a8d354b02a9084e",
+  measurementId: import.meta.env['VITE_FIREBASE_MEASUREMENT_ID'] || "G-FQZK3QEV9L"
 }
 
 // Validate required environment variables function (called during initialization)
@@ -41,7 +41,7 @@ function validateFirebaseConfig(): string[] {
   return requiredEnvVars.filter(varName => !import.meta.env[varName])
 }
 
-if (import.meta.env.DEV) {
+if (import.meta.env['DEV']) {
   console.log('Firebase config:', firebaseConfig);
 }
 
@@ -81,7 +81,7 @@ class FirebaseConnectionManager {
 
   private async _doInitialize(): Promise<void> {
     try {
-      if (import.meta.env.DEV) {
+      if (import.meta.env['DEV']) {
         console.log('Firebase Connection Manager: Starting initialization...')
       }
 
@@ -101,22 +101,22 @@ class FirebaseConnectionManager {
           this.performance = getPerformance(this.app)
           if (await isSupported()) {
             this.analytics = getAnalytics(this.app)
-            if (import.meta.env.DEV) {
+            if (import.meta.env['DEV']) {
               console.log('Firebase Analytics initialized')
             }
           }
-          if (import.meta.env.DEV) {
+          if (import.meta.env['DEV']) {
             console.log('Firebase Performance initialized')
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (import.meta.env['DEV']) {
             console.log('Analytics/Performance not available:', error)
           }
         }
       }
 
       // Setup emulators for development
-      if (import.meta.env.DEV && typeof window !== 'undefined' && import.meta.env.VITE_USE_FIREBASE_EMULATOR) {
+      if (import.meta.env['DEV'] && typeof window !== 'undefined' && import.meta.env['VITE_USE_FIREBASE_EMULATOR']) {
         try {
           connectFirestoreEmulator(this.db, 'localhost', 8080)
           connectStorageEmulator(this.storage, 'localhost', 9199)
@@ -128,7 +128,7 @@ class FirebaseConnectionManager {
       }
 
       this.isInitialized = true
-      if (import.meta.env.DEV) {
+      if (import.meta.env['DEV']) {
         console.log('Firebase Connection Manager: Initialization complete')
       }
     } catch (error) {

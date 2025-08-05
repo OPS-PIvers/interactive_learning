@@ -55,7 +55,7 @@ interface EnhancedModalEditorToolbarProps {
   // New background props
   backgroundImage?: string; // Current background image/video URL
   backgroundType?: 'image' | 'video';
-  backgroundVideoType?: 'youtube' | 'mp4';
+  backgroundVideoType?: 'youtube' | 'mp4' | undefined;
   onBackgroundImageChange: (url: string) => void;
   onBackgroundTypeChange: (type: 'image' | 'video') => void;
   onBackgroundVideoTypeChange: (type: 'youtube' | 'mp4') => void;

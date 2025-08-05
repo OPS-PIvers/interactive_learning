@@ -59,11 +59,14 @@ export function validateHotspotCoordinates(hotspot: HotspotData): CoordinateVali
     };
   }
 
-  return {
+  const result: CoordinateValidationResult = {
     isValid,
     issues,
-    migrated
   };
+  if (migrated) {
+    result.migrated = migrated;
+  }
+  return result;
 }
 
 /**

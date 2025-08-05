@@ -168,7 +168,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
   
   // Handle slide updates
-  const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>) => {
+  const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>, propertiesToRemove: (keyof InteractiveSlide)[] = []) => {
     console.log('📝 handleSlideUpdate called with:', {
       slideUpdates,
       currentSlideIndex: state.navigation.currentSlideIndex,
@@ -177,9 +177,15 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     
     const updatedSlideDeck = {
       ...slideDeck,
-      slides: slideDeck.slides.map((slide, index) => 
-        index === state.navigation.currentSlideIndex ? { ...slide, ...slideUpdates } : slide
-      ),
+      slides: slideDeck.slides.map((slide, index) => {
+        if (index !== state.navigation.currentSlideIndex) return slide;
+
+        let updatedSlide = { ...slide, ...slideUpdates };
+        for (const prop of propertiesToRemove) {
+          delete (updatedSlide as any)[prop];
+        }
+        return updatedSlide;
+      }),
     };
     
     console.log('📝 Updated slide after merge:', updatedSlideDeck.slides[state.navigation.currentSlideIndex]);
@@ -326,9 +332,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
         containerWidth: currentSlide?.layout?.containerWidth || 1200,
         containerHeight: currentSlide?.layout?.containerHeight || 800,
-        scaling: currentSlide?.layout?.scaling || 'fit',
-        backgroundSize: currentSlide?.layout?.backgroundSize || 'cover',
-        backgroundPosition: currentSlide?.layout?.backgroundPosition || 'center',
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       },
     };
     
@@ -408,10 +414,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         tablet: { x: 250, y: 150, ...getInitialDimensions('tablet') },
         mobile: { x: 150, y: 100, ...getInitialDimensions('mobile') },
       },
-      style: elementType === 'hotspot' ? {} : {
-        backgroundColor: elementType === 'shape' ? '#e2e8f0' : undefined,
-        fontSize: elementType === 'text' ? 16 : undefined,
-        color: elementType === 'text' ? '#000000' : undefined,
+      style: {
+        ...(elementType === 'shape' && { backgroundColor: '#e2e8f0' }),
+        ...(elementType === 'text' && { fontSize: 16, color: '#000000' }),
       },
       content: elementType === 'text' ? { textContent: 'New Text Element' } : {},
       interactions: [],
@@ -479,7 +484,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   }, [handleSlideUpdate, state.navigation.currentSlideIndex, currentSlide]);
 
   const handleBackgroundRemove = useCallback(() => {
-    handleSlideUpdate({ backgroundMedia: undefined });
+    handleSlideUpdate({}, ['backgroundMedia']);
   }, [handleSlideUpdate]);
 
   const handleBackgroundUpdate = useCallback((mediaConfig: BackgroundMedia) => {
@@ -525,7 +530,6 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           isPublished: false,
           // Required interactiveData field
           interactiveData: {
-            backgroundImage: undefined,
             imageFitMode: 'cover' as const,
             viewerModes: { explore: true, selfPaced: true, timed: true },
             hotspots: [],
@@ -585,7 +589,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   return (
     <ProjectThemeProvider 
-      initialThemeId={projectTheme}
+      {...(projectTheme && { initialThemeId: projectTheme })}
       onThemeChange={handleThemeChange}
     >
       <div className="unified-slide-editor fixed inset-0 h-full w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
@@ -622,7 +626,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 onElementUpdate={handleElementUpdate}
                 onSlideUpdate={handleSlideUpdate}
                 onHotspotDoubleClick={handleHotspotDoubleClick}
-                deviceTypeOverride={state.navigation.deviceTypeOverride}
+                {...(state.navigation.deviceTypeOverride && { deviceTypeOverride: state.navigation.deviceTypeOverride })}
                 className="w-full h-full"
                 isEditable={!state.navigation.isPreviewMode}
                 onAspectRatioChange={handleAspectRatioChange}
@@ -655,7 +659,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           {!state.navigation.isPreviewMode && selectedElement && (
             <ResponsivePropertiesPanel
               selectedElement={selectedElement}
-              currentSlide={currentSlide}
+              currentSlide={currentSlide ?? null}
               deviceType={computed.effectiveDeviceType}
               onElementUpdate={handleElementUpdate}
               onSlideUpdate={handleSlideUpdate}

@@ -1,6 +1,19 @@
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from './types';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
 
+export interface ShowTextParameters {
+    text: string;
+    position: FixedPosition;
+    displayMode: 'modal' | 'overlay';
+    modalPosition?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'element';
+    style: {
+        backgroundColor: string;
+        color: string;
+        fontSize: number;
+        fontWeight: string;
+    };
+}
+
 /**
  * Migration utilities for converting existing hotspot-based projects to slide format
  * 
@@ -151,7 +164,7 @@ function convertTimelineEventToInteraction(
         break;
 
     case InteractionType.SHOW_TEXT:
-        const isCentered = event.textPosition === 'center';
+        const isCentered = event.modalPosition === 'center';
         const position: FixedPosition = isCentered
             ? { x: (options.canvasWidth || 1200) / 2 - 150, y: (options.canvasHeight || 800) / 2 - 50, width: 300, height: 100 }
             : {
@@ -166,10 +179,10 @@ function convertTimelineEventToInteraction(
             type: 'show_text',
             duration: event.duration || 5000,
             parameters: {
-                text: event.textContent || event.message || 'Text content',
+                text: event.message || 'Text content',
                 position: position,
                 displayMode: isCentered ? 'modal' : 'overlay',
-                modalPosition: isCentered ? 'center' : undefined,
+                ...(isCentered && { modalPosition: 'center' as const }),
                 style: {
                     backgroundColor: 'rgba(30, 41, 59, 0.95)',
                     color: '#ffffff',
@@ -187,12 +200,12 @@ function convertTimelineEventToInteraction(
         type: 'play_media',
         duration: event.duration || 0, // 0 means play until complete
         parameters: {
-          mediaUrl: event.videoUrl || event.audioUrl || event.mediaUrl || '',
+          mediaUrl: event.videoUrl || event.audioUrl || '',
           mediaType: event.type === InteractionType.PLAY_VIDEO ? 'video' : 'audio',
           autoplay: event.autoplay !== false,
-          controls: event.videoShowControls !== false || event.audioShowControls !== false,
-          loop: event.loop || false,
-          volume: event.volume || 1.0
+          controls: true,
+          loop: false,
+          volume: 1.0
         }
       };
       break;
@@ -434,8 +447,8 @@ ${warnings.map(w => `- ${w}`).join('\n')}
 Slide Details:
 ${slideDeck.slides.map(slide => `
 - Slide: ${slide.title}
-  Elements: ${slide.elements.length}
-  Background: ${slide.backgroundImage ? 'Yes' : 'No'}
+  Elements: ${slide.elements?.length || 0}
+  Background: ${slide.backgroundMedia ? 'Yes' : 'No'}
 `).join('')}
 `.trim();
 }

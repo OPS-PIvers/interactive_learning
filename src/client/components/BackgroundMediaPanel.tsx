@@ -54,6 +54,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
 
   // Extract YouTube video ID from URL
   const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
     const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
@@ -105,7 +106,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
     const newSettings = { ...backgroundSettings };
     if (key.includes('.')) {
       const [parentKey, childKey] = key.split('.');
-      if (parentKey === 'overlay') {
+      if (parentKey === 'overlay' && childKey) {
         newSettings.overlay = {
           enabled: false,
           opacity: 0.3,
@@ -113,7 +114,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
           ...newSettings.overlay,
           [childKey]: value
         };
-      } else if (parentKey === 'settings') {
+      } else if (parentKey === 'settings' && childKey) {
         newSettings.settings = {
           size: 'cover',
           position: 'center',

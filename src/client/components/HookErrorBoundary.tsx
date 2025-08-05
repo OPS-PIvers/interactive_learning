@@ -23,13 +23,13 @@ class HookErrorBoundary extends Component<Props, State> {
                        error.message.includes('Rendered more hooks') ||
                        error.message.includes('Invariant');
     
-    return { 
-      hasError: true, 
-      error: isHookError ? error : undefined 
+    return {
+      hasError: true,
+      ...(isHookError && { error }),
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  override componentDidCatch(error: Error, errorInfo: any) {
     console.error('Hook Error Boundary caught an error:', error, errorInfo);
     
     // Enhanced detection for hook-related errors

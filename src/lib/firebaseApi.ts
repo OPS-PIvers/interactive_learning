@@ -243,20 +243,20 @@ export class FirebaseProjectAPI {
         // Build project object with slide deck data if available
         const project: Project = {
           id: docSnap.id,
-          title: projectData.title || 'Untitled Project',
-          description: projectData.description || '',
-          createdBy: projectData.createdBy,
-          createdAt: projectData.createdAt?.toDate?.() || new Date(),
-          updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
-          thumbnailUrl: projectData.thumbnailUrl,
-          isPublished: projectData.isPublished || false,
-          projectType: projectData.projectType || 'slide', // Default to slide for new architecture
-          interactiveData: projectData.interactiveData ?
-            { ...projectData.interactiveData, _needsDetailLoad: true } :
+          title: projectData['title'] || 'Untitled Project',
+          description: projectData['description'] || '',
+          createdBy: projectData['createdBy'],
+          createdAt: projectData['createdAt']?.toDate?.() || new Date(),
+          updatedAt: projectData['updatedAt']?.toDate?.() || new Date(),
+          thumbnailUrl: projectData['thumbnailUrl'],
+          isPublished: projectData['isPublished'] || false,
+          projectType: projectData['projectType'] || 'slide', // Default to slide for new architecture
+          interactiveData: projectData['interactiveData'] ?
+            { ...projectData['interactiveData'], _needsDetailLoad: true } :
             {
-              backgroundImage: projectData.backgroundImage,
-              imageFitMode: projectData.imageFitMode || 'cover',
-              viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+              backgroundImage: projectData['backgroundImage'],
+              imageFitMode: projectData['imageFitMode'] || 'cover',
+              viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
               hotspots: [],
               timelineEvents: [],
               _needsDetailLoad: true
@@ -264,9 +264,9 @@ export class FirebaseProjectAPI {
         };
 
         // Include slide deck if it exists
-        if (projectData.slideDeck) {
-          project.slideDeck = projectData.slideDeck;
-          debugLog.log(`[listProjects] Project ${project.id} has slide deck with ${projectData.slideDeck.slides?.length || 0} slides`);
+        if (projectData['slideDeck']) {
+          project.slideDeck = projectData['slideDeck'];
+          debugLog.log(`[listProjects] Project ${project.id} has slide deck with ${projectData['slideDeck'].slides?.length || 0} slides`);
         }
 
         return project;
@@ -296,33 +296,33 @@ export class FirebaseProjectAPI {
       const projectData = projectDoc.data();
       
       // Only return if the project is marked as published
-      if (!projectData.isPublished) {
+      if (!projectData['isPublished']) {
         return null;
       }
       
       // Check project type and handle accordingly
-      const projectType = projectData.projectType || 'hotspot'; // Default to hotspot for backward compatibility
+      const projectType = projectData['projectType'] || 'hotspot'; // Default to hotspot for backward compatibility
       
       let slideDeck: any = null;
       
       // Helper function to build fallback interactiveData from legacy fields
       const buildFallbackInteractiveData = () => ({
-        backgroundImage: projectData.backgroundImage,
-        imageFitMode: projectData.imageFitMode || 'cover',
-        viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+        backgroundImage: projectData['backgroundImage'],
+        imageFitMode: projectData['imageFitMode'] || 'cover',
+        viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
         hotspots: [],
         timelineEvents: []
       });
       
       // Build interactiveData, preferring nested structure with legacy fallback
-      let interactiveData: any = projectData.interactiveData 
-        ? { ...projectData.interactiveData }
+      let interactiveData: any = projectData['interactiveData']
+        ? { ...projectData['interactiveData'] }
         : buildFallbackInteractiveData();
       
       if (projectType === 'slide') {
         // For slide-based projects, try to get slide deck data
-        if (projectData.slideDeck) {
-          slideDeck = projectData.slideDeck;
+        if (projectData['slideDeck']) {
+          slideDeck = projectData['slideDeck'];
         }
       } else {
         // Always load hotspots and timeline events for public view if not slide-based.
@@ -337,13 +337,13 @@ export class FirebaseProjectAPI {
       
       return {
         id: projectDoc.id,
-        title: projectData.title || 'Untitled Project',
-        description: projectData.description || '',
-        createdBy: projectData.createdBy,
-        createdAt: projectData.createdAt?.toDate?.() || new Date(),
-        updatedAt: projectData.updatedAt?.toDate?.() || new Date(),
-        thumbnailUrl: projectData.thumbnailUrl,
-        isPublished: projectData.isPublished || false,
+        title: projectData['title'] || 'Untitled Project',
+        description: projectData['description'] || '',
+        createdBy: projectData['createdBy'],
+        createdAt: projectData['createdAt']?.toDate?.() || new Date(),
+        updatedAt: projectData['updatedAt']?.toDate?.() || new Date(),
+        thumbnailUrl: projectData['thumbnailUrl'],
+        isPublished: projectData['isPublished'] || false,
         projectType: projectType,
         interactiveData,
         slideDeck
@@ -388,9 +388,9 @@ export class FirebaseProjectAPI {
       let result: Partial<InteractiveModuleState> & { slideDeck?: any };
 
       // Prefer the 'interactiveData' field but fall back to legacy fields.
-      if (projectData.interactiveData) {
+      if (projectData['interactiveData']) {
         result = {
-          ...projectData.interactiveData,
+          ...projectData['interactiveData'],
           // IMPORTANT: Subcollection data always overrides interactiveData arrays
           // to maintain single source of truth and prevent data inconsistencies
           hotspots,
@@ -398,20 +398,20 @@ export class FirebaseProjectAPI {
         };
       } else {
         result = {
-          backgroundImage: projectData.backgroundImage,
-          imageFitMode: projectData.imageFitMode || 'cover',
-          viewerModes: projectData.viewerModes || { explore: true, selfPaced: true, timed: true },
+          backgroundImage: projectData['backgroundImage'],
+          imageFitMode: projectData['imageFitMode'] || 'cover',
+          viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
           hotspots,
           timelineEvents,
         };
       }
 
       // Add slide deck if it exists in the project data
-      if (projectData.slideDeck) {
-        result.slideDeck = projectData.slideDeck;
+      if (projectData['slideDeck']) {
+        result.slideDeck = projectData['slideDeck'];
         debugLog.log(`[FirebaseAPI] Loaded slide deck for project ${projectId}:`, {
-          slideCount: projectData.slideDeck.slides?.length || 0,
-          totalElements: projectData.slideDeck.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+          slideCount: projectData['slideDeck'].slides?.length || 0,
+          totalElements: projectData['slideDeck'].slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
         });
       } else {
         debugLog.log(`[FirebaseAPI] No slide deck found for project ${projectId}`);
@@ -450,7 +450,6 @@ export class FirebaseProjectAPI {
         createdAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
         updatedAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
-          backgroundImage: undefined,
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
@@ -620,10 +619,10 @@ export class FirebaseProjectAPI {
       const projectSnap = await getDoc(projectRef);
       if (projectSnap.exists()) {
         const projectData = projectSnap.data();
-        if (projectData.createdBy !== currentUser.uid) {
+        if (projectData['createdBy'] !== currentUser.uid) {
           throw new Error('You do not have permission to delete this project');
         }
-        thumbnailUrlToDelete = projectData.thumbnailUrl || null;
+        thumbnailUrlToDelete = projectData['thumbnailUrl'] || null;
       }
 
       await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
@@ -1117,7 +1116,7 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
-      if (projectData.createdBy !== currentUser.uid) {
+      if (projectData['createdBy'] !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
 
@@ -1160,7 +1159,7 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
-      if (projectData.createdBy !== currentUser.uid) {
+      if (projectData['createdBy'] !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
 
@@ -1186,7 +1185,7 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectDoc.data();
-      if (projectData.createdBy !== userId) {
+      if (projectData['createdBy'] !== userId) {
         throw new Error("User does not have permission to save this slide deck.");
       }
 
@@ -1210,11 +1209,11 @@ export class FirebaseProjectAPI {
     }
 
     const projectData = projectDoc.data();
-    if (projectData.createdBy !== userId) {
+    if (projectData['createdBy'] !== userId) {
       throw new Error("User does not have permission to load this slide deck.");
     }
 
-    return projectData.slideDeck || null;
+    return projectData['slideDeck'] || null;
   }
 }
 

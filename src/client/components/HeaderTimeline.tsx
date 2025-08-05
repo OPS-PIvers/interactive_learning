@@ -74,8 +74,8 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
         hasInteractions: slide.elements.some(element => element.interactions && element.interactions.length > 0),
         hotspotCount: hotspotElements.length,
         hotspots: hotspotElements.map(element => {
-          const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.backgroundColor;
-          const color = element.style?.color || element.content.customProperties?.color;
+          const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.['backgroundColor'];
+          const color = element.style?.color || element.content.customProperties?.['color'];
           
           return {
             id: element.id,
@@ -94,7 +94,9 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
     if (currentSlideIndex > 0) {
       const prevIndex = currentSlideIndex - 1;
       const prevSlide = slideDeck.slides[prevIndex];
-      onSlideChange(prevSlide.id, prevIndex);
+      if (prevSlide) {
+        onSlideChange(prevSlide.id, prevIndex);
+      }
     }
   }, [currentSlideIndex, slideDeck.slides, onSlideChange]);
 
@@ -102,7 +104,9 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
     if (currentSlideIndex < slideDeck.slides.length - 1) {
       const nextIndex = currentSlideIndex + 1;
       const nextSlide = slideDeck.slides[nextIndex];
-      onSlideChange(nextSlide.id, nextIndex);
+      if (nextSlide) {
+        onSlideChange(nextSlide.id, nextIndex);
+      }
     }
   }, [currentSlideIndex, slideDeck.slides, onSlideChange]);
 

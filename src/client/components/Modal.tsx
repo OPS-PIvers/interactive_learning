@@ -45,12 +45,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
         if (event.shiftKey) {
           if (document.activeElement === firstElement) {
-            lastElement.focus();
+            lastElement?.focus();
             event.preventDefault();
           }
         } else {
           if (document.activeElement === lastElement) {
-            firstElement.focus();
+            firstElement?.focus();
             event.preventDefault();
           }
         }
