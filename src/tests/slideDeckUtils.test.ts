@@ -24,7 +24,11 @@ describe('slideDeckUtils', () => {
       expect(defaultSlide.transitions).toEqual([]);
       expect(defaultSlide.layout).toEqual({
         aspectRatio: '16:9',
-        backgroundFit: 'cover'
+        backgroundSize: 'cover',
+        containerWidth: 1920,
+        containerHeight: 1080,
+        scaling: 'fit',
+        backgroundPosition: 'center center'
       });
       expect(defaultSlide.metadata).toBeDefined();
       expect(defaultSlide.metadata?.version).toBe('1.0');

@@ -124,7 +124,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -168,7 +169,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -216,7 +218,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -286,7 +289,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -363,7 +367,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -398,7 +403,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -426,7 +432,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 

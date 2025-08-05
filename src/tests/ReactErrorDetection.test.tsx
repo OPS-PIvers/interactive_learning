@@ -40,7 +40,21 @@ describe('React Error Detection Tests', () => {
   const defaultSlideData: SlideDeck = {
     id: 'test-slide-deck',
     title: 'Test Slide Deck',
-    slides: [{ id: 'slide1', elements: [], backgroundMedia: undefined }],
+    slides: [{ 
+      id: 'slide1', 
+      title: 'Test Slide', 
+      elements: [], 
+      transitions: [],
+      backgroundMedia: undefined,
+      layout: {
+        aspectRatio: '16:9',
+        containerWidth: 1920,
+        containerHeight: 1080,
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center'
+      }
+    }],
     metadata: { version: '2.0', created: Date.now(), modified: Date.now(), isPublic: false },
     settings: {
       autoAdvance: false,

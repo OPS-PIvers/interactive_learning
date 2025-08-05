@@ -29,7 +29,7 @@ export const compressImage = async (file: File, customOptions?: Partial<Options>
     console.error('Image compression failed:', error);
     
     // If compression fails, try with more aggressive settings
-    if (options.maxSizeMB > 0.5) {
+    if (options.maxSizeMB && options.maxSizeMB > 0.5) {
       console.log('Retrying with more aggressive compression...');
       try {
         const fallbackOptions = { 

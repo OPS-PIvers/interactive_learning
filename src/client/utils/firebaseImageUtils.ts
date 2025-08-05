@@ -66,6 +66,7 @@ export function validateFirebaseUrl(url: string): {
     isFirebase: false,
     hasToken: false,
     hasAlt: false,
+    cleanUrl: undefined as string | undefined,
     issues: [] as string[]
   };
 

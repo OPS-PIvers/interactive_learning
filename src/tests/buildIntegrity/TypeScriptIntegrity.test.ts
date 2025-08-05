@@ -110,7 +110,7 @@ describe('TypeScript Integration Tests', () => {
       expect(hotspotElement.type).toBe('hotspot');
       expect(textElement.type).toBe('text');
       expect(hotspotElement.content.title).toBe('Test Hotspot');
-      expect(textElement.content.text).toBe('Test text content');
+      expect(textElement.content.textContent).toBe('Test text content');
     });
   });
 
@@ -343,7 +343,7 @@ describe('TypeScript Integration Tests', () => {
 
       // Test type narrowing based on element type
       if (element.type === 'text') {
-        expect(element.content.text).toBe('Test text');
+        expect(element.content.textContent).toBe('Test text');
       }
 
       if (element.type === 'hotspot') {
