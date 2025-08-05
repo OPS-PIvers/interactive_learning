@@ -1,6 +1,6 @@
 // src/client/components/EventTypeSelectorButtonGrid.tsx
 import React from 'react';
-import { InteractionType } from '../../shared/types';
+import { InteractionType } from '../../shared/enums';
 import { interactionPresets } from '../../shared/InteractionPresets';
 import { PlusIcon } from './icons/PlusIcon';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility

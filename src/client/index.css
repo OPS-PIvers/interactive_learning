@@ -1,9 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 @import './styles/custom-scrollbar.css'; /* Custom scrollbar styles we added */
 @import './styles/high-contrast.css'; /* High contrast mode styles */
 @import './styles/slide-components.css'; /* Slide-based architecture styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Main styles for ExpliCoLearning */
 

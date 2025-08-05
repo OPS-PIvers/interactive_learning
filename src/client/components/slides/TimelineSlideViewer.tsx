@@ -11,7 +11,8 @@ import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideT
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
 import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
-import { TimelineEventData, InteractionType } from '../../../shared/types';
+import { TimelineEventData } from '../../../shared/types';
+import { InteractionType } from '../../../shared/enums';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;

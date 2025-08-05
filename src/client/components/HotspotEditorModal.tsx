@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
+import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
+import { InteractionType } from '../../shared/enums';
 import { hotspotStylePresets, hotspotSizePresets, applyStylePreset, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';

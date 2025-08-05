@@ -5,7 +5,8 @@
  * Scheduled for removal in a future version.
  */
 import React, { useState } from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { HotspotData, TimelineEventData } from '../../shared/types';
+import { InteractionType } from '../../shared/enums';
 import { PlusIcon } from './icons/PlusIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';

@@ -1,0 +1,26 @@
+{
+  "detectiveOptions": {
+    "ts": {
+      "skipTypeImports": true
+    },
+    "tsx": {
+      "skipTypeImports": true
+    }
+  },
+  "fileExtensions": ["ts", "tsx", "js", "jsx"],
+  "excludeRegExp": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "\\.config\\.[jt]s$",
+    "\\.test\\.[jt]sx?$",
+    "__tests__"
+  ],
+  "graphvizConfig": {
+    "fontname": "Arial",
+    "fontsize": "14",
+    "bgcolor": "#111827",
+    "fontcolor": "#f1f5f9"
+  }
+}

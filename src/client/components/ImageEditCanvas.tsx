@@ -1,5 +1,6 @@
 import React from 'react';
-import { HotspotData, TimelineEventData, InteractionType } from '../../shared/types';
+import { HotspotData, TimelineEventData } from '../../shared/types';
+import { InteractionType } from '../../shared/enums';
 import HotspotViewer from './HotspotViewer';
 import FileUpload from './FileUpload';
 import { PlusIcon } from './icons/PlusIcon';

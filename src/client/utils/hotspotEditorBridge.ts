@@ -7,7 +7,8 @@
  */
 
 import { SlideElement, SlideDeck, InteractiveSlide, DeviceType, FixedPosition, ElementInteraction, SlideEffect, EffectParameters, SpotlightParameters, ZoomParameters, ShowTextParameters, PlayMediaParameters, TextStyle, SlideEffectType } from '../../shared/slideTypes';
-import { HotspotData, TimelineEventData, InteractionType, HotspotSize } from '../../shared/types';
+import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
+import { InteractionType } from '../../shared/enums';
 import { defaultHotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 
 /**

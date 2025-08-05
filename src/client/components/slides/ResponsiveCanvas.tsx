@@ -10,7 +10,8 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
-import { ImageTransformState, InteractionType } from '../../../shared/types';
+import { ImageTransformState } from '../../../shared/types';
+import { InteractionType } from '../../../shared/enums';
 import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
