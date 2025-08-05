@@ -389,7 +389,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
       const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.slides[0].elements[0].content.text).toBe('Updated text');
+      expect(savedData.slideDeck.slides[0].elements[0].content.textContent).toBe('Updated text');
     });
 
     it('should handle responsive positioning in elements', async () => {
