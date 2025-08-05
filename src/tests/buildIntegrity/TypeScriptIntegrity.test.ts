@@ -21,8 +21,18 @@ describe('TypeScript Integration Tests', () => {
         slides: [],
         metadata: {
           version: '2.0',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z'
+          created: Date.now(),
+          modified: Date.now(),
+          isPublic: false,
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -41,7 +51,11 @@ describe('TypeScript Integration Tests', () => {
         transitions: [],
         layout: {
           aspectRatio: '16:9',
-          backgroundFit: 'contain'
+          backgroundSize: 'contain',
+          containerWidth: 1920,
+          containerHeight: 1080,
+          scaling: 'fit',
+          backgroundPosition: 'center center'
         }
       };
 
@@ -69,7 +83,8 @@ describe('TypeScript Integration Tests', () => {
           title: 'Test Hotspot',
           description: 'A test hotspot element'
         },
-        interactions: []
+        interactions: [],
+        isVisible: true
       };
 
       const textElement: SlideElement = {
@@ -86,9 +101,10 @@ describe('TypeScript Integration Tests', () => {
           fontWeight: 'bold'
         },
         content: {
-          text: 'Test text content'
+          textContent: 'Test text content'
         },
-        interactions: []
+        interactions: [],
+        isVisible: true
       };
 
       expect(hotspotElement.type).toBe('hotspot');
@@ -260,7 +276,8 @@ describe('TypeScript Integration Tests', () => {
                       duration: 2000
                     }
                   }
-                ]
+                ],
+                isVisible: true
               }
             ],
             transitions: [
@@ -277,14 +294,28 @@ describe('TypeScript Integration Tests', () => {
             ],
             layout: {
               aspectRatio: '16:9',
-              backgroundFit: 'cover'
+              backgroundSize: 'cover',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
             }
           }
         ],
         metadata: {
           version: '2.0',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          created: Date.now(),
+          modified: Date.now(),
+          isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
 
@@ -305,8 +336,9 @@ describe('TypeScript Integration Tests', () => {
           mobile: { x: 0, y: 0, width: 60, height: 30 }
         },
         style: {},
-        content: { text: 'Test text' },
-        interactions: []
+        content: { textContent: 'Test text' },
+        interactions: [],
+        isVisible: true
       };
 
       // Test type narrowing based on element type
@@ -330,7 +362,11 @@ describe('TypeScript Integration Tests', () => {
         transitions: [],
         layout: {
           aspectRatio: '16:9',
-          backgroundFit: 'contain'
+          backgroundSize: 'contain',
+          containerWidth: 1920,
+          containerHeight: 1080,
+          scaling: 'fit',
+          backgroundPosition: 'center center'
         }
       };
 

@@ -161,11 +161,19 @@ describe.skip('Firebase Integration Tests', () => {
                 },
                 style: { backgroundColor: '#ff0000' },
                 content: { title: 'Test Hotspot' },
-                interactions: []
+                interactions: [],
+                isVisible: true
               } as SlideElement
             ],
             transitions: [],
-            layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
           } as InteractiveSlide
         ],
         metadata: {
@@ -415,8 +423,18 @@ describe.skip('Firebase Integration Tests', () => {
           slides: [],
           metadata: {
             version: '2.0',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            created: Date.now(),
+            modified: Date.now(),
+            isPublic: false
+          },
+          settings: {
+            autoAdvance: false,
+            allowNavigation: true,
+            showProgress: true,
+            showControls: true,
+            keyboardShortcuts: true,
+            touchGestures: true,
+            fullscreenMode: false,
           }
         }
       };

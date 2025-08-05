@@ -118,20 +118,11 @@ export function getIOSViewportStyle(options: {
 
   return {
     // Modern dynamic viewport units
-    height: '100dvh',
+    height: useAvailableHeight ? 'calc(var(--available-vh, 1vh) * 100)' : '100dvh',
     minHeight: '-webkit-fill-available',
     
-    // Fallback for unsupported browsers
-    minHeight: `calc(100vh - ${fallbackOffset}px)`,
-    
-    // Use available height if iOS Safari UI is interfering
-    ...(useAvailableHeight && {
-      height: 'calc(var(--available-vh, 1vh) * 100)',
-      maxHeight: 'calc(var(--available-vh, 1vh) * 100)'
-    }),
-    
     // iOS Safari specific fixes
-    maxHeight: '100dvh',
+    maxHeight: useAvailableHeight ? 'calc(var(--available-vh, 1vh) * 100)' : '100dvh',
     overflow: 'hidden',
     position: 'relative'
   };
@@ -188,8 +179,6 @@ export function getIOSModalStyle(options: {
       left: 'env(safe-area-inset-left, 0px)',
       right: 'env(safe-area-inset-right, 0px)',
       maxHeight: `min(${maxHeightPercent}dvh, calc(100vh - env(safe-area-inset-top, 44px) - 32px))`,
-      // Fallback for browsers without dvh support
-      maxHeight: `${maxHeightPercent}vh`,
       borderRadius: '16px 16px 0 0',
       overflow: 'hidden'
     };

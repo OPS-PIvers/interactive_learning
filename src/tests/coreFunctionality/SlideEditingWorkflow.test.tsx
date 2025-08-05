@@ -55,14 +55,28 @@ describe('Slide Editing Workflow Tests', () => {
         transitions: [],
         layout: {
           aspectRatio: '16:9',
-          backgroundFit: 'contain'
+          backgroundSize: 'contain',
+          containerWidth: 1920,
+          containerHeight: 1080,
+          scaling: 'fit',
+          backgroundPosition: 'center center'
         }
       } as InteractiveSlide
     ],
     metadata: {
       version: '2.0',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      created: Date.now(),
+      modified: Date.now(),
+      isPublic: false,
+    },
+    settings: {
+      autoAdvance: false,
+      allowNavigation: true,
+      showProgress: true,
+      showControls: true,
+      keyboardShortcuts: true,
+      touchGestures: true,
+      fullscreenMode: false,
     }
   };
 
@@ -96,7 +110,8 @@ describe('Slide Editing Workflow Tests', () => {
             },
             style: { backgroundColor: '#ff0000', borderRadius: '50%' },
             content: { title: 'Test Hotspot' },
-            interactions: []
+            interactions: [],
+            isVisible: true
           };
 
           const updatedDeck = {
@@ -263,7 +278,8 @@ describe('Slide Editing Workflow Tests', () => {
             },
             style: { backgroundColor: '#ff0000', borderRadius: '50%' },
             content: { title: 'Hotspot' },
-            interactions: []
+            interactions: [],
+            isVisible: true
           };
           setElements(prev => [...prev, hotspot]);
         };
@@ -278,8 +294,9 @@ describe('Slide Editing Workflow Tests', () => {
               mobile: { x: 120, y: 120, width: 180, height: 60 }
             },
             style: { fontSize: 16, color: '#000000' },
-            content: { text: 'Sample text' },
-            interactions: []
+            content: { textContent: 'Sample text' },
+            interactions: [],
+            isVisible: true
           };
           setElements(prev => [...prev, text]);
         };
@@ -355,7 +372,8 @@ describe('Slide Editing Workflow Tests', () => {
             },
             style: { backgroundColor: '#ff0000' },
             content: { title: 'Original Title' },
-            interactions: []
+            interactions: [],
+            isVisible: true
           }
         ]);
 
@@ -495,8 +513,18 @@ describe('Slide Editing Workflow Tests', () => {
           slides: [],
           metadata: {
             version: '2.0',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            created: Date.now(),
+            modified: Date.now(),
+            isPublic: false,
+          },
+          settings: {
+            autoAdvance: false,
+            allowNavigation: true,
+            showProgress: true,
+            showControls: true,
+            keyboardShortcuts: true,
+            touchGestures: true,
+            fullscreenMode: false,
           }
         }));
 
@@ -508,7 +536,14 @@ describe('Slide Editing Workflow Tests', () => {
               title: `Slide ${prev.slides.length + 1}`,
               elements: [],
               transitions: [],
-              layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+              layout: {
+                aspectRatio: '16:9',
+                backgroundSize: 'contain',
+                containerWidth: 1920,
+                containerHeight: 1080,
+                scaling: 'fit',
+                backgroundPosition: 'center center'
+              }
             } as InteractiveSlide]
           }));
         };

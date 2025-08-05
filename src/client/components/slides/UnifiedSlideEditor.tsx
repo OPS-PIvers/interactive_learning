@@ -413,6 +413,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       },
       content: elementType === 'text' ? { textContent: 'New Text Element' } : {},
       interactions: [],
+      isVisible: true,
     };
     
     const updatedSlide = {

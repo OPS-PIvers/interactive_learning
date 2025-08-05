@@ -9,7 +9,11 @@ export function createDefaultSlideDeck(id: string, title: string): SlideDeck {
     transitions: [],
     layout: {
       aspectRatio: '16:9',
-      backgroundFit: 'cover'
+      backgroundSize: 'cover',
+      containerWidth: 1920,
+      containerHeight: 1080,
+      scaling: 'fit',
+      backgroundPosition: 'center center'
     },
     metadata: {
       created: Date.now(),
