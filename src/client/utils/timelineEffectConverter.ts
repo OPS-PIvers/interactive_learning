@@ -204,7 +204,7 @@ function createShowTextEffect(
         color: 'white',
         padding: 20,
         borderRadius: 12,
-        fontSize: '16px',
+        fontSize: 16,
         fontWeight: '500',
         textAlign: 'center' as const
       }
@@ -239,7 +239,7 @@ function createPlayMediaEffect(
     type: 'play_media',
     duration: 0, // Duration depends on media
     parameters: {
-      mediaType: actualMediaType,
+      mediaType: actualMediaType as 'audio' | 'video',
       mediaUrl,
       autoplay: timelineEvent.autoplay || false,
       controls: true

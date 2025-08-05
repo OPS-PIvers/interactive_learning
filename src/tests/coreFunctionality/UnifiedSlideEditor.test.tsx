@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, test, expect, beforeEach } from 'vitest';
+import { vi, describe, test, expect, beforeEach, Mock } from 'vitest';
 import '@testing-library/jest-dom';
 
 import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
@@ -72,8 +72,8 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-const mockUseAuth = useAuth as vi.Mock;
-const mockUseToast = useToast as vi.Mock;
+const mockUseAuth = useAuth as Mock;
+const mockUseToast = useToast as Mock;
 
 const mockSlideDeck: SlideDeck = {
   id: 'unified-deck-1',
@@ -107,9 +107,9 @@ const mockSlideDeck: SlideDeck = {
   },
   metadata: {
       version: '3.0',
-
-      createdAt: '2023-01-01T00:00:00.000Z',
-      updatedAt: '2023-01-01T00:00:00.000Z',
+      created: Date.now(),
+      modified: Date.now(),
+      isPublic: false,
   }
 };
 

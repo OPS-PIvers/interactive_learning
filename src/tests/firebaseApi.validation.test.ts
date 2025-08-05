@@ -118,7 +118,7 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: null, // This should be accepted
+          backgroundImage: undefined, // This should be accepted
           imageFitMode: 'cover',
           viewerModes: { explore: true, selfPaced: true, timed: true },
           hotspots: [],
@@ -295,7 +295,7 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
       const project = await firebaseAPI.createProject('TEST_CREATE_DEFAULT', 'Test default values');
       
       expect(project).toBeDefined();
-      expect(project.interactiveData.backgroundImage).toBe(null);
+      expect(project.interactiveData.backgroundImage).toBe(undefined);
       
       // Verify what was actually sent to Firebase during creation
       expect(lastSetDocCall).toBeTruthy();
@@ -311,7 +311,7 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
       
       // Step 1: Create a new project (this should work now)
       const project = await firebaseAPI.createProject('REGRESSION_TEST', 'Bug regression test');
-      expect(project.interactiveData.backgroundImage).toBe(null); // Fixed: no longer undefined
+      expect(project.interactiveData.backgroundImage).toBe(undefined); // Fixed: no longer undefined
       
       // Step 2: Try to save the project (this should also work now)
       const updatedProject = {
@@ -343,7 +343,7 @@ describe('FirebaseAPI - undefined vs null Validation', () => {
         isPublished: false,
         projectType: 'slide',
         interactiveData: {
-          backgroundImage: null, // Firestore rules expect: string | null
+          backgroundImage: undefined, // Firestore rules expect: string | undefined
           imageFitMode: 'cover', // Firestore rules expect: string
           viewerModes: { explore: true, selfPaced: true, timed: true }, // Firestore rules expect: map
           hotspots: [], // Firestore rules expect: array

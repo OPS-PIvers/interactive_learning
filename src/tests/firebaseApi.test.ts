@@ -62,6 +62,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   tablet: { x: 80, y: 80, width: 40, height: 40 },
                   mobile: { x: 60, y: 60, width: 30, height: 30 }
                 },
+                style: {},
+                content: {},
+                interactions: [],
+                isVisible: true,
               }
             ],
           } as InteractiveSlide
@@ -107,13 +111,21 @@ describe('FirebaseAPI - Slide Architecture', () => {
             backgroundImage: 'original.jpg',
             elements: [],
             transitions: [],
-            layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
           } as InteractiveSlide
         ],
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -157,7 +169,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -192,13 +205,21 @@ describe('FirebaseAPI - Slide Architecture', () => {
             backgroundImage: 'test.jpg',
             elements: [],
             transitions: [],
-            layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
           } as InteractiveSlide
         ],
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -249,18 +270,27 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   mobile: { x: 0, y: 0, width: 60, height: 30 }
                 },
                 style: { fontSize: 16 },
-                content: { text: 'Original text' },
-                interactions: []
+                content: { textContent: 'Original text' },
+                interactions: [],
+                isVisible: true
               }
             ],
             transitions: [],
-            layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
           } as InteractiveSlide
         ],
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -319,17 +349,26 @@ describe('FirebaseAPI - Slide Architecture', () => {
                 },
                 style: { backgroundColor: '#ff0000' },
                 content: { title: 'Responsive Hotspot' },
-                interactions: []
+                interactions: [],
+                isVisible: true
               }
             ],
             transitions: [],
-            layout: { aspectRatio: '16:9', backgroundFit: 'contain' }
+            layout: {
+              aspectRatio: '16:9',
+              backgroundSize: 'contain',
+              containerWidth: 1920,
+              containerHeight: 1080,
+              scaling: 'fit',
+              backgroundPosition: 'center center'
+            }
           } as InteractiveSlide
         ],
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -364,7 +403,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 
@@ -392,7 +432,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
         metadata: {
           version: '2.0',
           created: 1672531200000,
-          modified: 1672531200000
+          modified: 1672531200000,
+          isPublic: false
         }
       };
 

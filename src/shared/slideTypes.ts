@@ -240,7 +240,7 @@ export interface ShowTextParameters {
   position: FixedPosition;
   style: TextStyle;
   displayDuration?: number;
-  displayMode?: 'modal' | 'tooltip' | 'banner' | 'overlay';
+  displayMode?: 'inline' | 'modal' | 'tooltip' | 'banner' | 'overlay' | 'background' | 'mini-player';
   modalWidth?: number;
   modalMaxHeight?: number;
   modalPosition?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'element';

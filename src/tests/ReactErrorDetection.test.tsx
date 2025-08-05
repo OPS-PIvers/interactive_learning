@@ -40,8 +40,31 @@ describe('React Error Detection Tests', () => {
   const defaultSlideData: SlideDeck = {
     id: 'test-slide-deck',
     title: 'Test Slide Deck',
-    slides: [{ id: 'slide1', elements: [], backgroundMedia: null }],
-    metadata: { version: '2.0', createdAt: '', updatedAt: '' },
+    slides: [{ 
+      id: 'slide1', 
+      title: 'Test Slide', 
+      elements: [], 
+      transitions: [],
+      backgroundMedia: undefined,
+      layout: {
+        aspectRatio: '16:9',
+        containerWidth: 1920,
+        containerHeight: 1080,
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center'
+      }
+    }],
+    metadata: { version: '2.0', created: Date.now(), modified: Date.now(), isPublic: false },
+    settings: {
+      autoAdvance: false,
+      allowNavigation: true,
+      showProgress: true,
+      showControls: true,
+      keyboardShortcuts: true,
+      touchGestures: true,
+      fullscreenMode: false,
+    }
   };
 
   const getViewerProps = () => ({

@@ -16,7 +16,7 @@ export interface ResponsiveToolbarProps {
   onAspectRatioOpen: () => void;
   onPropertiesOpen?: () => void;
   deviceType: DeviceType;
-  onDeviceTypeChange: (deviceType: DeviceType | null) => void;
+  onDeviceTypeChange: (deviceType: DeviceType | undefined) => void;
   hasSelectedElement?: boolean;
 }
 

@@ -319,7 +319,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     
     const newSlide: InteractiveSlide = {
       id: generateId(),
+      title: `Slide ${insertIndex + 1}`,
       elements: [],
+      transitions: [],
       layout: {
         aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
         containerWidth: currentSlide?.layout?.containerWidth || 1200,
@@ -413,6 +415,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       },
       content: elementType === 'text' ? { textContent: 'New Text Element' } : {},
       interactions: [],
+      isVisible: true,
     };
     
     const updatedSlide = {
@@ -697,8 +700,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 </span>
                 <span className="mx-2">•</span>
                 <span>
-                  Successfully migrated {migrationResult.migratedSlides} slides, 
-                  {migrationResult.migratedHotspots} interactive elements
+                  Successfully migrated {migrationResult.slideDeck.slides.length} slides, 
+                  {migrationResult.elementsConverted} interactive elements
                 </span>
               </div>
             </div>
