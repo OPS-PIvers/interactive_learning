@@ -205,22 +205,45 @@ The application features a comprehensive modal layout constraint system that pre
 - **Touch Events**: Coordinate between user gestures and automated events
 - **Bundle Size**: Use direct imports for better tree-shaking
 
-## Puppeteer MCP Integration
-The project includes comprehensive Puppeteer MCP integration for automated browser testing and interaction. The system provides multiple authentication methods and robust error handling for reliable automated testing.
+## Browser Automation - Playwright MCP Integration
+The project uses Microsoft Playwright MCP for comprehensive cross-browser testing and automation. Playwright offers superior browser support and more reliable automation compared to legacy solutions, with support for Chromium, Firefox, and WebKit browsers.
 
-### MCP Servers Available
-- **puppeteer-hisma**: Professional-grade Puppeteer MCP server (v0.6.5)
-- **puppeteer-custom**: Project-specific custom server with enhanced utilities
-- **MCP Tools**: `puppeteer_navigate`, `puppeteer_screenshot`, `puppeteer_click`, `puppeteer_fill`, `puppeteer_evaluate`, `puppeteer_login`, `puppeteer_logout`, `puppeteer_auth_status`
+### MCP Server Configuration
+- **Microsoft Playwright MCP**: Official server using `@playwright/mcp@latest`
+- **Installation**: `claude mcp add playwright -s user -- npx @playwright/mcp@latest`
+- **Status**: Automatically configured and connected in Claude Code
+
+### Available Browser Automation Tools
+- **Navigation**: `browser_navigate`, `browser_navigate_back`, `browser_navigate_forward`
+- **Interaction**: `browser_click`, `browser_hover`, `browser_type`, `browser_press_key`
+- **Forms**: `browser_select_option`, `browser_file_upload`
+- **Viewport**: `browser_resize`, `browser_take_screenshot`
+- **JavaScript**: `browser_evaluate` for custom script execution
+- **Waiting**: `browser_wait_for` for dynamic content
+- **Advanced**: `browser_drag`, `browser_snapshot` (accessibility tree)
+- **Tab Management**: `browser_tab_new`, `browser_tab_close`, `browser_tab_list`, `browser_tab_select`
+- **Debugging**: `browser_console_messages`, `browser_network_requests`
+
+### Multi-Browser Support
+Playwright supports multiple browser engines:
+- **Chromium**: Default browser, includes Chrome and Edge
+- **Firefox**: Mozilla Firefox engine
+- **WebKit**: Safari browser engine
+- **Device Emulation**: Mobile devices like "iPhone 15", "Pixel 5"
 
 ### Authentication Methods
 - **Development Bypass**: Set `VITE_DEV_AUTH_BYPASS=true` in `.env.local` for instant authentication
 - **Test Credentials**: Use `TEST_USER_EMAIL=test@localhost.dev` and `TEST_USER_PASSWORD=TestPassword123!`
-- **MCP Login**: Use `mcp__puppeteer-*__puppeteer_login` with `method: "bypass"` parameter
 - **Session Management**: Bypass injects mock user data into browser session storage
 
 ### Environment Configuration
 ```bash
+# Playwright Settings
+PLAYWRIGHT_TEST_URL=http://localhost:3000
+PLAYWRIGHT_BROWSER=chromium
+PLAYWRIGHT_HEADLESS=true
+PLAYWRIGHT_DEVICE="Desktop Chrome"
+
 # Development Bypass
 VITE_DEV_AUTH_BYPASS=true
 VITE_DEV_USER_EMAIL=dev@localhost
@@ -230,45 +253,39 @@ VITE_DEV_USER_NAME=Development User
 TEST_USER_EMAIL=test@localhost.dev
 TEST_USER_PASSWORD=TestPassword123!
 TEST_USER_DISPLAY_NAME=Test User
-
-# Puppeteer Settings
-PUPPETEER_TEST_URL=http://localhost:3000
-PUPPETEER_HEADLESS=true
 ```
 
-### Development Scripts
-- `npm run mcp:workflow test` - Run comprehensive MCP tests
-- `npm run mcp:validate` - Validate MCP configuration
-- `npm run mcp:demo` - Run demonstration workflow
-- `npm run auth:test` - Test authentication system
-- `npm run auth:demo` - Run authentication demo
+### Cross-Browser Testing Workflow
+```bash
+# Test on multiple browsers
+claude "Test login flow on Chromium, Firefox, and WebKit browsers"
 
-### Puppeteer MCP Best Practices
+# Mobile testing
+claude "Test responsive design on iPhone 15 and Pixel 5 viewports"
+
+# Performance testing
+claude "Run accessibility snapshot and measure page load times"
+
+# Cross-platform validation
+claude "Test interactive hotspots on desktop and mobile browsers"
+```
+
+### Playwright MCP Best Practices
 - **Single Action Per Call**: Limit each MCP call to one specific action (navigate, click, fill, etc.)
 - **State Verification**: Always verify expected state after each action before proceeding  
 - **Timeout Management**: Set appropriate timeouts (5-30 seconds) for each operation
 - **Loop Prevention**: Avoid recursive task chains; use explicit step-by-step workflows
 - **Auth First**: Always establish bypass authentication before attempting other actions
-- **Work Chunking**: Break Puppeteer tasks into small, discrete steps to avoid infinite loops
-- **Error Recovery**: Implement timeouts and fallbacks for each Puppeteer action
+- **Work Chunking**: Break tasks into small, discrete steps to avoid infinite loops
+- **Error Recovery**: Implement timeouts and fallbacks for each action
 - **Screenshot Verification**: Take screenshots between major steps to verify progress
 - **Task Isolation**: Complete one specific task before moving to the next
-- **Error Boundaries**: Wrap Puppeteer sequences in try-catch blocks with recovery strategies
-
-### Common Usage Patterns
-```bash
-# Basic testing workflow
-claude "Navigate to localhost:3000, authenticate with bypass method, screenshot the dashboard, and test main features"
-
-# Authentication flow testing  
-claude "Test complete auth flow: check status, login with test credentials, verify authentication, then logout"
-
-# Feature testing with screenshots
-claude "Login to app, navigate to interactive module editor, test creating hotspots, screenshot each step"
-
-# Mobile responsive testing
-claude "Set mobile viewport, navigate to app, authenticate, test touch interactions, screenshot mobile view"
-```
+- **Error Boundaries**: Wrap automation sequences in try-catch blocks with recovery strategies
+- **Browser Diversity**: Test critical flows across all three engines (Chromium, Firefox, WebKit)
+- **Device Testing**: Include both desktop and mobile viewports
+- **Wait Strategies**: Use `browser_wait_for` instead of fixed delays
+- **Accessibility**: Leverage `browser_snapshot` for accessibility validation
+- **Cross-Platform**: Validate behavior across different operating systems
 
 ## Playwright MCP Integration
 The project now includes the Microsoft Playwright MCP server for comprehensive cross-browser testing and automation. Playwright offers superior browser support and more reliable automation compared to Puppeteer, with support for Chromium, Firefox, and WebKit browsers.
@@ -358,8 +375,13 @@ claude "Test interactive hotspots on desktop and mobile browsers"
 - **Error Handling**: Check console messages and network requests for issues
 - **Cross-Platform**: Validate behavior across different operating systems
 
-### Migration from Puppeteer
-Playwright MCP provides superior capabilities while maintaining familiar automation patterns. Consider migrating complex Puppeteer workflows to Playwright for better reliability and cross-browser support.
+### Advantages over Legacy Solutions
+- **Multi-Browser Support**: Tests on Chromium, Firefox, and WebKit
+- **Better Reliability**: More stable automation with better wait strategies
+- **Mobile Testing**: Superior mobile device emulation
+- **Accessibility**: Built-in accessibility tree snapshots
+- **Performance**: Faster execution and better resource management
+- **Modern APIs**: More intuitive and comprehensive automation APIs
 
 ## Legacy Code Cleanup Guidelines
 The application is transitioning from separate mobile/desktop components to a unified responsive architecture. Claude Code should proactively identify and clean up legacy patterns:
@@ -387,7 +409,7 @@ The application is transitioning from separate mobile/desktop components to a un
 - **Touch Coordination**: Complex gesture coordination between pan/zoom and hotspot interaction
 - **Firebase Setup**: Firebase emulator setup required for local development and testing
 - **Mobile Viewport**: iOS Safari viewport quirks require specialized handling
-- **Puppeteer Stability**: Complex automation sequences can become unstable; chunk work appropriately
+- **Browser Automation**: Complex automation sequences require proper chunking and error handling
 - **Legacy Components**: Some `Mobile*` components still exist and should be gradually replaced with unified responsive versions
 
 ## Claude Development Workflows
