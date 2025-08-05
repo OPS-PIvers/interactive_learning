@@ -13,6 +13,9 @@ import UnifiedPropertiesPanel from '../UnifiedPropertiesPanel';
  * Properties Panel - unified responsive component
  */
 export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = (props) => {
+  if (!props.selectedElement || !props.currentSlide) {
+    return null;
+  }
   return (
     <UnifiedPropertiesPanel
       selectedElement={props.selectedElement}

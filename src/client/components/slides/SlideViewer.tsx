@@ -610,13 +610,10 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         <SlideTimeline
           slideDeck={slideDeck}
           currentSlideIndex={viewerState.currentSlideIndex}
-          currentStep={currentTimelineStep}
+          initialStep={currentTimelineStep}
           onStepChange={handleTimelineStepChange}
           onEffectTrigger={handleTimelineEffectTrigger}
-          isPlaying={isPlaying}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          deviceType={deviceType}
+          autoPlay={timelineAutoPlay}
           className="absolute bottom-0 left-0 right-0 z-30"
         />
       )}

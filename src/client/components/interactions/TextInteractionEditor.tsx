@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ElementInteraction, EffectParameters } from '../../../shared/slideTypes';
+import { ElementInteraction, ShowTextParameters } from '../../../shared/slideTypes';
 
 interface TextInteractionEditorProps {
   interaction: ElementInteraction;
@@ -7,27 +7,18 @@ interface TextInteractionEditorProps {
   onDone: () => void;
 }
 
-// Define the structure of our text interaction parameters
-interface TextParameters extends EffectParameters {
-  title?: string;
-  textContent?: string;
-  autoDismiss?: boolean;
-  dismissDelay?: number;
-  allowClickToClose?: boolean;
-}
-
 export const TextInteractionEditor: React.FC<TextInteractionEditorProps> = ({
   interaction,
   onUpdate,
   onDone,
 }) => {
-  const [params, setParams] = useState<TextParameters>(
-    interaction.effect.parameters as TextParameters
+  const [params, setParams] = useState<ShowTextParameters>(
+    interaction.effect.parameters as ShowTextParameters
   );
 
-  const handleParamChange = useCallback(<K extends keyof TextParameters>(
+  const handleParamChange = useCallback(<K extends keyof ShowTextParameters>(
     param: K,
-    value: TextParameters[K]
+    value: ShowTextParameters[K]
   ) => {
     setParams(currentParams => ({
       ...currentParams,
@@ -47,25 +38,12 @@ export const TextInteractionEditor: React.FC<TextInteractionEditorProps> = ({
 
   // Update internal state if the interaction prop changes from outside
   useEffect(() => {
-    setParams(interaction.effect.parameters as TextParameters);
+    setParams(interaction.effect.parameters as ShowTextParameters);
   }, [interaction]);
 
   return (
     <div className="p-4 bg-slate-800 text-white h-full flex flex-col space-y-4">
       <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-        <div>
-          <label htmlFor="text-title" className="block text-sm font-medium text-slate-300 mb-2">
-            Title
-          </label>
-          <input
-            id="text-title"
-            type="text"
-            placeholder="Enter a title for the text popup"
-            value={params.title || ''}
-            onChange={e => handleParamChange('title', e.target.value)}
-            className="w-full p-3 bg-slate-700 rounded-md border border-slate-600 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
         <div>
           <label htmlFor="text-content" className="block text-sm font-medium text-slate-300 mb-2">
             Text Content
@@ -73,8 +51,8 @@ export const TextInteractionEditor: React.FC<TextInteractionEditorProps> = ({
           <textarea
             id="text-content"
             placeholder="Enter the text to display..."
-            value={params.textContent || ''}
-            onChange={e => handleParamChange('textContent', e.target.value)}
+            value={params.text || ''}
+            onChange={e => handleParamChange('text', e.target.value)}
             className="w-full p-3 bg-slate-700 rounded-md border border-slate-600 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
             rows={8}
           />
@@ -85,56 +63,40 @@ export const TextInteractionEditor: React.FC<TextInteractionEditorProps> = ({
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label htmlFor="auto-dismiss" className="text-sm text-slate-300">
-              Auto-dismiss after delay
+            <label htmlFor="auto-close" className="text-sm text-slate-300">
+              Auto-close after delay
             </label>
             <button
               type="button"
-              id="auto-dismiss"
+              id="auto-close"
               role="switch"
-              aria-checked={!!params.autoDismiss}
-              onClick={() => handleParamChange('autoDismiss', !params.autoDismiss)}
-              className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${params.autoDismiss ? 'bg-green-500' : 'bg-gray-600'}`}
+              aria-checked={!!params.autoClose}
+              onClick={() => handleParamChange('autoClose', !params.autoClose)}
+              className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${params.autoClose ? 'bg-green-500' : 'bg-gray-600'}`}
             >
-              <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${params.autoDismiss ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${params.autoClose ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
 
-          {params.autoDismiss && (
+          {params.autoClose && (
             <div>
-              <label htmlFor="dismiss-delay" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="close-delay" className="block text-sm font-medium text-slate-300 mb-2">
                 Display Duration (seconds)
               </label>
               <input
-                id="dismiss-delay"
+                id="close-delay"
                 type="number"
                 min="1"
                 max="30"
-                value={params.dismissDelay || 5}
+                value={params.autoCloseDuration || 5}
                 onChange={e => {
                   const value = parseInt(e.target.value, 10);
-                  handleParamChange('dismissDelay', isNaN(value) ? 5 : Math.max(1, Math.min(30, value)));
+                  handleParamChange('autoCloseDuration', isNaN(value) ? 5 : Math.max(1, Math.min(30, value)));
                 }}
                 className="w-full p-2 bg-slate-700 rounded-md border border-slate-600 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               />
             </div>
           )}
-
-          <div className="flex items-center justify-between">
-            <label htmlFor="clickable-close" className="text-sm text-slate-300">
-              Allow click to close
-            </label>
-            <button
-              type="button"
-              id="clickable-close"
-              role="switch"
-              aria-checked={params.allowClickToClose !== false} // Default to true
-              onClick={() => handleParamChange('allowClickToClose', !(params.allowClickToClose !== false))}
-              className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-purple-500 ${params.allowClickToClose !== false ? 'bg-green-500' : 'bg-gray-600'}`}
-            >
-              <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${params.allowClickToClose !== false ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
-          </div>
         </div>
       </div>
 

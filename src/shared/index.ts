@@ -5,6 +5,6 @@ export * from './enums';
 export * from './InteractionPresets';
 
 // Default exports
-export { default as DataMigration } from './DataMigration';
+export { DataMigration } from './DataMigration';
 export { getMigrationInfo } from './migration';
 export { migrateProjectToSlides } from './migrationUtils';

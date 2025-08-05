@@ -6,7 +6,7 @@ export interface HotspotPositioningUtils {
   getPixelPosition: (
     hotspot: HotspotData,
     currentImageTransform: ImageTransformState,
-    imageElement: HTMLImageElement | null,
+    imageBounds: { width: number; height: number; left: number; top: number } | null,
     containerElement: HTMLElement | null
   ) => { x: number; y: number } | null;
   getStablePixelPosition: (
@@ -29,9 +29,16 @@ export const useHotspotPositioning = (
     (
       hotspot: HotspotData,
       currentImageTransform: ImageTransformState,
-      imageElement: HTMLImageElement | null,
+      imageBounds: { width: number; height: number; left: number; top: number } | null,
       containerElement: HTMLElement | null
     ): { x: number; y: number } | null => {
+      if (!imageBounds) {
+        return null;
+      }
+
+      // Extract image element from imageBounds if it has the expected structure
+      // The imageBounds parameter should actually be an HTMLImageElement, not bounds data
+      const imageElement = containerElement?.querySelector('img') as HTMLImageElement | null;
       const visibleImageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
 
       if (!visibleImageBounds) {
@@ -68,8 +75,10 @@ export const useHotspotPositioning = (
         return null;
       }
 
-      // Normal calculation - delegate to the existing function
-      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerDimensions);
+      // Normal calculation - delegate to the existing function with proper containerElement
+      // Find the container element if we have containerDimensions
+      const containerElement = containerDimensions ? document.querySelector('[data-canvas-container]') as HTMLElement | null : null;
+      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerElement);
     },
     [getPixelPosition]
   );

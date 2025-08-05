@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Easing } from 'framer-motion';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters } from '../../../shared/slideTypes';
 import { AnimatedElement } from '../animations/ElementAnimations';
 
@@ -247,7 +247,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
               }}
               transition={{
                 duration: effect.duration / 1000,
-                ease: effect.easing || "easeInOut",
+                ease: (effect.easing as Easing) || "easeInOut",
                 type: "spring",
                 damping: 20,
                 stiffness: 100
@@ -363,7 +363,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
               }}
               transition={{
                 duration: effect.duration / 1000,
-                ease: params.easing || "easeInOut",
+                ease: (params.easing as Easing) || "easeInOut",
                 type: "spring",
                 damping: 20,
                 stiffness: 100
@@ -432,7 +432,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
             }}
             transition={{
               duration: effect.duration / 1000,
-              ease: effect.easing || "easeInOut",
+              ease: (effect.easing as Easing) || "easeInOut",
               type: params.animationType === 'move' ? "spring" : "tween",
               damping: 15,
               stiffness: 100

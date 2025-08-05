@@ -112,7 +112,7 @@ export function hasValidDimensions(rect: any): rect is { width: number; height: 
          isFinite(rect.height);
 }
 
-import { HotspotData } from '../../shared/types';
+import { HotspotData } from '../shared/types';
 
 /**
  * Normalize hotspot position to ensure compatibility between legacy and enhanced systems

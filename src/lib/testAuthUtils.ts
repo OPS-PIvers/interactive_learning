@@ -141,10 +141,11 @@ export class DevAuthBypass {
     this.currentUser = createMockUser(userData);
   }
 
-  private handleBypassEvent(event: CustomEvent): void {
-    if (event.detail?.enabled && event.detail?.user) {
+  private handleBypassEvent(event: Event): void {
+    const customEvent = event as CustomEvent;
+    if (customEvent.detail?.enabled && customEvent.detail?.user) {
       this.bypassEnabled = true;
-      this.currentUser = createMockUser(event.detail.user);
+      this.currentUser = createMockUser(customEvent.detail.user);
       console.warn('🔧 Dev bypass activated by Puppeteer:', this.currentUser.email);
     }
   }

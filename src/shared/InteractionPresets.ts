@@ -167,4 +167,75 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     settings: ['text', 'position'],
     description: 'Show contextual information on hover or click'
   },
+  // Add missing lowercase versions to satisfy the Record type
+  [InteractionType.QUIZ_LOWERCASE]: {
+    icon: '❓',
+    name: 'Quiz (Legacy)',
+    color: 'bg-gray-500',
+    settings: [],
+    description: 'Legacy quiz question'
+  },
+  [InteractionType.SHOW_TEXT_LOWERCASE]: {
+    icon: '📝',
+    name: 'Show Text (Legacy)',
+    color: 'bg-gray-500',
+    settings: [],
+    description: 'Legacy text display'
+  },
+  [InteractionType.HIDE_ELEMENT]: {
+    icon: '👁️‍🗨️',
+    name: 'Hide Element',
+    color: 'bg-gray-400',
+    settings: ['targetElementId'],
+    description: 'Hide an element on the slide'
+  },
+  [InteractionType.SHOW_ELEMENT]: {
+    icon: '👁️',
+    name: 'Show Element',
+    color: 'bg-gray-400',
+    settings: ['targetElementId'],
+    description: 'Show a hidden element on the slide'
+  },
+  [InteractionType.HIGHLIGHT]: {
+    icon: '✨',
+    name: 'Highlight',
+    color: 'bg-yellow-400',
+    settings: [],
+    description: 'Highlight an element'
+  },
+  [InteractionType.ANIMATION]: {
+    icon: '🎬',
+    name: 'Animation',
+    color: 'bg-purple-400',
+    settings: [],
+    description: 'Play an animation'
+  },
+  [InteractionType.JUMP]: {
+    icon: '➡️',
+    name: 'Jump to Slide',
+    color: 'bg-green-400',
+    settings: [],
+    description: 'Jump to a different slide'
+  },
+  [InteractionType.PLAY_AUDIO_LOWERCASE]: {
+    icon: '🔊',
+    name: 'Play Audio (Legacy)',
+    color: 'bg-gray-500',
+    settings: [],
+    description: 'Legacy audio playback'
+  },
+  [InteractionType.PAUSE_AUDIO]: {
+    icon: '⏸️',
+    name: 'Pause Audio',
+    color: 'bg-indigo-400',
+    settings: [],
+    description: 'Pause the currently playing audio'
+  },
+  [InteractionType.PAN_ZOOM_LOWERCASE]: {
+    icon: '🔍',
+    name: 'Pan & Zoom (Legacy)',
+    color: 'bg-gray-500',
+    settings: [],
+    description: 'Legacy pan and zoom'
+  }
 };

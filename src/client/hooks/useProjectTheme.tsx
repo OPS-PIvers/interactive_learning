@@ -97,7 +97,7 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
           '--pulse-bg': colors.hotspotPulse,
           '--transition-duration': `${effects.animation.duration.medium}ms`,
           '--transition-easing': effects.animation.easing.easeInOut
-        };
+        } as Record<string, string>;
       
       case 'modal':
         return {
@@ -109,7 +109,7 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
           '--overlay-bg': colors.modalOverlay,
           '--text-secondary': colors.textSecondary,
           '--border-radius-small': `${effects.borderRadius.small}px`
-        };
+        } as Record<string, string>;
       
       case 'text':
         return {
@@ -121,10 +121,10 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
           '--text-secondary': colors.textSecondary,
           '--primary-color': colors.primary,
           '--accent-color': colors.accent
-        };
+        } as Record<string, string>;
       
       default:
-        return {};
+        return {} as Record<string, string>;
     }
   }, [currentTheme]);
 

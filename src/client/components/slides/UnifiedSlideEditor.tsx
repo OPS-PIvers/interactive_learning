@@ -322,6 +322,11 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       elements: [],
       layout: {
         aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
+        containerWidth: currentSlide?.layout?.containerWidth || 1200,
+        containerHeight: currentSlide?.layout?.containerHeight || 800,
+        scaling: currentSlide?.layout?.scaling || 'fit',
+        backgroundSize: currentSlide?.layout?.backgroundSize || 'cover',
+        backgroundPosition: currentSlide?.layout?.backgroundPosition || 'center',
       },
     };
     
@@ -406,7 +411,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         fontSize: elementType === 'text' ? 16 : undefined,
         color: elementType === 'text' ? '#000000' : undefined,
       },
-      content: elementType === 'text' ? { text: 'New Text Element' } : {},
+      content: elementType === 'text' ? { textContent: 'New Text Element' } : {},
       interactions: [],
     };
     
@@ -479,9 +484,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   }, [handleSlideUpdate]);
   
   // Handle theme changes
-  const handleThemeChange = useCallback((theme: ThemePreset) => {
+  const handleThemeChange = useCallback((theme: any, themeId: ThemePreset) => {
     // Theme changes would be handled at the project level
-    console.log('Theme change:', theme);
+    console.log('Theme change:', theme, themeId);
   }, []);
   
   // Handle save operation
@@ -517,7 +522,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           isPublished: false,
           // Required interactiveData field
           interactiveData: {
-            backgroundImage: null,
+            backgroundImage: undefined,
             imageFitMode: 'cover' as const,
             viewerModes: { explore: true, selfPaced: true, timed: true },
             hotspots: [],

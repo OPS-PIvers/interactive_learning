@@ -76,10 +76,9 @@ const ViewerView: React.FC = () => {
 
   if (error || !project) {
     return (
-      <ErrorScreen 
-        message={error || 'Project not found'} 
-        onRetry={loadProject}
-        onBack={handleClose}
+      <ErrorScreen
+        error={new Error(error || 'Project not found')}
+        onReload={loadProject}
       />
     );
   }

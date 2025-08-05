@@ -99,7 +99,7 @@ export function validateFirebaseUrl(url: string): {
       }
     }
     
-  } catch (error) {
+  } catch (error: any) {
     result.issues.push(`Invalid URL format: ${error.message}`);
   }
 

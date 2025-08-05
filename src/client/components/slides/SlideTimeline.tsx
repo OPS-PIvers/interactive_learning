@@ -18,6 +18,7 @@ interface TimelineStep {
 interface SlideTimelineProps {
   slideDeck: SlideDeck;
   currentSlideIndex: number;
+  initialStep: number;
   onStepChange: (stepIndex: number) => void;
   onEffectTrigger: (effect: SlideEffect) => void;
   isVisible?: boolean;
@@ -33,13 +34,14 @@ interface SlideTimelineProps {
 export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   slideDeck,
   currentSlideIndex,
+  initialStep,
   onStepChange,
   onEffectTrigger,
   isVisible = true,
   autoPlay = false,
   className = ''
 }) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(initialStep);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [timelineSteps, setTimelineSteps] = useState<TimelineStep[]>([]);
@@ -119,6 +121,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
       setCurrentStepIndex(0);
     }
   }, [slideDeck, generateTimelineSteps, currentStepIndex]);
+
   
   // Handle step change
   const handleStepChange = useCallback((stepIndex: number) => {
@@ -216,20 +219,20 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
     return null;
   }
   
-  const currentStep = timelineSteps[currentStepIndex];
+  const currentStepData = timelineSteps[currentStepIndex];
   const progress = timelineSteps.length > 0 ? (currentStepIndex / (timelineSteps.length - 1)) * 100 : 0;
   
   return (
     <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 shadow-lg ${className}`}>
       
       {/* Enhanced Current Step Info */}
-      {currentStep && (
+      {currentStepData && (
         <div className="px-4 py-3 border-b border-slate-700/30 bg-gradient-to-r from-slate-700/30 to-slate-600/30">
           <h4 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-            {currentStep.title}
+            {currentStepData.title}
           </h4>
-          <p className="text-slate-300 text-xs leading-relaxed">{currentStep.description}</p>
+          <p className="text-slate-300 text-xs leading-relaxed">{currentStepData.description}</p>
         </div>
       )}
       
@@ -304,7 +307,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         </button>
         
         <div className="ml-4 text-slate-300 text-xs font-medium bg-slate-700/50 px-2 py-1 rounded-full">
-          {currentStep ? `${Math.round(currentStep.timestamp)}s` : '0s'}
+          {currentStepData ? `${Math.round(currentStepData.timestamp)}s` : '0s'}
         </div>
       </div>
       
