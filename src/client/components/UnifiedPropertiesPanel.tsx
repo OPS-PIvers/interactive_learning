@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import ChevronDownIcon from './icons/ChevronDownIcon';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 
 interface EventTypeOption {
   type: InteractionType;

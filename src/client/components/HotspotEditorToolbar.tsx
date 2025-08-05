@@ -6,7 +6,7 @@
  */
 import React, { useState } from 'react';
 import { HotspotData, TimelineEventData } from '../../shared/types';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { PlusIcon } from './icons/PlusIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';

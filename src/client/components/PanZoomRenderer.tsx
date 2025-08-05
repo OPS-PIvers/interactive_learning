@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { TimelineEventData, HotspotData } from '../../shared/types';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { usePanZoom } from '../contexts/PanZoomProvider';
 
 interface PanZoomRendererProps {

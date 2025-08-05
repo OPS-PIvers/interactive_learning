@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { Identifier, XYCoord } from 'dnd-core';
 import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { EyeIcon } from './icons/EyeIcon';

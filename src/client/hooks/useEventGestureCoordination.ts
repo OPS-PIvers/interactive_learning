@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 
 interface EventGestureState {
   isEventActive: boolean;

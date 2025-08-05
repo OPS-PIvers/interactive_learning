@@ -12,7 +12,7 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
 import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
 import { TimelineEventData } from '../../../shared/types';
-import { InteractionType } from '../../../shared/enums';
+import { InteractionType } from '../../../shared/InteractionPresets';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;

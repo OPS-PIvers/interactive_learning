@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { ElementInteraction, SlideEffectType, EffectParameters } from '../../../shared/slideTypes';
-import { InteractionType } from '../../../shared/enums';
+import { InteractionType } from '../../../shared/InteractionPresets';
 import { interactionPresets } from '../../../shared/InteractionPresets';
 
 interface InteractionEditorProps {

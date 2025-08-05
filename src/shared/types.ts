@@ -2,11 +2,7 @@
 import { Timestamp } from 'firebase/firestore';
 import { SlideDeck } from './slideTypes';
 
-import { InteractionType } from './enums';
-
-// Re-export InteractionType const and type from dedicated enum file
-export { InteractionType };
-export type { InteractionType as InteractionTypeUnion } from './enums';
+import { InteractionType } from './InteractionPresets';
 
 
 export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';

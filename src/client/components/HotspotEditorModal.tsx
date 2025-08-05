@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
-import { InteractionType } from '../../shared/enums';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { hotspotStylePresets, hotspotSizePresets, applyStylePreset, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';

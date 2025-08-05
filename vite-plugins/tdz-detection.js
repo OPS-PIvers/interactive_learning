@@ -132,7 +132,7 @@ export function tdzDetectionPlugin(options = {}) {
                 )) {
               issues.push({
                 type: 'deprecated-import',
-                message: 'InteractionType should be imported from shared/enums to avoid circular dependencies',
+                message: 'InteractionType should be imported from shared/InteractionPresets to avoid circular dependencies',
                 line: path.node.loc?.start.line || 0,
               });
             }

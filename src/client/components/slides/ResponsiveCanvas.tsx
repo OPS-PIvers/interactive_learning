@@ -11,7 +11,7 @@ import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, R
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
 import { ImageTransformState } from '../../../shared/types';
-import { InteractionType } from '../../../shared/enums';
+import { InteractionType } from '../../../shared/InteractionPresets';
 import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';

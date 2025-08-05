@@ -1,4 +1,5 @@
-import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from './types';
+import { InteractiveModuleState, HotspotData, TimelineEventData } from './types';
+import { InteractionType } from './InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
 
 export interface ShowTextParameters {
