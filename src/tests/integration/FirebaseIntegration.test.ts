@@ -96,14 +96,13 @@ describe.skip('Firebase Integration Tests', () => {
             {
               id: 'test-event-1',
               step: 1,
-              type: 'spotlight',
+              type: 'SPOTLIGHT',
               name: 'Test Event',
-              x: 150,
-              y: 250,
-              zoomFactor: 2,
-              highlightRadius: 60,
-              highlightShape: 'circle',
-              dimPercentage: 70
+              spotlightX: 150,
+              spotlightY: 250,
+              zoomLevel: 2,
+              spotlightShape: 'circle',
+              backgroundDimPercentage: 70
             }
           ]
         }
@@ -181,6 +180,15 @@ describe.skip('Firebase Integration Tests', () => {
           created: Date.now(),
           modified: Date.now(),
           isPublic: false
+        },
+        settings: {
+          autoAdvance: false,
+          allowNavigation: true,
+          showProgress: true,
+          showControls: true,
+          keyboardShortcuts: true,
+          touchGestures: true,
+          fullscreenMode: false,
         }
       };
       
@@ -198,7 +206,7 @@ describe.skip('Firebase Integration Tests', () => {
       expect(savedSlideProject.slideDeck!.slides).toHaveLength(1);
       
       // Retrieve and verify slide data
-      const slideDetails = await firebaseAPI.getProjectDetails(savedSlideProject.id);
+      const slideDetails = await firebaseAPI.getProjectDetails(savedSlideProject.id) as any;
       expect(slideDetails.slideDeck).toBeDefined();
       expect(slideDetails.slideDeck!.slides[0].elements).toHaveLength(1);
       
@@ -241,14 +249,13 @@ describe.skip('Firebase Integration Tests', () => {
             {
               id: 'event-1',
               step: 1,
-              type: 'spotlight',
+              type: 'SPOTLIGHT',
               name: 'Event 1',
-              x: 150,
-              y: 150,
-              zoomFactor: 2,
-              highlightRadius: 60,
-              highlightShape: 'circle',
-              dimPercentage: 70
+              spotlightX: 150,
+              spotlightY: 150,
+              zoomLevel: 2,
+              spotlightShape: 'circle',
+              backgroundDimPercentage: 70
             }
           ]
         }

@@ -26,7 +26,7 @@ export const MediaEffectSettings: React.FC<MediaEffectSettingsProps> = ({
       ...paramUpdates,
     };
     onUpdate({
-      parameters: newParameters
+      parameters: newParameters as PlayVideoParameters | PlayAudioParameters
     });
   }, [effect.parameters, onUpdate]);
 

@@ -36,6 +36,7 @@ const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 describe('React Error Detection Tests', () => {
   const mockOnSave = vi.fn();
   const mockOnClose = vi.fn();
+  const mockOnImageUpload = vi.fn();
 
   const defaultSlideData: SlideDeck = {
     id: 'test-slide-deck',
@@ -68,19 +69,23 @@ describe('React Error Detection Tests', () => {
   };
 
   const getViewerProps = () => ({
+    initialData: {},
     slideDeck: defaultSlideData,
     isEditing: false,
     onSave: mockOnSave,
     onClose: mockOnClose,
+    onImageUpload: mockOnImageUpload,
     projectName: 'Test Project',
     deviceType: 'desktop' as DeviceType,
   });
 
   const getEditorProps = () => ({
+    initialData: {},
     slideDeck: defaultSlideData,
     isEditing: true,
     onSave: mockOnSave,
     onClose: mockOnClose,
+    onImageUpload: mockOnImageUpload,
     projectName: 'Test Project',
     projectId: 'test-project-id',
     deviceType: 'desktop' as DeviceType,

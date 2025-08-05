@@ -108,7 +108,7 @@ describe('Slide Editing Workflow Tests', () => {
               tablet: { x: 80, y: 80, width: 40, height: 40 },
               mobile: { x: 60, y: 60, width: 30, height: 30 }
             },
-            style: { backgroundColor: '#ff0000', borderRadius: '50%' },
+            style: { backgroundColor: '#ff0000', borderRadius: 50 },
             content: { title: 'Test Hotspot' },
             interactions: [],
             isVisible: true
@@ -276,7 +276,7 @@ describe('Slide Editing Workflow Tests', () => {
               tablet: { x: 80, y: 80, width: 40, height: 40 },
               mobile: { x: 60, y: 60, width: 30, height: 30 }
             },
-            style: { backgroundColor: '#ff0000', borderRadius: '50%' },
+            style: { backgroundColor: '#ff0000', borderRadius: 50 },
             content: { title: 'Hotspot' },
             interactions: [],
             isVisible: true

@@ -79,13 +79,12 @@ describe.skip('Concurrent Operations Integration Tests', () => {
               {
                 id: `event-${index + 1}`,
                 step: index + 1,
-                type: 'spotlight',
+                type: 'SPOTLIGHT',
                 name: `Event ${index + 1}`,
-                x: 150 + index * 10,
-                y: 150 + index * 10,
+                spotlightX: 150 + index * 10,
+                spotlightY: 150 + index * 10,
                 zoomFactor: 2,
-                highlightRadius: 60,
-                highlightShape: 'circle',
+                spotlightShape: 'circle',
                 dimPercentage: 70
               }
             ]
@@ -423,14 +422,13 @@ describe.skip('Concurrent Operations Integration Tests', () => {
       const largeEvents = Array.from({ length: 30 }, (_, index) => ({
         id: `large-event-${index + 1}`,
         step: index + 1,
-        type: 'spotlight' as const,
+        type: 'SPOTLIGHT' as const,
         name: `Large Dataset Event ${index + 1}`,
-        x: (index % 6) * 80 + 40,
-        y: Math.floor(index / 6) * 80 + 40,
-        zoomFactor: 1.5 + (index % 3) * 0.5,
-        highlightRadius: 40 + (index % 4) * 10,
-        highlightShape: (['circle', 'square'] as const)[index % 2],
-        dimPercentage: 60 + (index % 5) * 8
+        spotlightX: (index % 6) * 80 + 40,
+        spotlightY: Math.floor(index / 6) * 80 + 40,
+        zoomLevel: 1.5 + (index % 3) * 0.5,
+        spotlightShape: (['circle', 'rectangle'] as const)[index % 2],
+        backgroundDimPercentage: 60 + (index % 5) * 8
       }));
       
       const largeProject: Project = {
