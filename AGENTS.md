@@ -27,8 +27,7 @@ npm run dev
 # Production build
 npm run build
 
-# MCP testing and validation
-npm run mcp:workflow test
+# MCP testing and validation (Playwright)
 npm run mcp:validate
 npm run auth:test
 ```
@@ -335,6 +334,8 @@ const { constraints, styles } = useLayoutConstraints({
 
 ## MCP Integration & Browser Automation
 
+The project uses Microsoft Playwright MCP for comprehensive cross-browser testing and automation.
+
 ### Authentication Setup
 ```bash
 # Development bypass in .env.local
@@ -345,11 +346,28 @@ VITE_DEV_USER_NAME=Development User
 # Test credentials
 TEST_USER_EMAIL=test@localhost.dev  
 TEST_USER_PASSWORD=TestPassword123!
+
+# Playwright settings
+PLAYWRIGHT_TEST_URL=http://localhost:3000
+PLAYWRIGHT_BROWSER=chromium
+PLAYWRIGHT_HEADLESS=true
 ```
 
-### MCP Tools Available
-- `puppeteer_navigate`, `puppeteer_screenshot`, `puppeteer_click`
-- `puppeteer_fill`, `puppeteer_login`, `puppeteer_logout`, `puppeteer_auth_status`
+### Playwright MCP Tools Available
+- **Navigation**: `browser_navigate`, `browser_navigate_back`, `browser_navigate_forward`
+- **Interaction**: `browser_click`, `browser_hover`, `browser_type`, `browser_press_key`
+- **Forms**: `browser_select_option`, `browser_file_upload`
+- **Viewport**: `browser_resize`, `browser_take_screenshot`
+- **JavaScript**: `browser_evaluate` for custom script execution
+- **Advanced**: `browser_drag`, `browser_snapshot` (accessibility tree)
+- **Tab Management**: `browser_tab_new`, `browser_tab_close`, `browser_tab_list`, `browser_tab_select`
+- **Debugging**: `browser_console_messages`, `browser_network_requests`
+
+### Multi-Browser Support
+- **Chromium**: Default browser (Chrome, Edge)
+- **Firefox**: Mozilla Firefox engine
+- **WebKit**: Safari browser engine
+- **Device Emulation**: Mobile devices like "iPhone 15", "Pixel 5"
 
 ## Testing Requirements
 

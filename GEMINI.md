@@ -47,7 +47,7 @@ ExpliCoLearning is an interactive web application for creating slide-based multi
 *   **Testing Framework:** Vitest with React Testing Library
 *   **Type Checking:** TypeScript ~5.7.2
 *   **Linting:** ESLint (project configured)
-*   **Browser Automation:** Puppeteer MCP integration (@hisma/server-puppeteer v0.6.5)
+*   **Browser Automation:** Playwright MCP integration (Microsoft @playwright/mcp)
 *   **Bundle Analysis:** rollup-plugin-visualizer for performance optimization
 
 ## Project Structure
@@ -182,19 +182,28 @@ return deviceType === 'mobile' ? <MobileUI /> : <DesktopUI />; // NEVER DO THIS
 
 ## Browser Automation & MCP Integration
 
-The project includes Puppeteer Model Context Protocol (MCP) integration for automated browser testing and interaction.
+The project uses Microsoft Playwright MCP for comprehensive cross-browser testing and automation. Playwright offers superior browser support and more reliable automation with support for Chromium, Firefox, and WebKit browsers.
 
 ### Available MCP Tools:
-*   **Navigation:** `puppeteer_navigate` - Navigate to URLs
-*   **Interaction:** `puppeteer_click`, `puppeteer_fill` - Interact with page elements
-*   **Capture:** `puppeteer_screenshot` - Take page screenshots
-*   **Authentication:** `puppeteer_login`, `puppeteer_logout` - Handle user authentication
-*   **Evaluation:** `puppeteer_evaluate` - Execute JavaScript in browser context
+*   **Navigation:** `browser_navigate`, `browser_navigate_back`, `browser_navigate_forward` - Navigate between pages
+*   **Interaction:** `browser_click`, `browser_hover`, `browser_type`, `browser_press_key` - Interact with page elements
+*   **Forms:** `browser_select_option`, `browser_file_upload` - Handle form interactions
+*   **Viewport:** `browser_resize`, `browser_take_screenshot` - Control viewport and capture
+*   **JavaScript:** `browser_evaluate` - Execute custom JavaScript in browser context
+*   **Advanced:** `browser_drag`, `browser_snapshot` - Advanced interactions and accessibility tree
+*   **Tab Management:** `browser_tab_new`, `browser_tab_close`, `browser_tab_list`, `browser_tab_select` - Manage browser tabs
+*   **Debugging:** `browser_console_messages`, `browser_network_requests` - Debug and monitor
+
+### Multi-Browser Support:
+*   **Chromium:** Default browser engine (Chrome, Edge)
+*   **Firefox:** Mozilla Firefox engine
+*   **WebKit:** Safari browser engine
+*   **Device Emulation:** Mobile devices like "iPhone 15", "Pixel 5"
 
 ### Authentication Methods:
 *   **Development Bypass:** Set `VITE_DEV_AUTH_BYPASS=true` for instant authentication during testing
 *   **Test Credentials:** Pre-configured test user accounts for realistic testing scenarios
-*   **MCP Commands:** Automated authentication through MCP tools
+*   **Session Management:** Bypass injects mock user data into browser session storage
 
 ### Testing Scripts:
 *   `npm run mcp:validate` - Validate MCP server configuration
@@ -209,9 +218,19 @@ The project includes Puppeteer Model Context Protocol (MCP) integration for auto
 - **Auth First**: Always establish bypass authentication before other actions
 - **Work Chunking**: Break tasks into small, discrete steps
 - **Screenshot Verification**: Take screenshots between major steps
+- **Browser Diversity**: Test critical flows across all three engines
+- **Device Testing**: Include both desktop and mobile viewports
+- **Wait Strategies**: Use `browser_wait_for` instead of fixed delays
+- **Accessibility**: Leverage `browser_snapshot` for accessibility validation
 
 ### Environment Configuration
 ```bash
+# Playwright Settings
+PLAYWRIGHT_TEST_URL=http://localhost:3000
+PLAYWRIGHT_BROWSER=chromium
+PLAYWRIGHT_HEADLESS=true
+PLAYWRIGHT_DEVICE="Desktop Chrome"
+
 # Development Bypass
 VITE_DEV_AUTH_BYPASS=true
 VITE_DEV_USER_EMAIL=dev@localhost
@@ -221,10 +240,6 @@ VITE_DEV_USER_NAME=Development User
 TEST_USER_EMAIL=test@localhost.dev
 TEST_USER_PASSWORD=TestPassword123!
 TEST_USER_DISPLAY_NAME=Test User
-
-# Puppeteer Settings
-PUPPETEER_TEST_URL=http://localhost:3000
-PUPPETEER_HEADLESS=true
 ```
 
 ## Slide-Based Architecture Overview
