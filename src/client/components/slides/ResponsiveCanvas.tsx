@@ -53,6 +53,21 @@ const DRAG_THRESHOLD_PIXELS = 60;
 const TAP_MAX_DURATION = 300;
 const DOUBLE_CLICK_DELAY = 300;
 
+// Helper function to create responsive position object
+const createResponsivePosition = (
+  existingPosition: ResponsivePosition | undefined,
+  deviceType: DeviceType,
+  newPosition: FixedPosition
+): ResponsivePosition => {
+  const defaultPosition = { x: 0, y: 0, width: 100, height: 100 };
+  return {
+    desktop: existingPosition?.desktop || defaultPosition,
+    tablet: existingPosition?.tablet || defaultPosition,
+    mobile: existingPosition?.mobile || defaultPosition,
+    [deviceType]: newPosition,
+  };
+};
+
 /**
  * ResponsiveCanvas - Unified canvas supporting both touch and mouse interactions
  */
@@ -356,12 +371,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       };
       
       const existingPosition = currentSlide?.elements?.find(el => el.id === dragState.elementId)?.position;
-      const newResponsivePosition: ResponsivePosition = {
-        desktop: existingPosition?.desktop || { x: 0, y: 0, width: 100, height: 100 },
-        tablet: existingPosition?.tablet || { x: 0, y: 0, width: 100, height: 100 },
-        mobile: existingPosition?.mobile || { x: 0, y: 0, width: 100, height: 100 },
-      };
-      newResponsivePosition[deviceType] = newPosition;
+      const newResponsivePosition = createResponsivePosition(existingPosition, deviceType, newPosition);
       handleElementUpdate(dragState.elementId, {
         position: newResponsivePosition,
       });
@@ -442,12 +452,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       };
       
       const existingPosition = currentSlide?.elements?.find(el => el.id === touchState.elementId)?.position;
-      const newResponsivePosition: ResponsivePosition = {
-        desktop: existingPosition?.desktop || { x: 0, y: 0, width: 100, height: 100 },
-        tablet: existingPosition?.tablet || { x: 0, y: 0, width: 100, height: 100 },
-        mobile: existingPosition?.mobile || { x: 0, y: 0, width: 100, height: 100 },
-      };
-      newResponsivePosition[deviceType] = newPosition;
+      const newResponsivePosition = createResponsivePosition(existingPosition, deviceType, newPosition);
       handleElementUpdate(touchState.elementId, {
         position: newResponsivePosition,
       });

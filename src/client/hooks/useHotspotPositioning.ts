@@ -36,7 +36,10 @@ export const useHotspotPositioning = (
         return null;
       }
 
-      const visibleImageBounds = getActualImageVisibleBoundsRelative(imageBounds as any, containerElement);
+      // Extract image element from imageBounds if it has the expected structure
+      // The imageBounds parameter should actually be an HTMLImageElement, not bounds data
+      const imageElement = containerElement?.querySelector('img') as HTMLImageElement | null;
+      const visibleImageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
 
       if (!visibleImageBounds) {
         return null;
@@ -72,8 +75,10 @@ export const useHotspotPositioning = (
         return null;
       }
 
-      // Normal calculation - delegate to the existing function
-      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerDimensions as any);
+      // Normal calculation - delegate to the existing function with proper containerElement
+      // Find the container element if we have containerDimensions
+      const containerElement = containerDimensions ? document.querySelector('[data-canvas-container]') as HTMLElement | null : null;
+      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerElement);
     },
     [getPixelPosition]
   );
