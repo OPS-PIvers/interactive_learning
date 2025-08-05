@@ -58,9 +58,10 @@ export const ResponsiveInsertModal: React.FC<ResponsiveInsertModalProps> = ({
 
   return (
     <ResponsiveModal
-      type="standard"
+      type="insert"
       isOpen={true}
       onClose={onClose}
+      title="Insert Element"
     >
       <div className="p-4 sm:p-6">
         {/* Modal Header */}

@@ -1,5 +1,5 @@
 import { InteractiveModuleState, HotspotData, TimelineEventData, InteractionType } from './types';
-import { SlideDeck, InteractiveSlide, SlideElement, SlideInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
 
 /**
  * Migration utilities for converting existing hotspot-based projects to slide format
@@ -48,6 +48,7 @@ function createResponsivePosition(
   
   // Calculate element size based on hotspot size
   const sizeMap = {
+    'x-small': { width: 24, height: 24 },
     small: { width: 32, height: 32 },
     medium: { width: 40, height: 40 },
     large: { width: 48, height: 48 }
@@ -99,18 +100,12 @@ function createResponsivePosition(
  */
 function convertTimelineEventToInteraction(
   event: TimelineEventData,
-  hotspotId: string,
+  hotspot: HotspotData,
   options: MigrationOptions
-): { interaction: SlideInteraction; effect: SlideEffect } {
-  const baseInteraction: SlideInteraction = {
+): { interaction: ElementInteraction; effect: SlideEffect } {
+  const baseInteraction = {
     id: event.id,
-    trigger: 'click',
-    effect: {
-      id: `effect_${event.id}`,
-      type: 'spotlight', // default, will be overridden
-      duration: event.duration || 3000,
-      parameters: {}
-    }
+    trigger: 'click' as const,
   };
 
   let effect: SlideEffect;
@@ -124,74 +119,75 @@ function convertTimelineEventToInteraction(
         parameters: {
           shape: event.spotlightShape || 'circle',
           position: {
-            x: event.spotlightX !== undefined ? 
-              percentageToPixel(event.spotlightX, options.canvasWidth || 1200) : 
-              undefined,
-            y: event.spotlightY !== undefined ? 
-              percentageToPixel(event.spotlightY, options.canvasHeight || 800) : 
-              undefined,
+            x: percentageToPixel(event.spotlightX ?? hotspot.x, options.canvasWidth || 1200),
+            y: percentageToPixel(event.spotlightY ?? hotspot.y, options.canvasHeight || 800),
             width: event.spotlightWidth || 100,
             height: event.spotlightHeight || 100
           },
-          opacity: event.spotlightOpacity || 0,
-          backgroundDim: (event.backgroundDimPercentage || 80) / 100
+          intensity: event.intensity || 80,
+          fadeEdges: true,
         }
       };
       break;
 
     case InteractionType.PAN_ZOOM:
-      effect = {
-        id: `effect_${event.id}`,
-        type: 'zoom',
-        duration: event.duration || 2000,
-        parameters: {
-          zoomLevel: event.zoomLevel || 2.0,
-          targetX: event.targetX !== undefined ? 
-            percentageToPixel(event.targetX, options.canvasWidth || 1200) : 
-            undefined,
-          targetY: event.targetY !== undefined ? 
-            percentageToPixel(event.targetY, options.canvasHeight || 800) : 
-            undefined,
-          smooth: event.smooth !== false
-        }
-      };
-      break;
+        const targetX = event.targetX ?? hotspot.x;
+        const targetY = event.targetY ?? hotspot.y;
+        effect = {
+            id: `effect_${event.id}`,
+            type: 'zoom',
+            duration: event.duration || 2000,
+            parameters: {
+                zoomLevel: event.zoomLevel || 2.0,
+                centerOnTarget: true,
+                targetPosition: {
+                    x: percentageToPixel(targetX, options.canvasWidth || 1200),
+                    y: percentageToPixel(targetY, options.canvasHeight || 800),
+                    width: 1, // Zoom target is a point
+                    height: 1,
+                }
+            }
+        };
+        break;
 
     case InteractionType.SHOW_TEXT:
-      effect = {
-        id: `effect_${event.id}`,
-        type: 'text',
-        duration: event.duration || 5000,
-        parameters: {
-          content: event.textContent || event.message || 'Text content',
-          position: event.textPosition === 'center' ? 'center' : {
-            x: event.textX !== undefined ? 
-              percentageToPixel(event.textX, options.canvasWidth || 1200) : 
-              (options.canvasWidth || 1200) / 2 - 150,
-            y: event.textY !== undefined ? 
-              percentageToPixel(event.textY, options.canvasHeight || 800) : 
-              (options.canvasHeight || 800) / 2 - 50,
-            width: event.textWidth || 300,
-            height: event.textHeight || 100
-          },
-          style: {
-            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-            color: '#ffffff',
-            fontSize: '16px',
-            fontWeight: 'semibold'
-          }
-        }
-      };
-      break;
+        const isCentered = event.textPosition === 'center';
+        const position: FixedPosition = isCentered
+            ? { x: (options.canvasWidth || 1200) / 2 - 150, y: (options.canvasHeight || 800) / 2 - 50, width: 300, height: 100 }
+            : {
+                x: event.textX !== undefined ? percentageToPixel(event.textX, options.canvasWidth || 1200) : (options.canvasWidth || 1200) / 2 - 150,
+                y: event.textY !== undefined ? percentageToPixel(event.textY, options.canvasHeight || 800) : (options.canvasHeight || 800) / 2 - 50,
+                width: event.textWidth || 300,
+                height: event.textHeight || 100
+            };
+
+        effect = {
+            id: `effect_${event.id}`,
+            type: 'show_text',
+            duration: event.duration || 5000,
+            parameters: {
+                text: event.textContent || event.message || 'Text content',
+                position: position,
+                displayMode: isCentered ? 'modal' : 'overlay',
+                modalPosition: isCentered ? 'center' : undefined,
+                style: {
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    color: '#ffffff',
+                    fontSize: 16,
+                    fontWeight: '500'
+                }
+            }
+        };
+        break;
 
     case InteractionType.PLAY_VIDEO:
     case InteractionType.PLAY_AUDIO:
       effect = {
         id: `effect_${event.id}`,
-        type: 'media',
+        type: 'play_media',
         duration: event.duration || 0, // 0 means play until complete
         parameters: {
-          url: event.videoUrl || event.audioUrl || event.mediaUrl || '',
+          mediaUrl: event.videoUrl || event.audioUrl || event.mediaUrl || '',
           mediaType: event.type === InteractionType.PLAY_VIDEO ? 'video' : 'audio',
           autoplay: event.autoplay !== false,
           controls: event.videoShowControls !== false || event.audioShowControls !== false,
@@ -205,14 +201,17 @@ function convertTimelineEventToInteraction(
       // Fallback for unsupported event types
       effect = {
         id: `effect_${event.id}`,
-        type: 'text',
+        type: 'show_text',
         duration: 3000,
         parameters: {
-          content: `Legacy event: ${event.type}`,
-          position: 'center',
+          text: `Legacy event: ${event.type}`,
+          position: { x: (options.canvasWidth || 1200) / 2 - 150, y: (options.canvasHeight || 800) / 2 - 50, width: 300, height: 100 },
+          displayMode: 'modal',
+          modalPosition: 'center',
           style: {
             backgroundColor: 'rgba(239, 68, 68, 0.9)',
-            color: '#ffffff'
+            color: '#ffffff',
+            fontSize: 14,
           }
         }
       };
@@ -236,11 +235,11 @@ function convertHotspotToSlideElement(
   const relatedEvents = timelineEvents.filter(event => event.targetId === hotspot.id);
   
   // Convert events to interactions
-  const interactions: SlideInteraction[] = [];
+  const interactions: ElementInteraction[] = [];
   const effects: SlideEffect[] = [];
   
   relatedEvents.forEach(event => {
-    const { interaction, effect } = convertTimelineEventToInteraction(event, hotspot.id, options);
+    const { interaction, effect } = convertTimelineEventToInteraction(event, hotspot, options);
     interactions.push(interaction);
     effects.push(effect);
   });
@@ -249,17 +248,17 @@ function convertHotspotToSlideElement(
     id: options.preserveHotspotIds ? hotspot.id : `element_${hotspot.id}`,
     type: 'hotspot',
     position: createResponsivePosition(hotspot, options),
+    style: {
+      backgroundColor: hotspot.color || hotspot.backgroundColor || '#3b82f6',
+      borderRadius: 9999, // A large number to ensure it's a circle
+      zIndex: 10,
+    },
     content: {
       title: hotspot.title,
       description: hotspot.description,
-      style: {
-        backgroundColor: hotspot.color || hotspot.backgroundColor || '#3b82f6',
-        borderRadius: '50%'
-      }
     },
     interactions,
-    isVisible: true,
-    zIndex: 10
+    isVisible: true
   };
 
   return element;
@@ -318,10 +317,14 @@ export function migrateProjectToSlides(
     elements,
     backgroundImage: moduleState.backgroundImage,
     backgroundColor: '#0f172a', // slate-900 to match app theme
+    transitions: [],
     layout: {
-      backgroundSize: moduleState.imageFitMode || 'cover',
+      containerWidth: migrationOptions.canvasWidth || 1200,
+      containerHeight: migrationOptions.canvasHeight || 800,
+      aspectRatio: `${migrationOptions.canvasWidth || 1200}/${migrationOptions.canvasHeight || 800}`,
+      scaling: 'fit',
+      backgroundSize: moduleState.imageFitMode === 'fill' ? 'cover' : (moduleState.imageFitMode || 'cover'),
       backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat'
     }
   };
 
@@ -336,15 +339,17 @@ export function migrateProjectToSlides(
       autoAdvanceDelay: 5000,
       keyboardShortcuts: true,
       showProgress: true,
-      allowRestart: true
+      allowNavigation: true, // Replaces allowRestart
+      showControls: true,
+      touchGestures: true,
+      fullscreenMode: false,
     },
     metadata: {
       version: '1.0',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      created: Date.now(),
+      modified: Date.now(),
       author: 'Migration Tool',
-      migratedFrom: 'hotspot-based',
-      migrationVersion: '1.0'
+      isPublic: false,
     }
   };
 

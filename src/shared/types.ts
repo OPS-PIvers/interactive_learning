@@ -2,8 +2,10 @@
 import { Timestamp } from 'firebase/firestore';
 import { SlideDeck } from './slideTypes';
 
+import { InteractionType } from './enums';
+
 // Re-export InteractionType const and type from dedicated enum file
-export { InteractionType } from './enums';
+export { InteractionType };
 export type { InteractionType as InteractionTypeUnion } from './enums';
 
 
@@ -27,6 +29,8 @@ export interface HotspotData {
   pulseAnimation?: boolean; // When true, pulse animation is enabled
   pulseType?: 'loop' | 'timed'; // Type of pulse animation
   pulseDuration?: number; // Duration of the pulse animation in seconds
+  positioningVersion?: 'enhanced' | 'legacy';
+  constraintsApplied?: boolean;
 }
 
 // Base Event interface

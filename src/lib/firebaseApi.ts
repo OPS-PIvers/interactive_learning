@@ -447,10 +447,10 @@ export class FirebaseProjectAPI {
         title,
         description,
         createdBy: currentUser.uid, // Add user ID
-        createdAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
-        updatedAt: Timestamp.now(), // Use Firestore Timestamp for type correctness
+        createdAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
+        updatedAt: Timestamp.now().toDate(), // Use Firestore Timestamp for type correctness
         interactiveData: { // This is complete for a new project
-          backgroundImage: null,
+          backgroundImage: undefined,
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
@@ -717,26 +717,20 @@ export class FirebaseProjectAPI {
       const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
       
       // Get download URL with retry logic
-      let downloadURL: string;
-      let urlAttempts = 0;
-      const maxUrlAttempts = 3;
-      
-      while (urlAttempts < maxUrlAttempts) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          downloadURL = await getDownloadURL(snapshot.ref);
-          break;
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          debugLog.log('Image uploaded successfully:', downloadURL);
+          return downloadURL;
         } catch (urlError) {
-          urlAttempts++;
-          if (urlAttempts >= maxUrlAttempts) {
-            throw new Error(`Failed to get download URL after ${maxUrlAttempts} attempts: ${urlError}`);
+          debugLog.warn(`Attempt ${attempt} to get download URL failed:`, urlError);
+          if (attempt === 3) {
+            throw new Error(`Failed to get download URL after 3 attempts: ${urlError}`);
           }
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * urlAttempts));
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
-      
-      debugLog.log('Image uploaded successfully:', downloadURL);
-      return downloadURL!;
+      throw new Error('Failed to get download URL after all attempts.');
     } catch (error) {
       debugLog.error('Error uploading image:', error);
       
@@ -837,29 +831,20 @@ export class FirebaseProjectAPI {
       const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
       
       // Get download URL with retry logic
-      let downloadURL: string;
-      let urlAttempts = 0;
-      const maxUrlAttempts = 3;
-      
-      while (urlAttempts < maxUrlAttempts) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          downloadURL = await getDownloadURL(snapshot.ref);
-          break;
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          debugLog.log('Thumbnail uploaded successfully:', downloadURL);
+          return downloadURL;
         } catch (urlError) {
-          urlAttempts++;
-          debugLog.warn(`Download URL attempt ${urlAttempts} failed:`, urlError);
-          
-          if (urlAttempts >= maxUrlAttempts) {
-            throw new Error(`Failed to get thumbnail download URL after ${maxUrlAttempts} attempts`);
+          debugLog.warn(`Download URL attempt ${attempt} failed:`, urlError);
+          if (attempt === 3) {
+            throw new Error(`Failed to get thumbnail download URL after 3 attempts: ${urlError}`);
           }
-          
-          // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000 * urlAttempts));
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
-      
-      debugLog.log('Thumbnail uploaded successfully:', downloadURL);
-      return downloadURL!;
+      throw new Error('Failed to get thumbnail download URL after all attempts.');
     } catch (error) {
       debugLog.error('Error uploading thumbnail:', error);
       

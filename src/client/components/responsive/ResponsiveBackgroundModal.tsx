@@ -61,13 +61,15 @@ export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps>
     }
   };
 
-  const handleBackgroundSizeChange = (size: 'cover' | 'contain' | 'fill') => {
+  const handleBackgroundSizeChange = (size: 'cover' | 'contain' | 'auto' | 'stretch') => {
     if (backgroundMedia) {
       onBackgroundUpdate({
         ...backgroundMedia,
         settings: {
-          ...backgroundMedia.settings,
-          size
+          size,
+          position: backgroundMedia.settings?.position || 'center',
+          repeat: backgroundMedia.settings?.repeat || 'no-repeat',
+          attachment: backgroundMedia.settings?.attachment || 'scroll',
         }
       });
     }
@@ -78,8 +80,10 @@ export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps>
       onBackgroundUpdate({
         ...backgroundMedia,
         settings: {
-          ...backgroundMedia.settings,
-          position
+          size: backgroundMedia.settings?.size || 'cover',
+          position: position as 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
+          repeat: backgroundMedia.settings?.repeat || 'no-repeat',
+          attachment: backgroundMedia.settings?.attachment || 'scroll',
         }
       });
     }
@@ -87,9 +91,10 @@ export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps>
 
   return (
     <ResponsiveModal
-      type="standard"
+      type="background"
       isOpen={true}
       onClose={onClose}
+      title="Background & Layout"
     >
       <div className="p-4 sm:p-6">
         {/* Modal Header */}
@@ -252,7 +257,7 @@ export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps>
                       Background Size
                     </label>
                     <div className="grid grid-cols-3 gap-2">
-                      {(['cover', 'contain', 'fill'] as const).map((size) => (
+                      {(['cover', 'contain', 'auto'] as const).map((size) => (
                         <button
                           key={size}
                           onClick={() => handleBackgroundSizeChange(size)}

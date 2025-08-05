@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { AnimationControls, useAnimation } from 'framer-motion';
+import { useAnimationControls } from 'framer-motion';
 
 export interface AnimationSequence {
   id: string;
@@ -27,7 +27,7 @@ export const useSlideAnimations = () => {
     hasCompleted: false
   });
 
-  const animationControls = useAnimation();
+  const animationControls = useAnimationControls();
   const sequenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const animationSequenceRef = useRef<AnimationSequence[]>([]);
 
@@ -147,7 +147,7 @@ export const useSlideAnimations = () => {
 export const useElementAnimation = (elementId: string) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const controls = useAnimation();
+  const controls = useAnimationControls();
 
   const show = useCallback(async (variant: string = 'fade', duration: number = 300) => {
     setIsAnimating(true);

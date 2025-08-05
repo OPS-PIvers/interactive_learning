@@ -212,10 +212,10 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     const canvasRect = canvasContainer.getBoundingClientRect();
     
     return {
-      minX: slideAreaRect.left - canvasRect.left,
-      maxX: slideAreaRect.right - canvasRect.left - canvasRect.width,
-      minY: slideAreaRect.top - canvasRect.top,
-      maxY: slideAreaRect.bottom - canvasRect.top - canvasRect.height,
+      width: slideAreaRect.width,
+      height: slideAreaRect.height,
+      contentWidth: canvasRect.width,
+      contentHeight: canvasRect.height,
     };
   }, []);
   
@@ -230,13 +230,12 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
-    resetTransform,
   } = useTouchGestures(
+    canvasContainerRef,
     canvasTransform,
     setCanvasTransform,
     setIsTransforming,
-    canvasContainerRef,
-    viewportBounds
+    { viewportBounds }
   );
   
   // Handle double-click detection for hotspots
@@ -356,11 +355,15 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         y: Math.max(0, dragState.startElementPosition.y + deltaY),
       };
       
+      const existingPosition = currentSlide?.elements?.find(el => el.id === dragState.elementId)?.position;
+      const newResponsivePosition: ResponsivePosition = {
+        desktop: existingPosition?.desktop || { x: 0, y: 0, width: 100, height: 100 },
+        tablet: existingPosition?.tablet || { x: 0, y: 0, width: 100, height: 100 },
+        mobile: existingPosition?.mobile || { x: 0, y: 0, width: 100, height: 100 },
+      };
+      newResponsivePosition[deviceType] = newPosition;
       handleElementUpdate(dragState.elementId, {
-        position: {
-          ...currentSlide?.elements?.find(el => el.id === dragState.elementId)?.position,
-          [deviceType]: newPosition,
-        },
+        position: newResponsivePosition,
       });
     }
   }, [dragState, deviceType, handleElementUpdate, currentSlide]);
@@ -438,11 +441,15 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         y: Math.max(0, touchState.startElementPosition.y + deltaY),
       };
       
+      const existingPosition = currentSlide?.elements?.find(el => el.id === touchState.elementId)?.position;
+      const newResponsivePosition: ResponsivePosition = {
+        desktop: existingPosition?.desktop || { x: 0, y: 0, width: 100, height: 100 },
+        tablet: existingPosition?.tablet || { x: 0, y: 0, width: 100, height: 100 },
+        mobile: existingPosition?.mobile || { x: 0, y: 0, width: 100, height: 100 },
+      };
+      newResponsivePosition[deviceType] = newPosition;
       handleElementUpdate(touchState.elementId, {
-        position: {
-          ...currentSlide?.elements?.find(el => el.id === touchState.elementId)?.position,
-          [deviceType]: newPosition,
-        },
+        position: newResponsivePosition,
       });
     }
   }, [touchState, deviceType, handleElementUpdate, currentSlide]);
@@ -563,7 +570,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
               className="w-full h-full flex items-center justify-center bg-slate-200 bg-opacity-90 rounded border-2 border-slate-400 text-slate-800 text-sm font-medium"
               style={{ fontSize: element.style?.fontSize || 16 }}
             >
-              {element.content?.text || 'Text Element'}
+              {element.content?.textContent || 'Text Element'}
             </div>
           )}
           
@@ -572,7 +579,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
               className="w-full h-full border-2 border-slate-400"
               style={{
                 backgroundColor: element.style?.backgroundColor || '#e2e8f0',
-                borderRadius: element.style?.shape === 'circle' ? '50%' : '0',
+                borderRadius: element.style?.customShape === 'circle' ? '50%' : '0',
               }}
             />
           )}

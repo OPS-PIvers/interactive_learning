@@ -46,7 +46,7 @@ export class DataSanitizer {
       name: '',
       zoomFactor: Math.max(1, Math.min(10, sanitized.zoomFactor || 2)), // Clamp between 1-10
       highlightRadius: Math.max(10, Math.min(200, sanitized.highlightRadius || 60)), // Clamp between 10-200
-      highlightShape: (['circle', 'square', 'rectangle'].includes(sanitized.highlightShape as string) ? sanitized.highlightShape : 'circle') as const,
+      highlightShape: (['circle', 'rectangle', 'oval'].includes(sanitized.highlightShape as string) ? sanitized.highlightShape : 'circle') as 'circle' | 'rectangle' | 'oval',
       dimPercentage: Math.max(0, Math.min(100, sanitized.dimPercentage || 70)), // Clamp between 0-100
     }
 
@@ -81,7 +81,7 @@ export class DataSanitizer {
     const defaults = {
       title: '',
       description: '',
-      size: (['small', 'medium', 'large'].includes(sanitized.size as string) ? sanitized.size : 'medium') as const,
+      size: (['x-small', 'small', 'medium', 'large'].includes(sanitized.size as string) ? sanitized.size : 'medium') as 'x-small' | 'small' | 'medium' | 'large',
       displayHotspotInEvent: Boolean(sanitized.displayHotspotInEvent),
     };
 
@@ -159,14 +159,17 @@ export class DataSanitizer {
     if (!sanitized.metadata) {
       sanitized.metadata = {
         version: '2.0',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created: Date.now(),
+        modified: Date.now(),
+        isPublic: false
       };
     } else {
       sanitized.metadata = {
+        ...sanitized.metadata,
         version: sanitized.metadata.version || '2.0',
-        createdAt: sanitized.metadata.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString() // Always update timestamp
+        created: (sanitized.metadata as any).created || (sanitized.metadata as any).createdAt || Date.now(),
+        modified: Date.now(), // Always update timestamp
+        isPublic: sanitized.metadata.isPublic ?? false,
       };
     }
     
@@ -214,8 +217,12 @@ export class DataSanitizer {
     // Validate layout
     if (!sanitized.layout) {
       sanitized.layout = {
+        containerWidth: 1200,
+        containerHeight: 800,
         aspectRatio: '16:9',
-        backgroundFit: 'contain'
+        scaling: 'fit',
+        backgroundSize: 'contain',
+        backgroundPosition: 'center',
       };
     }
     
@@ -273,7 +280,7 @@ export class DataSanitizer {
    * @param position - Position to validate
    * @returns Sanitized position with validation errors if any
    */
-  static sanitizeResponsivePosition(position: Partial<ResponsivePosition>): { sanitized: Partial<ResponsivePosition>; errors: string[] } {
+  static sanitizeResponsivePosition(position: Partial<ResponsivePosition>): { sanitized: ResponsivePosition; errors: string[] } {
     const errors: string[] = [];
     const sanitized = this.removeUndefinedFields(position);
     
@@ -293,7 +300,7 @@ export class DataSanitizer {
       }
     });
     
-    return { sanitized, errors };
+    return { sanitized: sanitized as ResponsivePosition, errors };
   }
 
   /**
@@ -301,7 +308,7 @@ export class DataSanitizer {
    * @param position - Fixed position to validate
    * @returns Sanitized position with validation errors if any
    */
-  static sanitizeFixedPosition(position: Partial<FixedPosition>): { sanitized: Partial<FixedPosition>; errors: string[] } {
+  static sanitizeFixedPosition(position: Partial<FixedPosition>): { sanitized: FixedPosition; errors: string[] } {
     const errors: string[] = [];
     const sanitized = this.removeUndefinedFields(position);
     
@@ -321,7 +328,7 @@ export class DataSanitizer {
       }
     });
     
-    return { sanitized, errors };
+    return { sanitized: sanitized as FixedPosition, errors };
   }
 
   /**

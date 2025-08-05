@@ -12,6 +12,7 @@ import { PencilIcon } from '../icons/PencilIcon';
 import { SaveIcon } from '../icons/SaveIcon';
 import { CheckIcon } from '../icons/CheckIcon';
 import { GearIcon } from '../icons/GearIcon';
+import { ShareIcon } from '../icons/ShareIcon';
 import AuthButton from '../AuthButton';
 
 export interface ResponsiveHeaderProps {
@@ -129,11 +130,19 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
           >
             <GearIcon className="w-4 sm:w-5 h-4 sm:h-5" />
           </button>
+
+          {isPublished && (
+            <button
+              onClick={onOpenShare}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              title="Share"
+            >
+              <ShareIcon className="w-4 sm:w-5 h-4 sm:h-5" />
+            </button>
+          )}
           
           {/* Profile/Auth */}
-          <AuthButton
-            onShare={isPublished ? onOpenShare : undefined}
-          />
+          <AuthButton />
         </div>
       </div>
     </div>

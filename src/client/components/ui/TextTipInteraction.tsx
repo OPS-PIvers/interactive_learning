@@ -266,27 +266,6 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes textTipLiquidBorder {
-          0%, 100% {
-            transform: rotate(0deg);
-            opacity: 0.6;
-          }
-          50% {
-            transform: rotate(180deg);
-            opacity: 1;
-          }
-        }
-
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
     </>
   );
 };

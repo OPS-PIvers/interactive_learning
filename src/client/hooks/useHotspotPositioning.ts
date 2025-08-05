@@ -6,7 +6,7 @@ export interface HotspotPositioningUtils {
   getPixelPosition: (
     hotspot: HotspotData,
     currentImageTransform: ImageTransformState,
-    imageElement: HTMLImageElement | null,
+    imageBounds: { width: number; height: number; left: number; top: number } | null,
     containerElement: HTMLElement | null
   ) => { x: number; y: number } | null;
   getStablePixelPosition: (
@@ -29,10 +29,14 @@ export const useHotspotPositioning = (
     (
       hotspot: HotspotData,
       currentImageTransform: ImageTransformState,
-      imageElement: HTMLImageElement | null,
+      imageBounds: { width: number; height: number; left: number; top: number } | null,
       containerElement: HTMLElement | null
     ): { x: number; y: number } | null => {
-      const visibleImageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
+      if (!imageBounds) {
+        return null;
+      }
+
+      const visibleImageBounds = getActualImageVisibleBoundsRelative(imageBounds as any, containerElement);
 
       if (!visibleImageBounds) {
         return null;
@@ -69,7 +73,7 @@ export const useHotspotPositioning = (
       }
 
       // Normal calculation - delegate to the existing function
-      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerDimensions);
+      return getPixelPosition(hotspot, currentImageTransform, imageBounds, containerDimensions as any);
     },
     [getPixelPosition]
   );

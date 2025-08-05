@@ -17,7 +17,7 @@ export interface NavigationState {
   currentSlideIndex: number;
   isPreviewMode: boolean;
   isSlidePanelCollapsed: boolean;
-  deviceTypeOverride: DeviceType | null;
+  deviceTypeOverride: DeviceType | undefined;
 }
 
 /**
@@ -86,7 +86,7 @@ export interface EditorStateActions {
   setCurrentSlide: (index: number) => void;
   togglePreviewMode: () => void;
   toggleSlidePanelCollapse: () => void;
-  setDeviceTypeOverride: (deviceType: DeviceType | null) => void;
+  setDeviceTypeOverride: (deviceType: DeviceType | undefined) => void;
   
   // Element editing actions
   selectElement: (elementId: string | null) => void;
@@ -141,7 +141,7 @@ const createDefaultNavigationState = (): NavigationState => ({
   currentSlideIndex: 0,
   isPreviewMode: false,
   isSlidePanelCollapsed: false,
-  deviceTypeOverride: null,
+  deviceTypeOverride: undefined,
 });
 
 const createDefaultElementEditingState = (): ElementEditingState => ({
@@ -235,7 +235,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setNavigation(prev => ({ ...prev, isSlidePanelCollapsed: !prev.isSlidePanelCollapsed }));
   }, []);
   
-  const setDeviceTypeOverride = useCallback((deviceType: DeviceType | null) => {
+  const setDeviceTypeOverride = useCallback((deviceType: DeviceType | undefined) => {
     setNavigation(prev => ({ ...prev, deviceTypeOverride: deviceType }));
   }, []);
   

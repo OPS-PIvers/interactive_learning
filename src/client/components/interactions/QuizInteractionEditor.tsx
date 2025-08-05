@@ -1,19 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ElementInteraction, EffectParameters } from '../../../shared/slideTypes';
+import { ElementInteraction, QuizParameters } from '../../../shared/slideTypes';
 
 interface QuizInteractionEditorProps {
   interaction: ElementInteraction;
   onUpdate: (updates: Partial<ElementInteraction>) => void;
   onDone: () => void;
-}
-
-interface QuizParameters extends EffectParameters {
-  questionType?: 'multiple-choice' | 'fill-in-the-blank';
-  quizQuestion?: string;
-  quizOptions?: string[];
-  quizCorrectAnswer?: number | string;
-  quizShuffleOptions?: boolean;
-  isSubjective?: boolean;
 }
 
 export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
@@ -50,34 +41,34 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
   }, [interaction]);
 
   const handleOptionChange = (index: number, value: string) => {
-    const newOptions = [...(params.quizOptions || [])];
+    const newOptions = [...(params.choices || [])];
     newOptions[index] = value;
-    handleParamChange('quizOptions', newOptions);
+    handleParamChange('choices', newOptions);
   };
 
   const addOption = () => {
-    const newOptions = [...(params.quizOptions || []), ''];
-    handleParamChange('quizOptions', newOptions);
+    const newOptions = [...(params.choices || []), ''];
+    handleParamChange('choices', newOptions);
   };
 
   const removeOption = (index: number) => {
     // Prevent removing the last option
-    if ((params.quizOptions || []).length <= 1) {
+    if ((params.choices || []).length <= 1) {
       return;
     }
     
-    const newOptions = [...(params.quizOptions || [])];
+    const newOptions = [...(params.choices || [])];
     newOptions.splice(index, 1);
-    handleParamChange('quizOptions', newOptions);
+    handleParamChange('choices', newOptions);
     
     // Adjust correct answer index if needed
-    if (typeof params.quizCorrectAnswer === 'number') {
-      if (params.quizCorrectAnswer === index) {
+    if (typeof params.correctAnswer === 'number') {
+      if (params.correctAnswer === index) {
         // If we're removing the correct answer, set it to the first option
-        handleParamChange('quizCorrectAnswer', 0);
-      } else if (params.quizCorrectAnswer > index) {
+        handleParamChange('correctAnswer', 0);
+      } else if (params.correctAnswer > index) {
         // If correct answer is after the removed option, shift it down
-        handleParamChange('quizCorrectAnswer', params.quizCorrectAnswer - 1);
+        handleParamChange('correctAnswer', params.correctAnswer - 1);
       }
     }
   };
@@ -113,8 +104,8 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
           </label>
           <textarea
             id="quiz-question"
-            value={params.quizQuestion || ''}
-            onChange={(e) => handleParamChange('quizQuestion', e.target.value)}
+            value={params.question || ''}
+            onChange={(e) => handleParamChange('question', e.target.value)}
             placeholder="e.g., What is the capital of France?"
             className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500"
             rows={3}
@@ -127,7 +118,7 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
           </label>
           {params.questionType === 'multiple-choice' ? (
             <div className="space-y-2">
-              {(params.quizOptions || []).map((option, index) => (
+              {(params.choices || []).map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <input
                     type="text"
@@ -137,9 +128,9 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
                     placeholder={`Option ${index + 1}`}
                   />
                   <button
-                    onClick={() => handleParamChange('quizCorrectAnswer', index)}
+                    onClick={() => handleParamChange('correctAnswer', index)}
                     className={`w-10 h-10 flex items-center justify-center rounded-full text-white transition-colors ${
-                      params.quizCorrectAnswer === index ? 'bg-green-500' : 'bg-slate-600 hover:bg-slate-500'
+                      params.correctAnswer === index ? 'bg-green-500' : 'bg-slate-600 hover:bg-slate-500'
                     }`}
                     title="Mark as correct"
                   >
@@ -148,12 +139,12 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
                   <button 
                     onClick={() => removeOption(index)} 
                     className={`p-2 transition-colors ${
-                      (params.quizOptions || []).length <= 1
+                      (params.choices || []).length <= 1
                         ? 'text-slate-500 cursor-not-allowed'
                         : 'text-red-400 hover:text-red-300'
                     }`}
-                    disabled={(params.quizOptions || []).length <= 1}
-                    title={(params.quizOptions || []).length <= 1 ? 'Cannot remove the last option' : 'Remove option'}
+                    disabled={(params.choices || []).length <= 1}
+                    title={(params.choices || []).length <= 1 ? 'Cannot remove the last option' : 'Remove option'}
                   >
                     ✕
                   </button>
@@ -169,8 +160,8 @@ export const QuizInteractionEditor: React.FC<QuizInteractionEditorProps> = ({
           ) : (
             <input
               type="text"
-              value={(params.quizCorrectAnswer as string) || ''}
-              onChange={(e) => handleParamChange('quizCorrectAnswer', e.target.value)}
+              value={(params.correctAnswer as string) || ''}
+              onChange={(e) => handleParamChange('correctAnswer', e.target.value)}
               placeholder="Enter the correct answer"
               className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500"
             />

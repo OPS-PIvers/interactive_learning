@@ -6,8 +6,9 @@
 
 // Background media types
 export interface BackgroundMedia {
-  type: 'image' | 'video' | 'youtube' | 'audio' | 'none';
+  type: 'image' | 'video' | 'youtube' | 'audio' | 'none' | 'color';
   url?: string;
+  color?: string;
   youtubeId?: string;
   volume?: number;
   autoplay?: boolean;

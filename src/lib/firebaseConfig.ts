@@ -99,7 +99,7 @@ class FirebaseConnectionManager {
       if (typeof window !== 'undefined') {
         try {
           this.performance = getPerformance(this.app)
-          if (isSupported()) {
+          if (await isSupported()) {
             this.analytics = getAnalytics(this.app)
             if (import.meta.env.DEV) {
               console.log('Firebase Analytics initialized')

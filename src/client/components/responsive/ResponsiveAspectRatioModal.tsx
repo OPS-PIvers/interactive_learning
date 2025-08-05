@@ -42,9 +42,10 @@ export const ResponsiveAspectRatioModal: React.FC<ResponsiveAspectRatioModalProp
 
   return (
     <ResponsiveModal
-      type="standard"
+      type="aspectRatio"
       isOpen={isOpen}
       onClose={onClose}
+      title="Aspect Ratio"
     >
       <div className="p-4 sm:p-6">
         {/* Modal Header */}

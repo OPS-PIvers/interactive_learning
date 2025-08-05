@@ -56,9 +56,10 @@ export const ResponsiveSlidesModal: React.FC<ResponsiveSlidesModalProps> = ({
 
   return (
     <ResponsiveModal
-      type="standard"
+      type="slides"
       isOpen={true}
       onClose={onClose}
+      title="Slides"
     >
       <div className="p-4 sm:p-6">
         {/* Modal Header */}
