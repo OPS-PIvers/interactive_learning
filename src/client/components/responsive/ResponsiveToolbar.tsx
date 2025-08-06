@@ -15,8 +15,6 @@ export interface ResponsiveToolbarProps {
   onInsertOpen: () => void;
   onAspectRatioOpen: () => void;
   onPropertiesOpen?: () => void;
-  deviceType: DeviceType;
-  onDeviceTypeChange: (deviceType: DeviceType | undefined) => void;
   hasSelectedElement?: boolean;
 }
 
@@ -29,13 +27,11 @@ export const ResponsiveToolbar: React.FC<ResponsiveToolbarProps> = ({
   onInsertOpen,
   onAspectRatioOpen,
   onPropertiesOpen,
-  deviceType,
-  onDeviceTypeChange,
   hasSelectedElement = false,
 }) => {
   return (
     <div className={`bg-slate-800 border-t border-slate-700 p-2 sm:p-4 flex-shrink-0 ${Z_INDEX_TAILWIND.TOOLBAR}`}>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-center gap-2">
         {/* Left section - Main actions */}
         <div className="flex items-center gap-1 sm:gap-3 flex-wrap">
           <button
@@ -91,46 +87,6 @@ export const ResponsiveToolbar: React.FC<ResponsiveToolbarProps> = ({
               <span className="hidden sm:inline">Properties</span>
             </button>
           )}
-        </div>
-        
-        {/* Right section - Device type selector (hidden on very small screens) */}
-        <div className="hidden md:flex items-center gap-3">
-          <span className="text-slate-400 text-sm">Preview:</span>
-          <div className="flex items-center bg-slate-700 rounded-lg p-1">
-            <button
-              onClick={() => onDeviceTypeChange('desktop')}
-              className={`px-2 lg:px-3 py-1 text-xs lg:text-sm rounded transition-colors ${
-                deviceType === 'desktop'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <span className="hidden lg:inline">Desktop</span>
-              <span className="lg:hidden">D</span>
-            </button>
-            <button
-              onClick={() => onDeviceTypeChange('tablet')}
-              className={`px-2 lg:px-3 py-1 text-xs lg:text-sm rounded transition-colors ${
-                deviceType === 'tablet'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <span className="hidden lg:inline">Tablet</span>
-              <span className="lg:hidden">T</span>
-            </button>
-            <button
-              onClick={() => onDeviceTypeChange('mobile')}
-              className={`px-2 lg:px-3 py-1 text-xs lg:text-sm rounded transition-colors ${
-                deviceType === 'mobile'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <span className="hidden lg:inline">Mobile</span>
-              <span className="lg:hidden">M</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>

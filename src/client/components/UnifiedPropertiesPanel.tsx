@@ -15,7 +15,6 @@ import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 interface UnifiedPropertiesPanelProps {
   selectedElement: SlideElement;
   currentSlide?: InteractiveSlide;
-  deviceType: DeviceType;
   onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
   onSlideUpdate?: (updates: Partial<InteractiveSlide>) => void;
   onDelete?: () => void;
@@ -104,7 +103,6 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   selectedElement,
   currentSlide,
-  deviceType,
   onElementUpdate,
   onSlideUpdate,
   onDelete,
@@ -278,22 +276,14 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 
   const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
-    const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
+    const dimensions = getHotspotPixelDimensions(preset.value, false);
     onElementUpdate(selectedElement.id, {
-        position: {
-            ...selectedElement.position,
-            [deviceType]: {
-                ...selectedElement.position[deviceType],
-                width: dimensions.width,
-                height: dimensions.height,
-            }
-        },
         style: {
             ...selectedElement.style,
             size: preset.value,
         }
     });
-  }, [onElementUpdate, selectedElement, deviceType]);
+  }, [onElementUpdate, selectedElement]);
 
   return (
     <div 
@@ -373,7 +363,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                         `}
                       >
                         <div className="font-medium">{preset.name}</div>
-                        <div className="text-xs opacity-75">{getHotspotPixelDimensions(preset.value, deviceType === 'mobile').width}×{getHotspotPixelDimensions(preset.value, deviceType === 'mobile').height}</div>
+                          <div className="text-xs opacity-75">{getHotspotPixelDimensions(preset.value, false).width}×{getHotspotPixelDimensions(preset.value, false).height}</div>
                       </button>
                     ))}
                   </div>

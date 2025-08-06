@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 export interface ViewportState {
   width: number;
@@ -55,7 +54,6 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     enableAutoScale = true
   } = config;
 
-  const { isMobile } = useDeviceDetection();
   const [viewport, setViewport] = useState<ViewportState>({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -85,6 +83,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
 
   // Calculate optimal scale for mobile
   const calculateOptimalScale = useCallback((viewportState: ViewportState) => {
+    const isMobile = viewportState.width < 768;
     if (!isMobile || !enableAutoScale) return 1;
 
     const targetAspectRatio = parseAspectRatio(aspectRatio);
@@ -188,12 +187,10 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
   useEffect(() => {
     const root = document.documentElement;
     
-    // Basic viewport properties
+    // Basic viewport properties for mathematical calculations
     root.style.setProperty('--viewport-width', `${viewport.width}px`);
     root.style.setProperty('--viewport-height', `${viewport.height}px`);
     root.style.setProperty('--optimal-scale', `${optimalScale}`);
-    root.style.setProperty('--is-landscape', viewport.isLandscape ? '1' : '0');
-    root.style.setProperty('--is-portrait', viewport.isPortrait ? '1' : '0');
     
     // Safe area properties
     root.style.setProperty('--safe-area-inset-top', `${viewport.safeAreaInsets.top}px`);
@@ -255,15 +252,6 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     overflow: 'hidden',
     boxSizing: 'border-box'
   };
-
-  // On desktop, render simplified container unless scaling is explicitly enabled
-  if (!isMobile && !enableAutoScale) {
-    return (
-      <div className={`viewport-manager ${className}`}>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div className={`viewport-manager ${className}`} style={containerStyle}>

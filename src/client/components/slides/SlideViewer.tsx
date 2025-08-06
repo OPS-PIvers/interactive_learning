@@ -416,16 +416,13 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     }
     
     const containerRect = containerRef.current.getBoundingClientRect();
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const isMobile = deviceType === 'mobile';
-    const isMobileLandscape = isMobile && isLandscape;
     
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
       containerRect.width || window.innerWidth,
       containerRect.height || window.innerHeight,
-      isMobileLandscape ? 8 : 24, // Much reduced padding for mobile landscape
-      isMobileLandscape
+      16, // Standard padding - CSS handles responsive behavior
+      false // Remove device-specific logic
     );
   }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, deviceType]);
 

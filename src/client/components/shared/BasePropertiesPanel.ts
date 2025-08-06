@@ -14,9 +14,6 @@ export interface BasePropertiesPanelProps {
   /** Currently selected element to edit */
   selectedElement: SlideElement | null;
   
-  /** Current device type for responsive positioning */
-  deviceType: DeviceType;
-  
   /** Callback to update element properties */
   onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
   

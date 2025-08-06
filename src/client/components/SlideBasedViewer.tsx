@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
@@ -31,7 +30,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   onClose,
   migrationResult
 }) => {
-  const { deviceType } = useDeviceDetection();
   useViewportHeight();
   
   // Viewer state
@@ -164,10 +162,10 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       showProgress: moduleState === 'learning',
       showControls: true,
       keyboardShortcuts: true,
-      touchGestures: deviceType === 'mobile',
+      touchGestures: true,
       fullscreenMode: false
     }
-  }), [slideDeck, moduleState, viewerModes, deviceType]);
+  }), [slideDeck, moduleState, viewerModes]);
 
   // Initial overlay when in idle state
   if (moduleState === 'idle') {

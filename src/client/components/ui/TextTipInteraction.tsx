@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 interface TextTipInteractionProps {
   text: string;
@@ -31,7 +30,6 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [actualPosition, setActualPosition] = useState(position);
   const tipRef = useRef<HTMLDivElement>(null);
-  const { isMobile } = useDeviceDetection();
 
   // Calculate smart positioning to avoid viewport edges
   const calculatePosition = useCallback(() => {
@@ -108,7 +106,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       }
     };
 
-    if (isVisible && isMobile) {
+    if (isVisible) {
       document.addEventListener('touchstart', handleClickOutside);
       document.addEventListener('click', handleClickOutside);
       return () => {
@@ -117,7 +115,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       };
     }
     return undefined; // Explicit return for else case
-  }, [isVisible, isMobile, onClose]);
+  }, [isVisible, onClose]);
 
   if (!isVisible && !isAnimating) return null;
 
@@ -153,17 +151,15 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       <div
         ref={tipRef}
         className={`
-          fixed z-50 pointer-events-auto
-          transition-all duration-300 ease-out
+          fixed z-50 pointer-events-auto transition-all duration-300 ease-out
           ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+          ${variant === 'overlay' ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : ''}
         `}
         style={{
-          left: isMobile && variant === 'overlay' ? '50%' : actualPosition.x,
-          top: isMobile && variant === 'overlay' ? '50%' : actualPosition.y,
-          transform: isMobile && variant === 'overlay' 
-            ? 'translate(-50%, -50%)' 
-            : 'translateY(-100%)',
-          maxWidth: isMobile ? '90vw' : maxWidth,
+          left: variant === 'tooltip' ? actualPosition.x : undefined,
+          top: variant === 'tooltip' ? actualPosition.y : undefined,
+          transform: variant === 'tooltip' ? 'translateY(-100%)' : undefined,
+          maxWidth: `min(${maxWidth}px, 90vw)`,
           willChange: 'opacity, transform'
         }}
       >
@@ -176,7 +172,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
             border-2 rounded-xl
             px-6 py-4
             shadow-2xl
-            ${isMobile ? 'max-w-sm' : ''}
+            max-w-sm
           `}
         >
           {/* Liquid border animation */}
@@ -193,18 +189,16 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
             }}
           />
 
-          {/* Close button for mobile */}
-          {isMobile && onClose && (
-            <button
-              onClick={onClose}
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-slate-700/50 transition-colors"
-              aria-label="Close tip"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 p-1 rounded-full hover:bg-slate-700/50 transition-colors md:hidden"
+            aria-label="Close tip"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           {/* Tip content with typing animation */}
           <div className="relative z-10">
@@ -229,21 +223,22 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
           </div>
 
           {/* Pointer arrow for tooltip variant */}
-          {variant === 'tooltip' && !isMobile && (
+          <div
+            className={`
+              absolute top-full left-1/2 transform -translate-x-1/2
+              ${variant === 'tooltip' ? 'block' : 'hidden'}
+            `}
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+          >
             <div 
-              className="absolute top-full left-1/2 transform -translate-x-1/2"
-              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
-            >
-              <div 
-                className={`
-                  w-0 h-0 
-                  border-l-8 border-r-8 border-t-8
-                  border-l-transparent border-r-transparent
-                  ${currentTheme.arrow}
-                `}
-              />
-            </div>
-          )}
+              className={`
+                w-0 h-0
+                border-l-8 border-r-8 border-t-8
+                border-l-transparent border-r-transparent
+                ${currentTheme.arrow}
+              `}
+            />
+          </div>
 
           {/* Animated underline */}
           <div 

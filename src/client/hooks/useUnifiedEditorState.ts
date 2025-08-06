@@ -8,7 +8,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { DeviceType } from '../../shared/slideTypes';
-import { useDeviceDetection } from './useDeviceDetection';
 
 /**
  * Navigation and slide management state
@@ -125,10 +124,6 @@ export interface UseUnifiedEditorStateReturn {
   state: UnifiedEditorState;
   actions: EditorStateActions;
   computed: {
-    deviceType: DeviceType;
-    effectiveDeviceType: DeviceType;
-    isLandscape: boolean;
-    isSmallViewport: boolean;
     hasActiveModal: boolean;
     canEdit: boolean;
   };
@@ -183,9 +178,6 @@ const createDefaultOperationState = (): OperationState => ({
  * with actions and computed values.
  */
 export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
-  // Device detection
-  const { deviceType } = useDeviceDetection();
-  
   // Core state objects
   const [navigation, setNavigation] = useState<NavigationState>(createDefaultNavigationState);
   const [editing, setEditing] = useState<ElementEditingState>(createDefaultElementEditingState);
@@ -193,11 +185,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const [operations, setOperations] = useState<OperationState>(createDefaultOperationState);
   const [hotspotEditor, setHotspotEditor] = useState<HotspotEditorState>(createDefaultHotspotEditorState);
   
-  // Computed values
+  // Computed values (device-agnostic)
   const computed = useMemo(() => {
-    const effectiveDeviceType = navigation.deviceTypeOverride || deviceType;
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const isSmallViewport = window.innerWidth < 768;
     const hasActiveModal = Object.values(ui).some((value, index, arr) => {
       // Check only boolean modal states, skip string/null values
       return typeof value === 'boolean' && value && index < 8; // First 8 are modal states
@@ -205,14 +194,10 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     const canEdit = !navigation.isPreviewMode && !operations.isSaving && !hasActiveModal;
     
     return {
-      deviceType,
-      effectiveDeviceType,
-      isLandscape,
-      isSmallViewport,
       hasActiveModal,
       canEdit,
     };
-  }, [deviceType, navigation.deviceTypeOverride, navigation.isPreviewMode, operations.isSaving, ui, hotspotEditor.isOpen]);
+  }, [navigation.isPreviewMode, operations.isSaving, ui, hotspotEditor.isOpen]);
   
   // Navigation actions
   const setCurrentSlide = useCallback((index: number) => {
@@ -377,10 +362,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     }));
     setNavigation(prev => ({ ...prev, isPreviewMode: false }));
     
-    // Open properties panel if on larger screens
-    if (window.innerWidth >= 768) {
-      setUI(prev => ({ ...prev, propertiesPanel: true }));
-    }
+    // Open properties panel, its visibility will be controlled by CSS
+    setUI(prev => ({ ...prev, propertiesPanel: true }));
   }, []);
   
   const exitEditMode = useCallback(() => {
