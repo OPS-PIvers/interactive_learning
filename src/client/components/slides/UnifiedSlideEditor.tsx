@@ -600,6 +600,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           projectName={projectName}
           isPreviewMode={state.navigation.isPreviewMode}
           isSaving={state.operations.isSaving}
+          errorMessage={state.operations.error}
           showSuccessMessage={state.ui.showSuccessMessage}
           onTogglePreview={actions.togglePreviewMode}
           onSave={handleSave}
@@ -714,7 +715,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         {/* Hotspot Editor Modal */}
         {state.hotspotEditor.isOpen && hotspotEditorData && (
           <HotspotEditorModal
-            isOpen={state.hotspotEditor.isOpen}
+            editorState={state}
+            editorActions={actions}
             selectedHotspot={hotspotEditorData.selectedHotspot}
             relatedEvents={hotspotEditorData.relatedEvents}
             currentStep={1}
@@ -724,9 +726,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             onAddEvent={handleAddTimelineEvent}
             onUpdateEvent={handleUpdateTimelineEvent}
             onDeleteEvent={handleDeleteTimelineEvent}
-            onClose={actions.closeHotspotEditor}
             allHotspots={hotspotEditorData.allHotspots}
-            onCollapseChange={actions.toggleHotspotEditorCollapse}
           />
         )}
         

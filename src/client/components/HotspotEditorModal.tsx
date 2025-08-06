@@ -18,9 +18,11 @@ import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
+import { UnifiedEditorState, EditorStateActions } from '../../hooks/useUnifiedEditorState';
 
 interface EnhancedHotspotEditorModalProps {
-  isOpen: boolean;
+  editorState: UnifiedEditorState;
+  editorActions: EditorStateActions;
   selectedHotspot: HotspotData | null;
   relatedEvents: TimelineEventData[];
   currentStep: number;
@@ -30,15 +32,13 @@ interface EnhancedHotspotEditorModalProps {
   onAddEvent: (event: TimelineEventData) => void;
   onUpdateEvent: (event: TimelineEventData) => void;
   onDeleteEvent: (eventId: string) => void;
-  onClose: () => void;
   allHotspots: HotspotData[];
   onPreviewEvent?: (eventId: string) => void; // New callback for previewing on main image
   onPreviewOverlay?: (event: TimelineEventData | null) => void; // New callback for preview overlays
-  onCollapseChange?: (isCollapsed: boolean) => void; // New callback for collapse state changes
 }
 
 // Event Type Selector Component
-const EventTypeGrid: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = ({ onSelectEventType }) => {
+const EventTypeGrid: React.FC<{ onSelectEventType: (type: InteractionType) => void }> = React.memo(({ onSelectEventType }) => {
   const eventTypes: { type: InteractionType; label: string }[] = [
     { type: InteractionType.SPOTLIGHT, label: 'Spotlight' },
     { type: InteractionType.PAN_ZOOM, label: 'Pan & Zoom' },
@@ -63,7 +63,7 @@ const EventTypeGrid: React.FC<{ onSelectEventType: (type: InteractionType) => vo
       ))}
     </div>
   );
-};
+});
 
 // Hotspot Editor Toolbar Component
 const HotspotEditorToolbar: React.FC<{
@@ -72,7 +72,7 @@ const HotspotEditorToolbar: React.FC<{
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
-}> = ({ title, onTitleChange, onSave, onDelete, onClose }) => (
+}> = React.memo(({ title, onTitleChange, onSave, onDelete, onClose }) => (
   <div className="p-2 bg-gray-900 flex items-center justify-between border-b border-gray-700">
     <input
       type="text"
@@ -102,10 +102,11 @@ const HotspotEditorToolbar: React.FC<{
       </button>
     </div>
   </div>
-);
+));
 
 const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
-  isOpen,
+  editorState,
+  editorActions,
   selectedHotspot,
   relatedEvents,
   currentStep,
@@ -115,14 +116,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   onAddEvent,
   onUpdateEvent,
   onDeleteEvent,
-  onClose,
   allHotspots,
   onPreviewEvent,
-  onPreviewOverlay,
-  onCollapseChange
+  onPreviewOverlay
 }) => {
   const eventIdCounter = useRef(0);
   const timestampCounter = useRef(0);
+
+  const { isOpen, isCollapsed } = editorState.hotspotEditor;
+  const { isOpen: isSettingsModalOpen, editingEventId } = editorState.interactionEditor;
 
   // Debug logging to understand modal rendering
   console.log('🔍 HOTSPOT EDITOR MODAL DEBUG:', {
@@ -135,10 +137,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
-  const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
-  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
-  const [isCollapsed, setIsCollapsed] = useState(false); // New state for collapse/expand
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
   useEffect(() => { 
@@ -149,14 +148,6 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   const handleToggleEventTypeSelector = () => {
     setShowEventTypeSelector(prev => !prev);
-  };
-
-  const handleToggleCollapse = () => {
-    setIsCollapsed(prev => {
-      const newCollapsed = !prev;
-      onCollapseChange?.(newCollapsed);
-      return newCollapsed;
-    });
   };
 
   // Scroll to EventTypeSelector when it becomes visible
@@ -255,7 +246,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     if (localHotspot) {
       onUpdateHotspot(normalizeHotspotPosition(localHotspot));
     }
-    onClose(); 
+    editorActions.closeHotspotEditor();
   };
   
   const handleTogglePreview = (eventId: string) => {
@@ -337,7 +328,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       >
         {/* Collapse/Expand Arrow - Always visible */}
         <button
-          onClick={handleToggleCollapse}
+          onClick={editorActions.toggleHotspotEditorCollapse}
           className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full ${Z_INDEX_TAILWIND.MODAL_CONTENT_FLOATING_CONTROL} bg-gray-800 text-white p-2 rounded-l-md border-l border-t border-b border-gray-700 hover:bg-gray-700 transition-colors`}
           aria-label={isCollapsed ? "Expand hotspot editor" : "Collapse hotspot editor"}
         >
@@ -357,10 +348,10 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             onDelete={() => {
               if (window.confirm(`Are you sure you want to delete the hotspot "${localHotspot.title}"?`)) {
                 onDeleteHotspot(localHotspot.id);
-                onClose();
+                editorActions.closeHotspotEditor();
               }
             }} 
-            onClose={onClose}
+            onClose={editorActions.closeHotspotEditor}
           />
           )}
           
@@ -590,10 +581,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     onDelete={handleEventDelete}
                     moveCard={moveEvent}
                     onTogglePreview={() => handleTogglePreview(event.id)}
-                    onEdit={() => {
-                      setEditingEvent(event);
-                      setSettingsModalOpen(true);
-                    }}
+                    onEdit={() => editorActions.openInteractionEditor(event.id)}
                     isPreviewing={previewingEventIds.includes(event.id)}
                     allHotspots={allHotspots}
                   />
@@ -606,18 +594,15 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       </div>
       <InteractionSettingsModal
         isOpen={isSettingsModalOpen}
-        event={editingEvent}
+        event={relatedEvents.find(e => e.id === editingEventId) || null}
         onUpdate={handleEventUpdate}
-        onClose={() => {
-          setSettingsModalOpen(false);
-          setEditingEvent(null);
-        }}
+        onClose={editorActions.closeInteractionEditor}
       />
       {/* Backdrop overlay for closing when clicking outside */}
       {isOpen && !isSettingsModalOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-25 z-40"
-          onClick={onClose}
+          onClick={editorActions.closeHotspotEditor}
         />
       )}
       </>
