@@ -4,6 +4,7 @@
  * Manages z-index values to ensure proper layering of UI elements
  * that need to appear above iOS Safari browser UI elements.
  */
+import React from 'react';
 
 // Z-index constants for iOS Safari compatibility
 export const IOS_Z_INDEX = {

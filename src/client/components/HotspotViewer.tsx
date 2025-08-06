@@ -324,8 +324,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   // Style classes - with enhanced color support for slide-based and legacy systems
   const getHotspotColor = () => {
     // Priority order: customProperties (from slide element) -> hotspot.backgroundColor -> hotspot.color -> default
-    const customColor = hotspot.customProperties?.backgroundColor || hotspot.customProperties?.color;
-    return customColor || hotspot.backgroundColor || hotspot.color || 'bg-sky-500';
+    const customColor = hotspot.customProperties?.['backgroundColor'] || hotspot.customProperties?.['color'];
+    const color = customColor || hotspot.backgroundColor || hotspot.color;
+    if (typeof color === 'string' && color.startsWith('bg-')) {
+      return color;
+    }
+    return 'bg-sky-500';
   };
   
   const baseColor = getHotspotColor();
@@ -334,8 +338,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   // Get hotspot size from multiple sources (priority: customProperties -> hotspot.size -> default)
   const getHotspotSize = () => {
-    const customSize = hotspot.customProperties?.size;
-    return customSize || hotspot.size || defaultHotspotSize;
+    const customSize = hotspot.customProperties?.['size'];
+    const size = customSize || hotspot.size;
+    if (typeof size === 'string') {
+      return size as HotspotSize;
+    }
+    return defaultHotspotSize;
   };
   
   const sizeClasses = getSizeClasses(getHotspotSize());
@@ -360,7 +368,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     const styles: React.CSSProperties = {};
     
     // Apply opacity from customProperties, which may be passed for slide-based elements
-    const customOpacity = hotspot.customProperties?.opacity;
+    const customOpacity = hotspot.customProperties?.['opacity'];
     
     if (customOpacity !== undefined) {
       styles.opacity = customOpacity as number;

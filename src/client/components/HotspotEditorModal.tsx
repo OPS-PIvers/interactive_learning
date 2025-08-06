@@ -18,9 +18,8 @@ import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
 import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
-import { UnifiedEditorState, EditorStateActions } from '../../hooks/useUnifiedEditorState';
+import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEditorState';
 
 interface EnhancedHotspotEditorModalProps {
   editorState: UnifiedEditorState;
