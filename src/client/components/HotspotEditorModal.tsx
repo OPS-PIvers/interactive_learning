@@ -338,7 +338,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         {/* Collapse/Expand Arrow - Always visible */}
         <button
           onClick={handleToggleCollapse}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full z-[71] bg-gray-800 text-white p-2 rounded-l-md border-l border-t border-b border-gray-700 hover:bg-gray-700 transition-colors"
+          className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full ${Z_INDEX_TAILWIND.MODAL_CONTENT_FLOATING_CONTROL} bg-gray-800 text-white p-2 rounded-l-md border-l border-t border-b border-gray-700 hover:bg-gray-700 transition-colors`}
           aria-label={isCollapsed ? "Expand hotspot editor" : "Collapse hotspot editor"}
         >
           {isCollapsed ? (

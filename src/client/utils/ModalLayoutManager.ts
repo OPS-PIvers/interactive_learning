@@ -183,32 +183,44 @@ export class ModalLayoutManager {
 
     let backdrop: number;
     let content: number;
+    let tailwindBackdrop: string;
+    let tailwindContent: string;
 
     switch (type) {
       case 'properties':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.PROPERTIES_PANEL;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.PROPERTIES_PANEL;
         break;
 
       case 'confirmation':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.CONFIRMATION_DIALOG;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.CONFIRMATION_DIALOG;
         break;
 
       case 'fullscreen':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.SYSTEM_MODAL;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.SYSTEM_MODAL;
         break;
 
       case 'drawer':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.MODAL_CONTENT;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.MODAL_CONTENT;
         break;
 
       case 'standard':
       default:
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.MODAL_CONTENT;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.MODAL_CONTENT;
         break;
     }
 
@@ -216,8 +228,8 @@ export class ModalLayoutManager {
       backdrop,
       content,
       tailwind: {
-        backdrop: `z-[${backdrop}]`,
-        content: `z-[${content}]`
+        backdrop: tailwindBackdrop,
+        content: tailwindContent
       }
     };
   }

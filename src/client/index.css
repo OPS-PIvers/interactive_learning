@@ -5,6 +5,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --z-accessibility-link: 99999;
+  --z-hidden-element: -1;
+  --z-drag-preview: 500;
+}
+
 /* Main styles for ExpliCoLearning */
 
 /* These styles supplement Tailwind CSS */
@@ -115,7 +121,8 @@ body {
 
 /* Hotspot specific drag/hold feedback - these are applied by JS */
 .hotspot-dragging { /* When actively being dragged via onPositionChange */
-  @apply !scale-110 !shadow-2xl !z-50 !cursor-grabbing;
+  @apply !scale-110 !shadow-2xl !cursor-grabbing;
+  z-index: var(--z-drag-preview) !important;
   transition: transform 0.1s ease-out, box-shadow 0.1s ease-out !important; /* Faster transition for direct manipulation */
 }
 
@@ -179,12 +186,13 @@ body {
   /* Theme-dependent colors are set in SharedModuleViewer or other components */
   /* Defaults for non-themed contexts: */
   @apply bg-slate-800 text-slate-100 border border-slate-700 no-underline;
-  z-index: -9999; /* Ensure it's not interactive when hidden */
+  z-index: var(--z-hidden-element); /* Ensure it's not interactive when hidden */
 }
 
 .skip-to-main-content-link:focus,
 .skip-to-main-content-link:active {
-  @apply left-4 overflow-visible z-[99999]; /* Ensure it's on top when focused */
+  @apply left-4 overflow-visible; /* Ensure it's on top when focused */
+  z-index: var(--z-accessibility-link);
 }
 
 
