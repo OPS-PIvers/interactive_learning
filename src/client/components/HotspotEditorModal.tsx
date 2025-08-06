@@ -11,7 +11,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
