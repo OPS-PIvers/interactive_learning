@@ -270,16 +270,14 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
                             type="number"
                             value={event.youtubeStartTime || ''}
                             onChange={e => {
-                              const value = e.target.value;
-                              if (value) {
-                                const numValue = parseInt(value, 10);
+                              const startTimeValue = e.target.value;
+                              if (startTimeValue) {
+                                const numValue = parseInt(startTimeValue, 10);
                                 if (!isNaN(numValue)) {
                                   onUpdate({ youtubeStartTime: numValue });
                                 }
                               } else {
-                                const updates: any = { youtubeStartTime: undefined };
-                                delete updates.youtubeStartTime;
-                                onUpdate(updates);
+                                onUpdate({ youtubeStartTime: null });
                               }
                             }}
                             className={inputClasses}
@@ -292,16 +290,14 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
                             type="number"
                             value={event.youtubeEndTime || ''}
                             onChange={e => {
-                              const value = e.target.value;
-                              if (value) {
-                                const numValue = parseInt(value, 10);
+                              const endTimeValue = e.target.value;
+                              if (endTimeValue) {
+                                const numValue = parseInt(endTimeValue, 10);
                                 if (!isNaN(numValue)) {
                                   onUpdate({ youtubeEndTime: numValue });
                                 }
                               } else {
-                                const updates: any = { youtubeEndTime: undefined };
-                                delete updates.youtubeEndTime;
-                                onUpdate(updates);
+                                onUpdate({ youtubeEndTime: null });
                               }
                             }}
                             className={inputClasses}

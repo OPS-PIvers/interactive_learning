@@ -21,10 +21,10 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
         duration: 3000,
         parameters: {
           position: {
-            x: element.position.desktop.x,
-            y: element.position.desktop.y,
-            width: element.position.desktop.width,
-            height: element.position.desktop.height,
+            x: element.position?.desktop?.x ?? 0,
+            y: element.position?.desktop?.y ?? 0,
+            width: element.position?.desktop?.width ?? 100,
+            height: element.position?.desktop?.height ?? 100,
           },
           shape: 'circle',
           intensity: 70,
@@ -41,8 +41,8 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
         type: 'show_text',
         duration: 5000,
         parameters: {
-          text: element.content.textContent || 'Text Element',
-          position: element.position.desktop,
+          text: element.content?.textContent || 'Text Element',
+          position: element.position?.desktop,
           style: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: 'white',
@@ -57,7 +57,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
 
     case 'media':
       // Default play media effect for media elements
-      if (element.content.mediaUrl && (element.content.mediaType === 'audio' || element.content.mediaType === 'video')) {
+      if (element.content?.mediaUrl && (element.content?.mediaType === 'audio' || element.content?.mediaType === 'video')) {
         defaultEffect = {
           id: generateId(),
           type: 'play_media',
@@ -78,10 +78,10 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
           duration: 3000,
           parameters: {
             position: {
-              x: element.position.desktop.x,
-              y: element.position.desktop.y,
-              width: element.position.desktop.width,
-              height: element.position.desktop.height,
+              x: element.position?.desktop?.x ?? 0,
+              y: element.position?.desktop?.y ?? 0,
+              width: element.position?.desktop?.width ?? 100,
+              height: element.position?.desktop?.height ?? 100,
             },
             shape: 'circle',
             intensity: 70,
@@ -100,10 +100,10 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
         duration: 3000,
         parameters: {
           position: {
-            x: element.position.desktop.x,
-            y: element.position.desktop.y,
-            width: element.position.desktop.width,
-            height: element.position.desktop.height,
+            x: element.position?.desktop?.x ?? 0,
+            y: element.position?.desktop?.y ?? 0,
+            width: element.position?.desktop?.width ?? 100,
+            height: element.position?.desktop?.height ?? 100,
           },
           shape: 'circle',
           intensity: 70,
@@ -125,7 +125,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
  */
 export function ensureElementInteractions(element: SlideElement): SlideElement {
   // If element already has a click interaction, return as-is
-  const hasClickInteraction = element.interactions.some(
+  const hasClickInteraction = element.interactions?.some(
     interaction => interaction.trigger === 'click'
   );
   
@@ -138,7 +138,7 @@ export function ensureElementInteractions(element: SlideElement): SlideElement {
   
   return {
     ...element,
-    interactions: [...element.interactions, defaultInteraction]
+    interactions: [...(element.interactions || []), defaultInteraction]
   };
 }
 

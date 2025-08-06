@@ -125,35 +125,37 @@ const MainApp: React.FC = () => {
     setError(null);
     try {
       // Enhanced condition to properly detect when details need loading
-      const needsDetailLoad = !project.interactiveData.hotspots || 
-                             !project.interactiveData.timelineEvents ||
-                             project.interactiveData.hotspots.length === 0 || 
-                             project.interactiveData.timelineEvents.length === 0 ||
-                             (project as any).interactiveData._needsDetailLoad;
+      const needsDetailLoad = !project.interactiveData?.hotspots ||
+                             !project.interactiveData?.timelineEvents ||
+                             project.interactiveData?.hotspots.length === 0 ||
+                             project.interactiveData?.timelineEvents.length === 0 ||
+                             (project.interactiveData as any)?._needsDetailLoad;
 
       if (needsDetailLoad) {
         console.log(`Fetching details for project: ${project.id} (${project.title})`);
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
         
         // Validate that we actually got data
-        if (!details.hotspots && !details.timelineEvents) {
+        if (!details?.hotspots && !details?.timelineEvents) {
           console.warn(`No details returned for project ${project.id}, using empty data`);
         }
         
-        const newBackgroundImage = details.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData.backgroundImage;
+        const newBackgroundImage = details?.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData?.backgroundImage;
         const updatedProject = {
           ...project,
           interactiveData: {
             ...project.interactiveData,
-            hotspots: details.hotspots || [],
-            timelineEvents: details.timelineEvents || [],
+            hotspots: details?.hotspots || [],
+            timelineEvents: details?.timelineEvents || [],
             ...(newBackgroundImage !== undefined && { backgroundImage: newBackgroundImage }),
-            ...(details.imageFitMode && { imageFitMode: details.imageFitMode }),
+            ...(details?.imageFitMode && { imageFitMode: details.imageFitMode }),
           }
         };
         
         // Remove the loading flag
-        delete (updatedProject as any).interactiveData._needsDetailLoad;
+        if (updatedProject.interactiveData) {
+          delete (updatedProject.interactiveData as any)._needsDetailLoad;
+        }
         
         setSelectedProject(updatedProject);
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
@@ -270,7 +272,7 @@ const MainApp: React.FC = () => {
       return;
     }
 
-    const newThumbnailUrl = thumbnailUrl || projectToSave.thumbnailUrl;
+    const newThumbnailUrl = thumbnailUrl || projectToSave?.thumbnailUrl;
     const projectDataToSend: Project = {
       ...projectToSave,
       interactiveData: data,
@@ -286,7 +288,7 @@ const MainApp: React.FC = () => {
         prevProjects.map(p => (p.id === projectId ? savedProjectWithPotentiallyNewThumbnail : p))
       );
 
-      if (selectedProject && selectedProject.id === projectId) {
+      if (selectedProject?.id === projectId) {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
@@ -300,7 +302,7 @@ const MainApp: React.FC = () => {
   }, [user, projects, selectedProject]);
 
   const handleImageUpload = useCallback(async (file: File) => {
-    if (!user || !selectedProject) {
+    if (!user || !selectedProject?.id) {
       setShowAuthModal(true);
       return;
     }
@@ -313,12 +315,16 @@ const MainApp: React.FC = () => {
         backgroundImage: imageUrl,
       };
       
+      const updatedProject = {
+        ...selectedProject,
+        interactiveData: updatedData,
+      };
+
       // Update local project state first to ensure React state is current
       setProjects(prev => prev.map(p => 
-        p.id === selectedProject.id 
-          ? { ...p, interactiveData: updatedData }
-          : p
+        p.id === selectedProject.id ? updatedProject : p
       ));
+      setSelectedProject(updatedProject);
       
       // Use a small delay to ensure React state has propagated before saving
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -364,7 +370,7 @@ const MainApp: React.FC = () => {
       const projectToReload = {
         ...selectedProject,
         interactiveData: {
-          ...selectedProject.interactiveData,
+          ...selectedProject?.interactiveData,
           hotspots: [],
           timelineEvents: [],
         }
