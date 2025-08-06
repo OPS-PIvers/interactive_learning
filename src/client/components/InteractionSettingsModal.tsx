@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { TimelineEventData } from '../../shared/types';
 import { XMarkIcon } from './icons/XMarkIcon';
 import PanZoomSettings from './PanZoomSettings';
@@ -7,6 +7,165 @@ import { InteractionType } from '../../shared/InteractionPresets';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+
+// Validation error interface
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+// Parameter validation functions
+const validateTextParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (!event.textContent?.trim()) {
+    errors.push({ field: 'textContent', message: 'Text content is required' });
+  }
+  
+  if (event.textPosition === 'custom') {
+    if (typeof event.textX !== 'number' || event.textX < 0 || event.textX > 100) {
+      errors.push({ field: 'textX', message: 'X position must be between 0 and 100' });
+    }
+    if (typeof event.textY !== 'number' || event.textY < 0 || event.textY > 100) {
+      errors.push({ field: 'textY', message: 'Y position must be between 0 and 100' });
+    }
+  }
+  
+  if (event.textWidth && (event.textWidth < 50 || event.textWidth > 1200)) {
+    errors.push({ field: 'textWidth', message: 'Width must be between 50 and 1200 pixels' });
+  }
+  
+  if (event.textHeight && (event.textHeight < 20 || event.textHeight > 800)) {
+    errors.push({ field: 'textHeight', message: 'Height must be between 20 and 800 pixels' });
+  }
+  
+  return errors;
+};
+
+const validateAudioParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (!event.audioUrl?.trim()) {
+    errors.push({ field: 'audioUrl', message: 'Audio URL is required' });
+  } else {
+    try {
+      const url = new URL(event.audioUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        errors.push({ field: 'audioUrl', message: 'Audio URL must use HTTP or HTTPS' });
+      }
+    } catch {
+      errors.push({ field: 'audioUrl', message: 'Invalid audio URL format' });
+    }
+  }
+  
+  if (event.volume !== undefined && (event.volume < 0 || event.volume > 100)) {
+    errors.push({ field: 'volume', message: 'Volume must be between 0 and 100' });
+  }
+  
+  return errors;
+};
+
+const validateVideoParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (!event.videoUrl?.trim()) {
+    errors.push({ field: 'videoUrl', message: 'Video URL is required' });
+  } else {
+    try {
+      const url = new URL(event.videoUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        errors.push({ field: 'videoUrl', message: 'Video URL must use HTTP or HTTPS' });
+      }
+    } catch {
+      errors.push({ field: 'videoUrl', message: 'Invalid video URL format' });
+    }
+  }
+  
+  return errors;
+};
+
+const validatePanZoomParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (event.zoomLevel !== undefined && (event.zoomLevel < 0.1 || event.zoomLevel > 10)) {
+    errors.push({ field: 'zoomLevel', message: 'Zoom level must be between 0.1 and 10' });
+  }
+  
+  if (event.targetX !== undefined && (event.targetX < 0 || event.targetX > 100)) {
+    errors.push({ field: 'targetX', message: 'Target X must be between 0 and 100' });
+  }
+  
+  if (event.targetY !== undefined && (event.targetY < 0 || event.targetY > 100)) {
+    errors.push({ field: 'targetY', message: 'Target Y must be between 0 and 100' });
+  }
+  
+  return errors;
+};
+
+const validateSpotlightParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (event.backgroundDimPercentage !== undefined && (event.backgroundDimPercentage < 0 || event.backgroundDimPercentage > 100)) {
+    errors.push({ field: 'backgroundDimPercentage', message: 'Dim percentage must be between 0 and 100' });
+  }
+  
+  if (event.spotlightWidth !== undefined && (event.spotlightWidth < 10 || event.spotlightWidth > 1000)) {
+    errors.push({ field: 'spotlightWidth', message: 'Spotlight width must be between 10 and 1000 pixels' });
+  }
+  
+  if (event.spotlightHeight !== undefined && (event.spotlightHeight < 10 || event.spotlightHeight > 1000)) {
+    errors.push({ field: 'spotlightHeight', message: 'Spotlight height must be between 10 and 1000 pixels' });
+  }
+  
+  return errors;
+};
+
+const validateQuizParameters = (event: TimelineEventData): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  if (!event.quizQuestion?.trim()) {
+    errors.push({ field: 'quizQuestion', message: 'Quiz question is required' });
+  }
+  
+  if (!event.quizOptions || event.quizOptions.length < 2) {
+    errors.push({ field: 'quizOptions', message: 'At least 2 quiz options are required' });
+  } else {
+    event.quizOptions.forEach((option, index) => {
+      if (!option?.trim()) {
+        errors.push({ field: `quizOption${index}`, message: `Option ${index + 1} cannot be empty` });
+      }
+    });
+  }
+  
+  if (event.quizCorrectAnswer === undefined || 
+      event.quizCorrectAnswer < 0 || 
+      event.quizCorrectAnswer >= (event.quizOptions?.length || 0)) {
+    errors.push({ field: 'quizCorrectAnswer', message: 'Valid correct answer must be selected' });
+  }
+  
+  return errors;
+};
+
+// Main validation function
+const validateEventParameters = (event: TimelineEventData): ValidationError[] => {
+  switch (event.type) {
+    case InteractionType.SHOW_TEXT:
+      return validateTextParameters(event);
+    case InteractionType.PLAY_AUDIO:
+      return validateAudioParameters(event);
+    case InteractionType.PLAY_VIDEO:
+      return validateVideoParameters(event);
+    case InteractionType.PAN_ZOOM:
+    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
+      return validatePanZoomParameters(event);
+    case InteractionType.SPOTLIGHT:
+      return validateSpotlightParameters(event);
+    case InteractionType.QUIZ:
+      return validateQuizParameters(event);
+    default:
+      return [];
+  }
+};
 
 interface InteractionEditorProps {
   event: TimelineEventData;
@@ -445,13 +604,40 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   onUpdate,
   onClose,
 }) => {
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [hasValidated, setHasValidated] = useState(false);
+
   if (!isOpen || !event) {
     return null;
   }
 
-  const handleUpdate = (updates: Partial<TimelineEventData>) => {
-    onUpdate({ ...event, ...updates });
-  };
+  const handleUpdate = useCallback((updates: Partial<TimelineEventData>) => {
+    const updatedEvent = { ...event, ...updates };
+    
+    // Perform real-time validation
+    const errors = validateEventParameters(updatedEvent);
+    setValidationErrors(errors);
+    setHasValidated(true);
+    
+    // Always update the event, even with validation errors
+    // This allows users to see their changes while they fix issues
+    onUpdate(updatedEvent);
+  }, [event, onUpdate]);
+
+  const handleSave = useCallback(() => {
+    const errors = validateEventParameters(event);
+    setValidationErrors(errors);
+    setHasValidated(true);
+    
+    if (errors.length === 0) {
+      onClose();
+    }
+  }, [event, onClose]);
+
+  // Get error message for a specific field
+  const getFieldError = useCallback((fieldName: string) => {
+    return validationErrors.find(error => error.field === fieldName)?.message;
+  }, [validationErrors]);
 
   const renderEditorForEvent = () => {
     switch (event.type) {
@@ -498,8 +684,42 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
-        <div className="space-y-4">
+        
+        {/* Validation Error Summary */}
+        {hasValidated && validationErrors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-red-300 mb-2">Please fix the following errors:</h3>
+            <ul className="text-xs text-red-200 space-y-1">
+              {validationErrors.map((error, index) => (
+                <li key={index}>• {error.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        <div className="space-y-4 mb-6">
           {renderEditorForEvent()}
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={hasValidated && validationErrors.length > 0}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              hasValidated && validationErrors.length > 0
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {hasValidated && validationErrors.length > 0 ? 'Fix Errors First' : 'Save Changes'}
+          </button>
         </div>
       </div>
     </div>

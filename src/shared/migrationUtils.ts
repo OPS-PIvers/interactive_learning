@@ -268,8 +268,8 @@ function convertHotspotToSlideElement(
       zIndex: 10,
     },
     content: {
-      title: hotspot.title,
-      description: hotspot.description,
+      title: hotspot?.title,
+      description: hotspot?.description,
     },
     interactions,
     isVisible: true

@@ -50,22 +50,22 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const validateFileType = (file: File): boolean => {
     switch (acceptedTypes) {
       case 'image':
-        return file.type.startsWith('image/');
+        return file?.type?.startsWith('image/') || false;
       case 'video':
-        return file.type.startsWith('video/');
+        return file?.type?.startsWith('video/') || false;
       case 'audio':
-        return file.type.startsWith('audio/');
+        return file?.type?.startsWith('audio/') || false;
       case 'all':
-        return file.type.startsWith('image/') || 
-               file.type.startsWith('video/') || 
-               file.type.startsWith('audio/');
+        return file?.type?.startsWith('image/') || 
+               file?.type?.startsWith('video/') || 
+               file?.type?.startsWith('audio/') || false;
       default:
-        return file.type.startsWith('image/');
+        return file?.type?.startsWith('image/') || false;
     }
   };
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
+    if (event?.target?.files?.[0]) {
       const file = event.target.files[0];
       if (validateFileType(file)) {
         onFileUpload(file);
