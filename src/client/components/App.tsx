@@ -22,6 +22,7 @@ import SlideBasedTestPage from './SlideBasedTestPage';
 import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 
 const LoadingScreen: React.FC = () => (
@@ -470,7 +471,7 @@ const MainApp: React.FC = () => {
           </div>
         )}
         {isProjectDetailsLoading && (
-          <div className="fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center z-[60]">
+          <div className={`fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center ${Z_INDEX_TAILWIND.LOADING_OVERLAY}`}>
             <p className="text-slate-300 text-2xl">Loading project details...</p>
           </div>
         )}

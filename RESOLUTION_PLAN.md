@@ -28,9 +28,9 @@ The recent commits fixed **surface-level symptoms** but didn't resolve **root ar
 **Priority**: HIGH - Prevents future violations
 
 1. **Z-Index System Migration**
-   - Replace 30+ hardcoded z-index values with centralized `Z_INDEX_TAILWIND` constants
-   - Fix modal layering conflicts
-   - Ensure toolbar overlap prevention works correctly
+   - [x] Replace 30+ hardcoded z-index values with centralized `Z_INDEX_TAILWIND` constants. (*Completed by Jules on 2025-08-06: Replaced all hardcoded z-index values in JSX and CSS with constants from `zIndexLevels.ts` or CSS variables. Added new constants where necessary.*)
+   - [ ] Fix modal layering conflicts
+   - [ ] Ensure toolbar overlap prevention works correctly
 
 2. **Device Detection Cleanup** 
    - Refactor 25+ components using forbidden `isMobile` patterns

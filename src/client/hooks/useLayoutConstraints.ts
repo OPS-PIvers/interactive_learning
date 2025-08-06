@@ -161,32 +161,42 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
   const zIndex = useMemo(() => {
     let backdrop: number;
     let content: number;
+    let tailwindBackdrop: string;
+    let tailwindContent: string;
 
     switch (type) {
       case 'properties':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.PROPERTIES_PANEL;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.PROPERTIES_PANEL;
         break;
       case 'confirmation':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.CONFIRMATION_DIALOG;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.CONFIRMATION_DIALOG;
         break;
       case 'fullscreen':
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.SYSTEM_MODAL;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.SYSTEM_MODAL;
         break;
       case 'standard':
       default:
         backdrop = Z_INDEX.MODAL_BACKDROP;
         content = Z_INDEX.MODAL_CONTENT;
+        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
+        tailwindContent = Z_INDEX_TAILWIND.MODAL_CONTENT;
         break;
     }
 
     return {
       backdrop,
       content,
-      tailwindBackdrop: `z-[${backdrop}]`,
-      tailwindContent: `z-[${content}]`
+      tailwindBackdrop,
+      tailwindContent,
     };
   }, [type]);
 

@@ -152,7 +152,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   
   // Unified responsive layout using CSS breakpoints
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 z-[9999]">
+    <div className={`fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 ${Z_INDEX_TAILWIND.TOOLBAR}`}>
       {/* Timeline Progress */}
       {showProgress && slides && slides.length > 0 && (
         <div className="px-4 py-2 bg-slate-800/60">
@@ -328,7 +328,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
 
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+        <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm ${Z_INDEX_TAILWIND.SYSTEM_MODAL} flex items-center justify-center p-4`}>
           <div 
             className="bg-slate-800 rounded-lg border border-slate-700 p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
             role="dialog"
