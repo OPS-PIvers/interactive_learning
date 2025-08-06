@@ -669,7 +669,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-60 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} flex items-center justify-center`} onClick={onClose}>
+    <div className={`fixed inset-0 bg-black bg-opacity-60 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} flex items-center justify-center p-4`} onClick={onClose}>
       <div className="bg-gray-800 text-white rounded-lg shadow-xl p-4 w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
           <h2 className="text-lg font-semibold">Edit: {event.name}</h2>
@@ -690,7 +690,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
           </div>
         )}
         
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 overflow-y-auto max-h-[60vh] pr-2">
           {renderEditorForEvent()}
         </div>
         

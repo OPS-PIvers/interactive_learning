@@ -11,6 +11,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import EventTypeToggle from './EventTypeToggle';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
@@ -139,6 +140,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
+  const [isHotspotSettingsCollapsed, setIsHotspotSettingsCollapsed] = useState(false);
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
   useEffect(() => { 
@@ -314,16 +316,14 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         <div 
           className={`
             fixed top-0 right-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} h-screen
-            transform transition-transform duration-300 ease-out
+            bg-gray-800 text-white shadow-2xl border-l border-gray-700
+            transform transition-all duration-300 ease-out
             ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+            ${isCollapsed ? 'w-0' : 'w-full md:w-96'}
           `}
           style={{ 
-            width: isCollapsed ? '0px' : '384px',
-            visibility: isOpen ? 'visible' : 'hidden', // Explicit visibility
-            display: 'block', // Ensure it's not hidden
-            willChange: 'transform, width', // Optimize for animation
-            right: isOpen ? '0' : (isCollapsed ? '0px' : '-384px'), // Fallback positioning
-            transition: 'width 0.3s ease-out', // Smooth width transition
+            visibility: isOpen ? 'visible' : 'hidden',
+            willChange: 'transform, width',
             overflow: 'visible' // Allow arrow to be visible outside the collapsed area
           }}
       >
@@ -340,7 +340,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           )}
         </button>
 
-        <div className="w-full h-full bg-gray-800 text-white flex flex-col shadow-2xl border-l border-gray-700" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
           {!isCollapsed && (
             <HotspotEditorToolbar 
             title={localHotspot.title || `Edit Hotspot`} 
@@ -368,205 +368,204 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             <div className="flex-grow flex flex-col p-3 gap-3 overflow-y-auto">
             {/* Hotspot Settings Section */}
             <div className="bg-gray-700 p-3 rounded-lg">
-              <h3 className="text-base font-semibold mb-2 text-white">Hotspot Settings</h3>
-              <div className="flex items-center justify-between">
-                <label htmlFor="display-hotspot-toggle" className="text-sm text-gray-300">
-                  Display hotspot during event
-                </label>
-                <div
-                  onClick={() =>
-                    setLocalHotspot(prev => prev ? { ...prev, displayHotspotInEvent: !prev.displayHotspotInEvent } : null)
-                  }
-                  id="display-hotspot-toggle"
-                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
-                              ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}
-                >
-                  <span
-                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
-                                ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </div>
-              </div>
-              
-              {/* Style Presets */}
-              <div className="mt-4">
-                <label className="text-sm text-gray-300 mb-2 block">Style Presets</label>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {hotspotStylePresets.map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => {
-                        if (localHotspot) {
-                          const updatedHotspot = applyStylePreset(localHotspot, preset);
-                          setLocalHotspot(updatedHotspot);
-                          // Immediately update the hotspot in the editor for real-time preview
-                          onUpdateHotspot(updatedHotspot);
-                        }
-                      }}
-                      className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
-                      title={preset.description}
+              <button
+                onClick={() => setIsHotspotSettingsCollapsed(prev => !prev)}
+                className="w-full flex justify-between items-center text-left"
+              >
+                <h3 className="text-base font-semibold text-white">Hotspot Settings</h3>
+                <ChevronDownIcon className={`w-5 h-5 transition-transform ${isHotspotSettingsCollapsed ? '-rotate-90' : ''}`} />
+              </button>
+              {!isHotspotSettingsCollapsed && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="display-hotspot-toggle" className="text-sm text-gray-300">
+                      Display hotspot during event
+                    </label>
+                    <div
+                      onClick={() =>
+                        setLocalHotspot(prev => prev ? { ...prev, displayHotspotInEvent: !prev.displayHotspotInEvent } : null)
+                      }
+                      id="display-hotspot-toggle"
+                      className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+                                  ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}
                     >
-                      <div 
-                        className="w-3 h-3 rounded-full border border-gray-400" 
-                        style={{ backgroundColor: preset.style.color }}
+                      <span
+                        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                    ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`}
                       />
-                      {preset.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Size Options */}
-              <div className="mt-4">
-                <label className="text-sm text-gray-300 mb-2 block">Size</label>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {hotspotSizePresets.map((sizePreset) => (
-                    <button
-                      key={sizePreset.value}
-                      onClick={() => {
-                        if (localHotspot) {
-                          setLocalHotspot(prev => prev ? { ...prev, size: sizePreset.value } : null);
-                        }
-                      }}
-                      className={`px-3 py-2 rounded text-xs transition-colors ${
-                        localHotspot?.size === sizePreset.value 
-                          ? 'bg-purple-600 text-white' 
-                          : 'bg-gray-600 text-white hover:bg-gray-500'
-                      }`}
-                      title={sizePreset.description}
-                    >
-                      {sizePreset.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Pulse Animation Toggle */}
-              <div className="flex items-center justify-between mt-4">
-                <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">
-                  Pulse Animation
-                </label>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={!!localHotspot.pulseAnimation}
-                  onClick={() =>
-                    setLocalHotspot(prev => {
-                      if (!prev) return null;
-                      const newPulseAnimation = !prev.pulseAnimation;
-                      return {
-                        ...prev,
-                        pulseAnimation: newPulseAnimation,
-                        // Set a default pulseType when enabling animation
-                        ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const }),
-                      };
-                    })
-                  }
-                  id="pulse-animation-toggle"
-                  className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
-                              ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}
-                >
-                  <span
-                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
-                                ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </button>
-              </div>
-              {/* Pulse Type Radio Buttons */}
-              {localHotspot.pulseAnimation && (
-                <div className="mt-4">
-                  <label className="text-sm text-gray-300">Pulse Type</label>
-                  <div className="flex items-center mt-2">
-                    <input
-                      type="radio"
-                      id="pulse-loop"
-                      name="pulseType"
-                      value="loop"
-                      checked={localHotspot.pulseType === 'loop'}
-                      onChange={() =>
-                        setLocalHotspot(prev => prev ? { ...prev, pulseType: 'loop' } : null)
-                      }
-                      className="mr-2"
-                    />
-                    <label htmlFor="pulse-loop" className="text-sm text-gray-300">Loop</label>
-                    <input
-                      type="radio"
-                      id="pulse-timed"
-                      name="pulseType"
-                      value="timed"
-                      checked={localHotspot.pulseType === 'timed'}
-                      onChange={() =>
-                        setLocalHotspot(prev => prev ? { ...prev, pulseType: 'timed' } : null)
-                      }
-                      className="ml-4 mr-2"
-                    />
-                    <label htmlFor="pulse-timed" className="text-sm text-gray-300">Timed</label>
+                    </div>
                   </div>
-                </div>
-              )}
-              {/* Pulse Duration Input */}
-              {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' && (
-                <div className="mt-4">
-                  <label htmlFor="pulse-duration" className="text-sm text-gray-300">
-                    Pulse Duration (seconds)
-                  </label>
-                  <input
-                    type="number"
-                    id="pulse-duration"
-                    value={localHotspot.pulseDuration ?? ''}
-                    onChange={e => {
-                      const newDuration = parseFloat(e.target.value);
-                      setLocalHotspot(prev => {
-                        if (!prev) return null;
-                        const updatedHotspot = { ...prev };
-                        if (isNaN(newDuration)) {
-                          delete updatedHotspot.pulseDuration;
-                        } else {
-                          updatedHotspot.pulseDuration = newDuration;
-                        }
-                        return updatedHotspot;
-                      });
-                    }}
-                    className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
-                    min="0"
-                    step="0.1"
-                    placeholder="Enter duration in seconds"
-                  />
+
+                  {/* Style Presets */}
+                  <div className="mt-4">
+                    <label className="text-sm text-gray-300 mb-2 block">Style Presets</label>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {hotspotStylePresets.map((preset) => (
+                        <button
+                          key={preset.name}
+                          onClick={() => {
+                            if (localHotspot) {
+                              const updatedHotspot = applyStylePreset(localHotspot, preset);
+                              setLocalHotspot(updatedHotspot);
+                              // Immediately update the hotspot in the editor for real-time preview
+                              onUpdateHotspot(updatedHotspot);
+                            }
+                          }}
+                          className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
+                          title={preset.description}
+                        >
+                          <div
+                            className="w-3 h-3 rounded-full border border-gray-400"
+                            style={{ backgroundColor: preset.style.color }}
+                          />
+                          {preset.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Size Options */}
+                  <div className="mt-4">
+                    <label className="text-sm text-gray-300 mb-2 block">Size</label>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {hotspotSizePresets.map((sizePreset) => (
+                        <button
+                          key={sizePreset.value}
+                          onClick={() => {
+                            if (localHotspot) {
+                              setLocalHotspot(prev => prev ? { ...prev, size: sizePreset.value } : null);
+                            }
+                          }}
+                          className={`px-3 py-2 rounded text-xs transition-colors ${
+                            localHotspot?.size === sizePreset.value
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-600 text-white hover:bg-gray-500'
+                          }`}
+                          title={sizePreset.description}
+                        >
+                          {sizePreset.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pulse Animation Toggle */}
+                  <div className="flex items-center justify-between mt-4">
+                    <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">
+                      Pulse Animation
+                    </label>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={!!localHotspot.pulseAnimation}
+                      onClick={() =>
+                        setLocalHotspot(prev => {
+                          if (!prev) return null;
+                          const newPulseAnimation = !prev.pulseAnimation;
+                          return {
+                            ...prev,
+                            pulseAnimation: newPulseAnimation,
+                            // Set a default pulseType when enabling animation
+                            ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const }),
+                          };
+                        })
+                      }
+                      id="pulse-animation-toggle"
+                      className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
+                                  ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                      <span
+                        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                    ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`}
+                      />
+                    </button>
+                  </div>
+                  {/* Pulse Type Radio Buttons */}
+                  {localHotspot.pulseAnimation && (
+                    <div className="mt-4">
+                      <label className="text-sm text-gray-300">Pulse Type</label>
+                      <div className="flex items-center mt-2">
+                        <input
+                          type="radio"
+                          id="pulse-loop"
+                          name="pulseType"
+                          value="loop"
+                          checked={localHotspot.pulseType === 'loop'}
+                          onChange={() =>
+                            setLocalHotspot(prev => prev ? { ...prev, pulseType: 'loop' } : null)
+                          }
+                          className="mr-2"
+                        />
+                        <label htmlFor="pulse-loop" className="text-sm text-gray-300">Loop</label>
+                        <input
+                          type="radio"
+                          id="pulse-timed"
+                          name="pulseType"
+                          value="timed"
+                          checked={localHotspot.pulseType === 'timed'}
+                          onChange={() =>
+                            setLocalHotspot(prev => prev ? { ...prev, pulseType: 'timed' } : null)
+                          }
+                          className="ml-4 mr-2"
+                        />
+                        <label htmlFor="pulse-timed" className="text-sm text-gray-300">Timed</label>
+                      </div>
+                    </div>
+                  )}
+                  {/* Pulse Duration Input */}
+                  {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' && (
+                    <div className="mt-4">
+                      <label htmlFor="pulse-duration" className="text-sm text-gray-300">
+                        Pulse Duration (seconds)
+                      </label>
+                      <input
+                        type="number"
+                        id="pulse-duration"
+                        value={localHotspot.pulseDuration ?? ''}
+                        onChange={e => {
+                          const newDuration = parseFloat(e.target.value);
+                          setLocalHotspot(prev => {
+                            if (!prev) return null;
+                            const updatedHotspot = { ...prev };
+                            if (isNaN(newDuration)) {
+                              delete updatedHotspot.pulseDuration;
+                            } else {
+                              updatedHotspot.pulseDuration = newDuration;
+                            }
+                            return updatedHotspot;
+                          });
+                        }}
+                        className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
+                        min="0"
+                        step="0.1"
+                        placeholder="Enter duration in seconds"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Add Event Button - For adding events to the current hotspot */}
+            {/* Add Event Section */}
             <div className="bg-gray-700 p-3 rounded-lg">
               <button
                 onClick={handleToggleEventTypeSelector}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
-                title="Add a new event to this hotspot"
+                className="w-full flex justify-between items-center text-left"
               >
-                <PlusIcon className="w-5 h-5" />
-                Add Event
+                <h3 className="text-base font-semibold text-white">Add Event</h3>
+                <ChevronDownIcon className={`w-5 h-5 transition-transform ${showEventTypeSelector ? '' : '-rotate-90'}`} />
               </button>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {showEventTypeSelector && ( // Conditionally render this section
-                <div ref={eventTypeSelectorRef} className="bg-gray-700 p-3 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-base font-semibold">Add New Event Type</h3>
-                    <button
-                      onClick={handleToggleEventTypeSelector}
-                      className="p-1 text-gray-400 hover:text-white"
-                      title="Close event type selector"
-                    >
-                      <XMarkIcon className="w-5 h-5" />
-                    </button>
-                  </div>
+              {showEventTypeSelector && (
+                <div className="mt-4" ref={eventTypeSelectorRef}>
                   <EventTypeGrid onSelectEventType={(type) => {
                     handleAddEvent(type);
                     setShowEventTypeSelector(false); // Optionally hide after selection
                   }} />
                 </div>
               )}
+            </div>
+
+            <div className="flex flex-col gap-3">
               <div className="flex-grow bg-gray-700 p-2 rounded-lg overflow-y-auto min-h-[200px] max-h-[400px]">
                 {localHotspotEvents?.length === 0 && !showEventTypeSelector && (
                   <div className="text-center text-gray-400 py-4">
