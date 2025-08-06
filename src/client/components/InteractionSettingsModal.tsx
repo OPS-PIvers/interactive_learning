@@ -269,7 +269,19 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
                             id="youtubeStartTime"
                             type="number"
                             value={event.youtubeStartTime || ''}
-                            onChange={e => onUpdate({ youtubeStartTime: parseInt(e.target.value, 10) || undefined })}
+                            onChange={e => {
+                              const value = e.target.value;
+                              if (value) {
+                                const numValue = parseInt(value, 10);
+                                if (!isNaN(numValue)) {
+                                  onUpdate({ youtubeStartTime: numValue });
+                                }
+                              } else {
+                                const updates: any = { youtubeStartTime: undefined };
+                                delete updates.youtubeStartTime;
+                                onUpdate(updates);
+                              }
+                            }}
                             className={inputClasses}
                         />
                     </div>
@@ -279,7 +291,19 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
                             id="youtubeEndTime"
                             type="number"
                             value={event.youtubeEndTime || ''}
-                            onChange={e => onUpdate({ youtubeEndTime: parseInt(e.target.value, 10) || undefined })}
+                            onChange={e => {
+                              const value = e.target.value;
+                              if (value) {
+                                const numValue = parseInt(value, 10);
+                                if (!isNaN(numValue)) {
+                                  onUpdate({ youtubeEndTime: numValue });
+                                }
+                              } else {
+                                const updates: any = { youtubeEndTime: undefined };
+                                delete updates.youtubeEndTime;
+                                onUpdate(updates);
+                              }
+                            }}
                             className={inputClasses}
                         />
                     </div>
@@ -452,6 +476,8 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
             onShapeChange={(shape) => handleUpdate({ spotlightShape: shape })}
             dimPercentage={event.backgroundDimPercentage || 70}
             onDimPercentageChange={(dim) => handleUpdate({ backgroundDimPercentage: dim })}
+            showTextBanner={event.showTextBanner || false}
+            onShowTextBannerChange={(value) => handleUpdate({ showTextBanner: value })}
           />
         );
       case InteractionType.SHOW_TEXT:

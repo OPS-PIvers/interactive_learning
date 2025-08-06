@@ -265,13 +265,15 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     const interactionIndex = updatedInteractions.findIndex(i => i.id === interactionId);
     if (interactionIndex >= 0) {
       const currentInteraction = updatedInteractions[interactionIndex];
-      updatedInteractions[interactionIndex] = {
-        id: currentInteraction.id,
-        trigger: updates.trigger ?? currentInteraction.trigger,
-        effect: updates.effect ?? currentInteraction.effect,
-        conditions: updates.conditions ?? currentInteraction.conditions
-      };
-      onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+      if (currentInteraction) {
+        updatedInteractions[interactionIndex] = {
+          id: currentInteraction.id,
+          trigger: updates.trigger ?? currentInteraction.trigger,
+          effect: updates.effect ?? currentInteraction.effect,
+          conditions: updates.conditions ?? currentInteraction.conditions ?? []
+        };
+        onElementUpdate(selectedElement.id, { interactions: updatedInteractions });
+      }
     }
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 

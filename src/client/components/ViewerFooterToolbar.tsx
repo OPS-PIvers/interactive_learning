@@ -101,12 +101,12 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           const lastElement = focusableElements[focusableElements.length - 1];
 
           if (e.shiftKey) {
-            if (document.activeElement === firstElement) {
+            if (document.activeElement === firstElement && lastElement) {
               lastElement.focus();
               e.preventDefault();
             }
           } else {
-            if (document.activeElement === lastElement) {
+            if (document.activeElement === lastElement && firstElement) {
               firstElement.focus();
               e.preventDefault();
             }
