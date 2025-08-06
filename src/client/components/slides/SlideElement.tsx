@@ -81,7 +81,15 @@ export const SlideElement: React.FC<SlideElementProps> = ({
         return (
           <div className={`slide-hotspot ${animationClasses}`}>
             <div className="hotspot-indicator">
-              <div className="hotspot-dot" />
+              <div 
+                className="hotspot-dot"
+                style={{
+                  backgroundColor: style.backgroundColor || '#3b82f6',
+                  borderColor: style.borderColor || style.backgroundColor || '#3b82f6',
+                  borderWidth: style.borderWidth || 2,
+                  opacity: style.opacity || 1
+                }}
+              />
               {element.interactions.some(i => i.trigger === 'hover') && (
                 <div className="hotspot-tooltip" id={`${element.id}-tooltip`} role="tooltip">
                   <h4>{element.content.title}</h4>

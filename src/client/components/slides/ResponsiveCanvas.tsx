@@ -557,8 +557,23 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           onTouchEnd={handleTouchEndElement}
         >
           {element.type === 'hotspot' && (
-            <div className={`${getResponsiveHotspotSizeClasses(defaultHotspotSize)} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 hover:bg-opacity-30 transition-colors`}>
-              <div className="w-3 h-3 bg-blue-500 rounded-full" />
+            <div 
+              className={`${getResponsiveHotspotSizeClasses(defaultHotspotSize)} rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:scale-105`}
+              style={{
+                backgroundColor: element.style?.backgroundColor || '#3b82f6',
+                opacity: (element.style?.opacity || 1) * 0.2, // Background opacity
+                borderWidth: element.style?.borderWidth || 2,
+                borderColor: element.style?.borderColor || element.style?.backgroundColor || '#3b82f6',
+                borderStyle: 'solid'
+              }}
+            >
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: element.style?.backgroundColor || '#3b82f6',
+                  opacity: element.style?.opacity || 1 // Full opacity for center dot
+                }}
+              />
               {isEditable && (
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs bg-black bg-opacity-75 text-white px-1 py-0.5 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">
                   Double-click to edit

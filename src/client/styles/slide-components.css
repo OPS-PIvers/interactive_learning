@@ -48,7 +48,7 @@
 .hotspot-dot {
   @apply w-full h-full shadow-2xl border-2 border-white border-opacity-30;
   background-color: var(--color-hotspot-default, #3b82f6);
-  border-radius: var(--border-radius-large, 16px);
+  border-radius: 50%;
 }
 
 .slide-hotspot:hover .hotspot-dot {
