@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface YouTubePlayerProps {
   videoId: string;
@@ -91,7 +92,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     <div className={`relative bg-black rounded-lg overflow-hidden ${className}`}>
       {/* Loading State */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-10">
+        <div className={`absolute inset-0 flex items-center justify-center bg-slate-900 ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}>
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
             <p>Loading YouTube video...</p>
@@ -101,7 +102,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
       {/* Error State */}
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-10">
+        <div className={`absolute inset-0 flex items-center justify-center bg-slate-900 ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}>
           <div className="text-center text-white">
             <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />

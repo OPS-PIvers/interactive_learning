@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface HotspotFeedbackAnimationProps {
   x: number;
@@ -63,7 +64,7 @@ export const HotspotFeedbackAnimation: React.FC<HotspotFeedbackAnimationProps> =
 
   return (
     <div
-      className="fixed pointer-events-none z-50"
+      className={`fixed pointer-events-none ${Z_INDEX_TAILWIND.DRAG_PREVIEW}`}
       style={{
         left: x,
         top: y,

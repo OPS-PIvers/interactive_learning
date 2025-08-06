@@ -5,6 +5,7 @@ import { useProjectTheme } from '../hooks/useProjectTheme';
 import { getAllThemes } from '../../shared/themePresets';
 import { ThemePreset } from '../../shared/slideTypes';
 import { firebaseAPI } from '../../lib/firebaseApi';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -90,7 +91,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_CONTENT} p-4`}>
       <div 
         ref={modalRef}
         className="bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl flex flex-col"

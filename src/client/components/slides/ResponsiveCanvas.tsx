@@ -13,6 +13,7 @@ import { useTouchGestures } from '../../hooks/useTouchGestures';
 import { ImageTransformState } from '../../../shared/types';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { ViewportBounds } from '../../utils/touchUtils';
+import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
@@ -548,7 +549,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             top: position.y,
             width: position.width,
             height: position.height,
-            zIndex: isSelected ? 1000 : 10, // Ensure elements are above background (z-0)
+            zIndex: isSelected ? Z_INDEX.SELECTED_ELEMENTS : Z_INDEX.SLIDE_CONTENT, // Ensure elements are above background (z-0)
           }}
           onMouseDown={(e) => handleMouseDown(e, element.id)}
           onTouchStart={(e) => handleTouchStartElement(e, element.id)}
@@ -642,14 +643,14 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             {/* Background */}
             {currentSlide?.backgroundMedia && (
               <div 
-                className="absolute inset-0 z-0"
+                className={`absolute inset-0 ${Z_INDEX_TAILWIND.BASE}`}
                 style={{ 
                   backgroundColor: '#f3f4f6', // Light gray fallback to show div exists
                   border: process.env.NODE_ENV === 'development' ? '2px solid red' : 'none' // Debug border
                 }}
               >
                 {process.env.NODE_ENV === 'development' && (
-                  <div className="absolute top-2 left-2 bg-black/75 text-white text-xs p-1 rounded z-50">
+                  <div className={`absolute top-2 left-2 bg-black/75 text-white text-xs p-1 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
                     BG: {currentSlide.backgroundMedia.type} | {currentSlide.backgroundMedia.url ? 'has URL' : 'no URL'}
                   </div>
                 )}
@@ -692,7 +693,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             
             {/* Debug info when no background media */}
             {process.env.NODE_ENV === 'development' && !currentSlide?.backgroundMedia && (
-              <div className="absolute top-2 left-2 bg-yellow-500/75 text-black text-xs p-1 rounded z-50">
+              <div className={`absolute top-2 left-2 bg-yellow-500/75 text-black text-xs p-1 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
                 No background media
               </div>
             )}

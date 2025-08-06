@@ -8,6 +8,7 @@ import SlideViewer from '../slides/SlideViewer';
 import { SlideDeck } from '../../../shared/slideTypes';
 import LoadingScreen from '../shared/LoadingScreen';
 import ErrorScreen from '../shared/ErrorScreen';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 
 const ViewerView: React.FC = () => {
@@ -84,9 +85,9 @@ const ViewerView: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900">
+    <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-slate-900`}>
       {/* Header with back button */}
-      <div className="absolute top-4 left-4 z-50">
+      <div className={`absolute top-4 left-4 ${Z_INDEX_TAILWIND.FLOATING_CONTROLS}`}>
         <button
           onClick={handleClose}
           className="flex items-center space-x-2 px-4 py-2 bg-slate-800/90 hover:bg-slate-700/90 text-white rounded-lg shadow-lg backdrop-blur-sm transition-colors"

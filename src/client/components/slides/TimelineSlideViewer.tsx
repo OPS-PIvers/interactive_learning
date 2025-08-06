@@ -8,6 +8,7 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
 import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
@@ -336,7 +337,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 z-50 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
+          className={`absolute top-4 left-4 ${Z_INDEX_TAILWIND.FLOATING_CONTROLS} bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all`}
           aria-label="Close viewer"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

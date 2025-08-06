@@ -184,7 +184,6 @@ const EditorToolbar: React.FC<EditorToolbarProps> = (props) => {
           isOpen={showMobileMenu}
           onClose={() => setShowMobileMenu(false)}
           {...props}
-          isMobile={true} // Pass isMobile to the modal as well
           // Pass background props
           backgroundImage={props.backgroundImage || ''}
           backgroundType={props.backgroundType || 'image'}

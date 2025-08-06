@@ -13,6 +13,7 @@ import { MigrationResult } from '../../../shared/migrationUtils';
 import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';
 import { ResponsiveCanvas } from './ResponsiveCanvas';
 import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { generateId } from '../../utils/generateId';
 import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { firebaseAPI } from '../../../lib/firebaseApi';
@@ -600,6 +601,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           projectName={projectName}
           isPreviewMode={state.navigation.isPreviewMode}
           isSaving={state.operations.isSaving}
+          errorMessage={state.operations.error}
           showSuccessMessage={state.ui.showSuccessMessage}
           onTogglePreview={actions.togglePreviewMode}
           onSave={handleSave}
@@ -679,7 +681,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         
         {/* Help hint */}
         {state.ui.showHelpHint && !state.navigation.isPreviewMode && (
-          <div className="fixed top-4 right-4 z-30 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs">
+          <div className={`fixed top-4 right-4 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs`}>
             <div className="flex items-center gap-2">
               <span className="text-blue-200">✨</span>
               <span>Use touch/mouse to zoom, navigate slides, and select elements. Double-click hotspots to edit.</span>
@@ -714,7 +716,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         {/* Hotspot Editor Modal */}
         {state.hotspotEditor.isOpen && hotspotEditorData && (
           <HotspotEditorModal
-            isOpen={state.hotspotEditor.isOpen}
+            editorState={state}
+            editorActions={actions}
             selectedHotspot={hotspotEditorData.selectedHotspot}
             relatedEvents={hotspotEditorData.relatedEvents}
             currentStep={1}
@@ -724,9 +727,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             onAddEvent={handleAddTimelineEvent}
             onUpdateEvent={handleUpdateTimelineEvent}
             onDeleteEvent={handleDeleteTimelineEvent}
-            onClose={actions.closeHotspotEditor}
             allHotspots={hotspotEditorData.allHotspots}
-            onCollapseChange={actions.toggleHotspotEditorCollapse}
           />
         )}
         

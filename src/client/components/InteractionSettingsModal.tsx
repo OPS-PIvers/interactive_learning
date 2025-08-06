@@ -184,7 +184,7 @@ interface InteractionEditorProps {
  * - Advanced positioning and sizing controls
  * - Text animation and transition effects
  */
-const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const TextInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     return (
         <div className="space-y-4">
             <div>
@@ -257,7 +257,7 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing audio interactions.
@@ -268,7 +268,7 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
  * - Advanced playback controls and timing
  * - Audio effects and processing options
  */
-const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const AudioInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
 
@@ -341,7 +341,7 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing video interactions.
@@ -352,7 +352,7 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Advanced timing and clipping controls
  * - Video quality and compression options
  */
-const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const VideoInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
 
@@ -492,7 +492,7 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing quiz interactions.
@@ -503,7 +503,7 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Detailed explanation and feedback systems
  * - Quiz analytics and progress tracking
  */
-const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const handleOptionChange = (index: number, value: string) => {
         const newOptions = [...(event.quizOptions || [])];
         newOptions[index] = value;
@@ -581,7 +581,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
             </div>
         </div>
     );
-};
+});
 
 
 interface InteractionSettingsModalProps {

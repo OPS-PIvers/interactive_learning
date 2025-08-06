@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
 import QuizOverlay from './QuizOverlay';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface AudioPlayerProps {
   src: string;
@@ -368,7 +369,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       
       {/* Quiz overlay - full screen for audio */}
       {isQuizActive && activeQuizTrigger && (
-        <div className="fixed inset-0 z-50">
+        <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}>
           <QuizOverlay
             quiz={activeQuizTrigger.quiz}
             onComplete={handleQuizComplete}

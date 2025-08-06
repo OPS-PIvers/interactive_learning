@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Easing } from 'framer-motion';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters } from '../../../shared/slideTypes';
 import { AnimatedElement } from '../animations/ElementAnimations';
+import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface SlideEffectRendererProps {
   effect: SlideEffect;
@@ -138,7 +139,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
           <AnimatedElement
             variant="spotlight"
             microInteraction="subtle"
-            className="spotlight-effect fixed inset-0 z-50"
+            className={`spotlight-effect fixed inset-0 ${Z_INDEX_TAILWIND.OVERLAY_CONTENT}`}
             isVisible={isVisible}
           >
             <motion.canvas
@@ -159,7 +160,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
             {/* Message overlay */}
             {params.message && (
               <motion.div
-                className="absolute top-1/4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none"
+                className={`absolute top-1/4 left-1/2 transform -translate-x-1/2 ${Z_INDEX_TAILWIND.SLIDE_CONTENT} pointer-events-none`}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -196,7 +197,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     const zoomStyle: React.CSSProperties = {
       position: 'fixed',
       inset: 0,
-      zIndex: 40,
+      zIndex: Z_INDEX.SELECTED_ELEMENTS,
       overflow: 'hidden',
       backgroundColor: 'rgba(0, 0, 0, 0.1)'
     };
@@ -265,7 +266,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
                   border: '2px solid #3b82f6',
                   borderRadius: '4px',
                   backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  zIndex: 10
+                  zIndex: Z_INDEX.SLIDE_CONTENT
                 }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -290,7 +291,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
           <AnimatedElement
             variant="textReveal"
             microInteraction="subtle"
-            className="text-effect absolute z-30"
+            className={`text-effect absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`}
             style={{
               left: slideCanvasInfo.offsetX + (params.position.x * slideCanvasInfo.scale),
               top: slideCanvasInfo.offsetY + (params.position.y * slideCanvasInfo.scale),
@@ -338,7 +339,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="absolute z-40 overflow-hidden"
+            className={`absolute ${Z_INDEX_TAILWIND.SELECTED_ELEMENTS} overflow-hidden`}
             style={{
               left: slideCanvasInfo.offsetX,
               top: slideCanvasInfo.offsetY,
@@ -377,7 +378,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
                   style={{
                     left: (params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale - 8,
                     top: (params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale - 8,
-                    zIndex: 10
+                    zIndex: Z_INDEX.SLIDE_CONTENT
                   }}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -410,7 +411,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="absolute z-30 pointer-events-none"
+            className={`absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`}
             style={{
               left: params.fromPosition?.x || 0,
               top: params.fromPosition?.y || 0,
@@ -457,7 +458,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+            className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -543,7 +544,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center p-4`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

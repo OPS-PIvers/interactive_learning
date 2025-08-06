@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCommonRatios, validateAspectRatio, formatCustomRatio, getAspectRatioDisplayName } from '../utils/aspectRatioUtils';
 import ChevronDownIcon from './icons/ChevronDownIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface AspectRatioSelectorProps {
   currentRatio: string;
@@ -148,7 +149,7 @@ const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
 
       {isOpen && (
         <div
-          className={`origin-top-right absolute z-50 mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
+          className={`origin-top-right absolute ${Z_INDEX_TAILWIND.DROPDOWNS} mt-2 w-64 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
 'right-0 w-56 sm:left-0 sm:w-auto sm:right-auto'
           }`}
           role="menu"

@@ -5,7 +5,7 @@ import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { PauseIcon } from './icons/PauseIcon';
 import { useIOSSafariViewport } from '../hooks/useViewportHeight';
-import { getIOSZIndexStyle, getIOSSafeAreaStyle, IOS_Z_INDEX } from '../utils/iosZIndexManager';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;
@@ -188,7 +188,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                   onClick={() => handleStepClick(index)}
                   className={`relative flex items-center justify-center w-8 h-8 md:w-7 md:h-7 rounded-full transition-all duration-300 transform active:scale-95 md:hover:scale-110 touch-manipulation focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 group ${
                     isActive 
-                      ? "bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 scale-110 md:scale-125 z-10"
+                      ? `bg-gradient-to-r from-white to-slate-100 text-purple-600 shadow-lg shadow-purple-500/20 scale-110 md:scale-125 ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`
                       : isCompleted
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md hover:shadow-lg'
                         : 'bg-slate-500 text-slate-300 hover:bg-gradient-to-r hover:from-slate-400 hover:to-slate-300 shadow-sm'

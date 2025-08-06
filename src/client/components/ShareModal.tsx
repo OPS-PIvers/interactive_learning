@@ -3,6 +3,7 @@ import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -208,7 +209,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-end md:items-center md:justify-center z-50"
+      className={`fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-end md:items-center md:justify-center ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"

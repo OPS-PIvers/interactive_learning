@@ -6,6 +6,7 @@ import { SlideElement } from './SlideElement';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
 import { SlideTimeline } from './SlideTimeline';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface SlideViewerProps {
   slideDeck: SlideDeck;
@@ -476,7 +477,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             {/* Background Overlay */}
             {currentSlide.backgroundMedia.overlay?.enabled && (
               <div 
-                className="absolute inset-0 w-full h-full z-10"
+                className={`absolute inset-0 w-full h-full ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}
                 style={{
                   backgroundColor: currentSlide.backgroundMedia.overlay?.color || '#000000',
                   opacity: currentSlide.backgroundMedia.overlay?.opacity || 0.3
@@ -572,7 +573,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
                     }
                   }}
                 />
-                <div className="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2">
+                <div className={`absolute top-4 right-4 ${Z_INDEX_TAILWIND.HOTSPOTS} bg-black/50 rounded-full p-2`}>
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12h.01M15 12h.01" />
                   </svg>
@@ -640,13 +641,13 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           onStepChange={handleTimelineStepChange}
           onEffectTrigger={handleTimelineEffectTrigger}
           autoPlay={timelineAutoPlay}
-          className="absolute bottom-0 left-0 right-0 z-30"
+          className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`}
         />
       )}
 
       {/* Debug Info (development only) */}
       {process.env['NODE_ENV'] === 'development' && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-50">
+        <div className={`absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
           Slide: {viewerState.currentSlideIndex + 1}/{slideDeck?.slides?.length || 0}<br/>
           Device: {deviceType}<br/>
           Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br/>
