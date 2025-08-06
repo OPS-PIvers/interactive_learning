@@ -45,6 +45,36 @@ describe('Component Compilation Integrity Tests', () => {
     });
   });
 
+  describe('Hotspot Editor Components', () => {
+    test('HotspotEditorModal imports and compiles correctly', async () => {
+      expect(async () => {
+        const module = await import('../../client/components/HotspotEditorModal');
+        expect(module.default).toBeDefined();
+      }).not.toThrow();
+    });
+
+    test('EditableEventCard imports and compiles correctly', async () => {
+        expect(async () => {
+          const module = await import('../../client/components/EditableEventCard');
+          expect(module.default).toBeDefined();
+        }).not.toThrow();
+    });
+
+    test('InteractionSettingsModal imports and compiles correctly', async () => {
+        expect(async () => {
+            const module = await import('../../client/components/InteractionSettingsModal');
+            expect(module.default).toBeDefined();
+        }).not.toThrow();
+    });
+
+    test('InteractionParameterPreview imports and compiles correctly', async () => {
+        expect(async () => {
+            const module = await import('../../client/components/interactions/InteractionParameterPreview');
+            expect(module.default).toBeDefined();
+        }).not.toThrow();
+    });
+  });
+
 
 
   describe('Hook Imports', () => {

@@ -15,6 +15,7 @@ import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 import EditableEventCard from './EditableEventCard';
 import InteractionEditor from './interactions/InteractionEditor';
+import InteractionSettingsModal from './InteractionSettingsModal';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 
@@ -135,6 +136,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
   const [editingEvent, setEditingEvent] = useState<TimelineEventData | null>(null);
+  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false); // New state for EventTypeSelector visibility
   const [isCollapsed, setIsCollapsed] = useState(false); // New state for collapse/expand
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null); // Ref for scrolling
@@ -588,7 +590,10 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     onDelete={handleEventDelete}
                     moveCard={moveEvent}
                     onTogglePreview={() => handleTogglePreview(event.id)}
-                    onEdit={() => setEditingEvent(event)}
+                    onEdit={() => {
+                      setEditingEvent(event);
+                      setSettingsModalOpen(true);
+                    }}
                     isPreviewing={previewingEventIds.includes(event.id)}
                     allHotspots={allHotspots}
                   />
@@ -597,34 +602,19 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
           )}
-          {editingEvent &&
-            editingEvent.type === InteractionType.PLAY_AUDIO && (
-              <div className="p-4 text-center text-gray-500">
-                <p>Audio interaction editing is handled in the unified properties panel.</p>
-                <button 
-                  onClick={() => setEditingEvent(null)}
-                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  Close
-                </button>
-              </div>
-            )}
-          {editingEvent && editingEvent.type === InteractionType.PAN_ZOOM && (
-            <PanZoomSettings
-              zoomLevel={editingEvent.zoomLevel || 2}
-              onZoomChange={(zoom) =>
-                handleEventUpdate({ ...editingEvent, zoomLevel: zoom })
-              }
-              showTextBanner={!!editingEvent.showTextBanner}
-              onShowTextBannerChange={(value) =>
-                handleEventUpdate({ ...editingEvent, showTextBanner: value })
-              }
-            />
-          )}
         </div>
       </div>
+      <InteractionSettingsModal
+        isOpen={isSettingsModalOpen}
+        event={editingEvent}
+        onUpdate={handleEventUpdate}
+        onClose={() => {
+          setSettingsModalOpen(false);
+          setEditingEvent(null);
+        }}
+      />
       {/* Backdrop overlay for closing when clicking outside */}
-      {isOpen && (
+      {isOpen && !isSettingsModalOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-25 z-40"
           onClick={onClose}

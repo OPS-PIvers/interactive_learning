@@ -45,7 +45,7 @@ export interface InteractionPreset {
   icon: string;
   name: string;
   color: string;
-  settings: string[];
+  settings: (keyof import('./types').TimelineEventData)[];
   description: string;
 }
 
