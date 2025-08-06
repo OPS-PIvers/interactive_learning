@@ -3,6 +3,7 @@ import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
+import { useViewportHeight } from '../hooks/useViewportHeight';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerFooterToolbar from './ViewerFooterToolbar';
@@ -31,6 +32,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   migrationResult
 }) => {
   const { deviceType } = useDeviceDetection();
+  useViewportHeight();
   
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
@@ -170,7 +172,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // Initial overlay when in idle state
   if (moduleState === 'idle') {
     return (
-      <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 relative">
+      <div className="w-screen h-[calc(var(--vh,1vh)*100)] flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 relative">
         {/* Initial overlay */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
@@ -203,7 +205,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="w-screen h-[calc(var(--vh,1vh)*100)] flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Slide viewer content area - use flex-1 for proper sizing */}
       <div className="flex-1 overflow-auto">
         {(moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
