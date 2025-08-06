@@ -8,6 +8,9 @@ import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
+const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
+const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
+
 // Validation error interface
 interface ValidationError {
   field: string;
@@ -182,9 +185,6 @@ interface InteractionEditorProps {
  * - Text animation and transition effects
  */
 const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
-    const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
-    const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
-
     return (
         <div className="space-y-4">
             <div>
@@ -269,8 +269,6 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
  * - Audio effects and processing options
  */
 const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
-    const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
-    const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
 
@@ -355,8 +353,6 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Video quality and compression options
  */
 const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
-    const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
-    const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
 
@@ -508,9 +504,6 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Quiz analytics and progress tracking
  */
 const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
-    const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
-    const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
-
     const handleOptionChange = (index: number, value: string) => {
         const newOptions = [...(event.quizOptions || [])];
         newOptions[index] = value;
