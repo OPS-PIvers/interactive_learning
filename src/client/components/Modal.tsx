@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface ModalProps {
   isOpen: boolean;
@@ -96,7 +97,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 transition-opacity duration-300 ease-in-out mobile-viewport-fix"
+      className={`fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm ${Z_INDEX_TAILWIND.MODAL_CONTENT} transition-opacity duration-300 ease-in-out mobile-viewport-fix`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"

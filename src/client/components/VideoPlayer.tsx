@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
 import QuizOverlay from './QuizOverlay';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface VideoPlayerProps {
   src: string;
@@ -328,7 +329,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <QuizOverlay
           quiz={activeQuizTrigger.quiz}
           onComplete={handleQuizComplete}
-          className="absolute inset-0 z-20"
+          className={`absolute inset-0 ${Z_INDEX_TAILWIND.HOTSPOTS}`}
         />
       )}
       

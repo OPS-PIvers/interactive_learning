@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface TextTipInteractionProps {
   text: string;
@@ -138,7 +139,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       {variant === 'overlay' && isVisible && (
         <div 
           className={`
-            fixed inset-0 z-40
+            fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}
             bg-black/60 backdrop-blur-sm
             transition-opacity duration-300 ease-out
             ${isAnimating ? 'opacity-100' : 'opacity-0'}
@@ -151,7 +152,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
       <div
         ref={tipRef}
         className={`
-          fixed z-50 pointer-events-auto transition-all duration-300 ease-out
+          fixed ${Z_INDEX_TAILWIND.MODAL_CONTENT} pointer-events-auto transition-all duration-300 ease-out
           ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
           ${variant === 'overlay' ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : ''}
         `}
@@ -201,7 +202,7 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
           </button>
 
           {/* Tip content with typing animation */}
-          <div className="relative z-10">
+          <div className={`relative ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}>
             <p className="text-sm leading-relaxed">
               {text.split('').map((char, index) => (
                 <span

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 export interface ViewportState {
   width: number;
@@ -261,7 +262,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
       
       {/* Debug info for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-0 right-0 bg-black/80 text-white text-xs p-2 z-50 font-mono">
+        <div className={`fixed top-0 right-0 bg-black/80 text-white text-xs p-2 ${Z_INDEX_TAILWIND.DEBUG_OVERLAY} font-mono`}>
           <div>Viewport: {viewport.width}×{viewport.height}</div>
           <div>Orientation: {viewport.isLandscape ? 'Landscape' : 'Portrait'}</div>
           <div>Scale: {optimalScale.toFixed(2)}</div>

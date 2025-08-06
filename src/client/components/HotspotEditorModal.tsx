@@ -8,6 +8,7 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import EventTypeToggle from './EventTypeToggle';
@@ -312,7 +313,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   console.log('🔍 MODAL RENDERING:', {
     isOpen,
     localHotspot: localHotspot ? { id: localHotspot.id, title: localHotspot.title } : null,
-    className: `fixed top-0 right-0 z-60 h-screen transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`,
+    className: `fixed top-0 right-0 ${Z_INDEX_TAILWIND.PROPERTIES_PANEL} h-screen transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`,
     timestamp: ++timestampCounter.current
   });
 
@@ -616,7 +617,7 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       {/* Backdrop overlay for closing when clicking outside */}
       {isOpen && !isSettingsModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-25 z-40"
+          className={`fixed inset-0 bg-black bg-opacity-25 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
           onClick={onClose}
         />
       )}

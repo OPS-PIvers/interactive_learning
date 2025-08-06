@@ -6,6 +6,7 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -216,7 +217,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     
     return (
       <div
-        className="absolute z-50 bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-xl shadow-2xl shadow-black/20 p-4 min-w-[280px] max-w-sm"
+        className={`absolute ${Z_INDEX_TAILWIND.TOOLTIPS} bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-xl shadow-2xl shadow-black/20 p-4 min-w-[280px] max-w-sm`}
         style={{
           left: `${position.x}px`,
           top: `${position.y - 10}px`,
@@ -340,7 +341,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       (uniqueSortedSteps.findIndex(step => step === currentStep) / (uniqueSortedSteps.length - 1)) * 100 : 0;
 
     return (
-      <div className="fixed left-0 right-0 z-20 bottom-0 sm:bottom-0" style={{ bottom: 'max(env(safe-area-inset-bottom), 56px)' }}>
+      <div className={`fixed left-0 right-0 ${Z_INDEX_TAILWIND.HOTSPOTS} bottom-0 sm:bottom-0`} style={{ bottom: 'max(env(safe-area-inset-bottom), 56px)' }}>
         {/* Modern glassmorphism container with gradient accents */}
         <div
           className="w-full bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50"
@@ -429,7 +430,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                     {/* Enhanced step button */}
                     <button
                       onClick={() => onStepSelect(step)}
-                      className={`relative w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out z-10 ${
+                      className={`relative w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-300 ease-out ${Z_INDEX_TAILWIND.SLIDE_CONTENT} ${
                         isActive 
                           ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-2 ring-purple-300/50 scale-125 shadow-lg shadow-purple-500/25' 
                           : isCompleted

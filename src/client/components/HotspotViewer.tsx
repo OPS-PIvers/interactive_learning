@@ -1,9 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HotspotData, HotspotSize } from '../../shared/types';
-import { getHotspotSizeClasses, defaultHotspotSize } from '../../shared/hotspotStylePresets';
+import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -14,7 +15,6 @@ interface HotspotViewerProps {
   isDimmedInEditMode?: boolean;
   isContinuouslyPulsing?: boolean;
   onEditRequest?: (id: string) => void;
-  isMobile?: boolean;
   pixelPosition?: { x: number; y: number; baseX?: number; baseY?: number; } | null;
   usePixelPositioning?: boolean;
   imageElement?: HTMLImageElement | null;
@@ -52,7 +52,6 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     isDimmedInEditMode,
     isContinuouslyPulsing,
     onEditRequest,
-    isMobile,
     pixelPosition, // Used for transformed container positioning
     usePixelPositioning, // Used to enable pixel-based positioning
     // imageElement, // Not directly used
@@ -89,9 +88,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     };
   }, [holdTimeoutRef]);
 
-  // Size classes for the hotspot using shared utility
+  // Size classes for the hotspot using CSS-only responsive design
   const getSizeClasses = (size: HotspotSize = defaultHotspotSize) => {
-    return getHotspotSizeClasses(size, !!isMobile);
+    return getResponsiveHotspotSizeClasses(size); // Use CSS-only responsive classes
   };
 
   // Simple drag handlers
@@ -191,7 +190,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         // Reset drag state if we're going to edit instead of drag
         if (onDragStateChange) onDragStateChange(false);
       }
-    }, isMobile ? 600 : 800);
+    }, 700); // Use fixed timeout value instead of device-specific logic
 
     // Capture pointer for reliable drag behavior
     try {
@@ -199,7 +198,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       console.warn('Failed to capture pointer:', error);
     }
-  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef, onDragStateChange]); // Added onDragStateChange
+  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, dragContainerRef, onDragStateChange]); // Added onDragStateChange
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -218,7 +217,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // Start dragging if we've moved beyond threshold (only if not already dragging)
     if (!isDragging) {
-      const threshold = isMobile ? 10 : 5; // Adjusted threshold
+      const threshold = 8; // Use fixed threshold value for all devices
       if (Math.abs(deltaX_viewport) > threshold || Math.abs(deltaY_viewport) > threshold) {
         setIsDragging(true);
         setIsHolding(false); // No longer just holding
@@ -273,7 +272,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       
       onPositionChange(hotspot.id, newXPercent, newYPercent);
     }
-  }, [isDragging, isEditing, hotspot, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
+  }, [isDragging, isEditing, hotspot, onPositionChange, announceDragStart, props.imageElement, props.pixelPosition]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (holdTimeoutRef.current) {
@@ -289,7 +288,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       } else {
         // Handle non-editing taps (including double tap)
         const currentTime = Date.now();
-        if (isMobile && !isEditing && props.onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
+        if (!isEditing && props.onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
           props.onHotspotDoubleClick(hotspot.id, e);
           e.stopPropagation();
           lastTapTimeRef.current = 0;
@@ -297,7 +296,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         } else {
           onFocusRequest(hotspot.id);
           lastTapTimeRef.current = currentTime;
-          if (isMobile && !isEditing) {
+          if (!isEditing) {
             triggerHapticFeedback('hotspotDiscovery');
           }
         }
@@ -320,7 +319,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       // Ignore errors, pointer might not be captured.
     }
-  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, isMobile, props.onHotspotDoubleClick]);
+  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, props.onHotspotDoubleClick]);
 
   // Style classes - with enhanced color support for slide-based and legacy systems
   const getHotspotColor = () => {
@@ -376,7 +375,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     shadow-md hover:shadow-lg
     ${shouldPulse ? 'animate-pulse-subtle' : ''}
     ${isEditing && onPositionChange ? 'cursor-move' : 'cursor-pointer'}
-    ${isDragging ? 'scale-110 shadow-xl z-50 brightness-125' : ''}
+    ${isDragging ? `scale-110 shadow-xl ${Z_INDEX_TAILWIND.DRAG_PREVIEW} brightness-125` : ''}
     ${isHolding ? 'scale-105 animate-pulse ring-2 ring-white/50' : ''}`;
 
   // More pronounced pulse for timeline-driven events
@@ -384,16 +383,16 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-80`
     : '';
 
-  // Inner dot for visual flair, especially on larger hotspots or mobile
+  // Inner dot for visual flair, especially on larger hotspots - responsive via CSS
   const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
-    ${(hotspot.size === 'large' || (isMobile && hotspot.size !== 'small')) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`;
+    ${hotspot.size === 'large' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 sm:opacity-100'}`;
 
 
   return (
     <div
       data-hotspot-id={hotspot.id}
       className={`absolute group transform -translate-x-1/2 -translate-y-1/2 outline-none
-        ${isDragging ? 'z-50' : 'z-20'}
+        ${isDragging ? Z_INDEX_TAILWIND.DRAG_PREVIEW : Z_INDEX_TAILWIND.HOTSPOTS}
         ${isDimmedInEditMode ? 'opacity-30 hover:opacity-90 focus-within:opacity-90 transition-opacity' : 'opacity-100'}`}
       style={{
         left: usePixelPositioning && pixelPosition ? `${pixelPosition.x}px` : `${hotspot.x}%`,
@@ -411,7 +410,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       } : undefined}
       role="button"
       aria-label={`Hotspot: ${hotspot.title}${isEditing ? ' (draggable, press and hold to edit details)' : ' (activate to view details)'}`}
-      title={!isEditing && !isMobile ? hotspot.title : (isEditing ? `Drag to move ${hotspot.title}`: undefined)}
+      title={!isEditing ? hotspot.title : `Drag to move ${hotspot.title}`}
       tabIndex={0} // Make it focusable
       aria-grabbed={isEditing ? isDragging : undefined}
       aria-dropeffect={isEditing ? "move" : "none"}

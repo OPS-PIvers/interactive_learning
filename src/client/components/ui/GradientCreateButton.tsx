@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface GradientCreateButtonProps {
   onClick: () => void;
@@ -102,7 +103,7 @@ export const GradientCreateButton: React.FC<GradientCreateButtonProps> = ({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center">
+      <div className={`relative ${Z_INDEX_TAILWIND.SLIDE_CONTENT} flex items-center justify-center`}>
         {children || (
           <div className="relative overflow-hidden">
             {/* Animated Create text */}

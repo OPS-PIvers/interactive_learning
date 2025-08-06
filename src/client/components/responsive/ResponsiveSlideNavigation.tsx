@@ -8,6 +8,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import { PlusIcon } from '../icons/PlusIcon';
 
@@ -142,7 +143,7 @@ export const ResponsiveSlideNavigation: React.FC<ResponsiveSlideNavigationProps>
               
               {/* Dropdown menu */}
               {isDropdownOpen && !isCollapsed && (
-                <div className="absolute right-3 top-full mt-1 w-48 bg-slate-700 border border-slate-600 rounded-lg shadow-xl z-50">
+                <div className={`absolute right-3 top-full mt-1 w-48 bg-slate-700 border border-slate-600 rounded-lg shadow-xl ${Z_INDEX_TAILWIND.DROPDOWNS}`}>
                   <div className="py-1">
                     <button
                       onClick={(e) => {

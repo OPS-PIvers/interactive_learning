@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PlusIcon } from './icons/PlusIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface HeaderInsertDropdownProps {
   onAddElement: (elementType: 'hotspot' | 'text' | 'media' | 'shape') => void;
@@ -140,7 +141,7 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
 
       {isOpen && (
         <div
-          className={`origin-top-center absolute z-50 mt-2 w-56 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
+          className={`origin-top-center absolute ${Z_INDEX_TAILWIND.DROPDOWNS} mt-2 w-56 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 focus:outline-none ${
 'right-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:right-auto'
           }`}
           role="menu"

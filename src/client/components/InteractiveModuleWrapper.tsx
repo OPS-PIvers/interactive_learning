@@ -6,6 +6,7 @@ import { InteractiveModuleState, Project } from '../../shared/types';
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import SlideViewer from './slides/SlideViewer';
 import LoadingScreen from './shared/LoadingScreen';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 // Lazy load the heavy editor component
 const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));
@@ -68,7 +69,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   }, [isEditingMode, slideDeck, isModalOpen, onClose, selectedProject.title]);
   
   return (
-    <div className={`fixed inset-0 z-50 mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
+    <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
       <WrapperComponent {...wrapperProps}>
         {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ? (

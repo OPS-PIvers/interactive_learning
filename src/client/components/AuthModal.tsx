@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../lib/authContext';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -109,7 +110,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50" style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+    <div className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_CONTENT}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
       <div 
         className="bg-slate-800 border border-slate-700 rounded-lg p-8 max-w-md w-full mx-4 text-slate-100"
         role="dialog"

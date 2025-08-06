@@ -3,6 +3,7 @@ import { useAuth } from '../../lib/authContext';
 import { AuthModal } from './AuthModal';
 import { SwitchAccountsIcon } from './icons/SwitchAccountsIcon';
 import { SignOutIcon } from './icons/SignOutIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface AuthButtonProps {
   variant?: 'toolbar' | 'compact' | 'full';
@@ -140,7 +141,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       </button>
 
       {dropdownOpen && (
-        <div className="absolute top-full right-0 mt-2 w-56 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 py-1">
+        <div className={`absolute top-full right-0 mt-2 w-56 bg-slate-700 border border-slate-600 rounded-md shadow-lg ${Z_INDEX_TAILWIND.DROPDOWNS} py-1`}>
           <div className="px-3 py-2 border-b border-slate-600">
             <p className="text-sm font-medium text-slate-200 truncate">{displayName}</p>
             {user.email && <p className="text-xs text-slate-400 truncate">{user.email}</p>}

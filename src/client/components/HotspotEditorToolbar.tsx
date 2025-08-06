@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { HotspotData, TimelineEventData } from '../../shared/types';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { PlusIcon } from './icons/PlusIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import EditableEventCard from './EditableEventCard';
@@ -364,7 +365,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
 
       {/* Add Event Modal - Moved here from renderHeader */}
       {showAddEventModal && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className={`absolute inset-0 bg-black/50 backdrop-blur-sm ${Z_INDEX_TAILWIND.MODAL_CONTENT} flex items-center justify-center p-4`}>
           <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-600 p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-slate-100 mb-4">Add New Event</h3>
 
