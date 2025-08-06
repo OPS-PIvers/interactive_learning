@@ -340,7 +340,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       (uniqueSortedSteps.findIndex(step => step === currentStep) / (uniqueSortedSteps.length - 1)) * 100 : 0;
 
     return (
-      <div className="fixed left-0 right-0 z-20" style={{ bottom: isMobile ? '56px' : '0' }}>
+      <div className="fixed left-0 right-0 z-20 bottom-0 sm:bottom-0" style={{ bottom: 'max(env(safe-area-inset-bottom), 56px)' }}>
         {/* Modern glassmorphism container with gradient accents */}
         <div
           className="w-full bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50"
@@ -531,7 +531,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2" />
         <FixedSizeList
           height={80}
-          width={isMobile ? window.innerWidth : viewerTimelineRef.current?.offsetWidth || 0}
+          width={viewerTimelineRef.current?.offsetWidth || window.innerWidth}
           itemCount={uniqueSortedSteps.length}
           itemSize={ITEM_WIDTH}
           layout="horizontal"

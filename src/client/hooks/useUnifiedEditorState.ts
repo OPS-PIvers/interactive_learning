@@ -124,10 +124,6 @@ export interface UseUnifiedEditorStateReturn {
   state: UnifiedEditorState;
   actions: EditorStateActions;
   computed: {
-    deviceType: DeviceType;
-    effectiveDeviceType: DeviceType;
-    isLandscape: boolean;
-    isSmallViewport: boolean;
     hasActiveModal: boolean;
     canEdit: boolean;
   };
@@ -189,10 +185,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const [operations, setOperations] = useState<OperationState>(createDefaultOperationState);
   const [hotspotEditor, setHotspotEditor] = useState<HotspotEditorState>(createDefaultHotspotEditorState);
   
-  // Computed values
+  // Computed values (device-agnostic)
   const computed = useMemo(() => {
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const isSmallViewport = window.innerWidth < 768;
     const hasActiveModal = Object.values(ui).some((value, index, arr) => {
       // Check only boolean modal states, skip string/null values
       return typeof value === 'boolean' && value && index < 8; // First 8 are modal states
@@ -200,8 +194,6 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     const canEdit = !navigation.isPreviewMode && !operations.isSaving && !hasActiveModal;
     
     return {
-      isLandscape,
-      isSmallViewport,
       hasActiveModal,
       canEdit,
     };

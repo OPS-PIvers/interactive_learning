@@ -187,12 +187,10 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
   useEffect(() => {
     const root = document.documentElement;
     
-    // Basic viewport properties
+    // Basic viewport properties for mathematical calculations
     root.style.setProperty('--viewport-width', `${viewport.width}px`);
     root.style.setProperty('--viewport-height', `${viewport.height}px`);
     root.style.setProperty('--optimal-scale', `${optimalScale}`);
-    root.style.setProperty('--is-landscape', viewport.isLandscape ? '1' : '0');
-    root.style.setProperty('--is-portrait', viewport.isPortrait ? '1' : '0');
     
     // Safe area properties
     root.style.setProperty('--safe-area-inset-top', `${viewport.safeAreaInsets.top}px`);

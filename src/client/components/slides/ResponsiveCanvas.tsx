@@ -502,10 +502,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     const containerWidth = containerDimensions.width > 0 ? containerDimensions.width : 800;
     const containerHeight = containerDimensions.height > 0 ? containerDimensions.height : 600;
     
-    const isLandscape = containerWidth > containerHeight;
-    const isSmallViewport = containerWidth < 768; // Use viewport size instead of device detection
-    const isCompactLandscape = isSmallViewport && isLandscape;
-    
     if (process.env.NODE_ENV === 'development') {
       console.log('📏 Canvas dimension calculation:', {
         aspectRatio,
@@ -513,18 +509,17 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
         containerHeight,
         containerDimensions,
         deviceType,
-        isSmallViewport,
-        isCompactLandscape,
         slideAreaRefExists: !!slideAreaRef.current
       });
     }
     
+    // Use standard padding - responsive behavior handled by CSS classes
     const dimensions = calculateCanvasDimensions(
       aspectRatio,
       containerWidth,
       containerHeight,
-      isCompactLandscape ? 8 : isSmallViewport ? 16 : 32, // Responsive padding based on viewport
-      isCompactLandscape
+      24, // Standard padding for all viewports - CSS handles responsiveness
+      false // Remove landscape-specific logic
     );
     
     if (process.env.NODE_ENV === 'development') {
