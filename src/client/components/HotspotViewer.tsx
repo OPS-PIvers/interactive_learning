@@ -81,13 +81,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   
   // Cleanup effect for timeout
   useEffect(() => {
+    const ref = holdTimeoutRef.current;
     return () => {
-      if (holdTimeoutRef.current) {
-        clearTimeout(holdTimeoutRef.current);
-        holdTimeoutRef.current = undefined;
+      if (ref) {
+        clearTimeout(ref);
       }
     };
-  }, []);
+  }, [holdTimeoutRef]);
 
   // Size classes for the hotspot using shared utility
   const getSizeClasses = (size: HotspotSize = defaultHotspotSize) => {
@@ -199,7 +199,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       console.warn('Failed to capture pointer:', error);
     }
-  }, [isEditing, hotspot.id, hotspot.x, hotspot.y, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef, onDragStateChange]); // Added onDragStateChange
+  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, isMobile, dragContainerRef, onDragStateChange]); // Added onDragStateChange
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -273,7 +273,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       
       onPositionChange(hotspot.id, newXPercent, newYPercent);
     }
-  }, [isDragging, isEditing, hotspot.id, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
+  }, [isDragging, isEditing, hotspot, onPositionChange, isMobile, announceDragStart, props.imageElement, props.pixelPosition]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (holdTimeoutRef.current) {
@@ -320,12 +320,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       // Ignore errors, pointer might not be captured.
     }
-  }, [isDragging, hotspot.id, hotspot.title, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, isMobile, props.onHotspotDoubleClick]);
+  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, isMobile, props.onHotspotDoubleClick]);
 
   // Style classes - with enhanced color support for slide-based and legacy systems
   const getHotspotColor = () => {
     // Priority order: customProperties (from slide element) -> hotspot.backgroundColor -> hotspot.color -> default
-    const customColor = (hotspot as any).customProperties?.backgroundColor || (hotspot as any).customProperties?.color;
+    const customColor = hotspot.customProperties?.backgroundColor || hotspot.customProperties?.color;
     return customColor || hotspot.backgroundColor || hotspot.color || 'bg-sky-500';
   };
   
@@ -335,7 +335,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   // Get hotspot size from multiple sources (priority: customProperties -> hotspot.size -> default)
   const getHotspotSize = () => {
-    const customSize = (hotspot as any).customProperties?.size;
+    const customSize = hotspot.customProperties?.size;
     return customSize || hotspot.size || defaultHotspotSize;
   };
   
@@ -352,7 +352,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       return () => clearTimeout(timer);
     }
     return undefined; // Explicit return for else case
-  }, [hotspot.pulseAnimation, hotspot.pulseType, hotspot.pulseDuration]);
+  }, [hotspot]);
 
   const shouldPulse = isContinuouslyPulsing || (hotspot.pulseAnimation && hotspot.pulseType === 'loop') || isTimedPulseActive;
 
@@ -361,10 +361,10 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     const styles: React.CSSProperties = {};
     
     // Apply opacity from customProperties, which may be passed for slide-based elements
-    const customOpacity = (hotspot as any).customProperties?.opacity;
+    const customOpacity = hotspot.customProperties?.opacity;
     
     if (customOpacity !== undefined) {
-      styles.opacity = customOpacity;
+      styles.opacity = customOpacity as number;
     }
     
     return styles;

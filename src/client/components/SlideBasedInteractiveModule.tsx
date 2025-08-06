@@ -66,7 +66,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
           console.log('📄 Using existing slide deck:', {
             projectName,
             projectType,
-            slidesCount: slideDeck.slides.length
+            slidesCount: slideDeck?.slides?.length
           });
         }
         return { slideDeck, migrationResult: null };
@@ -90,10 +90,10 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         console.log('🔄 Hotspot → Slide Migration:', {
           projectName,
           projectType,
-          slidesCreated: result.slideDeck.slides.length,
-          elementsConverted: result.elementsConverted,
-          interactionsConverted: result.interactionsConverted,
-          warnings: result.warnings
+          slidesCreated: result?.slideDeck?.slides?.length,
+          elementsConverted: result?.elementsConverted,
+          interactionsConverted: result?.interactionsConverted,
+          warnings: result?.warnings
         });
       }
 
@@ -107,7 +107,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   // Initialize component
   useEffect(() => {
     try {
-      if (!processedSlideDeck.slideDeck) {
+      if (!processedSlideDeck?.slideDeck) {
         throw new Error('Failed to process project data');
       }
 
@@ -130,18 +130,18 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     if (!currentSlideDeck) return;
 
     console.log('[SlideBasedInteractiveModule] Saving slide deck:', {
-      slideCount: currentSlideDeck.slides.length,
-      title: currentSlideDeck.title,
-      id: currentSlideDeck.id,
-      totalElements: currentSlideDeck.slides.reduce((acc, slide) => acc + slide.elements.length, 0),
-      firstSlideElements: currentSlideDeck.slides[0]?.elements.length || 0,
-      firstSlideBackgroundMedia: currentSlideDeck.slides[0]?.backgroundMedia
+      slideCount: currentSlideDeck?.slides?.length,
+      title: currentSlideDeck?.title,
+      id: currentSlideDeck?.id,
+      totalElements: currentSlideDeck?.slides?.reduce((acc, slide) => acc + slide.elements.length, 0),
+      firstSlideElements: currentSlideDeck?.slides?.[0]?.elements.length || 0,
+      firstSlideBackgroundMedia: currentSlideDeck?.slides?.[0]?.backgroundMedia
     });
 
     // Create updated interactive data that preserves the original structure 
     // but includes any legacy compatibility needs
-    const newBackgroundImage = currentSlideDeck.slides[0]?.backgroundMedia?.type === 'image'
-        ? currentSlideDeck.slides[0].backgroundMedia.url
+    const newBackgroundImage = currentSlideDeck?.slides?.[0]?.backgroundMedia?.type === 'image'
+        ? currentSlideDeck?.slides?.[0]?.backgroundMedia?.url
         : initialData.backgroundImage;
     const updatedData: InteractiveModuleState = {
       ...initialData,
@@ -160,8 +160,8 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     console.log('[SlideBasedInteractiveModule] Project object being saved:', {
       projectType: projectWithSlideDeck.projectType,
       hasSlideDeck: !!projectWithSlideDeck.slideDeck,
-      slideCount: projectWithSlideDeck.slideDeck?.slides.length,
-      elementCounts: projectWithSlideDeck.slideDeck?.slides.map(s => s.elements.length)
+      slideCount: projectWithSlideDeck.slideDeck?.slides?.length,
+      elementCounts: projectWithSlideDeck.slideDeck?.slides?.map(s => s.elements.length)
     });
 
     // Save the complete project object with slide deck data

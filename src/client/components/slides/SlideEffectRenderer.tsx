@@ -282,7 +282,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
   const renderShowTextEffect = () => {
     if (effect.type !== 'show_text' || !slideCanvasInfo) return null;
 
-    const params = effect.parameters as any;
+    const params = effect.parameters as ShowTextParameters;
 
     return (
       <AnimatePresence>

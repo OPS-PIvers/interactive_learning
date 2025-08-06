@@ -55,11 +55,11 @@ export const slideTransitionVariants: Record<string, Variants> = {
 
 // Transition configurations with timing and easing
 export const transitionConfig = {
-  default: { duration: 0.3, ease: "easeInOut" as any },
-  fast: { duration: 0.15, ease: "easeInOut" as any },
-  slow: { duration: 0.6, ease: "easeInOut" as any },
-  spring: { type: "spring" as any, damping: 20, stiffness: 100 },
-  bouncy: { type: "spring" as any, damping: 10, stiffness: 200 }
+  default: { duration: 0.3, ease: "easeInOut" as const },
+  fast: { duration: 0.15, ease: "easeInOut" as const },
+  slow: { duration: 0.6, ease: "easeInOut" as const },
+  spring: { type: "spring" as const, damping: 20, stiffness: 100 },
+  bouncy: { type: "spring" as const, damping: 10, stiffness: 200 }
 };
 
 interface SlideTransitionProps {

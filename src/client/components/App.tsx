@@ -35,7 +35,7 @@ const LoadingScreen: React.FC = () => (
 
 // Main App Component for authenticated users
 const MainApp: React.FC = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout } = useAuth()!;
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
@@ -51,13 +51,13 @@ const MainApp: React.FC = () => {
     // Add touch editing body class for touch-capable devices
     const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (hasTouchSupport) {
-      document.body.classList.add('touch-editing');
+      document.body?.classList.add('touch-editing');
     }
     
     return () => {
       cleanupVhUpdater();
       if (hasTouchSupport) {
-        document.body.classList.remove('touch-editing');
+        document.body?.classList.remove('touch-editing');
       }
     };
   }, []);
@@ -127,8 +127,8 @@ const MainApp: React.FC = () => {
       // Enhanced condition to properly detect when details need loading
       const needsDetailLoad = !project.interactiveData?.hotspots ||
                              !project.interactiveData?.timelineEvents ||
-                             project.interactiveData?.hotspots.length === 0 ||
-                             project.interactiveData?.timelineEvents.length === 0 ||
+                             project.interactiveData?.hotspots?.length === 0 ||
+                             project.interactiveData?.timelineEvents?.length === 0 ||
                              (project.interactiveData as any)?._needsDetailLoad;
 
       if (needsDetailLoad) {
@@ -204,7 +204,7 @@ const MainApp: React.FC = () => {
           finalProject = projectWithDemoData;
         } catch (saveErr: any) {
           console.error("Failed to save demo project data:", saveErr);
-          setError(`Failed to save demo project data: ${saveErr.message || 'Please try again.'}`);
+          setError(`Failed to save demo project data: ${saveErr?.message || 'Please try again.'}`);
           return;
         }
       } else {
@@ -214,7 +214,7 @@ const MainApp: React.FC = () => {
           finalProject = projectWithSlideType;
         } catch (saveErr: any) {
           console.error("Failed to save project type:", saveErr);
-          setError(`Failed to save project: ${saveErr.message || 'Please try again.'}`);
+          setError(`Failed to save project: ${saveErr?.message || 'Please try again.'}`);
           return;
         }
       }
@@ -311,7 +311,7 @@ const MainApp: React.FC = () => {
     try {
       const imageUrl = await appScriptProxy.uploadImage(file, selectedProject.id);
       const updatedData = {
-        ...selectedProject.interactiveData,
+        ...selectedProject?.interactiveData,
         backgroundImage: imageUrl,
       };
       
@@ -322,14 +322,14 @@ const MainApp: React.FC = () => {
 
       // Update local project state first to ensure React state is current
       setProjects(prev => prev.map(p => 
-        p.id === selectedProject.id ? updatedProject : p
+        p.id === selectedProject?.id ? updatedProject : p
       ));
-      setSelectedProject(updatedProject);
+      setSelectedProject(updatedProject as Project);
       
       // Use a small delay to ensure React state has propagated before saving
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      await handleSaveProjectData(selectedProject.id, updatedData);
+      await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
     } catch (err: any) {
       console.error("Failed to upload image:", err);
       setError(`Failed to upload image: ${err?.message || ''}`);

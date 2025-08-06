@@ -1,3 +1,5 @@
+import { HotspotData } from './types';
+
 /**
  * Hotspot Style Presets for ExpliCoLearning
  * 
@@ -218,7 +220,7 @@ function parseClassesToDimensions(classes: string): { width: number; height: num
 }
 
 // Helper function to apply style preset to hotspot
-export const applyStylePreset = (currentHotspot: any, preset: HotspotStylePreset) => {
+export const applyStylePreset = (currentHotspot: HotspotData, preset: HotspotStylePreset) => {
   return {
     ...currentHotspot,
     color: preset.style.color,

@@ -27,6 +27,7 @@ export interface HotspotData {
   pulseDuration?: number; // Duration of the pulse animation in seconds
   positioningVersion?: 'enhanced' | 'legacy';
   constraintsApplied?: boolean;
+  customProperties?: Record<string, unknown>;
 }
 
 // Base Event interface

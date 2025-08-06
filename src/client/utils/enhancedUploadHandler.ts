@@ -1,3 +1,4 @@
+import { ImageTransformState, HotspotData } from '../../shared/types';
 // Enhanced upload handler for all devices
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { compressImage } from './imageCompression';
@@ -478,10 +479,10 @@ export function createOptimizedUploadHandler(
   projectId: string,
   setImageLoading: (loading: boolean) => void,
   setBackgroundImage: (url: string) => void,
-  setImageTransform: (transform: any) => void,
+  setImageTransform: (transform: ImageTransformState) => void,
   setEditingZoom: (zoom: number) => void,
-  debugLog: (category: string, message: string, data?: any) => void,
-  hotspots: any[] = [],
+  debugLog: (category: string, message: string, data?: unknown) => void,
+  hotspots: HotspotData[] = [],
   onThumbnailGenerated?: (thumbnailUrl: string) => void
 ) {
   return async (file: File) => {

@@ -81,7 +81,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   // Mobile toolbar configuration removed - using responsive design instead
   
   // Current slide and selected element
-  const currentSlide = slideDeck.slides[state.navigation.currentSlideIndex];
+  const currentSlide = slideDeck?.slides?.[state.navigation.currentSlideIndex];
   const selectedElement = useMemo(() => {
     if (!state.editing.selectedElementId || !currentSlide) return null;
     return currentSlide.elements?.find(el => el.id === state.editing.selectedElementId) || null;
@@ -140,10 +140,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((updatedSlideDeck: SlideDeck) => {
     console.log('🔄 handleSlideDeckUpdate called with:', {
-      slideCount: updatedSlideDeck.slides.length,
+      slideCount: updatedSlideDeck?.slides?.length,
       currentSlideIndex: state.navigation.currentSlideIndex,
-      currentSlide: updatedSlideDeck.slides[state.navigation.currentSlideIndex],
-      hasBackgroundMedia: !!updatedSlideDeck.slides[state.navigation.currentSlideIndex]?.backgroundMedia
+      currentSlide: updatedSlideDeck?.slides?.[state.navigation.currentSlideIndex],
+      hasBackgroundMedia: !!updatedSlideDeck?.slides?.[state.navigation.currentSlideIndex]?.backgroundMedia
     });
     onSlideDeckChange(updatedSlideDeck);
   }, [onSlideDeckChange, state.navigation.currentSlideIndex]);
@@ -152,7 +152,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
     const updatedSlideDeck = {
       ...slideDeck,
-      slides: slideDeck.slides.map((slide, index) => {
+      slides: slideDeck?.slides?.map((slide, index) => {
         if (index !== state.navigation.currentSlideIndex) return slide;
         
         return {
@@ -172,12 +172,12 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     console.log('📝 handleSlideUpdate called with:', {
       slideUpdates,
       currentSlideIndex: state.navigation.currentSlideIndex,
-      existingSlide: slideDeck.slides[state.navigation.currentSlideIndex]
+      existingSlide: slideDeck?.slides?.[state.navigation.currentSlideIndex]
     });
     
     const updatedSlideDeck = {
       ...slideDeck,
-      slides: slideDeck.slides.map((slide, index) => {
+      slides: slideDeck?.slides?.map((slide, index) => {
         if (index !== state.navigation.currentSlideIndex) return slide;
 
         let updatedSlide = { ...slide, ...slideUpdates };
@@ -188,7 +188,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       }),
     };
     
-    console.log('📝 Updated slide after merge:', updatedSlideDeck.slides[state.navigation.currentSlideIndex]);
+    console.log('📝 Updated slide after merge:', updatedSlideDeck?.slides?.[state.navigation.currentSlideIndex]);
     
     handleSlideDeckUpdate(updatedSlideDeck);
   }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
@@ -227,7 +227,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     
     const updatedSlideDeck = {
       ...slideDeck,
-      slides: slideDeck.slides.map((slide, index) => {
+      slides: slideDeck?.slides?.map((slide, index) => {
         if (index !== state.navigation.currentSlideIndex) return slide;
         
         return {
@@ -339,9 +339,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     };
     
     const updatedSlides = [
-      ...slideDeck.slides.slice(0, insertIndex),
+      ...(slideDeck?.slides?.slice(0, insertIndex) || []),
       newSlide,
-      ...slideDeck.slides.slice(insertIndex),
+      ...(slideDeck?.slides?.slice(insertIndex) || []),
     ];
     
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
@@ -351,7 +351,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle duplicating slides
   const handleDuplicateSlide = useCallback((slideIndex: number) => {
-    const slideToDuplicate = slideDeck.slides[slideIndex];
+    const slideToDuplicate = slideDeck?.slides?.[slideIndex];
     if (!slideToDuplicate) return;
     
     const duplicatedSlide: InteractiveSlide = {
@@ -364,9 +364,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     };
     
     const updatedSlides = [
-      ...slideDeck.slides.slice(0, slideIndex + 1),
+      ...(slideDeck?.slides?.slice(0, slideIndex + 1) || []),
       duplicatedSlide,
-      ...slideDeck.slides.slice(slideIndex + 1),
+      ...(slideDeck?.slides?.slice(slideIndex + 1) || []),
     ];
     
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
@@ -376,9 +376,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle deleting slides
   const handleDeleteSlide = useCallback((slideIndex: number) => {
-    if (slideDeck.slides.length <= 1) return; // Don't delete the last slide
+    if (slideDeck?.slides?.length <= 1) return; // Don't delete the last slide
     
-    const updatedSlides = slideDeck.slides.filter((_, index) => index !== slideIndex);
+    const updatedSlides = slideDeck?.slides.filter((_, index) => index !== slideIndex);
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
     
     handleSlideDeckUpdate(updatedSlideDeck);
@@ -502,7 +502,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     console.log('💾 handleSave called with:', {
       projectId,
       projectName,
-      slideCount: slideDeck.slides.length,
+      slideCount: slideDeck?.slides?.length,
       currentSlideIndex: state.navigation.currentSlideIndex
     });
     
@@ -576,7 +576,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Generate viewer config for sharing
   const viewerConfig = useMemo(() => ({
-    slides: slideDeck.slides,
+    slides: slideDeck?.slides,
     config: {
       autoAdvance: false,
       allowNavigation: true,

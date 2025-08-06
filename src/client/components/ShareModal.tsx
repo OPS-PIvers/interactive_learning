@@ -104,7 +104,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   // Generate the shareable URL
   const generateShareUrl = useCallback(() => {
-    const baseUrl = window.location.origin;
+    const baseUrl = window?.location?.origin;
     const params = new URLSearchParams();
     
     if (shareOptions.theme !== 'dark') {
@@ -168,7 +168,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   // Copy to clipboard with feedback
   const copyToClipboard = useCallback(async (text: string, type: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator?.clipboard?.writeText(text);
       setCopySuccess(`${type} copied to clipboard!`);
       setTimeout(() => setCopySuccess(''), 2000);
     } catch (err) {
@@ -198,7 +198,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   // Unified modal sizing for consistent behavior across all screen sizes
   const getModalStyle = () => {
-    const toolbarHeight = layoutConstraints.toolbarHeight; // Always account for toolbar
+    const toolbarHeight = layoutConstraints?.toolbarHeight || 0; // Always account for toolbar
     const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
     
     const height = `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))`;

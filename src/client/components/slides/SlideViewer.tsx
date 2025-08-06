@@ -362,7 +362,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           break;
         case 'Home': {
           event.preventDefault();
-          const firstSlideId = slideDeck.slides?.[0]?.id;
+          const firstSlideId = slideDeck?.slides?.[0]?.id;
           if (firstSlideId) {
             navigateToSlide(firstSlideId);
           }
@@ -370,7 +370,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         }
         case 'End': {
           event.preventDefault();
-          const lastSlideId = slideDeck.slides?.[slideDeck.slides.length - 1]?.id;
+          const lastSlideId = slideDeck?.slides?.[slideDeck.slides.length - 1]?.id;
           if (lastSlideId) {
             navigateToSlide(lastSlideId);
           }
@@ -393,7 +393,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
     const delay = slideDeck.settings.autoAdvanceDelay || 5000;
     const timer = setTimeout(() => {
-      if (slideDeck.slides && viewerState.currentSlideIndex < slideDeck.slides.length - 1) {
+      if (slideDeck?.slides && viewerState.currentSlideIndex < slideDeck.slides.length - 1) {
         navigateToNext();
       }
     }, delay);
@@ -481,8 +481,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
               <div 
                 className="absolute inset-0 w-full h-full z-10"
                 style={{
-                  backgroundColor: currentSlide.backgroundMedia.overlay.color || '#000000',
-                  opacity: currentSlide.backgroundMedia.overlay.opacity || 0.3
+                  backgroundColor: currentSlide.backgroundMedia.overlay?.color || '#000000',
+                  opacity: currentSlide.backgroundMedia.overlay?.opacity || 0.3
                 }}
               />
             )}

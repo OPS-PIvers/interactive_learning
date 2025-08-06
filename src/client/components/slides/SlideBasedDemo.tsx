@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SlideViewer } from './SlideViewer';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
 import '../../styles/slide-components.css';
+import { ElementInteraction } from '../../../shared/slideTypes';
 
 /**
  * SlideBasedDemo - Demonstration of the new slide-based architecture
@@ -28,7 +29,7 @@ export const SlideBasedDemo: React.FC = () => {
     console.log(`Changed to slide: ${slideId} (index: ${slideIndex})`);
   };
 
-  const handleInteraction = (interaction: any) => {
+  const handleInteraction = (interaction: ElementInteraction) => {
     console.log('User interaction:', interaction);
   };
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { ImageTransformState, TimelineEventData, HotspotData } from '../../shared/types';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { usePanZoomEngine } from '../hooks/usePanZoomEngine';
 import { useEventGestureCoordination } from '../hooks/useEventGestureCoordination';
 
@@ -15,7 +16,7 @@ interface PanZoomContextValue {
   // Gesture coordination
   isEventActive: (eventId?: string) => boolean;
   shouldBlockGestures: () => boolean;
-  setEventActive: (eventType: any, eventId: string, blockGestures?: boolean, duration?: number) => void;
+  setEventActive: (eventType: InteractionType, eventId: string, blockGestures?: boolean, duration?: number) => void;
   setEventInactive: () => void;
   
   // Element refs (to be set by consuming components)

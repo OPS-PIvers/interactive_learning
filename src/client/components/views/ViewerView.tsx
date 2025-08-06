@@ -50,9 +50,9 @@ const ViewerView: React.FC = () => {
       };
 
       setProject(fullProject);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load project:', err);
-      setError(`Failed to load project: ${err.message || 'Please try again.'}`);
+      setError(`Failed to load project: ${err instanceof Error ? err.message : String(err) || 'Please try again.'}`);
     } finally {
       setLoading(false);
     }

@@ -365,7 +365,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
 const useTimelineKeyboardShortcuts = (
   isVisible: boolean,
   isPlaying: boolean,
-  timelineSteps: any[],
+  timelineSteps: TimelineStep[],
   handlePrevious: () => void,
   handleNext: () => void,
   handlePlay: () => void,

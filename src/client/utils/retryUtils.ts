@@ -7,12 +7,12 @@ export interface RetryOptions {
   maxDelay: number;
   backoffFactor: number;
   jitter: boolean;
-  retryCondition?: (error: any) => boolean;
+  retryCondition?: (error: unknown) => boolean;
 }
 
 export interface RetryContext {
   attempt: number;
-  lastError?: any;
+  lastError?: unknown;
   totalElapsed: number;
   nextDelay: number;
 }
@@ -90,7 +90,7 @@ export async function retryWithBackoff<T>(
   const opts = { ...getDefaultRetryOptions(), ...options };
   const startTime = Date.now();
   
-  let lastError: any;
+  let lastError: unknown;
   
   for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
     const context: RetryContext = {

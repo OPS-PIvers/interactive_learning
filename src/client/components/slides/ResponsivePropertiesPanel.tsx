@@ -40,8 +40,8 @@ export const useResponsivePropertiesPanel = () => ({
 });
 
 export const PropertiesPanelModeSelector: React.FC<{
-  currentMode: any;
-  onModeChange: (mode: any) => void;
+  currentMode: string;
+  onModeChange: (mode: string) => void;
 }> = () => {
   // No longer needed - component is fully responsive
   return null;

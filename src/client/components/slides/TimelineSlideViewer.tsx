@@ -68,7 +68,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
     const events: TimelineSlideEvent[] = [];
     let stepCounter = 1;
     
-    slideDeck.slides.forEach((slide, slideIndex) => {
+    slideDeck?.slides?.forEach((slide, slideIndex) => {
       // Create an initial event for each slide
       events.push({
         id: `slide-${slide.id}`,
@@ -80,38 +80,38 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       });
       
       // Create events for each interactive element
-      slide.elements.forEach((element) => {
+      slide.elements?.forEach((element) => {
         if (element.interactions && element.interactions.length > 0) {
           element.interactions.forEach((interaction) => {
             // Create timeline event data for the converter
             const timelineEventData: TimelineEventData = {
               id: `${element.id}-${interaction.id}`,
               step: stepCounter,
-              name: element.content.title || interaction.effect.type.replace('_', ' ').toUpperCase(),
-              type: getTimelineEventType(interaction.effect.type),
+              name: element.content?.title || interaction.effect?.type.replace('_', ' ').toUpperCase(),
+              type: getTimelineEventType(interaction.effect?.type),
               targetId: element.id,
               // Map effect parameters to timeline event fields
-              spotlightX: (interaction.effect.parameters as any)?.spotlightX,
-              spotlightY: (interaction.effect.parameters as any)?.spotlightY,
-              targetX: (interaction.effect.parameters as any)?.targetX || (interaction.effect.parameters as any)?.targetPosition?.x,
-              targetY: (interaction.effect.parameters as any)?.targetY || (interaction.effect.parameters as any)?.targetPosition?.y,
-              zoomFactor: (interaction.effect.parameters as any)?.zoomLevel,
-              message: (interaction.effect.parameters as any)?.text || element.content.description,
-              videoUrl: (interaction.effect.parameters as any)?.mediaUrl && (interaction.effect.parameters as any)?.mediaType === 'video' ? (interaction.effect.parameters as any)?.mediaUrl : undefined,
-              audioUrl: (interaction.effect.parameters as any)?.mediaUrl && (interaction.effect.parameters as any)?.mediaType === 'audio' ? (interaction.effect.parameters as any)?.mediaUrl : undefined,
-              autoplay: (interaction.effect.parameters as any)?.autoplay
+              spotlightX: (interaction.effect?.parameters as any)?.spotlightX,
+              spotlightY: (interaction.effect?.parameters as any)?.spotlightY,
+              targetX: (interaction.effect?.parameters as any)?.targetX || (interaction.effect?.parameters as any)?.targetPosition?.x,
+              targetY: (interaction.effect?.parameters as any)?.targetY || (interaction.effect?.parameters as any)?.targetPosition?.y,
+              zoomFactor: (interaction.effect?.parameters as any)?.zoomLevel,
+              message: (interaction.effect?.parameters as any)?.text || element.content?.description,
+              videoUrl: (interaction.effect?.parameters as any)?.mediaUrl && (interaction.effect?.parameters as any)?.mediaType === 'video' ? (interaction.effect?.parameters as any)?.mediaUrl : undefined,
+              audioUrl: (interaction.effect?.parameters as any)?.mediaUrl && (interaction.effect?.parameters as any)?.mediaType === 'audio' ? (interaction.effect?.parameters as any)?.mediaUrl : undefined,
+              autoplay: (interaction.effect?.parameters as any)?.autoplay
             };
             
             events.push({
               id: `${element.id}-${interaction.id}`,
               step: stepCounter++,
-              name: interaction.effect.type.replace('_', ' ').toUpperCase(),
-              type: interaction.effect.type,
+              name: interaction.effect?.type.replace('_', ' ').toUpperCase(),
+              type: interaction.effect?.type,
               targetId: element.id,
               slideId: slide.id,
               elementId: element.id,
-              duration: interaction.effect.duration,
-              message: element.content.title || element.content.description,
+              duration: interaction.effect?.duration,
+              message: element.content?.title || element.content?.description,
               timelineEventData
             });
           });
@@ -161,7 +161,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
     console.log('[TimelineSlideViewer] Step event found:', stepEvent);
     
     if (stepEvent) {
-      const slideIndex = slideDeck.slides.findIndex(s => s.id === stepEvent.slideId);
+      const slideIndex = slideDeck?.slides?.findIndex(s => s.id === stepEvent.slideId);
       if (slideIndex !== -1 && slideIndex !== currentSlideIndex) {
         setCurrentSlideIndex(slideIndex);
         if (onSlideChange) {
@@ -172,7 +172,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       // Trigger slide effect if this step has timeline event data
       if (stepEvent.timelineEventData && stepEvent.elementId) {
         console.log('[TimelineSlideViewer] Converting timeline event to slide effect');
-        const targetElement = slideDeck.slides[slideIndex]?.elements.find(el => el.id === stepEvent.elementId);
+        const targetElement = slideDeck?.slides?.[slideIndex]?.elements?.find(el => el.id === stepEvent.elementId);
         
         const slideEffect = convertTimelineEventToSlideEffect(stepEvent.timelineEventData, {
           slideDeck,
@@ -201,7 +201,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         });
       }
     }
-  }, [timelineEvents, slideDeck, currentSlideIndex, onSlideChange, onInteraction]);
+  }, [timelineEvents, slideDeck, currentSlideIndex, onSlideChange, onInteraction, deviceType]);
   
   // Handle previous step navigation
   const handlePrevStep = useCallback(() => {
@@ -243,12 +243,12 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
     setActiveHotspotId(hotspotId);
     // If hotspot is on different slide, navigate there
     if (slideIndex !== currentSlideIndex) {
-      const slide = slideDeck.slides[slideIndex];
+      const slide = slideDeck?.slides?.[slideIndex];
       if (slide) {
         handleSlideViewerChange(slide.id, slideIndex);
       }
     }
-  }, [currentSlideIndex, slideDeck.slides, handleSlideViewerChange]);
+  }, [currentSlideIndex, slideDeck?.slides, handleSlideViewerChange]);
 
   const handleHotspotComplete = useCallback((hotspotId: string) => {
     setCompletedHotspots(prev => new Set([...prev, hotspotId]));
@@ -257,7 +257,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   
   // Auto-progression mode logic
   useEffect(() => {
-    if (viewerMode === 'auto-progression' && slideDeck.settings.autoAdvance) {
+    if (viewerMode === 'auto-progression' && slideDeck?.settings?.autoAdvance) {
       // Auto-advance based on slide settings or element completion
       const autoAdvanceDelay = slideDeck.settings.autoAdvanceDelay || 5000; // 5 seconds default
       
@@ -301,12 +301,12 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
       }
     };
     
-    if (slideDeck.settings.keyboardShortcuts) {
+    if (slideDeck?.settings?.keyboardShortcuts) {
       document.addEventListener('keydown', handleKeyPress);
       return () => document.removeEventListener('keydown', handleKeyPress);
     }
     return undefined; // Explicit return for else case
-  }, [handlePrevStep, handleNextStep, viewerMode, onClose, slideDeck.settings.keyboardShortcuts]);
+  }, [handlePrevStep, handleNextStep, viewerMode, onClose, slideDeck?.settings?.keyboardShortcuts]);
   
   
   return (
@@ -316,7 +316,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         <SlideViewer
           ref={slideViewerRef}
           slideDeck={slideDeck}
-          initialSlideId={slideDeck.slides[currentSlideIndex]?.id}
+          initialSlideId={slideDeck?.slides?.[currentSlideIndex]?.id}
           onSlideChange={handleSlideViewerChange}
           onInteraction={onInteraction}
           className="h-full"

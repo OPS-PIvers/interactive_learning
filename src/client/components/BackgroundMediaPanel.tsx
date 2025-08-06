@@ -102,7 +102,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   }, [backgroundSettings, onBackgroundMediaChange]);
 
   // Handle settings change
-  const handleSettingsChange = useCallback((key: string, value: any) => {
+  const handleSettingsChange = useCallback((key: string, value: unknown) => {
     const newSettings = { ...backgroundSettings };
     if (key.includes('.')) {
       const [parentKey, childKey] = key.split('.');
@@ -125,7 +125,9 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
         };
       }
     } else {
-      (newSettings as any)[key] = value;
+      if (key in newSettings) {
+        (newSettings as Record<string, unknown>)[key] = value;
+      }
     }
     setBackgroundSettings(newSettings);
     onBackgroundMediaChange(newSettings);

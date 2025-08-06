@@ -42,10 +42,10 @@ class HookErrorBoundary extends Component<Props, State> {
       console.error('🚨 React Hooks Error Detected:', {
         error: error.message,
         stack: error.stack,
-        componentStack: errorInfo.componentStack,
+        componentStack: errorInfo?.componentStack,
         timestamp: new Date().toISOString(),
         // Help developers identify the component
-        possibleComponent: errorInfo.componentStack?.split('\n')[1]?.trim()
+        possibleComponent: errorInfo?.componentStack?.split('\n')[1]?.trim()
       });
     }
   }

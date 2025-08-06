@@ -181,7 +181,7 @@ export const useElementAnimation = (elementId: string) => {
     setIsAnimating(false);
   }, [controls]);
 
-  const animate = useCallback(async (animation: any) => {
+  const animate = useCallback(async (animation: AnimationSequence) => {
     setIsAnimating(true);
     await controls.start(animation);
     setIsAnimating(false);

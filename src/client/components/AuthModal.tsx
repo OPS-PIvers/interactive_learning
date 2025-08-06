@@ -41,8 +41,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       }
       onClose?.();
       resetForm();
-    } catch (error: any) {
-      setError(getErrorMessage(error.code));
+    } catch (error: unknown) {
+      setError(getErrorMessage((error as { code: string }).code));
     } finally {
       setLoading(false);
     }
@@ -55,8 +55,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await signInWithGoogle();
       onClose?.();
       resetForm();
-    } catch (error: any) {
-      setError(getErrorMessage(error.code));
+    } catch (error: unknown) {
+      setError(getErrorMessage((error as { code: string }).code));
     } finally {
       setLoading(false);
     }
@@ -72,8 +72,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setMessage('Password reset email sent! Check your inbox.');
       setShowReset(false);
       setResetEmail('');
-    } catch (error: any) {
-      setError(getErrorMessage(error.code));
+    } catch (error: unknown) {
+      setError(getErrorMessage((error as { code: string }).code));
     } finally {
       setLoading(false);
     }

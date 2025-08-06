@@ -434,22 +434,22 @@ export function getMigrationSummary(result: MigrationResult): string {
   return `
 Migration Summary:
 ==================
-Project: ${slideDeck.title}
-Slides Created: ${slideDeck.slides.length}
+Project: ${slideDeck?.title}
+Slides Created: ${slideDeck?.slides?.length}
 Elements Converted: ${elementsConverted}
 Interactions Converted: ${interactionsConverted}
-Warnings: ${warnings.length}
+Warnings: ${warnings?.length}
 
-${warnings.length > 0 ? `
+${warnings?.length > 0 ? `
 Warnings:
 ${warnings.map(w => `- ${w}`).join('\n')}
 ` : ''}
 
 Slide Details:
-${slideDeck.slides.map(slide => `
-- Slide: ${slide.title}
-  Elements: ${slide.elements?.length || 0}
-  Background: ${slide.backgroundMedia ? 'Yes' : 'No'}
+${slideDeck?.slides?.map(slide => `
+- Slide: ${slide?.title}
+  Elements: ${slide?.elements?.length || 0}
+  Background: ${slide?.backgroundMedia ? 'Yes' : 'No'}
 `).join('')}
 `.trim();
 }

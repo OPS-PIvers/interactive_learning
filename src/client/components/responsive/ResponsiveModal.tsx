@@ -64,17 +64,17 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   
   useEffect(() => {
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
+      document?.addEventListener('keydown', handleKeyDown);
       // Prevent body scrolling when modal is open
-      document.body.style.overflow = 'hidden';
+      if (document.body) document.body.style.overflow = 'hidden';
     } else {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document?.removeEventListener('keydown', handleKeyDown);
+      if (document.body) document.body.style.overflow = '';
     }
     
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document?.removeEventListener('keydown', handleKeyDown);
+      if (document.body) document.body.style.overflow = '';
     };
   }, [isOpen, handleKeyDown]);
   

@@ -46,24 +46,6 @@ vi.mock('../../lib/firebaseApi', () => ({
   },
 }));
 
-vi.mock('../../lib/firebaseConfig', () => {
-    const auth = {
-        onAuthStateChanged: (callback: (user: any) => void) => {
-            callback({ uid: 'test-user' });
-            return () => {}; // Unsubscribe function
-        },
-        currentUser: { uid: 'test-user' }
-    };
-
-    return {
-        firebaseManager: {
-            isReady: () => true,
-            getAuth: () => auth,
-            getFirestore: () => ({}),
-        },
-        auth,
-    };
-});
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

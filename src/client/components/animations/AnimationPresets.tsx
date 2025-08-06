@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { slideTransitionVariants } from './SlideTransitions';
 import { elementAnimationVariants } from './ElementAnimations';
 
@@ -9,13 +9,13 @@ export interface AnimationPreset {
   name: string;
   description: string;
   category: 'entrance' | 'exit' | 'emphasis' | 'transition';
-  variants: any;
+  variants: Variants;
   duration: number;
   preview: React.ComponentType<{ isActive: boolean }>;
 }
 
 // Create preview components for each animation type
-const createPreviewComponent = (variants: any, duration: number = 300) => {
+const createPreviewComponent = (variants: Variants, duration: number = 300) => {
   return ({ isActive }: { isActive: boolean }) => (
     <motion.div
       className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold"

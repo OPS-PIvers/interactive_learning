@@ -3,18 +3,18 @@ import { useState, useEffect, useCallback } from 'react';
 // Enhanced viewport height detection for iOS Safari
 function getViewportHeight() {
   // Prefer visualViewport for mobile browsers (especially iOS Safari)
-  if (window.visualViewport) {
+  if (window?.visualViewport) {
     return window.visualViewport.height;
   }
   
   // Fallback to window.innerHeight
-  return window.innerHeight;
+  return window?.innerHeight || 0;
 }
 
 // Get available height accounting for iOS Safari UI
 function getAvailableHeight() {
   const viewportHeight = getViewportHeight();
-  const windowHeight = window.innerHeight;
+  const windowHeight = window?.innerHeight || 0;
   
   // If visualViewport is smaller than window.innerHeight, 
   // it likely means iOS Safari UI is visible
@@ -26,14 +26,14 @@ function updateViewportCustomProperties() {
   const vh = getViewportHeight() * 0.01;
   const availableVh = getAvailableHeight() * 0.01;
   
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
-  document.documentElement.style.setProperty('--available-vh', `${availableVh}px`);
+  document?.documentElement?.style.setProperty('--vh', `${vh}px`);
+  document?.documentElement?.style.setProperty('--available-vh', `${availableVh}px`);
   
   // Support for dynamic viewport units fallback
-  if (!CSS.supports('height', '100dvh')) {
-    document.documentElement.style.setProperty('--dvh', `${vh}px`);
-    document.documentElement.style.setProperty('--svh', `${vh}px`);
-    document.documentElement.style.setProperty('--lvh', `${window.innerHeight * 0.01}px`);
+  if (typeof CSS !== 'undefined' && CSS.supports && !CSS.supports('height', '100dvh')) {
+    document?.documentElement?.style.setProperty('--dvh', `${vh}px`);
+    document?.documentElement?.style.setProperty('--svh', `${vh}px`);
+    document?.documentElement?.style.setProperty('--lvh', `${(window?.innerHeight || 0) * 0.01}px`);
   }
 }
 
@@ -56,7 +56,7 @@ export function useViewportHeight() {
     
     let cleanup: (() => void) | null = null;
 
-    if (window.visualViewport) {
+    if (window?.visualViewport) {
       // Use visualViewport for better mobile support
       window.visualViewport.addEventListener('resize', handleResize);
       window.visualViewport.addEventListener('scroll', handleResize);
@@ -66,8 +66,8 @@ export function useViewportHeight() {
       };
     } else {
       // Fallback to window resize
-      window.addEventListener('resize', handleResize);
-      cleanup = () => window.removeEventListener('resize', handleResize);
+      window?.addEventListener('resize', handleResize);
+      cleanup = () => window?.removeEventListener('resize', handleResize);
     }
 
     // Also listen for orientation changes on mobile
@@ -76,11 +76,11 @@ export function useViewportHeight() {
       setTimeout(handleResize, 100);
     };
     
-    window.addEventListener('orientationchange', handleOrientationChange);
+    window?.addEventListener('orientationchange', handleOrientationChange);
     
     return () => {
       cleanup?.();
-      window.removeEventListener('orientationchange', handleOrientationChange);
+      window?.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, [handleResize]);
 

@@ -237,7 +237,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       id: `effect_${event.id}`,
       type: mapInteractionTypeToEffectType(event.type),
       duration: event.duration || 3000,
-      parameters: {} as any,
+      parameters: {} as Partial<EffectParameters>,
     },
   };
 

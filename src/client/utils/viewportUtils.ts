@@ -12,7 +12,7 @@
 export const getActualViewportHeight = (): number => {
   // Use Visual Viewport API when available (modern browsers)
   if (window?.visualViewport) {
-    const viewportHeight = window.visualViewport?.height;
+    const viewportHeight = window.visualViewport.height;
     if (viewportHeight && viewportHeight > 0) {
       return viewportHeight;
     }
@@ -57,18 +57,18 @@ export const setDynamicViewportProperties = (): (() => void) => {
         const vh = actualHeight * 0.01;
         const vw = actualWidth * 0.01;
         
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-        document.documentElement.style.setProperty('--vw', `${vw}px`);
-        document.documentElement.style.setProperty('--actual-vh', `${actualHeight}px`);
-        document.documentElement.style.setProperty('--actual-vw', `${actualWidth}px`);
+        document.documentElement?.style.setProperty('--vh', `${vh}px`);
+        document.documentElement?.style.setProperty('--vw', `${vw}px`);
+        document.documentElement?.style.setProperty('--actual-vh', `${actualHeight}px`);
+        document.documentElement?.style.setProperty('--actual-vw', `${actualWidth}px`);
       }
     } catch (error) {
       console.warn('Failed to update viewport properties:', error);
       // Fallback to basic calculation
       const vh = (window?.innerHeight || 0) * 0.01;
       const vw = (window?.innerWidth || 0) * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-      document.documentElement.style.setProperty('--vw', `${vw}px`);
+      document.documentElement?.style.setProperty('--vh', `${vh}px`);
+      document.documentElement?.style.setProperty('--vw', `${vw}px`);
     }
   };
 

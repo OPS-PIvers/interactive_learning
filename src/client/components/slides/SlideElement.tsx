@@ -171,7 +171,13 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 /**
  * Get CSS animation classes based on animation configuration
  */
-function getAnimationClasses(animation?: any): string {
+interface AnimationStyle {
+  type: 'pulse' | 'none';
+  duration?: number;
+  iterationCount?: 'infinite' | number;
+}
+
+function getAnimationClasses(animation?: AnimationStyle): string {
   if (!animation || animation.type === 'none') {
     return '';
   }

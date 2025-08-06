@@ -11,7 +11,7 @@ interface SyncData {
 }
 
 // Type guard for validating sync data
-const isSyncData = (data: any): data is SyncData => {
+const isSyncData = (data: unknown): data is SyncData => {
   return (
     typeof data === 'object' &&
     data !== null &&

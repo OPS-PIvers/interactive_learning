@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DeviceType, ViewportInfo } from '../../shared/slideTypes';
+import { DeviceType, ViewportInfo, ResponsivePosition } from '../../shared/slideTypes';
 
 /**
  * Hook for detecting device type and viewport information
@@ -82,7 +82,7 @@ function getDeviceType(width: number): DeviceType {
  * Get responsive position based on device type
  */
 export const getResponsivePosition = (
-  responsivePosition: any,
+  responsivePosition: ResponsivePosition,
   deviceType: DeviceType
 ) => {
   return responsivePosition[deviceType] || responsivePosition.desktop || responsivePosition;

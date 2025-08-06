@@ -217,12 +217,14 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
   const deck = createDemoSlideDeck();
   
   // Update the background image
-  deck.slides[0].backgroundImage = aiStudioImageUrl;
+  if (deck?.slides?.[0]) {
+    deck.slides[0].backgroundImage = aiStudioImageUrl;
+  }
   
   // Adjust hotspot positions to match the actual AI Studio interface
   // These positions are based on the screenshots provided
-  const welcomeHotspot = deck.slides[0].elements.find(el => el.id === 'welcome-hotspot');
-  const bottomLeftHotspot = deck.slides[0].elements.find(el => el.id === 'bottom-left-hotspot');
+  const welcomeHotspot = deck?.slides?.[0]?.elements?.find(el => el.id === 'welcome-hotspot');
+  const bottomLeftHotspot = deck?.slides?.[0]?.elements?.find(el => el.id === 'bottom-left-hotspot');
   
   if (welcomeHotspot) {
     // Position the blue hotspot exactly under "Welcome to AI Studio" text
@@ -233,8 +235,8 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     };
     
     // Update spotlight to center exactly on this position
-    const spotlightEffect = welcomeHotspot.interactions[0].effect;
-    if (spotlightEffect.type === 'spotlight') {
+    const spotlightEffect = welcomeHotspot.interactions?.[0]?.effect;
+    if (spotlightEffect?.type === 'spotlight') {
       (spotlightEffect.parameters as any).position = {
         x: 705, y: 345, width: 60, height: 60  // Centered on hotspot
       };
@@ -250,8 +252,8 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     };
     
     // Update zoom to center exactly on this position
-    const zoomEffect = bottomLeftHotspot.interactions[0].effect;
-    if (zoomEffect.type === 'zoom') {
+    const zoomEffect = bottomLeftHotspot.interactions?.[0]?.effect;
+    if (zoomEffect?.type === 'zoom') {
       (zoomEffect.parameters as any).targetPosition = {
         x: 35, y: 635, width: 60, height: 60  // Centered on hotspot
       };

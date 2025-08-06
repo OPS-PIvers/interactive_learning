@@ -1,8 +1,18 @@
 // Network monitoring utilities for upload operations
 
+interface NetworkInformation extends EventTarget {
+  readonly type?: 'bluetooth' | 'cellular' | 'ethernet' | 'none' | 'wifi' | 'wimax' | 'other' | 'unknown';
+  readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
+  readonly downlinkMax?: number;
+  readonly downlink?: number;
+  readonly rtt?: number;
+  readonly saveData?: boolean;
+  onchange?: EventListener;
+}
+
 // Get current network connection details
 function getNetworkDetails() {
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection as NetworkInformation | undefined;
   
   return {
     online: navigator.onLine,
@@ -30,7 +40,7 @@ class NetworkMonitor {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private isMonitoring = false;
   private boundUpdateNetworkState: () => void;
-  private connection: any = null;
+  private connection: NetworkInformation | null = null;
 
   constructor() {
     this.boundUpdateNetworkState = this.updateNetworkState.bind(this);
@@ -44,7 +54,7 @@ class NetworkMonitor {
 
     // Listen for connection changes (if supported)
     if ('connection' in navigator) {
-      this.connection = (navigator as any).connection;
+      this.connection = (navigator as any).connection as NetworkInformation;
       if (this.connection) {
         this.connection.addEventListener('change', this.boundUpdateNetworkState);
       }
@@ -86,7 +96,13 @@ class NetworkMonitor {
     }
   }
 
-  private determineNetworkQuality(networkDetails: any): NetworkState['quality'] {
+  private determineNetworkQuality(networkDetails: {
+    online: boolean;
+    connectionType: string;
+    effectiveType: string;
+    downlink: number;
+    rtt: number;
+  }): NetworkState['quality'] {
     if (!networkDetails.online) {
       return 'offline';
     }

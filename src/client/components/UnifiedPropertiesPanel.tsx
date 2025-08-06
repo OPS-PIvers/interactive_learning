@@ -138,7 +138,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   }, [selectedElement.id, selectedElement.content, onElementUpdate]);
 
   // Type mapping from InteractionType to SlideEffectType with proper parameters
-  const createInteractionEffect = useCallback((interactionType: InteractionType): { type: SlideEffectType; parameters: any } => {
+  const createInteractionEffect = useCallback((interactionType: InteractionType): { type: SlideEffectType; parameters: Partial<EffectParameters> } => {
     const effectId = `effect-${Date.now()}`;
     
     switch (interactionType) {

@@ -63,10 +63,10 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
     if (showLiquidAnimation) {
       const rect = event.currentTarget.getBoundingClientRect();
       const x = 'touches' in event 
-        ? event.touches[0].clientX - rect.left
+        ? event.touches?.[0]?.clientX - rect.left
         : (event as React.MouseEvent).clientX - rect.left;
       const y = 'touches' in event
-        ? event.touches[0].clientY - rect.top
+        ? event.touches?.[0]?.clientY - rect.top
         : (event as React.MouseEvent).clientY - rect.top;
       
       setRippleEffect({ id: colorOption.id, x, y });

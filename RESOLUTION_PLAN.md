@@ -14,15 +14,15 @@ The recent commits fixed **surface-level symptoms** but didn't resolve **root ar
 **Priority**: URGENT - Prevents runtime crashes
 
 1. **TypeScript Safety Overhaul**
-   - Fix all 73+ TDZ warnings with optional chaining (`obj?.prop?.subProp`)
-   - Remove all `any` types, replace with proper interfaces
-   - Fix `InteractionType` enum mismatches in tests
-   - Add runtime parameter validation for interaction editing
+   - [x] Fix all 73+ TDZ warnings with optional chaining (`obj?.prop?.subProp`)
+   - [x] Remove all `any` types, replace with proper interfaces
+   - [ ] Fix `InteractionType` enum mismatches in tests
+   - [ ] Add runtime parameter validation for interaction editing
 
 2. **React Hook Compliance**
-   - Fix useEffect hook order violation in `ViewerFooterToolbar.tsx:125`
-   - Add proper cleanup functions to prevent memory leaks
-   - Implement error boundaries around parameter editing workflows
+   - [x] Fix useEffect hook order violation in `ViewerFooterToolbar.tsx:125`
+   - [x] Add proper cleanup functions to prevent memory leaks
+   - [ ] Implement error boundaries around parameter editing workflows
 
 ### **Phase 2: Architecture Enforcement** (2-3 days)  
 **Priority**: HIGH - Prevents future violations

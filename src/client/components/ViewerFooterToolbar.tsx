@@ -84,46 +84,44 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (!showShortcuts) {
-      return;
-    }
+    if (showShortcuts) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setShowShortcuts(false);
+          return;
+        }
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowShortcuts(false);
-        return;
-      }
+        if (e.key === 'Tab') {
+          const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          if (!focusableElements || focusableElements.length === 0) return;
 
-      if (e.key === 'Tab') {
-        const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (!focusableElements || focusableElements.length === 0) return;
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
 
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement && lastElement) {
-            lastElement.focus();
-            e.preventDefault();
-          }
-        } else {
-          if (document.activeElement === lastElement && firstElement) {
-            firstElement.focus();
-            e.preventDefault();
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement && lastElement) {
+              lastElement.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement && firstElement) {
+              firstElement.focus();
+              e.preventDefault();
+            }
           }
         }
-      }
-    };
+      };
 
-    document.addEventListener('keydown', handleKeyDown);
-    modalRef.current?.focus();
+      document.addEventListener('keydown', handleKeyDown);
+      modalRef.current?.focus();
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      shortcutsButtonRef.current?.focus();
-    };
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        shortcutsButtonRef.current?.focus();
+      };
+    }
   }, [showShortcuts]);
 
   const progressDots = React.useMemo(() => {

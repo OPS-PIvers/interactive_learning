@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 // Debounce utility
-function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+function debounce<F extends (...args: unknown[]) => unknown>(func: F, waitFor: number) {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
   const debounced = (...args: Parameters<F>) => {

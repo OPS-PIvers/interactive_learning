@@ -266,7 +266,7 @@ export class FirebaseProjectAPI {
         // Include slide deck if it exists
         if (projectData['slideDeck']) {
           project.slideDeck = projectData['slideDeck'];
-          debugLog.log(`[listProjects] Project ${project.id} has slide deck with ${projectData['slideDeck'].slides?.length || 0} slides`);
+          debugLog.log(`[listProjects] Project ${project.id} has slide deck with ${projectData['slideDeck']?.slides?.length || 0} slides`);
         }
 
         return project;
@@ -410,8 +410,8 @@ export class FirebaseProjectAPI {
       if (projectData['slideDeck']) {
         result.slideDeck = projectData['slideDeck'];
         debugLog.log(`[FirebaseAPI] Loaded slide deck for project ${projectId}:`, {
-          slideCount: projectData['slideDeck'].slides?.length || 0,
-          totalElements: projectData['slideDeck'].slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+          slideCount: projectData['slideDeck']?.slides?.length || 0,
+          totalElements: projectData['slideDeck']?.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
         });
       } else {
         debugLog.log(`[FirebaseAPI] No slide deck found for project ${projectId}`);
@@ -510,8 +510,8 @@ export class FirebaseProjectAPI {
       // Log slide deck structure before saving
       if (project.slideDeck) {
         console.log('📊 Slide deck structure before save:', {
-          slideCount: project.slideDeck.slides.length,
-          slides: project.slideDeck.slides.map((slide, index) => ({
+          slideCount: project.slideDeck?.slides?.length,
+          slides: project.slideDeck?.slides?.map((slide, index) => ({
             index,
             id: slide.id,
             hasBackgroundMedia: !!slide.backgroundMedia,
@@ -544,8 +544,8 @@ export class FirebaseProjectAPI {
       if (project.projectType === 'slide' && project.slideDeck) {
         updateData.slideDeck = project.slideDeck;
         console.log('📁 Adding slide deck to Firestore data:', {
-          slideCount: project.slideDeck.slides?.length || 0,
-          slideDeckSize: JSON.stringify(project.slideDeck).length
+          slideCount: project.slideDeck?.slides?.length || 0,
+          slideDeckSize: JSON.stringify(project.slideDeck)?.length
         });
       }
 

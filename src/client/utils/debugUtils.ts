@@ -9,21 +9,21 @@ try {
 }
 
 export const debugLog = {
-  log: (message: string, ...args: any[]) => {
+  log: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
       console.log(message, ...args);
     }
   },
-  warn: (message: string, ...args: any[]) => {
+  warn: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
       console.warn(message, ...args);
     }
   },
-  error: (message: string, ...args: any[]) => {
+  error: (message: string, ...args: unknown[]) => {
     // Always log errors, even if debug is not enabled
     console.error(message, ...args);
   },
-  info: (message: string, ...args: any[]) => {
+  info: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
       console.info(message, ...args);
     }

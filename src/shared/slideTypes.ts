@@ -87,7 +87,7 @@ export interface ElementContent {
   description?: string;
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'audio';
-  customProperties?: Record<string, any>;
+  customProperties?: Record<string, unknown>;
   // Enhanced content from previous build
   link?: string; // External link for hotspot
   message?: string; // Event message/description
@@ -378,7 +378,7 @@ export interface TransitionEffect {
 
 export interface TransitionCondition {
   type: 'completion' | 'timeout' | 'user_choice';
-  value?: any;
+  value?: unknown;
 }
 
 // Slide layout
@@ -437,7 +437,7 @@ export interface UserInteractionLog {
   slideId: string;
   elementId?: string;
   interactionType: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 // Device and viewport detection
@@ -541,7 +541,7 @@ export interface ThemePresetDefinition {
 
 // Migration from legacy format
 export interface LegacyMigrationMap {
-  hotspotToElement: (hotspot: any) => SlideElement;
-  eventToInteraction: (event: any) => ElementInteraction;
-  projectToSlideDeck: (project: any) => SlideDeck;
+  hotspotToElement: (hotspot: HotspotData) => SlideElement;
+  eventToInteraction: (event: TimelineEventData) => ElementInteraction;
+  projectToSlideDeck: (project: Project) => SlideDeck;
 }

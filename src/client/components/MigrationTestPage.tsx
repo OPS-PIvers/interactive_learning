@@ -215,19 +215,19 @@ export const MigrationTestPage: React.FC = () => {
               {/* Migration Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">{migrationResult.slideDeck.slides.length}</div>
+                  <div className="text-2xl font-bold text-green-400">{migrationResult?.slideDeck?.slides?.length}</div>
                   <div className="text-slate-400 text-sm">Slides Created</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">{migrationResult.elementsConverted}</div>
+                  <div className="text-2xl font-bold text-blue-400">{migrationResult?.elementsConverted}</div>
                   <div className="text-slate-400 text-sm">Elements Converted</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">{migrationResult.interactionsConverted}</div>
+                  <div className="text-2xl font-bold text-purple-400">{migrationResult?.interactionsConverted}</div>
                   <div className="text-slate-400 text-sm">Interactions Converted</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-400">{migrationResult.warnings.length}</div>
+                  <div className="text-2xl font-bold text-yellow-400">{migrationResult?.warnings?.length}</div>
                   <div className="text-slate-400 text-sm">Warnings</div>
                 </div>
               </div>
