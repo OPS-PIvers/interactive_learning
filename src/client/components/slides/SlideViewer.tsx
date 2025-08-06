@@ -110,7 +110,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     setActiveEffects([]);
 
     onSlideChange?.(slideId, slideIndex);
-  }, [slideDeck?.slides, onSlideChange]);
+  }, [slideDeck, onSlideChange]);
 
   // Play/pause handlers
   const handlePlay = useCallback(() => {
@@ -131,7 +131,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         navigateToSlide(nextSlideId);
       }
     }
-  }, [viewerState.currentSlideIndex, slideDeck?.slides, navigateToSlide]);
+  }, [viewerState.currentSlideIndex, slideDeck, navigateToSlide]);
 
   const navigateToPrevious = useCallback(() => {
     const prevIndex = viewerState.currentSlideIndex - 1;
@@ -141,7 +141,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         navigateToSlide(prevSlideId);
       }
     }
-  }, [viewerState.currentSlideIndex, slideDeck?.slides, navigateToSlide]);
+  }, [viewerState.currentSlideIndex, slideDeck, navigateToSlide]);
 
   // Effect handling
   const triggerEffect = useCallback((effect: SlideEffect) => {
@@ -223,7 +223,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         const params = interaction.effect.parameters as { targetSlideId?: string };
         if (params?.targetSlideId) {
           setTimeout(() => {
-            if (params.targetSlideId) navigateToSlide(params.targetSlideId);
+            navigateToSlide(params.targetSlideId);
           }, interaction.effect.duration || 0);
         }
       }
@@ -276,7 +276,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         isDragging: false
       }));
     }
-  }, [slideDeck?.settings?.touchGestures]);
+  }, [slideDeck]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!slideDeck?.settings?.touchGestures) return;
@@ -306,7 +306,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       const scale = Math.max(0.5, Math.min(3, distance / touchState.initialDistance));
       setTouchState(prev => ({ ...prev, scale, isDragging: true }));
     }
-  }, [slideDeck?.settings?.touchGestures, touchState.startX, touchState.startY, touchState.initialDistance]);
+  }, [slideDeck, touchState.startX, touchState.startY, touchState.initialDistance]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!slideDeck?.settings?.touchGestures) return;
@@ -343,7 +343,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         setTouchState(prev => ({ ...prev, scale: 1 }));
       }, 300);
     }
-  }, [slideDeck?.settings?.touchGestures, touchState, navigateToNext, navigateToPrevious]);
+  }, [slideDeck, touchState, navigateToNext, navigateToPrevious]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -385,7 +385,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [slideDeck?.settings, slideDeck?.slides, navigateToNext, navigateToPrevious, navigateToSlide]);
+  }, [slideDeck, navigateToNext, navigateToPrevious, navigateToSlide]);
 
   // Auto-advance
   useEffect(() => {
@@ -399,7 +399,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [slideDeck?.settings, isPlaying, viewerState.currentSlideIndex, navigateToNext]);
+  }, [slideDeck, isPlaying, viewerState.currentSlideIndex, navigateToNext]);
 
   if (!currentSlide) {
     return (
