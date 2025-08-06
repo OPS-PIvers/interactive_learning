@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 import { useProjectTheme } from '../hooks/useProjectTheme';
 import { getAllThemes } from '../../shared/themePresets';
@@ -24,7 +23,6 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   isPublished = false,
   onShare
 }) => {
-  const { isMobile } = useDeviceDetection();
   const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
   const { currentThemeId, setTheme, availableThemes } = useProjectTheme();
   const [isLoading, setIsLoading] = useState(false);
@@ -78,17 +76,10 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Unified modal sizing for consistent behavior across all screen sizes
-  const getModalClass = () => {
-    return isMobile 
-      ? 'w-full flex flex-col' 
-      : 'w-full max-w-2xl flex flex-col';
-  };
-
   const getModalStyle = () => {
-    const toolbarHeight = layoutConstraints.toolbarHeight; // Always account for toolbar
-    const baseHeight = isMobile ? '70vh' : '75vh'; // Reduced heights to prevent toolbar overlap
-    const padding = isMobile ? '0px' : '1rem'; // Reduced desktop padding
+    const toolbarHeight = layoutConstraints.toolbarHeight;
+    const baseHeight = '75vh';
+    const padding = '1rem';
     
     const height = `calc(${baseHeight} - ${toolbarHeight}px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${padding})`;
     
@@ -99,10 +90,10 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div 
         ref={modalRef}
-        className={`bg-slate-800 rounded-lg shadow-xl ${getModalClass()}`}
+        className="bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl flex flex-col"
         style={getModalStyle()}
         tabIndex={-1}
       >
@@ -158,7 +149,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 Choose a color theme that fits your content and audience
               </p>
               
-              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {allThemes.map((theme) => (
                   <button
                     key={theme.id}

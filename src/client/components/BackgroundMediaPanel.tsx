@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { BackgroundMedia } from '../../shared/slideTypes';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import FileUpload from './FileUpload';
 import { FirebaseProjectAPI } from '../../lib/firebaseApi';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -24,7 +23,6 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   onClose,
   isOpen
 }) => {
-  const { isMobile } = useDeviceDetection();
   const [selectedTab, setSelectedTab] = useState<'image' | 'video' | 'youtube' | 'audio' | 'none'>('image');
   const [isUploading, setIsUploading] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -144,9 +142,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   return (
     <div className={`fixed inset-0 bg-black/50 flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`} onClick={onClose}>
       <div 
-        className={`bg-slate-800 rounded-lg shadow-2xl border border-slate-700 ${
-          isMobile ? 'w-full h-full m-0 rounded-none' : 'w-[90vw] max-w-4xl max-h-[90vh]'
-        } flex flex-col`}
+        className="bg-slate-800 rounded-lg shadow-2xl border border-slate-700 w-full h-full m-0 rounded-none md:w-[90vw] md:max-w-4xl md:max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -201,30 +197,28 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
                     )}
                   </div>
                   
-                  {isMobile && (
-                    <div>
-                      <h3 className="text-white font-medium mb-2">Camera Capture</h3>
-                      <label className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Take Photo
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              handleCameraCapture(file);
-                            }
-                          }}
-                        />
-                      </label>
-                    </div>
-                  )}
+                  <div className="md:hidden">
+                    <h3 className="text-white font-medium mb-2">Camera Capture</h3>
+                    <label className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Take Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleCameraCapture(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             )}

@@ -3,7 +3,6 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Project } from '../../shared/types';
 import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import { appScriptProxy } from '../../lib/firebaseProxy';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 
 interface SharedModuleViewerProps {}
 
@@ -13,7 +12,6 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { isMobile } = useDeviceDetection();
 
   // Parse URL parameters for customization
   const isEmbedMode = searchParams.get('embed') === 'true';

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 
 export interface ViewportState {
   width: number;
@@ -55,7 +54,6 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     enableAutoScale = true
   } = config;
 
-  const { isMobile } = useDeviceDetection();
   const [viewport, setViewport] = useState<ViewportState>({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -85,6 +83,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
 
   // Calculate optimal scale for mobile
   const calculateOptimalScale = useCallback((viewportState: ViewportState) => {
+    const isMobile = viewportState.width < 768;
     if (!isMobile || !enableAutoScale) return 1;
 
     const targetAspectRatio = parseAspectRatio(aspectRatio);
@@ -255,15 +254,6 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     overflow: 'hidden',
     boxSizing: 'border-box'
   };
-
-  // On desktop, render simplified container unless scaling is explicitly enabled
-  if (!isMobile && !enableAutoScale) {
-    return (
-      <div className={`viewport-manager ${className}`}>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div className={`viewport-manager ${className}`} style={containerStyle}>

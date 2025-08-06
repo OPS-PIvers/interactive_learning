@@ -20,7 +20,6 @@ export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = 
     <UnifiedPropertiesPanel
       selectedElement={props.selectedElement}
       currentSlide={props.currentSlide}
-      deviceType={props.deviceType}
       onElementUpdate={props.onElementUpdate}
       onSlideUpdate={props.onSlideUpdate}
       onDelete={props.onDelete}

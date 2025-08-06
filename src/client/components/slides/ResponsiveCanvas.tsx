@@ -14,7 +14,7 @@ import { ImageTransformState } from '../../../shared/types';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { ViewportBounds } from '../../utils/touchUtils';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
-import { getHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
+import { getResponsiveHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
 
 export interface ResponsiveCanvasProps {
@@ -561,7 +561,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
           onTouchEnd={handleTouchEndElement}
         >
           {element.type === 'hotspot' && (
-            <div className={`${getHotspotSizeClasses(defaultHotspotSize, deviceType === 'mobile')} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 hover:bg-opacity-30 transition-colors`}>
+            <div className={`${getResponsiveHotspotSizeClasses(defaultHotspotSize)} bg-blue-500 bg-opacity-20 border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 hover:bg-opacity-30 transition-colors`}>
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
               {isEditable && (
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs bg-black bg-opacity-75 text-white px-1 py-0.5 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">

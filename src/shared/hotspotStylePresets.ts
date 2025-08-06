@@ -175,6 +175,19 @@ export const getHotspotSizeClasses = (size: HotspotSize = defaultHotspotSize, is
   return isMobile ? preset.mobileClasses : preset.desktopClasses;
 };
 
+// New helper for responsive classes
+export const getResponsiveHotspotSizeClasses = (size: HotspotSize = defaultHotspotSize): string => {
+  const preset = hotspotSizePresets.find(p => p.value === size);
+  if (!preset) {
+    const fallback = hotspotSizePresets.find(p => p.value === 'small');
+    if (fallback) {
+      return `${fallback.mobileClasses} md:${fallback.desktopClasses}`;
+    }
+    return 'h-12 w-12 md:h-5 md:w-5';
+  }
+  return `${preset.mobileClasses} md:${preset.desktopClasses}`;
+};
+
 // Utility to convert Tailwind size classes to pixel dimensions
 const tailwindSizeMap: Record<string, number> = {
   'h-3': 12, 'w-3': 12,

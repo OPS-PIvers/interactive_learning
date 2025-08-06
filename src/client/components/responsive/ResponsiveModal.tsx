@@ -7,7 +7,6 @@
  */
 
 import React, { useEffect, useCallback, useMemo } from 'react';
-import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useModalConstraints } from '../../hooks/useLayoutConstraints';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
@@ -37,8 +36,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   className = '',
   preventCloseOnBackdropClick = false,
 }) => {
-  const { deviceType, isMobile } = useDeviceDetection();
-  
   // Use the unified constraint system for responsive modal positioning
   const { constraints, styles, tailwindClasses } = useModalConstraints({
     type: type === 'properties' ? 'properties' : 'standard',
@@ -47,13 +44,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     preventToolbarOverlap: true,
     respectKeyboard: true,
   });
-  
-  // Auto-determine position based on device and modal type
-  const effectivePosition = position === 'auto' 
-    ? deviceType === 'mobile'
-      ? (type === 'properties' ? 'bottom' : 'center')
-      : (type === 'properties' ? 'right' : 'center')
-    : position;
   
   // Handle escape key
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -85,13 +75,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     }
   }, [onClose, preventCloseOnBackdropClick]);
   
-  // Mobile touch handler to prevent scrolling behind modal  
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (deviceType === 'mobile') {
-      e.stopPropagation();
-    }
-  }, [deviceType]);
-  
   if (!isOpen) return null;
   
   return (
@@ -104,7 +87,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
         WebkitBackdropFilter: 'blur(4px)',
       }}
       onClick={handleBackdropClick}
-      onTouchStart={handleTouchStart}
     >
       <div
         className={`

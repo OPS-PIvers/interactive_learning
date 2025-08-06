@@ -583,10 +583,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       showProgress: false,
       showControls: false,
       keyboardShortcuts: true,
-      touchGestures: computed.effectiveDeviceType === 'mobile',
+      touchGestures: true,
       fullscreenMode: false,
     },
-  }), [slideDeck, computed.effectiveDeviceType]);
+  }), [slideDeck]);
   
   return (
     <ProjectThemeProvider 
@@ -649,8 +649,6 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                     console.log('Properties panel is already visible for selected element');
                   }
                 }}
-                deviceType={computed.effectiveDeviceType}
-                onDeviceTypeChange={actions.setDeviceTypeOverride}
                 hasSelectedElement={!!selectedElement}
               />
             )}
