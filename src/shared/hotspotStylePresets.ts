@@ -233,14 +233,28 @@ function parseClassesToDimensions(classes: string): { width: number; height: num
 }
 
 // Helper function to apply style preset to hotspot
-export const applyStylePreset = (currentHotspot: HotspotData, preset: HotspotStylePreset) => {
-  return {
+export const applyStylePreset = (currentHotspot: HotspotData, preset: HotspotStylePreset): HotspotData => {
+  const updatedHotspot: HotspotData = {
     ...currentHotspot,
-    color: preset.style.color,
-    opacity: preset.style.opacity,
-    borderWidth: preset.style.borderWidth,
-    borderColor: preset.style.borderColor,
-    backgroundColor: preset.style.backgroundColor,
-    textColor: preset.style.textColor
+    color: preset.style.color, // Always defined in presets
   };
+
+  // Only set optional properties if they are defined in the preset
+  if (preset.style.opacity !== undefined) {
+    updatedHotspot.opacity = preset.style.opacity;
+  }
+  if (preset.style.borderWidth !== undefined) {
+    updatedHotspot.borderWidth = preset.style.borderWidth;
+  }
+  if (preset.style.borderColor !== undefined) {
+    updatedHotspot.borderColor = preset.style.borderColor;
+  }
+  if (preset.style.backgroundColor !== undefined) {
+    updatedHotspot.backgroundColor = preset.style.backgroundColor;
+  }
+  if (preset.style.textColor !== undefined) {
+    updatedHotspot.textColor = preset.style.textColor;
+  }
+
+  return updatedHotspot;
 };

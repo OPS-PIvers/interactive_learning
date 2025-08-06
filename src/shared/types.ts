@@ -28,6 +28,11 @@ export interface HotspotData {
   positioningVersion?: 'enhanced' | 'legacy';
   constraintsApplied?: boolean;
   customProperties?: Record<string, unknown>;
+  // Style preset properties
+  opacity?: number; // Opacity value 0-1
+  borderWidth?: number; // Border width in pixels
+  borderColor?: string; // Border color
+  textColor?: string; // Text color for labels
 }
 
 // Base Event interface
