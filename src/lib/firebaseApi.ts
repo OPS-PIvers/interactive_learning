@@ -295,6 +295,10 @@ export class FirebaseProjectAPI {
       
       const projectData = projectDoc.data();
       
+      if (!projectData) {
+        return null;
+      }
+      
       // Only return if the project is marked as published
       if (!projectData['isPublished']) {
         return null;
@@ -375,6 +379,10 @@ export class FirebaseProjectAPI {
         throw new Error(`Project with ID ${projectId} not found.`);
       }
       const projectData = projectDocSnap.data();
+
+      if (!projectData) {
+        throw new Error(`Project data is empty for ID ${projectId}.`);
+      }
 
       // Get hotspots and timeline events in parallel
       // These count as additional reads.
@@ -463,8 +471,8 @@ export class FirebaseProjectAPI {
       await setDoc(projectRef, {
         ...projectMetadata,
         backgroundImage: null, // New projects start with no background image
-        imageFitMode: interactiveData.imageFitMode,
-        viewerModes: interactiveData.viewerModes,
+        imageFitMode: interactiveData?.imageFitMode || 'cover',
+        viewerModes: interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
         isPublished: false,
         thumbnailUrl: null, // New projects start with no thumbnail
         createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
@@ -513,11 +521,11 @@ export class FirebaseProjectAPI {
           slideCount: project.slideDeck?.slides?.length,
           slides: project.slideDeck?.slides?.map((slide, index) => ({
             index,
-            id: slide.id,
-            hasBackgroundMedia: !!slide.backgroundMedia,
-            backgroundMedia: slide.backgroundMedia,
-            elementCount: slide.elements?.length || 0,
-            layout: slide.layout
+            id: slide?.id,
+            hasBackgroundMedia: !!slide?.backgroundMedia,
+            backgroundMedia: slide?.backgroundMedia,
+            elementCount: slide?.elements?.length || 0,
+            layout: slide?.layout
           }))
         });
       }
@@ -543,9 +551,10 @@ export class FirebaseProjectAPI {
       // Add slide deck if it exists
       if (project.projectType === 'slide' && project.slideDeck) {
         updateData.slideDeck = project.slideDeck;
+        const slideDeckString = JSON.stringify(project.slideDeck);
         console.log('📁 Adding slide deck to Firestore data:', {
           slideCount: project.slideDeck?.slides?.length || 0,
-          slideDeckSize: JSON.stringify(project.slideDeck)?.length
+          slideDeckSize: slideDeckString ? slideDeckString.length : 0
         });
       }
 
@@ -619,6 +628,9 @@ export class FirebaseProjectAPI {
       const projectSnap = await getDoc(projectRef);
       if (projectSnap.exists()) {
         const projectData = projectSnap.data();
+        if (!projectData) {
+          throw new Error('Project data is empty');
+        }
         if (projectData['createdBy'] !== currentUser.uid) {
           throw new Error('You do not have permission to delete this project');
         }
@@ -1116,6 +1128,9 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
+      if (!projectData) {
+        throw new Error('Project data is empty');
+      }
       if (projectData['createdBy'] !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
@@ -1159,6 +1174,9 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectSnap.data();
+      if (!projectData) {
+        throw new Error('Project data is empty');
+      }
       if (projectData['createdBy'] !== currentUser.uid) {
         throw new Error('You do not have permission to update this project');
       }
@@ -1185,6 +1203,9 @@ export class FirebaseProjectAPI {
       }
 
       const projectData = projectDoc.data();
+      if (!projectData) {
+        throw new Error("Project data is empty.");
+      }
       if (projectData['createdBy'] !== userId) {
         throw new Error("User does not have permission to save this slide deck.");
       }
@@ -1209,6 +1230,9 @@ export class FirebaseProjectAPI {
     }
 
     const projectData = projectDoc.data();
+    if (!projectData) {
+      return null;
+    }
     if (projectData['createdBy'] !== userId) {
       throw new Error("User does not have permission to load this slide deck.");
     }
