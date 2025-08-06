@@ -8,7 +8,6 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { PlusIcon } from './icons/PlusIcon';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import EventTypeToggle from './EventTypeToggle';
@@ -19,7 +18,7 @@ import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
-import { UnifiedEditorState, EditorStateActions } from '../../hooks/useUnifiedEditorState';
+import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEditorState';
 
 interface EnhancedHotspotEditorModalProps {
   editorState: UnifiedEditorState;
@@ -399,8 +398,6 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                         if (localHotspot) {
                           const updatedHotspot = applyStylePreset(localHotspot, preset);
                           setLocalHotspot(updatedHotspot);
-                          // Immediately update the hotspot in the editor for real-time preview
-                          onUpdateHotspot(updatedHotspot);
                         }
                       }}
                       className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"

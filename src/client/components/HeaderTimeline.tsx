@@ -6,6 +6,7 @@ import { PlayIcon } from './icons/PlayIcon';
 import { PauseIcon } from './icons/PauseIcon';
 import { useIOSSafariViewport } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../utils/iosZIndexManager';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;
@@ -74,13 +75,18 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
         hasInteractions: slide.elements.some(element => element.interactions && element.interactions.length > 0),
         hotspotCount: hotspotElements.length,
         hotspots: hotspotElements.map(element => {
-          const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.['backgroundColor'];
-          const color = element.style?.color || element.content.customProperties?.['color'];
+          const getSafeColor = () => {
+            const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.['backgroundColor'];
+            if (typeof backgroundColor === 'string') return backgroundColor;
+            const color = element.style?.color || element.content.customProperties?.['color'];
+            if (typeof color === 'string') return color;
+            return '#3b82f6';
+          };
           
           return {
             id: element.id,
             title: element.content?.title || 'Hotspot',
-            color: backgroundColor || color || '#3b82f6',
+            color: getSafeColor(),
             isActive: activeHotspotId === element.id,
             isCompleted: completedHotspots.has(element.id)
           };
