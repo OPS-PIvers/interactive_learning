@@ -181,7 +181,7 @@ interface InteractionEditorProps {
  * - Advanced positioning and sizing controls
  * - Text animation and transition effects
  */
-const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const TextInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
 
@@ -257,7 +257,7 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing audio interactions.
@@ -268,7 +268,7 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
  * - Advanced playback controls and timing
  * - Audio effects and processing options
  */
-const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const AudioInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
@@ -343,7 +343,7 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing video interactions.
@@ -354,7 +354,7 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Advanced timing and clipping controls
  * - Video quality and compression options
  */
-const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const VideoInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
@@ -496,7 +496,7 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
             </div>
         </div>
     );
-};
+});
 
 /**
  * Placeholder component for editing quiz interactions.
@@ -507,7 +507,7 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpd
  * - Detailed explanation and feedback systems
  * - Quiz analytics and progress tracking
  */
-const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpdate }) => {
+const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
     const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
 
@@ -588,7 +588,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = ({ event, onUpda
             </div>
         </div>
     );
-};
+});
 
 
 interface InteractionSettingsModalProps {

@@ -15,10 +15,13 @@ import { GearIcon } from '../icons/GearIcon';
 import { ShareIcon } from '../icons/ShareIcon';
 import AuthButton from '../AuthButton';
 
+import { ExclamationCircleIcon } from '../icons/ExclamationCircleIcon';
+
 export interface ResponsiveHeaderProps {
   projectName: string;
   isPreviewMode: boolean;
   isSaving: boolean;
+  errorMessage: string | null;
   showSuccessMessage: boolean;
   onTogglePreview: () => void;
   onSave: () => void;
@@ -35,6 +38,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
   projectName,
   isPreviewMode,
   isSaving,
+  errorMessage,
   showSuccessMessage,
   onTogglePreview,
   onSave,
@@ -85,10 +89,17 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
             </div>
           )}
           
-          {showSuccessMessage && (
+          {showSuccessMessage && !errorMessage && (
             <div className="flex items-center gap-2 text-green-400">
               <CheckIcon className="w-4 h-4" />
               <span className="text-sm">Saved</span>
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="flex items-center gap-2 text-red-400 bg-red-900/50 px-3 py-1 rounded-md">
+              <ExclamationCircleIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">{errorMessage}</span>
             </div>
           )}
         </div>
