@@ -353,33 +353,40 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 hotspotIds: hotspotsWithPositions.map(h => h.id),
                 timestamp: Date.now()
               });
-              return hotspotsWithPositions.map(hotspot => (
-              <div
-                key={hotspot.id}
-                className="hotspot-viewer"
-                style={{
-                  touchAction: 'manipulation', // Optimized touch handling
-                  pointerEvents: 'auto', // Ensure pointer events are enabled
-                  zIndex: isEditing ? Z_INDEX.MODAL : Z_INDEX.HOTSPOTS // Higher z-index in editing mode for better interaction
-                }}
-              >
-                <HotspotViewer
-                  hotspot={hotspot}
-                  pixelPosition={hotspot.pixelPosition}
-                  usePixelPositioning={!!hotspot.pixelPosition}
-                  imageElement={actualImageRef.current}
-                  isPulsing={pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id)}
-                  isDimmedInEditMode={getIsHotspotDimmed(hotspot.id)}
-                  isEditing={isEditing}
-                  onFocusRequest={onFocusHotspot}
-                  onEditRequest={onEditHotspotRequest}
-                  onPositionChange={onHotspotPositionChange}
-                  onDragStateChange={onDragStateChange}
-                  isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
-                  dragContainerRef={zoomedImageContainerRef} // Pass the ref here
-                />
-              </div>
-            ));
+              return hotspotsWithPositions.map(hotspot => {
+                const hotspotViewerProps: any = {
+                  hotspot: hotspot,
+                  pixelPosition: hotspot.pixelPosition,
+                  usePixelPositioning: !!hotspot.pixelPosition,
+                  imageElement: actualImageRef.current,
+                  isPulsing: pulsingHotspotId === hotspot.id && activeHotspotDisplayIds.has(hotspot.id),
+                  isDimmedInEditMode: getIsHotspotDimmed(hotspot.id),
+                  isEditing: isEditing,
+                  onFocusRequest: onFocusHotspot,
+                  onEditRequest: onEditHotspotRequest,
+                  onPositionChange: onHotspotPositionChange,
+                  isContinuouslyPulsing: false,
+                  dragContainerRef: zoomedImageContainerRef,
+                };
+
+                if (onDragStateChange) {
+                  hotspotViewerProps.onDragStateChange = onDragStateChange;
+                }
+
+                return (
+                  <div
+                    key={hotspot.id}
+                    className="hotspot-viewer"
+                    style={{
+                      touchAction: 'manipulation', // Optimized touch handling
+                      pointerEvents: 'auto', // Ensure pointer events are enabled
+                      zIndex: isEditing ? Z_INDEX.MODAL : Z_INDEX.HOTSPOTS // Higher z-index in editing mode for better interaction
+                    }}
+                  >
+                    <HotspotViewer {...hotspotViewerProps} />
+                  </div>
+                );
+              });
             })()}
 
             {/* Preview Overlays - Only show when preview is active and in editing mode */}

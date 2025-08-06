@@ -132,6 +132,12 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
     // Reorder the events
     const reorderedEvents = [...sortedEvents];
     const [draggedEvent] = reorderedEvents.splice(draggedIndex, 1);
+
+    if (!draggedEvent) {
+      setDraggedEventId(null);
+      return;
+    }
+
     reorderedEvents.splice(targetIndex, 0, draggedEvent);
 
     // Update step numbers to reflect new order

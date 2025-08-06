@@ -99,34 +99,36 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             }}
           />
         ) : /* All projects now use slide-based architecture */ 
-        selectedProject.interactiveData ? (
-          <SlideBasedInteractiveModule
-            key={`${selectedProject.id}-${isEditingMode}-slide-based`}
-            initialData={selectedProject.interactiveData}
-            isEditing={isEditingMode}
-            onSave={(projectData) => {
-              // Handle both legacy data and full project objects
+        selectedProject.interactiveData ? (() => {
+          const moduleProps: any = {
+            key: `${selectedProject.id}-${isEditingMode}-slide-based`,
+            initialData: selectedProject.interactiveData,
+            isEditing: isEditingMode,
+            onSave: (projectData: any) => {
               if (projectData.slideDeck && projectData.projectType === 'slide') {
-                // New slide-based project with slide deck data
                 onSave(selectedProject.id, projectData, projectData.thumbnailUrl, projectData.slideDeck);
               } else {
-                // Legacy project format
                 onSave(selectedProject.id, projectData, projectData.thumbnailUrl);
               }
-            }}
-            onImageUpload={onImageUpload}
-            onClose={onClose}
-            projectName={selectedProject.title}
-            projectId={selectedProject.id}
-            onReloadRequest={onReloadRequest}
-            isPublished={isPublished}
-            viewerModes={{
+            },
+            onImageUpload: onImageUpload,
+            onClose: onClose,
+            projectName: selectedProject.title,
+            projectId: selectedProject.id,
+            isPublished: isPublished,
+            viewerModes: {
               explore: true,
               selfPaced: true,
               timed: false
-            }}
-          />
-        ) : (
+            }
+          };
+
+          if (onReloadRequest) {
+            moduleProps.onReloadRequest = onReloadRequest;
+          }
+
+          return <SlideBasedInteractiveModule {...moduleProps} />;
+        })() : (
           <div className="flex items-center justify-center h-full">
             <p className="text-slate-400 text-xl">
               {isEditingMode ? 'Loading editor...' : 'Loading viewer...'}

@@ -15,7 +15,10 @@ export interface AnimationPreset {
 }
 
 // Create preview components for each animation type
-const createPreviewComponent = (variants: Variants, duration: number = 300) => {
+const createPreviewComponent = (variants: Variants | undefined, duration: number = 300) => {
+  if (!variants) {
+    return () => <div className="w-12 h-12 bg-gray-500 rounded-lg" />;
+  }
   return ({ isActive }: { isActive: boolean }) => (
     <motion.div
       className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold"
@@ -36,94 +39,94 @@ export const animationPresets: AnimationPreset[] = [
     name: 'Fade In',
     description: 'Smooth opacity transition',
     category: 'entrance',
-    variants: slideTransitionVariants.fade,
+    variants: slideTransitionVariants['fade'] as any,
     duration: 300,
-    preview: createPreviewComponent(slideTransitionVariants.fade, 300)
+    preview: createPreviewComponent(slideTransitionVariants['fade'] as any, 300)
   },
   {
     id: 'slide-left',
     name: 'Slide Left',
     description: 'Enter from right, exit to left',
     category: 'transition',
-    variants: slideTransitionVariants.slideLeft,
+    variants: slideTransitionVariants['slideLeft'] as any,
     duration: 400,
-    preview: createPreviewComponent(slideTransitionVariants.slideLeft, 400)
+    preview: createPreviewComponent(slideTransitionVariants['slideLeft'] as any, 400)
   },
   {
     id: 'slide-up',
     name: 'Slide Up',
     description: 'Enter from bottom, exit to top',
     category: 'transition',
-    variants: slideTransitionVariants.slideUp,
+    variants: slideTransitionVariants['slideUp'] as any,
     duration: 400,
-    preview: createPreviewComponent(slideTransitionVariants.slideUp, 400)
+    preview: createPreviewComponent(slideTransitionVariants['slideUp'] as any, 400)
   },
   {
     id: 'zoom-in',
     name: 'Zoom In',
     description: 'Scale from small to normal',
     category: 'entrance',
-    variants: slideTransitionVariants.zoom,
+    variants: slideTransitionVariants['zoom'] as any,
     duration: 350,
-    preview: createPreviewComponent(slideTransitionVariants.zoom, 350)
+    preview: createPreviewComponent(slideTransitionVariants['zoom'] as any, 350)
   },
   {
     id: 'bounce',
     name: 'Bounce',
     description: 'Spring-powered entrance',
     category: 'entrance',
-    variants: slideTransitionVariants.bounce,
+    variants: slideTransitionVariants['bounce'] as any,
     duration: 600,
-    preview: createPreviewComponent(slideTransitionVariants.bounce, 600)
+    preview: createPreviewComponent(slideTransitionVariants['bounce'] as any, 600)
   },
   {
     id: 'flip',
     name: 'Flip',
     description: '3D rotation transition',
     category: 'transition',
-    variants: slideTransitionVariants.flip,
+    variants: slideTransitionVariants['flip'] as any,
     duration: 500,
-    preview: createPreviewComponent(slideTransitionVariants.flip, 500)
+    preview: createPreviewComponent(slideTransitionVariants['flip'] as any, 500)
   },
   {
     id: 'text-reveal',
     name: 'Text Reveal',
     description: 'Slide up with spring animation',
     category: 'entrance',
-    variants: elementAnimationVariants.textReveal,
+    variants: elementAnimationVariants['textReveal'] as any,
     duration: 400,
-    preview: createPreviewComponent(elementAnimationVariants.textReveal, 400)
+    preview: createPreviewComponent(elementAnimationVariants['textReveal'] as any, 400)
   },
   {
     id: 'popup',
     name: 'Pop Up',
     description: 'Scale from zero with bounce',
     category: 'emphasis',
-    variants: elementAnimationVariants.popup,
+    variants: elementAnimationVariants['popup'] as any,
     duration: 450,
-    preview: createPreviewComponent(elementAnimationVariants.popup, 450)
+    preview: createPreviewComponent(elementAnimationVariants['popup'] as any, 450)
   },
   {
     id: 'slide-in',
     name: 'Slide In',
     description: 'Horizontal slide with spring',
     category: 'entrance',
-    variants: elementAnimationVariants.slideIn,
+    variants: elementAnimationVariants['slideIn'] as any,
     duration: 400,
-    preview: createPreviewComponent(elementAnimationVariants.slideIn, 400)
+    preview: createPreviewComponent(elementAnimationVariants['slideIn'] as any, 400)
   },
   {
     id: 'pulse',
     name: 'Pulse',
     description: 'Continuous scale animation',
     category: 'emphasis',
-    variants: elementAnimationVariants.pulse,
+    variants: elementAnimationVariants['pulse'] as any,
     duration: 2000,
     preview: ({ isActive }: { isActive: boolean }) => (
       <motion.div
         className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xs font-bold"
         animate={isActive ? 'animate' : 'initial'}
-        variants={elementAnimationVariants.pulse}
+        variants={elementAnimationVariants['pulse'] as any}
       >
         P
       </motion.div>

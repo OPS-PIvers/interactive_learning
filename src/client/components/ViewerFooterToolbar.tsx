@@ -122,6 +122,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
         shortcutsButtonRef.current?.focus();
       };
     }
+    return undefined;
   }, [showShortcuts]);
 
   const progressDots = React.useMemo(() => {

@@ -152,21 +152,23 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
       {/* Main Module Content - takes up available space */}
       <main id="main-content" className="flex-grow flex flex-col focus:outline-none" tabIndex={-1}>
-        <SlideBasedInteractiveModule
-          key={`shared-${project.id}`}
-          initialData={project.interactiveData}
-          slideDeck={project.slideDeck}
-          projectType={project.projectType}
-          isEditing={false}
-          onSave={handleSave} // No-op in viewer
-          onClose={handleClose} // Handles embed/standalone logic
-          projectName={project.title}
-          projectId={project.id}
-          isSharedView={true}
-          theme={theme} // Pass theme to InteractiveModule
-          autoStart={autoStart} // Pass autoStart to InteractiveModule
-          onImageUpload={() => Promise.resolve()} // No-op for shared viewer
-        />
+        {project.slideDeck && project.projectType && (
+          <SlideBasedInteractiveModule
+            key={`shared-${project.id}`}
+            initialData={project.interactiveData}
+            slideDeck={project.slideDeck}
+            projectType={project.projectType}
+            isEditing={false}
+            onSave={handleSave} // No-op in viewer
+            onClose={handleClose} // Handles embed/standalone logic
+            projectName={project.title}
+            projectId={project.id}
+            isSharedView={true}
+            theme={theme} // Pass theme to InteractiveModule
+            autoStart={autoStart} // Pass autoStart to InteractiveModule
+            onImageUpload={() => Promise.resolve()} // No-op for shared viewer
+          />
+        )}
       </main>
 
       {/* Professional Branding Footer - only in standalone mode and if enabled */}

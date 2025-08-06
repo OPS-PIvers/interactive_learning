@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function throttle<T extends (...args: unknown[]) => void>(
+export function throttle<T extends (...args: any[]) => void>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {

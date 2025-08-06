@@ -108,9 +108,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Timeline navigation handler
   const handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
-    if (stepSlideIndex >= 0 && stepSlideIndex < slideDeck.slides.length) {
-      const slideId = slideDeck.slides[stepSlideIndex].id;
-      handleSlideChange(slideId, stepSlideIndex);
+    const slide = slideDeck.slides[stepSlideIndex];
+    if (slide) {
+      handleSlideChange(slide.id, stepSlideIndex);
     }
   }, [slideDeck.slides, handleSlideChange]);
 

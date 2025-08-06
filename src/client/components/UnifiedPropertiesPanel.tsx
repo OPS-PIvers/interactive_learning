@@ -199,11 +199,9 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
         return {
           type: 'pan_zoom',
           parameters: {
-            targetX: 50,
-            targetY: 50,
+            targetPosition: { x: 50, y: 50, width: 100, height: 100 },
             zoomLevel: 2.0,
-            smooth: true,
-            duration: 1000
+            duration: 1000,
           }
         };
       default:
@@ -234,7 +232,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
         id: `effect-${Date.now()}`,
         type: effectData.type,
         duration: 300,
-        parameters: effectData.parameters
+        parameters: effectData.parameters as EffectParameters
       }
     };
     const updatedInteractions = [...(selectedElement.interactions || []), newInteraction];

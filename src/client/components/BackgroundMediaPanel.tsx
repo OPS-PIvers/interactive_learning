@@ -55,7 +55,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
     if (!url) return null;
     const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(regex);
-    return match ? match[1] : null;
+    return match?.[1] ?? null;
   };
 
   // Handle file upload

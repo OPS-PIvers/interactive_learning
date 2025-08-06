@@ -27,6 +27,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
   // Extract video ID from URL if full URL is provided
   const extractVideoId = (input: string): string => {
+    if (!input) {
+      return '';
+    }
     // Handle different YouTube URL formats
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
@@ -35,7 +38,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
     for (const pattern of patterns) {
       const match = input.match(pattern);
-      if (match) {
+      if (match && match[1]) {
         return match[1];
       }
     }

@@ -136,9 +136,8 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
 
   // Manual step navigation
   const handleStepSelect = useCallback((stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < timelineSteps.length) {
-      const targetStep = timelineSteps[stepIndex];
-      
+    const targetStep = timelineSteps[stepIndex];
+    if (targetStep) {
       setProgress(prev => ({
         ...prev,
         currentStep: stepIndex,

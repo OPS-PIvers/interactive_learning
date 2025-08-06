@@ -18,10 +18,10 @@ interface HorizontalTimelineProps {
   hotspots: HotspotData[];
   showPreviews?: boolean; // New optional prop
   moduleState?: 'idle' | 'learning';
-  onPrevStep?: () => void;
-  onNextStep?: () => void;
-  currentStepIndex?: number;
-  totalSteps?: number;
+  onPrevStep: () => void;
+  onNextStep: () => void;
+  currentStepIndex: number;
+  totalSteps: number;
   isMobile?: boolean;
   onAddStep: (step: number) => void;
   onDeleteStep: (step: number) => void;
@@ -168,7 +168,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     }
 
     const deltaX = touchEndXRef.current - touchStartXRef.current;
-    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartYRef.current);
+    const deltaY = Math.abs(e.changedTouches[0].clientY - (touchStartYRef.current || 0));
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < VERTICAL_SWIPE_THRESHOLD) {
       if (deltaX > 0) {
@@ -554,6 +554,16 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       {renderNavigationControls()}
     </div>
   );
+};
+
+HorizontalTimeline.defaultProps = {
+  showPreviews: true,
+  isMobile: false,
+  moduleState: 'idle',
+  onPrevStep: () => {},
+  onNextStep: () => {},
+  currentStepIndex: 0,
+  totalSteps: 0,
 };
 
 export default HorizontalTimeline;
