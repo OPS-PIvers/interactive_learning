@@ -69,7 +69,7 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '🖼️',
     name: 'Show Image',
     color: 'bg-purple-500',
-    settings: ['imageUrl', 'caption', 'displayMode'],
+    settings: ['imageUrl', 'caption', 'imageDisplayMode'],
     description: 'Display image with optional caption and modal option'
   },
   [InteractionType.QUIZ]: {
@@ -180,7 +180,7 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '📋',
     name: 'Modal Dialog',
     color: 'bg-blue-500',
-    settings: ['title', 'message'],
+    settings: ['message'],
     description: 'Show information in a popup dialog'
   },
   
@@ -188,7 +188,7 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '➡️',
     name: 'Slide Transition',
     color: 'bg-green-500',
-    settings: ['type', 'slideIndex'],
+    settings: ['type'],
     description: 'Navigate to another slide or section'
   },
   
@@ -204,7 +204,7 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '💬',
     name: 'Tooltip',
     color: 'bg-orange-500',
-    settings: ['text', 'position'],
+    settings: ['textContent', 'position'],
     description: 'Show contextual information on hover or click'
   },
   // Add missing lowercase versions to satisfy the Record type
@@ -226,14 +226,14 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     icon: '👁️‍🗨️',
     name: 'Hide Element',
     color: 'bg-gray-400',
-    settings: ['targetElementId'],
+    settings: [],
     description: 'Hide an element on the slide'
   },
   [InteractionType.SHOW_ELEMENT]: {
     icon: '👁️',
     name: 'Show Element',
     color: 'bg-gray-400',
-    settings: ['targetElementId'],
+    settings: [],
     description: 'Show a hidden element on the slide'
   },
   [InteractionType.HIGHLIGHT]: {
