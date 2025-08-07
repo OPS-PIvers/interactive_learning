@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { InteractionType } from '../../shared/InteractionPresets';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import ChevronDownIcon from './icons/ChevronDownIcon';
-import { hotspotSizePresets, HotspotSize, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
+import { hotspotSizePresets, HotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 import { TextInteractionEditor } from './interactions/TextInteractionEditor';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
@@ -118,22 +119,29 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
   const [isEditingParameters, setIsEditingParameters] = useState(false);
 
+  // Get device type for responsive calculations
+  const { deviceType } = useDeviceDetection();
+
   // Reset parameter editing when interaction selection changes
   useEffect(() => {
     setIsEditingParameters(false);
   }, [selectedInteractionId]);
 
+  const elementStyle = selectedElement.style || {};
+  const elementContent = selectedElement.content || {};
+  const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop || {};
+
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
     onElementUpdate(selectedElement.id, {
-      style: { ...selectedElement.style, ...updates }
+      style: { ...elementStyle, ...updates }
     });
-  }, [selectedElement.id, selectedElement.style, onElementUpdate]);
+  }, [selectedElement.id, elementStyle, onElementUpdate]);
 
   const handleContentChange = useCallback((updates: Partial<ElementContent>) => {
     onElementUpdate(selectedElement.id, {
-      content: { ...selectedElement.content, ...updates }
+      content: { ...elementContent, ...updates }
     });
-  }, [selectedElement.id, selectedElement.content, onElementUpdate]);
+  }, [selectedElement.id, elementContent, onElementUpdate]);
 
   // Type mapping from InteractionType to SlideEffectType with proper parameters
   const createInteractionEffect = useCallback((interactionType: InteractionType): { type: SlideEffectType; parameters: Partial<EffectParameters> } => {
@@ -353,15 +361,23 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                           handleSizePresetSelect(preset);
                         }}
                         className={`
-                          p-2 text-xs rounded border transition-all
-                          ${selectedElement.style.size === preset.value
+                          p-3 lg:p-2 text-sm lg:text-xs rounded border transition-all
+                          ${(() => {
+                            const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
+                            return elementPosition?.width === dimensions.width && elementPosition?.height === dimensions.height;
+                          })()
                             ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                             : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'
                           }
                         `}
                       >
                         <div className="font-medium">{preset.name}</div>
-                          <div className="text-xs opacity-75">{getHotspotPixelDimensions(preset.value, false).width}×{getHotspotPixelDimensions(preset.value, false).height}</div>
+                        <div className="text-xs opacity-75">
+                          {(() => {
+                            const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
+                            return `${dimensions.width}×${dimensions.height}`;
+                          })()}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -373,7 +389,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     Color
                   </label>
                   <LiquidColorSelector
-                    selectedColor={selectedElement.style.backgroundColor || '#3b82f6'}
+                    selectedColor={elementStyle.backgroundColor || '#3b82f6'}
                     onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
                     size="medium"
                   />
@@ -381,37 +397,31 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
                 {/* Opacity */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Opacity: {Math.round((selectedElement.style.opacity || 1) * 100)}%
+                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                    Opacity: {Math.round((elementStyle.opacity || 1) * 100)}%
                   </label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
-                    value={selectedElement.style.opacity || 1}
-                    onChange={(e) => {
-                      console.log('🔆 Opacity slider changed to:', e.target.value);
-                      handleStyleChange({ opacity: parseFloat(e.target.value) });
-                    }}
+                    value={elementStyle.opacity || 1}
+                    onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
                     className="w-full accent-blue-500"
                   />
                 </div>
 
                 {/* Border Radius */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Border Radius: {selectedElement.style.borderRadius || 8}px
+                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
+                    Border Radius: {elementStyle.borderRadius || 8}px
                   </label>
                   <input
                     type="range"
                     min="0"
                     max="50"
-                    value={selectedElement.style.borderRadius || 8}
-                    onChange={(e) => {
-                      console.log('🔄 Border radius slider changed to:', e.target.value);
-                      handleStyleChange({ borderRadius: parseInt(e.target.value) });
-                    }}
+                    value={elementStyle.borderRadius || 8}
+                    onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
                     className="w-full accent-blue-500"
                   />
                 </div>
@@ -434,7 +444,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={selectedElement.content.title || ''}
+                    value={elementContent.title || ''}
                     onChange={(e) => handleContentChange({ title: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm"
                     placeholder="Element title"
@@ -447,7 +457,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     Description
                   </label>
                   <textarea
-                    value={selectedElement.content.description || ''}
+                    value={elementContent.description || ''}
                     onChange={(e) => handleContentChange({ description: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm resize-none"
                     placeholder="Element description"
