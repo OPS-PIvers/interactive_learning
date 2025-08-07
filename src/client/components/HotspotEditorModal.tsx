@@ -19,6 +19,7 @@ import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
 import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEditorState';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface EnhancedHotspotEditorModalProps {
   editorState: UnifiedEditorState;

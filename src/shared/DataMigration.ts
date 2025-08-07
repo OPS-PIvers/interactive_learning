@@ -1,5 +1,6 @@
 // src/shared/DataMigration.ts - Data migration utilities
-import { TimelineEventData, InteractionType, InteractiveModuleState, HotspotData } from './types';
+import { TimelineEventData, InteractiveModuleState, HotspotData } from './types';
+import { InteractionType } from './InteractionPresets';
 
 export class DataMigration {
   /**

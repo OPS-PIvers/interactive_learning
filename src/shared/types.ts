@@ -1,7 +1,6 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { SlideDeck } from './slideTypes';
-
 import { InteractionType } from './InteractionPresets';
 
 

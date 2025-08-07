@@ -1,5 +1,6 @@
 // src/shared/migration.ts
-import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
+import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
+import { InteractionType } from './InteractionPresets';
 import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
 import { generateId } from '../client/utils/generateId';
 

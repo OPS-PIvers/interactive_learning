@@ -5,7 +5,7 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import InteractionsList from './interactions/InteractionsList';
 import InteractionEditor from './interactions/InteractionEditor';
 import ChevronDownIcon from './icons/ChevronDownIcon';
-import { hotspotSizePresets, HotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
+import { hotspotSizePresets, HotspotSize, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 import { TextInteractionEditor } from './interactions/TextInteractionEditor';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
