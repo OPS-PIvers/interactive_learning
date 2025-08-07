@@ -223,7 +223,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
           <AnimatedElement
             variant="zoom"
             className="zoom-effect"
-            style={zoomStyle as any}
+            style={zoomStyle}
             isVisible={isVisible}
           >
             <motion.div
