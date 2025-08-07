@@ -1,5 +1,5 @@
-import React from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import React from 'react';
 
 // Animation presets for slide transitions
 export const slideTransitionVariants: Record<string, Variants> = {

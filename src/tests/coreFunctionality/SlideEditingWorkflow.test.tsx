@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import React from 'react';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType } from '../../shared/slideTypes';

@@ -1,9 +1,9 @@
-import { initializeApp } from 'firebase/app'
-import { getFirestore, connectFirestoreEmulator, initializeFirestore } from 'firebase/firestore'
-import { getStorage, connectStorageEmulator } from 'firebase/storage'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
-import { getPerformance } from 'firebase/performance'
 import { getAnalytics, isSupported } from 'firebase/analytics'
+import { initializeApp } from 'firebase/app'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { getFirestore, connectFirestoreEmulator, initializeFirestore } from 'firebase/firestore'
+import { getPerformance } from 'firebase/performance'
+import { getStorage, connectStorageEmulator } from 'firebase/storage'
 // Firebase configuration and initialization
 
 // Debug environment variables (development only)

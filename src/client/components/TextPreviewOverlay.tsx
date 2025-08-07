@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData } from '../../shared/types';
-import { throttle } from '../utils/asyncUtils';
 import { Z_INDEX } from '../constants/interactionConstants';
+import { throttle } from '../utils/asyncUtils';
 
 interface TextPreviewOverlayProps {
   event: TimelineEventData;
@@ -252,9 +252,9 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
       {/* Corner indicators */}
       {!isEditing && (
         <>
-          <div className="absolute -top-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
-          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
-          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full"></div>
+          <div className="absolute -top-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full" />
+          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 border border-white rounded-full" />
+          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-green-500 border border-white rounded-full" />
         </>
       )}
     </div>

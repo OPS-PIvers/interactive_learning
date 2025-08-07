@@ -82,7 +82,7 @@ const SpotlightPreview: React.FC<SpotlightPreviewProps> = ({
       
       <div className="relative bg-slate-700 rounded-lg h-80 overflow-hidden">
         {/* Sample background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg opacity-50" />
         
         {/* Spotlight overlay */}
         <div 

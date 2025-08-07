@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { slideTransitionVariants } from './SlideTransitions';
+import React, { useState } from 'react';
 import { elementAnimationVariants } from './ElementAnimations';
+import { slideTransitionVariants } from './SlideTransitions';
 
 // Animation preset configurations
 export interface AnimationPreset {

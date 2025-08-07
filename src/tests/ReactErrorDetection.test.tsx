@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import React from 'react';
 import { AuthProvider } from '../lib/authContext';
 import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';

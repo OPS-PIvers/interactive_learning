@@ -1,7 +1,7 @@
 
 import { Timestamp } from 'firebase/firestore';
-import { SlideDeck } from './slideTypes';
 import { InteractionType } from './InteractionPresets';
+import { SlideDeck } from './slideTypes';
 
 
 export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';

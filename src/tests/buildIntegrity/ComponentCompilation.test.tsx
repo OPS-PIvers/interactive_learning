@@ -1,6 +1,6 @@
-import { describe, test, expect, vi } from 'vitest';
-import React from 'react';
 import { render } from '@testing-library/react';
+import React from 'react';
+import { describe, test, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
 // Mock dependencies to isolate compilation testing

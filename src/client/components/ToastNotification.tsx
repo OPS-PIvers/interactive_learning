@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
@@ -25,6 +25,13 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({ toast, onDismiss 
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onDismiss(toast.id);
+    }, 300); // Match animation duration
+  }, [onDismiss, toast.id]);
+
   useEffect(() => {
     // Show toast after a small delay for animation
     const showTimer = setTimeout(() => setIsVisible(true), 50);
@@ -39,14 +46,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({ toast, onDismiss 
       clearTimeout(showTimer);
       clearTimeout(dismissTimer);
     };
-  }, [toast.duration]);
-
-  const handleDismiss = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onDismiss(toast.id);
-    }, 300); // Match animation duration
-  };
+  }, [toast.duration, handleDismiss]);
 
   const getToastStyles = () => {
     const baseStyles = 'flex items-start gap-3 p-4 rounded-lg shadow-lg backdrop-blur-sm border max-w-md';

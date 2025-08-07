@@ -1,4 +1,5 @@
 // src/tests/safeMathUtils.test.ts
+import { vi } from 'vitest';
 import { 
   safeDivide, 
   safePercentage, 
@@ -10,7 +11,6 @@ import {
   sanitizeHotspotPosition,
   hasValidDimensions
 } from '../lib/safeMathUtils';
-import { vi } from 'vitest';
 
 // Mock debugLog to prevent warnings in test output
 vi.mock('../client/utils/debugUtils', () => ({

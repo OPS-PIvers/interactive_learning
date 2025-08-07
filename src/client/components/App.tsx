@@ -1,34 +1,34 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
-import { AuthModal } from './AuthModal';
-import { Project, InteractiveModuleState } from '../../shared/types';
+import { appScriptProxy } from '../../lib/firebaseProxy';
+import { demoModuleData } from '../../shared/demoModuleData';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideDeck } from '../../shared/slideTypes';
-import { demoModuleData } from '../../shared/demoModuleData';
-import ProjectCard from './ProjectCard';
-import Modal from './Modal';
-import InteractiveModuleWrapper from './InteractiveModuleWrapper';
-import HookErrorBoundary from './HookErrorBoundary';
-import { appScriptProxy } from '../../lib/firebaseProxy';
-import { PlusCircleIcon } from './icons/PlusCircleIcon';
-import { GradientCreateButton } from './ui/GradientCreateButton';
-import { SettingsIcon } from './icons/SettingsIcon';
+import { Project, InteractiveModuleState } from '../../shared/types';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
-import AuthButton from './AuthButton';
-import SharedModuleViewer from './SharedModuleViewer';
 import ViewerView from './views/ViewerView';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import AuthButton from './AuthButton';
+import { AuthModal } from './AuthModal';
+import HookErrorBoundary from './HookErrorBoundary';
+import { PlusCircleIcon } from './icons/PlusCircleIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
+import InteractiveModuleWrapper from './InteractiveModuleWrapper';
+import Modal from './Modal';
+import ProjectCard from './ProjectCard';
+import SharedModuleViewer from './SharedModuleViewer';
+import { GradientCreateButton } from './ui/GradientCreateButton';
 
 
 const LoadingScreen: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
       <p className="mt-4 text-gray-600">Loading...</p>
     </div>
   </div>

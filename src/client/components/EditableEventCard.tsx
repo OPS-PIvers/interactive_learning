@@ -1,17 +1,17 @@
+import type { Identifier, XYCoord } from 'dnd-core';
 import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import type { Identifier, XYCoord } from 'dnd-core';
-import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { PencilIcon } from './icons/PencilIcon';
-import { TrashIcon } from './icons/TrashIcon';
+import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
+import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import { EyeIcon } from './icons/EyeIcon';
 import { EyeSlashIcon } from './icons/EyeSlashIcon';
-import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
-// import EventTypeSelector from './EventTypeSelector';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
-import InteractionParameterPreview from './interactions/InteractionParameterPreview';
 import { GearIcon } from './icons/GearIcon';
+import { PencilIcon } from './icons/PencilIcon';
+import { TrashIcon } from './icons/TrashIcon';
+// import EventTypeSelector from './EventTypeSelector';
+import InteractionParameterPreview from './interactions/InteractionParameterPreview';
 interface EditableEventCardProps {
   index: number;
   event: TimelineEventData;

@@ -1,9 +1,8 @@
 // src/client/components/EventTypeSelectorButtonGrid.tsx
 import React from 'react';
-import { InteractionType } from '../../shared/InteractionPresets';
-import { interactionPresets } from '../../shared/InteractionPresets';
-import { PlusIcon } from './icons/PlusIcon';
+import { InteractionType , interactionPresets } from '../../shared/InteractionPresets';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { PlusIcon } from './icons/PlusIcon';
 
 interface EventTypeSelectorButtonGridProps {
   onSelectEventType: (type: InteractionType) => void;

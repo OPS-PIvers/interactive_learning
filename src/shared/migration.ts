@@ -1,8 +1,8 @@
 // src/shared/migration.ts
-import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
+import { generateId } from '../client/utils/generateId';
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
-import { generateId } from '../client/utils/generateId';
+import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map((event) => {
@@ -136,7 +136,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     // Update existing PLAY_VIDEO events to use unified properties
     if (event.type === InteractionType.PLAY_VIDEO) {
       let videoSource: VideoSourceType = 'url';
-      let videoUrl = event.videoUrl || event.url || '';
+      const videoUrl = event.videoUrl || event.url || '';
       let youtubeVideoId = event.youtubeVideoId;
       
       // Detect video source if not specified

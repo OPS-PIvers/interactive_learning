@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../lib/authContext';
-import { AuthModal } from './AuthModal';
-import { SwitchAccountsIcon } from './icons/SwitchAccountsIcon';
-import { SignOutIcon } from './icons/SignOutIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { AuthModal } from './AuthModal';
+import { SignOutIcon } from './icons/SignOutIcon';
+import { SwitchAccountsIcon } from './icons/SwitchAccountsIcon';
 
 interface AuthButtonProps {
   variant?: 'toolbar' | 'compact' | 'full';

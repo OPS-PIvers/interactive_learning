@@ -84,7 +84,7 @@ export const ResponsiveAspectRatioModal: React.FC<ResponsiveAspectRatioModalProp
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{ratio.label}</h3>
                   {currentRatio === ratio.value && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   )}
                 </div>
                 <p className="text-gray-600 text-xs sm:text-sm mb-3">{ratio.description}</p>

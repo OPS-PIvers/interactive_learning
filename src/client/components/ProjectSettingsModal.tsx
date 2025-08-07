@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { XMarkIcon } from './icons/XMarkIcon';
+import { firebaseAPI } from '../../lib/firebaseApi';
+import { ThemePreset } from '../../shared/slideTypes';
+import { getAllThemes } from '../../shared/themePresets';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 import { useProjectTheme } from '../hooks/useProjectTheme';
-import { getAllThemes } from '../../shared/themePresets';
-import { ThemePreset } from '../../shared/slideTypes';
-import { firebaseAPI } from '../../lib/firebaseApi';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { XMarkIcon } from './icons/XMarkIcon';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -165,7 +165,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold text-white">{theme.name}</h4>
                       {currentThemeId === theme.id && (
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
                       )}
                     </div>
                     <p className="text-slate-300 text-sm mb-3">{theme.description}</p>

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
+import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerFooterToolbar from './ViewerFooterToolbar';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;

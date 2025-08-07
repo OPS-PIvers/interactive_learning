@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
+import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
 import { SlideElement, ElementInteraction } from '../../../shared/slideTypes';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { interactionPresets } from '../../../shared/InteractionPresets';
 import { PlusIcon } from '../icons/PlusIcon';
 import { XMarkIcon } from '../icons/XMarkIcon';
 

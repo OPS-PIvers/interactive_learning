@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
-import { ImageTransformState, TimelineEventData, HotspotData } from '../../shared/types';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { usePanZoomEngine } from '../hooks/usePanZoomEngine';
+import { ImageTransformState, TimelineEventData, HotspotData } from '../../shared/types';
 import { useEventGestureCoordination } from '../hooks/useEventGestureCoordination';
+import { usePanZoomEngine } from '../hooks/usePanZoomEngine';
 
 interface PanZoomContextValue {
   // Transform state

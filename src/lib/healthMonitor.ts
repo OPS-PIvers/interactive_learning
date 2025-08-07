@@ -1,6 +1,6 @@
-import { firebaseManager } from './firebaseConfig';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { debugLog } from '../client/utils/debugUtils';
+import { firebaseManager } from './firebaseConfig';
 import { saveOperationMonitor } from './saveOperationMonitor';
 
 /**
@@ -304,8 +304,8 @@ class DatabaseHealthMonitor {
       // Sample project health checks (check up to 10 projects)
       const sampleProjects = projectsSnap.docs.slice(0, 10);
       let inconsistentProjects = 0;
-      let totalHotspots = 0;
-      let totalEvents = 0;
+      const totalHotspots = 0;
+      const totalEvents = 0;
 
       for (const projectDoc of sampleProjects) {
         const projectId = projectDoc.id;

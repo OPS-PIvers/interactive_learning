@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SlideViewer } from './SlideViewer';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
+import { SlideViewer } from './SlideViewer';
 import '../../styles/slide-components.css';
 import { ElementInteraction } from '../../../shared/slideTypes';
 

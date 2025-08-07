@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { BackgroundMedia } from '../../shared/slideTypes';
-import FileUpload from './FileUpload';
 import { FirebaseProjectAPI } from '../../lib/firebaseApi';
+import { BackgroundMedia } from '../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import FileUpload from './FileUpload';
 
 interface BackgroundMediaPanelProps {
   currentBackgroundMedia: BackgroundMedia | null;

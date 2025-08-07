@@ -1,9 +1,9 @@
 import React from 'react';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import AuthButton from './AuthButton';
 import { InteractiveSlide } from '../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import AuthButton from './AuthButton';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 
 interface ViewerFooterToolbarProps {
   // Project info

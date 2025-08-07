@@ -212,7 +212,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
       {currentStep && (
         <div className="mt-4 p-4 bg-gradient-to-r from-slate-700/50 to-slate-600/50 rounded-lg border border-slate-600/30 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
             <div className="text-sm font-semibold text-slate-100">
               Current Step: Slide {currentStep.slideIndex + 1}
             </div>
@@ -233,7 +233,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
       <div className="mt-4">
         <div className="text-xs text-slate-400 font-medium mb-3 flex items-center gap-2">
           <span>Timeline Steps:</span>
-          <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent"></div>
+          <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent" />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {timelineSteps.map((step, index) => (

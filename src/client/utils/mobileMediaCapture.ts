@@ -1,5 +1,5 @@
-import { compressImage } from './imageCompression';
 import { appScriptProxy } from '../../lib/firebaseProxy';
+import { compressImage } from './imageCompression';
 
 /**
  * Options for capturing media from the device.

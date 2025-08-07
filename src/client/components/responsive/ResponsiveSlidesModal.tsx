@@ -7,9 +7,9 @@
 
 import React from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
-import { ResponsiveModal } from './ResponsiveModal';
-import { TrashIcon } from '../icons/TrashIcon';
 import { PlusIcon } from '../icons/PlusIcon';
+import { TrashIcon } from '../icons/TrashIcon';
+import { ResponsiveModal } from './ResponsiveModal';
 
 interface ResponsiveSlidesModalProps {
   slides: InteractiveSlide[];

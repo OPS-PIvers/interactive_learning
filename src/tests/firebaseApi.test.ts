@@ -1,6 +1,8 @@
+import { Firestore, Transaction } from 'firebase/firestore';
 import { describe, it, expect, vi } from 'vitest';
 import { firebaseAPI } from '../lib/firebaseApi';
 import { SlideDeck, InteractiveSlide } from '../shared/slideTypes';
+
 
 // Mock Firebase
 vi.mock('../lib/firebaseConfig', () => ({
@@ -13,8 +15,6 @@ vi.mock('../lib/firebaseConfig', () => ({
     initialize: vi.fn(),
   },
 }));
-
-import { Firestore, Transaction } from 'firebase/firestore';
 
 vi.mock('firebase/firestore', async () => {
   const actual = await vi.importActual('firebase/firestore');

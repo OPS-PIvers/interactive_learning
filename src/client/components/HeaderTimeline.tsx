@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 import { SlideDeck } from '../../shared/slideTypes';
+import { useIOSSafariViewport } from '../hooks/useViewportHeight';
+import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../utils/iosZIndexManager';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import { PlayIcon } from './icons/PlayIcon';
 import { PauseIcon } from './icons/PauseIcon';
-import { useIOSSafariViewport } from '../hooks/useViewportHeight';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../utils/iosZIndexManager';
+import { PlayIcon } from './icons/PlayIcon';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;

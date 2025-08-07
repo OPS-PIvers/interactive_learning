@@ -1,5 +1,5 @@
-import React from 'react';
 import { motion, Variants, MotionStyle } from 'framer-motion';
+import React from 'react';
 
 // Animation variants for slide elements
 export const elementAnimationVariants: Record<string, Variants> = {

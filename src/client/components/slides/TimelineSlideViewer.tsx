@@ -7,13 +7,13 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { SlideDeck, SlideViewerState, SlideEffect, EffectParameters } from '../../../shared/slideTypes';
-import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { SlideViewer, SlideViewerRef } from './SlideViewer';
-import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
-import { TimelineEventData } from '../../../shared/types';
 import { InteractionType } from '../../../shared/InteractionPresets';
+import { SlideDeck, SlideViewerState, SlideEffect, EffectParameters } from '../../../shared/slideTypes';
+import { TimelineEventData } from '../../../shared/types';
+import { useDeviceDetection } from '../../hooks/useDeviceDetection';
+import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import { SlideViewer, SlideViewerRef } from './SlideViewer';
 
 interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;

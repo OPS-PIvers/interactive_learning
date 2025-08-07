@@ -1,11 +1,11 @@
-import React from 'react';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import React from 'react';
 import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
-import { InteractiveModuleState } from '../shared/types';
 import { InteractiveSlide } from '../shared/slideTypes';
+import { InteractiveModuleState } from '../shared/types';
 
 // Mock child components
 vi.mock('../client/components/SlideBasedViewer', () => ({

@@ -94,7 +94,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
       {isLoading && (
         <div className={`absolute inset-0 flex items-center justify-center bg-slate-900 ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}>
           <div className="text-center text-white">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4" />
             <p>Loading YouTube video...</p>
           </div>
         </div>

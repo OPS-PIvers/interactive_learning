@@ -4,6 +4,8 @@
 /**
  * Safely divide two numbers, returning fallback if divisor is zero or invalid
  */
+import { HotspotData } from '../shared/types';
+
 export function safeDivide(dividend: number, divisor: number, fallback: number = 0): number {
   if (!isFinite(dividend) || !isFinite(divisor) || divisor === 0) {
     return fallback;
@@ -111,8 +113,6 @@ export function hasValidDimensions(rect: any): rect is { width: number; height: 
          isFinite(rect.width) && 
          isFinite(rect.height);
 }
-
-import { HotspotData } from '../shared/types';
 
 /**
  * Normalize hotspot position to ensure compatibility between legacy and enhanced systems

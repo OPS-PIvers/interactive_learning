@@ -1,15 +1,15 @@
 import React from 'react';
-import { HotspotData, TimelineEventData } from '../../shared/types';
 import { InteractionType } from '../../shared/InteractionPresets';
-import HotspotViewer from './HotspotViewer';
+import { HotspotData, TimelineEventData } from '../../shared/types';
+import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
+import { getActualImageVisibleBounds } from '../utils/imageBounds';
+import { Z_INDEX } from '../utils/styleConstants';
 import FileUpload from './FileUpload';
+import HotspotViewer from './HotspotViewer';
 import { PlusIcon } from './icons/PlusIcon';
 import PanZoomPreviewOverlay from './PanZoomPreviewOverlay';
 import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
-import { Z_INDEX } from '../utils/styleConstants';
-import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
-import { getActualImageVisibleBounds } from '../utils/imageBounds';
 
 interface ImageEditCanvasProps {
   backgroundImage: string | undefined;

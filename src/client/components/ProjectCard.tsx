@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project } from '../../shared/types';
+import { normalizeFirebaseUrl, addFirebaseImageCORS, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
 import { EyeIcon } from './icons/EyeIcon';
 import { PencilIcon } from './icons/PencilIcon';
-import { TrashIcon } from './icons/TrashIcon';
 import { ShareIcon } from './icons/ShareIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import ShareModal from './ShareModal';
-import { normalizeFirebaseUrl, addFirebaseImageCORS, logFirebaseImageLoad } from '../utils/firebaseImageUtils';
 
 interface ProjectCardProps {
   project: Project;

@@ -2,11 +2,11 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { FixedSizeList } from 'react-window';
 import { TimelineEventData, HotspotData } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
-import { XMarkIcon } from './icons/XMarkIcon';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import ChevronDownIcon from './icons/ChevronDownIcon';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { XMarkIcon } from './icons/XMarkIcon';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -73,7 +73,7 @@ const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSP
                     aria-current={isActive ? "step" : undefined}
                     title={`${getStepTooltip(step)}${showPreviews ? '. Double-click for preview' : ''}`}
                   >
-                     {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>}
+                     {isActive && <span className="absolute w-2.5 h-2.5 bg-white rounded-full animate-pulse" />}
                      {isCompleted && !isActive && (
                        <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -241,7 +241,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
       >
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
             <h4 className="font-semibold text-slate-100 text-sm">Step {step}</h4>
           </div>
           <button
@@ -269,7 +269,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                       <div 
                         className="w-3 h-3 rounded-full border border-white/30 shadow-sm" 
                         style={{ backgroundColor: hotspot.color || '#64748b' }}
-                      ></div>
+                       />
                       <span className="text-slate-300 text-xs font-medium">{hotspot.title}</span>
                     </div>
                   )}
@@ -373,7 +373,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                 className="w-full text-left text-sm text-slate-200 hover:text-white flex justify-between items-center transition-colors duration-200"
               >
                 <span className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
                   <span className="font-medium">{currentEvent.name}</span>
                 </span>
                 <ChevronDownIcon className={`w-4 h-4 transform transition-transform duration-200 ${isEventPreviewCollapsed ? '' : 'rotate-180'}`} />
@@ -457,7 +457,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                       title={getStepTooltip(step)}
                     >
                       {isActive && (
-                        <span className="absolute w-3 h-3 bg-white rounded-full animate-pulse"></span>
+                        <span className="absolute w-3 h-3 bg-white rounded-full animate-pulse" />
                       )}
                       {isCompleted && !isActive && (
                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">

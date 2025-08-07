@@ -66,8 +66,8 @@ export const SlideBasedTestPage: React.FC = () => {
                     Old system: Spotlight appears offset from hotspot position
                   </p>
                   <div className="relative bg-slate-600 h-32 rounded-lg">
-                    <div className="absolute top-4 left-4 w-4 h-4 bg-blue-500 rounded-full shadow-lg"></div>
-                    <div className="absolute top-8 left-12 w-16 h-16 bg-red-400 bg-opacity-30 rounded-full border-2 border-red-500"></div>
+                    <div className="absolute top-4 left-4 w-4 h-4 bg-blue-500 rounded-full shadow-lg" />
+                    <div className="absolute top-8 left-12 w-16 h-16 bg-red-400 bg-opacity-30 rounded-full border-2 border-red-500" />
                     <span className="absolute top-20 left-16 text-xs text-red-400 font-semibold">❌ Misaligned</span>
                   </div>
                 </div>
@@ -80,7 +80,7 @@ export const SlideBasedTestPage: React.FC = () => {
                     Old system: Hotspot appears in corner instead of center
                   </p>
                   <div className="relative bg-slate-600 h-32 rounded-lg">
-                    <div className="absolute top-2 left-2 w-4 h-4 bg-purple-500 rounded-full shadow-lg"></div>
+                    <div className="absolute top-2 left-2 w-4 h-4 bg-purple-500 rounded-full shadow-lg" />
                     <span className="absolute top-8 left-2 text-xs text-red-400 font-semibold">❌ Wrong position</span>
                     <div className="absolute bottom-4 right-4 text-xs text-slate-400">Should be centered</div>
                   </div>
@@ -94,8 +94,8 @@ export const SlideBasedTestPage: React.FC = () => {
                     New system: Perfect alignment with fixed positioning
                   </p>
                   <div className="relative bg-slate-600 h-32 rounded-lg">
-                    <div className="absolute top-8 left-8 w-4 h-4 bg-blue-500 rounded-full shadow-lg"></div>
-                    <div className="absolute top-4 left-4 w-8 h-8 bg-green-400 bg-opacity-30 rounded-full border-2 border-green-500"></div>
+                    <div className="absolute top-8 left-8 w-4 h-4 bg-blue-500 rounded-full shadow-lg" />
+                    <div className="absolute top-4 left-4 w-8 h-8 bg-green-400 bg-opacity-30 rounded-full border-2 border-green-500" />
                     <span className="absolute top-16 left-12 text-xs text-green-400 font-semibold">✅ Perfect alignment</span>
                   </div>
                 </div>

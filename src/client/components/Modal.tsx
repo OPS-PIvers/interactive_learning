@@ -1,9 +1,9 @@
 
 import React, { useEffect, useRef } from 'react';
-import { XMarkIcon } from './icons/XMarkIcon';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { XMarkIcon } from './icons/XMarkIcon';
 
 interface ModalProps {
   isOpen: boolean;

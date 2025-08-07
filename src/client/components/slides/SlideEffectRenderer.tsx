@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Easing, MotionStyle } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
-import { AnimatedElement } from '../animations/ElementAnimations';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import { AnimatedElement } from '../animations/ElementAnimations';
 
 interface SlideEffectRendererProps {
   effect: SlideEffect;
@@ -26,6 +26,10 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isVisible, setIsVisible] = useState(true);
+  
+  // Quiz effect state - moved to component level to follow Rules of Hooks
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
   
   console.log('[SlideEffectRenderer] Rendering effect:', effect);
   console.log('[SlideEffectRenderer] Container ref:', containerRef.current);
@@ -526,8 +530,6 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type !== 'quiz') return null;
 
     const params = effect.parameters as QuizParameters;
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [showResult, setShowResult] = useState(false);
     
     const handleAnswerSelect = (answer: string) => {
       setSelectedAnswer(answer);

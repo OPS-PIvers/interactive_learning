@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCommonRatios, validateAspectRatio, formatCustomRatio, getAspectRatioDisplayName } from '../utils/aspectRatioUtils';
-import ChevronDownIcon from './icons/ChevronDownIcon';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface AspectRatioSelectorProps {
   currentRatio: string;

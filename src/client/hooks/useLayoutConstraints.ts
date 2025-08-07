@@ -8,10 +8,10 @@
  */
 
 import { useMemo } from 'react';
-import { useDeviceDetection } from './useDeviceDetection';
-import { useViewportHeight } from './useViewportHeight';
 import { DeviceType } from '../../shared/slideTypes';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { useDeviceDetection } from './useDeviceDetection';
+import { useViewportHeight } from './useViewportHeight';
 
 export interface LayoutConstraints {
   // Available space calculations

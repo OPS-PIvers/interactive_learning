@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
-import QuizOverlay from './QuizOverlay';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import QuizOverlay from './QuizOverlay';
 
 interface VideoPlayerProps {
   src: string;
@@ -50,6 +50,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isQuizActive, setIsQuizActive] = useState(false);
   const lastTriggerTimeRef = useRef<number>(-1);
 
+  // Quiz trigger detection logic
+  const checkForQuizTriggers = (currentTime: number) => {
+    const triggerToFire = quizTriggers.find(trigger => {
+      const isTimeToTrigger = currentTime >= trigger.timestamp && 
+                             currentTime < trigger.timestamp + 0.5;
+      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
+      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
+      
+      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
+    });
+
+    if (triggerToFire) {
+      lastTriggerTimeRef.current = triggerToFire.timestamp;
+      
+      if (triggerToFire.pauseMedia && videoRef.current) {
+        videoRef.current.pause();
+      }
+      
+      setActiveQuizTrigger(triggerToFire);
+      setIsQuizActive(true);
+      onQuizTrigger?.(triggerToFire);
+    }
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -83,31 +107,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, [quizTriggers, completedQuizzes, isQuizActive]);
-
-  // Quiz trigger detection logic
-  const checkForQuizTriggers = (currentTime: number) => {
-    const triggerToFire = quizTriggers.find(trigger => {
-      const isTimeToTrigger = currentTime >= trigger.timestamp && 
-                             currentTime < trigger.timestamp + 0.5;
-      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
-      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
-      
-      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
-    });
-
-    if (triggerToFire) {
-      lastTriggerTimeRef.current = triggerToFire.timestamp;
-      
-      if (triggerToFire.pauseMedia && videoRef.current) {
-        videoRef.current.pause();
-      }
-      
-      setActiveQuizTrigger(triggerToFire);
-      setIsQuizActive(true);
-      onQuizTrigger?.(triggerToFire);
-    }
-  };
+  }, [quizTriggers, completedQuizzes, isQuizActive, checkForQuizTriggers]);
 
   // Handle seeking restrictions
   const handleSeeked = () => {

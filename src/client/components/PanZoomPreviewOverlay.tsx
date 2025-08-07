@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { TimelineEventData } from '../../shared/types';
-import { throttle } from '../utils/asyncUtils';
 import { Z_INDEX } from '../constants/interactionConstants';
+import { throttle } from '../utils/asyncUtils';
 
 interface PanZoomPreviewOverlayProps {
   event: TimelineEventData;
@@ -257,14 +257,14 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
       {/* Center crosshair */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-4 h-4">
-          <div className="absolute w-full h-0.5 bg-blue-500 top-1/2 left-0 transform -translate-y-1/2"></div>
-          <div className="absolute h-full w-0.5 bg-blue-500 left-1/2 top-0 transform -translate-x-1/2"></div>
+          <div className="absolute w-full h-0.5 bg-blue-500 top-1/2 left-0 transform -translate-y-1/2" />
+          <div className="absolute h-full w-0.5 bg-blue-500 left-1/2 top-0 transform -translate-x-1/2" />
         </div>
       </div>
       
       {/* Viewable area indicator */}
       <div className="absolute inset-0 border border-blue-300 border-dashed pointer-events-none">
-        <div className="absolute inset-1 bg-blue-100/10 rounded"></div>
+        <div className="absolute inset-1 bg-blue-100/10 rounded" />
       </div>
 
       {/* Zoom level resize handle */}
@@ -275,9 +275,9 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
       />
       
       {/* Corner handles for precise positioning */}
-      <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
-      <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
-      <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full"></div>
+      <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full" />
+      <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 border border-white rounded-full" />
+      <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 border border-white rounded-full" />
     </div>
   );
 };

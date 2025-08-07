@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { TimelineEventData } from '../../shared/types';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { PlusIcon } from './icons/PlusIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
-import { InteractionType } from '../../shared/InteractionPresets';
-import { TrashIcon } from './icons/TrashIcon';
-import { PlusIcon } from './icons/PlusIcon';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
 const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
@@ -600,11 +600,8 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [hasValidated, setHasValidated] = useState(false);
 
-  if (!isOpen || !event) {
-    return null;
-  }
-
   const handleUpdate = useCallback((updates: Partial<TimelineEventData>) => {
+    if (!event) return;
     const updatedEvent = { ...event, ...updates };
     
     // Perform real-time validation
@@ -618,6 +615,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   }, [event, onUpdate]);
 
   const handleSave = useCallback(() => {
+    if (!event) return;
     const errors = validateEventParameters(event);
     setValidationErrors(errors);
     setHasValidated(true);
@@ -631,6 +629,10 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   const getFieldError = useCallback((fieldName: string) => {
     return validationErrors.find(error => error.field === fieldName)?.message;
   }, [validationErrors]);
+
+  if (!isOpen || !event) {
+    return null;
+  }
 
   const renderEditorForEvent = () => {
     switch (event.type) {

@@ -5,14 +5,14 @@
  * Scheduled for removal in a future version.
  */
 import React, { useState } from 'react';
-import { HotspotData, TimelineEventData } from '../../shared/types';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { PlusIcon } from './icons/PlusIcon';
+import { HotspotData, TimelineEventData } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { PencilIcon } from './icons/PencilIcon';
-import { TrashIcon } from './icons/TrashIcon';
 import EditableEventCard from './EditableEventCard';
 import EventTypeSelector from './EventTypeSelector';
+import { PencilIcon } from './icons/PencilIcon';
+import { PlusIcon } from './icons/PlusIcon';
+import { TrashIcon } from './icons/TrashIcon';
 
 interface HotspotEditorToolbarProps {
   selectedHotspot: HotspotData;
@@ -289,7 +289,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
                 defaultChecked={true}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600" />
             </label>
           </div>
           <div className="text-xs text-slate-400">

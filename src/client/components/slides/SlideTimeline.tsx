@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect } from '../../../shared/slideTypes';
-import { PlayIcon } from '../icons/PlayIcon';
 import { PauseIcon } from '../icons/PauseIcon';
+import { PlayIcon } from '../icons/PlayIcon';
 import { StopIcon } from '../icons/StopIcon';
 
 interface TimelineStep {
@@ -233,7 +233,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
       {currentStepData && (
         <div className="px-4 py-3 border-b border-slate-700/30 bg-gradient-to-r from-slate-700/30 to-slate-600/30">
           <h4 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
             {currentStepData.title}
           </h4>
           <p className="text-slate-300 text-xs leading-relaxed">{currentStepData.description}</p>
@@ -335,7 +335,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
                     : index < currentStepIndex
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                       : 'bg-slate-500'
-                }`}></div>
+                }`} />
                 <div>
                   <div className="text-white text-sm font-medium">{step.stepNumber}. {step.title}</div>
                   <div className="text-slate-300 text-xs leading-relaxed">{step.description}</div>

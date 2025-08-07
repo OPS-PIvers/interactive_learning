@@ -1,12 +1,12 @@
-import React, { Fragment, useMemo, useState, useCallback, Suspense, lazy } from 'react';
 import debounce from 'lodash.debounce';
-import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
-import Modal from './Modal';
-import { InteractiveModuleState, Project } from '../../shared/types';
+import React, { Fragment, useMemo, useState, useCallback, Suspense, lazy } from 'react';
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
-import SlideViewer from './slides/SlideViewer';
-import LoadingScreen from './shared/LoadingScreen';
+import { InteractiveModuleState, Project } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import Modal from './Modal';
+import LoadingScreen from './shared/LoadingScreen';
+import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
+import SlideViewer from './slides/SlideViewer';
 
 // Lazy load the heavy editor component
 const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));

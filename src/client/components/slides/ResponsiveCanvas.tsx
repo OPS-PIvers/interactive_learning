@@ -7,15 +7,15 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { getResponsiveHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
+import { InteractionType } from '../../../shared/InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
+import { ImageTransformState } from '../../../shared/types';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
-import { ImageTransformState } from '../../../shared/types';
-import { InteractionType } from '../../../shared/InteractionPresets';
+import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { ViewportBounds } from '../../utils/touchUtils';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
-import { getResponsiveHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
 import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
 
 export interface ResponsiveCanvasProps {

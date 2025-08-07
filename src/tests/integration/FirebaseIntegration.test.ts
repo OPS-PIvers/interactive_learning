@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import { firebaseAPI } from '../../lib/firebaseApi';
-import { firebaseManager } from '../../lib/firebaseConfig';
-import { DataSanitizer } from '../../lib/dataSanitizer';
-import { Project } from '../../shared/types';
-import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
-import { InteractionType } from '../../shared/InteractionPresets';
 import { signInAnonymously, signOut } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { DataSanitizer } from '../../lib/dataSanitizer';
+import { firebaseAPI } from '../../lib/firebaseApi';
+import { firebaseManager } from '../../lib/firebaseConfig';
+import { InteractionType } from '../../shared/InteractionPresets';
+import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
+import { Project } from '../../shared/types';
 
 /**
  * Firebase Integration Tests

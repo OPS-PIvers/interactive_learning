@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../lib/authContext';
-import { Project, InteractiveModuleState } from '../../../shared/types';
 import { appScriptProxy } from '../../../lib/firebaseProxy';
-import SlideBasedInteractiveModule from '../SlideBasedInteractiveModule';
-import SlideViewer from '../slides/SlideViewer';
 import { SlideDeck } from '../../../shared/slideTypes';
-import LoadingScreen from '../shared/LoadingScreen';
-import ErrorScreen from '../shared/ErrorScreen';
+import { Project, InteractiveModuleState } from '../../../shared/types';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
+import ErrorScreen from '../shared/ErrorScreen';
+import LoadingScreen from '../shared/LoadingScreen';
+import SlideBasedInteractiveModule from '../SlideBasedInteractiveModule';
+import SlideViewer from '../slides/SlideViewer';
 
 const ViewerView: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();

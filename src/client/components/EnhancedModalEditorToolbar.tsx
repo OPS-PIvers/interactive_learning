@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { XMarkIcon } from './icons/XMarkIcon';
 import { extractYouTubeVideoId } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { XMarkIcon } from './icons/XMarkIcon';
 
 interface ColorScheme {
   name: string;

@@ -6,10 +6,10 @@
  * of the existing hotspot editor with the new unified slide system.
  */
 
+import { defaultHotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideElement, SlideDeck, InteractiveSlide, DeviceType, FixedPosition, ElementInteraction, SlideEffect, EffectParameters, SpotlightParameters, ZoomParameters, ShowTextParameters, PlayMediaParameters, TextStyle, SlideEffectType } from '../../shared/slideTypes';
 import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
-import { InteractionType } from '../../shared/InteractionPresets';
-import { defaultHotspotSize, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 
 /**
  * Convert slide element to legacy hotspot data for the editor

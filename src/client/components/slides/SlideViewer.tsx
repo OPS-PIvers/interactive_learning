@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { SlideDeck, InteractiveSlide, SlideViewerState, DeviceType, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
-import { SlideElement } from './SlideElement';
-import { SlideEffectRenderer } from './SlideEffectRenderer';
-import { SlideTimeline } from './SlideTimeline';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
+import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import { SlideEffectRenderer } from './SlideEffectRenderer';
+import { SlideElement } from './SlideElement';
+import { SlideTimeline } from './SlideTimeline';
 
 interface SlideViewerProps {
   slideDeck: SlideDeck;
@@ -403,14 +403,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     return () => clearTimeout(timer);
   }, [slideDeck, isPlaying, viewerState.currentSlideIndex, navigateToNext]);
 
-  if (!currentSlide) {
-    return (
-      <div className="flex items-center justify-center h-full text-slate-400 bg-gradient-to-br from-slate-900 to-slate-800">
-        No slides available
-      </div>
-    );
-  }
-
   // Calculate responsive container dimensions with proper scaling
   const canvasDimensions = React.useMemo(() => {
     if (!containerRef.current || !currentSlide?.layout?.aspectRatio) {
@@ -427,6 +419,14 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       false // Remove device-specific logic
     );
   }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, deviceType]);
+
+  if (!currentSlide) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400 bg-gradient-to-br from-slate-900 to-slate-800">
+        No slides available
+      </div>
+    );
+  }
 
   const containerStyle: React.CSSProperties = {
     width: '100%',

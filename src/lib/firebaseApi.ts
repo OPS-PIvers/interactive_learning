@@ -14,15 +14,15 @@ import {
   Timestamp
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
-import { firebaseManager } from './firebaseConfig'
-import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
-import { SlideDeck } from '../shared/slideTypes'
 import { debugLog } from '../client/utils/debugUtils'
-import { DataSanitizer } from './dataSanitizer'
-import { saveOperationMonitor } from './saveOperationMonitor'
 import { generateThumbnail } from '../client/utils/imageUtils'
 // Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor'
+import { SlideDeck } from '../shared/slideTypes'
+import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
+import { DataSanitizer } from './dataSanitizer'
+import { firebaseManager } from './firebaseConfig'
+import { saveOperationMonitor } from './saveOperationMonitor'
 import { DevAuthBypass } from './testAuthUtils'
 
 // Thumbnail Parameters
@@ -319,7 +319,7 @@ export class FirebaseProjectAPI {
       });
       
       // Build interactiveData, preferring nested structure with legacy fallback
-      let interactiveData: any = projectData['interactiveData']
+      const interactiveData: any = projectData['interactiveData']
         ? { ...projectData['interactiveData'] }
         : buildFallbackInteractiveData();
       

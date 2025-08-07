@@ -28,6 +28,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  const getErrorMessage = (errorCode: string): string => {
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'No account found with this email address.';
+      case 'auth/wrong-password':
+        return 'Incorrect password.';
+      case 'auth/email-already-in-use':
+        return 'An account already exists with this email address.';
+      case 'auth/weak-password':
+        return 'Password should be at least 6 characters.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/popup-closed-by-user':
+        return 'Sign-in was cancelled.';
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  };
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setDisplayName('');
+    setResetEmail('');
+    setError('');
+    setMessage('');
+    setShowReset(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -80,34 +113,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setDisplayName('');
-    setResetEmail('');
-    setError('');
-    setMessage('');
-    setShowReset(false);
-  };
-
-  const getErrorMessage = (errorCode: string): string => {
-    switch (errorCode) {
-      case 'auth/user-not-found':
-        return 'No account found with this email address.';
-      case 'auth/wrong-password':
-        return 'Incorrect password.';
-      case 'auth/email-already-in-use':
-        return 'An account already exists with this email address.';
-      case 'auth/weak-password':
-        return 'Password should be at least 6 characters.';
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.';
-      case 'auth/popup-closed-by-user':
-        return 'Sign-in was cancelled.';
-      default:
-        return 'An error occurred. Please try again.';
-    }
-  };
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_CONTENT}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
@@ -230,7 +235,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <div className="mt-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-600"></div>
+                  <div className="w-full border-t border-slate-600" />
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-slate-800 text-slate-400">Or continue with</span>

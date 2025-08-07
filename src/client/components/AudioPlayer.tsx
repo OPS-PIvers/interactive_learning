@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
-import QuizOverlay from './QuizOverlay';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import QuizOverlay from './QuizOverlay';
 
 interface AudioPlayerProps {
   src: string;
@@ -46,6 +46,30 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set());
   const [isQuizActive, setIsQuizActive] = useState(false);
   const lastTriggerTimeRef = useRef<number>(-1);
+
+  // Quiz trigger detection logic
+  const checkForQuizTriggers = (currentTime: number) => {
+    const triggerToFire = quizTriggers.find(trigger => {
+      const isTimeToTrigger = currentTime >= trigger.timestamp && 
+                             currentTime < trigger.timestamp + 0.5;
+      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
+      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
+      
+      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
+    });
+
+    if (triggerToFire) {
+      lastTriggerTimeRef.current = triggerToFire.timestamp;
+      
+      if (triggerToFire.pauseMedia && audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      setActiveQuizTrigger(triggerToFire);
+      setIsQuizActive(true);
+      onQuizTrigger?.(triggerToFire);
+    }
+  };
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -144,30 +168,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  // Quiz trigger detection logic
-  const checkForQuizTriggers = (currentTime: number) => {
-    const triggerToFire = quizTriggers.find(trigger => {
-      const isTimeToTrigger = currentTime >= trigger.timestamp && 
-                             currentTime < trigger.timestamp + 0.5;
-      const notAlreadyTriggered = !completedQuizzes.has(trigger.id);
-      const notRecentlyTriggered = Math.abs(lastTriggerTimeRef.current - trigger.timestamp) > 1;
-      
-      return isTimeToTrigger && notAlreadyTriggered && notRecentlyTriggered;
-    });
-
-    if (triggerToFire) {
-      lastTriggerTimeRef.current = triggerToFire.timestamp;
-      
-      if (triggerToFire.pauseMedia && audioRef.current) {
-        audioRef.current.pause();
-      }
-      
-      setActiveQuizTrigger(triggerToFire);
-      setIsQuizActive(true);
-      onQuizTrigger?.(triggerToFire);
-    }
-  };
-
   // Handle seeking restrictions
   const handleSeeked = () => {
     if (!allowSeeking && audioRef.current && enforceQuizCompletion) {
@@ -216,7 +216,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       <div className="mb-6 text-center">
         {/* Audio Waveform Visualization (Simplified) */}
         <div className="bg-slate-700 rounded-lg h-24 mb-4 flex items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20" />
           {/* Simplified waveform bars */}
           <div className="flex items-center justify-center space-x-1 h-full">
             {Array.from({ length: 40 }, (_, i) => (
@@ -237,7 +237,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           {/* Loading overlay */}
           {isLoading && (
             <div className="absolute inset-0 bg-slate-700/80 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
             </div>
           )}
         </div>
@@ -290,7 +290,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isLoading ? (
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
           ) : isPlaying ? (
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />

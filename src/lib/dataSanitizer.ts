@@ -1,5 +1,5 @@
-import { TimelineEventData, HotspotData } from '../shared/types';
 import { SlideDeck, InteractiveSlide, SlideElement, ResponsivePosition, FixedPosition } from '../shared/slideTypes';
+import { TimelineEventData, HotspotData } from '../shared/types';
 
 /**
  * Data sanitization utility to remove undefined values before Firebase operations

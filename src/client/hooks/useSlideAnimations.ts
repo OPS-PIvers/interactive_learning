@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAnimationControls, AnimationDefinition } from 'framer-motion';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface AnimationSequence {
   id: string;

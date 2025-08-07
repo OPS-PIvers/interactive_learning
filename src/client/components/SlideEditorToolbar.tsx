@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { SaveIcon } from './icons/SaveIcon';
-import { CheckIcon } from './icons/CheckIcon';
-import { GearIcon } from './icons/GearIcon';
-import { ShareIcon } from './icons/ShareIcon';
-import AuthButton from './AuthButton';
-import ShareModal from './ShareModal';
 import { Project } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import AuthButton from './AuthButton';
+import { CheckIcon } from './icons/CheckIcon';
+import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { GearIcon } from './icons/GearIcon';
+import { SaveIcon } from './icons/SaveIcon';
+import { ShareIcon } from './icons/ShareIcon';
+import ShareModal from './ShareModal';
 
 interface SlideEditorToolbarProps {
   projectName: string;

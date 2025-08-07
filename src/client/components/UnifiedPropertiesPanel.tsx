@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
-import { InteractionType } from '../../shared/InteractionPresets';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
-import InteractionsList from './interactions/InteractionsList';
-import InteractionEditor from './interactions/InteractionEditor';
-import ChevronDownIcon from './icons/ChevronDownIcon';
 import { hotspotSizePresets, HotspotSize, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
-import { LiquidColorSelector } from './ui/LiquidColorSelector';
-import { TextInteractionEditor } from './interactions/TextInteractionEditor';
-import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
-import { QuizInteractionEditor } from './interactions/QuizInteractionEditor';
+import { InteractionType } from '../../shared/InteractionPresets';
+import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import ChevronDownIcon from './icons/ChevronDownIcon';
+import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
+import InteractionEditor from './interactions/InteractionEditor';
+import InteractionsList from './interactions/InteractionsList';
+import { QuizInteractionEditor } from './interactions/QuizInteractionEditor';
+import { TextInteractionEditor } from './interactions/TextInteractionEditor';
+import { LiquidColorSelector } from './ui/LiquidColorSelector';
 
 // Unified interfaces without device-specific distinctions
 interface UnifiedPropertiesPanelProps {

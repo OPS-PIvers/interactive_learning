@@ -1,4 +1,3 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   User, 
   signInWithEmailAndPassword, 
@@ -10,8 +9,8 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
-import { auth } from './firebaseConfig';
-import { firebaseManager } from './firebaseConfig';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth , firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
 
 interface AuthContextType {

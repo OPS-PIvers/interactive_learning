@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Project } from '../../shared/types';
 import QRCode from 'qrcode';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { firebaseAPI } from '../../lib/firebaseApi';
+import { Project } from '../../shared/types';
 import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
@@ -224,7 +224,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
       >
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-slate-700">
-          <div className="w-12 h-1.5 bg-slate-600 rounded-full mx-auto md:hidden"></div>
+          <div className="w-12 h-1.5 bg-slate-600 rounded-full mx-auto md:hidden" />
           <div className="flex items-center justify-between">
             <div className="text-center md:text-left">
               <h2 id="share-modal-title" className="text-xl font-semibold text-white mt-3 md:mt-0">Share Project</h2>
@@ -299,8 +299,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
               <label htmlFor="publish-toggle" className={`flex items-center ${isToggling ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                 <div className="relative">
                   <input type="checkbox" id="publish-toggle" className="sr-only" checked={isPublished} onChange={handlePublishToggle} disabled={isToggling} />
-                  <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`}></div>
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${isToggling ? 'bg-slate-500 opacity-50' : isPublished ? 'bg-purple-600' : 'bg-slate-600'}`} />
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-all ${isToggling ? 'opacity-50' : isPublished ? 'transform translate-x-6' : ''}`} />
                 </div>
                 <div className="hidden md:block ml-3 text-slate-300 text-sm font-medium">
                   {isToggling ? 'Updating...' : isPublished ? 'Published' : 'Private'}
@@ -324,7 +324,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
                       <div className="flex"><input ref={urlInputRef} type="text" value={shareUrl} onFocus={handleInputFocus} readOnly className="flex-1 bg-slate-700 border border-slate-600 rounded-l-md px-3 py-2 text-white text-sm" /><button onClick={() => copyToClipboard(shareUrl, 'URL')} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-md transition-colors text-sm">Copy</button></div>
                     </div>
                     <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="bg-slate-700 rounded-lg p-4"><h4 className="text-white font-medium mb-2">Preview</h4><div className="bg-slate-800 rounded-md p-3 text-sm text-slate-300"><div className="flex items-center space-x-2 mb-2"><div className="w-3 h-3 bg-red-500 rounded-full"></div><div className="w-3 h-3 bg-yellow-500 rounded-full"></div><div className="w-3 h-3 bg-green-500 rounded-full"></div><span className="text-slate-500 text-xs ml-2 truncate">{shareUrl}</span></div><div className="border-t border-slate-600 pt-2"><div className="text-purple-400 font-medium">{project?.title}</div><div className="text-slate-400 text-xs">{project?.description || 'Interactive Learning Module'}</div></div></div></div>
+                      <div className="bg-slate-700 rounded-lg p-4"><h4 className="text-white font-medium mb-2">Preview</h4><div className="bg-slate-800 rounded-md p-3 text-sm text-slate-300"><div className="flex items-center space-x-2 mb-2"><div className="w-3 h-3 bg-red-500 rounded-full" /><div className="w-3 h-3 bg-yellow-500 rounded-full" /><div className="w-3 h-3 bg-green-500 rounded-full" /><span className="text-slate-500 text-xs ml-2 truncate">{shareUrl}</span></div><div className="border-t border-slate-600 pt-2"><div className="text-purple-400 font-medium">{project?.title}</div><div className="text-slate-400 text-xs">{project?.description || 'Interactive Learning Module'}</div></div></div></div>
                       <div className="bg-slate-700 rounded-lg p-4"><h4 className="text-white font-medium mb-2">QR Code</h4><div className="flex flex-col items-center">{qrCodeDataUrl ? (<><img src={qrCodeDataUrl} alt="QR Code for sharing" className="rounded-lg border border-slate-600" /><p className="text-slate-400 text-xs mt-2 text-center">Scan with mobile device to open</p></>) : (<div className="w-48 h-48 bg-slate-800 rounded-lg flex items-center justify-center"><div className="text-slate-400 text-sm">Generating QR code...</div></div>)}</div></div>
                     </div>
                   </div>

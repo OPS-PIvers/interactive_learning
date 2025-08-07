@@ -1,15 +1,15 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
 import { vi, describe, test, expect, beforeEach, Mock } from 'vitest';
 import '@testing-library/jest-dom';
 
 import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
-import { SlideDeck } from '../../shared/slideTypes';
-import { AuthProvider, useAuth } from '../../lib/authContext';
-import { ToastProvider, useToast } from '../../client/hooks/useToast';
 import { useDeviceDetection } from '../../client/hooks/useDeviceDetection';
+import { ToastProvider, useToast } from '../../client/hooks/useToast';
+import { AuthProvider, useAuth } from '../../lib/authContext';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';
+import { SlideDeck } from '../../shared/slideTypes';
 
 // Mock dependencies
 vi.mock('../../lib/authContext', async () => {

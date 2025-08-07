@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ViewerFooterToolbar } from '../client/components/ViewerFooterToolbar';
 import { AuthContext } from '../lib/authContext';

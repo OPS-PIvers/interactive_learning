@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { HotspotData, HotspotSize } from '../../shared/types';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../shared/hotspotStylePresets';
+import { HotspotData, HotspotSize } from '../../shared/types';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
@@ -424,9 +424,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       aria-dropeffect={isEditing ? "move" : "none"}
     >
       <span className={dotClasses} style={getCustomStyles()} aria-hidden="true">
-        {isPulsing && <span className={timelinePulseClasses} aria-hidden="true"></span>}
+        {isPulsing && <span className={timelinePulseClasses} aria-hidden="true" />}
         {/* Inner dot for improved visibility/style, conditional rendering based on size or if mobile */}
-        <span className={innerDotClasses}></span>
+        <span className={innerDotClasses} />
       </span>
     </div>
   );

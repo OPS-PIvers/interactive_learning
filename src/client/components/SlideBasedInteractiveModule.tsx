@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
-import { InteractiveModuleState } from '../../shared/types';
 import { ViewerModes, EditorCallbacks } from '../../shared/interactiveTypes';
-import { SlideDeck } from '../../shared/slideTypes';
 import { migrateProjectToSlides, MigrationResult } from '../../shared/migrationUtils';
-import LoadingScreen from './shared/LoadingScreen';
+import { SlideDeck } from '../../shared/slideTypes';
+import { InteractiveModuleState } from '../../shared/types';
 import ErrorScreen from './shared/ErrorScreen';
+import LoadingScreen from './shared/LoadingScreen';
 import SlideBasedViewer from './SlideBasedViewer';
 
 // Lazy load the heavy editor component

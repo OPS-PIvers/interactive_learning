@@ -1,11 +1,11 @@
+import { auth } from '../../lib/firebaseConfig';
+import { appScriptProxy } from '../../lib/firebaseProxy';
 import { ImageTransformState, HotspotData } from '../../shared/types';
 // Enhanced upload handler for all devices
-import { appScriptProxy } from '../../lib/firebaseProxy';
 import { compressImage } from './imageCompression';
 import { generateThumbnail } from './imageUtils';
-import { retryWithBackoff, refreshAuthTokenIfNeeded, RetryContext } from './retryUtils';
 import { networkMonitor, waitForNetwork, NetworkState } from './networkMonitor';
-import { auth } from '../../lib/firebaseConfig';
+import { retryWithBackoff, refreshAuthTokenIfNeeded, RetryContext } from './retryUtils';
 
 // Error types for upload handling
 export interface UploadError {

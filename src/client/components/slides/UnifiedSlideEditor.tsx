@@ -7,34 +7,14 @@
  */
 
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { firebaseAPI } from '../../../lib/firebaseApi';
+import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
+import { MigrationResult } from '../../../shared/migrationUtils';
 import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType, SlideLayout } from '../../../shared/slideTypes';
 import { HotspotData, TimelineEventData } from '../../../shared/types';
-import { MigrationResult } from '../../../shared/migrationUtils';
-import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';
-import { ResponsiveCanvas } from './ResponsiveCanvas';
-import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
-import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { generateId } from '../../utils/generateId';
-import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
-import { firebaseAPI } from '../../../lib/firebaseApi';
-// Mobile toolbar hooks removed - functionality moved to responsive design
 import { ProjectThemeProvider } from '../../hooks/useProjectTheme';
-
-// Import responsive components and modals (to be created)
-import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
-import { ResponsiveHeader } from '../responsive/ResponsiveHeader';
-import { ResponsiveModal } from '../responsive/ResponsiveModal';
-
-// Mobile-specific components removed - functionality moved to ResponsiveToolbar
-
-// Import unified modal components
-import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
-import { ResponsiveBackgroundModal } from '../responsive/ResponsiveBackgroundModal';
-import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
-import { ResponsiveAspectRatioModal } from '../responsive/ResponsiveAspectRatioModal';
-
-// Import hotspot editor modal and bridge utilities
-import HotspotEditorModal from '../HotspotEditorModal';
+import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';
+import { generateId } from '../../utils/generateId';
 import { 
   slideElementToHotspotData, 
   hotspotDataToSlideElement, 
@@ -43,6 +23,26 @@ import {
   getHotspotsFromSlide,
   getCanvasDimensionsFromSlide 
 } from '../../utils/hotspotEditorBridge';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import { ResponsiveAspectRatioModal } from '../responsive/ResponsiveAspectRatioModal';
+import { ResponsiveBackgroundModal } from '../responsive/ResponsiveBackgroundModal';
+import { ResponsiveHeader } from '../responsive/ResponsiveHeader';
+import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
+import { ResponsiveCanvas } from './ResponsiveCanvas';
+import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
+// Mobile toolbar hooks removed - functionality moved to responsive design
+
+// Import responsive components and modals (to be created)
+import { ResponsiveModal } from '../responsive/ResponsiveModal';
+
+// Mobile-specific components removed - functionality moved to ResponsiveToolbar
+
+// Import unified modal components
+import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
+import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
+
+// Import hotspot editor modal and bridge utilities
+import HotspotEditorModal from '../HotspotEditorModal';
 
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;
@@ -181,7 +181,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       slides: slideDeck?.slides?.map((slide, index) => {
         if (index !== state.navigation.currentSlideIndex) return slide;
 
-        let updatedSlide = { ...slide, ...slideUpdates };
+        const updatedSlide = { ...slide, ...slideUpdates };
         for (const prop of propertiesToRemove) {
           delete (updatedSlide as any)[prop];
         }
