@@ -64,10 +64,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   tablet: { x: 80, y: 80, width: 40, height: 40 },
                   mobile: { x: 60, y: 60, width: 30, height: 30 }
                 },
-                style: {},
-                content: {},
                 interactions: [],
-                isVisible: true,
+                isVisible: true
               }
             ],
             transitions: [],
@@ -130,7 +128,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
           {
             id: 'slide-1',
             title: 'Original Slide',
-            backgroundImage: 'original.jpg',
+            backgroundMedia: { type: 'image', url: 'original.jpg' },
             elements: [],
             transitions: [],
             layout: {
@@ -141,7 +139,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
               scaling: 'fit',
               backgroundPosition: 'center center'
             }
-          } as InteractiveSlide
+          }
         ],
         metadata: {
           version: '2.0',
@@ -247,7 +245,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
           {
             id: 'slide-1',
             title: 'Test Slide',
-            backgroundImage: 'test.jpg',
+            backgroundMedia: { type: 'image', url: 'test.jpg' },
             elements: [],
             transitions: [],
             layout: {
@@ -258,7 +256,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
               scaling: 'fit',
               backgroundPosition: 'center center'
             }
-          } as InteractiveSlide
+          }
         ],
         metadata: {
           version: '2.0',
@@ -313,7 +311,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
           {
             id: 'slide-1',
             title: 'Test Slide',
-            backgroundImage: 'test.jpg',
+            backgroundMedia: { type: 'image', url: 'test.jpg' },
             elements: [
               {
                 id: 'element-1',
@@ -338,7 +336,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
               scaling: 'fit',
               backgroundPosition: 'center center'
             }
-          } as InteractiveSlide
+          }
         ],
         metadata: {
           version: '2.0',
@@ -403,7 +401,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
           {
             id: 'slide-1',
             title: 'Test Slide',
-            backgroundImage: 'test.jpg',
+            backgroundMedia: { type: 'image', url: 'test.jpg' },
             elements: [
               {
                 id: 'element-1',
@@ -428,7 +426,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
               scaling: 'fit',
               backgroundPosition: 'center center'
             }
-          } as InteractiveSlide
+          }
         ],
         metadata: {
           version: '2.0',
