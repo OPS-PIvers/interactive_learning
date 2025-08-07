@@ -48,10 +48,10 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
 
   const getSizeClass = (sizeType: string) => {
     switch (sizeType) {
-      case 'small': return styles.small;
-      case 'medium': return styles.medium;
-      case 'large': return styles.large;
-      default: return styles.medium;
+      case 'small': return styles['small'];
+      case 'medium': return styles['medium'];
+      case 'large': return styles['large'];
+      default: return styles['medium'];
     }
   };
 
@@ -78,14 +78,14 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
   }, [onColorChange, showLiquidAnimation]);
 
   return (
-    <div className={styles.liquidColorSelector}>
-      <div className={styles.colorGrid}>
+    <div className={styles['liquidColorSelector']}>
+      <div className={styles['colorGrid']}>
         {defaultColors.map((colorOption) => {
           const isSelected = selectedColor === colorOption.color;
           const isHovered = hoveredColor === colorOption.id;
           
           return (
-            <div key={colorOption.id} className={styles.colorOption}>
+            <div key={colorOption.id} className={styles['colorOption']}>
               {/* Main color button */}
               <button
                 onClick={(e) => {
@@ -95,10 +95,10 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 onMouseEnter={() => setHoveredColor(colorOption.id)}
                 onMouseLeave={() => setHoveredColor(null)}
                 className={`
-                  ${styles.colorButton}
+                  ${styles['colorButton']}
                   ${getSizeClass(size)}
-                  ${isSelected ? styles.selected : ''}
-                  ${isHovered ? styles.hovered : ''}
+                  ${isSelected ? styles['selected'] : ''}
+                  ${isHovered ? styles['hovered'] : ''}
                 `}
                 style={{
                   backgroundColor: colorOption.color,
@@ -112,7 +112,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 {/* Liquid selection indicator */}
                 {isSelected && showLiquidAnimation && (
                   <div 
-                    className={styles.liquidSelection}
+                    className={styles['liquidSelection']}
                     style={{
                       background: `radial-gradient(circle, ${colorOption.color}40 0%, ${colorOption.color}20 50%, transparent 100%)`
                     }}
@@ -120,13 +120,13 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 )}
 
                 {/* Inner glow */}
-                <div className={styles.innerGlow} />
+                <div className={styles['innerGlow']} />
 
                 {/* Selection checkmark */}
                 {isSelected && (
-                  <div className={styles.selectionIndicator}>
+                  <div className={styles['selectionIndicator']}>
                     <svg 
-                      className={styles.checkmark}
+                      className={styles['checkmark']}
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -144,7 +144,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                 {/* Ripple effect */}
                 {rippleEffect && rippleEffect.id === colorOption.id && (
                   <div 
-                    className={styles.rippleContainer}
+                    className={styles['rippleContainer']}
                     style={{
                       left: rippleEffect.x,
                       top: rippleEffect.y,
@@ -152,7 +152,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
                     }}
                   >
                     <div 
-                      className={styles.ripple}
+                      className={styles['ripple']}
                       style={{
                         backgroundColor: `${colorOption.color}60`,
                         boxShadow: `0 0 20px ${colorOption.color}40`
@@ -166,7 +166,7 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
               {/* Hover glow effect */}
               {isHovered && showLiquidAnimation && (
                 <div 
-                  className={styles.hoverGlow}
+                  className={styles['hoverGlow']}
                   style={{
                     background: `radial-gradient(circle, ${colorOption.color}30 0%, transparent 70%)`
                   }}
