@@ -200,8 +200,19 @@ describe('Slide Editing Workflow Tests', () => {
 
       // Verify the final saved state
       const savedDeck = mockOnSave.mock.calls[0][0] as SlideDeck;
-      expect(savedDeck.slides[0].elements).toHaveLength(1);
-      expect(savedDeck.slides[0].elements[0].type).toBe('hotspot');
+      expect(savedDeck.slides).toHaveLength(1);
+
+      const firstSlide = savedDeck.slides[0];
+      if (!firstSlide) {
+        throw new Error('First slide not found');
+      }
+
+      expect(firstSlide.elements).toHaveLength(1);
+      const firstElement = firstSlide.elements[0];
+      if (!firstElement) {
+        throw new Error('First element not found');
+      }
+      expect(firstElement.type).toBe('hotspot');
     });
 
     test('responsive positioning works across device types', () => {
@@ -354,7 +365,9 @@ describe('Slide Editing Workflow Tests', () => {
 
       // Remove elements (find the first remove button)
       const removeButtons = screen.getAllByText('Remove');
-      fireEvent.click(removeButtons[0]);
+      if (removeButtons[0]) {
+        fireEvent.click(removeButtons[0]);
+      }
       expect(screen.getByTestId('element-count')).toHaveTextContent('1');
     });
 
@@ -393,8 +406,13 @@ describe('Slide Editing Workflow Tests', () => {
               {selectedElement?.id || 'none'}
             </div>
             
-            <button 
-              onClick={() => setSelectedElement(elements[0])}
+            <button
+              onClick={() => {
+                const firstElement = elements[0];
+                if (firstElement) {
+                  setSelectedElement(firstElement);
+                }
+              }}
               data-testid="select-element"
             >
               Select Element

@@ -17,7 +17,7 @@ describe('slideDeckUtils', () => {
       expect(slideDeck.slides).toHaveLength(1);
       
       // Verify the default slide structure
-      const defaultSlide = slideDeck.slides[0];
+      const defaultSlide = slideDeck.slides[0]!;
       expect(defaultSlide.id).toBe('test-id-slide-1');
       expect(defaultSlide.title).toBe('Slide 1');
       expect(defaultSlide.elements).toEqual([]);
@@ -38,9 +38,9 @@ describe('slideDeckUtils', () => {
       const slideDeck1 = createDefaultSlideDeck('project-1', 'Project 1');
       const slideDeck2 = createDefaultSlideDeck('project-2', 'Project 2');
       
-      expect(slideDeck1.slides[0].id).toBe('project-1-slide-1');
-      expect(slideDeck2.slides[0].id).toBe('project-2-slide-1');
-      expect(slideDeck1.slides[0].id).not.toBe(slideDeck2.slides[0].id);
+      expect(slideDeck1.slides[0]!.id).toBe('project-1-slide-1');
+      expect(slideDeck2.slides[0]!.id).toBe('project-2-slide-1');
+      expect(slideDeck1.slides[0]!.id).not.toBe(slideDeck2.slides[0]!.id);
     });
 
     it('should have proper default settings and metadata', () => {
@@ -58,10 +58,10 @@ describe('slideDeckUtils', () => {
       });
       
       // Verify metadata
-      expect(slideDeck.metadata.version).toBe('1.0');
-      expect(slideDeck.metadata.isPublic).toBe(false);
-      expect(typeof slideDeck.metadata.created).toBe('number');
-      expect(typeof slideDeck.metadata.modified).toBe('number');
+      expect(slideDeck.metadata!.version).toBe('1.0');
+      expect(slideDeck.metadata!.isPublic).toBe(false);
+      expect(typeof slideDeck.metadata!.created).toBe('number');
+      expect(typeof slideDeck.metadata!.modified).toBe('number');
     });
   });
 });
