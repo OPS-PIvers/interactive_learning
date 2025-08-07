@@ -540,8 +540,4 @@ export interface ThemePresetDefinition {
 }
 
 // Migration from legacy format
-export interface LegacyMigrationMap {
-  hotspotToElement: (hotspot: HotspotData) => SlideElement;
-  eventToInteraction: (event: TimelineEventData) => ElementInteraction;
-  projectToSlideDeck: (project: Project) => SlideDeck;
-}
+// This interface has been moved to src/shared/migration.ts to avoid circular dependencies.

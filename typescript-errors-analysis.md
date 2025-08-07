@@ -61,13 +61,15 @@ These errors impact development workflow and could lead to runtime bugs but don'
 **Impact:** Interaction system type safety compromised
 **Development Impact:** Interaction features may have runtime errors
 
-#### `src/shared/slideTypes.ts` (3 errors)
+#### `src/shared/slideTypes.ts` (3 errors) - ✅ RESOLVED
 **Impact:** Core type definitions have issues
 **Development Impact:** Type safety compromised throughout application
+**Fix:** Resolved errors by moving the `LegacyMigrationMap` interface to `migration.ts` to break a circular dependency.
 
-#### `src/shared/migration.ts` (2 errors)
+#### `src/shared/migration.ts` (2 errors) - ✅ RESOLVED
 **Impact:** Data migration functionality broken
 **Development Impact:** Cannot upgrade user data safely
+**Fix:** Added the `LegacyMigrationMap` interface and imported the `Project` type, resolving all errors.
 
 ### ✅ Integration & Cross-Device (18 errors) - COMPLETE
 #### `src/client/utils/themeUtils.ts` (3 errors) - ✅ RESOLVED
