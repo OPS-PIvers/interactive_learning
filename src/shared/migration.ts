@@ -1,5 +1,5 @@
 // src/shared/migration.ts
-import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent } from './types';
+import { TimelineEventData, InteractionType, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
 import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
 import { generateId } from '../client/utils/generateId';
 
@@ -497,4 +497,11 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
   };
 
   return slideDeck;
+}
+
+// Migration from legacy format
+export interface LegacyMigrationMap {
+  hotspotToElement: (hotspot: HotspotData) => SlideElement;
+  eventToInteraction: (event: TimelineEventData) => ElementInteraction;
+  projectToSlideDeck: (project: Project) => SlideDeck;
 }
