@@ -113,7 +113,7 @@ export const useTouchGestures = (
   });
   const doubleTapTimeoutRef = useRef<number | null>(null);
   const touchEndTimeoutRef = useRef<number | null>(null);
-  const throttledTouchMoveRef = useRef<((e: React.TouchEvent<HTMLDivElement>) => void) & { cancel: () => void } | null>(null);
+  const throttledTouchMoveRef = useRef<{ cancel: () => void } | null>(null);
 
   // Add gesture cleanup function
   const cleanupGesture = useCallback((preserveEventState = false) => {
@@ -387,8 +387,8 @@ export const useTouchGestures = (
         }
 
         // Optimize transform calculation - avoid spread operator
-        const newTranslateX = gestureState.startTransform.translateX + deltaX;
-        const newTranslateY = gestureState.startTransform.translateY + deltaY;
+        const newTranslateX = gestureState.startTransform!.translateX + deltaX;
+        const newTranslateY = gestureState.startTransform!.translateY + deltaY;
 
         // Calculate pan velocity
         const currentTimestamp = Date.now();
@@ -522,7 +522,7 @@ export const useTouchGestures = (
       cancelAnimationFrame(gestureStateRef.current.moveAnimationId);
       gestureStateRef.current.moveAnimationId = null;
     }
-  } } as any;
+  } };
 
   const animateStep = useCallback(() => {
     const gestureState = gestureStateRef.current;
@@ -797,5 +797,5 @@ export const useTouchGestures = (
     isEventActive,
     // touchState can be exposed if needed by the component, though internal ref is often enough
     // touchState: gestureStateRef.current
-  };
+  } as TouchGestureHandlers;
 };

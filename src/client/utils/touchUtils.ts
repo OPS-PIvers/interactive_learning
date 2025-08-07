@@ -13,14 +13,14 @@ export const ELASTIC_MARGIN = 50; // pixels of allowed overflow
 export const ELASTIC_RESISTANCE = 0.3; // reduce overflow movement by 70%
 export const SPRING_BACK_DURATION = 300; // milliseconds for spring-back animation
 
-export const getTouchDistance = (touch1: React.Touch, touch2: React.Touch): number => {
+export const getTouchDistance = (touch1: Touch, touch2: Touch): number => {
   return Math.hypot(
     touch1.clientX - touch2.clientX,
     touch1.clientY - touch2.clientY
   );
 };
 
-export const getTouchCenter = (touch1: React.Touch, touch2: React.Touch): { x: number; y: number } => ({
+export const getTouchCenter = (touch1: Touch, touch2: Touch): { x: number; y: number } => ({
   x: (touch1.clientX + touch2.clientX) / 2,
   y: (touch1.clientY + touch2.clientY) / 2
 });
@@ -62,7 +62,6 @@ export const getValidatedTransform = (
   }
   
   return {
-    ...transform,
     scale,
     translateX,
     translateY,
@@ -103,7 +102,6 @@ export const getSpringBackTransform = (
   }
   
   return {
-    ...transform,
     scale,
     translateX,
     translateY,
