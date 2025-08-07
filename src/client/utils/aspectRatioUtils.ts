@@ -29,8 +29,11 @@ export interface CanvasDimensions {
  * @returns Object with width and height values
  */
 export function parseAspectRatio(ratio: string): AspectRatioDimensions {
+  if (!ratio) {
+    return { width: 16, height: 9 }; // Fallback to 16:9
+  }
   if (ratio.startsWith('custom:')) {
-    const customRatio = parseFloat(ratio.split(':')[1]);
+    const customRatio = parseFloat(ratio.split(':')[1] ?? '');
     if (isNaN(customRatio) || customRatio <= 0) {
       return { width: 16, height: 9 }; // Fallback to 16:9
     }
@@ -42,8 +45,8 @@ export function parseAspectRatio(ratio: string): AspectRatioDimensions {
     return { width: 16, height: 9 }; // Fallback to 16:9
   }
 
-  const width = parseInt(parts[0], 10);
-  const height = parseInt(parts[1], 10);
+  const width = parseInt(parts[0] ?? '', 10);
+  const height = parseInt(parts[1] ?? '', 10);
 
   if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
     return { width: 16, height: 9 }; // Fallback to 16:9
@@ -107,9 +110,10 @@ export function calculateCanvasDimensions(
 
   // For mobile, ensure we don't exceed available space
   if (isMobileLandscape || availableWidth <= 768) {
+    const isBrowser = typeof window !== 'undefined';
     // Mobile-specific maximum constraints
-    const maxMobileWidth = Math.min(availableWidth, window.innerWidth - 32);
-    const maxMobileHeight = Math.min(availableHeight, window.innerHeight - (isMobileLandscape ? 64 : 120));
+    const maxMobileWidth = isBrowser ? Math.min(availableWidth, window.innerWidth - 32) : availableWidth;
+    const maxMobileHeight = isBrowser ? Math.min(availableHeight, window.innerHeight - (isMobileLandscape ? 64 : 120)) : availableHeight;
     
     if (canvasWidth > maxMobileWidth) {
       canvasWidth = maxMobileWidth;
@@ -153,7 +157,7 @@ export function validateAspectRatio(ratio: string): boolean {
   }
 
   if (ratio.startsWith('custom:')) {
-    const customRatio = parseFloat(ratio.split(':')[1]);
+    const customRatio = parseFloat(ratio.split(':')[1] ?? '');
     return !isNaN(customRatio) && customRatio > 0 && customRatio <= 10;
   }
 
@@ -162,8 +166,8 @@ export function validateAspectRatio(ratio: string): boolean {
     return false;
   }
 
-  const width = parseInt(parts[0], 10);
-  const height = parseInt(parts[1], 10);
+  const width = parseInt(parts[0] ?? '', 10);
+  const height = parseInt(parts[1] ?? '', 10);
 
   return !isNaN(width) && !isNaN(height) && width > 0 && height > 0 && width <= 32 && height <= 32;
 }
@@ -249,7 +253,10 @@ export function getAspectRatioDisplayName(ratio: string): string {
   }
 
   if (ratio.startsWith('custom:')) {
-    const decimal = parseFloat(ratio.split(':')[1]);
+    const decimal = parseFloat(ratio.split(':')[1] ?? '');
+    if (isNaN(decimal)) {
+      return ratio;
+    }
     return `Custom ${decimal.toFixed(2)}:1`;
   }
 
