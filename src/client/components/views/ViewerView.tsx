@@ -39,14 +39,16 @@ const ViewerView: React.FC = () => {
       // Then load full details
       const details = await appScriptProxy.getProjectDetails(projectId) as InteractiveModuleState;
       
+      const backgroundImage = details.backgroundImage !== undefined ? details.backgroundImage : baseProject.interactiveData?.backgroundImage;
+      const imageFitMode = details.imageFitMode || baseProject.interactiveData?.imageFitMode;
       const fullProject: Project = {
         ...baseProject,
         interactiveData: {
-          ...baseProject.interactiveData,
+          ...(baseProject.interactiveData || {}),
           hotspots: details.hotspots || [],
           timelineEvents: details.timelineEvents || [],
-          backgroundImage: details.backgroundImage !== undefined ? details.backgroundImage : baseProject.interactiveData.backgroundImage,
-          imageFitMode: details.imageFitMode || baseProject.interactiveData.imageFitMode,
+          ...(backgroundImage && { backgroundImage }),
+          ...(imageFitMode && { imageFitMode }),
         }
       };
 
@@ -122,7 +124,7 @@ const ViewerView: React.FC = () => {
           projectName={project.title}
           projectId={project.id}
           onReloadRequest={handleReloadRequest}
-          isPublished={project.isPublished}
+          isPublished={project.isPublished || false}
           viewerModes={{
             explore: true,
             selfPaced: true,

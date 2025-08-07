@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Easing } from 'framer-motion';
-import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters } from '../../../shared/slideTypes';
+import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
 import { AnimatedElement } from '../animations/ElementAnimations';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
@@ -223,7 +223,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
           <AnimatedElement
             variant="zoom"
             className="zoom-effect"
-            style={zoomStyle}
+            style={zoomStyle as any}
             isVisible={isVisible}
           >
             <motion.div

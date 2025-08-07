@@ -8,6 +8,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { DeviceType } from '../../shared/slideTypes';
+import { useDeviceDetection } from './useDeviceDetection';
 
 /**
  * Navigation and slide management state
@@ -139,6 +140,7 @@ export interface UseUnifiedEditorStateReturn {
   computed: {
     hasActiveModal: boolean;
     canEdit: boolean;
+    effectiveDeviceType: DeviceType;
   };
 }
 
@@ -203,6 +205,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const [operations, setOperations] = useState<OperationState>(createDefaultOperationState);
   const [hotspotEditor, setHotspotEditor] = useState<HotspotEditorState>(createDefaultHotspotEditorState);
   const [interactionEditor, setInteractionEditor] = useState<InteractionEditorState>(createDefaultInteractionEditorState);
+  const { deviceType } = useDeviceDetection();
   
   // Computed values (device-agnostic)
   const computed = useMemo(() => {
@@ -211,12 +214,14 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       return typeof value === 'boolean' && value && index < 8; // First 8 are modal states
     }) || hotspotEditor.isOpen || interactionEditor.isOpen;
     const canEdit = !navigation.isPreviewMode && !operations.isSaving && !hasActiveModal;
+    const effectiveDeviceType = navigation.deviceTypeOverride || deviceType;
     
     return {
       hasActiveModal,
       canEdit,
+      effectiveDeviceType,
     };
-  }, [navigation.isPreviewMode, operations.isSaving, ui, hotspotEditor.isOpen, interactionEditor.isOpen]);
+  }, [navigation.isPreviewMode, navigation.deviceTypeOverride, deviceType, operations.isSaving, ui, hotspotEditor.isOpen, interactionEditor.isOpen]);
   
   // Navigation actions
   const setCurrentSlide = useCallback((index: number) => {

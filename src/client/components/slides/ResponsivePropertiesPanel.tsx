@@ -21,11 +21,11 @@ export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = 
       selectedElement={props.selectedElement}
       currentSlide={props.currentSlide}
       onElementUpdate={props.onElementUpdate}
-      onSlideUpdate={props.onSlideUpdate}
-      onDelete={props.onDelete}
-      onClose={props.onClose}
-      className={props.className}
-      style={props.style}
+      {...(props.onSlideUpdate && { onSlideUpdate: props.onSlideUpdate })}
+      {...(props.onDelete && { onDelete: props.onDelete })}
+      {...(props.onClose && { onClose: props.onClose })}
+      {...(props.className && { className: props.className })}
+      {...(props.style && { style: props.style })}
     />
   );
 };

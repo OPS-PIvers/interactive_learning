@@ -127,8 +127,10 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const handleStepChange = useCallback((stepIndex: number) => {
     if (stepIndex < 0 || stepIndex >= timelineSteps.length) return;
     
-    setCurrentStepIndex(stepIndex);
     const step = timelineSteps[stepIndex];
+    if (!step) return;
+
+    setCurrentStepIndex(stepIndex);
     
     // Notify parent of step change
     onStepChange(stepIndex);
@@ -150,11 +152,13 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
       
       if (nextStepIndex < timelineSteps.length) {
         const nextStep = timelineSteps[nextStepIndex];
-        const delay = (nextStep.timestamp - currentStep.timestamp) * 1000 / playbackSpeed;
-        
-        autoPlayTimerRef.current = setTimeout(() => {
-          handleStepChange(nextStepIndex);
-        }, Math.max(delay, 1000)); // Minimum 1 second between steps
+        if (currentStep && nextStep) {
+          const delay = (nextStep.timestamp - currentStep.timestamp) * 1000 / playbackSpeed;
+
+          autoPlayTimerRef.current = setTimeout(() => {
+            handleStepChange(nextStepIndex);
+          }, Math.max(delay, 1000)); // Minimum 1 second between steps
+        }
       } else {
         // End of timeline
         setIsPlaying(false);
@@ -346,7 +350,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
       </div>
       
       {/* Keyboard shortcuts help */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env['NODE_ENV'] === 'development' && (
         <div className="px-4 py-2 border-t border-slate-700 text-slate-500 text-xs">
           <div className="flex flex-wrap gap-4">
             <span>↑/K: Previous</span>
