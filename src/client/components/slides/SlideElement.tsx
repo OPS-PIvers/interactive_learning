@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition } from '../../../shared/slideTypes';
+import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
 
 interface SlideElementProps {
@@ -179,13 +179,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 /**
  * Get CSS animation classes based on animation configuration
  */
-interface AnimationStyle {
-  type: 'pulse' | 'none';
-  duration?: number;
-  iterationCount?: 'infinite' | number;
-}
-
-function getAnimationClasses(animation?: AnimationStyle): string {
+function getAnimationClasses(animation?: ElementAnimation): string {
   if (!animation || animation.type === 'none') {
     return '';
   }

@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType } from '../../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType, SlideLayout } from '../../../shared/slideTypes';
 import { HotspotData, TimelineEventData } from '../../../shared/types';
 import { MigrationResult } from '../../../shared/migrationUtils';
 import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';
@@ -324,19 +324,25 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       ? insertAfterIndex + 1 
       : state.navigation.currentSlideIndex + 1;
     
+    const newSlideLayout: SlideLayout = {
+      aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
+      scaling: 'fit',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
+    if (currentSlide?.layout?.containerWidth) {
+      newSlideLayout.containerWidth = currentSlide.layout.containerWidth;
+    }
+    if (currentSlide?.layout?.containerHeight) {
+      newSlideLayout.containerHeight = currentSlide.layout.containerHeight;
+    }
+
     const newSlide: InteractiveSlide = {
       id: generateId(),
       title: `Slide ${insertIndex + 1}`,
       elements: [],
       transitions: [],
-      layout: {
-        aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
-        containerWidth: currentSlide?.layout?.containerWidth || 1200,
-        containerHeight: currentSlide?.layout?.containerHeight || 800,
-        scaling: 'fit',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      },
+      layout: newSlideLayout,
     };
     
     const updatedSlides = [
@@ -436,11 +442,11 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   
   // Handle aspect ratio changes
   const handleAspectRatioChange = useCallback((slideIndex: number, aspectRatio: string) => {
-    if (slideIndex !== state.navigation.currentSlideIndex) return;
+    if (slideIndex !== state.navigation.currentSlideIndex || !currentSlide) return;
     
     handleSlideUpdate({ 
       layout: { 
-        ...currentSlide?.layout, 
+        ...currentSlide.layout,
         aspectRatio 
       } 
     });
@@ -524,7 +530,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           description: '',
           projectType: 'slide' as const,
           slideDeck,
-          theme: projectTheme,
+          ...(projectTheme && { theme: projectTheme }),
           createdBy: '', // Will be set by Firebase API
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -661,7 +667,6 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             <ResponsivePropertiesPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide ?? null}
-              deviceType={computed.effectiveDeviceType}
               onElementUpdate={handleElementUpdate}
               onSlideUpdate={handleSlideUpdate}
               onDelete={() => {

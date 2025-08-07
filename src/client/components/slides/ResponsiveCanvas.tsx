@@ -55,6 +55,14 @@ const DRAG_THRESHOLD_PIXELS = 60;
 const TAP_MAX_DURATION = 300;
 const DOUBLE_CLICK_DELAY = 300;
 
+// Default viewport bounds for initialization
+const DEFAULT_VIEWPORT_BOUNDS: ViewportBounds = {
+  width: 800,
+  height: 600,
+  contentWidth: 800,
+  contentHeight: 600,
+};
+
 // Helper function to create responsive position object
 const createResponsivePosition = (
   existingPosition: ResponsivePosition | undefined,
@@ -131,7 +139,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const [lastClickTime, setLastClickTime] = useState<number>(0);
   const [lastClickedElementId, setLastClickedElementId] = useState<string | null>(null);
   
-  const [viewportBounds, setViewportBounds] = useState<ViewportBounds | undefined>();
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds>(DEFAULT_VIEWPORT_BOUNDS);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   
   // Current slide and elements
@@ -219,11 +227,13 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   }, [selectedElementId, currentSlide]);
   
   // Calculate viewport bounds for touch constraints
-  const calculateViewportBounds = useCallback((): ViewportBounds | undefined => {
+  const calculateViewportBounds = useCallback((): ViewportBounds => {
     const slideArea = slideAreaRef.current;
     const canvasContainer = canvasContainerRef.current;
     
-    if (!slideArea || !canvasContainer) return undefined;
+    if (!slideArea || !canvasContainer) {
+      return { width: 0, height: 0, contentWidth: 0, contentHeight: 0 };
+    }
     
     const slideAreaRect = slideArea.getBoundingClientRect();
     const canvasRect = canvasContainer.getBoundingClientRect();
@@ -412,6 +422,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     if (!element) return;
     
     const touch = e.touches[0];
+    if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     
@@ -431,6 +442,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     if (!touchState.isTouching || !touchState.elementId) return;
     
     const touch = e.touches[0];
+    if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     
@@ -503,7 +515,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     const containerWidth = containerDimensions.width > 0 ? containerDimensions.width : 800;
     const containerHeight = containerDimensions.height > 0 ? containerDimensions.height : 600;
     
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.log('📏 Canvas dimension calculation:', {
         aspectRatio,
         containerWidth,
@@ -523,7 +535,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       false // Remove landscape-specific logic
     );
     
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.log('📐 Calculated canvas dimensions:', dimensions);
     }
     
@@ -661,10 +673,10 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
                 className={`absolute inset-0 ${Z_INDEX_TAILWIND.BASE}`}
                 style={{ 
                   backgroundColor: '#f3f4f6', // Light gray fallback to show div exists
-                  border: process.env.NODE_ENV === 'development' ? '2px solid red' : 'none' // Debug border
+                  border: process.env['NODE_ENV'] === 'development' ? '2px solid red' : 'none' // Debug border
                 }}
               >
-                {process.env.NODE_ENV === 'development' && (
+                {process.env['NODE_ENV'] === 'development' && (
                   <div className={`absolute top-2 left-2 bg-black/75 text-white text-xs p-1 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
                     BG: {currentSlide.backgroundMedia.type} | {currentSlide.backgroundMedia.url ? 'has URL' : 'no URL'}
                   </div>
@@ -707,7 +719,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
             )}
             
             {/* Debug info when no background media */}
-            {process.env.NODE_ENV === 'development' && !currentSlide?.backgroundMedia && (
+            {process.env['NODE_ENV'] === 'development' && !currentSlide?.backgroundMedia && (
               <div className={`absolute top-2 left-2 bg-yellow-500/75 text-black text-xs p-1 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
                 No background media
               </div>

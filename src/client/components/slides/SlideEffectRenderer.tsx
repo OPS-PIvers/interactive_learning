@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, Easing } from 'framer-motion';
-import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters } from '../../../shared/slideTypes';
+import { motion, AnimatePresence, Easing, MotionStyle } from 'framer-motion';
+import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
 import { AnimatedElement } from '../animations/ElementAnimations';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
@@ -194,7 +194,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
     const params = effect.parameters as ZoomParameters;
 
-    const zoomStyle: React.CSSProperties = {
+    const zoomStyle: MotionStyle = {
       position: 'fixed',
       inset: 0,
       zIndex: Z_INDEX.SELECTED_ELEMENTS,
@@ -202,7 +202,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       backgroundColor: 'rgba(0, 0, 0, 0.1)'
     };
 
-    const contentStyle: React.CSSProperties = {
+    const contentStyle: MotionStyle = {
       position: 'absolute',
       transformOrigin: 'center center',
       transform: `scale(${params.zoomLevel})`,

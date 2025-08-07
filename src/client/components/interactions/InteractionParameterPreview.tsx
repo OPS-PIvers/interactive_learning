@@ -6,14 +6,35 @@ interface InteractionParameterPreviewProps {
   event: TimelineEventData;
 }
 
-const ParameterItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => {
+const ParameterItem: React.FC<{ label: string; value: any }> = ({ label, value }) => {
   if (value === null || value === undefined || value === '') {
     return null;
   }
+
+  let displayValue: string;
+  if (typeof value === 'boolean') {
+    displayValue = value ? 'Yes' : 'No';
+  } else if (value instanceof File) {
+    displayValue = `File: ${value.name}`;
+  } else if (value instanceof Blob) {
+    displayValue = `Blob data (size: ${value.size} bytes)`;
+  } else if (Array.isArray(value)) {
+    displayValue = `[${value.length} items]`;
+  } else if (typeof value === 'object') {
+    try {
+      displayValue = JSON.stringify(value);
+      if (displayValue.length > 40) displayValue = `${displayValue.substring(0, 37)}...`;
+    } catch {
+      displayValue = '[Object]';
+    }
+  } else {
+    displayValue = String(value);
+  }
+
   return (
     <div className="text-xs text-gray-400">
       <span className="font-semibold text-gray-300">{label}: </span>
-      {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+      {displayValue}
     </div>
   );
 };
