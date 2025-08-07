@@ -73,7 +73,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         videoUrl: event.videoUrl || event.url || '',
         videoDisplayMode: 'modal' as const,
         videoShowControls: true,
-        videoPoster: event.poster,
+        ...(event.poster && { videoPoster: event.poster }),
         autoplay: event.autoplay || false,
         loop: event.loop || false,
       };
@@ -156,7 +156,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         youtubeVideoId,
         videoDisplayMode: event.videoDisplayMode || 'inline',
         videoShowControls: event.videoShowControls !== undefined ? event.videoShowControls : true,
-        videoPoster: event.videoPoster || event.poster,
+        ...((event.videoPoster || event.poster) && { videoPoster: event.videoPoster || event.poster }),
         autoplay: event.autoplay || false,
         loop: event.loop || false,
       };

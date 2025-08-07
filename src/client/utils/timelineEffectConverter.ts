@@ -106,7 +106,7 @@ function createSpotlightEffect(
       shape: 'circle' as const,
       intensity: 80,
       fadeEdges: true,
-      message: timelineEvent.message
+      ...(timelineEvent.message && { message: timelineEvent.message })
     },
     easing: 'easeInOut'
   };

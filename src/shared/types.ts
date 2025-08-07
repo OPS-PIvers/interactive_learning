@@ -142,7 +142,7 @@ export interface TimelineEventData {
   videoUrl?: string;
   videoFile?: File;
   videoBlob?: Blob;
-  youtubeVideoId?: string;
+  youtubeVideoId?: string | null;
   youtubeStartTime?: number | null;
   youtubeEndTime?: number | null;
   videoDisplayMode?: 'inline' | 'modal' | 'overlay';

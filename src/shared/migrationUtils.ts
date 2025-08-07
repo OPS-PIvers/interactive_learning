@@ -329,7 +329,7 @@ export function migrateProjectToSlides(
     id: 'slide_main',
     title: migrationOptions.defaultSlideTitle!,
     elements,
-    backgroundImage: moduleState.backgroundImage,
+    ...(moduleState.backgroundImage && { backgroundImage: moduleState.backgroundImage }),
     backgroundColor: '#0f172a', // slate-900 to match app theme
     transitions: [],
     layout: {

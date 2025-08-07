@@ -36,8 +36,8 @@ export const captureMedia = async (options: MediaCaptureOptions): Promise<File |
     }
 
     input.onchange = async () => {
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0];
+      const file = input.files?.[0];
+      if (file) {
         try {
           const compressedFile = await compressImage(file, {
             maxSizeMB: 1,
