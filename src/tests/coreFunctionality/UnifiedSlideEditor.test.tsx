@@ -126,10 +126,15 @@ describe('UnifiedSlideEditor', () => {
     renderEditor();
     // The project name might be rendered in multiple places in the responsive header
     const projectTitles = screen.getAllByText('Unified Editor Test');
-    expect(projectTitles.length).toBeGreaterThan(0);
-    projectTitles.forEach(title => {
-      expect(title).toBeInTheDocument();
-    });
+    expect(projectTitles).toBeDefined();
+    if (projectTitles) {
+        expect(projectTitles.length).toBeGreaterThan(0);
+        projectTitles.forEach(title => {
+            if (title) {
+                expect(title).toBeInTheDocument();
+            }
+        });
+    }
   });
 
   test('adds a new element when "Add Text" is clicked', async () => {
@@ -148,9 +153,11 @@ describe('UnifiedSlideEditor', () => {
       expect(onSlideDeckChange).toHaveBeenCalled();
     });
 
-    const updatedDeck = onSlideDeckChange.mock.calls[0][0] as SlideDeck;
-    expect(updatedDeck.slides[0].elements).toHaveLength(1);
-    expect(updatedDeck.slides[0].elements[0].type).toBe('text');
+    const updatedDeck = onSlideDeckChange.mock.calls[0]?.[0] as SlideDeck;
+    if (updatedDeck) {
+        expect(updatedDeck.slides[0]!.elements).toHaveLength(1);
+        expect(updatedDeck.slides[0]!.elements[0]!.type).toBe('text');
+    }
   });
 
   test('adds a new slide', async () => {
@@ -169,8 +176,10 @@ describe('UnifiedSlideEditor', () => {
         expect(onSlideDeckChange).toHaveBeenCalled();
     });
 
-    const updatedDeck = onSlideDeckChange.mock.calls[0][0] as SlideDeck;
-    expect(updatedDeck.slides).toHaveLength(2);
+    const updatedDeck = onSlideDeckChange.mock.calls[0]?.[0] as SlideDeck;
+    if (updatedDeck) {
+        expect(updatedDeck.slides!).toHaveLength(2);
+    }
   });
 
   test('saves the project when save button is clicked', async () => {

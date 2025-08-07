@@ -199,7 +199,7 @@ describe('Slide Editing Workflow Tests', () => {
       });
 
       // Verify the final saved state
-      const savedDeck = mockOnSave.mock.calls[0][0] as SlideDeck;
+      const savedDeck = mockOnSave.mock.calls[0]?.[0] as SlideDeck;
       expect(savedDeck.slides).toHaveLength(1);
 
       const firstSlide = savedDeck.slides[0];
