@@ -114,7 +114,8 @@ const useScreenReaderAnnouncements = () => {
       return null;
     };
 
-    announcePolitelyRef.current = debounce((message: string) => {
+    announcePolitelyRef.current = debounce((...args: unknown[]) => {
+      const message = args[0] as string;
       // console.log(`Announcing politely: ${message}`);
       updatePoliteRegion(message);
     }, 200); // Debounce time for polite announcements

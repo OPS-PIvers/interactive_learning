@@ -143,7 +143,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       if (!event.videoSource && videoUrl) {
         if (extractYouTubeVideoId(videoUrl)) {
           videoSource = 'youtube';
-          youtubeVideoId = extractYouTubeVideoId(videoUrl) || undefined;
+          youtubeVideoId = extractYouTubeVideoId(videoUrl) || null;
         } else {
           videoSource = 'url';
         }

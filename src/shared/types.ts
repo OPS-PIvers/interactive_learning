@@ -338,7 +338,7 @@ export const extractYouTubeVideoId = (input: string): string | null => {
 
   for (const pattern of patterns) {
     const match = input.match(pattern);
-    if (match) return match[1];
+    if (match) return match[1] || null;
   }
   return null;
 };
