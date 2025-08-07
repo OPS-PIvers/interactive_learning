@@ -38,6 +38,7 @@ const mockAuth = {
     logout: vi.fn(),
     resetPassword: vi.fn(),
     switchAccount: vi.fn(),
+    firebaseInitialized: true,
   };
 
   // Test wrapper component that provides the mock auth context
@@ -170,7 +171,9 @@ const mockAuth = {
         renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} />);
         const dotButtons = screen.getAllByRole('button', { name: /Go to slide/i });
         expect(dotButtons).toHaveLength(3);
-        fireEvent.click(dotButtons[2]);
+        if (dotButtons[2]) {
+          fireEvent.click(dotButtons[2]);
+        }
         expect(mockOnSlideSelect).toHaveBeenCalledWith('3');
       });
 

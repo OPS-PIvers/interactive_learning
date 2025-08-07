@@ -329,9 +329,9 @@ describe('TypeScript Integration Tests', () => {
 
       // Verify that the complex structure compiles and has expected properties
       expect(complexSlideDeck.slides).toHaveLength(1);
-      expect(complexSlideDeck.slides[0].elements).toHaveLength(1);
-      expect(complexSlideDeck.slides[0].elements[0].interactions).toHaveLength(1);
-      expect(complexSlideDeck.slides[0].transitions).toHaveLength(1);
+      expect(complexSlideDeck.slides[0]!.elements).toHaveLength(1);
+      expect(complexSlideDeck.slides[0]!.elements[0]!.interactions).toHaveLength(1);
+      expect(complexSlideDeck.slides[0]!.transitions).toHaveLength(1);
     });
 
     test('type narrowing works correctly for element types', () => {
@@ -354,7 +354,7 @@ describe('TypeScript Integration Tests', () => {
         expect(element.content.textContent).toBe('Test text');
       }
 
-      if (element.type === 'hotspot') {
+      if (element?.type === 'hotspot') {
         // This should not execute, but should not cause compilation errors
         expect(element.content.title).toBeDefined();
       }

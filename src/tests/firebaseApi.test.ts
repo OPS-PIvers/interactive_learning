@@ -64,6 +64,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   tablet: { x: 80, y: 80, width: 40, height: 40 },
                   mobile: { x: 60, y: 60, width: 30, height: 30 }
                 },
+                content: { textContent: 'Hotspot' },
+                style: { backgroundColor: 'transparent' },
                 interactions: [],
                 isVisible: true
               }
@@ -111,12 +113,12 @@ describe('FirebaseAPI - Slide Architecture', () => {
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
       expect(transaction.update).toHaveBeenCalled();
-      const savedData = transaction.update.mock.calls[0][1];
+      const savedData = transaction.update.mock.calls[0]?.[1];
 
       // Verify slide deck structure
-      expect(savedData.slideDeck.title).toBe('Test Slide Deck');
-      expect(savedData.slideDeck.description).toBe('A test slide deck for Firebase testing');
-      expect(savedData.slideDeck.slides).toBeDefined();
+      expect(savedData?.slideDeck.title).toBe('Test Slide Deck');
+      expect(savedData?.slideDeck.description).toBe('A test slide deck for Firebase testing');
+      expect(savedData?.slideDeck.slides).toBeDefined();
     });
 
     it('should handle slide deck updates correctly', async () => {
@@ -172,14 +174,15 @@ describe('FirebaseAPI - Slide Architecture', () => {
         await updateFunction(transaction);
       });
 
-      const updatedDeck = {
+      const updatedDeck: SlideDeck = {
         ...existingSlideDeck,
         title: 'Updated Deck Title',
         slides: [
           {
-            ...existingSlideDeck.slides[0],
+            ...(existingSlideDeck.slides[0] as InteractiveSlide),
             id: 'slide-1',
-            title: 'Updated Slide Title'
+            title: 'Updated Slide Title',
+            elements: [],
           }
         ]
       };
@@ -187,9 +190,9 @@ describe('FirebaseAPI - Slide Architecture', () => {
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
       expect(transaction.update).toHaveBeenCalled();
-      const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.title).toBe('Updated Deck Title');
-      expect(savedData.slideDeck.slides[0].title).toBe('Updated Slide Title');
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      expect(savedData?.slideDeck.title).toBe('Updated Deck Title');
+      expect(savedData?.slideDeck.slides[0].title).toBe('Updated Slide Title');
     });
 
     it('should preserve metadata timestamps on updates', async () => {
@@ -228,10 +231,10 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.metadata.created).toBeDefined();
-      expect(savedData.updatedAt).toBeDefined();
-      expect(savedData.slideDeck.metadata.version).toBe('2.0');
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      expect(savedData?.slideDeck.metadata.created).toBeDefined();
+      expect(savedData?.updatedAt).toBeDefined();
+      expect(savedData?.slideDeck.metadata.version).toBe('2.0');
     });
   });
 
@@ -370,26 +373,32 @@ describe('FirebaseAPI - Slide Architecture', () => {
       });
 
       // Update element content
-      const updatedDeck = {
+      const updatedDeck: SlideDeck = {
         ...slideDeck,
         slides: [
           {
-            ...slideDeck.slides[0],
+            ...(slideDeck.slides[0] as InteractiveSlide),
             id: 'slide-1',
             elements: [
               {
-                ...slideDeck.slides[0].elements[0],
-                content: { textContent: 'Updated text' }
-              }
-            ]
-          }
-        ]
+                ...(slideDeck.slides[0] as InteractiveSlide).elements[0],
+                id: 'element-1',
+                type: 'text',
+                position: (slideDeck.slides[0] as InteractiveSlide).elements[0].position,
+                content: { textContent: 'Updated text' },
+                interactions: [],
+                style: {},
+                isVisible: true,
+              },
+            ],
+          },
+        ],
       };
 
       await firebaseAPI.saveSlideDeck('test-user', updatedDeck);
 
-      const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.slides[0].elements[0].content.textContent).toBe('Updated text');
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      expect(savedData!.slideDeck.slides[0]!.elements[0]!.content!.textContent).toBe('Updated text');
     });
 
     it('should handle responsive positioning in elements', async () => {
@@ -458,13 +467,13 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.update.mock.calls[0][1];
-      const element = savedData.slideDeck.slides[0].elements[0];
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      const element = savedData?.slideDeck.slides[0].elements[0];
       
       // Verify responsive positioning is preserved
-      expect(element.position.desktop).toEqual({ x: 100, y: 100, width: 200, height: 150 });
-      expect(element.position.tablet).toEqual({ x: 80, y: 80, width: 160, height: 120 });
-      expect(element.position.mobile).toEqual({ x: 60, y: 60, width: 120, height: 90 });
+      expect(element?.position.desktop).toEqual({ x: 100, y: 100, width: 200, height: 150 });
+      expect(element?.position.tablet).toEqual({ x: 80, y: 80, width: 160, height: 120 });
+      expect(element?.position.mobile).toEqual({ x: 60, y: 60, width: 120, height: 90 });
     });
   });
 
@@ -505,8 +514,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', slideDeck);
 
-      const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.metadata.version).toBe('2.0');
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      expect(savedData?.slideDeck.metadata.version).toBe('2.0');
     });
 
     it('should handle empty slide decks', async () => {
@@ -545,9 +554,9 @@ describe('FirebaseAPI - Slide Architecture', () => {
 
       await firebaseAPI.saveSlideDeck('test-user', emptySlideDeck);
 
-      const savedData = transaction.update.mock.calls[0][1];
-      expect(savedData.slideDeck.slides).toEqual([]);
-      expect(savedData.slideDeck.title).toBe('Empty Deck');
+      const savedData = transaction.update.mock.calls[0]?.[1];
+      expect(savedData?.slideDeck.slides).toEqual([]);
+      expect(savedData?.slideDeck.title).toBe('Empty Deck');
     });
   });
 });

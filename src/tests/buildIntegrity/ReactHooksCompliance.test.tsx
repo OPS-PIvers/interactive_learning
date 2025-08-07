@@ -155,8 +155,8 @@ describe('React Hooks Compliance Tests', () => {
 
       // Should not cause errors when called multiple times
       expect(() => {
-        result.current.showToast('Test message', 'success');
-        result.current.showToast('Another message', 'error');
+        result.current.showToast({ title: 'Test message', type: 'success' });
+        result.current.showToast({ title: 'Another message', type: 'error' });
       }).not.toThrow();
     });
   });
