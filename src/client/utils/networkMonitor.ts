@@ -275,7 +275,14 @@ export function createNetworkSubscription(
  */
 export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    let timeout: NodeJS.Timeout;
+    
+    const cleanup = () => {
+      clearTimeout(timeout);
+      networkMonitor.stopMonitoring();
+    };
+
+    timeout = setTimeout(() => {
       cleanup();
       reject(new Error('Network wait timeout'));
     }, maxWaitMs);
@@ -285,11 +292,6 @@ export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState>
         cleanup();
         resolve(networkMonitor.getCurrentState()!);
       }
-    };
-
-    const cleanup = () => {
-      clearTimeout(timeout);
-      networkMonitor.stopMonitoring();
     };
 
     // Start monitoring and check immediately
