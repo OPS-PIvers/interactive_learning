@@ -328,7 +328,7 @@ const MainApp: React.FC = () => {
       setSelectedProject(updatedProject as Project);
       
       // Use a small delay to ensure React state has propagated before saving
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise<void>(resolve => { setTimeout(resolve, 50); });
       
       await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
     } catch (err: any) {

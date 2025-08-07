@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import QuizOverlay from './QuizOverlay';
@@ -48,7 +48,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const lastTriggerTimeRef = useRef<number>(-1);
 
   // Quiz trigger detection logic
-  const checkForQuizTriggers = (currentTime: number) => {
+  const checkForQuizTriggers = useCallback((currentTime: number) => {
     const triggerToFire = quizTriggers.find(trigger => {
       const isTimeToTrigger = currentTime >= trigger.timestamp && 
                              currentTime < trigger.timestamp + 0.5;
@@ -69,7 +69,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setIsQuizActive(true);
       onQuizTrigger?.(triggerToFire);
     }
-  };
+  }, [quizTriggers, completedQuizzes, onQuizTrigger]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -113,7 +113,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, [quizTriggers, completedQuizzes, isQuizActive]);
+  }, [quizTriggers, completedQuizzes, isQuizActive, checkForQuizTriggers]);
 
   const togglePlay = () => {
     if (audioRef.current) {
