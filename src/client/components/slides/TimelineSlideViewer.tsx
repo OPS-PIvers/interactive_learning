@@ -85,7 +85,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         if (element.interactions && element.interactions.length > 0) {
           element.interactions.forEach((interaction) => {
             // Create timeline event data for the converter
-            const effectParams = interaction.effect?.parameters as any;
+            const effectParams = interaction.effect?.parameters as EffectParameters;
             const timelineEventData: TimelineEventData = {
               id: `${element.id}-${interaction.id}`,
               step: stepCounter,
