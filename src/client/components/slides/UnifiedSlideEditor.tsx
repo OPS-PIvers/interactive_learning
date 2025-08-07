@@ -324,7 +324,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       ? insertAfterIndex + 1 
       : state.navigation.currentSlideIndex + 1;
     
-    const newSlideLayout: import('../../../shared/slideTypes').SlideLayout = {
+    const newSlideLayout: SlideLayout = {
       aspectRatio: currentSlide?.layout?.aspectRatio || '16:9',
       scaling: 'fit',
       backgroundSize: 'cover',
