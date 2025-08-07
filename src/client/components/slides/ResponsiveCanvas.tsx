@@ -131,7 +131,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const [lastClickTime, setLastClickTime] = useState<number>(0);
   const [lastClickedElementId, setLastClickedElementId] = useState<string | null>(null);
   
-  const [viewportBounds, setViewportBounds] = useState<ViewportBounds>({ width: 0, height: 0, contentWidth: 0, contentHeight: 0 });
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds>(DEFAULT_VIEWPORT_BOUNDS);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   
   // Current slide and elements
