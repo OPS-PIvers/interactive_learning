@@ -504,7 +504,7 @@ export function createOptimizedUploadHandler(
       onProgress: (status) => debugLog('Image', 'Upload progress', { status }),
       onComplete: (imageUrl, thumbnailUrl) => {
         setBackgroundImage(imageUrl);
-        setImageTransform({ scale: 1, translateX: 0, translateY: 0, targetHotspotId: undefined });
+        setImageTransform({ scale: 1, translateX: 0, translateY: 0 });
         setEditingZoom(1);
         setImageLoading(false);
         

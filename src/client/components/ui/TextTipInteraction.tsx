@@ -300,8 +300,8 @@ export const TextTipManager: React.FC<TextTipManagerProps> = ({
           text={tip.text}
           position={tip.position}
           isVisible={tip.isVisible}
-          variant={tip.variant}
-          autoHideDelay={tip.autoHideDelay}
+          {...(tip.variant && { variant: tip.variant })}
+          {...(tip.autoHideDelay && { autoHideDelay: tip.autoHideDelay })}
           onClose={() => onCloseTip(tip.id)}
           theme={theme}
         />

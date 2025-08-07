@@ -203,7 +203,7 @@ class DatabaseHealthMonitor {
       // Validate hotspot data integrity
       const invalidHotspots = hotspotsSnap.docs.filter(doc => {
         const data = doc.data();
-        return !data.id || data.x === undefined || data.y === undefined;
+        return !data['id'] || data['x'] === undefined || data['y'] === undefined;
       });
 
       if (invalidHotspots.length > 0) {
@@ -230,7 +230,7 @@ class DatabaseHealthMonitor {
       // Validate event data integrity
       const invalidEvents = eventsSnap.docs.filter(doc => {
         const data = doc.data();
-        return !data.id || data.step === undefined || !data.type;
+        return !data['id'] || data['step'] === undefined || !data['type'];
       });
 
       if (invalidEvents.length > 0) {
@@ -397,10 +397,10 @@ class DatabaseHealthMonitor {
     }
 
     // Extract metrics from checks
-    const totalProjects = checks.find(c => c.checkType === 'system_metrics')?.metrics?.totalProjects || 0;
+    const totalProjects = checks.find(c => c.checkType === 'system_metrics')?.metrics?.['totalProjects'] || 0;
     const orphanedHotspots = 0; // Would be calculated from orphan detection checks
     const orphanedEvents = 0; // Would be calculated from orphan detection checks
-    const inconsistentProjects = checks.find(c => c.checkType === 'data_consistency')?.metrics?.inconsistentProjects || 0;
+    const inconsistentProjects = checks.find(c => c.checkType === 'data_consistency')?.metrics?.['inconsistentProjects'] || 0;
 
     // Generate recommendations
     const recommendations: string[] = [];

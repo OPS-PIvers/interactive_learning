@@ -48,20 +48,26 @@ export class DataMigration {
     }
     
     // Ensure we have a valid InteractiveModuleState structure
+    const backgroundVideoType = (data['backgroundVideoType'] as any) === 'mp4' || (data['backgroundVideoType'] as any) === 'youtube'
+        ? data['backgroundVideoType'] as 'mp4' | 'youtube'
+        : null;
+
+    const imageFitMode = ['cover', 'contain', 'fill'].includes(data['imageFitMode'] as any)
+        ? data['imageFitMode'] as 'cover' | 'contain' | 'fill'
+        : null;
+
+    const viewerModes = typeof data['viewerModes'] === 'object' && data['viewerModes'] !== null
+        ? data['viewerModes'] as InteractiveModuleState['viewerModes']
+        : null;
+
     const migratedData: InteractiveModuleState = {
       hotspots: Array.isArray(data['hotspots']) ? data['hotspots'] as HotspotData[] : [],
       timelineEvents: data['timelineEvents'].map(this.convertLegacyEvent),
       ...(typeof data['backgroundImage'] === 'string' && { backgroundImage: data['backgroundImage'] }),
       backgroundType: (data['backgroundType'] as any) === 'video' ? 'video' : 'image',
-      backgroundVideoType: (data['backgroundVideoType'] as any) === 'mp4' || (data['backgroundVideoType'] as any) === 'youtube'
-        ? data['backgroundVideoType'] as 'mp4' | 'youtube'
-        : undefined,
-      imageFitMode: ['cover', 'contain', 'fill'].includes(data['imageFitMode'] as any)
-        ? data['imageFitMode'] as 'cover' | 'contain' | 'fill'
-        : undefined,
-      viewerModes: typeof data['viewerModes'] === 'object' && data['viewerModes'] !== null
-        ? data['viewerModes'] as InteractiveModuleState['viewerModes']
-        : undefined
+      ...(backgroundVideoType && { backgroundVideoType }),
+      ...(imageFitMode && { imageFitMode }),
+      ...(viewerModes && { viewerModes })
     };
     
     return migratedData;

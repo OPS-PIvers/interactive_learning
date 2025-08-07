@@ -58,19 +58,34 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
   const handleColorSelect = useCallback((colorOption: ColorOption, event: React.MouseEvent | React.TouchEvent) => {
     console.log('🎨 LiquidColorSelector: handleColorSelect called with color:', colorOption.color);
     console.log('🎨 LiquidColorSelector: onColorChange callback exists:', !!onColorChange);
-    
+
     // Create ripple effect
     if (showLiquidAnimation) {
       const rect = event.currentTarget.getBoundingClientRect();
-      const x = 'touches' in event 
-        ? event.touches?.[0]?.clientX - rect.left
-        : (event as React.MouseEvent).clientX - rect.left;
-      const y = 'touches' in event
-        ? event.touches?.[0]?.clientY - rect.top
-        : (event as React.MouseEvent).clientY - rect.top;
+      let clientX, clientY;
+
+      if ('touches' in event) {
+        // Use optional chaining and nullish coalescing to safely get a touch point.
+        // This handles cases where `touches` is empty (like in touchend events),
+        // falling back to `changedTouches`.
+        const touch = event.touches?.[0] ?? event.changedTouches?.[0];
+        if (touch) {
+          clientX = touch.clientX;
+          clientY = touch.clientY;
+        }
+      } else {
+        // Fallback to mouse event coordinates.
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
       
-      setRippleEffect({ id: colorOption.id, x, y });
-      setTimeout(() => setRippleEffect(null), 600);
+      // Only create ripple if we have valid coordinates to prevent errors.
+      if (clientX !== undefined && clientY !== undefined) {
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        setRippleEffect({ id: colorOption.id, x, y });
+        setTimeout(() => setRippleEffect(null), 600);
+      }
     }
 
     console.log('🎨 LiquidColorSelector: Calling onColorChange with:', colorOption.color);
