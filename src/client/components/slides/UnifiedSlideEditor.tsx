@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType } from '../../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement, ThemePreset, BackgroundMedia, DeviceType, SlideLayout } from '../../../shared/slideTypes';
 import { HotspotData, TimelineEventData } from '../../../shared/types';
 import { MigrationResult } from '../../../shared/migrationUtils';
 import { useUnifiedEditorState } from '../../hooks/useUnifiedEditorState';

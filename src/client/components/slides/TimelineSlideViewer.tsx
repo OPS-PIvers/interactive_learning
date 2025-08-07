@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
+import { SlideDeck, SlideViewerState, SlideEffect, EffectParameters } from '../../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
@@ -85,7 +85,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         if (element.interactions && element.interactions.length > 0) {
           element.interactions.forEach((interaction) => {
             // Create timeline event data for the converter
-            const effectParams = interaction.effect?.parameters as EffectParameters;
+            const effectParams = interaction.effect?.parameters as any; // Type assertion to avoid union type access issues
             const timelineEventData: TimelineEventData = {
               id: `${element.id}-${interaction.id}`,
               step: stepCounter,

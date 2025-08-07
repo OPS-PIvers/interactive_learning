@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition } from '../../../shared/slideTypes';
+import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
 
 interface SlideElementProps {

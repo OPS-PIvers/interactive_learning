@@ -55,6 +55,14 @@ const DRAG_THRESHOLD_PIXELS = 60;
 const TAP_MAX_DURATION = 300;
 const DOUBLE_CLICK_DELAY = 300;
 
+// Default viewport bounds for initialization
+const DEFAULT_VIEWPORT_BOUNDS: ViewportBounds = {
+  width: 800,
+  height: 600,
+  contentWidth: 800,
+  contentHeight: 600,
+};
+
 // Helper function to create responsive position object
 const createResponsivePosition = (
   existingPosition: ResponsivePosition | undefined,
