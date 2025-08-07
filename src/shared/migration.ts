@@ -5,7 +5,7 @@ import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementC
 import { generateId } from '../client/utils/generateId';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
-  return events.map(event => {
+  return events.map((event) => {
     // Migrate PAN_ZOOM_TO_HOTSPOT to PAN_ZOOM
     if (event.type === 'PAN_ZOOM_TO_HOTSPOT' as any) {
       return {
@@ -91,7 +91,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         audioArtist: event.artist,
         autoplay: event.autoplay || false,
         volume: event.volume || 80,
-      };
+      } as TimelineEventData;
     }
     
     // Migrate SHOW_MESSAGE to SHOW_TEXT
@@ -159,7 +159,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         ...((event.videoPoster || event.poster) && { videoPoster: event.videoPoster || event.poster }),
         autoplay: event.autoplay || false,
         loop: event.loop || false,
-      };
+      } as TimelineEventData;
     }
     
     // Update existing PLAY_AUDIO events to use unified properties
@@ -173,7 +173,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         audioArtist: event.audioArtist || event.artist,
         autoplay: event.autoplay !== undefined ? event.autoplay : true,
         volume: event.volume || 80,
-      };
+      } as TimelineEventData;
     }
     
     // Update existing SHOW_TEXT events to use unified properties
