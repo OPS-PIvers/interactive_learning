@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAnimationControls } from 'framer-motion';
+import { useAnimationControls, AnimationDefinition } from 'framer-motion';
 
 export interface AnimationSequence {
   id: string;
@@ -43,6 +43,7 @@ export const useSlideAnimations = () => {
 
     for (let i = 0; i < sequences.length; i++) {
       const sequence = sequences[i];
+      if (!sequence) continue;
       
       setAnimationState(prev => ({
         ...prev,
@@ -181,7 +182,7 @@ export const useElementAnimation = (elementId: string) => {
     setIsAnimating(false);
   }, [controls]);
 
-  const animate = useCallback(async (animation: AnimationSequence) => {
+  const animate = useCallback(async (animation: AnimationDefinition) => {
     setIsAnimating(true);
     await controls.start(animation);
     setIsAnimating(false);
@@ -212,6 +213,7 @@ export const useSequencedAnimations = () => {
     
     for (let i = 0; i < elementIds.length; i++) {
       const elementId = elementIds[i];
+      if (!elementId) continue;
       
       setActiveElements(prev => new Set([...prev, elementId]));
       setSequenceProgress(((i + 1) / elementIds.length) * 100);
