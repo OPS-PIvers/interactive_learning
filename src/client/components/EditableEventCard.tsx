@@ -10,6 +10,8 @@ import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { GearIcon } from './icons/GearIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ArrowUpIcon } from './icons/ArrowUpIcon';
+import { ArrowDownIcon } from './icons/ArrowDownIcon';
 // import EventTypeSelector from './EventTypeSelector';
 import InteractionParameterPreview from './interactions/InteractionParameterPreview';
 interface EditableEventCardProps {
@@ -26,6 +28,11 @@ interface EditableEventCardProps {
   isActive?: boolean;
   onJumpToStep?: (step: number) => void;
   className?: string;
+  // New props for timeline control
+  onMoveUp?: (eventId: string) => void;
+  onMoveDown?: (eventId: string) => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
@@ -68,7 +75,11 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   allHotspots,
   isActive = false,
   onJumpToStep,
-  className = ''
+  className = '',
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(event.name || '');
@@ -181,6 +192,40 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
           >
             {isPreviewing ? ( <EyeSlashIcon className="w-5 h-5" /> ) : ( <EyeIcon className="w-5 h-5" /> )}
           </button>
+          
+          {/* Timeline ordering controls */}
+          {onMoveUp && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onMoveUp(event.id); }}
+              disabled={!canMoveUp}
+              className={`p-1.5 rounded-md transition-colors ${
+                canMoveUp 
+                  ? 'text-slate-400 hover:text-green-400 hover:bg-slate-700 dark:text-slate-500 dark:hover:text-green-500 dark:hover:bg-slate-800' 
+                  : 'text-slate-600 cursor-not-allowed dark:text-slate-700'
+              }`}
+              aria-label="Move Up"
+              title="Move event up in timeline"
+            >
+              <ArrowUpIcon className="w-4 h-4" />
+            </button>
+          )}
+          
+          {onMoveDown && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onMoveDown(event.id); }}
+              disabled={!canMoveDown}
+              className={`p-1.5 rounded-md transition-colors ${
+                canMoveDown 
+                  ? 'text-slate-400 hover:text-green-400 hover:bg-slate-700 dark:text-slate-500 dark:hover:text-green-500 dark:hover:bg-slate-800' 
+                  : 'text-slate-600 cursor-not-allowed dark:text-slate-700'
+              }`}
+              aria-label="Move Down"
+              title="Move event down in timeline"
+            >
+              <ArrowDownIcon className="w-4 h-4" />
+            </button>
+          )}
+          
           <button
             onClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }}
             className="p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-700 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-colors"
