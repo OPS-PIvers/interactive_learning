@@ -148,19 +148,29 @@ export const useTouchGestures = (
   }, []);
 
   const handlePinchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2) {
-      initialPinchDistanceRef.current = getTouchDistance(e.touches[0], e.touches[1]);
-      isPinchingRef.current = true;
-      triggerHapticFeedback('light');
+    const touches = e.nativeEvent.touches;
+    if (touches.length === 2) {
+      const touch1 = touches.item(0);
+      const touch2 = touches.item(1);
+      if (touch1 && touch2) {
+        initialPinchDistanceRef.current = getTouchDistance(touch1, touch2);
+        isPinchingRef.current = true;
+        triggerHapticFeedback('light');
+      }
     }
   };
 
   const handlePinchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && isPinchingRef.current) {
-      const newDistance = getTouchDistance(e.touches[0], e.touches[1]);
-      const scale = newDistance / initialPinchDistanceRef.current;
-      setImageTransform(prev => ({ ...prev, scale: prev.scale * scale }));
-      initialPinchDistanceRef.current = newDistance;
+    const touches = e.nativeEvent.touches;
+    if (touches.length === 2 && isPinchingRef.current) {
+      const touch1 = touches.item(0);
+      const touch2 = touches.item(1);
+      if (touch1 && touch2) {
+        const newDistance = getTouchDistance(touch1, touch2);
+        const scale = newDistance / initialPinchDistanceRef.current;
+        setImageTransform(prev => ({ ...prev, scale: prev.scale * scale }));
+        initialPinchDistanceRef.current = newDistance;
+      }
     }
   };
 
@@ -213,12 +223,13 @@ export const useTouchGestures = (
       return;
     }
     
-    const touches = e.touches;
+    const touches = e.nativeEvent.touches;
     const touchCount = touches.length;
     const now = Date.now();
 
     if (touchCount === 1) {
-      const touch = touches[0];
+      const touch = touches.item(0);
+      if (!touch) return;
       
       // Double tap detection - optimize with early return
       const timeSinceLastTap = now - gestureState.lastTap;
@@ -302,8 +313,9 @@ export const useTouchGestures = (
       // Mark gesture as active immediately to prevent race conditions
       gestureState.isActive = true;
       // Cache values for performance
-      const touch1 = touches[0];
-      const touch2 = touches[1];
+      const touch1 = touches.item(0);
+      const touch2 = touches.item(1);
+      if (!touch1 || !touch2) return;
       gestureState.startDistance = getTouchDistance(touch1, touch2);
       gestureState.startCenter = getTouchCenter(touch1, touch2);
       gestureState.startTransform = { ...imageTransform }; // Current image transform
@@ -357,12 +369,13 @@ export const useTouchGestures = (
       return;
     }
     
-    const touches = e.touches;
+    const touches = e.nativeEvent.touches;
     const touchCount = touches.length;
 
     if (touchCount === 1 && gestureState.panStartCoords && gestureState.startTransform) {
       // Single-finger pan - optimize coordinate access
-      const touch = touches[0];
+      const touch = touches.item(0);
+      if (!touch) return;
       const deltaX = touch.clientX - gestureState.panStartCoords.x;
       const deltaY = touch.clientY - gestureState.panStartCoords.y;
 
@@ -449,8 +462,9 @@ export const useTouchGestures = (
         e.preventDefault();
       }
 
-      const touch1 = touches[0];
-      const touch2 = touches[1];
+      const touch1 = touches.item(0);
+      const touch2 = touches.item(1);
+      if (!touch1 || !touch2) return;
       const currentDistance = getTouchDistance(touch1, touch2);
       const scaleChange = currentDistance / gestureState.startDistance;
       const newScale = gestureState.startTransform.scale * scaleChange;
@@ -687,7 +701,7 @@ export const useTouchGestures = (
     }
 
     // Atomically clean up gesture state
-    const remainingTouches = e.touches.length;
+    const remainingTouches = e.nativeEvent.touches.length;
     
     // Reset gesture state efficiently - batch updates
     gestureState.startDistance = null;
