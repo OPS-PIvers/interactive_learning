@@ -176,8 +176,6 @@ export const SlideElement: React.FC<SlideElementProps> = ({
   );
 };
 
-import { ElementAnimation } from '../../../shared/slideTypes';
-
 /**
  * Get CSS animation classes based on animation configuration
  */
