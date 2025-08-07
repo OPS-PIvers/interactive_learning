@@ -237,7 +237,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       id: `effect_${event.id}`,
       type: mapInteractionTypeToEffectType(event.type),
       duration: event.duration || 3000,
-      parameters: {} as Partial<EffectParameters>,
+      parameters: {} as EffectParameters,
     },
   };
 
@@ -356,7 +356,7 @@ export function getCanvasDimensionsFromSlide(
   
   // Parse aspect ratio
   const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
-  const ratio = widthRatio / heightRatio;
+  const ratio = widthRatio! / heightRatio!;
   
   // Calculate canvas dimensions maintaining aspect ratio
   let canvasWidth = containerDimensions.width;

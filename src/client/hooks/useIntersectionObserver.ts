@@ -25,7 +25,10 @@ export const useIntersectionObserver = (
     }
 
     observer.current = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+
         const isElementIntersecting = entry.isIntersecting;
         setIsIntersecting(isElementIntersecting);
         
@@ -34,7 +37,7 @@ export const useIntersectionObserver = (
         }
       },
       {
-        root: options.root,
+        root: options.root ?? null,
         rootMargin: options.rootMargin || '0px',
         threshold: options.threshold || 0,
       }

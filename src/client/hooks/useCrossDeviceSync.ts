@@ -15,8 +15,8 @@ const isSyncData = (data: unknown): data is SyncData => {
   return (
     typeof data === 'object' &&
     data !== null &&
-    typeof data.position === 'number' &&
-    typeof data.lastUpdated === 'number'
+    typeof (data as any).position === 'number' &&
+    typeof (data as any).lastUpdated === 'number'
   );
 };
 
