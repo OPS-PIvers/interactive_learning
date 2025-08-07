@@ -85,11 +85,13 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
     
     for (let i = 0; i < touches.length; i++) {
       const touch = touches[i];
-      points.push({
-        id: touch.identifier,
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-      });
+      if (touch) {
+        points.push({
+          id: touch.identifier,
+          x: touch.clientX - rect.left,
+          y: touch.clientY - rect.top
+        });
+      }
     }
     
     return points;
@@ -120,18 +122,20 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       onGestureStart?.('tap');
     } else if (touchPoints.length === 2 && enableZoom) {
       // Two touches - pinch zoom
-      const distance = calculateDistance(touchPoints[0], touchPoints[1]);
-      
-      setGestureState(prev => ({
-        ...prev,
-        isActive: true,
-        gestureType: 'pinch',
-        touches: touchPoints,
-        initialDistance: distance,
-        initialPanOffset: { ...prev.panOffset }
-      }));
-      
-      onGestureStart?.('pinch');
+      if (touchPoints[0] && touchPoints[1]) {
+        const distance = calculateDistance(touchPoints[0], touchPoints[1]);
+        
+        setGestureState(prev => ({
+          ...prev,
+          isActive: true,
+          gestureType: 'pinch',
+          touches: touchPoints,
+          initialDistance: distance,
+          initialPanOffset: { ...prev.panOffset }
+        }));
+        
+        onGestureStart?.('pinch');
+      }
     }
   }, [isolateTouch, getTouchPoints, calculateDistance, enableZoom, onGestureStart]);
 
@@ -152,7 +156,7 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       const touch = touchPoints[0];
       const initialTouch = gestureState.touches[0];
       
-      if (initialTouch) {
+      if (touch && initialTouch) {
         const deltaX = touch.x - initialTouch.x;
         const deltaY = touch.y - initialTouch.y;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -173,7 +177,7 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       const touch = touchPoints[0];
       const initialTouch = gestureState.touches[0];
       
-      if (initialTouch) {
+      if (touch && initialTouch) {
         const deltaX = touch.x - initialTouch.x;
         const deltaY = touch.y - initialTouch.y;
         
@@ -192,26 +196,28 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       }
     } else if (gestureState.gestureType === 'pinch' && touchPoints.length === 2 && enableZoom) {
       // Handle pinch zoom
-      const currentDistance = calculateDistance(touchPoints[0], touchPoints[1]);
-      const initialDistance = gestureState.initialDistance;
-      
-      if (initialDistance && initialDistance > 0) {
-        const scaleChange = currentDistance / initialDistance;
-        const newScale = Math.max(minScale, Math.min(maxScale, gestureState.currentScale * scaleChange));
+      if (touchPoints[0] && touchPoints[1]) {
+        const currentDistance = calculateDistance(touchPoints[0], touchPoints[1]);
+        const initialDistance = gestureState.initialDistance;
         
-        // Calculate zoom center
-        const center = calculateCenter(touchPoints[0], touchPoints[1]);
-        const containerRect = container.getBoundingClientRect();
-        const centerX = (center.x / containerRect.width) * 100;
-        const centerY = (center.y / containerRect.height) * 100;
-        
-        setGestureState(prev => ({
-          ...prev,
-          currentScale: newScale,
-          touches: touchPoints
-        }));
-        
-        onPinchZoom?.(newScale, centerX, centerY);
+        if (initialDistance && initialDistance > 0) {
+          const scaleChange = currentDistance / initialDistance;
+          const newScale = Math.max(minScale, Math.min(maxScale, gestureState.currentScale * scaleChange));
+          
+          // Calculate zoom center
+          const center = calculateCenter(touchPoints[0], touchPoints[1]);
+          const containerRect = container.getBoundingClientRect();
+          const centerX = (center.x / containerRect.width) * 100;
+          const centerY = (center.y / containerRect.height) * 100;
+          
+          setGestureState(prev => ({
+            ...prev,
+            currentScale: newScale,
+            touches: touchPoints
+          }));
+          
+          onPinchZoom?.(newScale, centerX, centerY);
+        }
       }
     }
   }, [
@@ -244,7 +250,9 @@ export const TouchContainer: React.FC<TouchContainerProps> = ({
       if (gestureState.gestureType === 'tap' && gestureState.touches.length === 1) {
         // Handle tap
         const touch = gestureState.touches[0];
-        onTap?.(touch.x, touch.y);
+        if (touch) {
+          onTap?.(touch.x, touch.y);
+        }
       }
       
       setGestureState(prev => {

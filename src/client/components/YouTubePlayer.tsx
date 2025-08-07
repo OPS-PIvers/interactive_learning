@@ -35,7 +35,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
     for (const pattern of patterns) {
       const match = input.match(pattern);
-      if (match) {
+      if (match && match[1]) {
         return match[1];
       }
     }

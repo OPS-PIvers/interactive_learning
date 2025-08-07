@@ -78,7 +78,7 @@ export const SlideTransition: React.FC<SlideTransitionProps> = ({
   transition = 'default',
   className = ''
 }) => {
-  const variants = slideTransitionVariants[variant];
+  const variants = slideTransitionVariants[variant] || {};
   const transitionProps = transitionConfig[transition];
 
   return (

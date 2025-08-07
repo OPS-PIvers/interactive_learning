@@ -118,8 +118,8 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             onClose={onClose}
             projectName={selectedProject.title}
             projectId={selectedProject.id}
-            onReloadRequest={onReloadRequest}
-            isPublished={isPublished}
+            {...(onReloadRequest && { onReloadRequest })}
+            {...(isPublished !== undefined && { isPublished })}
             viewerModes={{
               explore: true,
               selfPaced: true,

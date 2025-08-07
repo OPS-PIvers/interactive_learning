@@ -374,7 +374,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   onFocusRequest={onFocusHotspot}
                   onEditRequest={onEditHotspotRequest}
                   onPositionChange={onHotspotPositionChange}
-                  onDragStateChange={onDragStateChange}
+                  {...(onDragStateChange && { onDragStateChange })}
                   isContinuouslyPulsing={false} // Assuming this is for viewer mode, not editor
                   dragContainerRef={zoomedImageContainerRef} // Pass the ref here
                 />

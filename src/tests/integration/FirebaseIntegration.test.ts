@@ -4,6 +4,7 @@ import { firebaseManager } from '../../lib/firebaseConfig';
 import { DataSanitizer } from '../../lib/dataSanitizer';
 import { Project } from '../../shared/types';
 import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { signInAnonymously, signOut } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
@@ -96,7 +97,7 @@ describe.skip('Firebase Integration Tests', () => {
             {
               id: 'test-event-1',
               step: 1,
-              type: 'SPOTLIGHT',
+              type: InteractionType.SPOTLIGHT,
               name: 'Test Event',
               spotlightX: 150,
               spotlightY: 250,
@@ -115,8 +116,8 @@ describe.skip('Firebase Integration Tests', () => {
       const projectDetails = await firebaseAPI.getProjectDetails(savedProject.id);
       expect(projectDetails.hotspots).toHaveLength(1);
       expect(projectDetails.timelineEvents).toHaveLength(1);
-      expect(projectDetails.hotspots![0].title).toBe('Test Hotspot');
-      expect(projectDetails.timelineEvents![0].name).toBe('Test Event');
+      expect(projectDetails.hotspots?.[0]?.title).toBe('Test Hotspot');
+      expect(projectDetails.timelineEvents?.[0]?.name).toBe('Test Event');
       
       // Step 4: List projects and verify it appears
       const projects = await firebaseAPI.listProjects();
@@ -249,7 +250,7 @@ describe.skip('Firebase Integration Tests', () => {
             {
               id: 'event-1',
               step: 1,
-              type: 'SPOTLIGHT',
+              type: InteractionType.SPOTLIGHT,
               name: 'Event 1',
               spotlightX: 150,
               spotlightY: 150,
@@ -270,9 +271,9 @@ describe.skip('Firebase Integration Tests', () => {
       // Verify data is properly stored in subcollections
       expect(details.hotspots).toHaveLength(2);
       expect(details.timelineEvents).toHaveLength(1);
-      expect(details.hotspots![0].title).toBe('Test Hotspot 1');
-      expect(details.hotspots![1].title).toBe('Test Hotspot 2');
-      expect(details.timelineEvents![0].name).toBe('Event 1');
+      expect(details.hotspots?.[0]?.title).toBe('Test Hotspot 1');
+      expect(details.hotspots?.[1]?.title).toBe('Test Hotspot 2');
+      expect(details.timelineEvents?.[0]?.name).toBe('Event 1');
       
       // Verify interactiveData doesn't contain subcollection data
       expect(details.backgroundImage).toBe('test-bg.jpg');
@@ -361,7 +362,7 @@ describe.skip('Firebase Integration Tests', () => {
       // Verify the final state
       const finalDetails = await firebaseAPI.getProjectDetails(project.id);
       expect(finalDetails.hotspots).toHaveLength(1);
-      expect(finalDetails.hotspots![0].title).toBe('User 2 Hotspot');
+      expect(finalDetails.hotspots?.[0]?.title).toBe('User 2 Hotspot');
       
       // Clean up
       await firebaseAPI.deleteProject(project.id);

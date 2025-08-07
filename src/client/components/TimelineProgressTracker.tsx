@@ -145,7 +145,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
         isPlaying: false
       }));
 
-      if (targetStep.slideIndex !== currentSlideIndex) {
+      if (targetStep && targetStep.slideIndex !== currentSlideIndex) {
         onSlideChange(targetStep.slideIndex);
       }
     }

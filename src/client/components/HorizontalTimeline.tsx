@@ -45,6 +45,12 @@ interface TimelineStepData {
 const TimelineStep = ({ index, style, data }: { index: number, style: React.CSSProperties, data: TimelineStepData }) => {
   const { uniqueSortedSteps, currentStep, timelineEvents, hotspots, handleStepClick, getStepTooltip, showPreviews } = data;
   const step = uniqueSortedSteps[index];
+  
+  // Early return if step is undefined
+  if (step === undefined) {
+    return null;
+  }
+  
   const isActive = step === currentStep;
   const isCompleted = uniqueSortedSteps.findIndex(s => s === currentStep) > index;
   const stepEvents = timelineEvents.filter((event: TimelineEventData) => event.step === step && event.targetId);
@@ -150,16 +156,22 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   }, [currentStepIndex, isMobile]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartXRef.current = e.targetTouches[0].clientX;
-    touchEndXRef.current = e.targetTouches[0].clientX;
-    touchStartYRef.current = e.targetTouches[0].clientY;
+    const touch = e.targetTouches[0];
+    if (touch) {
+      touchStartXRef.current = touch.clientX;
+      touchEndXRef.current = touch.clientX;
+      touchStartYRef.current = touch.clientY;
+    }
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (touchStartXRef.current === null) {
       return;
     }
-    touchEndXRef.current = e.targetTouches[0].clientX;
+    const touch = e.targetTouches[0];
+    if (touch) {
+      touchEndXRef.current = touch.clientX;
+    }
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
@@ -168,7 +180,10 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     }
 
     const deltaX = touchEndXRef.current - touchStartXRef.current;
-    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartYRef.current);
+    const changedTouch = e.changedTouches[0];
+    if (!changedTouch) return;
+    
+    const deltaY = Math.abs(changedTouch.clientY - touchStartYRef.current);
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < VERTICAL_SWIPE_THRESHOLD) {
       if (deltaX > 0) {

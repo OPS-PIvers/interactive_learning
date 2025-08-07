@@ -49,8 +49,8 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
   }, []);
 
   const throttledUpdate = useMemo(() => {
-    return throttle((updatedEvent: TimelineEventData) => {
-      onUpdate(updatedEvent);
+    return throttle((updatedEvent: unknown) => {
+      onUpdate(updatedEvent as TimelineEventData);
     }, 50); // Throttle to 50ms
   }, [onUpdate]);
 

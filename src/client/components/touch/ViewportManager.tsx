@@ -74,10 +74,12 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
   // Parse aspect ratio
   const parseAspectRatio = useCallback((ratio: string) => {
     const parts = ratio.split(':');
-    if (parts.length === 2) {
+    if (parts.length === 2 && parts[0] && parts[1]) {
       const width = parseFloat(parts[0]);
       const height = parseFloat(parts[1]);
-      return width / height;
+      if (!isNaN(width) && !isNaN(height) && height !== 0) {
+        return width / height;
+      }
     }
     return 16 / 9; // Default to 16:9
   }, []);
@@ -117,7 +119,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
 
     // Constrain scale within limits
     return Math.max(minScale, Math.min(maxScale, scale));
-  }, [isMobile, enableAutoScale, parseAspectRatio, aspectRatio, landscapePadding, portraitPadding, minScale, maxScale]);
+  }, [enableAutoScale, parseAspectRatio, aspectRatio, landscapePadding, portraitPadding, minScale, maxScale]);
 
   // Get safe area insets (for devices with notches, etc.)
   const getSafeAreaInsets = useCallback(() => {
@@ -261,7 +263,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
       </div>
       
       {/* Debug info for development */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env['NODE_ENV'] === 'development' && (
         <div className={`fixed top-0 right-0 bg-black/80 text-white text-xs p-2 ${Z_INDEX_TAILWIND.DEBUG_OVERLAY} font-mono`}>
           <div>Viewport: {viewport.width}×{viewport.height}</div>
           <div>Orientation: {viewport.isLandscape ? 'Landscape' : 'Portrait'}</div>

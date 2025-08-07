@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, MotionStyle } from 'framer-motion';
 
 // Animation variants for slide elements
 export const elementAnimationVariants: Record<string, Variants> = {
@@ -173,7 +173,7 @@ interface AnimatedElementProps {
   variant?: keyof typeof elementAnimationVariants;
   microInteraction?: keyof typeof microInteractionVariants;
   className?: string;
-  style?: React.CSSProperties;
+  style?: MotionStyle;
   onClick?: () => void;
   isVisible?: boolean;
 }
@@ -240,7 +240,7 @@ export const StaggeredAnimation: React.FC<StaggeredAnimationProps> = ({
     }
   };
 
-  const itemVariants = elementAnimationVariants[variant];
+  const itemVariants = elementAnimationVariants[variant] || {};
 
   return (
     <motion.div

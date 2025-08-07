@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';
 import { Project } from '../../shared/types';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { signInAnonymously, signOut } from 'firebase/auth';
 import { collection, getDocs, deleteDoc } from 'firebase/firestore';
 
@@ -79,7 +80,7 @@ describe.skip('Concurrent Operations Integration Tests', () => {
               {
                 id: `event-${index + 1}`,
                 step: index + 1,
-                type: 'SPOTLIGHT',
+                type: InteractionType.SPOTLIGHT,
                 name: `Event ${index + 1}`,
                 spotlightX: 150 + index * 10,
                 spotlightY: 150 + index * 10,
@@ -146,8 +147,8 @@ describe.skip('Concurrent Operations Integration Tests', () => {
       // Verify final state has the expected number of hotspots from the last save
       const finalDetails = await firebaseAPI.getProjectDetails(project.id);
       expect(finalDetails.hotspots).toHaveLength(10);
-      expect(finalDetails.hotspots![0].title).toBe('Hotspot 1');
-      expect(finalDetails.hotspots![9].title).toBe('Hotspot 10');
+      expect(finalDetails.hotspots?.[0]?.title).toBe('Hotspot 1');
+      expect(finalDetails.hotspots?.[9]?.title).toBe('Hotspot 10');
       
       await firebaseAPI.deleteProject(project.id);
     });
@@ -415,19 +416,19 @@ describe.skip('Concurrent Operations Integration Tests', () => {
         y: Math.floor(index / 10) * 50 + 25,
         title: `Large Dataset Hotspot ${index + 1}`,
         description: `Part of large dataset test with index ${index + 1}`,
-        size: (['small', 'medium', 'large'] as const)[index % 3],
+        size: (['small', 'medium', 'large'] as const)[index % 3] as 'small' | 'medium' | 'large',
         displayHotspotInEvent: index % 2 === 0
       }));
       
       const largeEvents = Array.from({ length: 30 }, (_, index) => ({
         id: `large-event-${index + 1}`,
         step: index + 1,
-        type: 'SPOTLIGHT' as const,
+        type: InteractionType.SPOTLIGHT as const,
         name: `Large Dataset Event ${index + 1}`,
         spotlightX: (index % 6) * 80 + 40,
         spotlightY: Math.floor(index / 6) * 80 + 40,
         zoomLevel: 1.5 + (index % 3) * 0.5,
-        spotlightShape: (['circle', 'rectangle'] as const)[index % 2],
+        spotlightShape: (['circle', 'rectangle'] as const)[index % 2] as 'circle' | 'rectangle',
         backgroundDimPercentage: 60 + (index % 5) * 8
       }));
       
