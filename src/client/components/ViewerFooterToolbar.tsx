@@ -173,43 +173,43 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
       )}
 
       {/* Main Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 min-h-[64px] md:min-h-[56px]">
+      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 min-h-[56px] md:min-h-[64px]">
         {/* Left Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors duration-200 px-2 py-1 rounded hover:bg-slate-700/50"
             title="Back to projects"
             aria-label="Back to projects"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
-            <span className="hidden sm:inline font-medium">Back</span>
+            <ChevronLeftIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline font-medium text-sm">Back</span>
           </button>
         </div>
 
         {/* Center Section - Navigation */}
         {moduleState === 'learning' && (onPreviousSlide || onNextSlide || onPreviousStep || onNextStep) ? (
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
             <button
               onClick={onPreviousStep || onPreviousSlide}
               disabled={onPreviousStep ? !canGoPreviousStep : !canGoPrevious}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={onPreviousStep ? "Previous step" : "Previous slide"}
               title={onPreviousStep ? "Previous step" : "Previous slide"}
             >
               <ChevronLeftIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">Previous</span>
+              <span className="hidden sm:inline text-sm font-medium">Previous</span>
             </button>
             
             {/* Progress indicator */}
-            <div className="flex flex-col items-center gap-3" aria-live="polite">
+            <div className="flex flex-col items-center gap-1 sm:gap-2" aria-live="polite">
               {progressDots}
               <div className="text-center">
-                <div className="text-sm font-semibold text-white">
+                <div className="text-xs sm:text-sm font-semibold text-white">
                   {stepLabel || `Slide ${currentSlideIndex + 1} of ${totalSlides}`}
                 </div>
                 {currentStep && totalSteps && (
-                  <div className="text-xs text-slate-300">
+                  <div className="text-[10px] sm:text-xs text-slate-300">
                     Step {currentStep} of {totalSteps}
                   </div>
                 )}
@@ -219,21 +219,21 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             <button
               onClick={onNextStep || onNextSlide}
               disabled={onNextStep ? !canGoNextStep : !canGoNext}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={onNextStep ? "Next step" : "Next slide"}
               title={onNextStep ? "Next step" : "Next slide"}
             >
-              <span className="text-sm font-medium">Next</span>
+              <span className="hidden sm:inline text-sm font-medium">Next</span>
               <ChevronRightIcon className="w-4 h-4" />
             </button>
           </div>
         ) : moduleState === 'idle' ? (
-          <div className="flex items-center gap-4">
-            <div className="text-center px-3">
-              <div className="text-white font-semibold text-sm">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="text-center px-2 sm:px-3">
+              <div className="text-white font-semibold text-xs sm:text-sm">
                 {currentSlideIndex + 1}/{totalSlides}
               </div>
-              <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
+              <div className="text-slate-400 text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-48 md:max-w-64">
                 {projectName}
               </div>
             </div>
@@ -242,13 +242,13 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               <button
                 onClick={onStartExploring}
                 disabled={!hasContent}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed text-sm"
                 aria-label="Explore Mode"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span>Explore Mode</span>
+                <span className="hidden sm:inline">Explore</span>
               </button>
             )}
             
@@ -256,32 +256,32 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               <button
                 onClick={onStartLearning}
                 disabled={!hasContent}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed text-sm"
                 aria-label="Guided Tour"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M12 5.5V3a1 1 0 00-1-1H9a1 1 0 00-1 1v2.5" />
                 </svg>
-                <span>Guided Tour</span>
+                <span className="hidden sm:inline">Tour</span>
               </button>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onPreviousSlide}
               disabled={!canGoPrevious}
               className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               title="Previous Slide (←)"
             >
-              <ChevronLeftIcon className="w-4 h-4" />
+              <ChevronLeftIcon className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="text-center px-3">
-              <div className="text-white font-semibold text-sm">
+            <div className="text-center px-2 sm:px-3">
+              <div className="text-white font-semibold text-xs sm:text-sm">
                 {currentSlideIndex + 1}/{totalSlides}
               </div>
-              <div className="text-slate-400 text-xs truncate max-w-32 sm:max-w-48 md:max-w-64">
+              <div className="text-slate-400 text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-48 md:max-w-64">
                 {projectName}
               </div>
             </div>
@@ -292,27 +292,27 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               title="Next Slide (→)"
             >
-              <ChevronRightIcon className="w-4 h-4" />
+              <ChevronRightIcon className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Back to Menu button for exploring mode */}
             {showBackToMenuButton && (
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors text-sm"
                 aria-label="Back to Menu"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-                <span className="hidden sm:inline">Back to Menu</span>
+                <span className="hidden sm:inline">Menu</span>
               </button>
             )}
           </div>
         )}
 
         {/* Right Section */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={() => setShowShortcuts(true)}
             className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
