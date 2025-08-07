@@ -65,7 +65,7 @@ export const calculatePanZoomTransform = (
   }
   
   // Reduced logging to prevent console spam
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     console.log('[calculatePanZoomTransform] Processing event:', {
       eventId: event.id,
       coords: { targetX, targetY },
@@ -92,7 +92,7 @@ export const calculatePanZoomTransform = (
       targetPixelX = imageBounds.x + imageContentX;
       targetPixelY = imageBounds.y + imageContentY;
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env['NODE_ENV'] === 'development') {
         console.log('[calculatePanZoomTransform] Using EXACT hotspot positioning logic:', {
           percentageCoords: { targetX, targetY },
           imageBounds,
@@ -119,12 +119,15 @@ export const calculatePanZoomTransform = (
   const translateX = containerRect.width / 2 - targetPixelX * zoomLevel;
   const translateY = containerRect.height / 2 - targetPixelY * zoomLevel;
   
-  const result = {
+  const result: ImageTransformState = {
     scale: zoomLevel,
     translateX,
     translateY,
-    targetHotspotId: event.targetId,
   };
+
+  if (event.targetId) {
+    result.targetHotspotId = event.targetId;
+  }
   
   // Reduced logging to prevent console spam
 
@@ -163,7 +166,6 @@ export const createResetTransform = (): ImageTransformState => ({
   scale: 1,
   translateX: 0,
   translateY: 0,
-  targetHotspotId: undefined,
 });
 
 /**
