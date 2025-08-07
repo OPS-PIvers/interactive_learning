@@ -384,7 +384,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
                 ...(slideDeck.slides[0] as InteractiveSlide).elements[0],
                 id: 'element-1',
                 type: 'text',
-                position: (slideDeck.slides[0] as InteractiveSlide).elements[0].position,
+                position: (slideDeck.slides[0] as InteractiveSlide).elements[0]!.position,
                 content: { textContent: 'Updated text' },
                 interactions: [],
                 style: {},
