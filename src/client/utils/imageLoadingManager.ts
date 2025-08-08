@@ -106,7 +106,7 @@ class ImageLoadingManager {
         if (attempt < retryAttempts) {
           // Wait before retry with exponential backoff
           const delay = retryDelay * Math.pow(2, attempt);
-          await new Promise((resolve) => {setTimeout(resolve, delay);});
+          await new Promise(resolve => { setTimeout(resolve, delay); });
         }
       }
     }

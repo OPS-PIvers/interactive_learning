@@ -108,7 +108,7 @@ const HotspotEditorToolbar: React.FC<{
   </div>
 );
 
-const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
+const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   editorState,
   editorActions,
   selectedHotspot,
@@ -694,4 +694,4 @@ const EnhancedHotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
 };
 
-export default EnhancedHotspotEditorModal;
+export default HotspotEditorModal;
