@@ -264,7 +264,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     setIsTransforming,
     { viewportBounds }
   );
-
   // Element selection handlers
   const handleElementSelect = useCallback((elementId: string | null) => {
     if (onElementSelect) {
@@ -298,7 +297,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       setLastClickedElementId(elementId);
     }
   }, [isEditable, lastClickTime, lastClickedElementId, onHotspotDoubleClick, handleElementSelect]);
-
   // Element update handlers
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
     if (onElementUpdate) {
@@ -350,7 +348,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     // Note: Click handling moved to mouse up to allow dragging
     // Selection will be handled after determining if this is a click or drag
   }, [isEditable, currentSlide, deviceType]);
-
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragState.isDragging || !dragState.elementId) return;
 
@@ -534,7 +531,6 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
 
     return dimensions;
   }, [currentSlide, containerDimensions, deviceType]);
-
   // Render slide elements
   const renderElements = useCallback(() => {
     if (!currentSlide?.elements) return null;

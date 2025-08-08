@@ -44,6 +44,25 @@ interface TimelineSlideEvent {
  * primary navigation method, with each timeline step corresponding to slide
  * elements and their interactions.
  */
+// Helper function to map slide effect types to timeline event types
+const getTimelineEventType = (effectType: string): InteractionType => {
+  switch (effectType) {
+    case 'spotlight':
+      return InteractionType.SPOTLIGHT;
+    case 'pan_zoom':
+      return InteractionType.PAN_ZOOM;
+    case 'show_text':
+      return InteractionType.SHOW_TEXT;
+    case 'play_media':
+    case 'play_video':
+      return InteractionType.PLAY_VIDEO;
+    case 'play_audio':
+      return InteractionType.PLAY_AUDIO;
+    default:
+      return InteractionType.SPOTLIGHT; // Default fallback
+  }
+};
+
 export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   slideDeck,
   viewerMode,
@@ -123,26 +142,6 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
 
     return events;
   }, [slideDeck]);
-
-  // Helper function to map slide effect types to timeline event types
-  const getTimelineEventType = (effectType: string): InteractionType => {
-    switch (effectType) {
-      case 'spotlight':
-        return InteractionType.SPOTLIGHT;
-      case 'pan_zoom':
-        return InteractionType.PAN_ZOOM;
-      case 'show_text':
-        return InteractionType.SHOW_TEXT;
-      case 'play_media':
-      case 'play_video':
-        return InteractionType.PLAY_VIDEO;
-      case 'play_audio':
-        return InteractionType.PLAY_AUDIO;
-      default:
-        return InteractionType.SPOTLIGHT; // Default fallback
-    }
-  };
-
   // Create unique sorted steps for timeline
   const uniqueSortedSteps = useMemo(() => {
     return Array.from(new Set(timelineEvents.map((e) => e.step))).sort((a, b) => a - b);

@@ -312,6 +312,17 @@ describe('React Error Detection Tests', () => {
 
   describe('Integration Error Scenarios', () => {
     test('should handle complex component interactions without errors', async () => {
+      const ChildComponent = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
+        React.useEffect(() => {
+          // Simulate data loading
+          setTimeout(() => {
+            onDataChange('Child data loaded');
+          }, 100);
+        }, [onDataChange]);
+
+        return <div data-testid="child-component">Child</div>;
+      };
+
       const ParentComponent = () => {
         const [childData, setChildData] = React.useState(null);
         
@@ -325,17 +336,6 @@ describe('React Error Detection Tests', () => {
             {childData && <div data-testid="parent-data">{childData}</div>}
           </div>
         );
-      };
-      
-      const ChildComponent = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
-        React.useEffect(() => {
-          // Simulate data loading
-          setTimeout(() => {
-            onDataChange('Child data loaded');
-          }, 100);
-        }, [onDataChange]);
-        
-        return <div data-testid="child-component">Child</div>;
       };
 
       render(<ParentComponent />);

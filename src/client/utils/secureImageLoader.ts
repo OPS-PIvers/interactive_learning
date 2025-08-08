@@ -137,16 +137,6 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
         cleanupBlobUrl(secureUrl);
       }
     };
-  }, [url, options?.onLoad, options?.onError, options?.timeout, options?.crossOrigin]);
-
-  // Cleanup on unmount
-  React.useEffect(() => {
-    return () => {
-      if (secureUrl && secureUrl.startsWith('blob:')) {
-        cleanupBlobUrl(secureUrl);
-      }
-    };
-  }, [secureUrl]);
-
+  }, [url, options, secureUrl]);
   return { secureUrl, loading, error };
 }

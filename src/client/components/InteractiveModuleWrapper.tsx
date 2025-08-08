@@ -40,9 +40,10 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
 
   // Debounced save function to prevent excessive network requests
   const debouncedSave = useMemo(
-    () => debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
-      onSave(projectId, data, thumbnailUrl, slideDeck);
-    }, 1000), // 1 second delay
+    () =>
+      debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
+        onSave(projectId, data, thumbnailUrl, slideDeck);
+      }, 1000), // 1 second delay
     [onSave]
   );
 
@@ -62,12 +63,10 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
     // Use Fragment (full-screen) for unified responsive editing
     return Fragment;
   }, []);
-
   const wrapperProps = useMemo(() => {
     // No modal props needed - unified full-screen editing approach
     return {};
   }, []);
-
   return (
     <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
       <WrapperComponent {...wrapperProps}>

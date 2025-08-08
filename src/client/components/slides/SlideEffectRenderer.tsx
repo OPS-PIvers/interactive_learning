@@ -57,18 +57,6 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     };
   }, [containerRef, canvasDimensions]);
 
-  useEffect(() => {
-    if (effect.duration > 0) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onComplete, 300); // Fade out time
-      }, effect.duration);
-
-      return () => clearTimeout(timer);
-    }
-    return undefined; // Explicit return for else case
-  }, [effect.duration, onComplete]);
-
   // Render spotlight effect
   const renderSpotlightEffect = useCallback(() => {
     if (effect.type !== 'spotlight' || !slideCanvasInfo) return null;
@@ -139,7 +127,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
     return (
       <AnimatePresence>
-        {isVisible &&
+        {isVisible && (
         <AnimatedElement
           variant="spotlight"
           microInteraction="subtle"
@@ -162,7 +150,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
             
             {/* Message overlay */}
-            {params.message &&
+            {params.message && (
           <motion.div
             className={`absolute top-1/4 left-1/2 transform -translate-x-1/2 ${Z_INDEX_TAILWIND.SLIDE_CONTENT} pointer-events-none`}
             initial={{ opacity: 0, y: -20 }}
@@ -174,7 +162,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
                   {params.message}
                 </div>
               </motion.div>
-          }
+            )}
 
             {/* Click to continue */}
             <motion.div
@@ -187,10 +175,22 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
             transition={{ duration: 0.2 }} />
 
           </AnimatedElement>
-        }
-      </AnimatePresence>);
-
+        )}
+      </AnimatePresence>
+    );
   }, [effect, slideCanvasInfo, isVisible, onComplete]);
+
+  useEffect(() => {
+    if (effect.duration > 0) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setTimeout(onComplete, 300); // Fade out time
+      }, effect.duration);
+
+      return () => clearTimeout(timer);
+    }
+    return undefined; // Explicit return for else case
+  }, [effect.duration, onComplete]);
 
   // Render zoom effect
   const renderZoomEffect = () => {

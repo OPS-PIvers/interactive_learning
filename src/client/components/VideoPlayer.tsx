@@ -72,7 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setIsQuizActive(true);
       onQuizTrigger?.(triggerToFire);
     }
-  }, [quizTriggers, completedQuizzes, onQuizTrigger]);
+  }, [quizTriggers, completedQuizzes, onQuizTrigger, setIsQuizActive, setActiveQuizTrigger]);
 
   useEffect(() => {
     const video = videoRef.current;
