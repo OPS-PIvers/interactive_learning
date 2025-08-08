@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import QuizOverlay from './QuizOverlay';
