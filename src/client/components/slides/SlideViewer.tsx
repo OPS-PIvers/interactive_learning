@@ -418,6 +418,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       16, // Standard padding - CSS handles responsive behavior
       false // Remove device-specific logic
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, deviceType]);
 
   if (!currentSlide) {

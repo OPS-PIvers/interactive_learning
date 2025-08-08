@@ -58,7 +58,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     onDragStateChange,
     dragContainerRef,
     isActive,
-    isVisible = true
+    isVisible = true,
+    onHotspotDoubleClick
   } = props;
 
   const { announceDragStart, announceDragStop } = useScreenReaderAnnouncements();
@@ -134,7 +135,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
 
     // Store drag start data
-    const currentPixelPos = props.pixelPosition; // This is the top-left of the hotspot div
+    const currentPixelPos = pixelPosition; // This is the top-left of the hotspot div
     
     // Calculate fallback pixel position if pixelPosition is not available
     let initialHotspotLeft_inContainer = 0;
@@ -198,7 +199,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       console.warn('Failed to capture pointer:', error);
     }
-  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, dragContainerRef, onDragStateChange]); // Added onDragStateChange
+  }, [isEditing, hotspot, isDragging, onEditRequest, dragContainerRef, onDragStateChange, pixelPosition, props.imageElement]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -272,7 +273,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       
       onPositionChange(hotspot.id, newXPercent, newYPercent);
     }
-  }, [isDragging, isEditing, hotspot, onPositionChange, announceDragStart, props.imageElement, props.pixelPosition]);
+  }, [isDragging, isEditing, hotspot, onPositionChange, announceDragStart, props.imageElement]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (holdTimeoutRef.current) {
@@ -288,8 +289,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       } else {
         // Handle non-editing taps (including double tap)
         const currentTime = Date.now();
-        if (!isEditing && props.onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
-          props.onHotspotDoubleClick(hotspot.id, e);
+        if (!isEditing && onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
+          onHotspotDoubleClick(hotspot.id, e);
           e.stopPropagation();
           lastTapTimeRef.current = 0;
           triggerHapticFeedback('heavy');
@@ -319,7 +320,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       // Ignore errors, pointer might not be captured.
     }
-  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, props.onHotspotDoubleClick]);
+  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, onHotspotDoubleClick]);
 
   // Style classes - with enhanced color support for slide-based and legacy systems
   const getHotspotColor = () => {

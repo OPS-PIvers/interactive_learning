@@ -9,6 +9,12 @@ interface PanZoomPreviewOverlayProps {
   containerBounds: { width: number; height: number; left: number; top: number } | null;
 }
 
+// Calculate the viewable area size based on zoom level
+// Higher zoom = smaller viewable area (more zoomed in)
+const calculateViewableSize = (containerSize: number, zoomLevel: number) => {
+  return containerSize / zoomLevel;
+};
+
 const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
   event,
   onUpdate,
@@ -24,20 +30,14 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
   // Get current zoom area properties with defaults
   const zoom = event.zoomLevel || event.zoomFactor || event.zoom || 2;
   
-  // Calculate the viewable area size based on zoom level
-  // Higher zoom = smaller viewable area (more zoomed in)
-  const calculateViewableSize = (containerSize: number, zoomLevel: number) => {
-    return containerSize / zoomLevel;
-  };
-  
-  const zoomArea = {
+  const zoomArea = useMemo(() => ({
     x: event.targetX || 50,
     y: event.targetY || 50,
     // Size is calculated based on zoom level and container bounds
     width: containerBounds ? calculateViewableSize(containerBounds.width, zoom) : 200,
     height: containerBounds ? calculateViewableSize(containerBounds.height, zoom) : 150,
     zoom: zoom
-  };
+  }), [event, containerBounds, zoom]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, action: 'drag' | 'resize') => {
     e.preventDefault();
@@ -129,7 +129,7 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
         zoom: newZoom
       });
     }
-  }, [isDragging, isResizing, dragStart, zoomArea, containerBounds, event, throttledUpdate, calculateViewableSize]);
+  }, [isDragging, isResizing, dragStart, zoomArea, containerBounds, event, throttledUpdate]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);

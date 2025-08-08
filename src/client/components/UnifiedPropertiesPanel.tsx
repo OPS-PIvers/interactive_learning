@@ -127,8 +127,8 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     setIsEditingParameters(false);
   }, [selectedInteractionId]);
 
-  const elementStyle = selectedElement.style || {};
-  const elementContent = selectedElement.content || {};
+  const elementStyle = React.useMemo(() => selectedElement.style || {}, [selectedElement.style]);
+  const elementContent = React.useMemo(() => selectedElement.content || {}, [selectedElement.content]);
   const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop || {};
 
   const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {

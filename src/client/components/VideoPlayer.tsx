@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MediaQuizTrigger } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import QuizOverlay from './QuizOverlay';
@@ -51,7 +51,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const lastTriggerTimeRef = useRef<number>(-1);
 
   // Quiz trigger detection logic
-  const checkForQuizTriggers = (currentTime: number) => {
+  const checkForQuizTriggers = useCallback((currentTime: number) => {
     const triggerToFire = quizTriggers.find(trigger => {
       const isTimeToTrigger = currentTime >= trigger.timestamp && 
                              currentTime < trigger.timestamp + 0.5;
@@ -72,7 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setIsQuizActive(true);
       onQuizTrigger?.(triggerToFire);
     }
-  };
+  }, [quizTriggers, completedQuizzes, onQuizTrigger, setIsQuizActive, setActiveQuizTrigger]);
 
   useEffect(() => {
     const video = videoRef.current;
