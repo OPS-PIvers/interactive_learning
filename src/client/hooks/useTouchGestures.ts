@@ -650,7 +650,7 @@ export const useTouchGestures = (
       // Ensure final state is validated
       setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }, viewportBounds));
     }
-    // Reviewer suggested including minScale, maxScale, setImageTransform but ESLint determined they're unnecessary
+    // Dependencies excluded per ESLint analysis
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animateStep, setIsTransforming, viewportBounds]);
 
