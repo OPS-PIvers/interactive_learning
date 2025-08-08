@@ -901,12 +901,10 @@ export class FirebaseProjectAPI {
         currentUser = this.getCurrentUser();
       } catch (error) {
         reject(error);
-        return;
       }
 
       if (!file || file.size === 0) {
         reject(new Error('Invalid file: File is empty or corrupted'));
-        return;
       }
 
       const timestamp = Date.now();
