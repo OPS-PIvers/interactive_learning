@@ -1,6 +1,6 @@
-import { 
-  collection, 
-  doc, 
+import {
+  collection,
+  doc,
   getDocs,
   setDoc,
   deleteDoc,
@@ -11,19 +11,19 @@ import {
   where,
   getDoc,
   runTransaction, // Import runTransaction
-  Timestamp
-} from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage'
-import { debugLog } from '../client/utils/debugUtils'
-import { generateThumbnail } from '../client/utils/imageUtils'
+  Timestamp } from
+'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
+import { debugLog } from '../client/utils/debugUtils';
+import { generateThumbnail } from '../client/utils/imageUtils';
 // Firebase API for project management
-import { networkMonitor } from '../client/utils/networkMonitor'
-import { SlideDeck } from '../shared/slideTypes'
-import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types'
-import { DataSanitizer } from './dataSanitizer'
-import { firebaseManager } from './firebaseConfig'
-import { saveOperationMonitor } from './saveOperationMonitor'
-import { DevAuthBypass } from './testAuthUtils'
+import { networkMonitor } from '../client/utils/networkMonitor';
+import { SlideDeck } from '../shared/slideTypes';
+import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types';
+import { DataSanitizer } from './dataSanitizer';
+import { firebaseManager } from './firebaseConfig';
+import { saveOperationMonitor } from './saveOperationMonitor';
+import { DevAuthBypass } from './testAuthUtils';
 
 // Thumbnail Parameters
 const THUMBNAIL_WIDTH = 400;
@@ -35,19 +35,19 @@ const THUMBNAIL_FILE_PREFIX = 'thumb_'; // Used for filename
 const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads
-const projectCache = new Map<string, { data: any, timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const projectCache = new Map<string, {data: any;timestamp: number;}>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {
-    debugLog.log(`Firebase ${operation}: ${count} operations`)
+    debugLog.log(`Firebase ${operation}: ${count} operations`);
   }
 
   /**
    * Get current user with development bypass support
    * @returns User object with uid and email, or throws if not authenticated
    */
-  private getCurrentUser(): { uid: string; email: string } {
+  private getCurrentUser(): {uid: string;email: string;} {
     // Check for development bypass first
     const devBypass = DevAuthBypass.getInstance();
     if (devBypass.isEnabled()) {
@@ -57,22 +57,22 @@ export class FirebaseProjectAPI {
         return { uid: bypassUser.uid, email: bypassUser.email || '' };
       }
     }
-    
+
     // Ensure Firebase is initialized before accessing auth
     if (!firebaseManager.isReady()) {
       throw new Error('Firebase not initialized. Please try again.');
     }
-    
+
     // Fallback to Firebase auth
     const auth = firebaseManager.getAuth();
     if (!auth.currentUser) {
       throw new Error('User must be authenticated to access projects');
     }
-    
+
     if (!auth.currentUser.uid) {
       throw new Error('Invalid authentication state - missing user ID');
     }
-    
+
     return { uid: auth.currentUser.uid, email: auth.currentUser.email || '' };
   }
 
@@ -81,45 +81,45 @@ export class FirebaseProjectAPI {
    */
   private isRetryableError(error: Error): boolean {
     const errorMessage = error.message.toLowerCase();
-    
+
     // Retryable errors (network, timeout, capacity issues)
     const retryablePatterns = [
-      'network',
-      'timeout',
-      'connection',
-      'temporary',
-      'unavailable',
-      'aborted',
-      'deadline-exceeded',
-      'resource-exhausted',
-      'failed-precondition', // Sometimes retryable for optimistic concurrency
-      'quota',
-      'rate-limit',
-      'too many requests'
-    ];
-    
+    'network',
+    'timeout',
+    'connection',
+    'temporary',
+    'unavailable',
+    'aborted',
+    'deadline-exceeded',
+    'resource-exhausted',
+    'failed-precondition', // Sometimes retryable for optimistic concurrency
+    'quota',
+    'rate-limit',
+    'too many requests'];
+
+
     // Non-retryable errors (permissions, validation, not found)
     const nonRetryablePatterns = [
-      'permission',
-      'unauthorized',
-      'forbidden',
-      'not-found',
-      'already-exists',
-      'invalid-argument',
-      'failed precondition', // Specific Firebase auth/validation errors
-      'unauthenticated'
-    ];
-    
+    'permission',
+    'unauthorized',
+    'forbidden',
+    'not-found',
+    'already-exists',
+    'invalid-argument',
+    'failed precondition', // Specific Firebase auth/validation errors
+    'unauthenticated'];
+
+
     // Check non-retryable first (more specific)
-    if (nonRetryablePatterns.some(pattern => errorMessage.includes(pattern))) {
+    if (nonRetryablePatterns.some((pattern) => errorMessage.includes(pattern))) {
       return false;
     }
-    
+
     // Check retryable patterns
-    if (retryablePatterns.some(pattern => errorMessage.includes(pattern))) {
+    if (retryablePatterns.some((pattern) => errorMessage.includes(pattern))) {
       return true;
     }
-    
+
     // Default to non-retryable for unknown errors to avoid infinite loops
     return false;
   }
@@ -131,7 +131,7 @@ export class FirebaseProjectAPI {
     const errorMessage = originalError.message.toLowerCase();
     let enhancedMessage = '';
     let errorCategory = 'unknown';
-    
+
     // Categorize errors with specific user-friendly messages
     if (errorMessage.includes('permission') || errorMessage.includes('unauthorized')) {
       errorCategory = 'permission';
@@ -158,61 +158,61 @@ export class FirebaseProjectAPI {
       errorCategory = 'general';
       enhancedMessage = `Save failed: ${originalError.message}`;
     }
-    
+
     // Add operation context
     const contextMessage = `\\n\\nOperation details:\\n- Project ID: ${projectId}\\n- Operation ID: ${operationId}\\n- Attempts made: ${attempts}\\n- Error category: ${errorCategory}`;
-    
+
     const error = new Error(enhancedMessage + contextMessage);
     error.name = `SaveProjectError_${errorCategory}`;
-    
+
     // Add custom properties for programmatic access
     (error as any).operationId = operationId;
     (error as any).projectId = projectId;
     (error as any).errorCategory = errorCategory;
     (error as any).attempts = attempts;
     (error as any).originalError = originalError;
-    
+
     return error;
   }
 
   private async ensureFirebaseReady(): Promise<void> {
     if (!firebaseManager.isReady()) {
-      debugLog.log('Firebase not ready, initializing...')
-      await firebaseManager.initialize()
+      debugLog.log('Firebase not ready, initializing...');
+      await firebaseManager.initialize();
     }
   }
 
   private async withErrorHandling<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
     try {
-      await this.ensureFirebaseReady()
-      return await operation()
+      await this.ensureFirebaseReady();
+      return await operation();
     } catch (error) {
-      debugLog.error(`Firebase operation failed (${operationName}):`, error)
-      
+      debugLog.error(`Firebase operation failed (${operationName}):`, error);
+
       // Enhanced error handling for all devices
-      const errorMessage = error instanceof Error ? error.message.toLowerCase() : ''
-      
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+
       if (errorMessage.includes('network') || errorMessage.includes('offline')) {
         // Network-related error
-        const networkState = networkMonitor.getCurrentState()
-        debugLog.log('Network state during error:', networkState)
-          
+        const networkState = networkMonitor.getCurrentState();
+        debugLog.log('Network state during error:', networkState);
+
         if (!networkState?.online) {
-          throw new Error('No internet connection. Please check your network and try again.')
+          throw new Error('No internet connection. Please check your network and try again.');
         } else if (networkState.effectiveType === 'slow-2g' || networkState.effectiveType === '2g') {
-          throw new Error('Slow network connection detected. Please try again or move to a better network area.')
+          throw new Error('Slow network connection detected. Please try again or move to a better network area.');
         }
       }
-      
+
       if (errorMessage.includes('webchannelconnection') || errorMessage.includes('rpc')) {
-        throw new Error('Connection to server failed. This may be due to network issues. Please try again.')
+        throw new Error('Connection to server failed. This may be due to network issues. Please try again.');
       }
-      
+
       if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
-        throw new Error('Service temporarily unavailable. Please try again in a few moments.')
+        throw new Error('Service temporarily unavailable. Please try again in a few moments.');
       }
-      
-      throw error
+
+      throw error;
     }
   }
 
@@ -227,19 +227,19 @@ export class FirebaseProjectAPI {
       this.logUsage('READ_OPERATIONS', 1);
       const db = firebaseManager.getFirestore();
       const projectsRef = collection(db, 'projects');
-      
+
       // Query projects created by the current user
       const userProjectsQuery = query(
-        projectsRef, 
+        projectsRef,
         where('createdBy', '==', currentUser.uid),
         orderBy('updatedAt', 'desc')
       );
-      
+
       const snapshot = await getDocs(userProjectsQuery);
-      
+
       const projects: Project[] = snapshot.docs.map((docSnap) => {
-        const projectData = docSnap.data()
-        
+        const projectData = docSnap.data();
+
         // Build project object with slide deck data if available
         const project: Project = {
           id: docSnap.id,
@@ -252,15 +252,15 @@ export class FirebaseProjectAPI {
           isPublished: projectData['isPublished'] || false,
           projectType: projectData['projectType'] || 'slide', // Default to slide for new architecture
           interactiveData: projectData['interactiveData'] ?
-            { ...projectData['interactiveData'], _needsDetailLoad: true } :
-            {
-              backgroundImage: projectData['backgroundImage'],
-              imageFitMode: projectData['imageFitMode'] || 'cover',
-              viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
-              hotspots: [],
-              timelineEvents: [],
-              _needsDetailLoad: true
-            }
+          { ...projectData['interactiveData'], _needsDetailLoad: true } :
+          {
+            backgroundImage: projectData['backgroundImage'],
+            imageFitMode: projectData['imageFitMode'] || 'cover',
+            viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
+            hotspots: [],
+            timelineEvents: [],
+            _needsDetailLoad: true
+          }
         };
 
         // Include slide deck if it exists
@@ -270,11 +270,11 @@ export class FirebaseProjectAPI {
         }
 
         return project;
-      })
+      });
 
 
       debugLog.log(`Loaded ${projects.length} projects for user ${currentUser.uid}`);
-      return projects
+      return projects;
     }, 'listProjects');
   }
 
@@ -288,27 +288,27 @@ export class FirebaseProjectAPI {
       this.logUsage('READ_OPERATIONS_PUBLIC', 1);
       const projectDocRef = doc(db, 'projects', projectId);
       const projectDoc = await getDoc(projectDocRef);
-      
+
       if (!projectDoc.exists()) {
         return null;
       }
-      
+
       const projectData = projectDoc.data();
-      
+
       if (!projectData) {
         return null;
       }
-      
+
       // Only return if the project is marked as published
       if (!projectData['isPublished']) {
         return null;
       }
-      
+
       // Check project type and handle accordingly
       const projectType = projectData['projectType'] || 'hotspot'; // Default to hotspot for backward compatibility
-      
+
       let slideDeck: any = null;
-      
+
       // Helper function to build fallback interactiveData from legacy fields
       const buildFallbackInteractiveData = () => ({
         backgroundImage: projectData['backgroundImage'],
@@ -317,12 +317,12 @@ export class FirebaseProjectAPI {
         hotspots: [],
         timelineEvents: []
       });
-      
+
       // Build interactiveData, preferring nested structure with legacy fallback
-      const interactiveData: any = projectData['interactiveData']
-        ? { ...projectData['interactiveData'] }
-        : buildFallbackInteractiveData();
-      
+      const interactiveData: any = projectData['interactiveData'] ?
+      { ...projectData['interactiveData'] } :
+      buildFallbackInteractiveData();
+
       if (projectType === 'slide') {
         // For slide-based projects, try to get slide deck data
         if (projectData['slideDeck']) {
@@ -331,14 +331,14 @@ export class FirebaseProjectAPI {
       } else {
         // Always load hotspots and timeline events for public view if not slide-based.
         const [hotspots, timelineEvents] = await Promise.all([
-          this.getHotspots(projectId),
-          this.getTimelineEvents(projectId)
-        ]);
+        this.getHotspots(projectId),
+        this.getTimelineEvents(projectId)]
+        );
         this.logUsage('READ_OPERATIONS_PUBLIC_SUBCOLLECTIONS', 2);
         interactiveData.hotspots = hotspots || [];
         interactiveData.timelineEvents = timelineEvents || [];
       }
-      
+
       return {
         id: projectDoc.id,
         title: projectData['title'] || 'Untitled Project',
@@ -354,8 +354,8 @@ export class FirebaseProjectAPI {
       } as Project;
     } catch (error) {
       // Only log as error for unexpected errors, not permission/not-found errors
-      if (error instanceof Error && 
-          (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions'))) {
+      if (error instanceof Error && (
+      error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions'))) {
         debugLog.warn('Public project access denied:', projectId);
       } else {
         debugLog.error('Error fetching public project:', error);
@@ -387,13 +387,13 @@ export class FirebaseProjectAPI {
       // Get hotspots and timeline events in parallel
       // These count as additional reads.
       const [hotspots, timelineEvents] = await Promise.all([
-        this.getHotspots(projectId), // Counts as 1 read operation (collection query)
-        this.getTimelineEvents(projectId) // Counts as 1 read operation (collection query)
+      this.getHotspots(projectId), // Counts as 1 read operation (collection query)
+      this.getTimelineEvents(projectId) // Counts as 1 read operation (collection query)
       ]);
       this.logUsage('READ_OPERATIONS_DETAILS_SUBCOLLECTIONS', 2);
 
 
-      let result: Partial<InteractiveModuleState> & { slideDeck?: any };
+      let result: Partial<InteractiveModuleState> & {slideDeck?: any;};
 
       // Prefer the 'interactiveData' field but fall back to legacy fields.
       if (projectData['interactiveData']) {
@@ -402,7 +402,7 @@ export class FirebaseProjectAPI {
           // IMPORTANT: Subcollection data always overrides interactiveData arrays
           // to maintain single source of truth and prevent data inconsistencies
           hotspots,
-          timelineEvents,
+          timelineEvents
         };
       } else {
         result = {
@@ -410,7 +410,7 @@ export class FirebaseProjectAPI {
           imageFitMode: projectData['imageFitMode'] || 'cover',
           viewerModes: projectData['viewerModes'] || { explore: true, selfPaced: true, timed: true },
           hotspots,
-          timelineEvents,
+          timelineEvents
         };
       }
 
@@ -447,7 +447,7 @@ export class FirebaseProjectAPI {
       const db = firebaseManager.getFirestore();
 
       const projectId = this.generateProjectId();
-      
+
       // Newly created project will have empty hotspots and timelineEvents by default.
       // The full interactiveData structure is provided here.
       const newProjectData: Project = {
@@ -461,10 +461,10 @@ export class FirebaseProjectAPI {
           hotspots: [], // Empty for new project
           timelineEvents: [], // Empty for new project
           imageFitMode: 'cover',
-        viewerModes: { explore: true, selfPaced: true, timed: true }, // Added viewerModes with defaults
+          viewerModes: { explore: true, selfPaced: true, timed: true } // Added viewerModes with defaults
         }
       };
-      
+
       // Save to Firestore with flattened structure to match expected schema
       const projectRef = doc(db, 'projects', projectId);
       const { createdAt, updatedAt, interactiveData, ...projectMetadata } = newProjectData;
@@ -476,13 +476,13 @@ export class FirebaseProjectAPI {
         isPublished: false,
         thumbnailUrl: null, // New projects start with no thumbnail
         createdAt: serverTimestamp(), // Use server-generated timestamps for reliability
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
-      
+
       return newProjectData;
     } catch (error) {
-      debugLog.error('Error creating project:', error)
-      throw new Error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      debugLog.error('Error creating project:', error);
+      throw new Error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -491,16 +491,16 @@ export class FirebaseProjectAPI {
    */
   async saveProject(project: Project): Promise<Project> {
     try {
-      console.log('💾 [FirebaseAPI] Starting save for project:', {
-        projectId: project.id,
-        projectType: project.projectType,
-        hasSlideDeck: !!project.slideDeck,
-        slideCount: project.slideDeck?.slides?.length || 0
-      });
-      
+
+
+
+
+
+
+
       await this.ensureFirebaseReady();
       const db = firebaseManager.getFirestore();
-      
+
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
 
@@ -509,7 +509,7 @@ export class FirebaseProjectAPI {
       if (isNewProject) {
         project.id = this.generateProjectId();
         project.createdBy = currentUser.uid;
-        console.log('🆕 Creating new project with ID:', project.id);
+
       }
 
       projectCache.clear();
@@ -517,17 +517,17 @@ export class FirebaseProjectAPI {
 
       // Log slide deck structure before saving
       if (project.slideDeck) {
-        console.log('📊 Slide deck structure before save:', {
-          slideCount: project.slideDeck?.slides?.length,
-          slides: project.slideDeck?.slides?.map((slide, index) => ({
-            index,
-            id: slide?.id,
-            hasBackgroundMedia: !!slide?.backgroundMedia,
-            backgroundMedia: slide?.backgroundMedia,
-            elementCount: slide?.elements?.length || 0,
-            layout: slide?.layout
-          }))
-        });
+
+
+
+
+
+
+
+
+
+
+
       }
 
       // Simplified save - just save the main project document without complex validation
@@ -544,7 +544,7 @@ export class FirebaseProjectAPI {
           imageFitMode: project.interactiveData?.imageFitMode || 'cover',
           viewerModes: project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
           hotspots: [],
-          timelineEvents: [],
+          timelineEvents: []
         }
       };
 
@@ -552,32 +552,32 @@ export class FirebaseProjectAPI {
       if (project.projectType === 'slide' && project.slideDeck) {
         updateData.slideDeck = project.slideDeck;
         const slideDeckString = JSON.stringify(project.slideDeck);
-        console.log('📁 Adding slide deck to Firestore data:', {
-          slideCount: project.slideDeck?.slides?.length || 0,
-          slideDeckSize: slideDeckString ? slideDeckString.length : 0
-        });
+
+
+
+
       }
 
       // Add createdAt for new projects
       if (isNewProject) {
         updateData.createdAt = serverTimestamp();
       }
-      
-      console.log('💾 Saving to Firestore...');
+
+
       // Sanitize data to remove undefined values before saving
       const sanitizedData = this.sanitizeForFirestore(updateData);
-      console.log('🧹 Data sanitized, original size:', JSON.stringify(updateData).length, 'sanitized size:', JSON.stringify(sanitizedData).length);
+
       // Simple save without transaction complexity
       await setDoc(projectRef, sanitizedData, { merge: true });
-      
-      console.log('✅ [FirebaseAPI] Project saved successfully:', project.id);
-      
+
+
+
       return {
         ...project,
         thumbnailUrl: updateData.thumbnailUrl,
         interactiveData: updateData.interactiveData
       };
-      
+
     } catch (error) {
       console.error('❌ [FirebaseAPI] Save failed for project:', project.id, error);
       throw new Error(`Failed to save project: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -591,11 +591,11 @@ export class FirebaseProjectAPI {
     if (data === null || data === undefined) {
       return null;
     }
-    
+
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitizeForFirestore(item)).filter(item => item !== null && item !== undefined);
+      return data.map((item) => this.sanitizeForFirestore(item)).filter((item) => item !== null && item !== undefined);
     }
-    
+
     if (typeof data === 'object' && data.constructor === Object) {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(data)) {
@@ -607,7 +607,7 @@ export class FirebaseProjectAPI {
       }
       return sanitized;
     }
-    
+
     // Primitive values (string, number, boolean) - return as is unless undefined
     return data === undefined ? null : data;
   }
@@ -615,7 +615,7 @@ export class FirebaseProjectAPI {
   /**
    * Delete a project and all its data
    */
-  async deleteProject(projectId: string): Promise<{ success: boolean; projectId: string }> {
+  async deleteProject(projectId: string): Promise<{success: boolean;projectId: string;}> {
     try {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
@@ -655,10 +655,10 @@ export class FirebaseProjectAPI {
         // To delete subcollections atomically, it's best to get their document references
         // and delete them. Querying for all docs and then deleting their refs is common.
         const hotspotsSnapshot = await getDocs(query(hotspotsColRef)); // Query outside, use refs inside
-        hotspotsSnapshot.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+        hotspotsSnapshot.docs.forEach((docSnap) => transaction.delete(docSnap.ref));
 
         const eventsSnapshot = await getDocs(query(eventsColRef)); // Query outside, use refs inside
-        eventsSnapshot.docs.forEach(docSnap => transaction.delete(docSnap.ref));
+        eventsSnapshot.docs.forEach((docSnap) => transaction.delete(docSnap.ref));
 
         transaction.delete(projectRef); // Delete main project document
       });
@@ -667,11 +667,11 @@ export class FirebaseProjectAPI {
 
       if (thumbnailUrlToDelete) {
         debugLog.log(`Attempting to delete thumbnail for deleted project (fire-and-forget): ${thumbnailUrlToDelete}`);
-        this._deleteImageFromStorage(thumbnailUrlToDelete).catch(err => {
-            debugLog.error("Error during fire-and-forget deletion of project thumbnail:", err);
+        this._deleteImageFromStorage(thumbnailUrlToDelete).catch((err) => {
+          debugLog.error("Error during fire-and-forget deletion of project thumbnail:", err);
         });
       }
-      
+
       return { success: true, projectId };
     } catch (error) {
       debugLog.error('Error deleting project:', error);
@@ -697,12 +697,12 @@ export class FirebaseProjectAPI {
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `images/${currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
-      
+
       const storage = firebaseManager.getStorage();
       const imageRef = ref(storage, fileName);
-      
+
       debugLog.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
-      
+
       // Create upload task with metadata for better tracking
       const metadata = {
         contentType: file.type,
@@ -713,10 +713,10 @@ export class FirebaseProjectAPI {
           originalName: file.name
         }
       };
-      
+
       // Upload with optimized timeout and retry handling
       const uploadPromise = uploadBytes(imageRef, file, metadata);
-      
+
       // Add timeout wrapper with appropriate time based on file size
       const timeoutMs = Math.max(30000, file.size / 1024 / 1024 * 10000); // 10 seconds per MB, min 30s
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -724,9 +724,9 @@ export class FirebaseProjectAPI {
           reject(new Error('storage/timeout: Upload timed out'));
         }, timeoutMs);
       });
-      
+
       const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-      
+
       // Get download URL with retry logic
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
@@ -738,17 +738,17 @@ export class FirebaseProjectAPI {
           if (attempt === 3) {
             throw new Error(`Failed to get download URL after 3 attempts: ${urlError}`);
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          await new Promise((resolve) => {setTimeout(resolve, 1000 * attempt);});
         }
       }
       throw new Error('Failed to get download URL after all attempts.');
     } catch (error) {
       debugLog.error('Error uploading image:', error);
-      
+
       // Enhanced error categorization with Firebase Storage specific errors
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
-        
+
         if (errorMessage.includes('auth/') || errorMessage.includes('authentication')) {
           throw new Error(`Authentication error: ${error.message}`);
         }
@@ -780,7 +780,7 @@ export class FirebaseProjectAPI {
           throw new Error(`CORS error: Check Firebase Storage CORS configuration`);
         }
       }
-      
+
       throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -793,29 +793,29 @@ export class FirebaseProjectAPI {
     try {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
-      
+
       // Validate inputs
       if (!file || file.size === 0) {
         throw new Error('Invalid file: File is empty or corrupted');
       }
-      
+
       if (!projectId) {
         throw new Error('Project ID is required for thumbnail upload');
       }
-      
+
       // Generate unique thumbnail ID
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const thumbId = `${THUMBNAIL_FILE_PREFIX}${timestamp}_${randomSuffix}.jpg`;
-      
+
       // Use the path structure that matches storage rules
       const fileName = `projects/${projectId}/thumbnails/${thumbId}`;
-      
+
       const storage = firebaseManager.getStorage();
       const thumbnailRef = ref(storage, fileName);
-      
+
       debugLog.log(`Uploading thumbnail: ${fileName} (${file.size} bytes, type: ${file.type})`);
-      
+
       // Set metadata with ownerId for security rules
       const metadata = {
         contentType: file.type,
@@ -827,10 +827,10 @@ export class FirebaseProjectAPI {
           thumbnailType: 'project'
         }
       };
-      
+
       // Upload with optimized timeout and retry handling
       const uploadPromise = uploadBytes(thumbnailRef, file, metadata);
-      
+
       // Add timeout wrapper with appropriate time based on file size
       const timeoutMs = Math.max(30000, file.size / 1024 / 1024 * 10000); // 10 seconds per MB, min 30s
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -838,9 +838,9 @@ export class FirebaseProjectAPI {
           reject(new Error('storage/timeout: Thumbnail upload timed out'));
         }, timeoutMs);
       });
-      
+
       const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-      
+
       // Get download URL with retry logic
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
@@ -852,17 +852,17 @@ export class FirebaseProjectAPI {
           if (attempt === 3) {
             throw new Error(`Failed to get thumbnail download URL after 3 attempts: ${urlError}`);
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          await new Promise((resolve) => {setTimeout(resolve, 1000 * attempt);});
         }
       }
       throw new Error('Failed to get thumbnail download URL after all attempts.');
     } catch (error) {
       debugLog.error('Error uploading thumbnail:', error);
-      
+
       // Enhanced error categorization for thumbnails
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
-        
+
         if (errorMessage.includes('auth/') || errorMessage.includes('authentication')) {
           throw new Error(`Authentication error: ${error.message}`);
         }
@@ -873,7 +873,7 @@ export class FirebaseProjectAPI {
           throw new Error(`Thumbnail upload timeout: File may be too large or connection too slow`);
         }
       }
-      
+
       throw new Error(`Failed to upload thumbnail: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -886,21 +886,23 @@ export class FirebaseProjectAPI {
    * @returns A promise that resolves with the download URL of the uploaded file.
    */
   async uploadFile(
-    file: File,
-    onProgress: (progress: number) => void,
-    projectId?: string
-  ): Promise<string> {
+  file: File,
+  onProgress: (progress: number) => void,
+  projectId?: string)
+  : Promise<string> {
     return new Promise((resolve, reject) => {
       // Get current user with bypass support
       let currentUser;
       try {
         currentUser = this.getCurrentUser();
       } catch (error) {
-        return reject(error);
+        reject(error);
+        return;
       }
 
       if (!file || file.size === 0) {
-        return reject(new Error('Invalid file: File is empty or corrupted'));
+        reject(new Error('Invalid file: File is empty or corrupted'));
+        return;
       }
 
       const timestamp = Date.now();
@@ -917,8 +919,8 @@ export class FirebaseProjectAPI {
           projectId: projectId || 'general',
           uploadedAt: new Date().toISOString(),
           userId: currentUser.uid,
-          originalName: file.name,
-        },
+          originalName: file.name
+        }
       };
 
       const uploadTask = uploadBytesResumable(fileRef, file, metadata);
@@ -926,7 +928,7 @@ export class FirebaseProjectAPI {
       uploadTask.on(
         'state_changed',
         (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress = snapshot.bytesTransferred / snapshot.totalBytes * 100;
           onProgress(progress);
         },
         (error) => {
@@ -952,26 +954,26 @@ export class FirebaseProjectAPI {
    */
   private async getHotspots(projectId: string): Promise<HotspotData[]> {
     return this.withErrorHandling(async () => {
-      console.log('Debug getHotspots: Starting, projectId:', projectId);
-      console.log('Debug getHotspots: firebaseManager exists:', !!firebaseManager);
-      console.log('Debug getHotspots: collection function exists:', !!collection);
-      
+
+
+
+
       const db = firebaseManager.getFirestore();
-      console.log('Debug getHotspots: Got db:', !!db);
-      
-      const hotspotsRef = collection(db, 'projects', projectId, 'hotspots')
-      console.log('Debug getHotspots: Got hotspotsRef:', !!hotspotsRef);
-      
-      const snapshot = await getDocs(hotspotsRef)
-      console.log('Debug getHotspots: Got snapshot:', !!snapshot);
-      
-      return snapshot.docs.map(doc => {
-        const data = doc.data()
+
+
+      const hotspotsRef = collection(db, 'projects', projectId, 'hotspots');
+
+
+      const snapshot = await getDocs(hotspotsRef);
+
+
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
         return DataSanitizer.sanitizeHotspot({
           id: doc.id,
           ...data
-        }) as HotspotData
-      })
+        }) as HotspotData;
+      });
     }, 'getHotspots');
   }
 
@@ -980,26 +982,26 @@ export class FirebaseProjectAPI {
    */
   private async getTimelineEvents(projectId: string): Promise<TimelineEventData[]> {
     return this.withErrorHandling(async () => {
-      console.log('Debug getTimelineEvents: Starting, projectId:', projectId);
-      console.log('Debug getTimelineEvents: firebaseManager exists:', !!firebaseManager);
-      console.log('Debug getTimelineEvents: collection function exists:', !!collection);
-      
+
+
+
+
       const db = firebaseManager.getFirestore();
-      console.log('Debug getTimelineEvents: Got db:', !!db);
-      
-      const eventsRef = collection(db, 'projects', projectId, 'timeline_events')
-      console.log('Debug getTimelineEvents: Got eventsRef:', !!eventsRef);
-      
-      const snapshot = await getDocs(query(eventsRef, orderBy('step', 'asc')))
-      console.log('Debug getTimelineEvents: Got snapshot:', !!snapshot);
-      
-      return snapshot.docs.map(doc => {
-        const data = doc.data()
+
+
+      const eventsRef = collection(db, 'projects', projectId, 'timeline_events');
+
+
+      const snapshot = await getDocs(query(eventsRef, orderBy('step', 'asc')));
+
+
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
         return DataSanitizer.sanitizeTimelineEvent({
           id: doc.id,
           ...data
-        }) as TimelineEventData
-      })
+        }) as TimelineEventData;
+      });
     }, 'getTimelineEvents');
   }
 
@@ -1008,70 +1010,70 @@ export class FirebaseProjectAPI {
    * This runs as a separate transaction after the main save to prevent data loss
    */
   private async cleanupOrphanedSubcollectionDocs(
-    projectId: string, 
-    currentHotspotIds: string[], 
-    currentEventIds: string[]
-  ): Promise<void> {
+  projectId: string,
+  currentHotspotIds: string[],
+  currentEventIds: string[])
+  : Promise<void> {
     try {
       const db = firebaseManager.getFirestore();
       const hotspotsColRef = collection(db, 'projects', projectId, 'hotspots');
       const eventsColRef = collection(db, 'projects', projectId, 'timeline_events');
-      
+
       // Get all existing documents
       const [existingHotspotsSnap, existingEventsSnap] = await Promise.all([
-        getDocs(query(hotspotsColRef)),
-        getDocs(query(eventsColRef))
-      ]);
-      
+      getDocs(query(hotspotsColRef)),
+      getDocs(query(eventsColRef))]
+      );
+
       const currentHotspotIdSet = new Set(currentHotspotIds);
       const currentEventIdSet = new Set(currentEventIds);
-      
+
       // Find orphaned documents
-      const existingHotspotIds = existingHotspotsSnap.docs.map(doc => doc.id);
-      const existingEventIds = existingEventsSnap.docs.map(doc => doc.id);
-      
-      const orphanedHotspotRefs = existingHotspotsSnap.docs
-        .filter(doc => !currentHotspotIdSet.has(doc.id))
-        .map(doc => doc.ref);
-        
-      const orphanedEventRefs = existingEventsSnap.docs
-        .filter(doc => !currentEventIdSet.has(doc.id))
-        .map(doc => doc.ref);
-      
+      const existingHotspotIds = existingHotspotsSnap.docs.map((doc) => doc.id);
+      const existingEventIds = existingEventsSnap.docs.map((doc) => doc.id);
+
+      const orphanedHotspotRefs = existingHotspotsSnap.docs.
+      filter((doc) => !currentHotspotIdSet.has(doc.id)).
+      map((doc) => doc.ref);
+
+      const orphanedEventRefs = existingEventsSnap.docs.
+      filter((doc) => !currentEventIdSet.has(doc.id)).
+      map((doc) => doc.ref);
+
       debugLog.log(`[FirebaseAPI] Cleanup analysis for project ${projectId}:`, {
         existingHotspots: existingHotspotIds,
         currentHotspots: currentHotspotIds,
-        orphanedHotspots: orphanedHotspotRefs.map(ref => ref.id),
+        orphanedHotspots: orphanedHotspotRefs.map((ref) => ref.id),
         existingEvents: existingEventIds,
         currentEvents: currentEventIds,
-        orphanedEvents: orphanedEventRefs.map(ref => ref.id)
+        orphanedEvents: orphanedEventRefs.map((ref) => ref.id)
       });
-      
+
       // Delete orphans in batches (Firestore has a 500 operation limit per transaction)
       const allOrphanedRefs = [...orphanedHotspotRefs, ...orphanedEventRefs];
-      
+
       if (allOrphanedRefs.length === 0) {
         debugLog.log(`[FirebaseAPI] No orphaned documents to clean up for project ${projectId}`);
         return; // No cleanup needed
       }
-      
+
       debugLog.log(`[FirebaseAPI] Cleaning up ${allOrphanedRefs.length} orphaned documents for project ${projectId}`);
-      
+
       // Process in batches of 400 to stay under Firestore's 500 operation limit
       const batchSize = 400;
       for (let i = 0; i < allOrphanedRefs.length; i += batchSize) {
         const batch = allOrphanedRefs.slice(i, i + batchSize);
-        
+
         await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
-          batch.forEach(ref => transaction.delete(ref));
+          batch.forEach((ref) => transaction.delete(ref));
         });
-        
-        debugLog.log(`[FirebaseAPI] Deleted batch of ${batch.length} orphaned documents:`, 
-          batch.map(ref => ref.id));
+
+        debugLog.log(`[FirebaseAPI] Deleted batch of ${batch.length} orphaned documents:`,
+        batch.map((ref) => ref.id));
       }
-      
+
       debugLog.log(`[FirebaseAPI] Cleanup completed successfully for project ${projectId}`);
-      
+
     } catch (error) {
       debugLog.error(`Error cleaning up orphaned documents for project ${projectId}:`, error);
       // Don't throw - this is cleanup, not critical for data integrity
@@ -1083,7 +1085,7 @@ export class FirebaseProjectAPI {
    */
   private async clearProjectSubcollections(projectId: string): Promise<void> {
     // This function was causing data loss - it's now handled in saveProject with upsert logic
-    debugLog.log(`Skipping clear operation for project ${projectId} - using upsert instead`)
+    debugLog.log(`Skipping clear operation for project ${projectId} - using upsert instead`);
   }
 
   // Helper function to delete an image from Firebase Storage, callable from methods.
@@ -1119,7 +1121,7 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
+
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
 
@@ -1147,7 +1149,7 @@ export class FirebaseProjectAPI {
         updateData.interactiveData = {
           ...updateData.interactiveData,
           hotspots: [],
-          timelineEvents: [],
+          timelineEvents: []
         };
         debugLog.log(`[updateProject] Cleared hotspots/timelineEvents from interactiveData to maintain subcollection authority`);
       }
@@ -1165,7 +1167,7 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
-      
+
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
 
@@ -1212,7 +1214,7 @@ export class FirebaseProjectAPI {
 
       transaction.update(projectRef, {
         slideDeck: slideDeck,
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
     });
   }
@@ -1242,4 +1244,4 @@ export class FirebaseProjectAPI {
 }
 
 // Export singleton instance
-export const firebaseAPI = new FirebaseProjectAPI()
+export const firebaseAPI = new FirebaseProjectAPI();

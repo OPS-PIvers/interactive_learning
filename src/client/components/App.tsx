@@ -7,9 +7,6 @@ import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideDeck } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
-import ViewerView from './views/ViewerView';
-import SlideBasedTestPage from './SlideBasedTestPage';
-import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -19,10 +16,13 @@ import HookErrorBoundary from './HookErrorBoundary';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
+import MigrationTestPage from './MigrationTestPage';
 import Modal from './Modal';
 import ProjectCard from './ProjectCard';
 import SharedModuleViewer from './SharedModuleViewer';
+import SlideBasedTestPage from './SlideBasedTestPage';
 import { GradientCreateButton } from './ui/GradientCreateButton';
+import ViewerView from './views/ViewerView';
 
 
 const LoadingScreen: React.FC = () => (
@@ -133,7 +133,6 @@ const MainApp: React.FC = () => {
                              (project.interactiveData as any)?._needsDetailLoad;
 
       if (needsDetailLoad) {
-        console.log(`Fetching details for project: ${project.id} (${project.title})`);
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
         
         // Validate that we actually got data
@@ -161,7 +160,6 @@ const MainApp: React.FC = () => {
         setSelectedProject(updatedProject);
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
-        console.log(`Project ${project.id} already has details loaded`);
         setSelectedProject(project);
       }
       setIsEditingMode(true);
@@ -293,7 +291,6 @@ const MainApp: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err?.message || ''}`);
@@ -328,7 +325,7 @@ const MainApp: React.FC = () => {
       setSelectedProject(updatedProject as Project);
       
       // Use a small delay to ensure React state has propagated before saving
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => { setTimeout(resolve, 50); });
       
       await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
     } catch (err: any) {
@@ -355,7 +352,6 @@ const MainApp: React.FC = () => {
       if (selectedProject?.id === projectId) {
         handleCloseModal();
       }
-      console.log('Project deletion initiated via proxy:', projectId);
     } catch (err: any) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err?.message || ''}`);
@@ -367,7 +363,6 @@ const MainApp: React.FC = () => {
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
-      console.log(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
       const projectToReload = {
         ...selectedProject,
         interactiveData: {
@@ -404,7 +399,6 @@ const MainApp: React.FC = () => {
                   className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                   onClick={() => {
                     // TODO: Implement settings functionality
-                    console.log('Settings clicked');
                   }}
                   aria-label="Settings"
                 >
@@ -451,7 +445,6 @@ const MainApp: React.FC = () => {
                 className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                 onClick={() => {
                   // TODO: Implement settings functionality
-                  console.log('Settings clicked');
                 }}
                 aria-label="Settings"
               >

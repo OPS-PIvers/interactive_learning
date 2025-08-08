@@ -1,0 +1,700 @@
+
+> explicolearning@0.0.0 lint:eslint
+> eslint 'src/**/*.{js,jsx,ts,tsx}'
+
+
+/app/src/client/components/App.tsx
+    6:10  warning  'InteractionType' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+    9:10  warning  'useDeviceDetection' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   16:10  warning  'PlusCircleIcon' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   20:8   warning  'Modal' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   39:37  warning  Forbidden non-null assertion                                                              @typescript-eslint/no-non-null-assertion
+   43:10  warning  'isModalOpen' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   47:10  warning  'showAuthModal' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   90:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  133:58  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  157:53  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  167:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  181:99  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  204:27  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  214:27  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  225:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  294:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  330:35  warning  Forbidden non-null assertion                                                              @typescript-eslint/no-non-null-assertion
+  331:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  355:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/AuthButton.tsx
+  20:3  warning  'showUserName' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/AuthModal.tsx
+  270:65  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/app/src/client/components/BackgroundMediaPanel.tsx
+  56:42   warning  Unnecessary escape character: \/  no-useless-escape
+  56:100  warning  Unnecessary escape character: \/  no-useless-escape
+
+/app/src/client/components/EditableEventCard.tsx
+    5:42  warning  'MediaQuizTrigger' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+    6:10  warning  'triggerHapticFeedback' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   75:3   warning  'allHotspots' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  132:9   warning  'inputBaseClasses' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  133:9   warning  'checkboxLabelClasses' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  134:9   warning  'checkboxInputClasses' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/EditorToolbar.tsx
+   8:10  warning  'triggerHapticFeedback' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  16:10  warning  'MenuIcon' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+
+/app/src/client/components/EnhancedModalEditorToolbar.tsx
+  611:37  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/ErrorBoundary.tsx
+  30:11  warning  'stack' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  68:21  warning  Unused state field: 'errorInfo'                                                   react/no-unused-state
+
+/app/src/client/components/EventTypeSelectorButtonGrid.tsx
+  4:10  warning  'triggerHapticFeedback' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/FileUpload.tsx
+  76:6  error  React Hook useCallback has an unnecessary dependency: 'acceptedTypes'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  90:6  error  React Hook useCallback has an unnecessary dependency: 'acceptedTypes'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/client/components/HeaderInsertDropdown.tsx
+  145:39  warning  'index' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/HeaderTimeline.tsx
+   65:11  warning  'isIOSSafariUIVisible' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  225:64  warning  'i' is defined but never used. Allowed unused args must match /^_/u                              @typescript-eslint/no-unused-vars
+
+/app/src/client/components/HookErrorBoundary.tsx
+  32:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/HorizontalTimeline.tsx
+  123:3   warning  'setTimelineEvents' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  132:3   warning  'onAddStep' is defined but never used. Allowed unused args must match /^_/u          @typescript-eslint/no-unused-vars
+  133:3   warning  'onDeleteStep' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  134:3   warning  'onUpdateStep' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  135:3   warning  'onMoveStep' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  261:38  warning  'index' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+  278:23  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                      react/no-unescaped-entities
+  278:96  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                      react/no-unescaped-entities
+
+/app/src/client/components/HotspotEditorModal.tsx
+    1:27  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+    5:69  warning  'defaultHotspotSize' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+    7:42  warning  'HotspotSize' is defined but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+   12:8   warning  'EventTypeToggle' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   13:8   warning  'ChevronDownIcon' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   20:8   warning  'InteractionEditor' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   23:8   warning  'PanZoomSettings' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   24:8   warning  'SpotlightSettings' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   25:24  warning  'TabItem' is defined but never used. Allowed unused vars must match /^_/u                                 @typescript-eslint/no-unused-vars
+   45:7   warning  'EventTypeGrid' is assigned a value but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   45:88  warning  Component definition is missing display name                                                              react/display-name
+   79:6   warning  Component definition is missing display name                                                              react/display-name
+  116:3   warning  'currentStep' is defined but never used. Allowed unused args must match /^_/u                             @typescript-eslint/no-unused-vars
+  117:3   warning  'backgroundImage' is defined but never used. Allowed unused args must match /^_/u                         @typescript-eslint/no-unused-vars
+  124:3   warning  'onPreviewEvent' is defined but never used. Allowed unused args must match /^_/u                          @typescript-eslint/no-unused-vars
+  128:9   warning  'timestampCounter' is assigned a value but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+  143:10  warning  'isHotspotSettingsCollapsed' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  143:38  warning  'setIsHotspotSettingsCollapsed' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  152:9   warning  'handleToggleEventTypeSelector' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  242:22  warning  'dragIndex' is defined but never used. Allowed unused args must match /^_/u                               @typescript-eslint/no-unused-vars
+  242:41  warning  'hoverIndex' is defined but never used. Allowed unused args must match /^_/u                              @typescript-eslint/no-unused-vars
+  331:9   warning  'handleHotspotUpdate' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  350:9   warning  'previewingEvents' is assigned a value but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+  352:9   warning  'activePreviewEvent' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  609:37  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                           react/no-unescaped-entities
+  609:53  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                           react/no-unescaped-entities
+
+/app/src/client/components/HotspotEditorToolbar.tsx
+  104:9   warning  'handleDragStart' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  110:9   warning  'handleDragOver' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  115:9   warning  'handleDrop' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  296:72  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                             react/no-unescaped-entities
+  296:85  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                             react/no-unescaped-entities
+
+/app/src/client/components/HotspotViewer.tsx
+  201:6   error    React Hook useCallback has a missing dependency: 'props.pixelPosition'. Either include it or remove the dependency array                                                                                                                                                                                          react-hooks/exhaustive-deps
+  319:14  warning  'error' is defined but never used                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  322:9   error    React Hook useCallback has a missing dependency: 'props'. Either include it or remove the dependency array. However, 'props' will change when *any* prop changes, so the preferred fix is to destructure the 'props' object outside of the useCallback call and refer to those specific props inside useCallback  react-hooks/exhaustive-deps
+  336:9   warning  'hoverColor' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+
+/app/src/client/components/ImageEditCanvas.tsx
+    5:10  warning  'getActualImageVisibleBounds' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    9:10  warning  'PlusIcon' is defined but never used. Allowed unused vars must match /^_/u                     @typescript-eslint/no-unused-vars
+   70:57  warning  Component definition is missing display name                                                   react/display-name
+   76:3   warning  'imageContainerRef' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+   84:3   warning  'onTouchStart' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+   85:3   warning  'onTouchMove' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+   86:3   warning  'onTouchEnd' is defined but never used. Allowed unused args must match /^_/u                   @typescript-eslint/no-unused-vars
+  100:3   warning  'imageFitMode' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+  447:17  warning  'boundsSource' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+
+/app/src/client/components/ImageViewer.tsx
+  26:3   warning  'title' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  27:3   warning  'caption' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  34:10  warning  'panZoomToEvent' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/InteractionSettingsModal.tsx
+  187:65  warning  Component definition is missing display name                                              react/display-name
+  271:66  warning  Component definition is missing display name                                              react/display-name
+  355:66  warning  Component definition is missing display name                                              react/display-name
+  506:65  warning  Component definition is missing display name                                              react/display-name
+  545:35  warning  Do not use Array index in keys                                                            react/no-array-index-key
+  629:9   warning  'getFieldError' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  689:26  warning  Do not use Array index in keys                                                            react/no-array-index-key
+
+/app/src/client/components/InteractiveModuleWrapper.tsx
+   6:8   warning  'Modal' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+  36:10  warning  'isModalOpen' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  36:23  warning  'setIsModalOpen' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  94:27  warning  'slideId' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  94:36  warning  'slideIndex' is defined but never used. Allowed unused args must match /^_/u               @typescript-eslint/no-unused-vars
+  97:27  warning  'interaction' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+
+/app/src/client/components/MigrationTestPage.tsx
+    3:34  warning  'getMigrationSummary' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  247:28  warning  Do not use Array index in keys                                                         react/no-array-index-key
+  258:28  warning  Do not use Array index in keys                                                         react/no-array-index-key
+  273:24  warning  Do not use Array index in keys                                                         react/no-array-index-key
+  287:31  warning  'slideId' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+  287:40  warning  'slideIndex' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+  290:31  warning  'interaction' is defined but never used. Allowed unused args must match /^_/u          @typescript-eslint/no-unused-vars
+
+/app/src/client/components/Modal.tsx
+  3:10  warning  'useDeviceDetection' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/PanZoomHandler.tsx
+  22:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/PanZoomPreviewOverlay.tsx
+  97:13  warning  'currentWidth' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  98:13  warning  'currentHeight' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/ProjectSettingsModal.tsx
+  24:3   warning  'isPublished' is assigned a value but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  28:37  warning  'availableThemes' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/QuizOverlay.tsx
+  50:20  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/QuizTriggerEditor.tsx
+  118:25  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/ShareModal.tsx
+   40:10   warning  'isExpanded' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   40:22   warning  'setIsExpanded' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  338:260  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                           react/no-unescaped-entities
+
+/app/src/client/components/SharedModuleViewer.tsx
+  56:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/SkeletonLoader.tsx
+  40:16  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/SlideBasedInteractiveModule.tsx
+    2:23  warning  'EditorCallbacks' is defined but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+   47:3   warning  'isSharedView' is assigned a value but never used. Allowed unused args must match /^_/u                            @typescript-eslint/no-unused-vars
+   48:3   warning  'theme' is assigned a value but never used. Allowed unused args must match /^_/u                                   @typescript-eslint/no-unused-vars
+  105:6   error    React Hook useMemo has an unnecessary dependency: 'projectType'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/client/components/SlideBasedViewer.tsx
+    4:21  warning  'SlideViewerState' is defined but never used. Allowed unused vars must match /^_/u                                     @typescript-eslint/no-unused-vars
+   32:3   warning  'migrationResult' is defined but never used. Allowed unused args must match /^_/u                                      @typescript-eslint/no-unused-vars
+   40:10  warning  'activeHotspotId' is assigned a value but never used. Allowed unused vars must match /^_/u                             @typescript-eslint/no-unused-vars
+   41:10  warning  'completedHotspots' is assigned a value but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   44:10  warning  'isPlaying' is assigned a value but never used. Allowed unused vars must match /^_/u                                   @typescript-eslint/no-unused-vars
+   45:10  warning  'playbackSpeed' is assigned a value but never used. Allowed unused vars must match /^_/u                               @typescript-eslint/no-unused-vars
+  100:6   error    React Hook useCallback has an unnecessary dependency: 'moduleState'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  110:9   warning  'handleTimelineStepSelect' is assigned a value but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+  122:42  warning  'interaction' is defined but never used. Allowed unused args must match /^_/u                                          @typescript-eslint/no-unused-vars
+  122:55  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+  129:9   warning  'handleHotspotFocus' is assigned a value but never used. Allowed unused vars must match /^_/u                          @typescript-eslint/no-unused-vars
+  140:9   warning  'handleHotspotComplete' is assigned a value but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+  146:9   warning  'handlePlay' is assigned a value but never used. Allowed unused vars must match /^_/u                                  @typescript-eslint/no-unused-vars
+  150:9   warning  'handlePause' is assigned a value but never used. Allowed unused vars must match /^_/u                                 @typescript-eslint/no-unused-vars
+  154:9   warning  'handleSpeedChange' is assigned a value but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+  181:62  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                        react/no-unescaped-entities
+
+/app/src/client/components/SlideEditorToolbar.tsx
+  34:3  warning  'onImageUpload' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/SpotlightPreviewOverlay.tsx
+  4:10  warning  'throttle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/TimelineProgressTracker.tsx
+    2:21  warning  'ElementInteraction' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  102:74  warning  Forbidden non-null assertion                                                          @typescript-eslint/no-non-null-assertion
+  241:20  warning  Do not use Array index in keys                                                        react/no-array-index-key
+
+/app/src/client/components/UnifiedPropertiesPanel.tsx
+    2:30  warning  'HotspotSize' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+    4:24  warning  'DeviceType' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  106:3   warning  'currentSlide' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  108:3   warning  'onSlideUpdate' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  148:11  warning  'effectId' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  243:46  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  285:11  warning  'dimensions' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/ViewerFooterToolbar.tsx
+  4:8  warning  'AuthButton' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/YouTubePlayer.tsx
+  1:27  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/animations/AnimationPresets.tsx
+   1:18  warning  'AnimatePresence' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  19:10  warning  Component definition is missing display name                                       react/display-name
+
+/app/src/client/components/animations/ElementAnimations.tsx
+  253:26  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/interactions/EditorMovedNotice.tsx
+  16:65  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  16:78  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/app/src/client/components/interactions/InteractionEditor.tsx
+   21:3   warning  'isCompact' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   26:63  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   41:76  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   51:72  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  173:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  184:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  204:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  215:46  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  222:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  243:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  259:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  264:64  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  281:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  293:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  316:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  332:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  346:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  362:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  376:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  395:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  400:52  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  419:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  433:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  452:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  457:64  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  467:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  479:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  502:56  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  517:58  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+
+/app/src/client/components/interactions/InteractionParameterPreview.tsx
+  9:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/interactions/InteractionsList.tsx
+  3:24  warning  'ElementInteraction' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/interactions/QuizInteractionEditor.tsx
+  122:27  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/responsive/ResponsiveBackgroundModal.tsx
+  10:8  warning  'AspectRatioSelector' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/responsive/ResponsiveModal.tsx
+   9:41  warning  'useMemo' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+  11:10  warning  'Z_INDEX_TAILWIND' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  40:11  warning  'constraints' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/responsive/ResponsiveSlideNavigation.tsx
+  9:17  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/responsive/ResponsiveToolbar.tsx
+  9:10  warning  'DeviceType' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/shared/BasePropertiesPanel.ts
+  8:24  warning  'DeviceType' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/DemoSlideDeck.ts
+  240:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/components/slides/ResponsiveCanvas.tsx
+   10:63   warning  'getHotspotPixelDimensions' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   11:10   warning  'InteractionType' is defined but never used. Allowed unused vars must match /^_/u                                 @typescript-eslint/no-unused-vars
+   12:100  warning  'ElementInteraction' is defined but never used. Allowed unused vars must match /^_/u                              @typescript-eslint/no-unused-vars
+   19:10   warning  'HotspotFeedbackAnimation' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   91:3    warning  'onSlideUpdate' is defined but never used. Allowed unused args must match /^_/u                                   @typescript-eslint/no-unused-vars
+   96:3    warning  'onAspectRatioChange' is defined but never used. Allowed unused args must match /^_/u                             @typescript-eslint/no-unused-vars
+  224:9    warning  'selectedElement' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  292:7    error    'handleElementSelect' was used before it was defined                                                              no-use-before-define
+  296:78   error    'handleElementSelect' was used before it was defined                                                              no-use-before-define
+  476:46   warning  'e' is defined but never used. Allowed unused args must match /^_/u                                               @typescript-eslint/no-unused-vars
+  543:6    error    React Hook useMemo has an unnecessary dependency: 'deviceType'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  690:26   warning  'e' is defined but never used. Allowed unused args must match /^_/u                                               @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/SlideBasedDemo.tsx
+    5:1   warning  `../../../shared/slideTypes` import should occur before import of `./DemoSlideDeck`  import/order
+   28:30  warning  'slideId' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+   28:47  warning  'slideIndex' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+   32:30  warning  'interaction' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  120:72  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                      react/no-unescaped-entities
+
+/app/src/client/components/slides/SlideEffectRenderer.tsx
+   23:3   warning  'deviceType' is defined but never used. Allowed unused args must match /^_/u             @typescript-eslint/no-unused-vars
+  209:11  warning  'contentStyle' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  568:24  warning  Do not use Array index in keys                                                           react/no-array-index-key
+
+/app/src/client/components/slides/SlideElement.tsx
+  20:3  warning  'viewportInfo' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/SlideTimeline.tsx
+    2:21  warning  'InteractiveSlide' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    2:39  warning  'SlideElement' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   46:25  warning  'setPlaybackSpeed' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   48:9   warning  'timelineRef' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   66:59  error    'getEffectDescription' was used before it was defined                                        no-use-before-define
+  210:3   error    'useTimelineKeyboardShortcuts' was used before it was defined                                no-use-before-define
+
+/app/src/client/components/slides/SlideViewer.tsx
+    2:21  warning  'InteractiveSlide' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+    2:57  warning  'DeviceType' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+   15:33  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  117:9   warning  'handlePlay' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  122:9   warning  'handlePause' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/TimelineSlideViewer.tsx
+   11:21  warning  'SlideViewerState' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   11:39  warning  'SlideEffect' is defined but never used. Allowed unused vars must match /^_/u                     @typescript-eslint/no-unused-vars
+   11:52  warning  'EffectParameters' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   22:33  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   60:26  warning  'setIsTimelineMode' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   61:10  warning  'activeHotspotId' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   62:10  warning  'completedHotspots' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   88:68  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   93:21  error    'getTimelineEventType' was used before it was defined                                             no-use-before-define
+  246:9   warning  'handleHotspotFocus' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  257:9   warning  'handleHotspotComplete' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/UnifiedSlideEditor.tsx
+   70:3   warning  'onImageUpload' is defined but never used. Allowed unused args must match /^_/u                                                                                   @typescript-eslint/no-unused-vars
+  150:6   error    React Hook useCallback has an unnecessary dependency: 'state.navigation.currentSlideIndex'. Either exclude it or remove the dependency array                      react-hooks/exhaustive-deps
+  186:35  warning  Unexpected any. Specify a different type                                                                                                                          @typescript-eslint/no-explicit-any
+  491:6   error    React Hook useCallback has unnecessary dependencies: 'currentSlide' and 'state.navigation.currentSlideIndex'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+  502:42  warning  'theme' is defined but never used. Allowed unused args must match /^_/u                                                                                           @typescript-eslint/no-unused-vars
+  502:49  warning  Unexpected any. Specify a different type                                                                                                                          @typescript-eslint/no-explicit-any
+  502:54  warning  'themeId' is defined but never used. Allowed unused args must match /^_/u                                                                                         @typescript-eslint/no-unused-vars
+  563:6   error    React Hook useCallback has an unnecessary dependency: 'state.navigation.currentSlideIndex'. Either exclude it or remove the dependency array                      react-hooks/exhaustive-deps
+  585:9   warning  'viewerConfig' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                           @typescript-eslint/no-unused-vars
+
+/app/src/client/components/slides/effects/QuizEffectSettings.tsx
+  120:23  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/ui/HotspotFeedbackAnimation.tsx
+    1:38  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  169:24  warning  Do not use Array index in keys                                                 react/no-array-index-key
+
+/app/src/client/components/ui/LiquidColorSelector.tsx
+  30:3  warning  'isMobile' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/components/ui/TextTipInteraction.tsx
+  209:24  warning  Do not use Array index in keys  react/no-array-index-key
+
+/app/src/client/components/views/ViewerView.tsx
+    5:10  warning  'SlideDeck' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  109:25  warning  'slideId' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  109:34  warning  'slideIndex' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  112:25  warning  'interaction' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useCrossDeviceSync.ts
+  18:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/client/hooks/useEventGestureCoordination.ts
+  50:9  error  'setEventInactive' was used before it was defined  no-use-before-define
+  53:7  error  'setEventInactive' was used before it was defined  no-use-before-define
+
+/app/src/client/hooks/useHotspotPositioning.ts
+  26:3  warning  'isMobile' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  72:7  warning  'isTransitioning' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useLayoutConstraints.ts
+  11:10  warning  'DeviceType' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  77:5   warning  'position' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useOfflineContent.ts
+   4:31  warning  'contentId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  10:44  warning  'contentId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/usePanZoomEngine.ts
+   24:3   warning  'animationEasing' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   36:7   error    'cancelAnimationFrame' is not defined                                                       no-undef
+  111:9   error    'localStorage' is not defined                                                               no-undef
+  140:23  error    'performance' is not defined                                                                no-undef
+  161:32  error    'requestAnimationFrame' is not defined                                                      no-undef
+  167:28  error    'requestAnimationFrame' is not defined                                                      no-undef
+
+/app/src/client/hooks/usePinchZoom.ts
+  139:73  warning  'currentScale' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  201:36  error    'requestAnimationFrame' is not defined                                          no-undef
+  206:11  error    'cancelAnimationFrame' is not defined                                           no-undef
+  208:32  error    'requestAnimationFrame' is not defined                                          no-undef
+  265:9   error    'cancelAnimationFrame' is not defined                                           no-undef
+
+/app/src/client/hooks/useProjectTheme.tsx
+  12:24  warning  'defaultTheme' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useSlideAnimations.ts
+  148:37  warning  'elementId' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  153:35  warning  'variant' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useToast.tsx
+  2:40  warning  'ToastType' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/hooks/useTouchGestures.ts
+  141:7   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  145:7   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  186:7   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  402:31  warning  Forbidden non-null assertion                                                                                                                                                                                                                                                       @typescript-eslint/no-non-null-assertion
+  403:31  warning  Forbidden non-null assertion                                                                                                                                                                                                                                                       @typescript-eslint/no-non-null-assertion
+  515:6   error    React Hook useCallback has unnecessary dependencies: 'disabled' and 'handlePinchMove'. Either exclude them or remove the dependency array                                                                                                                                          react-hooks/exhaustive-deps
+  526:47  error    'requestAnimationFrame' is not defined                                                                                                                                                                                                                                             no-undef
+  535:9   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  612:39  error    'requestAnimationFrame' is not defined                                                                                                                                                                                                                                             no-undef
+  636:9   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  647:39  error    'requestAnimationFrame' is not defined                                                                                                                                                                                                                                             no-undef
+  654:6   error    React Hook useCallback has missing dependencies: 'maxScale', 'minScale', and 'setImageTransform'. Either include them or remove the dependency array. If 'setImageTransform' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  758:9   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+  762:9   error    'cancelAnimationFrame' is not defined                                                                                                                                                                                                                                              no-undef
+
+/app/src/client/hooks/useUnifiedEditorState.ts
+  212:66  warning  'arr' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/utils/ModalLayoutManager.ts
+  182:19  warning  'isMobile' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  410:61  warning  'isMobile' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+
+/app/src/client/utils/debugUtils.ts
+   6:42  error    'localStorage' is not defined                                              no-undef
+  12:9   warning  'message' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  12:29  warning  'args' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  26:10  warning  'message' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  26:30  warning  'args' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  37:11  error    'localStorage' is not defined                                              no-undef
+  39:11  error    'localStorage' is not defined                                              no-undef
+
+/app/src/client/utils/enhancedUploadHandler.ts
+   36:36   warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   36:69   warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   36:105  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   68:14   warning  'tokenError' is defined but never used                                                            @typescript-eslint/no-unused-vars
+   74:12   warning  'error' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+  170:7    warning  'THUMBNAIL_POSTFIX' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  222:11   warning  'networkDetails' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  368:18   warning  'compressionError' is defined but never used                                                      @typescript-eslint/no-unused-vars
+  387:15   warning  'currentNetworkDetails' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  388:15   warning  'currentAuthDetails' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  434:18   warning  Forbidden non-null assertion                                                                      @typescript-eslint/no-non-null-assertion
+  438:17   warning  Forbidden non-null assertion                                                                      @typescript-eslint/no-non-null-assertion
+
+/app/src/client/utils/firebaseImageUtils.ts
+  119:69  warning  'context' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  123:11  warning  'prefix' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+
+/app/src/client/utils/hapticUtils.ts
+  68:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/src/client/utils/hotspotEditorBridge.ts
+   11:24   warning  'SlideDeck' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   11:100  warning  'SlideEffect' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  359:17   warning  Forbidden non-null assertion                                                   @typescript-eslint/no-non-null-assertion
+  359:31   warning  Forbidden non-null assertion                                                   @typescript-eslint/no-non-null-assertion
+
+/app/src/client/utils/imageLoadingManager.ts
+  119:23  error  'Image' is not defined  no-undef
+
+/app/src/client/utils/imageUtils.ts
+  10:21  error  'Image' is not defined  no-undef
+
+/app/src/client/utils/iosZIndexManager.ts
+  118:39  warning  'fallbackOffset' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/app/src/client/utils/networkMonitor.ts
+   15:36   warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   15:69   warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   15:105  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   57:39   warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  242:11   warning  'unsubscribe' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  279:7    error    'cleanup' was used before it was defined                                                no-use-before-define
+  285:9    error    'cleanup' was used before it was defined                                                no-use-before-define
+  286:17   warning  Forbidden non-null assertion                                                            @typescript-eslint/no-non-null-assertion
+
+/app/src/client/utils/secureImageLoader.ts
+  34:30  error  'fetch' is not defined  no-undef
+
+/app/src/client/utils/themeUtils.ts
+   8:24  warning  'ThemeColors' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  16:17  warning  Forbidden non-null assertion                                                   @typescript-eslint/no-non-null-assertion
+  17:17  warning  Forbidden non-null assertion                                                   @typescript-eslint/no-non-null-assertion
+  18:17  warning  Forbidden non-null assertion                                                   @typescript-eslint/no-non-null-assertion
+
+/app/src/lib/dataSanitizer.ts
+   14:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  297:59  warning  Forbidden non-null assertion              @typescript-eslint/no-non-null-assertion
+  322:64  warning  Forbidden non-null assertion              @typescript-eslint/no-non-null-assertion
+  325:18  warning  Forbidden non-null assertion              @typescript-eslint/no-non-null-assertion
+  339:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/lib/firebaseApi.ts
+     6:3   warning  'deleteDoc' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+    18:10  warning  'generateThumbnail' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    25:10  warning  'saveOperationMonitor' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    29:7   warning  'THUMBNAIL_WIDTH' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+    30:7   warning  'THUMBNAIL_HEIGHT' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    31:7   warning  'THUMBNAIL_FORMAT' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+    32:7   warning  'THUMBNAIL_QUALITY' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    33:7   warning  'THUMBNAIL_POSTFIX' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    38:45  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+    39:7   warning  'CACHE_DURATION' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   169:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   170:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   171:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   172:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   173:15  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   310:22  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   322:30  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   396:66  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   422:88  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   470:15  warning  'createdAt' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   470:26  warning  'updatedAt' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   534:25  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   554:15  warning  'slideDeckString' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   590:38  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   590:44  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   600:24  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  1106:21  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+
+/app/src/lib/firebaseConfig.ts
+    4:50  warning  'initializeFirestore' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   31:10  warning  'validateFirebaseConfig' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   51:16  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   52:15  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   53:20  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   54:17  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   55:24  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   56:22  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  111:18  warning  'error' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  125:18  warning  'error' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  183:35  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  189:40  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  195:37  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+/app/src/lib/healthMonitor.ts
+    1:31  warning  'query' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+    1:38  warning  'where' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+  307:13  warning  'totalHotspots' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  308:13  warning  'totalEvents' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  312:15  warning  'projectData' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+
+/app/src/lib/safeMathUtils.ts
+   41:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/lib/testAuthUtils.ts
+   92:29  error    'sessionStorage' is not defined  no-undef
+  121:27  error    'sessionStorage' is not defined  no-undef
+  125:18  warning  'e' is defined but never used    @typescript-eslint/no-unused-vars
+
+/app/src/shared/DataMigration.ts
+  51:65   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:115  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:88   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:50   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/src/shared/coordinateMigration.ts
+  136:66  warning  'projectName' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  149:16  warning  'hotspot' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  151:34  warning  'issue' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+
+/app/src/shared/migration.ts
+    5:131  warning  'HotspotEvent' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   10:49   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   23:45   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   38:43   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   53:42   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   68:40   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   83:46   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   98:42   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  112:47   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  354:1    warning  'timelineEvent' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  355:1    warning  'module' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+
+/app/src/shared/migrationUtils.ts
+  330:12  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/InteractiveModule.test.tsx
+  3:1   warning  `../client/hooks/useToast` import should occur after import of `../client/components/SlideBasedInteractiveModule`  import/order
+  8:10  warning  'InteractiveModuleState' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+
+/app/src/tests/ReactErrorDetection.test.tsx
+    3:1   warning  `../lib/authContext` import should occur after import of `../client/components/SlideBasedInteractiveModule`        import/order
+    4:1   warning  `../client/hooks/useToast` import should occur after import of `../client/components/SlideBasedInteractiveModule`  import/order
+  145:32  error    'someUndefinedVariable' is not defined                                                                             no-undef
+  201:23  warning  'setCount' is assigned a value but never used. Allowed unused vars must match /^_/u                                @typescript-eslint/no-unused-vars
+  217:13  warning  'dependencyWarnings' is assigned a value but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+  324:14  error    'ChildComponent' was used before it was defined                                                                    no-use-before-define
+
+/app/src/tests/buildIntegrity/TypeScriptIntegrity.test.ts
+  332:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  333:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  333:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  334:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/coreFunctionality/UnifiedSlideEditor.test.tsx
+    3:1   warning  There should be no empty line between import groups                                   import/order
+    7:10  warning  'useDeviceDetection' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   10:10  warning  'firebaseAPI' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   11:10  warning  'firebaseManager' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  158:16  warning  Forbidden non-null assertion                                                          @typescript-eslint/no-non-null-assertion
+  159:16  warning  Forbidden non-null assertion                                                          @typescript-eslint/no-non-null-assertion
+  159:16  warning  Forbidden non-null assertion                                                          @typescript-eslint/no-non-null-assertion
+  181:16  warning  Forbidden non-null assertion                                                          @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/firebaseApi.test.ts
+  101:31  warning  'getDoc' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  387:27  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+  401:14  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+  401:14  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+  401:14  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+  401:14  warning  Forbidden non-null assertion                                                       @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/integration/ConcurrentOperations.test.ts
+   16:7   warning  'testUserId' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  110:14  warning  Forbidden non-null assertion                                                           @typescript-eslint/no-non-null-assertion
+  111:14  warning  Forbidden non-null assertion                                                           @typescript-eslint/no-non-null-assertion
+  246:14  warning  Forbidden non-null assertion                                                           @typescript-eslint/no-non-null-assertion
+  249:26  warning  Forbidden non-null assertion                                                           @typescript-eslint/no-non-null-assertion
+  347:13  warning  'successful' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  348:13  warning  'failed' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  355:14  warning  Forbidden non-null assertion                                                           @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/integration/FirebaseIntegration.test.ts
+    2:42  warning  'doc' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+    4:10  warning  'DataSanitizer' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  126:14  warning  Forbidden non-null assertion                                                     @typescript-eslint/no-non-null-assertion
+  207:14  warning  Forbidden non-null assertion                                                     @typescript-eslint/no-non-null-assertion
+  212:14  warning  Forbidden non-null assertion                                                     @typescript-eslint/no-non-null-assertion
+
+/app/src/tests/slideDeckUtils.test.ts
+  20:28  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  41:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  42:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  43:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  43:49  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  61:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  62:14  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  63:21  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+  64:21  warning  Forbidden non-null assertion  @typescript-eslint/no-non-null-assertion
+
+✖ 480 problems (50 errors, 430 warnings)

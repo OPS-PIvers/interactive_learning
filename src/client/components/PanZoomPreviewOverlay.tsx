@@ -26,18 +26,18 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
   
   // Calculate the viewable area size based on zoom level
   // Higher zoom = smaller viewable area (more zoomed in)
-  const calculateViewableSize = (containerSize: number, zoomLevel: number) => {
+  const calculateViewableSize = useCallback((containerSize: number, zoomLevel: number) => {
     return containerSize / zoomLevel;
-  };
+  }, []);
   
-  const zoomArea = {
+  const zoomArea = useMemo(() => ({
     x: event.targetX || 50,
     y: event.targetY || 50,
     // Size is calculated based on zoom level and container bounds
     width: containerBounds ? calculateViewableSize(containerBounds.width, zoom) : 200,
     height: containerBounds ? calculateViewableSize(containerBounds.height, zoom) : 150,
     zoom: zoom
-  };
+  }), [event, containerBounds, zoom, calculateViewableSize]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, action: 'drag' | 'resize') => {
     e.preventDefault();

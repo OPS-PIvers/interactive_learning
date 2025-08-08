@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, Easing, MotionStyle } from 'framer-motion';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { AnimatedElement } from '../animations/ElementAnimations';
@@ -8,7 +8,7 @@ interface SlideEffectRendererProps {
   effect: SlideEffect;
   containerRef: React.RefObject<HTMLDivElement>;
   deviceType: DeviceType;
-  canvasDimensions?: { width: number; height: number; scale: number };
+  canvasDimensions?: {width: number;height: number;scale: number;};
   onComplete: () => void;
 }
 
@@ -26,25 +26,25 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isVisible, setIsVisible] = useState(true);
-  
+
   // Quiz effect state - moved to component level to follow Rules of Hooks
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
-  
-  console.log('[SlideEffectRenderer] Rendering effect:', effect);
-  console.log('[SlideEffectRenderer] Container ref:', containerRef.current);
-  console.log('[SlideEffectRenderer] Device type:', deviceType);
-  
+
+
+
+
+
   // Calculate slide canvas positioning for proper effect alignment
   const slideCanvasInfo = React.useMemo(() => {
     if (!containerRef.current) return null;
-    
+
     const container = containerRef.current;
     const slideCanvas = container.querySelector('.slide-canvas') as HTMLElement;
     const canvasRect = slideCanvas ? slideCanvas.getBoundingClientRect() : container.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
     const scale = canvasDimensions?.scale || 1;
-    
+
     return {
       slideCanvas,
       canvasRect,
@@ -55,7 +55,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       scaledWidth: canvasRect.width,
       scaledHeight: canvasRect.height
     };
-  }, [containerRef.current, canvasDimensions]);
+  }, [containerRef, canvasDimensions]);
 
   useEffect(() => {
     if (effect.duration > 0) {
@@ -70,7 +70,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
   }, [effect.duration, onComplete]);
 
   // Render spotlight effect
-  const renderSpotlightEffect = () => {
+  const renderSpotlightEffect = useCallback(() => {
     if (effect.type !== 'spotlight' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as SpotlightParameters;
@@ -102,7 +102,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     const scaledY = params.position.y * slideCanvasInfo.scale;
     const scaledWidth = params.position.width * slideCanvasInfo.scale;
     const scaledHeight = params.position.height * slideCanvasInfo.scale;
-    
+
     const centerX = scaledX + scaledWidth / 2;
     const centerY = scaledY + scaledHeight / 2;
 
@@ -139,58 +139,58 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
     return (
       <AnimatePresence>
-        {isVisible && (
-          <AnimatedElement
-            variant="spotlight"
-            microInteraction="subtle"
-            className={`spotlight-effect fixed inset-0 ${Z_INDEX_TAILWIND.OVERLAY_CONTENT}`}
-            isVisible={isVisible}
-          >
+        {isVisible &&
+        <AnimatedElement
+          variant="spotlight"
+          microInteraction="subtle"
+          className={`spotlight-effect fixed inset-0 ${Z_INDEX_TAILWIND.OVERLAY_CONTENT}`}
+          isVisible={isVisible}>
+
             <motion.canvas
-              ref={canvasRef}
-              className="absolute"
-              style={{
-                left: slideCanvasInfo?.offsetX || 0,
-                top: slideCanvasInfo?.offsetY || 0,
-                width: slideCanvasInfo?.canvasRect.width || '100%',
-                height: slideCanvasInfo?.canvasRect.height || '100%'
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            />
+            ref={canvasRef}
+            className="absolute"
+            style={{
+              left: slideCanvasInfo?.offsetX || 0,
+              top: slideCanvasInfo?.offsetY || 0,
+              width: slideCanvasInfo?.canvasRect.width || '100%',
+              height: slideCanvasInfo?.canvasRect.height || '100%'
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }} />
+
             
             {/* Message overlay */}
-            {params.message && (
-              <motion.div
-                className={`absolute top-1/4 left-1/2 transform -translate-x-1/2 ${Z_INDEX_TAILWIND.SLIDE_CONTENT} pointer-events-none`}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
-              >
+            {params.message &&
+          <motion.div
+            className={`absolute top-1/4 left-1/2 transform -translate-x-1/2 ${Z_INDEX_TAILWIND.SLIDE_CONTENT} pointer-events-none`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}>
+
                 <div className="bg-black bg-opacity-75 text-white px-4 py-2 rounded-lg text-center">
                   {params.message}
                 </div>
               </motion.div>
-            )}
+          }
 
             {/* Click to continue */}
             <motion.div
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => {
-                setIsVisible(false);
-                setTimeout(onComplete, 300);
-              }}
-              whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-              transition={{ duration: 0.2 }}
-            />
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => {
+              setIsVisible(false);
+              setTimeout(onComplete, 300);
+            }}
+            whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+            transition={{ duration: 0.2 }} />
+
           </AnimatedElement>
-        )}
-      </AnimatePresence>
-    );
-  };
+        }
+      </AnimatePresence>);
+
+  }, [effect, slideCanvasInfo, isVisible, onComplete, canvasRef]);
 
   // Render zoom effect
   const renderZoomEffect = () => {
@@ -211,76 +211,76 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       transformOrigin: 'center center',
       transform: `scale(${params.zoomLevel})`,
       transition: `transform ${effect.duration}ms ${effect.easing || 'ease-in-out'}`,
-      left: params.centerOnTarget ? 
-        `${50 - ((params.targetPosition.x + params.targetPosition.width / 2) / (containerRef.current?.clientWidth || 1)) * 100}%` : 
-        0,
-      top: params.centerOnTarget ? 
-        `${50 - ((params.targetPosition.y + params.targetPosition.height / 2) / (containerRef.current?.clientHeight || 1)) * 100}%` : 
-        0,
+      left: params.centerOnTarget ?
+      `${50 - (params.targetPosition.x + params.targetPosition.width / 2) / (containerRef.current?.clientWidth || 1) * 100}%` :
+      0,
+      top: params.centerOnTarget ?
+      `${50 - (params.targetPosition.y + params.targetPosition.height / 2) / (containerRef.current?.clientHeight || 1) * 100}%` :
+      0,
       width: '100%',
       height: '100%'
     };
 
     return (
       <AnimatePresence>
-        {isVisible && (
-          <AnimatedElement
-            variant="zoom"
-            className="zoom-effect"
-            style={zoomStyle}
-            isVisible={isVisible}
-          >
+        {isVisible &&
+        <AnimatedElement
+          variant="zoom"
+          className="zoom-effect"
+          style={zoomStyle}
+          isVisible={isVisible}>
+
             <motion.div
-              style={{
-                position: 'absolute',
-                transformOrigin: 'center center',
-                width: '100%',
-                height: '100%'
-              }}
-              initial={{ 
-                scale: 1, 
-                x: 0, 
-                y: 0 
-              }}
-              animate={{ 
-                scale: params.zoomLevel,
-                x: params.centerOnTarget ? 
-                  `${50 - ((params.targetPosition.x + params.targetPosition.width / 2) / (containerRef.current?.clientWidth || 1)) * 100}%` : 
-                  0,
-                y: params.centerOnTarget ? 
-                  `${50 - ((params.targetPosition.y + params.targetPosition.height / 2) / (containerRef.current?.clientHeight || 1)) * 100}%` : 
-                  0
-              }}
-              transition={{
-                duration: effect.duration / 1000,
-                ease: (effect.easing as Easing) || "easeInOut",
-                type: "spring",
-                damping: 20,
-                stiffness: 100
-              }}
-            >
+            style={{
+              position: 'absolute',
+              transformOrigin: 'center center',
+              width: '100%',
+              height: '100%'
+            }}
+            initial={{
+              scale: 1,
+              x: 0,
+              y: 0
+            }}
+            animate={{
+              scale: params.zoomLevel,
+              x: params.centerOnTarget ?
+              `${50 - (params.targetPosition.x + params.targetPosition.width / 2) / (containerRef.current?.clientWidth || 1) * 100}%` :
+              0,
+              y: params.centerOnTarget ?
+              `${50 - (params.targetPosition.y + params.targetPosition.height / 2) / (containerRef.current?.clientHeight || 1) * 100}%` :
+              0
+            }}
+            transition={{
+              duration: effect.duration / 1000,
+              ease: effect.easing as Easing || "easeInOut",
+              type: "spring",
+              damping: 20,
+              stiffness: 100
+            }}>
+
               {/* Zoom target indicator */}
               <motion.div
-                style={{
-                  position: 'absolute',
-                  left: params.targetPosition.x,
-                  top: params.targetPosition.y,
-                  width: params.targetPosition.width,
-                  height: params.targetPosition.height,
-                  border: '2px solid #3b82f6',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  zIndex: Z_INDEX.SLIDE_CONTENT
-                }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-              />
+              style={{
+                position: 'absolute',
+                left: params.targetPosition.x,
+                top: params.targetPosition.y,
+                width: params.targetPosition.width,
+                height: params.targetPosition.height,
+                border: '2px solid #3b82f6',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                zIndex: Z_INDEX.SLIDE_CONTENT
+              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }} />
+
             </motion.div>
           </AnimatedElement>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Render text effect
@@ -291,46 +291,46 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
     return (
       <AnimatePresence>
-        {isVisible && (
-          <AnimatedElement
-            variant="textReveal"
-            microInteraction="subtle"
-            className={`text-effect absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`}
-            style={{
-              left: slideCanvasInfo.offsetX + (params.position.x * slideCanvasInfo.scale),
-              top: slideCanvasInfo.offsetY + (params.position.y * slideCanvasInfo.scale),
-              width: params.position.width * slideCanvasInfo.scale,
-              height: params.position.height * slideCanvasInfo.scale
-            }}
-            isVisible={isVisible}
-          >
+        {isVisible &&
+        <AnimatedElement
+          variant="textReveal"
+          microInteraction="subtle"
+          className={`text-effect absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`}
+          style={{
+            left: slideCanvasInfo.offsetX + params.position.x * slideCanvasInfo.scale,
+            top: slideCanvasInfo.offsetY + params.position.y * slideCanvasInfo.scale,
+            width: params.position.width * slideCanvasInfo.scale,
+            height: params.position.height * slideCanvasInfo.scale
+          }}
+          isVisible={isVisible}>
+
             <motion.div
-              style={{
-                ...params.style,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: params.style.padding || 16,
-                borderRadius: params.style.borderRadius || 8
-              }}
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              transition={{
-                type: "spring",
-                damping: 20,
-                stiffness: 100,
-                duration: 0.4
-              }}
-            >
+            style={{
+              ...params.style,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: params.style.padding || 16,
+              borderRadius: params.style.borderRadius || 8
+            }}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{
+              type: "spring",
+              damping: 20,
+              stiffness: 100,
+              duration: 0.4
+            }}>
+
               {params.text}
             </motion.div>
           </AnimatedElement>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Render pan and zoom effect
@@ -338,71 +338,71 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type !== 'pan_zoom' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as PanZoomParameters;
-    
+
     return (
       <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            className={`absolute ${Z_INDEX_TAILWIND.SELECTED_ELEMENTS} overflow-hidden`}
-            style={{
-              left: slideCanvasInfo.offsetX,
-              top: slideCanvasInfo.offsetY,
-              width: slideCanvasInfo.canvasRect.width,
-              height: slideCanvasInfo.canvasRect.height
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+        {isVisible &&
+        <motion.div
+          className={`absolute ${Z_INDEX_TAILWIND.SELECTED_ELEMENTS} overflow-hidden`}
+          style={{
+            left: slideCanvasInfo.offsetX,
+            top: slideCanvasInfo.offsetY,
+            width: slideCanvasInfo.canvasRect.width,
+            height: slideCanvasInfo.canvasRect.height
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}>
+
             <motion.div
-              className="w-full h-full"
-              initial={{
-                scale: 1,
-                x: 0,
-                y: 0
-              }}
-              animate={{
-                scale: params.zoomLevel || 1.5,
-                x: params.targetPosition ? `-${(params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale}px` : 0,
-                y: params.targetPosition ? `-${(params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale}px` : 0
-              }}
-              transition={{
-                duration: effect.duration / 1000,
-                ease: (params.easing as Easing) || "easeInOut",
-                type: "spring",
-                damping: 20,
-                stiffness: 100
-              }}
-            >
+            className="w-full h-full"
+            initial={{
+              scale: 1,
+              x: 0,
+              y: 0
+            }}
+            animate={{
+              scale: params.zoomLevel || 1.5,
+              x: params.targetPosition ? `-${(params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale}px` : 0,
+              y: params.targetPosition ? `-${(params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale}px` : 0
+            }}
+            transition={{
+              duration: effect.duration / 1000,
+              ease: params.easing as Easing || "easeInOut",
+              type: "spring",
+              damping: 20,
+              stiffness: 100
+            }}>
+
               {/* Pan/Zoom target indicator */}
-              {params.targetPosition && (
-                <motion.div
-                  className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"
-                  style={{
-                    left: (params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale - 8,
-                    top: (params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale - 8,
-                    zIndex: Z_INDEX.SLIDE_CONTENT
-                  }}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.3 }}
-                />
-              )}
+              {params.targetPosition &&
+            <motion.div
+              className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"
+              style={{
+                left: (params.targetPosition.x + params.targetPosition.width / 2) * slideCanvasInfo.scale - 8,
+                top: (params.targetPosition.y + params.targetPosition.height / 2) * slideCanvasInfo.scale - 8,
+                zIndex: Z_INDEX.SLIDE_CONTENT
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.3 }} />
+
+            }
             </motion.div>
             
             {/* Click overlay to complete */}
-            <div 
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => {
-                setIsVisible(false);
-                setTimeout(onComplete, 300);
-              }}
-            />
+            <div
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => {
+              setIsVisible(false);
+              setTimeout(onComplete, 300);
+            }} />
+
           </motion.div>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Render element animation effect
@@ -410,46 +410,46 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type !== 'animate') return null;
 
     const params = effect.parameters as AnimateParameters;
-    
+
     return (
       <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            className={`absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`}
-            style={{
-              left: params.fromPosition?.x || 0,
-              top: params.fromPosition?.y || 0,
-              width: params.fromPosition?.width || 'auto',
-              height: params.fromPosition?.height || 'auto'
-            }}
-            initial={{
-              x: 0,
-              y: 0,
-              scale: 1,
-              rotate: 0,
-              opacity: 1
-            }}
-            animate={{
-              x: params.toPosition ? (params.toPosition.x - (params.fromPosition?.x || 0)) : 0,
-              y: params.toPosition ? (params.toPosition.y - (params.fromPosition?.y || 0)) : 0,
-              scale: params.animationType === 'resize' ? 1.2 : 1,
-              rotate: params.animationType === 'rotate' ? 360 : 0,
-              opacity: params.animationType === 'fade' ? 0 : 1
-            }}
-            transition={{
-              duration: effect.duration / 1000,
-              ease: (effect.easing as Easing) || "easeInOut",
-              type: params.animationType === 'move' ? "spring" : "tween",
-              damping: 15,
-              stiffness: 100
-            }}
-          >
+        {isVisible &&
+        <motion.div
+          className={`absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`}
+          style={{
+            left: params.fromPosition?.x || 0,
+            top: params.fromPosition?.y || 0,
+            width: params.fromPosition?.width || 'auto',
+            height: params.fromPosition?.height || 'auto'
+          }}
+          initial={{
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotate: 0,
+            opacity: 1
+          }}
+          animate={{
+            x: params.toPosition ? params.toPosition.x - (params.fromPosition?.x || 0) : 0,
+            y: params.toPosition ? params.toPosition.y - (params.fromPosition?.y || 0) : 0,
+            scale: params.animationType === 'resize' ? 1.2 : 1,
+            rotate: params.animationType === 'rotate' ? 360 : 0,
+            opacity: params.animationType === 'fade' ? 0 : 1
+          }}
+          transition={{
+            duration: effect.duration / 1000,
+            ease: effect.easing as Easing || "easeInOut",
+            type: params.animationType === 'move' ? "spring" : "tween",
+            damping: 15,
+            stiffness: 100
+          }}>
+
             {/* Animated element indicator */}
             <div className="w-full h-full bg-purple-500/20 border-2 border-purple-500 rounded-lg" />
           </motion.div>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Render media playback effect
@@ -457,72 +457,72 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type !== 'play_media' && effect.type !== 'play_video' && effect.type !== 'play_audio') return null;
 
     const params = effect.parameters as PlayMediaParameters;
-    
+
     return (
       <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+        {isVisible &&
+        <motion.div
+          className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}>
+
             <motion.div
-              className="bg-black/90 rounded-lg p-6 max-w-2xl w-full mx-4"
-              initial={{ scale: 0.8, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 50 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-            >
-              {params.mediaType === 'video' && (
-                <video
-                  src={params.mediaUrl}
-                  controls={params.controls}
-                  autoPlay={params.autoplay}
-                  className="w-full rounded"
-                  style={{ maxHeight: '70vh' }}
-                  onEnded={() => {
-                    setIsVisible(false);
-                    setTimeout(onComplete, 300);
-                  }}
-                />
-              )}
+            className="bg-black/90 rounded-lg p-6 max-w-2xl w-full mx-4"
+            initial={{ scale: 0.8, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.8, y: 50 }}
+            transition={{ type: "spring", damping: 20, stiffness: 100 }}>
+
+              {params.mediaType === 'video' &&
+            <video
+              src={params.mediaUrl}
+              controls={params.controls}
+              autoPlay={params.autoplay}
+              className="w-full rounded"
+              style={{ maxHeight: '70vh' }}
+              onEnded={() => {
+                setIsVisible(false);
+                setTimeout(onComplete, 300);
+              }} />
+
+            }
               
-              {params.mediaType === 'audio' && (
-                <div className="text-center">
+              {params.mediaType === 'audio' &&
+            <div className="text-center">
                   <div className="text-white mb-4">
                     <div className="text-lg font-semibold mb-2">🎵 Playing Audio</div>
                     <div className="text-sm text-gray-300">Audio is now playing...</div>
                   </div>
                   <audio
-                    src={params.mediaUrl}
-                    controls={params.controls}
-                    autoPlay={params.autoplay}
-                    className="w-full"
-                    onEnded={() => {
-                      setIsVisible(false);
-                      setTimeout(onComplete, 300);
-                    }}
-                  />
+                src={params.mediaUrl}
+                controls={params.controls}
+                autoPlay={params.autoplay}
+                className="w-full"
+                onEnded={() => {
+                  setIsVisible(false);
+                  setTimeout(onComplete, 300);
+                }} />
+
                 </div>
-              )}
+            }
               
               {/* Close button */}
               <button
-                onClick={() => {
-                  setIsVisible(false);
-                  setTimeout(onComplete, 300);
-                }}
-                className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-bold"
-              >
+              onClick={() => {
+                setIsVisible(false);
+                setTimeout(onComplete, 300);
+              }}
+              className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-bold">
+
                 ×
               </button>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Render quiz effect
@@ -530,75 +530,75 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type !== 'quiz') return null;
 
     const params = effect.parameters as QuizParameters;
-    
+
     const handleAnswerSelect = (answer: string) => {
       setSelectedAnswer(answer);
       setShowResult(true);
-      
+
       // Auto-close after showing result
       setTimeout(() => {
         setIsVisible(false);
         setTimeout(onComplete, 300);
       }, 2000);
     };
-    
+
     return (
       <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center p-4`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+        {isVisible &&
+        <motion.div
+          className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-black/50 flex items-center justify-center p-4`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}>
+
             <motion.div
-              className="bg-white rounded-lg p-6 max-w-lg w-full"
-              initial={{ scale: 0.8, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 50 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-            >
-              {!showResult ? (
-                <>
+            className="bg-white rounded-lg p-6 max-w-lg w-full"
+            initial={{ scale: 0.8, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.8, y: 50 }}
+            transition={{ type: "spring", damping: 20, stiffness: 100 }}>
+
+              {!showResult ?
+            <>
                   <h3 className="text-xl font-bold text-gray-900 mb-4">{params.question}</h3>
                   <div className="space-y-3">
-                    {params.choices?.map((choice, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleAnswerSelect(choice)}
-                        className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                      >
+                    {params.choices?.map((choice, index) =>
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelect(choice)}
+                  className="w-full text-left p-3 rounded-lg border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors">
+
                         {choice}
                       </button>
-                    ))}
+                )}
                   </div>
-                </>
-              ) : (
-                <div className="text-center">
+                </> :
+
+            <div className="text-center">
                   <div className={`text-2xl mb-4 ${
-                    selectedAnswer === params.correctAnswer ? 'text-green-600' : 'text-red-600'
-                  }`}>
+              selectedAnswer === params.correctAnswer ? 'text-green-600' : 'text-red-600'}`
+              }>
                     {selectedAnswer === params.correctAnswer ? '✅ Correct!' : '❌ Incorrect'}
                   </div>
                   <div className="text-gray-700 mb-4">
-                    {selectedAnswer === params.correctAnswer 
-                      ? 'Well done!' 
-                      : `The correct answer was: ${params.correctAnswer}`
-                    }
+                    {selectedAnswer === params.correctAnswer ?
+                'Well done!' :
+                `The correct answer was: ${params.correctAnswer}`
+                }
                   </div>
-                  {params.explanation && (
-                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                  {params.explanation &&
+              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                       {params.explanation}
                     </div>
-                  )}
+              }
                 </div>
-              )}
+            }
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    );
+        }
+      </AnimatePresence>);
+
   };
 
   // Main render logic
@@ -606,7 +606,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type === 'spotlight') {
       renderSpotlightEffect();
     }
-  }, [effect, isVisible]);
+  }, [effect, isVisible, renderSpotlightEffect]);
 
   switch (effect.type) {
     case 'spotlight':

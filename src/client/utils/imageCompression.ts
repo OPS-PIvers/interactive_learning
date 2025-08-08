@@ -15,37 +15,37 @@ export const compressImage = async (file: File, customOptions?: Partial<Options>
   const defaultOptions: Partial<Options> = {
     maxSizeMB: IMAGE_COMPRESSION_MAX_SIZE_MB,
     maxWidthOrHeight: IMAGE_COMPRESSION_MAX_DIMENSION_PX,
-    useWebWorker: false, // Disabled for stability across all devices
+    useWebWorker: false // Disabled for stability across all devices
   };
-  
+
   // Merge custom options with defaults
   const options = { ...defaultOptions, ...customOptions };
-  
+
   try {
     const compressedFile = await imageCompression(file, options);
-    console.log(`Compressed file size: ${compressedFile.size / 1024 / 1024} MB`);
+
     return compressedFile;
   } catch (error) {
     console.error('Image compression failed:', error);
-    
+
     // If compression fails, try with more aggressive settings
     if (options.maxSizeMB && options.maxSizeMB > 0.5) {
-      console.log('Retrying with more aggressive compression...');
+
       try {
-        const fallbackOptions = { 
-          ...options, 
+        const fallbackOptions = {
+          ...options,
           maxSizeMB: 0.5,
           quality: 0.6,
-          useWebWorker: false 
+          useWebWorker: false
         };
         const fallbackCompressed = await imageCompression(file, fallbackOptions);
-        console.log(`Fallback compression successful: ${fallbackCompressed.size / 1024 / 1024} MB`);
+
         return fallbackCompressed;
       } catch (fallbackError) {
         console.error('Fallback compression also failed:', fallbackError);
       }
     }
-    
+
     return file; // Return original file if compression fails
   }
 };

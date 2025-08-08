@@ -17,46 +17,46 @@ interface TimelineEventToEffectOptions {
  * Converts a timeline event to a proper SlideEffect
  */
 export function convertTimelineEventToSlideEffect(
-  timelineEvent: TimelineEventData,
-  options: TimelineEventToEffectOptions
-): SlideEffect | null {
+timelineEvent: TimelineEventData,
+options: TimelineEventToEffectOptions)
+: SlideEffect | null {
   const { slideDeck, currentSlideIndex, targetElement, deviceType = 'desktop' } = options;
   const currentSlide = slideDeck.slides[currentSlideIndex];
-  
+
   if (!currentSlide) {
     console.warn('[TimelineConverter] No current slide found');
     return null;
   }
-  
+
   // Find target element if not provided
   let element = targetElement;
   if (!element && timelineEvent.targetId) {
-    element = currentSlide.elements?.find(el => el.id === timelineEvent.targetId);
+    element = currentSlide.elements?.find((el) => el.id === timelineEvent.targetId);
   }
-  
-  console.log('[TimelineConverter] Converting timeline event:', timelineEvent);
-  console.log('[TimelineConverter] Target element:', element);
-  console.log('[TimelineConverter] Device type:', deviceType);
-  
+
+
+
+
+
   // Convert based on timeline event type
   switch (timelineEvent.type) {
     case 'SPOTLIGHT':
       return createSpotlightEffect(timelineEvent, element, deviceType);
-      
+
     case 'PAN_ZOOM_TO_HOTSPOT':
     case 'PAN_ZOOM':
       return createPanZoomEffect(timelineEvent, element, deviceType);
-      
+
     case 'SHOW_MESSAGE':
       return createShowTextEffect(timelineEvent, element, deviceType);
-      
+
     case 'SHOW_VIDEO':
     case 'SHOW_AUDIO_MODAL':
       return createPlayMediaEffect(timelineEvent);
-      
+
     case 'SHOW_YOUTUBE':
       return createPlayMediaEffect(timelineEvent, 'youtube');
-      
+
     default:
       console.warn('[TimelineConverter] Unknown timeline event type:', timelineEvent.type);
       return createDefaultSpotlightEffect(timelineEvent, element, deviceType);
@@ -67,17 +67,17 @@ export function convertTimelineEventToSlideEffect(
  * Creates a spotlight effect from timeline event
  */
 function createSpotlightEffect(
-  timelineEvent: TimelineEventData,
-  element?: SlideElement,
-  deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
-): SlideEffect {
+timelineEvent: TimelineEventData,
+element?: SlideElement,
+deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
+: SlideEffect {
   let position = {
     x: 300,
     y: 200,
     width: 200,
     height: 200
   };
-  
+
   if (element) {
     // Use element position for the appropriate device and make it slightly larger for spotlight
     const elementPos = element.position[deviceType];
@@ -96,7 +96,7 @@ function createSpotlightEffect(
       height: 200
     };
   }
-  
+
   return {
     id: generateId(),
     type: 'spotlight',
@@ -116,10 +116,10 @@ function createSpotlightEffect(
  * Creates a pan/zoom effect from timeline event
  */
 function createPanZoomEffect(
-  timelineEvent: TimelineEventData,
-  element?: SlideElement,
-  deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
-): SlideEffect {
+timelineEvent: TimelineEventData,
+element?: SlideElement,
+deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
+: SlideEffect {
   let targetPosition = {
     x: 300,
     y: 200,
@@ -127,7 +127,7 @@ function createPanZoomEffect(
     height: 300
   };
   let zoomLevel = 1.5;
-  
+
   if (element) {
     // Use element position as target for the appropriate device
     const elementPos = element.position[deviceType];
@@ -145,11 +145,11 @@ function createPanZoomEffect(
       height: 300
     };
   }
-  
+
   if (timelineEvent.zoomFactor) {
     zoomLevel = timelineEvent.zoomFactor;
   }
-  
+
   return {
     id: generateId(),
     type: 'pan_zoom',
@@ -169,19 +169,19 @@ function createPanZoomEffect(
  * Creates a show text effect from timeline event
  */
 function createShowTextEffect(
-  timelineEvent: TimelineEventData,
-  element?: SlideElement,
-  deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
-): SlideEffect {
+timelineEvent: TimelineEventData,
+element?: SlideElement,
+deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
+: SlideEffect {
   const text = timelineEvent.message || element?.content?.title || element?.content?.description || 'Message';
-  
+
   let position = {
     x: 200,
     y: 200,
     width: 400,
     height: 100
   };
-  
+
   if (element) {
     const elementPos = element.position[deviceType];
     position = {
@@ -191,7 +191,7 @@ function createShowTextEffect(
       height: 100
     };
   }
-  
+
   return {
     id: generateId(),
     type: 'show_text',
@@ -217,12 +217,12 @@ function createShowTextEffect(
  * Creates a play media effect from timeline event
  */
 function createPlayMediaEffect(
-  timelineEvent: TimelineEventData,
-  mediaType?: 'youtube'
-): SlideEffect {
+timelineEvent: TimelineEventData,
+mediaType?: 'youtube')
+: SlideEffect {
   let mediaUrl = '';
   let actualMediaType = 'video';
-  
+
   if (mediaType === 'youtube' && timelineEvent.youtubeVideoId) {
     mediaUrl = `https://www.youtube.com/embed/${timelineEvent.youtubeVideoId}`;
     actualMediaType = 'video';
@@ -233,7 +233,7 @@ function createPlayMediaEffect(
     mediaUrl = timelineEvent.audioUrl;
     actualMediaType = 'audio';
   }
-  
+
   return {
     id: generateId(),
     type: 'play_media',
@@ -252,11 +252,11 @@ function createPlayMediaEffect(
  * Creates a default spotlight effect when timeline event type is unknown
  */
 function createDefaultSpotlightEffect(
-  timelineEvent: TimelineEventData,
-  element?: SlideElement,
-  deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
-): SlideEffect {
-  console.log('[TimelineConverter] Creating default spotlight effect for unknown event type');
+timelineEvent: TimelineEventData,
+element?: SlideElement,
+deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
+: SlideEffect {
+
   return createSpotlightEffect(timelineEvent, element, deviceType);
 }
 
@@ -264,17 +264,17 @@ function createDefaultSpotlightEffect(
  * Creates a slide effect from an element's first interaction
  */
 export function createSlideEffectFromElement(
-  element: SlideElement, 
-  deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop'
-): SlideEffect | null {
+element: SlideElement,
+deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
+: SlideEffect | null {
   const clickInteraction = element.interactions?.find(
-    interaction => interaction.trigger === 'click'
+    (interaction) => interaction.trigger === 'click'
   );
-  
+
   if (clickInteraction) {
     return clickInteraction.effect ?? null;
   }
-  
+
   // Create default spotlight effect
   return createSpotlightEffect({
     id: generateId(),

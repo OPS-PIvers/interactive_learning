@@ -32,18 +32,18 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   migrationResult
 }) => {
   useViewportHeight();
-  
+
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
-  
+
   // Auto-progression state
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  
+
   // Navigation handlers for footer toolbar
   const handlePreviousSlide = useCallback(() => {
     if (currentSlideIndex > 0) {
@@ -52,7 +52,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       setCurrentSlideId(slideDeck.slides[prevIndex]?.id || '');
     }
   }, [currentSlideIndex, slideDeck.slides]);
-  
+
   const handleNextSlide = useCallback(() => {
     if (currentSlideIndex < slideDeck.slides.length - 1) {
       const nextIndex = currentSlideIndex + 1;
@@ -89,18 +89,18 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
     setCurrentSlideId(slideId);
     setCurrentSlideIndex(slideIndex);
-    
+
     if (process.env['NODE_ENV'] === 'development') {
-      console.log('[SlideBasedViewer] Slide changed:', {
-        slideId,
-        slideIndex,
-        moduleState
-      });
+
+
+
+
+
     }
   }, [moduleState]);
 
   const handleSlideSelect = useCallback((slideId: string) => {
-    const slideIndex = slideDeck.slides.findIndex(s => s.id === slideId);
+    const slideIndex = slideDeck.slides.findIndex((s) => s.id === slideId);
     if (slideIndex !== -1) {
       handleSlideChange(slideId, slideIndex);
     }
@@ -121,7 +121,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // Interaction handler
   const handleInteraction = useCallback((interaction: any) => {
     if (process.env['NODE_ENV'] === 'development') {
-      console.log('[SlideBasedViewer] Interaction:', interaction);
+
     }
   }, []);
 
@@ -138,7 +138,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }, [currentSlideIndex, slideDeck.slides, handleSlideChange]);
 
   const handleHotspotComplete = useCallback((hotspotId: string) => {
-    setCompletedHotspots(prev => new Set([...prev, hotspotId]));
+    setCompletedHotspots((prev) => new Set([...prev, hotspotId]));
     setActiveHotspotId(null);
   }, []);
 
@@ -181,53 +181,53 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
             <p className="text-slate-600 mb-8">Choose how you'd like to experience this content:</p>
             
             <div className="space-y-4">
-              {viewerModes.explore && (
-                <button
-                  onClick={handleStartExploring}
-                  className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
-                >
+              {viewerModes.explore &&
+              <button
+                onClick={handleStartExploring}
+                className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3">
+
                   🔍 Explore Freely
                 </button>
-              )}
+              }
               
-              {(viewerModes.selfPaced || viewerModes.timed) && (
-                <button
-                  onClick={handleStartLearning}
-                  className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
-                >
+              {(viewerModes.selfPaced || viewerModes.timed) &&
+              <button
+                onClick={handleStartLearning}
+                className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3">
+
                   🎯 Guided Experience
                 </button>
-              )}
+              }
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
     <div className="w-screen h-[calc(var(--vh,1vh)*100)] flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Slide viewer content area - use flex-1 for proper sizing */}
       <div className="flex-1 overflow-auto">
-        {(moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed)) ? (
-          <TimelineSlideViewer
-            slideDeck={enhancedSlideDeck}
-            viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
-            onSlideChange={handleSlideChange}
-            onInteraction={handleInteraction}
-            onClose={handleBackToMenu}
-            className="w-full h-full"
-          />
-        ) : (
-          <SlideViewer
-            slideDeck={enhancedSlideDeck}
-            initialSlideId={currentSlideId}
-            onSlideChange={handleSlideChange}
-            onInteraction={handleInteraction}
-            className="w-full h-full"
-            showTimeline={true}
-          />
-        )}
+        {moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed) ?
+        <TimelineSlideViewer
+          slideDeck={enhancedSlideDeck}
+          viewerMode={viewerModes.timed ? 'auto-progression' : 'guided'}
+          onSlideChange={handleSlideChange}
+          onInteraction={handleInteraction}
+          onClose={handleBackToMenu}
+          className="w-full h-full" /> :
+
+
+        <SlideViewer
+          slideDeck={enhancedSlideDeck}
+          initialSlideId={currentSlideId}
+          onSlideChange={handleSlideChange}
+          onInteraction={handleInteraction}
+          className="w-full h-full"
+          showTimeline={true} />
+
+        }
       </div>
 
       {/* Footer toolbar - use flex-none to ensure always visible */}
@@ -248,11 +248,11 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           viewerModes={viewerModes}
           slides={slideDeck.slides}
           onSlideSelect={handleSlideSelect}
-          showProgress={moduleState === 'learning'}
-        />
+          showProgress={moduleState === 'learning'} />
+
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default React.memo(SlideBasedViewer);

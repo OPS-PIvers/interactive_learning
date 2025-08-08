@@ -9,12 +9,12 @@ export function isFirebaseStorageUrl(url: string): boolean {
   if (!url || typeof url !== 'string') {
     return false;
   }
-  
+
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.includes('firebasestorage.googleapis.com') ||
-           urlObj.hostname.includes('firebase.com') ||
-           urlObj.hostname.includes('.appspot.com');
+    urlObj.hostname.includes('firebase.com') ||
+    urlObj.hostname.includes('.appspot.com');
   } catch {
     return false;
   }
@@ -28,7 +28,7 @@ export function normalizeFirebaseUrl(url: string): string {
   if (!url || !isFirebaseStorageUrl(url)) {
     return url;
   }
-  
+
   try {
     const urlObj = new URL(url);
     // Keep all existing query parameters, as they are all needed for the URL to work
@@ -85,27 +85,27 @@ export function validateFirebaseUrl(url: string): {
     const urlObj = new URL(url);
     result.isValid = true;
     result.isFirebase = isFirebaseStorageUrl(url);
-    
+
     if (result.isFirebase) {
       result.hasToken = urlObj.searchParams.has('token');
       result.hasAlt = urlObj.searchParams.has('alt');
       result.cleanUrl = normalizeFirebaseUrl(url);
-      
+
       if (!result.hasAlt && !result.hasToken) {
         result.issues.push('Firebase Storage URL missing alt and token parameters');
       }
-      
+
       // Check for potentially problematic parameters
       const problematicParams = ['w', 'q', 'f', 'format', 'width', 'height'];
-      const hasProblematicParams = problematicParams.some(param => 
-        urlObj.searchParams.has(param)
+      const hasProblematicParams = problematicParams.some((param) =>
+      urlObj.searchParams.has(param)
       );
-      
+
       if (hasProblematicParams) {
         result.issues.push('URL has optimization parameters that may interfere with CORS');
       }
     }
-    
+
   } catch (error: unknown) {
     result.issues.push(`Invalid URL format: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -118,16 +118,16 @@ export function validateFirebaseUrl(url: string): {
  */
 export function logFirebaseImageLoad(url: string, success: boolean, context: string = ''): void {
   const validation = validateFirebaseUrl(url);
-  
+
   if (validation.isFirebase) {
     const prefix = success ? '✅' : '❌';
-    console.log(`${prefix} Firebase image ${success ? 'loaded' : 'failed'} ${context}:`, {
-      url: url.substring(0, 100) + (url.length > 100 ? '...' : ''),
-      isValid: validation.isValid,
-      hasToken: validation.hasToken,
-      hasAlt: validation.hasAlt,
-      issues: validation.issues,
-      cleanUrl: validation.cleanUrl?.substring(0, 100) + (validation.cleanUrl && validation.cleanUrl.length > 100 ? '...' : '')
-    });
+
+
+
+
+
+
+
+
   }
 }

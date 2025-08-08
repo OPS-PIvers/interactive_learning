@@ -50,7 +50,7 @@ export const useEventGestureCoordination = () => {
         setEventInactive();
       }, duration);
     }
-  }, []);
+  }, [setEventInactive]);
 
   /**
    * Mark event as inactive, allowing user gestures

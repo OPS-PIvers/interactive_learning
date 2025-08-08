@@ -48,9 +48,9 @@ export const usePanZoomEngine = ({
    * Uses the same coordinate system as hotspots for consistency
    */
   const calculateTargetCoordinates = useCallback((
-    event: TimelineEventData,
-    hotspots: HotspotData[]
-  ): { targetX: number; targetY: number } => {
+  event: TimelineEventData,
+  hotspots: HotspotData[])
+  : {targetX: number;targetY: number;} => {
     // Step 1: Use explicit coordinates if provided
     if (event.targetX !== undefined && event.targetY !== undefined) {
       return { targetX: event.targetX, targetY: event.targetY };
@@ -58,7 +58,7 @@ export const usePanZoomEngine = ({
 
     // Step 2: Inherit from target hotspot if specified
     if (event.targetId && hotspots.length > 0) {
-      const targetHotspot = hotspots.find(h => h.id === event.targetId);
+      const targetHotspot = hotspots.find((h) => h.id === event.targetId);
       if (targetHotspot) {
         return { targetX: targetHotspot.x, targetY: targetHotspot.y };
       }
@@ -73,10 +73,10 @@ export const usePanZoomEngine = ({
    * Uses the same coordinate system as hotspots for perfect alignment
    */
   const calculatePanZoomTransform = useCallback((
-    targetX: number,
-    targetY: number,
-    zoomLevel: number
-  ): ImageTransformState => {
+  targetX: number,
+  targetY: number,
+  zoomLevel: number)
+  : ImageTransformState => {
     if (!containerElement || !imageElement) {
       return currentTransformRef.current;
     }
@@ -90,8 +90,8 @@ export const usePanZoomEngine = ({
 
     // Convert percentage coordinates to pixel coordinates within the image content
     // This matches exactly how hotspots calculate their positions
-    const imageContentX = (targetX / 100) * imageBounds.width;
-    const imageContentY = (targetY / 100) * imageBounds.height;
+    const imageContentX = targetX / 100 * imageBounds.width;
+    const imageContentY = targetY / 100 * imageBounds.height;
 
     // Get final container-relative coordinates (same as hotspot positioning)
     const targetPixelX = imageBounds.x + imageContentX;
@@ -103,21 +103,21 @@ export const usePanZoomEngine = ({
     // Therefore: translate = (containerCenter / scale) - targetPixel
     const containerCenterX = containerRect.width / 2;
     const containerCenterY = containerRect.height / 2;
-    
-    const finalTranslateX = (containerCenterX / zoomLevel) - targetPixelX;
-    const finalTranslateY = (containerCenterY / zoomLevel) - targetPixelY;
+
+    const finalTranslateX = containerCenterX / zoomLevel - targetPixelX;
+    const finalTranslateY = containerCenterY / zoomLevel - targetPixelY;
 
     // Debug logging can be enabled by setting localStorage.debug_pan_zoom = 'true'
     if (localStorage.getItem('debug_pan_zoom') === 'true') {
-      console.log('[PanZoom] Coordinate calculation:', {
-        targetPercentage: { x: targetX, y: targetY },
-        imageBounds,
-        imageContentPixels: { x: imageContentX, y: imageContentY },
-        targetPixelPosition: { x: targetPixelX, y: targetPixelY },
-        containerCenter: { x: containerCenterX, y: containerCenterY },
-        zoomLevel,
-        finalTranslation: { x: finalTranslateX, y: finalTranslateY }
-      });
+
+
+
+
+
+
+
+
+
     }
 
     return {
@@ -131,9 +131,9 @@ export const usePanZoomEngine = ({
    * Animate to a target transform with smooth easing
    */
   const animateToTransform = useCallback((
-    targetTransform: ImageTransformState,
-    duration: number = animationDuration
-  ) => {
+  targetTransform: ImageTransformState,
+  duration: number = animationDuration) =>
+  {
     cancelAnimation();
 
     const startTransform = { ...currentTransformRef.current };
@@ -144,9 +144,9 @@ export const usePanZoomEngine = ({
       const progress = Math.min(elapsed / duration, 1);
 
       // Cubic bezier easing function
-      const easeProgress = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      const easeProgress = progress < 0.5 ?
+      4 * progress * progress * progress :
+      1 - Math.pow(-2 * progress + 2, 3) / 2;
 
       const currentTransform: ImageTransformState = {
         scale: startTransform.scale + (targetTransform.scale - startTransform.scale) * easeProgress,
@@ -171,14 +171,14 @@ export const usePanZoomEngine = ({
    * Execute a pan/zoom event
    */
   const executePanZoom = useCallback((
-    event: TimelineEventData,
-    hotspots: HotspotData[] = []
-  ) => {
+  event: TimelineEventData,
+  hotspots: HotspotData[] = []) =>
+  {
     const { targetX, targetY } = calculateTargetCoordinates(event, hotspots);
     const zoomLevel = event.zoomLevel ?? defaultZoomLevel;
-    
+
     const targetTransform = calculatePanZoomTransform(targetX, targetY, zoomLevel);
-    
+
     if (event.smooth !== false) {
       animateToTransform(targetTransform);
     } else {

@@ -86,11 +86,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     };
     
     if (process.env['NODE_ENV'] === 'development') {
-      console.group(`🔴 ${errorType.toUpperCase()} Error Report`);
       console.error('Error:', error);
       console.error('Component Stack:', errorInfo.componentStack);
       console.error('Full Report:', errorReport);
-      console.groupEnd();
     }
     
     // TODO: In production, send to error tracking service

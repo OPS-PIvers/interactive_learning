@@ -41,16 +41,16 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { deviceType, viewportInfo } = useDeviceDetection();
-  
+
   // Viewer state
   const [viewerState, setViewerState] = useState<SlideViewerState>(() => {
     const slides = slideDeck?.slides || [];
-    const initialIndex = initialSlideId 
-      ? slides.findIndex(slide => slide.id === initialSlideId)
-      : 0;
+    const initialIndex = initialSlideId ?
+    slides.findIndex((slide) => slide.id === initialSlideId) :
+    0;
     const validIndex = Math.max(0, initialIndex);
     const slideId = slides[validIndex]?.id || slides[0]?.id || null;
-    
+
     return {
       currentSlideId: slideId,
       currentSlideIndex: validIndex,
@@ -63,11 +63,11 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Active slide effects
   const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
-  
+
   // Timeline and playback state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTimelineStep, setCurrentTimelineStep] = useState(0);
-  
+
   // Touch gesture state for mobile
   const [touchState, setTouchState] = useState({
     startX: 0,
@@ -82,25 +82,25 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Get current slide and ensure elements have interactions
   const currentSlide = React.useMemo(() => {
-    const slide = slideDeck?.slides?.find(slide => slide.id === viewerState.currentSlideId);
+    const slide = slideDeck?.slides?.find((slide) => slide.id === viewerState.currentSlideId);
     if (!slide) return slide;
-    
+
     // Ensure all elements have proper interactions
     const slideWithInteractions = {
       ...slide,
       elements: ensureSlideElementInteractions(slide?.elements || [])
     };
-    
-    console.log('[SlideViewer] Current slide with interactions:', slideWithInteractions);
+
+
     return slideWithInteractions;
   }, [slideDeck?.slides, viewerState?.currentSlideId]);
 
   // Navigation functions
   const navigateToSlide = useCallback((slideId: string) => {
-    const slideIndex = slideDeck?.slides?.findIndex(s => s.id === slideId) ?? -1;
+    const slideIndex = slideDeck?.slides?.findIndex((s) => s.id === slideId) ?? -1;
     if (slideIndex === -1) return;
 
-    setViewerState(prev => ({
+    setViewerState((prev) => ({
       ...prev,
       currentSlideId: slideId,
       currentSlideIndex: slideIndex,
@@ -116,12 +116,12 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   // Play/pause handlers
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
-    setViewerState(prev => ({ ...prev, isPlaying: true }));
+    setViewerState((prev) => ({ ...prev, isPlaying: true }));
   }, []);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
-    setViewerState(prev => ({ ...prev, isPlaying: false }));
+    setViewerState((prev) => ({ ...prev, isPlaying: false }));
   }, []);
 
   const navigateToNext = useCallback(() => {
@@ -146,28 +146,28 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Effect handling
   const triggerEffect = useCallback((effect: SlideEffect) => {
-    console.log('[SlideViewer] triggerEffect called:', effect);
-    
-    setActiveEffects(prev => {
+
+
+    setActiveEffects((prev) => {
       const newEffects = [...prev, effect];
-      console.log('[SlideViewer] Active effects updated:', newEffects);
+
       return newEffects;
     });
-    
+
     // Auto-remove effect after duration
     if (effect.duration > 0) {
-      console.log('[SlideViewer] Setting effect auto-removal timer:', effect.duration + 'ms');
+
       setTimeout(() => {
-        setActiveEffects(prev => prev.filter(e => e.id !== effect.id));
-        console.log('[SlideViewer] Effect auto-removed:', effect.id);
+        setActiveEffects((prev) => prev.filter((e) => e.id !== effect.id));
+
       }, effect.duration);
     }
   }, []);
 
   const clearEffect = useCallback((effectId: string) => {
-    setActiveEffects(prev => prev.filter(e => e.id !== effectId));
+    setActiveEffects((prev) => prev.filter((e) => e.id !== effectId));
   }, []);
-  
+
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     triggerEffect,
@@ -177,29 +177,29 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Element interaction handler
   const handleElementInteraction = useCallback((elementId: string, interactionId: string) => {
-    console.log('[SlideViewer] handleElementInteraction called:', { elementId, interactionId });
-    
+
+
     if (!currentSlide) {
-      console.log('[SlideViewer] No current slide found');
+
       return;
     }
 
-    const element = currentSlide?.elements?.find(el => el.id === elementId);
+    const element = currentSlide?.elements?.find((el) => el.id === elementId);
     if (!element) {
-      console.log('[SlideViewer] Element not found:', elementId);
-      return;
-    }
-    
-    console.log('[SlideViewer] Element found:', element);
-    console.log('[SlideViewer] Element interactions:', element.interactions);
 
-    const interaction = element?.interactions?.find(int => int.id === interactionId);
-    if (!interaction) {
-      console.log('[SlideViewer] Interaction not found:', interactionId);
       return;
     }
-    
-    console.log('[SlideViewer] Interaction found:', interaction);
+
+
+
+
+    const interaction = element?.interactions?.find((int) => int.id === interactionId);
+    if (!interaction) {
+
+      return;
+    }
+
+
 
     // Log interaction
     const interactionLog = {
@@ -210,7 +210,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       details: { interactionId }
     };
 
-    setViewerState(prev => ({
+    setViewerState((prev) => ({
       ...prev,
       userInteractions: [...prev.userInteractions, interactionLog]
     }));
@@ -221,11 +221,11 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
       // Handle special effect types
       if (interaction.effect.type === 'transition') {
-        const params = interaction.effect.parameters as { targetSlideId?: string };
-      const targetSlideId = params?.targetSlideId;
-      if (targetSlideId) {
+        const params = interaction.effect.parameters as {targetSlideId?: string;};
+        const targetSlideId = params?.targetSlideId;
+        if (targetSlideId) {
           setTimeout(() => {
-          navigateToSlide(targetSlideId);
+            navigateToSlide(targetSlideId);
           }, interaction.effect.duration || 0);
         }
       }
@@ -247,15 +247,15 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   // Touch gesture handlers for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!slideDeck?.settings?.touchGestures) return;
-    
+
     const touch = e.touches?.[0];
     if (!touch) return;
 
     const now = Date.now();
-    
+
     if (e.touches.length === 1) {
       // Single touch - prepare for swipe or pan
-      setTouchState(prev => ({
+      setTouchState((prev) => ({
         ...prev,
         startX: touch.clientX,
         startY: touch.clientY,
@@ -268,11 +268,11 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       const touch2 = e.touches[1];
       if (!touch1 || !touch2) return;
       const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       );
-      
-      setTouchState(prev => ({
+
+      setTouchState((prev) => ({
         ...prev,
         initialDistance: distance,
         isDragging: false
@@ -282,18 +282,18 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!slideDeck?.settings?.touchGestures) return;
-    
+
     e.preventDefault(); // Prevent scrolling while handling gestures
-    
+
     if (e.touches.length === 1) {
       // Single finger - pan or swipe detection
       const touch = e.touches[0];
       if (!touch) return;
       const deltaX = touch.clientX - touchState.startX;
       const deltaY = touch.clientY - touchState.startY;
-      
+
       if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-        setTouchState(prev => ({ ...prev, isDragging: true, panX: deltaX, panY: deltaY }));
+        setTouchState((prev) => ({ ...prev, isDragging: true, panX: deltaX, panY: deltaY }));
       }
     } else if (e.touches.length === 2 && touchState.initialDistance > 0) {
       // Two finger - pinch zoom
@@ -301,33 +301,33 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       const touch2 = e.touches[1];
       if (!touch1 || !touch2) return;
       const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       );
-      
+
       const scale = Math.max(0.5, Math.min(3, distance / touchState.initialDistance));
-      setTouchState(prev => ({ ...prev, scale, isDragging: true }));
+      setTouchState((prev) => ({ ...prev, scale, isDragging: true }));
     }
   }, [slideDeck, touchState.startX, touchState.startY, touchState.initialDistance]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!slideDeck?.settings?.touchGestures) return;
-    
+
     const touch = e.changedTouches[0];
     if (!touch) return;
 
     const deltaX = touch.clientX - touchState.startX;
     const deltaY = touch.clientY - touchState.startY;
     const deltaTime = Date.now() - touchState.startTime;
-    
+
     // Reset dragging state
-    setTouchState(prev => ({ ...prev, isDragging: false, panX: 0, panY: 0 }));
-    
+    setTouchState((prev) => ({ ...prev, isDragging: false, panX: 0, panY: 0 }));
+
     // Detect swipe gestures (fast horizontal movement)
     if (!touchState.isDragging && deltaTime < 300) {
       const minSwipeDistance = 50;
       const maxVerticalMovement = 100;
-      
+
       if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaY) < maxVerticalMovement) {
         if (deltaX > 0) {
           // Swipe right - go to previous slide
@@ -338,11 +338,11 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         }
       }
     }
-    
+
     // Reset scale if it was adjusted
     if (touchState.scale !== 1) {
       setTimeout(() => {
-        setTouchState(prev => ({ ...prev, scale: 1 }));
+        setTouchState((prev) => ({ ...prev, scale: 1 }));
       }, 300);
     }
   }, [slideDeck, touchState, navigateToNext, navigateToPrevious]);
@@ -362,22 +362,22 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           event.preventDefault();
           navigateToPrevious();
           break;
-        case 'Home': {
-          event.preventDefault();
-          const firstSlideId = slideDeck?.slides?.[0]?.id;
-          if (firstSlideId) {
-            navigateToSlide(firstSlideId);
+        case 'Home':{
+            event.preventDefault();
+            const firstSlideId = slideDeck?.slides?.[0]?.id;
+            if (firstSlideId) {
+              navigateToSlide(firstSlideId);
+            }
+            break;
           }
-          break;
-        }
-        case 'End': {
-          event.preventDefault();
-          const lastSlideId = slideDeck?.slides?.[slideDeck.slides.length - 1]?.id;
-          if (lastSlideId) {
-            navigateToSlide(lastSlideId);
+        case 'End':{
+            event.preventDefault();
+            const lastSlideId = slideDeck?.slides?.[slideDeck.slides.length - 1]?.id;
+            if (lastSlideId) {
+              navigateToSlide(lastSlideId);
+            }
+            break;
           }
-          break;
-        }
         case 'Escape':
           event.preventDefault();
           setActiveEffects([]);
@@ -408,9 +408,9 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     if (!containerRef.current || !currentSlide?.layout?.aspectRatio) {
       return { width: 800, height: 600, scale: 1 };
     }
-    
+
     const containerRect = containerRef.current.getBoundingClientRect();
-    
+
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
       containerRect.width || window.innerWidth,
@@ -418,14 +418,14 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       16, // Standard padding - CSS handles responsive behavior
       false // Remove device-specific logic
     );
-  }, [currentSlide?.layout?.aspectRatio, viewportInfo.width, viewportInfo.height, deviceType]);
+  }, [currentSlide?.layout?.aspectRatio]);
 
   if (!currentSlide) {
     return (
       <div className="flex items-center justify-center h-full text-slate-400 bg-gradient-to-br from-slate-900 to-slate-800">
         No slides available
-      </div>
-    );
+      </div>);
+
   }
 
   const containerStyle: React.CSSProperties = {
@@ -457,208 +457,208 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`slide-viewer ${className}`}
       style={containerStyle}
       data-slide-id={currentSlide.id}
-      data-device-type={deviceType}
-    >
+      data-device-type={deviceType}>
+
       {/* Scaled Slide Canvas with Touch Support */}
-      <div 
+      <div
         className="slide-canvas"
         style={slideCanvasStyle}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+        onTouchEnd={handleTouchEnd}>
+
         {/* Background Media Renderer */}
-        {currentSlide?.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' && (
-          <div className="absolute inset-0 w-full h-full">
+        {currentSlide?.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' &&
+        <div className="absolute inset-0 w-full h-full">
             {/* Background Overlay */}
-            {currentSlide.backgroundMedia.overlay?.enabled && (
-              <div 
-                className={`absolute inset-0 w-full h-full ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}
-                style={{
-                  backgroundColor: currentSlide.backgroundMedia.overlay?.color || '#000000',
-                  opacity: currentSlide.backgroundMedia.overlay?.opacity || 0.3
-                }}
-              />
-            )}
+            {currentSlide.backgroundMedia.overlay?.enabled &&
+          <div
+            className={`absolute inset-0 w-full h-full ${Z_INDEX_TAILWIND.SLIDE_CONTENT}`}
+            style={{
+              backgroundColor: currentSlide.backgroundMedia.overlay?.color || '#000000',
+              opacity: currentSlide.backgroundMedia.overlay?.opacity || 0.3
+            }} />
+
+          }
 
             {/* Image Background */}
-            {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url && (
-              <img
-                src={currentSlide.backgroundMedia.url}
-                alt="Slide background"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{
-                  objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
-                    ? 'contain' 
-                    : currentSlide.backgroundMedia.settings?.size === 'stretch' 
-                      ? 'fill' 
-                      : 'cover',
-                  objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
-                }}
-              />
-            )}
+            {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url &&
+          <img
+            src={currentSlide.backgroundMedia.url}
+            alt="Slide background"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' ?
+              'contain' :
+              currentSlide.backgroundMedia.settings?.size === 'stretch' ?
+              'fill' :
+              'cover',
+              objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+            }} />
+
+          }
 
             {/* Video Background */}
-            {currentSlide.backgroundMedia.type === 'video' && currentSlide.backgroundMedia.url && (
-              <video
-                src={currentSlide.backgroundMedia.url}
-                autoPlay={currentSlide.backgroundMedia.autoplay}
-                loop={currentSlide.backgroundMedia.loop}
-                muted={currentSlide.backgroundMedia.muted}
-                controls={currentSlide.backgroundMedia.controls}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{
-                  objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
-                    ? 'contain' 
-                    : currentSlide.backgroundMedia.settings?.size === 'stretch' 
-                      ? 'fill' 
-                      : 'cover',
-                  objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
-                }}
-                onLoadedData={(e) => {
-                  if (currentSlide.backgroundMedia?.volume !== undefined) {
-                    (e.target as HTMLVideoElement).volume = currentSlide.backgroundMedia.volume;
-                  }
-                }}
-              />
-            )}
+            {currentSlide.backgroundMedia.type === 'video' && currentSlide.backgroundMedia.url &&
+          <video
+            src={currentSlide.backgroundMedia.url}
+            autoPlay={currentSlide.backgroundMedia.autoplay}
+            loop={currentSlide.backgroundMedia.loop}
+            muted={currentSlide.backgroundMedia.muted}
+            controls={currentSlide.backgroundMedia.controls}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' ?
+              'contain' :
+              currentSlide.backgroundMedia.settings?.size === 'stretch' ?
+              'fill' :
+              'cover',
+              objectPosition: currentSlide.backgroundMedia.settings?.position || 'center'
+            }}
+            onLoadedData={(e) => {
+              if (currentSlide.backgroundMedia?.volume !== undefined) {
+                (e.target as HTMLVideoElement).volume = currentSlide.backgroundMedia.volume;
+              }
+            }} />
+
+          }
 
             {/* YouTube Background */}
-            {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId && (
-              <div className="absolute inset-0 w-full h-full">
+            {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId &&
+          <div className="absolute inset-0 w-full h-full">
                 <iframe
-                  src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
-                    currentSlide.backgroundMedia.autoplay ? 1 : 0
-                  }&loop=${
-                    currentSlide.backgroundMedia.loop ? 1 : 0
-                  }&mute=${
-                    currentSlide.backgroundMedia.muted ? 1 : 0
-                  }&controls=${
-                    currentSlide.backgroundMedia.controls ? 1 : 0
-                  }&start=${
-                    currentSlide.backgroundMedia.startTime || 0
-                  }&end=${
-                    currentSlide.backgroundMedia.endTime || ''
-                  }&rel=0&modestbranding=1&playsinline=1`}
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  title="Background Video"
-                  style={{
-                    border: 'none',
-                    objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' 
-                      ? 'contain' 
-                      : 'cover'
-                  }}
-                />
+              src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
+              currentSlide.backgroundMedia.autoplay ? 1 : 0}&loop=${
+
+              currentSlide.backgroundMedia.loop ? 1 : 0}&mute=${
+
+              currentSlide.backgroundMedia.muted ? 1 : 0}&controls=${
+
+              currentSlide.backgroundMedia.controls ? 1 : 0}&start=${
+
+              currentSlide.backgroundMedia.startTime || 0}&end=${
+
+              currentSlide.backgroundMedia.endTime || ''}&rel=0&modestbranding=1&playsinline=1`
+              }
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              title="Background Video"
+              style={{
+                border: 'none',
+                objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' ?
+                'contain' :
+                'cover'
+              }} />
+
               </div>
-            )}
+          }
 
             {/* Audio Background */}
-            {currentSlide.backgroundMedia.type === 'audio' && currentSlide.backgroundMedia.url && (
-              <>
+            {currentSlide.backgroundMedia.type === 'audio' && currentSlide.backgroundMedia.url &&
+          <>
                 <audio
-                  src={currentSlide.backgroundMedia.url}
-                  autoPlay={currentSlide.backgroundMedia.autoplay}
-                  loop={currentSlide.backgroundMedia.loop}
-                  controls={currentSlide.backgroundMedia.controls}
-                  className="hidden"
-                  onLoadedData={(e) => {
-                    if (currentSlide.backgroundMedia?.volume !== undefined) {
-                      (e.target as HTMLAudioElement).volume = currentSlide.backgroundMedia.volume;
-                    }
-                  }}
-                />
+              src={currentSlide.backgroundMedia.url}
+              autoPlay={currentSlide.backgroundMedia.autoplay}
+              loop={currentSlide.backgroundMedia.loop}
+              controls={currentSlide.backgroundMedia.controls}
+              className="hidden"
+              onLoadedData={(e) => {
+                if (currentSlide.backgroundMedia?.volume !== undefined) {
+                  (e.target as HTMLAudioElement).volume = currentSlide.backgroundMedia.volume;
+                }
+              }} />
+
                 <div className={`absolute top-4 right-4 ${Z_INDEX_TAILWIND.HOTSPOTS} bg-black/50 rounded-full p-2`}>
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12h.01M15 12h.01" />
                   </svg>
                 </div>
               </>
-            )}
+          }
           </div>
-        )}
+        }
 
         {/* Slide Elements */}
         <div className="slide-elements-container absolute inset-0">
-          {currentSlide?.elements
-            ?.filter(element => element.isVisible)
-            .map(element => {
-              const devicePosition = element.position?.[deviceType] || element.position?.desktop;
-              if (!devicePosition) return null;
+          {currentSlide?.elements?.
+          filter((element) => element.isVisible).
+          map((element) => {
+            const devicePosition = element.position?.[deviceType] || element.position?.desktop;
+            if (!devicePosition) return null;
 
-              // Apply scaling to element positions
-              const scaledElement = {
-                ...element,
-                position: {
-                  ...element.position,
-                  [deviceType]: {
-                    ...devicePosition,
-                    x: devicePosition.x * canvasDimensions.scale,
-                    y: devicePosition.y * canvasDimensions.scale,
-                    width: devicePosition.width * canvasDimensions.scale,
-                    height: devicePosition.height * canvasDimensions.scale,
-                  }
+            // Apply scaling to element positions
+            const scaledElement = {
+              ...element,
+              position: {
+                ...element.position,
+                [deviceType]: {
+                  ...devicePosition,
+                  x: devicePosition.x * canvasDimensions.scale,
+                  y: devicePosition.y * canvasDimensions.scale,
+                  width: devicePosition.width * canvasDimensions.scale,
+                  height: devicePosition.height * canvasDimensions.scale
                 }
-              };
-              
-              return (
-                <SlideElement
-                  key={element.id}
-                  element={scaledElement}
-                  deviceType={deviceType}
-                  viewportInfo={viewportInfo}
-                  onInteraction={handleElementInteraction}
-                />
-              );
-            })
+              }
+            };
+
+            return (
+              <SlideElement
+                key={element.id}
+                element={scaledElement}
+                deviceType={deviceType}
+                viewportInfo={viewportInfo}
+                onInteraction={handleElementInteraction} />);
+
+
+          })
           }
         </div>
       </div>
 
       {/* Active Effects */}
-      {activeEffects.map(effect => (
-        <SlideEffectRenderer
-          key={effect.id}
-          effect={effect}
-          containerRef={containerRef}
-          deviceType={deviceType}
-          canvasDimensions={canvasDimensions}
-          onComplete={() => clearEffect(effect.id)}
-        />
-      ))}
+      {activeEffects.map((effect) =>
+      <SlideEffectRenderer
+        key={effect.id}
+        effect={effect}
+        containerRef={containerRef}
+        deviceType={deviceType}
+        canvasDimensions={canvasDimensions}
+        onComplete={() => clearEffect(effect.id)} />
+
+      )}
 
       {/* Timeline (when enabled) */}
-      {showTimeline && (
-        <SlideTimeline
-          slideDeck={slideDeck}
-          currentSlideIndex={viewerState.currentSlideIndex}
-          initialStep={currentTimelineStep}
-          onStepChange={handleTimelineStepChange}
-          onEffectTrigger={handleTimelineEffectTrigger}
-          autoPlay={timelineAutoPlay}
-          className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`}
-        />
-      )}
+      {showTimeline &&
+      <SlideTimeline
+        slideDeck={slideDeck}
+        currentSlideIndex={viewerState.currentSlideIndex}
+        initialStep={currentTimelineStep}
+        onStepChange={handleTimelineStepChange}
+        onEffectTrigger={handleTimelineEffectTrigger}
+        autoPlay={timelineAutoPlay}
+        className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`} />
+
+      }
 
       {/* Debug Info (development only) */}
-      {process.env['NODE_ENV'] === 'development' && (
-        <div className={`absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
-          Slide: {viewerState.currentSlideIndex + 1}/{slideDeck?.slides?.length || 0}<br/>
-          Device: {deviceType}<br/>
-          Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br/>
-          Scale: {canvasDimensions.scale.toFixed(2)}<br/>
-          Effects: {activeEffects.length}<br/>
+      {process.env['NODE_ENV'] === 'development' &&
+      <div className={`absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
+          Slide: {viewerState.currentSlideIndex + 1}/{slideDeck?.slides?.length || 0}<br />
+          Device: {deviceType}<br />
+          Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br />
+          Scale: {canvasDimensions.scale.toFixed(2)}<br />
+          Effects: {activeEffects.length}<br />
           Timeline: External control
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }));
 
 SlideViewer.displayName = 'SlideViewer';

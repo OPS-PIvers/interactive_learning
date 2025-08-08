@@ -13,7 +13,7 @@ interface NetworkInformation extends EventTarget {
 // Get current network connection details
 function getNetworkDetails() {
   const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection as NetworkInformation | undefined;
-  
+
   return {
     online: navigator.onLine,
     connectionType: connection?.type || 'unknown',
@@ -74,7 +74,7 @@ class NetworkMonitor {
   private updateNetworkState() {
     const networkDetails = getNetworkDetails();
     const quality = this.determineNetworkQuality(networkDetails);
-    
+
     const newState: NetworkState = {
       online: networkDetails.online,
       quality,
@@ -84,14 +84,14 @@ class NetworkMonitor {
       timestamp: Date.now()
     };
 
-    const stateChanged = !this.currentState || 
-                        this.currentState.online !== newState.online ||
-                        this.currentState.quality !== newState.quality;
+    const stateChanged = !this.currentState ||
+    this.currentState.online !== newState.online ||
+    this.currentState.quality !== newState.quality;
 
     this.currentState = newState;
 
     if (stateChanged) {
-      console.log('📡 Network state changed:', newState);
+
       this.notifyListeners(newState);
     }
   }
@@ -142,7 +142,7 @@ class NetworkMonitor {
   }
 
   private notifyListeners(state: NetworkState) {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(state);
       } catch (error) {
@@ -163,7 +163,7 @@ class NetworkMonitor {
       this.updateNetworkState();
     }, intervalMs);
 
-    console.log('📡 Network monitoring started');
+
   }
 
   public stopMonitoring() {
@@ -172,32 +172,32 @@ class NetworkMonitor {
     }
 
     this.isMonitoring = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
 
-    console.log('📡 Network monitoring stopped');
+
   }
 
   public destroy() {
     // Stop monitoring first
     this.stopMonitoring();
-    
+
     // Clean up event listeners
     this.cleanupNetworkListeners();
-    
+
     // Clear all listeners
     this.listeners = [];
     this.currentState = null;
-    
-    console.log('📡 Network monitor destroyed');
+
+
   }
 
   public addListener(listener: NetworkChangeListener): () => void {
     this.listeners.push(listener);
-    
+
     // Send current state to new listener
     if (this.currentState) {
       listener(this.currentState);
@@ -233,15 +233,15 @@ export const networkMonitor = new NetworkMonitor();
  * Note: This should be used with React useEffect for proper cleanup
  */
 export function useNetworkMonitoring(
-  onNetworkChange?: NetworkChangeListener,
-  enableMonitoring: boolean = true
-): NetworkState | null {
+onNetworkChange?: NetworkChangeListener,
+enableMonitoring: boolean = true)
+: NetworkState | null {
   const currentState = networkMonitor.getCurrentState();
 
   if (enableMonitoring && onNetworkChange) {
     const unsubscribe = networkMonitor.addListener(onNetworkChange);
     networkMonitor.startMonitoring();
-    
+
     // Return cleanup function that should be called in useEffect cleanup
     // Usage: useEffect(() => { const cleanup = useNetworkMonitoring(...); return cleanup; }, []);
     return currentState;
@@ -254,16 +254,16 @@ export function useNetworkMonitoring(
  * Utility to create a network monitoring subscription with cleanup
  */
 export function createNetworkSubscription(
-  onNetworkChange: NetworkChangeListener,
-  enableMonitoring: boolean = true
-): () => void {
+onNetworkChange: NetworkChangeListener,
+enableMonitoring: boolean = true)
+: () => void {
   if (!enableMonitoring) {
     return () => {};
   }
 
   const unsubscribe = networkMonitor.addListener(onNetworkChange);
   networkMonitor.startMonitoring();
-  
+
   return () => {
     unsubscribe();
     networkMonitor.stopMonitoring();
