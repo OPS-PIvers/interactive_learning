@@ -219,7 +219,9 @@ export const useSequencedAnimations = () => {
       setSequenceProgress(((i + 1) / elementIds.length) * 100);
       
       if (i < elementIds.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, staggerDelay));
+        await new Promise<void>(resolve => {
+          setTimeout(() => resolve(), staggerDelay);
+        });
       }
     }
   }, []);

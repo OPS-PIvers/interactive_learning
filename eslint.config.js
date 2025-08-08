@@ -56,6 +56,7 @@ export default [
         NodeJS: 'readonly',
         getComputedStyle: 'readonly',
         Image: 'readonly',
+        fetch: 'readonly',
       },
     },
     

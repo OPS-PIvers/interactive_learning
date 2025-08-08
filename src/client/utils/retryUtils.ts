@@ -77,7 +77,9 @@ export function calculateNextDelay(
  * Sleep utility for delays
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise<void>(resolve => {
+    setTimeout(() => resolve(), ms);
+  });
 }
 
 /**

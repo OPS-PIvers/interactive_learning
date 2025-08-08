@@ -108,7 +108,9 @@ describe('React Hooks Compliance Tests', () => {
       unmount();
 
       // Wait for potential setState calls
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise<void>(resolve => {
+        setTimeout(() => resolve(), 200);
+      });
 
       // Check for setState warnings on unmounted components
       const setStateWarnings = consoleWarnSpy.mock.calls.filter(call =>
