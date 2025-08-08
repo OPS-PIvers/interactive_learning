@@ -142,6 +142,7 @@ describe('React Error Detection Tests', () => {
         // This should cause runtime errors that we want to catch
         try {
           // @ts-ignore - Intentionally testing runtime error
+          // eslint-disable-next-line no-undef
           const undefinedVar = someUndefinedVariable;
           return <div>{undefinedVar}</div>;
         } catch (error) {
