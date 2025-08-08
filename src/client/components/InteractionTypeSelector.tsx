@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
 interface InteractionTypeOption {
   type: InteractionType;

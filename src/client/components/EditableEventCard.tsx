@@ -5,13 +5,13 @@ import { InteractionType } from '../../shared/InteractionPresets';
 import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
+import { ArrowDownIcon } from './icons/ArrowDownIcon';
+import { ArrowUpIcon } from './icons/ArrowUpIcon';
 import { EyeIcon } from './icons/EyeIcon';
 import { EyeSlashIcon } from './icons/EyeSlashIcon';
 import { GearIcon } from './icons/GearIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { ArrowUpIcon } from './icons/ArrowUpIcon';
-import { ArrowDownIcon } from './icons/ArrowDownIcon';
 // import EventTypeSelector from './EventTypeSelector';
 import InteractionParameterPreview from './interactions/InteractionParameterPreview';
 interface EditableEventCardProps {

@@ -37,7 +37,7 @@ export type NetworkChangeListener = (state: NetworkState) => void;
 class NetworkMonitor {
   private listeners: NetworkChangeListener[] = [];
   private currentState: NetworkState | null = null;
-  private monitoringInterval: NodeJS.Timeout | null = null;
+  private monitoringInterval: ReturnType<typeof setTimeout> | null = null;
   private isMonitoring = false;
   private boundUpdateNetworkState: () => void;
   private connection: NetworkInformation | null = null;
@@ -275,7 +275,14 @@ export function createNetworkSubscription(
  */
 export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    
+    const cleanup = () => {
+      clearTimeout(timeout);
+      networkMonitor.stopMonitoring();
+    };
+
+    timeout = setTimeout(() => {
       cleanup();
       reject(new Error('Network wait timeout'));
     }, maxWaitMs);
@@ -285,11 +292,6 @@ export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState>
         cleanup();
         resolve(networkMonitor.getCurrentState()!);
       }
-    };
-
-    const cleanup = () => {
-      clearTimeout(timeout);
-      networkMonitor.stopMonitoring();
     };
 
     // Start monitoring and check immediately

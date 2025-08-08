@@ -6,23 +6,23 @@ import { hotspotStylePresets, hotspotSizePresets, applyStylePreset, defaultHotsp
 import { InteractionType } from '../../shared/InteractionPresets';
 import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
 import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEditorState';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { getNextTimelineStep, moveEventUp, moveEventDown, getSortedEvents, canMoveUp, canMoveDown } from '../utils/timelineUtils';
+import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import EditableEventCard from './EditableEventCard';
 import EventTypeToggle from './EventTypeToggle';
-import InteractionTypeSelector, { AddInteractionButton } from './InteractionTypeSelector';
-import TabContainer, { TabItem } from './ui/TabContainer';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
+import InteractionTypeSelector, { AddInteractionButton } from './InteractionTypeSelector';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
+import TabContainer, { TabItem } from './ui/TabContainer';
 
 interface EnhancedHotspotEditorModalProps {
   editorState: UnifiedEditorState;

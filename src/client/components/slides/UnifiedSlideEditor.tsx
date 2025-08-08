@@ -24,25 +24,25 @@ import {
   getCanvasDimensionsFromSlide 
 } from '../../utils/hotspotEditorBridge';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import HotspotEditorModal from '../HotspotEditorModal';
 import { ResponsiveAspectRatioModal } from '../responsive/ResponsiveAspectRatioModal';
 import { ResponsiveBackgroundModal } from '../responsive/ResponsiveBackgroundModal';
 import { ResponsiveHeader } from '../responsive/ResponsiveHeader';
+import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
+import { ResponsiveModal } from '../responsive/ResponsiveModal';
+import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
 import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
 import { ResponsiveCanvas } from './ResponsiveCanvas';
 import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
 // Mobile toolbar hooks removed - functionality moved to responsive design
 
 // Import responsive components and modals (to be created)
-import { ResponsiveModal } from '../responsive/ResponsiveModal';
 
 // Mobile-specific components removed - functionality moved to ResponsiveToolbar
 
 // Import unified modal components
-import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
-import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
 
 // Import hotspot editor modal and bridge utilities
-import HotspotEditorModal from '../HotspotEditorModal';
 
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;

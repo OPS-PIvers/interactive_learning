@@ -7,9 +7,6 @@ import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideDeck } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
-import ViewerView from './views/ViewerView';
-import SlideBasedTestPage from './SlideBasedTestPage';
-import MigrationTestPage from './MigrationTestPage';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -19,10 +16,13 @@ import HookErrorBoundary from './HookErrorBoundary';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
+import MigrationTestPage from './MigrationTestPage';
 import Modal from './Modal';
 import ProjectCard from './ProjectCard';
 import SharedModuleViewer from './SharedModuleViewer';
+import SlideBasedTestPage from './SlideBasedTestPage';
 import { GradientCreateButton } from './ui/GradientCreateButton';
+import ViewerView from './views/ViewerView';
 
 
 const LoadingScreen: React.FC = () => (
