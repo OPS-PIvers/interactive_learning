@@ -3,21 +3,17 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
-import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideDeck } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import AuthButton from './AuthButton';
 import { AuthModal } from './AuthModal';
 import HookErrorBoundary from './HookErrorBoundary';
-import { PlusCircleIcon } from './icons/PlusCircleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import MigrationTestPage from './MigrationTestPage';
-import Modal from './Modal';
 import ProjectCard from './ProjectCard';
 import SharedModuleViewer from './SharedModuleViewer';
 import SlideBasedTestPage from './SlideBasedTestPage';
@@ -40,11 +36,11 @@ const MainApp: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [_isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [_showAuthModal, setShowAuthModal] = useState(false);
   const [showInitialAnimation, setShowInitialAnimation] = useState(true);
   useEffect(() => {
     const cleanupVhUpdater = setDynamicViewportProperties();
@@ -133,7 +129,6 @@ const MainApp: React.FC = () => {
                              (project.interactiveData as any)?._needsDetailLoad;
 
       if (needsDetailLoad) {
-        console.log(`Fetching details for project: ${project.id} (${project.title})`);
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
         
         // Validate that we actually got data
@@ -161,7 +156,6 @@ const MainApp: React.FC = () => {
         setSelectedProject(updatedProject);
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
-        console.log(`Project ${project.id} already has details loaded`);
         setSelectedProject(project);
       }
       setIsEditingMode(true);
@@ -293,7 +287,6 @@ const MainApp: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err?.message || ''}`);
@@ -328,7 +321,9 @@ const MainApp: React.FC = () => {
       setSelectedProject(updatedProject as Project);
       
       // Use a small delay to ensure React state has propagated before saving
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => {
+        setTimeout(resolve, 50);
+      });
       
       await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
     } catch (err: any) {
@@ -355,7 +350,6 @@ const MainApp: React.FC = () => {
       if (selectedProject?.id === projectId) {
         handleCloseModal();
       }
-      console.log('Project deletion initiated via proxy:', projectId);
     } catch (err: any) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err?.message || ''}`);
@@ -367,7 +361,6 @@ const MainApp: React.FC = () => {
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
-      console.log(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
       const projectToReload = {
         ...selectedProject,
         interactiveData: {
@@ -404,7 +397,6 @@ const MainApp: React.FC = () => {
                   className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                   onClick={() => {
                     // TODO: Implement settings functionality
-                    console.log('Settings clicked');
                   }}
                   aria-label="Settings"
                 >
@@ -451,7 +443,6 @@ const MainApp: React.FC = () => {
                 className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                 onClick={() => {
                   // TODO: Implement settings functionality
-                  console.log('Settings clicked');
                 }}
                 aria-label="Settings"
               >
