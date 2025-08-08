@@ -20,14 +20,14 @@ const SpotlightPreviewOverlay: React.FC<SpotlightPreviewOverlayProps> = ({
   const overlayRef = useRef<HTMLDivElement>(null);
 
   // Get current spotlight properties with defaults
-  const spotlight = {
+  const spotlight = useMemo(() => ({
     x: event.spotlightX ?? 50,
     y: event.spotlightY ?? 50,
     width: event.spotlightWidth || 120,
     height: event.spotlightHeight || 120,
     shape: event.shape || event.highlightShape || 'circle',
     opacity: event.opacity || (event.dimPercentage ? event.dimPercentage / 100 : 0.7)
-  };
+  }), [event]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, action: 'drag' | 'resize') => {
     e.preventDefault();

@@ -23,23 +23,6 @@ export const useEventGestureCoordination = () => {
   const eventTimeoutRef = useRef<number | null>(null);
 
   /**
-   * Mark event as inactive, allowing user gestures
-   */
-  const setEventInactive = useCallback(() => {
-    if (eventTimeoutRef.current) {
-      clearTimeout(eventTimeoutRef.current);
-      eventTimeoutRef.current = null;
-    }
-
-    setState({
-      isEventActive: false,
-      activeEventType: null,
-      activeEventId: null,
-      blockUserGestures: false
-    });
-  }, []);
-
-  /**
    * Mark an event as active, blocking user gestures if needed
    */
   const setEventActive = useCallback((
@@ -68,6 +51,23 @@ export const useEventGestureCoordination = () => {
       }, duration);
     }
   }, [setEventInactive]);
+
+  /**
+   * Mark event as inactive, allowing user gestures
+   */
+  const setEventInactive = useCallback(() => {
+    if (eventTimeoutRef.current) {
+      clearTimeout(eventTimeoutRef.current);
+      eventTimeoutRef.current = null;
+    }
+
+    setState({
+      isEventActive: false,
+      activeEventType: null,
+      activeEventId: null,
+      blockUserGestures: false
+    });
+  }, []);
 
   /**
    * Check if user gestures should be blocked

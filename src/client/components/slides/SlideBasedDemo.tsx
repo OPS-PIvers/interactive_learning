@@ -15,7 +15,7 @@ export const SlideBasedDemo: React.FC = () => {
 
   const handleSwitchDemo = (demoType: 'basic' | 'ai-studio') => {
     setCurrentDemo(demoType);
-    
+
     if (demoType === 'basic') {
       setSlideDeck(createDemoSlideDeck());
     } else {
@@ -26,11 +26,11 @@ export const SlideBasedDemo: React.FC = () => {
   };
 
   const handleSlideChange = (slideId: string, slideIndex: number) => {
-    console.log(`Changed to slide: ${slideId} (index: ${slideIndex})`);
+
   };
 
   const handleInteraction = (interaction: ElementInteraction) => {
-    console.log('User interaction:', interaction);
+
   };
 
   return (
@@ -44,22 +44,22 @@ export const SlideBasedDemo: React.FC = () => {
           <div className="flex space-x-2">
             <button
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                currentDemo === 'basic' 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' 
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-              }`}
-              onClick={() => handleSwitchDemo('basic')}
-            >
+              currentDemo === 'basic' ?
+              'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' :
+              'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'}`
+              }
+              onClick={() => handleSwitchDemo('basic')}>
+
               Basic Demo
             </button>
             <button
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                currentDemo === 'ai-studio' 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' 
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
-              }`}
-              onClick={() => handleSwitchDemo('ai-studio')}
-            >
+              currentDemo === 'ai-studio' ?
+              'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' :
+              'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'}`
+              }
+              onClick={() => handleSwitchDemo('ai-studio')}>
+
               AI Studio Demo
             </button>
           </div>
@@ -84,8 +84,8 @@ export const SlideBasedDemo: React.FC = () => {
           slideDeck={slideDeck}
           onSlideChange={handleSlideChange}
           onInteraction={handleInteraction}
-          className="w-full h-full"
-        />
+          className="w-full h-full" />
+
       </div>
 
       {/* Demo Info - Matches app info panel styling */}
@@ -123,8 +123,8 @@ export const SlideBasedDemo: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SlideBasedDemo;

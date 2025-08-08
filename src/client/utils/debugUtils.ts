@@ -3,7 +3,7 @@
 let debugEnabled: boolean;
 try {
   debugEnabled = process.env['NODE_ENV'] === 'development' ||
-    (typeof localStorage !== 'undefined' && localStorage.getItem('debug_enabled') === 'true');
+  typeof localStorage !== 'undefined' && localStorage.getItem('debug_enabled') === 'true';
 } catch {
   debugEnabled = process.env['NODE_ENV'] === 'development';
 }
@@ -11,7 +11,7 @@ try {
 export const debugLog = {
   log: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
-      console.log(message, ...args);
+
     }
   },
   warn: (message: string, ...args: unknown[]) => {
@@ -25,7 +25,7 @@ export const debugLog = {
   },
   info: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
-      console.info(message, ...args);
+
     }
   },
   // New method to control debug logging dynamically
@@ -40,10 +40,10 @@ export const debugLog = {
         }
       }
     } catch {
+
       // Ignore localStorage errors (e.g., in private browsing mode)
     }
-    console.log(`Debug logging ${enabled ? 'enabled' : 'disabled'}.`);
   },
   // Method to check current debug status
-  isDebugEnabled: () => debugEnabled,
+  isDebugEnabled: () => debugEnabled
 };

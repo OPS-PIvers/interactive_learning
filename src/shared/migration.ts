@@ -12,13 +12,13 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         ...event,
         type: InteractionType.PAN_ZOOM,
         zoomLevel: event.zoomFactor || 2, // Use zoomFactor as zoomLevel
-        smooth: true,
+        smooth: true
         // Note: targetX and targetY should be set based on the target hotspot's position
         // This is now handled in the editor components when creating new events
         // Existing events without targetX/targetY will fall back to default center position (50, 50)
       };
     }
-    
+
     // Migrate PULSE_HIGHLIGHT to SPOTLIGHT
     if (event.type === 'PULSE_HIGHLIGHT' as any) {
       return {
@@ -30,10 +30,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         spotlightWidth: 120,
         spotlightHeight: 120,
         backgroundDimPercentage: 70,
-        spotlightOpacity: 0,
+        spotlightOpacity: 0
       };
     }
-    
+
     // Migrate PULSE_HOTSPOT to SPOTLIGHT
     if (event.type === 'PULSE_HOTSPOT' as any) {
       return {
@@ -45,10 +45,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         spotlightWidth: 120,
         spotlightHeight: 120,
         backgroundDimPercentage: 70,
-        spotlightOpacity: 0,
+        spotlightOpacity: 0
       };
     }
-    
+
     // Migrate SHOW_YOUTUBE to PLAY_VIDEO
     if (event.type === 'SHOW_YOUTUBE' as any) {
       return {
@@ -60,10 +60,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         videoShowControls: true,
         ...(event.youtubeStartTime && { youtubeStartTime: event.youtubeStartTime }),
         ...(event.youtubeEndTime && { youtubeEndTime: event.youtubeEndTime }),
-        autoplay: event.autoplay || false,
+        autoplay: event.autoplay || false
       };
     }
-    
+
     // Migrate SHOW_VIDEO to PLAY_VIDEO  
     if (event.type === 'SHOW_VIDEO' as any) {
       return {
@@ -75,10 +75,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         videoShowControls: true,
         ...(event.poster && { videoPoster: event.poster }),
         autoplay: event.autoplay || false,
-        loop: event.loop || false,
+        loop: event.loop || false
       };
     }
-    
+
     // Migrate SHOW_AUDIO_MODAL to PLAY_AUDIO
     if (event.type === 'SHOW_AUDIO_MODAL' as any) {
       return {
@@ -90,10 +90,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         audioTitle: event.textContent || event.content,
         audioArtist: event.artist,
         autoplay: event.autoplay || false,
-        volume: event.volume || 80,
+        volume: event.volume || 80
       } as TimelineEventData;
     }
-    
+
     // Migrate SHOW_MESSAGE to SHOW_TEXT
     if (event.type === 'SHOW_MESSAGE' as any) {
       return {
@@ -104,41 +104,41 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         textX: 50,
         textY: 50,
         textWidth: 300,
-        textHeight: 100,
+        textHeight: 100
       };
     }
-    
+
     // Migrate HIGHLIGHT_HOTSPOT to SPOTLIGHT
     if (event.type === 'HIGHLIGHT_HOTSPOT' as any) {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,
-        spotlightShape: (event.highlightShape as SpotlightShape) || 'circle',
+        spotlightShape: event.highlightShape as SpotlightShape || 'circle',
         spotlightX: event.spotlightX || 50,
         spotlightY: event.spotlightY || 50,
         spotlightWidth: event.highlightRadius ? event.highlightRadius * 2 : 120,
         spotlightHeight: event.highlightRadius ? event.highlightRadius * 2 : 120,
         backgroundDimPercentage: event.dimPercentage || 70,
-        spotlightOpacity: 0, // Always bright in spotlight
+        spotlightOpacity: 0 // Always bright in spotlight
       };
     }
-    
+
     // Update existing PAN_ZOOM events to use unified properties
     if (event.type === InteractionType.PAN_ZOOM) {
       return {
         ...event,
         zoomLevel: event.zoomLevel || event.zoomFactor || 2,
-        smooth: event.smooth !== undefined ? event.smooth : true,
+        smooth: event.smooth !== undefined ? event.smooth : true
       };
     }
-    
-    
+
+
     // Update existing PLAY_VIDEO events to use unified properties
     if (event.type === InteractionType.PLAY_VIDEO) {
       let videoSource: VideoSourceType = 'url';
       const videoUrl = event.videoUrl || event.url || '';
       let youtubeVideoId = event.youtubeVideoId;
-      
+
       // Detect video source if not specified
       if (!event.videoSource && videoUrl) {
         if (extractYouTubeVideoId(videoUrl)) {
@@ -148,7 +148,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
           videoSource = 'url';
         }
       }
-      
+
       return {
         ...event,
         videoSource: event.videoSource || videoSource,
@@ -158,10 +158,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         videoShowControls: event.videoShowControls !== undefined ? event.videoShowControls : true,
         ...((event.videoPoster || event.poster) && { videoPoster: event.videoPoster || event.poster }),
         autoplay: event.autoplay || false,
-        loop: event.loop || false,
+        loop: event.loop || false
       } as TimelineEventData;
     }
-    
+
     // Update existing PLAY_AUDIO events to use unified properties
     if (event.type === InteractionType.PLAY_AUDIO) {
       return {
@@ -172,10 +172,10 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         audioTitle: event.audioTitle || event.textContent || event.content,
         audioArtist: event.audioArtist || event.artist,
         autoplay: event.autoplay !== undefined ? event.autoplay : true,
-        volume: event.volume || 80,
+        volume: event.volume || 80
       } as TimelineEventData;
     }
-    
+
     // Update existing SHOW_TEXT events to use unified properties
     if (event.type === InteractionType.SHOW_TEXT) {
       return {
@@ -185,24 +185,24 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
         textX: event.textX || 50,
         textY: event.textY || 50,
         textWidth: event.textWidth || 300,
-        textHeight: event.textHeight || 100,
+        textHeight: event.textHeight || 100
       };
     }
-    
+
     // Update existing SPOTLIGHT events to use unified properties
     if (event.type === InteractionType.SPOTLIGHT) {
       return {
         ...event,
-        spotlightShape: event.spotlightShape || (event.highlightShape as SpotlightShape) || 'circle',
+        spotlightShape: event.spotlightShape || event.highlightShape as SpotlightShape || 'circle',
         spotlightX: event.spotlightX || 50,
         spotlightY: event.spotlightY || 50,
         spotlightWidth: event.spotlightWidth || (event.highlightRadius ? event.highlightRadius * 2 : 120),
         spotlightHeight: event.spotlightHeight || (event.highlightRadius ? event.highlightRadius * 2 : 120),
         backgroundDimPercentage: event.backgroundDimPercentage || event.dimPercentage || 70,
-        spotlightOpacity: 0, // Always bright in spotlight
+        spotlightOpacity: 0 // Always bright in spotlight
       };
     }
-    
+
     return event;
   });
 };
@@ -218,92 +218,92 @@ export const migrateSingleEvent = (event: TimelineEventData): TimelineEventData 
 
 // Enhanced migration function that can set target coordinates for pan & zoom events
 export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotspots: HotspotData[]): TimelineEventData[] => {
-  console.log('[migrateEventTypesWithHotspots] Starting migration:', {
-    eventsCount: events.length,
-    hotspotsCount: hotspots.length,
-    events: events.map(e => ({ id: e.id, type: e.type, targetId: e.targetId, hasCoords: !!(e.targetX || e.targetY || e.spotlightX || e.spotlightY) }))
-  });
 
-  return events.map(event => {
+
+
+
+
+
+  return events.map((event) => {
     // First apply the standard migration
     const migratedEvent = migrateEventTypes([event])[0];
     if (!migratedEvent) return undefined;
-    
+
     // Additional processing for pan & zoom events that might be missing target coordinates
-    if (migratedEvent.type === InteractionType.PAN_ZOOM &&
-        (migratedEvent.targetX === undefined || migratedEvent.targetY === undefined) &&
-        migratedEvent.targetId) {
-      
-      console.log('[migrateEventTypesWithHotspots] Processing PAN_ZOOM event:', {
-        eventId: migratedEvent.id,
-        eventType: migratedEvent.type,
-        targetId: migratedEvent.targetId,
-        currentTargetX: migratedEvent.targetX,
-        currentTargetY: migratedEvent.targetY
-      });
-      
+    if (migratedEvent.type === InteractionType.PAN_ZOOM && (
+    migratedEvent.targetX === undefined || migratedEvent.targetY === undefined) &&
+    migratedEvent.targetId) {
+
+
+
+
+
+
+
+
+
       // Find the target hotspot to get its coordinates
-      const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
+      const targetHotspot = hotspots.find((h) => h.id === migratedEvent.targetId);
       if (targetHotspot) {
-        console.log('[migrateEventTypesWithHotspots] Found target hotspot, assigning coordinates:', {
-          hotspotId: targetHotspot.id,
-          hotspotX: targetHotspot.x,
-          hotspotY: targetHotspot.y
-        });
-        
+
+
+
+
+
+
         return {
           ...migratedEvent,
           targetX: targetHotspot.x,
           targetY: targetHotspot.y,
           zoomLevel: migratedEvent.zoomLevel || 2,
-          smooth: migratedEvent.smooth !== false,
+          smooth: migratedEvent.smooth !== false
         };
       } else {
         console.warn('[migrateEventTypesWithHotspots] Target hotspot not found:', {
           targetId: migratedEvent.targetId,
-          availableHotspots: hotspots.map(h => h.id)
+          availableHotspots: hotspots.map((h) => h.id)
         });
       }
     }
-    
+
     // Additional processing for spotlight events that might be missing spotlight coordinates
-    if (migratedEvent.type === InteractionType.SPOTLIGHT &&
-        (migratedEvent.spotlightX === undefined || migratedEvent.spotlightY === undefined) &&
-        migratedEvent.targetId) {
-      
-      console.log('[migrateEventTypesWithHotspots] Processing SPOTLIGHT event:', {
-        eventId: migratedEvent.id,
-        eventType: migratedEvent.type,
-        targetId: migratedEvent.targetId,
-        currentSpotlightX: migratedEvent.spotlightX,
-        currentSpotlightY: migratedEvent.spotlightY
-      });
-      
+    if (migratedEvent.type === InteractionType.SPOTLIGHT && (
+    migratedEvent.spotlightX === undefined || migratedEvent.spotlightY === undefined) &&
+    migratedEvent.targetId) {
+
+
+
+
+
+
+
+
+
       // Find the target hotspot to get its coordinates
-      const targetHotspot = hotspots.find(h => h.id === migratedEvent.targetId);
+      const targetHotspot = hotspots.find((h) => h.id === migratedEvent.targetId);
       if (targetHotspot) {
-        console.log('[migrateEventTypesWithHotspots] Found target hotspot, assigning spotlight coordinates:', {
-          hotspotId: targetHotspot.id,
-          hotspotX: targetHotspot.x,
-          hotspotY: targetHotspot.y
-        });
-        
+
+
+
+
+
+
         return {
           ...migratedEvent,
           spotlightX: targetHotspot.x,
           spotlightY: targetHotspot.y,
           spotlightShape: migratedEvent.spotlightShape || 'circle',
           backgroundDimPercentage: migratedEvent.backgroundDimPercentage || 70,
-          spotlightOpacity: 0,
+          spotlightOpacity: 0
         };
       } else {
         console.warn('[migrateEventTypesWithHotspots] Target hotspot not found for spotlight:', {
           targetId: migratedEvent.targetId,
-          availableHotspots: hotspots.map(h => h.id)
+          availableHotspots: hotspots.map((h) => h.id)
         });
       }
     }
-    
+
     return migratedEvent;
   }).filter((event): event is TimelineEventData => event !== undefined);
 };
@@ -311,22 +311,28 @@ export const migrateEventTypesWithHotspots = (events: TimelineEventData[], hotsp
 // Check if an event needs migration
 export const eventNeedsMigration = (event: TimelineEventData): boolean => {
   const deprecatedTypes = [
-    'PAN_ZOOM_TO_HOTSPOT',
-    'PULSE_HIGHLIGHT',
-    'PULSE_HOTSPOT',
-    'SHOW_YOUTUBE',
-    'SHOW_VIDEO',
-    'SHOW_AUDIO_MODAL',
-    'SHOW_MESSAGE'
-  ];
-  
+  'PAN_ZOOM_TO_HOTSPOT',
+  'PULSE_HIGHLIGHT',
+  'PULSE_HOTSPOT',
+  'SHOW_YOUTUBE',
+  'SHOW_VIDEO',
+  'SHOW_AUDIO_MODAL',
+  'SHOW_MESSAGE'];
+
+
   return deprecatedTypes.includes(event.type as string);
 };
 
+export interface MigrationInfo {
+  needsMigration: boolean;
+  targetType?: InteractionType;
+  description?: string;
+}
+
 // Get migration info for an event
-export const getMigrationInfo = (event: TimelineEventData): { needsMigration: boolean; targetType?: InteractionType; description?: string } => {
+export const getMigrationInfo = (event: TimelineEventData): MigrationInfo => {
   const type = event.type as string;
-  
+
   switch (type) {
     case 'PAN_ZOOM_TO_HOTSPOT':
       return { needsMigration: true, targetType: InteractionType.PAN_ZOOM, description: 'Unified pan & zoom functionality' };
@@ -350,12 +356,12 @@ const DESKTOP_RESOLUTION = { width: 1920, height: 1080 };
 const MOBILE_RESOLUTION = { width: 480, height: 800 };
 
 function convertHotspotToSlideElement(
-  hotspot: HotspotData,
-  timelineEvent: TimelineEventData,
-  module: InteractiveModuleState
-): SlideElement {
+hotspot: HotspotData,
+timelineEvent: TimelineEventData,
+module: InteractiveModuleState)
+: SlideElement {
   // Map hotspot size to dimensions (addressing hardcoded width/height issue)
-  let width = 100, height = 100;
+  let width = 100,height = 100;
   if (hotspot.size === 'small') {
     width = height = 60;
   } else if (hotspot.size === 'large') {
@@ -364,47 +370,47 @@ function convertHotspotToSlideElement(
   // medium is default 100x100
 
   const desktopPosition = {
-    x: Math.round((hotspot.x / 100) * DESKTOP_RESOLUTION.width) - width/2,
-    y: Math.round((hotspot.y / 100) * DESKTOP_RESOLUTION.height) - height/2,
+    x: Math.round(hotspot.x / 100 * DESKTOP_RESOLUTION.width) - width / 2,
+    y: Math.round(hotspot.y / 100 * DESKTOP_RESOLUTION.height) - height / 2,
     width,
-    height,
+    height
   };
 
   const mobileWidth = Math.round(width * 0.6);
   const mobileHeight = Math.round(height * 0.6);
   const mobilePosition = {
-    x: Math.round((hotspot.x / 100) * MOBILE_RESOLUTION.width) - mobileWidth/2,
-    y: Math.round((hotspot.y / 100) * MOBILE_RESOLUTION.height) - mobileHeight/2,
+    x: Math.round(hotspot.x / 100 * MOBILE_RESOLUTION.width) - mobileWidth / 2,
+    y: Math.round(hotspot.y / 100 * MOBILE_RESOLUTION.height) - mobileHeight / 2,
     width: mobileWidth,
-    height: mobileHeight,
+    height: mobileHeight
   };
 
   // For tablet, use intermediate sizing
   const tabletWidth = Math.round(width * 0.8);
   const tabletHeight = Math.round(height * 0.8);
   const tabletPosition = {
-    x: Math.round((hotspot.x / 100) * 1024) - tabletWidth/2, // Tablet resolution
-    y: Math.round((hotspot.y / 100) * 768) - tabletHeight/2,
+    x: Math.round(hotspot.x / 100 * 1024) - tabletWidth / 2, // Tablet resolution
+    y: Math.round(hotspot.y / 100 * 768) - tabletHeight / 2,
     width: tabletWidth,
-    height: tabletHeight,
+    height: tabletHeight
   };
 
   const position: ResponsivePosition = {
     desktop: desktopPosition,
     tablet: tabletPosition,
-    mobile: mobilePosition,
+    mobile: mobilePosition
   };
 
   const content: ElementContent = {
     title: hotspot.title,
-    description: hotspot.description,
+    description: hotspot.description
   };
 
   const interactions: ElementInteraction[] = [];
   const style: ElementStyle = {
     backgroundColor: hotspot.backgroundColor || hotspot.color || '#3b82f6',
     borderRadius: 20,
-    opacity: 0.9,
+    opacity: 0.9
   };
 
   return {
@@ -414,7 +420,7 @@ function convertHotspotToSlideElement(
     content,
     interactions,
     style,
-    isVisible: true,
+    isVisible: true
   };
 }
 
@@ -431,23 +437,23 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
       aspectRatio: '16:9',
       scaling: 'fit',
       backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    },
+      backgroundPosition: 'center'
+    }
   };
 
   // Convert hotspots to slide elements
   if (module.hotspots && module.timelineEvents) {
     // Create a map for quick hotspot lookup
-    const hotspotMap = new Map(module.hotspots.map(h => [h.id, h]));
+    const hotspotMap = new Map(module.hotspots.map((h) => [h.id, h]));
 
     // For each timeline event that targets a hotspot, create a slide element
-    module.timelineEvents.forEach(event => {
+    module.timelineEvents.forEach((event) => {
       if (event.targetId) {
         const hotspot = hotspotMap.get(event.targetId);
         if (hotspot) {
           const element = convertHotspotToSlideElement(hotspot, event, module);
           // Only add if not already added (avoid duplicates)
-          if (!slide.elements.find(el => el.id === hotspot.id)) {
+          if (!slide.elements.find((el) => el.id === hotspot.id)) {
             slide.elements.push(element);
           }
         }
@@ -455,8 +461,8 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
     });
 
     // Add any hotspots that don't have timeline events
-    module.hotspots.forEach(hotspot => {
-      if (!slide.elements.find(el => el.id === hotspot.id)) {
+    module.hotspots.forEach((hotspot) => {
+      if (!slide.elements.find((el) => el.id === hotspot.id)) {
         // Create a dummy timeline event for conversion
         const dummyEvent: TimelineEventData = {
           id: generateId(),
@@ -464,7 +470,7 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
           type: InteractionType.SHOW_TEXT,
           step: 1,
           targetId: hotspot.id,
-          textContent: hotspot.description || 'Interactive hotspot',
+          textContent: hotspot.description || 'Interactive hotspot'
         };
         const element = convertHotspotToSlideElement(hotspot, dummyEvent, module);
         slide.elements.push(element);
@@ -485,7 +491,7 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
       showControls: true,
       keyboardShortcuts: true,
       touchGestures: true,
-      fullscreenMode: false,
+      fullscreenMode: false
     },
     metadata: {
       created: Date.now(),
@@ -493,8 +499,8 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
       author: 'Migration Tool',
       version: '1.0.0',
       tags: ['migrated'],
-      isPublic: false,
-    },
+      isPublic: false
+    }
   };
 
   return slideDeck;

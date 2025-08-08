@@ -39,8 +39,8 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   );
 
   // Debounced save function to prevent excessive network requests
-  const debouncedSave = useCallback(
-    debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
+  const debouncedSave = useMemo(
+    () => debounce((projectId: string, data: InteractiveModuleState, thumbnailUrl: string | undefined, slideDeck: SlideDeck) => {
       onSave(projectId, data, thumbnailUrl, slideDeck);
     }, 1000), // 1 second delay
     [onSave]
@@ -56,86 +56,86 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
     debouncedSave.cancel();
     await onSave(selectedProject.id, selectedProject.interactiveData, undefined, currentSlideDeck);
   }, [onSave, selectedProject.id, selectedProject.interactiveData, debouncedSave]);
-  
+
   // ✅ Determine wrapper type - now simplified since viewer mode uses separate route
   const WrapperComponent = useMemo(() => {
     // Use Fragment (full-screen) for unified responsive editing
     return Fragment;
-  }, [isEditingMode, slideDeck]);
-  
+  }, []);
+
   const wrapperProps = useMemo(() => {
     // No modal props needed - unified full-screen editing approach
     return {};
-  }, [isEditingMode, slideDeck, isModalOpen, onClose, selectedProject.title]);
-  
+  }, []);
+
   return (
     <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} mobile-viewport-fix ${slideDeck && isEditingMode ? '' : 'bg-slate-900'}`}>
       <WrapperComponent {...wrapperProps}>
         {/* Native slide projects - use comprehensive slide editor */}
-        {slideDeck && isEditingMode ? (
-          <Suspense fallback={<LoadingScreen message="Loading Slide Editor..." />}>
+        {slideDeck && isEditingMode ?
+        <Suspense fallback={<LoadingScreen message="Loading Slide Editor..." />}>
             <UnifiedSlideEditor
-              slideDeck={slideDeck}
-              projectName={selectedProject.title}
-              projectId={selectedProject.id}
-              projectTheme={selectedProject.theme as ThemePreset || 'professional'}
-              onSlideDeckChange={handleSlideDeckChange}
-              onSave={handleImmediateSave}
-              onImageUpload={onImageUpload}
-              onClose={onClose}
-              isPublished={selectedProject.isPublished || false}
-            />
-          </Suspense>
-        ) : slideDeck ? (
-          <SlideViewer 
-            slideDeck={slideDeck} 
-            showTimeline={!isEditingMode}
-            timelineAutoPlay={false}
-            onSlideChange={(slideId, slideIndex) => {
-              console.log(`Navigated to slide ${slideIndex + 1}: ${slideId}`);
-            }}
-            onInteraction={(interaction) => {
-              console.log('Interaction triggered:', interaction);
-            }}
-          />
-        ) : /* All projects now use slide-based architecture */ 
-        selectedProject.interactiveData ? (
-          <SlideBasedInteractiveModule
-            key={`${selectedProject.id}-${isEditingMode}-slide-based`}
-            initialData={selectedProject.interactiveData}
-            isEditing={isEditingMode}
-            onSave={(projectData) => {
-              // Handle both legacy data and full project objects
-              if (projectData.slideDeck && projectData.projectType === 'slide') {
-                // New slide-based project with slide deck data
-                onSave(selectedProject.id, projectData, projectData.thumbnailUrl, projectData.slideDeck);
-              } else {
-                // Legacy project format
-                onSave(selectedProject.id, projectData, projectData.thumbnailUrl);
-              }
-            }}
-            onImageUpload={onImageUpload}
-            onClose={onClose}
+            slideDeck={slideDeck}
             projectName={selectedProject.title}
             projectId={selectedProject.id}
-            {...(onReloadRequest && { onReloadRequest })}
-            {...(isPublished !== undefined && { isPublished })}
-            viewerModes={{
-              explore: true,
-              selfPaced: true,
-              timed: false
-            }}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
+            projectTheme={selectedProject.theme as ThemePreset || 'professional'}
+            onSlideDeckChange={handleSlideDeckChange}
+            onSave={handleImmediateSave}
+            onImageUpload={onImageUpload}
+            onClose={onClose}
+            isPublished={selectedProject.isPublished || false} />
+
+          </Suspense> :
+        slideDeck ?
+        <SlideViewer
+          slideDeck={slideDeck}
+          showTimeline={!isEditingMode}
+          timelineAutoPlay={false}
+          onSlideChange={(slideId, slideIndex) => {
+
+          }}
+          onInteraction={(interaction) => {
+
+          }} /> :
+
+        /* All projects now use slide-based architecture */
+        selectedProject.interactiveData ?
+        <SlideBasedInteractiveModule
+          key={`${selectedProject.id}-${isEditingMode}-slide-based`}
+          initialData={selectedProject.interactiveData}
+          isEditing={isEditingMode}
+          onSave={(projectData) => {
+            // Handle both legacy data and full project objects
+            if (projectData.slideDeck && projectData.projectType === 'slide') {
+              // New slide-based project with slide deck data
+              onSave(selectedProject.id, projectData, projectData.thumbnailUrl, projectData.slideDeck);
+            } else {
+              // Legacy project format
+              onSave(selectedProject.id, projectData, projectData.thumbnailUrl);
+            }
+          }}
+          onImageUpload={onImageUpload}
+          onClose={onClose}
+          projectName={selectedProject.title}
+          projectId={selectedProject.id}
+          {...onReloadRequest && { onReloadRequest }}
+          {...isPublished !== undefined && { isPublished }}
+          viewerModes={{
+            explore: true,
+            selfPaced: true,
+            timed: false
+          }} /> :
+
+
+        <div className="flex items-center justify-center h-full">
             <p className="text-slate-400 text-xl">
               {isEditingMode ? 'Loading editor...' : 'Loading viewer...'}
             </p>
           </div>
-        )}
+        }
       </WrapperComponent>
-    </div>
-  );
+    </div>);
+
 };
 
 export default InteractiveModuleWrapper;

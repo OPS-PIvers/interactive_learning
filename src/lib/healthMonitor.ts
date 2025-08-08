@@ -47,27 +47,27 @@ class DatabaseHealthMonitor {
     debugLog.log(`[HealthMonitor] Starting health check ${checkId}${projectId ? ` for project ${projectId}` : ''}`);
 
     const checks: HealthCheckResult[] = [];
-    
+
     try {
       if (projectId) {
         // Single project health check
-        checks.push(...await this.checkSingleProject(projectId));
+        checks.push(...(await this.checkSingleProject(projectId)));
       } else {
         // System-wide health check
-        checks.push(...await this.checkSystemHealth());
+        checks.push(...(await this.checkSystemHealth()));
       }
 
       const report = this.generateHealthReport(checks);
       debugLog.log(`[HealthMonitor] Health check ${checkId} completed:`, {
         overallHealth: report.overallHealth,
         checksPerformed: checks.length,
-        issues: checks.filter(c => !c.passed).length
+        issues: checks.filter((c) => !c.passed).length
       });
 
       return report;
     } catch (error) {
       debugLog.error(`[HealthMonitor] Health check ${checkId} failed:`, error);
-      
+
       const errorCheck: HealthCheckResult = {
         checkId: `${checkId}_error`,
         timestamp: Date.now(),
@@ -133,9 +133,9 @@ class DatabaseHealthMonitor {
       const eventsRef = collection(db, 'projects', projectId, 'timeline_events');
 
       const [hotspotsSnap, eventsSnap] = await Promise.all([
-        getDocs(hotspotsRef),
-        getDocs(eventsRef)
-      ]);
+      getDocs(hotspotsRef),
+      getDocs(eventsRef)]
+      );
 
       const hotspotCount = hotspotsSnap.size;
       const eventCount = eventsSnap.size;
@@ -178,7 +178,7 @@ class DatabaseHealthMonitor {
 
       // Check for required fields
       const requiredFields = ['title', 'createdBy', 'createdAt', 'updatedAt'];
-      const missingFields = requiredFields.filter(field => !projectData[field]);
+      const missingFields = requiredFields.filter((field) => !projectData[field]);
 
       if (missingFields.length > 0) {
         checks.push({
@@ -201,7 +201,7 @@ class DatabaseHealthMonitor {
       }
 
       // Validate hotspot data integrity
-      const invalidHotspots = hotspotsSnap.docs.filter(doc => {
+      const invalidHotspots = hotspotsSnap.docs.filter((doc) => {
         const data = doc.data();
         return !data['id'] || data['x'] === undefined || data['y'] === undefined;
       });
@@ -228,7 +228,7 @@ class DatabaseHealthMonitor {
       }
 
       // Validate event data integrity
-      const invalidEvents = eventsSnap.docs.filter(doc => {
+      const invalidEvents = eventsSnap.docs.filter((doc) => {
         const data = doc.data();
         return !data['id'] || data['step'] === undefined || !data['type'];
       });
@@ -313,7 +313,7 @@ class DatabaseHealthMonitor {
 
         try {
           const projectChecks = await this.checkSingleProject(projectId);
-          if (projectChecks.some(c => !c.passed)) {
+          if (projectChecks.some((c) => !c.passed)) {
             inconsistentProjects++;
           }
         } catch (error) {
@@ -380,10 +380,10 @@ class DatabaseHealthMonitor {
    * Generate health report from check results
    */
   private generateHealthReport(checks: HealthCheckResult[]): DatabaseHealthReport {
-    const failed = checks.filter(c => !c.passed);
-    const critical = failed.filter(c => c.severity === 'critical');
-    const errors = failed.filter(c => c.severity === 'error');
-    const warnings = failed.filter(c => c.severity === 'warning');
+    const failed = checks.filter((c) => !c.passed);
+    const critical = failed.filter((c) => c.severity === 'critical');
+    const errors = failed.filter((c) => c.severity === 'error');
+    const warnings = failed.filter((c) => c.severity === 'warning');
 
     let overallHealth: 'healthy' | 'warning' | 'critical';
     if (critical.length > 0) {
@@ -397,26 +397,26 @@ class DatabaseHealthMonitor {
     }
 
     // Extract metrics from checks
-    const totalProjects = checks.find(c => c.checkType === 'system_metrics')?.metrics?.['totalProjects'] || 0;
+    const totalProjects = checks.find((c) => c.checkType === 'system_metrics')?.metrics?.['totalProjects'] || 0;
     const orphanedHotspots = 0; // Would be calculated from orphan detection checks
     const orphanedEvents = 0; // Would be calculated from orphan detection checks
-    const inconsistentProjects = checks.find(c => c.checkType === 'data_consistency')?.metrics?.['inconsistentProjects'] || 0;
+    const inconsistentProjects = checks.find((c) => c.checkType === 'data_consistency')?.metrics?.['inconsistentProjects'] || 0;
 
     // Generate recommendations
     const recommendations: string[] = [];
-    
+
     if (critical.length > 0) {
       recommendations.push('CRITICAL: Address system connectivity or integrity issues immediately');
     }
-    
+
     if (errors.length > 0) {
       recommendations.push('Fix data integrity errors to prevent data corruption');
     }
-    
+
     if (warnings.length > 0) {
       recommendations.push('Review and resolve data consistency warnings');
     }
-    
+
     if (inconsistentProjects > 0) {
       recommendations.push(`Migrate ${inconsistentProjects} projects to consistent architecture`);
     }
@@ -460,18 +460,18 @@ class DatabaseHealthMonitor {
     const monitoringInterval = setInterval(async () => {
       try {
         const report = await this.performHealthCheck();
-        
+
         if (report.overallHealth !== 'healthy') {
           debugLog.warn('[HealthMonitor] Health issues detected:', {
             health: report.overallHealth,
-            issues: report.checks.filter(c => !c.passed).length,
+            issues: report.checks.filter((c) => !c.passed).length,
             recommendations: report.recommendations.length
           });
         }
 
         // Log periodic health report
         if (Date.now() - this.lastHealthCheck > this.healthCheckInterval) {
-          console.log(this.generateHealthSummary(report));
+
           this.lastHealthCheck = Date.now();
         }
 
@@ -505,22 +505,22 @@ class DatabaseHealthMonitor {
     summary += `Overall Health: ${report.overallHealth.toUpperCase()}\\n`;
     summary += `Timestamp: ${new Date(report.timestamp).toISOString()}\\n`;
     summary += `Total Projects: ${report.summary.totalProjects}\\n`;
-    
+
     if (report.summary.inconsistentProjects > 0) {
       summary += `Inconsistent Projects: ${report.summary.inconsistentProjects}\\n`;
     }
 
-    const failed = report.checks.filter(c => !c.passed);
+    const failed = report.checks.filter((c) => !c.passed);
     if (failed.length > 0) {
       summary += `\\nIssues Found:\\n`;
-      failed.forEach(check => {
+      failed.forEach((check) => {
         summary += `  ${check.severity.toUpperCase()}: ${check.details}\\n`;
       });
     }
 
     if (report.recommendations.length > 0) {
       summary += `\\nRecommendations:\\n`;
-      report.recommendations.forEach(rec => {
+      report.recommendations.forEach((rec) => {
         summary += `  - ${rec}\\n`;
       });
     }

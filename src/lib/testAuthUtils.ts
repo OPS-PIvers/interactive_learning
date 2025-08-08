@@ -86,7 +86,7 @@ export class DevAuthBypass {
   private constructor() {
     // Check environment variables for bypass configuration
     this.bypassEnabled = import.meta.env['VITE_DEV_AUTH_BYPASS'] === 'true';
-    
+
     // Also check session storage for runtime bypass (set by Puppeteer)
     if (typeof window !== 'undefined') {
       const sessionBypass = sessionStorage.getItem('dev-auth-bypass') === 'true';
@@ -94,12 +94,12 @@ export class DevAuthBypass {
         this.bypassEnabled = true;
       }
     }
-    
+
     // Enable bypass in development mode when explicitly requested
     if (this.bypassEnabled) {
       console.warn('🚧 Development authentication bypass is ENABLED');
       this.setupDefaultUser();
-      
+
       // Listen for Puppeteer bypass events
       if (typeof window !== 'undefined') {
         window.addEventListener('dev-auth-bypass', this.handleBypassEvent.bind(this));
@@ -127,7 +127,7 @@ export class DevAuthBypass {
         }
       }
     }
-    
+
     // Fall back to environment variables
     if (!userData) {
       userData = {
@@ -137,7 +137,7 @@ export class DevAuthBypass {
         emailVerified: true
       };
     }
-    
+
     this.currentUser = createMockUser(userData);
   }
 
@@ -168,7 +168,7 @@ export class DevAuthBypass {
   public disable(): void {
     this.bypassEnabled = false;
     this.currentUser = null;
-    console.info('🔒 Development authentication bypass disabled');
+
   }
 }
 
@@ -198,8 +198,8 @@ export async function waitForAuth(timeout = 5000): Promise<void> {
 
     // Simple polling for auth state
     const checkAuth = () => {
-      if (DevAuthBypass.getInstance().isEnabled() || 
-          document.querySelector('[data-testid="authenticated-content"]')) {
+      if (DevAuthBypass.getInstance().isEnabled() ||
+      document.querySelector('[data-testid="authenticated-content"]')) {
         clearTimeout(timer);
         resolve();
       } else {
@@ -216,8 +216,8 @@ export function isTestEnvironment(): boolean {
   return (
     process.env['NODE_ENV'] === 'test' ||
     process.env['VITEST'] === 'true' ||
-    typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  );
+    typeof window !== 'undefined' && window.location.hostname === 'localhost');
+
 }
 
 // Create test project data (for use with bypassed authentication)

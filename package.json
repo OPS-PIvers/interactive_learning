@@ -74,6 +74,7 @@
     "react-zoom-pan-pinch": "^3.7.0"
   },
   "devDependencies": {
+    "@babel/generator": "^7.28.0",
     "@babel/parser": "^7.28.0",
     "@babel/traverse": "^7.28.0",
     "@eslint/eslintrc": "^3.3.1",
@@ -96,6 +97,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "glob": "^11.0.3",
     "jsdom": "^26.1.0",
     "madge": "^8.0.0",
     "postcss": "^8.5.6",

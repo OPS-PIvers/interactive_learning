@@ -7,7 +7,7 @@ import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 interface SharedModuleViewerProps {}
 
 const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
-  const { moduleId } = useParams<{ moduleId: string }>();
+  const { moduleId } = useParams<{moduleId: string;}>();
   const [searchParams] = useSearchParams();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -16,7 +16,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
   // Parse URL parameters for customization
   const isEmbedMode = searchParams.get('embed') === 'true';
   const themeParam = searchParams.get('theme');
-  const theme: 'light' | 'dark' = (themeParam === 'light' || themeParam === 'dark') ? themeParam : 'dark';
+  const theme: 'light' | 'dark' = themeParam === 'light' || themeParam === 'dark' ? themeParam : 'dark';
   const showBranding = searchParams.get('branding') !== 'false';
   const autoStart = searchParams.get('autostart') === 'true';
 
@@ -29,11 +29,11 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Firebase connection manager handles initialization automatically
       const targetProject = await appScriptProxy.getPublicProject(moduleId);
-      
+
       if (!targetProject) {
         setError('Module not found. This link may be invalid, the module may have been removed, or it may not be public.');
         return;
@@ -42,10 +42,10 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
       setProject(targetProject);
     } catch (err: unknown) {
       console.error("Failed to load shared module:", err);
-      
+
       // Provide more specific error messages based on error type
       let errorMessage = 'Please try again later.';
-      
+
       if (err instanceof Error) {
         if (err.message?.includes('Missing or insufficient permissions')) {
           errorMessage = 'This module is not publicly available. It may be private, deleted, or the link may be incorrect.';
@@ -59,7 +59,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           errorMessage = err.message;
         }
       }
-      
+
       setError(`Failed to load module: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -83,7 +83,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
   // Don't save in viewer mode
   const handleSave = useCallback(() => {
-    console.log('Save attempted in viewer mode - ignoring');
+
   }, []);
 
   // Define base styles based on theme
@@ -104,8 +104,8 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           <p className="text-lg font-medium">Loading Interactive Module...</p>
           <p className="text-sm text-gray-500 dark:text-slate-400">Please wait a moment.</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (error) {
@@ -119,34 +119,34 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           </div>
           <h2 className={`text-2xl font-semibold mb-3 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Module Unavailable</h2>
           <p className={`mb-6 ${theme === 'light' ? 'text-gray-600' : 'text-slate-300'}`}>{error}</p>
-          {!isEmbedMode && (
-            <button
-              onClick={() => window.location.href = '/'}
-              className={`bg-${accentColor} hover:bg-opacity-80 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-${accentColor} focus:ring-offset-2 ${theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-slate-800'}`}
-            >
+          {!isEmbedMode &&
+          <button
+            onClick={() => window.location.href = '/'}
+            className={`bg-${accentColor} hover:bg-opacity-80 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-${accentColor} focus:ring-offset-2 ${theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-slate-800'}`}>
+
               Return to Home
             </button>
-          )}
+          }
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (!project) {
     // This case should ideally be covered by error state, but good for robustness
     return (
-        <div className={`min-h-screen flex items-center justify-center ${baseBgColor} ${baseTextColor}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+      <div className={`min-h-screen flex items-center justify-center ${baseBgColor} ${baseTextColor}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
             <p>Module data is not available.</p>
-        </div>
-    );
+        </div>);
+
   }
 
   return (
     <div className={`flex flex-col min-h-screen ${baseBgColor} ${baseTextColor} ${isEmbedMode ? 'h-screen overflow-hidden' : 'relative'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       <a
         href="#main-content"
-        className={`skip-to-main-content-link ${theme === 'light' ? 'bg-gray-200 text-gray-800 border-gray-400 hover:bg-gray-300' : 'bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600'}`}
-      >
+        className={`skip-to-main-content-link ${theme === 'light' ? 'bg-gray-200 text-gray-800 border-gray-400 hover:bg-gray-300' : 'bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600'}`}>
+
         Skip to Main Content
       </a>
 
@@ -155,8 +155,8 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
         <SlideBasedInteractiveModule
           key={`shared-${project.id}`}
           initialData={project.interactiveData}
-          {...(project.slideDeck && { slideDeck: project.slideDeck })}
-          {...(project.projectType && { projectType: project.projectType })}
+          {...project.slideDeck && { slideDeck: project.slideDeck }}
+          {...project.projectType && { projectType: project.projectType }}
           isEditing={false}
           onSave={handleSave} // No-op in viewer
           onClose={handleClose} // Handles embed/standalone logic
@@ -170,21 +170,21 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
       </main>
 
       {/* Professional Branding Footer - only in standalone mode and if enabled */}
-      {!isEmbedMode && showBranding && (
-        <footer className={`${
-          theme === 'light' 
-            ? 'bg-gray-100 border-gray-200 text-gray-700'
-            : 'bg-slate-800 border-slate-700 text-slate-400'
-        } border-t px-4 py-5 text-sm mt-auto flex-shrink-0`}>
+      {!isEmbedMode && showBranding &&
+      <footer className={`${
+      theme === 'light' ?
+      'bg-gray-100 border-gray-200 text-gray-700' :
+      'bg-slate-800 border-slate-700 text-slate-400'} border-t px-4 py-5 text-sm mt-auto flex-shrink-0`
+      }>
           <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-y-3">
             <div className="flex items-center space-x-2">
               <span className="font-medium">Powered by</span>
-              <a 
-                href="/" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`text-${accentColor} hover:text-opacity-80 font-semibold transition-colors duration-150 ease-in-out underline hover:no-underline`}
-              >
+              <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-${accentColor} hover:text-opacity-80 font-semibold transition-colors duration-150 ease-in-out underline hover:no-underline`}>
+
                 Interactive Learning Hub
               </a>
             </div>
@@ -193,9 +193,9 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
             </div>
           </div>
         </footer>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 export default SharedModuleViewer;

@@ -67,15 +67,8 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
   };
 
   const handleAddElementAndClose = (elementType: 'hotspot' | 'text' | 'media' | 'shape') => {
-    console.log('[HeaderInsertDropdown] Adding element:', {
-      elementType,
-      timestamp: new Date().toISOString()
-    });
-    
     onAddElement(elementType);
     setIsOpen(false);
-    
-    console.log('[HeaderInsertDropdown] Element addition call completed, dropdown closed');
   };
 
   const handleAddBackgroundMediaAndClose = () => {

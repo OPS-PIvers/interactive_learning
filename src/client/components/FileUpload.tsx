@@ -30,7 +30,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const getTypeLabel = (): string => {
+  const getTypeLabel = useCallback((): string => {
     if (label) return label;
     
     switch (acceptedTypes) {
@@ -45,9 +45,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
       default:
         return 'image';
     }
-  };
+  }, [acceptedTypes, label]);
 
-  const validateFileType = (file: File): boolean => {
+  const validateFileType = useCallback((file: File): boolean => {
     switch (acceptedTypes) {
       case 'image':
         return file?.type?.startsWith('image/') || false;
@@ -62,7 +62,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       default:
         return file?.type?.startsWith('image/') || false;
     }
-  };
+  }, [acceptedTypes]);
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event?.target?.files?.[0]) {
@@ -73,7 +73,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         alert(`Please select a valid ${getTypeLabel()} file.`);
       }
     }
-  }, [onFileUpload, acceptedTypes]);
+  }, [onFileUpload, acceptedTypes, getTypeLabel, validateFileType]);
 
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -87,7 +87,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         alert(`Please select a valid ${getTypeLabel()} file.`);
       }
     }
-  }, [onFileUpload, acceptedTypes]);
+  }, [onFileUpload, acceptedTypes, getTypeLabel, validateFileType]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();

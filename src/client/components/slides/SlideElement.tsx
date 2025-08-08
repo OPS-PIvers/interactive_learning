@@ -25,24 +25,24 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 
   // Handle interactions
   const handleClick = useCallback(() => {
-    console.log('[SlideElement] Click detected on element:', element.id);
-    console.log('[SlideElement] Element interactions:', element.interactions);
-    
+
+
+
     const clickInteraction = element.interactions.find(
-      interaction => interaction.trigger === 'click'
+      (interaction) => interaction.trigger === 'click'
     );
-    
+
     if (clickInteraction) {
-      console.log('[SlideElement] Click interaction found:', clickInteraction);
+
       onInteraction(element.id, clickInteraction.id);
     } else {
-      console.log('[SlideElement] No click interaction found for element:', element.id);
+
     }
   }, [element.id, element.interactions, onInteraction]);
 
   const handleHover = useCallback(() => {
     const hoverInteraction = element.interactions.find(
-      interaction => interaction.trigger === 'hover'
+      (interaction) => interaction.trigger === 'hover'
     );
     if (hoverInteraction) {
       onInteraction(element.id, hoverInteraction.id);
@@ -81,77 +81,77 @@ export const SlideElement: React.FC<SlideElementProps> = ({
         return (
           <div className={`slide-hotspot ${animationClasses}`}>
             <div className="hotspot-indicator">
-              <div 
+              <div
                 className="hotspot-dot"
                 style={{
                   backgroundColor: style.backgroundColor || '#3b82f6',
                   borderColor: style.borderColor || style.backgroundColor || '#3b82f6',
                   borderWidth: style.borderWidth || 2,
                   opacity: style.opacity || 1
-                }}
-              />
-              {element.interactions.some(i => i.trigger === 'hover') && (
-                <div className="hotspot-tooltip" id={`${element.id}-tooltip`} role="tooltip">
+                }} />
+
+              {element.interactions.some((i) => i.trigger === 'hover') &&
+              <div className="hotspot-tooltip" id={`${element.id}-tooltip`} role="tooltip">
                   <h4>{element.content.title}</h4>
-                  {element.content.description && (
-                    <p>{element.content.description}</p>
-                  )}
+                  {element.content.description &&
+                <p>{element.content.description}</p>
+                }
                 </div>
-              )}
+              }
             </div>
-          </div>
-        );
+          </div>);
+
 
       case 'text':
         return (
           <div className={`slide-text ${animationClasses}`}>
-            {element.content.title && (
-              <h3 className="text-title">{element.content.title}</h3>
-            )}
-            {element.content.description && (
-              <p className="text-description" id={`${element.id}-desc`}>{element.content.description}</p>
-            )}
-          </div>
-        );
+            {element.content.title &&
+            <h3 className="text-title">{element.content.title}</h3>
+            }
+            {element.content.description &&
+            <p className="text-description" id={`${element.id}-desc`}>{element.content.description}</p>
+            }
+          </div>);
+
 
       case 'media':
         return (
           <div className={`slide-media ${animationClasses}`}>
-            {element.content.mediaType === 'image' && element.content.mediaUrl && (
-              <img 
-                src={element.content.mediaUrl} 
-                alt={element.content.title || 'Media content'}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            )}
-            {element.content.mediaType === 'video' && element.content.mediaUrl && (
-              <video 
-                src={element.content.mediaUrl}
-                style={{ width: '100%', height: '100%' }}
-                controls
-              />
-            )}
-            {element.content.mediaType === 'audio' && element.content.mediaUrl && (
-              <audio 
-                src={element.content.mediaUrl}
-                controls
-                style={{ width: '100%' }}
-              />
-            )}
-          </div>
-        );
+            {element.content.mediaType === 'image' && element.content.mediaUrl &&
+            <img
+              src={element.content.mediaUrl}
+              alt={element.content.title || 'Media content'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+
+            }
+            {element.content.mediaType === 'video' && element.content.mediaUrl &&
+            <video
+              src={element.content.mediaUrl}
+              style={{ width: '100%', height: '100%' }}
+              controls />
+
+            }
+            {element.content.mediaType === 'audio' && element.content.mediaUrl &&
+            <audio
+              src={element.content.mediaUrl}
+              controls
+              style={{ width: '100%' }} />
+
+            }
+          </div>);
+
 
       case 'shape':
         return (
-          <div className={`slide-shape ${animationClasses}`} />
-        );
+          <div className={`slide-shape ${animationClasses}`} />);
+
 
       default:
         return (
           <div className={`slide-element-unknown ${animationClasses}`}>
             Unknown element type: {element.type}
-          </div>
-        );
+          </div>);
+
     }
   };
 
@@ -169,11 +169,11 @@ export const SlideElement: React.FC<SlideElementProps> = ({
       tabIndex={element.interactions.length > 0 ? 0 : undefined}
       aria-label={element.content.title || `${element.type} element`}
       aria-roledescription={isInteractive ? `Interactive ${element.type}` : undefined}
-      aria-describedby={element.type === 'hotspot' && element.interactions.some(i => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}
-    >
+      aria-describedby={element.type === 'hotspot' && element.interactions.some((i) => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}>
+
       {renderElementContent()}
-    </div>
-  );
+    </div>);
+
 };
 
 /**
@@ -185,7 +185,7 @@ function getAnimationClasses(animation?: ElementAnimation): string {
   }
 
   const classes = [`animate-${animation.type}`];
-  
+
   if (animation.iterationCount === 'infinite') {
     classes.push('animate-infinite');
   }

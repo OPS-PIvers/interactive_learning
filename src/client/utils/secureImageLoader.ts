@@ -17,18 +17,18 @@ export interface SecureImageOptions {
  * Then convert to blob URL for safe display
  */
 export async function loadSecureFirebaseImage(
-  url: string, 
-  options: SecureImageOptions = {}
-): Promise<string> {
+url: string,
+options: SecureImageOptions = {})
+: Promise<string> {
   const { onLoad, onError, timeout = 30000 } = options;
-  
+
   try {
-    console.log('🔒 SecureImageLoader: Loading URL with preserved tokens:', url);
-    
+
+
     // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     try {
       // Fetch the image with preserved authentication
       const response = await fetch(url, {
@@ -37,39 +37,39 @@ export async function loadSecureFirebaseImage(
         credentials: 'omit', // Don't send cookies, token is in URL
         cache: 'default'
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       // Convert to blob
       const blob = await response.blob();
-      
+
       // Create blob URL for safe display
       const blobUrl = URL.createObjectURL(blob);
-      
-      console.log('✅ SecureImageLoader: Successfully loaded and created blob URL');
-      
+
+
+
       if (onLoad) {
         onLoad();
       }
-      
+
       return blobUrl;
-      
+
     } catch (fetchError) {
       clearTimeout(timeoutId);
       throw fetchError;
     }
-    
+
   } catch (error) {
     console.error('❌ SecureImageLoader: Failed to load image:', error);
-    
+
     if (onError) {
       onError(error instanceof Error ? error : new Error(String(error)));
     }
-    
+
     throw error;
   }
 }
@@ -80,7 +80,7 @@ export async function loadSecureFirebaseImage(
 export function cleanupBlobUrl(blobUrl: string): void {
   if (blobUrl && blobUrl.startsWith('blob:')) {
     URL.revokeObjectURL(blobUrl);
-    console.log('🧹 SecureImageLoader: Cleaned up blob URL');
+
   }
 }
 
@@ -91,7 +91,7 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
   const [secureUrl, setSecureUrl] = React.useState<string | undefined>(undefined);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
-  
+
   React.useEffect(() => {
     if (!url) {
       setSecureUrl(undefined);
@@ -99,7 +99,7 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
       setError(null);
       return;
     }
-    
+
     // Only use secure loading for Firebase URLs
     if (!url.includes('firebasestorage.googleapis.com')) {
       setSecureUrl(url);
@@ -107,10 +107,10 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
       setError(null);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     loadSecureFirebaseImage(url, {
       ...options,
       onLoad: () => {
@@ -122,23 +122,23 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
         setError(err);
         if (options.onError) options.onError(err);
       }
-    })
-    .then(blobUrl => {
+    }).
+    then((blobUrl) => {
       setSecureUrl(blobUrl);
-    })
-    .catch(err => {
+    }).
+    catch((err) => {
       setError(err);
       setLoading(false);
     });
-    
+
     // Cleanup function
     return () => {
       if (secureUrl && secureUrl.startsWith('blob:')) {
         cleanupBlobUrl(secureUrl);
       }
     };
-  }, [url]);
-  
+  }, [url, options?.onLoad, options?.onError, options?.timeout, options?.crossOrigin]);
+
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
@@ -146,7 +146,7 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
         cleanupBlobUrl(secureUrl);
       }
     };
-  }, []);
-  
+  }, [secureUrl]);
+
   return { secureUrl, loading, error };
 }

@@ -85,6 +85,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
 
   React.useEffect(() => {
     if (showShortcuts) {
+      const buttonRef = shortcutsButtonRef.current;
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           setShowShortcuts(false);
@@ -119,7 +120,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
 
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
-        shortcutsButtonRef.current?.focus();
+        buttonRef?.focus();
       };
     }
     return undefined;

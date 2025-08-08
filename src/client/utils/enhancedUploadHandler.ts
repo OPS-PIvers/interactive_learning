@@ -22,19 +22,19 @@ const getUploadSettings = () => ({
     maxWidthOrHeight: 1920,
     useWebWorker: false, // Disabled for stability across all devices
     quality: 0.8,
-    fileType: 'image/jpeg' as const, // Force JPEG for consistency
+    fileType: 'image/jpeg' as const // Force JPEG for consistency
   },
   upload: {
     timeout: 45000, // Longer timeout for all devices
     maxFileSize: 8 * 1024 * 1024, // 8MB for all devices
-    retryAttempts: 2,
+    retryAttempts: 2
   }
 });
 
 // Get current network connection details
 const getNetworkDetails = () => {
   const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-  
+
   return {
     online: navigator.onLine,
     connectionType: connection?.type || 'unknown',
@@ -48,7 +48,7 @@ const getNetworkDetails = () => {
 const getAuthDetails = async () => {
   try {
     const user = auth.currentUser;
-    
+
     if (!user) {
       return {
         userPresent: false,
@@ -59,7 +59,7 @@ const getAuthDetails = async () => {
     try {
       const token = await user.getIdToken(false);
       const tokenResult = await user.getIdTokenResult(false);
-      
+
       return {
         userPresent: true,
         tokenValid: !!token,
@@ -81,10 +81,10 @@ const getAuthDetails = async () => {
 
 // Create standardized upload error
 const createUploadError = (
-  message: string,
-  code: UploadError['code'],
-  originalError?: Error
-): UploadError => {
+message: string,
+code: UploadError['code'],
+originalError?: Error)
+: UploadError => {
   const error: UploadError = {
     message,
     code,
@@ -108,7 +108,7 @@ const checkNetworkConnectivity = async () => {
       await auth.currentUser.getIdToken(true);
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       return {
         connected: true,
         quality: responseTime < 2000 ? 'good' as const : 'poor' as const
@@ -145,7 +145,7 @@ const getUploadErrorMessage = (error: unknown): string => {
         return uploadError.message || 'Upload failed. Please try again.';
     }
   }
-  
+
   if (error instanceof Error) {
     if (error.message.includes('auth/')) {
       return 'Authentication error. Please sign in again.';
@@ -158,7 +158,7 @@ const getUploadErrorMessage = (error: unknown): string => {
     }
     return error.message;
   }
-  
+
   return 'Upload failed. Please try again.';
 };
 
@@ -190,15 +190,15 @@ export interface UploadCallbacks {
  * Integrates with existing codebase while providing better mobile support
  */
 export async function handleEnhancedImageUpload(
-  file: File,
-  projectId: string,
-  callbacks: UploadCallbacks = {}
-): Promise<UploadResult> {
+file: File,
+projectId: string,
+callbacks: UploadCallbacks = {})
+: Promise<UploadResult> {
   const { onStart, onProgress, onComplete, onError, onNetworkChange } = callbacks;
-  
+
   // Start network monitoring for upload
   let networkUnsubscribe: (() => void) | null = null;
-  
+
   // Cleanup function
   const cleanup = () => {
     if (networkUnsubscribe) {
@@ -206,10 +206,10 @@ export async function handleEnhancedImageUpload(
       networkMonitor.stopMonitoring();
     }
   };
-  
+
   try {
     onStart?.();
-    
+
     if (onNetworkChange) {
       networkUnsubscribe = networkMonitor.addListener(onNetworkChange);
       networkMonitor.startMonitoring(2000); // Check every 2 seconds during upload
@@ -220,10 +220,10 @@ export async function handleEnhancedImageUpload(
     // Phase 1: Enhanced network connectivity check
     const networkStatus = await checkNetworkConnectivity();
     const networkDetails = getNetworkDetails();
-    
+
     if (!networkStatus.connected) {
       cleanup();
-      
+
       // If offline, wait for network to come back (with timeout)
       onProgress?.('Waiting for network connection...');
       try {
@@ -257,7 +257,7 @@ export async function handleEnhancedImageUpload(
 
     // Get unified upload settings
     const settings = getUploadSettings();
-    
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       const error = createUploadError(
@@ -279,15 +279,15 @@ export async function handleEnhancedImageUpload(
     }
 
     onProgress?.('Processing image...');
-    
+
     // Compress image with mobile-optimized settings
     let processedFile = file;
     try {
       processedFile = await compressImage(file);
-      console.log(`📱 Image compression: ${file.size} → ${processedFile.size} bytes`);
+
     } catch (compressionError) {
       console.warn('📱 Image compression failed, using original:', compressionError);
-      
+
       // If compression fails and file is too large, throw error
       if (file.size > settings.upload.maxFileSize) {
         const error = createUploadError(
@@ -301,7 +301,7 @@ export async function handleEnhancedImageUpload(
     }
 
     onProgress?.('Generating thumbnail...');
-    
+
     // Generate thumbnail from original file (no CORS issues)
     let thumbnailUrl: string | undefined;
     try {
@@ -312,25 +312,25 @@ export async function handleEnhancedImageUpload(
         THUMBNAIL_FORMAT,
         THUMBNAIL_QUALITY
       );
-      
+
       const mimeTypeToExtension: Record<string, string> = {
         'image/jpeg': 'jpg',
         'image/webp': 'webp',
         'image/png': 'png'
       };
-      
+
       const fileExtension = mimeTypeToExtension[THUMBNAIL_FORMAT] || 'jpg';
       const thumbnailFile = new File(
         [thumbnailBlob],
         `${THUMBNAIL_FILE_PREFIX}${projectId}.${fileExtension}`,
         { type: THUMBNAIL_FORMAT }
       );
-      
+
       // Upload thumbnail first
       onProgress?.('Uploading thumbnail...');
       thumbnailUrl = await appScriptProxy.uploadThumbnail(thumbnailFile, projectId);
-      console.log(`Thumbnail generated and uploaded: ${thumbnailUrl}`);
-      
+
+
     } catch (thumbnailError) {
       console.warn('Thumbnail generation failed:', thumbnailError);
       // Continue without thumbnail - don't fail the entire upload
@@ -344,32 +344,32 @@ export async function handleEnhancedImageUpload(
       if (context.attempt > 1) {
         onProgress?.(`Retrying upload (${context.attempt}/${settings.upload.retryAttempts + 1})...`);
       }
-      
+
       // Refresh auth token if needed before each attempt
       if (context.attempt > 1) {
         await refreshAuthTokenIfNeeded();
       }
-      
+
       // Progressive compression: compress more aggressively on retries
       let currentFile = processedFile;
       if (context.attempt > 1) {
         const compressionLevel = Math.min(context.attempt - 1, 3);
         const compressionSettings = {
-          maxSizeMB: Math.max(0.3, 1.0 - (compressionLevel * 0.2)),
-          maxWidthOrHeight: Math.max(1024, 1920 - (compressionLevel * 200)),
+          maxSizeMB: Math.max(0.3, 1.0 - compressionLevel * 0.2),
+          maxWidthOrHeight: Math.max(1024, 1920 - compressionLevel * 200),
           useWebWorker: false,
           fileType: 'image/jpeg' as const,
-          quality: Math.max(0.4, 0.8 - (compressionLevel * 0.1))
+          quality: Math.max(0.4, 0.8 - compressionLevel * 0.1)
         };
-        
+
         try {
           currentFile = await compressImage(file, compressionSettings);
-          console.log(`📱 Retry compression (attempt ${context.attempt}): ${currentFile.size} bytes`);
+
         } catch (compressionError) {
           console.warn(`📱 Retry compression failed, using previous file`);
         }
       }
-      
+
       // Create upload promise with timeout
       const uploadPromise = appScriptProxy.uploadImage(currentFile, projectId);
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -386,11 +386,11 @@ export async function handleEnhancedImageUpload(
       } catch (uploadError) {
         const currentNetworkDetails = getNetworkDetails();
         const currentAuthDetails = await getAuthDetails();
-        
+
         // Determine error type based on the error
         let errorCode: 'NETWORK_ERROR' | 'TIMEOUT_ERROR' | 'AUTH_ERROR' | 'FIREBASE_ERROR' = 'NETWORK_ERROR';
         let errorMessage = 'Upload failed';
-        
+
         if (uploadError instanceof Error) {
           if (uploadError.name === 'TimeoutError') {
             errorCode = 'TIMEOUT_ERROR';
@@ -403,7 +403,7 @@ export async function handleEnhancedImageUpload(
             errorMessage = 'Firebase storage error';
           }
         }
-        
+
         const error = createUploadError(
           errorMessage,
           errorCode,
@@ -420,10 +420,10 @@ export async function handleEnhancedImageUpload(
         // Don't retry authentication errors, file size errors, or permission errors
         if (error instanceof Error) {
           return !error.message.includes('auth/user-not-authenticated') &&
-                 !error.message.includes('SIZE_ERROR') &&
-                 !error.message.includes('file too large') &&
-                 !error.message.includes('storage/unauthorized') &&
-                 !error.message.includes('permission denied');
+          !error.message.includes('SIZE_ERROR') &&
+          !error.message.includes('file too large') &&
+          !error.message.includes('storage/unauthorized') &&
+          !error.message.includes('permission denied');
         }
         return true;
       }
@@ -432,10 +432,10 @@ export async function handleEnhancedImageUpload(
     onProgress?.('Upload complete!');
     cleanup(); // Stop network monitoring
     onComplete?.(imageUrl!, thumbnailUrl);
-    
+
     const result: UploadResult = {
       success: true,
-      imageUrl: imageUrl!,
+      imageUrl: imageUrl!
     };
     if (thumbnailUrl) {
       result.thumbnailUrl = thumbnailUrl;
@@ -444,10 +444,10 @@ export async function handleEnhancedImageUpload(
 
   } catch (error) {
     console.error('📱 Enhanced image upload failed:', error);
-    
+
     // Ensure cleanup happens even on error
     cleanup();
-    
+
     // Log the error with full context
     if (typeof error === 'object' && error && 'code' in error) {
       console.error('Enhanced upload handler error:', error);
@@ -460,10 +460,10 @@ export async function handleEnhancedImageUpload(
       );
       console.error('Enhanced upload handler error:', genericError);
     }
-    
+
     const errorMessage = getUploadErrorMessage(error);
     onError?.(errorMessage);
-    
+
     return {
       success: false,
       error: errorMessage
@@ -476,15 +476,15 @@ export async function handleEnhancedImageUpload(
  * for existing handleImageUpload in InteractiveModule
  */
 export function createOptimizedUploadHandler(
-  projectId: string,
-  setImageLoading: (loading: boolean) => void,
-  setBackgroundImage: (url: string) => void,
-  setImageTransform: (transform: ImageTransformState) => void,
-  setEditingZoom: (zoom: number) => void,
-  debugLog: (category: string, message: string, data?: unknown) => void,
-  hotspots: HotspotData[] = [],
-  onThumbnailGenerated?: (thumbnailUrl: string) => void
-) {
+projectId: string,
+setImageLoading: (loading: boolean) => void,
+setBackgroundImage: (url: string) => void,
+setImageTransform: (transform: ImageTransformState) => void,
+setEditingZoom: (zoom: number) => void,
+debugLog: (category: string, message: string, data?: unknown) => void,
+hotspots: HotspotData[] = [],
+onThumbnailGenerated?: (thumbnailUrl: string) => void)
+{
   return async (file: File) => {
     // Check for existing hotspots
     if (hotspots.length > 0) {
@@ -493,9 +493,9 @@ export function createOptimizedUploadHandler(
       );
       if (!confirmReplace) return;
     }
-    
-    debugLog('Image', 'Enhanced upload started', { 
-      fileName: file.name, 
+
+    debugLog('Image', 'Enhanced upload started', {
+      fileName: file.name,
       fileSize: file.size
     });
 
@@ -507,12 +507,12 @@ export function createOptimizedUploadHandler(
         setImageTransform({ scale: 1, translateX: 0, translateY: 0 });
         setEditingZoom(1);
         setImageLoading(false);
-        
+
         // Store thumbnail URL for later use
         if (thumbnailUrl && onThumbnailGenerated) {
           onThumbnailGenerated(thumbnailUrl);
         }
-        
+
         debugLog('Image', 'Enhanced upload successful', { imageUrl, thumbnailUrl });
       },
       onError: (error) => {

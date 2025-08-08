@@ -15,7 +15,7 @@ interface HotspotViewerProps {
   isDimmedInEditMode?: boolean;
   isContinuouslyPulsing?: boolean;
   onEditRequest?: (id: string) => void;
-  pixelPosition?: { x: number; y: number; baseX?: number; baseY?: number; } | null;
+  pixelPosition?: {x: number;y: number;baseX?: number;baseY?: number;} | null;
   usePixelPositioning?: boolean;
   imageElement?: HTMLImageElement | null;
   onDragStateChange?: (isDragging: boolean) => void; // Modified to accept boolean
@@ -68,7 +68,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     startX: number; // Viewport X of pointer down
     startY: number; // Viewport Y of pointer down
     initialHotspotLeft_inContainer: number; // Hotspot div's initial 'left' relative to container
-    initialHotspotTop_inContainer: number;  // Hotspot div's initial 'top' relative to container
+    initialHotspotTop_inContainer: number; // Hotspot div's initial 'top' relative to container
     startHotspotX_percentage: number; // Original hotspot.x percentage (fallback)
     startHotspotY_percentage: number; // Original hotspot.y percentage (fallback)
     containerElement: Element | null;
@@ -77,7 +77,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
   const lastTapTimeRef = useRef(0);
   const DOUBLE_TAP_THRESHOLD_MS = 300; // Standard double tap threshold
-  
+
   // Cleanup effect for timeout
   useEffect(() => {
     const ref = holdTimeoutRef.current;
@@ -108,21 +108,21 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       e.preventDefault(); // Prevent text selection, etc., only when editing.
       e.stopPropagation(); // Stop propagation only when editing to allow drag.
     } else {
+
+
+
       // For non-editing mode, allow event to bubble for ImageViewer gestures,
       // unless this specific interaction (double tap) is handled by this component later.
       // We will call stopPropagation in handlePointerUp if we handle the double tap.
-    }
-
-    // Find the container element (the image container)
+    } // Find the container element (the image container)
     // Prioritize passed ref, fallback to DOM traversal
     // Only do drag setup if in editing mode
-    if (!isEditing) {
-       // For non-editing, pointerDown doesn't do much here.
-       // The tap/double-tap logic is in pointerUp.
-       // We don't want to stopPropagation here generally, as it might interfere with
-       // the main ImageViewer's gestures if the tap isn't on a hotspot.
-       // However, since this handler is ON the hotspot div itself, a pointerdown
-       // here IS on the hotspot. We will stop propagation in pointerUp if we handle the double tap.
+    if (!isEditing) {// For non-editing, pointerDown doesn't do much here.
+      // The tap/double-tap logic is in pointerUp.
+      // We don't want to stopPropagation here generally, as it might interfere with
+      // the main ImageViewer's gestures if the tap isn't on a hotspot.
+      // However, since this handler is ON the hotspot div itself, a pointerdown
+      // here IS on the hotspot. We will stop propagation in pointerUp if we handle the double tap.
       return;
     }
 
@@ -135,11 +135,11 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // Store drag start data
     const currentPixelPos = props.pixelPosition; // This is the top-left of the hotspot div
-    
+
     // Calculate fallback pixel position if pixelPosition is not available
     let initialHotspotLeft_inContainer = 0;
     let initialHotspotTop_inContainer = 0;
-    
+
     if (currentPixelPos) {
       // Use provided pixel position
       initialHotspotLeft_inContainer = currentPixelPos.x;
@@ -147,12 +147,12 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } else {
       // Calculate pixel position from percentage coordinates using container-relative bounds
       const visibleImageBounds = getActualImageVisibleBoundsRelative(props.imageElement || null, containerElement as HTMLElement);
-      
+
       if (visibleImageBounds && visibleImageBounds.width > 0 && visibleImageBounds.height > 0) {
         // Calculate hotspot position relative to the visible image bounds (same as pan/zoom)
-        const hotspotX_relativeToImage = (hotspot.x / 100) * visibleImageBounds.width;
-        const hotspotY_relativeToImage = (hotspot.y / 100) * visibleImageBounds.height;
-        
+        const hotspotX_relativeToImage = hotspot.x / 100 * visibleImageBounds.width;
+        const hotspotY_relativeToImage = hotspot.y / 100 * visibleImageBounds.height;
+
         // Add the image's offset within the container (container-relative coordinates)
         initialHotspotLeft_inContainer = visibleImageBounds.x + hotspotX_relativeToImage;
         initialHotspotTop_inContainer = visibleImageBounds.y + hotspotY_relativeToImage;
@@ -160,8 +160,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         // Final fallback: use container bounds directly (less accurate but prevents jump to 0,0)
         const containerRect = containerElement.getBoundingClientRect();
         if (containerRect.width > 0 && containerRect.height > 0) {
-          initialHotspotLeft_inContainer = (hotspot.x / 100) * containerRect.width;
-          initialHotspotTop_inContainer = (hotspot.y / 100) * containerRect.height;
+          initialHotspotLeft_inContainer = hotspot.x / 100 * containerRect.width;
+          initialHotspotTop_inContainer = hotspot.y / 100 * containerRect.height;
         }
       }
     }
@@ -177,7 +177,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     };
 
     setIsHolding(true);
-    
+
     // Immediately notify parent that we're starting a potential drag
     if (onDragStateChange) onDragStateChange(true);
 
@@ -198,7 +198,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     } catch (error) {
       console.warn('Failed to capture pointer:', error);
     }
-  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, dragContainerRef, onDragStateChange]); // Added onDragStateChange
+  }, [isEditing, hotspot, isDragging, onFocusRequest, onEditRequest, dragContainerRef, onDragStateChange, pixelPosition, props.imageElement]); // Added onDragStateChange
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragDataRef.current || !isEditing || !onPositionChange) return;
@@ -243,8 +243,8 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         const containerRect = getCachedBoundingClientRect(containerElement);
         if (containerRect.width === 0 || containerRect.height === 0) return; // Avoid division by zero
 
-        const percentDeltaX = (deltaX_viewport / containerRect.width) * 100;
-        const percentDeltaY = (deltaY_viewport / containerRect.height) * 100;
+        const percentDeltaX = deltaX_viewport / containerRect.width * 100;
+        const percentDeltaY = deltaY_viewport / containerRect.height * 100;
 
         const fallbackX = Math.max(0, Math.min(100, dragDataRef.current.startHotspotX_percentage + percentDeltaX));
         const fallbackY = Math.max(0, Math.min(100, dragDataRef.current.startHotspotY_percentage + percentDeltaY));
@@ -262,17 +262,17 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       const newHotspotCenterY_relativeToVisibleImage = newHotspotDivTop_inContainer - visibleImageBounds.y;
 
       // Calculate the new percentage based on the visible image dimensions
-      let newXPercent = (newHotspotCenterX_relativeToVisibleImage / visibleImageBounds.width) * 100;
-      let newYPercent = (newHotspotCenterY_relativeToVisibleImage / visibleImageBounds.height) * 100;
+      let newXPercent = newHotspotCenterX_relativeToVisibleImage / visibleImageBounds.width * 100;
+      let newYPercent = newHotspotCenterY_relativeToVisibleImage / visibleImageBounds.height * 100;
 
       // Clamp the percentages to be within the visible image (0-100%)
       // The problem description mentioned "quarter from the bottom", so 0-100 is the target.
       newXPercent = Math.max(0, Math.min(100, newXPercent));
       newYPercent = Math.max(0, Math.min(100, newYPercent));
-      
+
       onPositionChange(hotspot.id, newXPercent, newYPercent);
     }
-  }, [isDragging, isEditing, hotspot, onPositionChange, announceDragStart, props.imageElement, props.pixelPosition]);
+  }, [isDragging, isEditing, hotspot, onPositionChange, announceDragStart, props.imageElement]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (holdTimeoutRef.current) {
@@ -288,7 +288,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       } else {
         // Handle non-editing taps (including double tap)
         const currentTime = Date.now();
-        if (!isEditing && props.onHotspotDoubleClick && (currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS)) {
+        if (!isEditing && props.onHotspotDoubleClick && currentTime - lastTapTimeRef.current < DOUBLE_TAP_THRESHOLD_MS) {
           props.onHotspotDoubleClick(hotspot.id, e);
           e.stopPropagation();
           lastTapTimeRef.current = 0;
@@ -317,9 +317,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch (error) {
+
       // Ignore errors, pointer might not be captured.
-    }
-  }, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, props.onHotspotDoubleClick]);
+    }}, [isDragging, hotspot, onFocusRequest, onEditRequest, isEditing, onDragStateChange, announceDragStop, props.onHotspotDoubleClick]);
 
   // Style classes - with enhanced color support for slide-based and legacy systems
   const getHotspotColor = () => {
@@ -331,7 +331,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
     return 'bg-sky-500';
   };
-  
+
   const baseColor = getHotspotColor();
   const hoverColor = baseColor.replace('500', '400').replace('600', '500'); // Basic hover adjustment
   const ringColor = baseColor.replace('bg-', 'ring-').replace('-500', '-400'); // For focus ring
@@ -345,9 +345,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     }
     return defaultHotspotSize;
   };
-  
+
   const sizeClasses = getSizeClasses(getHotspotSize());
-  
+
   const [isTimedPulseActive, setIsTimedPulseActive] = useState(false);
 
   useEffect(() => {
@@ -361,19 +361,19 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     return undefined; // Explicit return for else case
   }, [hotspot]);
 
-  const shouldPulse = isContinuouslyPulsing || (hotspot.pulseAnimation && hotspot.pulseType === 'loop') || isTimedPulseActive;
+  const shouldPulse = isContinuouslyPulsing || hotspot.pulseAnimation && hotspot.pulseType === 'loop' || isTimedPulseActive;
 
   // Get custom styling for hotspot
   const getCustomStyles = () => {
     const styles: React.CSSProperties = {};
-    
+
     // Apply opacity from customProperties, which may be passed for slide-based elements
     const customOpacity = hotspot.customProperties?.['opacity'];
-    
+
     if (customOpacity !== undefined) {
       styles.opacity = customOpacity as number;
     }
-    
+
     return styles;
   };
 
@@ -387,9 +387,9 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
     ${isHolding ? 'scale-105 animate-pulse ring-2 ring-white/50' : ''}`;
 
   // More pronounced pulse for timeline-driven events
-  const timelinePulseClasses = isPulsing 
-    ? `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-80`
-    : '';
+  const timelinePulseClasses = isPulsing ?
+  `animate-ping absolute inline-flex h-full w-full rounded-full ${baseColor} opacity-80` :
+  '';
 
   // Inner dot for visual flair, especially on larger hotspots - responsive via CSS
   const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
@@ -407,13 +407,13 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         top: usePixelPositioning && pixelPosition ? `${pixelPosition.y}px` : `${hotspot.y}%`,
         transform: `translate(-50%, -50%) scale(${isActive ? 1.2 : 1})`,
         touchAction: isEditing ? 'none' : 'auto', // Allow native scrolling/gestures if not editing
-        display: isVisible ? 'block' : 'none', // Control visibility without affecting hook execution
+        display: isVisible ? 'block' : 'none' // Control visibility without affecting hook execution
       }}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}  
+      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onClick={isEditing ? (e) => {
-        console.log('Debug [HotspotViewer]: onClick called, stopping propagation');
+
         e.stopPropagation();
       } : undefined}
       role="button"
@@ -421,15 +421,15 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
       title={!isEditing ? hotspot.title : `Drag to move ${hotspot.title}`}
       tabIndex={0} // Make it focusable
       aria-grabbed={isEditing ? isDragging : undefined}
-      aria-dropeffect={isEditing ? "move" : "none"}
-    >
+      aria-dropeffect={isEditing ? "move" : "none"}>
+
       <span className={dotClasses} style={getCustomStyles()} aria-hidden="true">
         {isPulsing && <span className={timelinePulseClasses} aria-hidden="true" />}
         {/* Inner dot for improved visibility/style, conditional rendering based on size or if mobile */}
         <span className={innerDotClasses} />
       </span>
-    </div>
-  );
+    </div>);
+
 };
 
 export default React.memo(HotspotViewer);

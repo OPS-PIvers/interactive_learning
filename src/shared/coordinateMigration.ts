@@ -61,7 +61,7 @@ export function validateHotspotCoordinates(hotspot: HotspotData): CoordinateVali
 
   const result: CoordinateValidationResult = {
     isValid,
-    issues,
+    issues
   };
   if (migrated) {
     result.migrated = migrated;
@@ -77,16 +77,16 @@ export function validateProjectHotspots(hotspots: HotspotData[]): {
   validHotspots: number;
   invalidHotspots: number;
   suspiciousHotspots: number;
-  detailedResults: Array<{ hotspot: HotspotData; validation: CoordinateValidationResult }>;
+  detailedResults: Array<{hotspot: HotspotData;validation: CoordinateValidationResult;}>;
 } {
-  const detailedResults = hotspots.map(hotspot => ({
+  const detailedResults = hotspots.map((hotspot) => ({
     hotspot,
     validation: validateHotspotCoordinates(hotspot)
   }));
 
-  const validHotspots = detailedResults.filter(r => r.validation.isValid && r.validation.issues.length === 0).length;
-  const invalidHotspots = detailedResults.filter(r => !r.validation.isValid).length;
-  const suspiciousHotspots = detailedResults.filter(r => r.validation.isValid && r.validation.issues.length > 0).length;
+  const validHotspots = detailedResults.filter((r) => r.validation.isValid && r.validation.issues.length === 0).length;
+  const invalidHotspots = detailedResults.filter((r) => !r.validation.isValid).length;
+  const suspiciousHotspots = detailedResults.filter((r) => r.validation.isValid && r.validation.issues.length > 0).length;
 
   return {
     totalHotspots: hotspots.length,
@@ -108,9 +108,9 @@ export function migrateInvalidHotspots(hotspots: HotspotData[]): {
   const migrationLog: string[] = [];
   let changesMade = false;
 
-  const migrated = hotspots.map(hotspot => {
+  const migrated = hotspots.map((hotspot) => {
     const validation = validateHotspotCoordinates(hotspot);
-    
+
     if (!validation.isValid && validation.migrated) {
       migrationLog.push(
         `Migrated hotspot "${hotspot.title}" (${hotspot.id}): ` +
@@ -135,20 +135,20 @@ export function migrateInvalidHotspots(hotspots: HotspotData[]): {
  */
 export function logCoordinateValidation(hotspots: HotspotData[], projectName?: string): void {
   const results = validateProjectHotspots(hotspots);
-  
-  console.log(`📍 Coordinate Validation Report${projectName ? ` for "${projectName}"` : ''}:`);
-  console.log(`  Total hotspots: ${results.totalHotspots}`);
-  console.log(`  ✅ Valid: ${results.validHotspots}`);
-  console.log(`  ❌ Invalid: ${results.invalidHotspots}`);
-  console.log(`  ⚠️  Suspicious: ${results.suspiciousHotspots}`);
+
+
+
+
+
+
 
   if (results.invalidHotspots > 0 || results.suspiciousHotspots > 0) {
-    console.log('\n📋 Detailed Issues:');
-    results.detailedResults
-      .filter(r => !r.validation.isValid || r.validation.issues.length > 0)
-      .forEach(({ hotspot, validation }) => {
-        console.log(`  • ${hotspot.title} (${hotspot.id}): ${hotspot.x}, ${hotspot.y}`);
-        validation.issues.forEach(issue => console.log(`    - ${issue}`));
-      });
+
+    results.detailedResults.
+    filter((r) => !r.validation.isValid || r.validation.issues.length > 0).
+    forEach(({ hotspot, validation }) => {
+
+      validation.issues.forEach((issue) => {});
+    });
   }
 }
