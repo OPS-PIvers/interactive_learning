@@ -36,11 +36,11 @@ const MainApp: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
-  const [_isModalOpen, _setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [_showAuthModal, _setShowAuthModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showInitialAnimation, setShowInitialAnimation] = useState(true);
   useEffect(() => {
     const cleanupVhUpdater = setDynamicViewportProperties();
@@ -129,7 +129,7 @@ const MainApp: React.FC = () => {
                              (project.interactiveData as any)?._needsDetailLoad;
 
       if (needsDetailLoad) {
-        console.log(`Fetching details for project: ${project.id} (${project.title})`);
+        console.warn(`Fetching details for project: ${project.id} (${project.title})`);
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
         
         // Validate that we actually got data
@@ -157,7 +157,7 @@ const MainApp: React.FC = () => {
         setSelectedProject(updatedProject);
         setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
       } else {
-        console.log(`Project ${project.id} already has details loaded`);
+        console.warn(`Project ${project.id} already has details loaded`);
         setSelectedProject(project);
       }
       setIsEditingMode(true);
@@ -289,7 +289,8 @@ const MainApp: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-      console.log('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
+      // Project saved successfully via proxy
+      console.warn('Project data save initiated via proxy and successfully updated locally:', projectId, savedProjectWithPotentiallyNewThumbnail);
     } catch (err: any) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err?.message || ''}`);
@@ -353,7 +354,7 @@ const MainApp: React.FC = () => {
       if (selectedProject?.id === projectId) {
         handleCloseModal();
       }
-      console.log('Project deletion initiated via proxy:', projectId);
+      console.warn('Project deletion initiated via proxy:', projectId);
     } catch (err: any) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err?.message || ''}`);
@@ -365,7 +366,7 @@ const MainApp: React.FC = () => {
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
-      console.log(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
+      console.warn(`Reload request received for project: ${selectedProject.title} (ID: ${selectedProject.id}). Attempting to re-fetch details.`);
       const projectToReload = {
         ...selectedProject,
         interactiveData: {
@@ -402,7 +403,6 @@ const MainApp: React.FC = () => {
                   className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                   onClick={() => {
                     // TODO: Implement settings functionality
-                    console.log('Settings clicked');
                   }}
                   aria-label="Settings"
                 >
@@ -449,7 +449,6 @@ const MainApp: React.FC = () => {
                 className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                 onClick={() => {
                   // TODO: Implement settings functionality
-                  console.log('Settings clicked');
                 }}
                 aria-label="Settings"
               >
