@@ -31,6 +31,108 @@ interface SlideTimelineProps {
  * 
  * Provides sequential playback of hotspot interactions and animations across slides
  */
+// Add keyboard shortcuts
+const useTimelineKeyboardShortcuts = (
+  isVisible: boolean,
+  isPlaying: boolean,
+  timelineSteps: TimelineStep[],
+  handlePrevious: () => void,
+  handleNext: () => void,
+  handlePlay: () => void,
+  handlePause: () => void,
+  handleStop: () => void,
+  handleScrub: (index: number) => void
+) => {
+  React.useEffect(() => {
+    const handleTimelineKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when timeline is visible and focused
+      if (!isVisible) return;
+
+      // Don't interfere with input fields
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (event.key) {
+        case 'ArrowUp':
+        case 'k':
+        case 'K':
+          event.preventDefault();
+          handlePrevious();
+          break;
+        case 'ArrowDown':
+        case 'j':
+        case 'J':
+          event.preventDefault();
+          handleNext();
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          isPlaying ? handlePause() : handlePlay();
+          break;
+        case 'r':
+        case 'R':
+        case 'Home':
+          event.preventDefault();
+          handleStop();
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          event.preventDefault();
+          const stepIndex = parseInt(event.key) - 1;
+          if (stepIndex < timelineSteps.length) {
+            handleScrub(stepIndex);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleTimelineKeyDown);
+    return () => window.removeEventListener('keydown', handleTimelineKeyDown);
+  }, [isVisible, isPlaying, timelineSteps.length, handlePrevious, handleNext, handlePlay, handlePause, handleStop, handleScrub]);
+};
+
+/**
+ * SlideTimeline - Interactive timeline for navigating through slide interactions
+ *
+ * Provides sequential playback of hotspot interactions and animations across slides
+ */
+// Get description for effect type
+const getEffectDescription = (effect: SlideEffect): string => {
+  switch (effect.type) {
+    case 'spotlight':
+      return 'Spotlight effect';
+    case 'zoom':
+      return 'Zoom to area';
+    case 'pan_zoom':
+      return 'Pan and zoom';
+    case 'show_text':
+      return 'Show text overlay';
+    case 'play_media':
+      return 'Play media';
+    case 'play_video':
+      return 'Play video';
+    case 'play_audio':
+      return 'Play audio';
+    case 'quiz':
+      return 'Interactive quiz';
+    case 'animate':
+      return 'Element animation';
+    case 'transition':
+      return 'Slide transition';
+    default:
+      return 'Interactive element';
+  }
+};
+
 export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   slideDeck,
   currentSlideIndex,
@@ -82,34 +184,6 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
     
     return steps;
   }, [slideDeck]);
-  
-  // Get description for effect type
-  const getEffectDescription = (effect: SlideEffect): string => {
-    switch (effect.type) {
-      case 'spotlight':
-        return 'Spotlight effect';
-      case 'zoom':
-        return 'Zoom to area';
-      case 'pan_zoom':
-        return 'Pan and zoom';
-      case 'show_text':
-        return 'Show text overlay';
-      case 'play_media':
-        return 'Play media';
-      case 'play_video':
-        return 'Play video';
-      case 'play_audio':
-        return 'Play audio';
-      case 'quiz':
-        return 'Interactive quiz';
-      case 'animate':
-        return 'Element animation';
-      case 'transition':
-        return 'Slide transition';
-      default:
-        return 'Interactive element';
-    }
-  };
   
   // Initialize timeline steps
   useEffect(() => {
@@ -363,75 +437,6 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
       )}
     </div>
   );
-};
-
-// Add keyboard shortcuts
-const useTimelineKeyboardShortcuts = (
-  isVisible: boolean,
-  isPlaying: boolean,
-  timelineSteps: TimelineStep[],
-  handlePrevious: () => void,
-  handleNext: () => void,
-  handlePlay: () => void,
-  handlePause: () => void,
-  handleStop: () => void,
-  handleScrub: (index: number) => void
-) => {
-  React.useEffect(() => {
-    const handleTimelineKeyDown = (event: KeyboardEvent) => {
-      // Only handle shortcuts when timeline is visible and focused
-      if (!isVisible) return;
-      
-      // Don't interfere with input fields
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-      
-      switch (event.key) {
-        case 'ArrowUp':
-        case 'k':
-        case 'K':
-          event.preventDefault();
-          handlePrevious();
-          break;
-        case 'ArrowDown':
-        case 'j':
-        case 'J':
-          event.preventDefault();
-          handleNext();
-          break;
-        case 'Enter':
-        case ' ':
-          event.preventDefault();
-          isPlaying ? handlePause() : handlePlay();
-          break;
-        case 'r':
-        case 'R':
-        case 'Home':
-          event.preventDefault();
-          handleStop();
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-          event.preventDefault();
-          const stepIndex = parseInt(event.key) - 1;
-          if (stepIndex < timelineSteps.length) {
-            handleScrub(stepIndex);
-          }
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleTimelineKeyDown);
-    return () => window.removeEventListener('keydown', handleTimelineKeyDown);
-  }, [isVisible, isPlaying, timelineSteps.length, handlePrevious, handleNext, handlePlay, handlePause, handleStop, handleScrub]);
 };
 
 export default SlideTimeline;

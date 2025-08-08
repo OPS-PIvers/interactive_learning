@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, Easing, MotionStyle } from 'framer-motion';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { AnimatedElement } from '../animations/ElementAnimations';
@@ -55,22 +55,10 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       scaledWidth: canvasRect.width,
       scaledHeight: canvasRect.height
     };
-  }, [containerRef.current, canvasDimensions]);
-
-  useEffect(() => {
-    if (effect.duration > 0) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onComplete, 300); // Fade out time
-      }, effect.duration);
-
-      return () => clearTimeout(timer);
-    }
-    return undefined; // Explicit return for else case
-  }, [effect.duration, onComplete]);
+  }, [containerRef, canvasDimensions]);
 
   // Render spotlight effect
-  const renderSpotlightEffect = () => {
+  const renderSpotlightEffect = useCallback(() => {
     if (effect.type !== 'spotlight' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as SpotlightParameters;
@@ -190,7 +178,19 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
         )}
       </AnimatePresence>
     );
-  };
+  }, [effect, slideCanvasInfo, isVisible, onComplete]);
+
+  useEffect(() => {
+    if (effect.duration > 0) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setTimeout(onComplete, 300); // Fade out time
+      }, effect.duration);
+
+      return () => clearTimeout(timer);
+    }
+    return undefined; // Explicit return for else case
+  }, [effect.duration, onComplete]);
 
   // Render zoom effect
   const renderZoomEffect = () => {
@@ -606,7 +606,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
     if (effect.type === 'spotlight') {
       renderSpotlightEffect();
     }
-  }, [effect, isVisible]);
+  }, [effect, isVisible, renderSpotlightEffect]);
 
   switch (effect.type) {
     case 'spotlight':

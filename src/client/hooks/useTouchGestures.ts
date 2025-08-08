@@ -160,7 +160,7 @@ export const useTouchGestures = (
     }
   };
 
-  const handlePinchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handlePinchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     const touches = e.nativeEvent.touches;
     if (touches.length === 2 && isPinchingRef.current) {
       const touch1 = touches.item(0);
@@ -172,7 +172,7 @@ export const useTouchGestures = (
         initialPinchDistanceRef.current = newDistance;
       }
     }
-  };
+  }, [setImageTransform]);
 
   const handlePinchEnd = () => {
     isPinchingRef.current = false;
@@ -332,7 +332,7 @@ export const useTouchGestures = (
       debugLog.warn('Touch start error:', error);
       cleanupGesture();
     }
-  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture, disabled]);
+  }, [imageTransform, setImageTransform, setIsTransforming, minScale, maxScale, doubleTapZoomFactor, imageContainerRef, isDragging, isEditing, isDragActive, cleanupGesture, disabled, viewportBounds]);
 
   const handleTouchMoveInternal = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     handlePinchMove(e);
@@ -513,7 +513,7 @@ export const useTouchGestures = (
       gestureState.lastMoveTimestamp = currentTimestamp;
 
     }
-  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, imageTransform, disabled]); // Added imageTransform and disabled dependency
+  }, [setImageTransform, minScale, maxScale, imageContainerRef, isDragging, isEditing, isDragActive, imageTransform, handlePinchMove, viewportBounds]);
 
   // Create throttled touch move handler only once
   const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
@@ -612,7 +612,7 @@ export const useTouchGestures = (
     } else {
       gestureState.animationFrameId = requestAnimationFrame(animateStep);
     }
-  }, [setImageTransform, setIsTransforming, minScale, maxScale]);
+  }, [setImageTransform, setIsTransforming, minScale, maxScale, viewportBounds]);
 
   const startMomentumAnimation = useCallback(() => {
     const gestureState = gestureStateRef.current;
@@ -652,7 +652,8 @@ export const useTouchGestures = (
       // Ensure final state is validated
       setImageTransform(t => getValidatedTransform(t, { minScale, maxScale }, viewportBounds));
     }
-  }, [animateStep, setIsTransforming, minScale, maxScale, setImageTransform, viewportBounds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animateStep, setIsTransforming, viewportBounds]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (disabled) return;
@@ -754,13 +755,14 @@ export const useTouchGestures = (
         throttledTouchMoveRef.current = null;
       }
       // Cancel any ongoing animation frames
-      if (gestureStateRef.current.animationFrameId) {
-        cancelAnimationFrame(gestureStateRef.current.animationFrameId);
-        gestureStateRef.current.animationFrameId = null;
+      const gestureState = gestureStateRef;
+      if (gestureState.current.animationFrameId) {
+        cancelAnimationFrame(gestureState.current.animationFrameId);
+        gestureState.current.animationFrameId = null;
       }
-      if (gestureStateRef.current.moveAnimationId) {
-        cancelAnimationFrame(gestureStateRef.current.moveAnimationId);
-        gestureStateRef.current.moveAnimationId = null;
+      if (gestureState.current.moveAnimationId) {
+        cancelAnimationFrame(gestureState.current.moveAnimationId);
+        gestureState.current.moveAnimationId = null;
       }
       // Reset gesture state
       cleanupGesture();

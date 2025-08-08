@@ -117,9 +117,10 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
       document.addEventListener('keydown', handleKeyDown);
       modalRef.current?.focus();
 
+      const buttonRef = shortcutsButtonRef.current;
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
-        shortcutsButtonRef.current?.focus();
+        buttonRef?.focus();
       };
     }
     return undefined;

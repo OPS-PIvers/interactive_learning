@@ -23,13 +23,13 @@ const TextPreviewOverlay: React.FC<TextPreviewOverlayProps> = ({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get current text properties with defaults
-  const textBox = {
+  const textBox = useMemo(() => ({
     x: event.textX || 50,
     y: event.textY || 50,
     width: event.textWidth || 200,
     height: event.textHeight || 60,
     content: event.content || event.textContent || 'Enter your text here...'
-  };
+  }), [event]);
 
   useEffect(() => {
     setTempText(textBox.content);

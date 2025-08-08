@@ -265,6 +265,17 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     { viewportBounds }
   );
   
+  // Element selection handlers
+  const handleElementSelect = useCallback((elementId: string | null) => {
+    if (onElementSelect) {
+      onElementSelect(elementId);
+    } else {
+      setInternalSelectedElementId(elementId);
+    }
+
+    // Element selection handled - properties panel managed by parent component
+  }, [onElementSelect]);
+
   // Handle double-click detection for hotspots
   const handleHotspotClick = useCallback((elementId: string, element: SlideElement) => {
     if (!isEditable || element.type !== 'hotspot') return;
@@ -293,18 +304,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       setLastClickTime(now);
       setLastClickedElementId(elementId);
     }
-  }, [isEditable, lastClickTime, lastClickedElementId, onHotspotDoubleClick]);
-  
-  // Element selection handlers
-  const handleElementSelect = useCallback((elementId: string | null) => {
-    if (onElementSelect) {
-      onElementSelect(elementId);
-    } else {
-      setInternalSelectedElementId(elementId);
-    }
-    
-    // Element selection handled - properties panel managed by parent component
-  }, [onElementSelect, isEditable]);
+  }, [isEditable, lastClickTime, lastClickedElementId, onHotspotDoubleClick, handleElementSelect]);
   
   // Element update handlers
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
@@ -356,7 +356,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     
     // Note: Click handling moved to mouse up to allow dragging
     // Selection will be handled after determining if this is a click or drag
-  }, [isEditable, currentSlide, deviceType, handleHotspotClick, handleElementSelect]);
+  }, [isEditable, currentSlide, deviceType]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragState.isDragging || !dragState.elementId) return;
@@ -540,7 +540,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     }
     
     return dimensions;
-  }, [currentSlide, containerDimensions]);
+  }, [currentSlide, containerDimensions, deviceType]);
   
   // Render slide elements
   const renderElements = useCallback(() => {

@@ -202,7 +202,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     touchStartYRef.current = null;
   }, [onPrevStep, onNextStep]);
 
-  const getStepTooltip = (step: number): string => {
+  const getStepTooltip = useCallback((step: number): string => {
     const eventsAtStep = timelineEvents.filter(e => e.step === step);
     if (eventsAtStep.length === 0) return `Step ${step}`;
 
@@ -219,7 +219,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     let tooltipText = `Step ${step}: ${eventSummaries.join(' | ')}`;
     if (eventsAtStep.length > 3) tooltipText += '...';
     return tooltipText;
-  };
+  }, [timelineEvents, hotspots]);
 
   const EventPreviewCard: React.FC<{
     step: number;
