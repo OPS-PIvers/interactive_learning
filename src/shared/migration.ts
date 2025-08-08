@@ -323,8 +323,14 @@ export const eventNeedsMigration = (event: TimelineEventData): boolean => {
   return deprecatedTypes.includes(event.type as string);
 };
 
+export interface MigrationInfo {
+  needsMigration: boolean;
+  targetType?: InteractionType;
+  description?: string;
+}
+
 // Get migration info for an event
-export const getMigrationInfo = (event: TimelineEventData): {needsMigration: boolean;targetType?: InteractionType;description?: string;} => {
+export const getMigrationInfo = (event: TimelineEventData): MigrationInfo => {
   const type = event.type as string;
 
   switch (type) {

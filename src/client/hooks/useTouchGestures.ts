@@ -651,7 +651,7 @@ options?: {
       // Ensure final state is validated
       setImageTransform((t) => getValidatedTransform(t, { minScale, maxScale }, viewportBounds));
     }
-  }, [animateStep, setIsTransforming, viewportBounds]);
+  }, [animateStep, setIsTransforming, viewportBounds, minScale, maxScale, setImageTransform]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (disabled) return;

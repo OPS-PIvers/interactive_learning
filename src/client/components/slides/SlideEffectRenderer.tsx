@@ -190,7 +190,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
         }
       </AnimatePresence>);
 
-  }, [effect, slideCanvasInfo, isVisible, onComplete, canvasRef]);
+  }, [effect, slideCanvasInfo, isVisible, onComplete]);
 
   // Render zoom effect
   const renderZoomEffect = () => {

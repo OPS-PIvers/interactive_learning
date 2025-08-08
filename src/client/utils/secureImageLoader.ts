@@ -137,7 +137,7 @@ export function useSecureImage(url: string | undefined, options: SecureImageOpti
         cleanupBlobUrl(secureUrl);
       }
     };
-  }, [url, options, secureUrl]);
+  }, [url, options?.onLoad, options?.onError, options?.timeout, options?.crossOrigin]);
 
   // Cleanup on unmount
   React.useEffect(() => {
