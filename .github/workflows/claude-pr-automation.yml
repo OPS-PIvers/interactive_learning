@@ -15,7 +15,7 @@ permissions:
 jobs:
   claude-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,8 +38,8 @@ jobs:
 
       - name: Wait for automated code reviews
         run: |
-          echo "Waiting 3 minutes for automated code review tools to complete..."
-          sleep 180
+          echo "Waiting 2 minutes for automated code review tools to complete..."
+          sleep 120
 
       - name: Fetch all PR comments and extract code review feedback
         id: review-feedback
@@ -47,6 +47,8 @@ jobs:
         with:
           script: |
             try {
+              console.log(`Processing PR #${context.payload.pull_request.number}`);
+              
               // Fetch both general PR comments and line-level review comments
               const [{ data: comments }, { data: reviewComments }] = await Promise.all([
                 github.rest.issues.listComments({
@@ -60,6 +62,8 @@ jobs:
                   pull_number: context.payload.pull_request.number
                 })
               ]);
+              
+              console.log(`Found ${comments.length} general comments and ${reviewComments.length} review comments`);
               
               // Combine both types of comments
               const allComments = [
@@ -77,15 +81,15 @@ jobs:
             ];
             
             const codeReviewBots = [
-              'gemini-code-assist', 'github-copilot', 'copilot', 'sonarcloud',
+              'copilot', 'github-copilot', 'gemini-code-assist', 'sonarcloud',
               'codeclimate', 'deepsource', 'codeacy', 'snyk-bot', 'dependabot'
             ];
             
             for (const comment of allComments) {
               const isFromBot = codeReviewBots.some(bot => 
-                comment.user.login.toLowerCase().includes(bot) ||
-                comment.body.toLowerCase().includes(bot)
-              );
+                comment.user.login.toLowerCase().includes(bot.toLowerCase()) ||
+                comment.body.toLowerCase().includes(bot.toLowerCase())
+              ) || comment.user.login.toLowerCase() === 'copilot';
               
               const hasQualityContent = qualityIndicators.some(indicator =>
                 comment.body.toLowerCase().includes(indicator)
@@ -103,7 +107,7 @@ jobs:
                   line: comment.line
                 };
                 allFeedback.push(feedback);
-                console.log(`Found ${isFromBot ? 'automated' : 'quality'} feedback from ${comment.user.login}`);
+                console.log(`Found ${isFromBot ? 'automated' : 'quality'} feedback from ${comment.user.login}: ${comment.body.substring(0, 100)}...`);
               }
             }
             
@@ -142,16 +146,17 @@ jobs:
             
             {1}
             
-            Based on this feedback, review the PR and implement all valid suggestions. Additionally, ensure:', steps.review-feedback.outputs.feedback_count, steps.review-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
+            Based on this feedback, review the PR and implement all valid suggestions. Pay special attention to GitHub Copilot comments which provide valuable code quality insights. Additionally, ensure:', steps.review-feedback.outputs.feedback_count, steps.review-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
             1. Code follows project conventions in CLAUDE.md
-            2. TypeScript types are correct
-            3. All tests pass
+            2. TypeScript types are correct and Promise patterns are consistent
+            3. All tests pass after changes
             4. No security vulnerabilities
-            5. Proper error handling
+            5. Proper error handling with consistent patterns
             6. Accessibility requirements met
             7. Mobile responsiveness maintained
+            8. Address any automated tool suggestions (Copilot, ESLint, etc.)
             
-            Fix any issues found and commit the changes directly to this PR branch.
+            Fix any issues found and commit the changes directly to this PR branch. If Copilot suggests code improvements, implement them unless there's a specific reason not to.
           
       - name: Run tests after Claude fixes
         run: npm run test:run
@@ -172,7 +177,8 @@ jobs:
       - name: Auto-merge PR if ready
         if: steps.merge-check.outputs.ready == 'true'
         run: |
-          gh pr merge ${{ github.event.pull_request.number }} --squash --auto
+          echo "PR is ready for merge. Attempting auto-merge..."
+          gh pr merge ${{ github.event.pull_request.number }} --squash --auto || echo "Auto-merge failed or not enabled"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
