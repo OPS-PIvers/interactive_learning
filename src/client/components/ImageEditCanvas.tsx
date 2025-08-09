@@ -506,6 +506,8 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
 
 });
 
+ImageEditCanvas.displayName = 'ImageEditCanvas';
+
 export default ImageEditCanvas;
 
 // Need to ensure MemoizedHotspotViewer is exported from './HotspotViewer'

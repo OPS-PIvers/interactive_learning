@@ -243,8 +243,8 @@ export const MigrationTestPage: React.FC = () => {
               <div className="mb-2">
                       <div className="text-red-400 font-medium text-sm mb-1">Errors:</div>
                       <ul className="text-red-300 text-sm space-y-1">
-                        {validation.errors.map((error, index) =>
-                  <li key={index}>• {error}</li>
+                        {validation.errors.map((error) =>
+                  <li key={error}>• {error}</li>
                   )}
                       </ul>
                     </div>
@@ -254,8 +254,8 @@ export const MigrationTestPage: React.FC = () => {
               <div>
                       <div className="text-yellow-400 font-medium text-sm mb-1">Recommendations:</div>
                       <ul className="text-yellow-300 text-sm space-y-1">
-                        {validation.recommendations.map((rec, index) =>
-                  <li key={index}>• {rec}</li>
+                        {validation.recommendations.map((rec) =>
+                  <li key={rec}>• {rec}</li>
                   )}
                       </ul>
                     </div>
@@ -269,8 +269,8 @@ export const MigrationTestPage: React.FC = () => {
           <div className="bg-slate-800 border border-yellow-500/30 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-yellow-400 mb-3">Migration Warnings</h3>
                 <ul className="text-slate-300 space-y-2">
-                  {migrationResult.warnings.map((warning, index) =>
-              <li key={index} className="flex items-start space-x-2">
+                  {migrationResult.warnings.map((warning) =>
+              <li key={warning} className="flex items-start space-x-2">
                       <span className="text-yellow-400 font-bold">⚠</span>
                       <span className="text-sm">{warning}</span>
                     </li>

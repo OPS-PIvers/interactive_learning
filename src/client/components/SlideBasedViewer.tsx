@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
-import { SlideDeck, SlideViewerState } from '../../shared/slideTypes';
+import { SlideDeck } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
@@ -29,7 +29,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   viewerModes,
   autoStart = false,
   onClose,
-  migrationResult
+  migrationResult: _migrationResult
 }) => {
   useViewportHeight();
 
@@ -37,12 +37,12 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
-  const [completedHotspots, setCompletedHotspots] = useState<Set<string>>(new Set());
+  const [_activeHotspotId, _setActiveHotspotId] = useState<string | null>(null);
+  const [_completedHotspots, _setCompletedHotspots] = useState<Set<string>>(new Set());
 
   // Auto-progression state
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [_isPlaying, _setIsPlaying] = useState(false);
+  const [_playbackSpeed, _setPlaybackSpeed] = useState(1);
 
   // Navigation handlers for footer toolbar
   const handlePreviousSlide = useCallback(() => {
@@ -107,7 +107,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }, [slideDeck.slides, handleSlideChange]);
 
   // Timeline navigation handler
-  const handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
+  const _handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
     if (stepSlideIndex >= 0 && stepSlideIndex < slideDeck.slides.length) {
       const slide = slideDeck.slides[stepSlideIndex];
       if (slide) {
@@ -126,8 +126,8 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }, []);
 
   // Hotspot state handlers
-  const handleHotspotFocus = useCallback((hotspotId: string, slideIndex: number) => {
-    setActiveHotspotId(hotspotId);
+  const _handleHotspotFocus = useCallback((_hotspotId: string, slideIndex: number) => {
+    _setActiveHotspotId(_hotspotId);
     // If hotspot is on different slide, navigate there
     if (slideIndex !== currentSlideIndex) {
       const slide = slideDeck.slides[slideIndex];
@@ -137,22 +137,22 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     }
   }, [currentSlideIndex, slideDeck.slides, handleSlideChange]);
 
-  const handleHotspotComplete = useCallback((hotspotId: string) => {
-    setCompletedHotspots((prev) => new Set([...prev, hotspotId]));
-    setActiveHotspotId(null);
+  const _handleHotspotComplete = useCallback((hotspotId: string) => {
+    _setCompletedHotspots((prev) => new Set([...prev, hotspotId]));
+    _setActiveHotspotId(null);
   }, []);
 
   // Auto-progression handlers
-  const handlePlay = useCallback(() => {
-    setIsPlaying(true);
+  const _handlePlay = useCallback(() => {
+    _setIsPlaying(true);
   }, []);
 
-  const handlePause = useCallback(() => {
-    setIsPlaying(false);
+  const _handlePause = useCallback(() => {
+    _setIsPlaying(false);
   }, []);
 
-  const handleSpeedChange = useCallback((speed: number) => {
-    setPlaybackSpeed(speed);
+  const _handleSpeedChange = useCallback((speed: number) => {
+    _setPlaybackSpeed(speed);
   }, []);
 
   // Enhanced slide deck with viewer mode settings
