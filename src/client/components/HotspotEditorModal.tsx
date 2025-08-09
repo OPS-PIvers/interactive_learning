@@ -75,6 +75,8 @@ const HotspotEditorToolbar: React.FC<{
   </div>
 );
 
+HotspotEditorToolbar.displayName = 'HotspotEditorToolbar';
+
 const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   editorState,
   editorActions,
@@ -116,9 +118,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     setShowEventTypeSelector(false); // Reset on hotspot change
   }, [selectedHotspot]);
 
-  const _handleToggleEventTypeSelector = () => {
-    setShowEventTypeSelector((prev) => !prev);
-  };
 
   // Scroll to EventTypeSelector when it becomes visible
   useEffect(() => {
@@ -206,12 +205,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     onDeleteEvent(eventId);
   };
 
-  const moveEvent = (dragIndex: number, hoverIndex: number) => {
-
-
-    // This would need to be implemented based on your event ordering logic
-    // For now, we'll just log the intended move
-  }; // Timeline control handlers
+  // Timeline control handlers
   const handleMoveEventUp = (eventId: string) => {
     const updatedEvents = moveEventUp(eventId, relatedEvents);
     // Apply the updates
@@ -295,9 +289,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     }
   };
 
-  const _handleHotspotUpdate = (updatedHotspot: HotspotData) => {
-    setLocalHotspot(updatedHotspot);
-  };
 
   // Debug the early return condition
 
@@ -314,7 +305,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   }
 
   const localHotspotEvents = relatedEvents.filter((event) => event.targetId === localHotspot.id);
-  const activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
+  const _activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
 
 
 
@@ -571,7 +562,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                       <div className="text-center text-gray-400 py-8">
                               No interactions for this hotspot.
                               <br />
-                              Click "Add Interaction" to create one.
+                              Click &ldquo;Add Interaction&rdquo; to create one.
                             </div> :
 
                       <div className="space-y-2">

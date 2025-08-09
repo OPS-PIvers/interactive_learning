@@ -275,7 +275,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
                   )}
                   {event.message && (
                     <div className="text-slate-400 text-xs leading-relaxed italic border-l-2 border-purple-500/30 pl-2">
-                      "{event.message.substring(0, 80)}{event.message.length > 80 ? '...' : ''}"
+                      &ldquo;{event.message.substring(0, 80)}{event.message.length > 80 ? '...' : ''}&rdquo;
                     </div>
                   )}
                 </div>

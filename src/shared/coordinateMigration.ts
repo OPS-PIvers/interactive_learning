@@ -133,7 +133,7 @@ export function migrateInvalidHotspots(hotspots: HotspotData[]): {
 /**
  * Utility to log validation results for debugging
  */
-export function logCoordinateValidation(hotspots: HotspotData[], projectName?: string): void {
+export function logCoordinateValidation(hotspots: HotspotData[], _projectName?: string): void {
   const results = validateProjectHotspots(hotspots);
 
 
@@ -143,12 +143,11 @@ export function logCoordinateValidation(hotspots: HotspotData[], projectName?: s
 
 
   if (results.invalidHotspots > 0 || results.suspiciousHotspots > 0) {
-
+    // Log validation issues for debugging
     results.detailedResults.
     filter((r) => !r.validation.isValid || r.validation.issues.length > 0).
-    forEach(({ hotspot, validation }) => {
-
-      validation.issues.forEach((issue) => {});
+    forEach(({ hotspot: _hotspot, validation }) => {
+      console.warn('Hotspot validation issues:', validation.issues);
     });
   }
 }

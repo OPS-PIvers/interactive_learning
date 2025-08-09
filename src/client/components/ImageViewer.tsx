@@ -27,7 +27,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [panZoomToEvent, setPanZoomToEvent] = React.useState<PanZoomEvent | null>(null);
+  const [_panZoomToEvent, setPanZoomToEvent] = React.useState<PanZoomEvent | null>(null);
 
   useEffect(() => {
     if (focusHotspotTarget) {

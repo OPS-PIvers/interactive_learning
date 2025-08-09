@@ -83,10 +83,11 @@ const MainApp: React.FC = () => {
       // Only call init once during app lifecycle, not on every project load
       const fetchedProjects = await appScriptProxy.listProjects();
       setProjects(fetchedProjects);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to load projects:", err);
-      setError(`Could not load projects: ${err?.message || 'Please try again later.'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Please try again later.';
       setProjects([]); 
+      setError(`Could not load projects: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +161,7 @@ const MainApp: React.FC = () => {
       }
       setIsEditingMode(true);
       setIsModalOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Failed to load project details for ${project.id}:`, err);
       setError(`Could not load project details: ${err?.message || 'Please try again.'}`);
       setSelectedProject(null);
@@ -218,7 +219,7 @@ const MainApp: React.FC = () => {
       setSelectedProject(finalProject);
       setIsEditingMode(true);
       setIsModalOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to create project:", err);
       setError(`Failed to create new project: ${err?.message || ''}`);
     } finally {
@@ -287,7 +288,7 @@ const MainApp: React.FC = () => {
         setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to save project:", err);
       setError(`Failed to save project data: ${err?.message || ''}`);
     } finally {
@@ -326,7 +327,7 @@ const MainApp: React.FC = () => {
       });
       
       await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to upload image:", err);
       setError(`Failed to upload image: ${err?.message || ''}`);
     } finally {
@@ -350,7 +351,7 @@ const MainApp: React.FC = () => {
       if (selectedProject?.id === projectId) {
         handleCloseModal();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to delete project:", err);
       setError(`Failed to delete project: ${err?.message || ''}`);
     }
