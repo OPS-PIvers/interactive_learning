@@ -3,7 +3,6 @@ import React, { Fragment, useMemo, useState, useCallback, Suspense, lazy } from 
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import { InteractiveModuleState, Project } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import Modal from './Modal';
 import LoadingScreen from './shared/LoadingScreen';
 import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import SlideViewer from './slides/SlideViewer';

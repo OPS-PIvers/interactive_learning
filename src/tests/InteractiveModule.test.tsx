@@ -1,9 +1,9 @@
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import React from 'react';
-import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
+import { ToastProvider } from '../client/hooks/useToast';
 import { InteractiveSlide } from '../shared/slideTypes';
 
 // Mock child components

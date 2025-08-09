@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { migrateProjectToSlides, getMigrationSummary, validateMigration, MigrationResult } from '../../shared/migrationUtils';
+import { migrateProjectToSlides, validateMigration, MigrationResult } from '../../shared/migrationUtils';
 import { InteractiveModuleState, HotspotData, TimelineEventData } from '../../shared/types';
 import { SlideViewer } from './slides/SlideViewer';
 

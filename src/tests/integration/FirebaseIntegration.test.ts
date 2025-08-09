@@ -1,5 +1,5 @@
 import { signInAnonymously, signOut } from 'firebase/auth';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';

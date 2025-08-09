@@ -2,11 +2,9 @@ import React from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { HotspotData, TimelineEventData } from '../../shared/types';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
-import { getActualImageVisibleBounds } from '../utils/imageBounds';
 import { Z_INDEX } from '../utils/styleConstants';
 import FileUpload from './FileUpload';
 import HotspotViewer from './HotspotViewer';
-import { PlusIcon } from './icons/PlusIcon';
 import PanZoomPreviewOverlay from './PanZoomPreviewOverlay';
 import SpotlightPreviewOverlay from './SpotlightPreviewOverlay';
 import TextPreviewOverlay from './TextPreviewOverlay';
@@ -17,7 +15,6 @@ interface ImageEditCanvasProps {
   actualImageRef: React.RefObject<HTMLImageElement>;
   zoomedImageContainerRef: React.RefObject<HTMLDivElement>;
   scrollableContainerRef: React.RefObject<HTMLDivElement>; // For scrollable area around zoomed image
-  imageContainerRef: React.RefObject<HTMLDivElement>; // For overall image editing area
 
   hotspotsWithPositions: Array<HotspotData & {pixelPosition: {x: number;y: number;baseX?: number;baseY?: number;} | null;}>;
   pulsingHotspotId: string | null;
@@ -29,9 +26,6 @@ interface ImageEditCanvasProps {
   // Event Handlers
   onImageLoad: (event: React.SyntheticEvent<HTMLImageElement>) => void;
   onImageOrHotspotClick?: (event: React.MouseEvent<HTMLDivElement>, hotspotId?: string) => void; // Updated prop
-  onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
-  onTouchMove?: (event: React.TouchEvent<HTMLDivElement>) => void;
-  onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
 
   // Hotspot Interaction Callbacks
   onFocusHotspot: (hotspotId: string) => void;
@@ -58,7 +52,6 @@ interface ImageEditCanvasProps {
   // Standardized positioning functions
   getImageBounds?: () => {width: number;height: number;left: number;top: number;} | null;
   imageNaturalDimensions?: {width: number;height: number;} | null;
-  imageFitMode?: string;
 
   // Props for "click to place" new hotspot
   isPlacingHotspot?: boolean;
@@ -73,7 +66,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   actualImageRef,
   zoomedImageContainerRef,
   scrollableContainerRef,
-  imageContainerRef,
   hotspotsWithPositions,
   pulsingHotspotId,
   activeHotspotDisplayIds,
@@ -81,9 +73,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   getHighlightGradientStyle,
   onImageLoad,
   onImageOrHotspotClick,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
   onFocusHotspot,
   onEditHotspotRequest,
   onHotspotPositionChange,
@@ -97,7 +86,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   onPreviewOverlayUpdate,
   getImageBounds,
   imageNaturalDimensions,
-  imageFitMode,
   isPlacingHotspot = false,
   onPlaceNewHotspot,
   previewingEvents = [],

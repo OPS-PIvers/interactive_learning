@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { ElementInteraction } from '../../../shared/slideTypes';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
 import { SlideViewer } from './SlideViewer';
 import '../../styles/slide-components.css';
-import { ElementInteraction } from '../../../shared/slideTypes';
 
 /**
  * SlideBasedDemo - Demonstration of the new slide-based architecture
