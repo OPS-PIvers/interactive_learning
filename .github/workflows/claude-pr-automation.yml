@@ -178,18 +178,35 @@ jobs:
 
       - name: Auto-merge PR if ready
         if: steps.merge-check.outputs.ready == 'true'
+        id: merge-attempt
         run: |
-          echo "PR is ready for merge. Attempting auto-merge..."
-          gh pr merge ${{ github.event.pull_request.number }} --squash --auto || echo "Auto-merge failed or not enabled"
+          echo "PR is ready for merge. Attempting merge..."
+          # Try auto-merge first, then fallback to regular merge
+          if gh pr merge ${{ github.event.pull_request.number }} --squash --auto; then
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Auto-merge succeeded"
+          elif gh pr merge ${{ github.event.pull_request.number }} --squash; then
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Manual merge succeeded"
+          else
+            echo "merge_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Merge failed"
+            exit 1
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete branch after merge
-        if: steps.merge-check.outputs.ready == 'true'
+      - name: Delete branch after successful merge
+        if: steps.merge-check.outputs.ready == 'true' && steps.merge-attempt.outputs.merge_success == 'true'
         run: |
+          echo "Merge was successful, cleaning up branch..."
           # Wait a bit for merge to complete, then delete branch
-          sleep 10
-          gh api repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }} -X DELETE || echo "Branch already deleted"
+          sleep 15
+          if gh api repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }} -X DELETE; then
+            echo "✅ Branch deleted successfully"
+          else
+            echo "ℹ️ Branch was already deleted or couldn't be deleted"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
