@@ -142,7 +142,7 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
           aria-labelledby="insert-button"
         >
           <div className="py-1" role="none">
-            {dropdownItems.map((item, index) => (
+            {dropdownItems.map((item) => (
               <button
                 key={item.label}
                 onClick={item.action}

@@ -2,8 +2,7 @@ import type { Identifier, XYCoord } from 'dnd-core';
 import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { TimelineEventData, HotspotData } from '../../shared/types';
 import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import { ArrowDownIcon } from './icons/ArrowDownIcon';
 import { ArrowUpIcon } from './icons/ArrowUpIcon';
@@ -72,7 +71,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   onTogglePreview,
   onEdit,
   isPreviewing,
-  allHotspots,
+  allHotspots: _allHotspots,
   isActive = false,
   onJumpToStep,
   className = '',
@@ -128,10 +127,6 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
     preview(cardRef);
     drop(cardRef);
   }
-
-  const inputBaseClasses = "w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500 text-sm dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-purple-600 dark:focus:border-purple-600";
-  const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-slate-300 dark:text-slate-400";
-  const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500 focus:ring-offset-slate-800 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-offset-slate-900";
 
   const cardBaseClasses = `p-3 mb-2 rounded-lg shadow transition-opacity dark:shadow-md`;
   const cardBgColor = isDragging ? 'bg-slate-700 dark:bg-slate-800' : 'bg-slate-600 dark:bg-slate-700/50';

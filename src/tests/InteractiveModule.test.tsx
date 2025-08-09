@@ -5,7 +5,6 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
 import { InteractiveSlide } from '../shared/slideTypes';
-import { InteractiveModuleState } from '../shared/types';
 
 // Mock child components
 vi.mock('../client/components/SlideBasedViewer', () => ({

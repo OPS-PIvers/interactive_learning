@@ -13,7 +13,7 @@ import { Project } from '../../shared/types';
  * to ensure data consistency under high-load conditions.
  */
 describe.skip('Concurrent Operations Integration Tests', () => {
-  let testUserId: string;
+  let _testUserId: string;
 
   beforeAll(async () => {
     if (!firebaseManager.isReady()) {
@@ -344,8 +344,8 @@ describe.skip('Concurrent Operations Integration Tests', () => {
       const results = await Promise.allSettled(rapidOperations);
 
       // Most operations should succeed
-      const successful = results.filter((r) => r.status === 'fulfilled').length;
-      const failed = results.filter((r) => r.status === 'rejected').length;
+      const _successful = results.filter((r) => r.status === 'fulfilled').length;
+      const _failed = results.filter((r) => r.status === 'rejected').length;
 
 
 

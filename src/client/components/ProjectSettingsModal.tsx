@@ -21,11 +21,11 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onClose,
   projectName,
   projectId,
-  isPublished = false,
+  isPublished: _isPublished = false,
   onShare
 }) => {
   const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
-  const { currentThemeId, setTheme, availableThemes } = useProjectTheme();
+  const { currentThemeId, setTheme, availableThemes: _availableThemes } = useProjectTheme();
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const allThemes = getAllThemes();

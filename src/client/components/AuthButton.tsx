@@ -17,7 +17,7 @@ interface AuthButtonProps {
 const AuthButton: React.FC<AuthButtonProps> = ({
   variant = 'toolbar',
   className = '',
-  showUserName = false,
+  showUserName: _showUserName = false,
   onSignIn,
   onSignOut,
   size = 'large'

@@ -1,7 +1,7 @@
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, initializeFirestore } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getPerformance } from 'firebase/performance';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 // Firebase configuration and initialization
@@ -28,6 +28,7 @@ const firebaseConfig = {
 };
 
 // Validate required environment variables function (called during initialization)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validateFirebaseConfig(): string[] {
   const requiredEnvVars = [
   'VITE_FIREBASE_API_KEY',

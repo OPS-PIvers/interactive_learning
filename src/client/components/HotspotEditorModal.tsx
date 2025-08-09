@@ -1,28 +1,23 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { normalizeHotspotPosition } from '../../lib/safeMathUtils';
-import { hotspotStylePresets, hotspotSizePresets, applyStylePreset, defaultHotspotSize } from '../../shared/hotspotStylePresets';
+import { hotspotStylePresets, hotspotSizePresets, applyStylePreset } from '../../shared/hotspotStylePresets';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { HotspotData, TimelineEventData, HotspotSize } from '../../shared/types';
+import { HotspotData, TimelineEventData } from '../../shared/types';
 import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEditorState';
 import { getNextTimelineStep, moveEventUp, moveEventDown, getSortedEvents, canMoveUp, canMoveDown } from '../utils/timelineUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import EditableEventCard from './EditableEventCard';
-import EventTypeToggle from './EventTypeToggle';
-import ChevronDownIcon from './icons/ChevronDownIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
-import InteractionEditor from './interactions/InteractionEditor';
 import InteractionSettingsModal from './InteractionSettingsModal';
 import InteractionTypeSelector, { AddInteractionButton } from './InteractionTypeSelector';
-import PanZoomSettings from './PanZoomSettings';
-import SpotlightSettings from './SpotlightSettings';
-import TabContainer, { TabItem } from './ui/TabContainer';
+import TabContainer from './ui/TabContainer';
 
 interface EnhancedHotspotEditorModalProps {
   editorState: UnifiedEditorState;
@@ -42,33 +37,6 @@ interface EnhancedHotspotEditorModalProps {
 }
 
 // Event Type Selector Component
-const EventTypeGrid: React.FC<{onSelectEventType: (type: InteractionType) => void;}> = React.memo(({ onSelectEventType }) => {
-  const eventTypes: {type: InteractionType;label: string;}[] = [
-  { type: InteractionType.SPOTLIGHT, label: 'Spotlight' },
-  { type: InteractionType.PAN_ZOOM, label: 'Pan & Zoom' },
-  { type: InteractionType.SHOW_TEXT, label: 'Text Display' },
-  { type: InteractionType.PLAY_VIDEO, label: 'Video' },
-  { type: InteractionType.PLAY_AUDIO, label: 'Audio' },
-  { type: InteractionType.QUIZ, label: 'Quiz Question' }];
-
-
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {eventTypes.map(({ type, label }) =>
-      <button
-        key={type}
-        onClick={() => onSelectEventType(type)}
-        className="px-2 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs flex flex-col items-center gap-1 justify-center min-h-[50px]" // Added justify-center and min-h
-      >
-          {/* Using a generic icon for now, could be specific later */}
-          <PlusIcon className="w-4 h-4 mb-0.5" />
-          <span className="text-center">{label}</span>
-        </button>
-      )}
-    </div>);
-
-});
-
 // Hotspot Editor Toolbar Component
 const HotspotEditorToolbar: React.FC<{
   title: string;
@@ -113,19 +81,19 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   editorActions,
   selectedHotspot,
   relatedEvents,
-  currentStep,
-  backgroundImage,
+  currentStep: _currentStep,
+  backgroundImage: _backgroundImage,
   onUpdateHotspot,
   onDeleteHotspot,
   onAddEvent,
   onUpdateEvent,
   onDeleteEvent,
   allHotspots,
-  onPreviewEvent,
+  onPreviewEvent: _onPreviewEvent,
   onPreviewOverlay
 }) => {
   const eventIdCounter = useRef(0);
-  const timestampCounter = useRef(0);
+  const _timestampCounter = useRef(0);
 
   const { isOpen, isCollapsed } = editorState.hotspotEditor;
   const { isOpen: isSettingsModalOpen, editingEventId } = editorState.interactionEditor;
@@ -140,7 +108,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   // Legacy state (will be removed)
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
-  const [isHotspotSettingsCollapsed, setIsHotspotSettingsCollapsed] = useState(false);
+  const [_isHotspotSettingsCollapsed, _setIsHotspotSettingsCollapsed] = useState(false);
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

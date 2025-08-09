@@ -4,11 +4,8 @@ import { vi, describe, test, expect, beforeEach, Mock } from 'vitest';
 import '@testing-library/jest-dom';
 
 import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
-import { useDeviceDetection } from '../../client/hooks/useDeviceDetection';
 import { ToastProvider, useToast } from '../../client/hooks/useToast';
 import { AuthProvider, useAuth } from '../../lib/authContext';
-import { firebaseAPI } from '../../lib/firebaseApi';
-import { firebaseManager } from '../../lib/firebaseConfig';
 import { SlideDeck } from '../../shared/slideTypes';
 
 // Mock dependencies

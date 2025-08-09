@@ -120,7 +120,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   onStepSelect,
   isEditing,
   timelineEvents,
-  setTimelineEvents,
+  setTimelineEvents: _setTimelineEvents,
   hotspots,
   showPreviews = true,
   moduleState,
@@ -129,10 +129,10 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
   currentStepIndex,
   totalSteps,
   isMobile,
-  onAddStep,
-  onDeleteStep,
-  onUpdateStep,
-  onMoveStep,
+  onAddStep: _onAddStep,
+  onDeleteStep: _onDeleteStep,
+  onUpdateStep: _onUpdateStep,
+  onMoveStep: _onMoveStep,
 }) => {
   const [activePreview, setActivePreview] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -258,7 +258,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
               <p className="text-slate-400 text-sm">No events at this step</p>
             </div>
           ) : (
-            eventsAtStep.map((event, index) => {
+            eventsAtStep.map((event) => {
               const hotspot = event.targetId ? hotspots.find(h => h.id === event.targetId) : null;
               return (
                 <div key={event.id} className="text-sm text-slate-200 p-3 bg-gradient-to-r from-slate-700/70 to-slate-600/70 rounded-lg border border-slate-600/30 backdrop-blur-sm">
