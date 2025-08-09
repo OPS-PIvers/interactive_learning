@@ -23,6 +23,7 @@ import { firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
 
 // Thumbnail Parameters
+const THUMBNAIL_FILE_PREFIX = 'thumb_';
 const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads

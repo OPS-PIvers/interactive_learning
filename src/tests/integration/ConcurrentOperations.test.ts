@@ -22,7 +22,7 @@ describe.skip('Concurrent Operations Integration Tests', () => {
 
     const auth = firebaseManager.getAuth();
     const userCredential = await signInAnonymously(auth);
-    testUserId = userCredential.user.uid;
+    _testUserId = userCredential.user.uid;
   });
 
   afterAll(async () => {

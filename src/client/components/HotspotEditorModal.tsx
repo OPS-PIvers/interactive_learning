@@ -11,7 +11,6 @@ import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import EditableEventCard from './EditableEventCard';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import { PlusIcon } from './icons/PlusIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';

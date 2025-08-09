@@ -1,10 +1,10 @@
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import React from 'react';
-import { AuthProvider } from '../lib/authContext';
-import { ToastProvider } from '../client/hooks/useToast';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
+import { ToastProvider } from '../client/hooks/useToast';
+import { AuthProvider } from '../lib/authContext';
 import { SlideDeck, DeviceType } from '../shared/slideTypes';
 
 // Mock child components to isolate testing
@@ -199,8 +199,8 @@ describe('React Error Detection Tests', () => {
   describe('React Component Error Patterns', () => {
     test('should detect useState hook dependency issues', async () => {
       const ProblematicComponent = () => {
-        const [count, setCount] = React.useState(0);
-        const [data, _setData] = React.useState<number | null>(null);
+        const [count, _setCount] = React.useState(0);
+        const [data, setData] = React.useState<number | null>(null);
         
         // This useEffect has missing dependencies - should be caught by exhaustive-deps
         React.useEffect(() => {

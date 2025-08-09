@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { vi, describe, test, expect, beforeEach, Mock } from 'vitest';
 import '@testing-library/jest-dom';
-
 import { UnifiedSlideEditor, UnifiedSlideEditorProps } from '../../client/components/slides/UnifiedSlideEditor';
 import { ToastProvider, useToast } from '../../client/hooks/useToast';
 import { AuthProvider, useAuth } from '../../lib/authContext';
