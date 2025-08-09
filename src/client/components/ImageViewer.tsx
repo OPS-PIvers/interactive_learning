@@ -6,8 +6,6 @@ import { ZOOM_LIMITS, PAN_ZOOM_ANIMATION } from '../constants/interactionConstan
 interface ImageViewerProps {
   src: string;
   alt?: string;
-  _title?: string;
-  _caption?: string;
   className?: string;
   focusHotspotTarget?: {
     xPercent: number;
@@ -23,8 +21,6 @@ interface ImageViewerProps {
 const ImageViewer: React.FC<ImageViewerProps> = ({
   src,
   alt = '',
-  _title,
-  _caption,
   className = '',
   focusHotspotTarget,
   onFocusAnimationComplete,

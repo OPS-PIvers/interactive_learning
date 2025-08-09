@@ -314,9 +314,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   }
 
   const localHotspotEvents = relatedEvents.filter((event) => event.targetId === localHotspot.id);
-  const _previewingEvents = localHotspotEvents.filter((event) => previewingEventIds.includes(event.id));
   const activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
-  const _activePreviewEvent = localHotspotEvents.find((event) => event.id === activePreviewEventId);
 
 
 

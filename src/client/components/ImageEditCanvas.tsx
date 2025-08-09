@@ -15,7 +15,6 @@ interface ImageEditCanvasProps {
   actualImageRef: React.RefObject<HTMLImageElement>;
   zoomedImageContainerRef: React.RefObject<HTMLDivElement>;
   scrollableContainerRef: React.RefObject<HTMLDivElement>; // For scrollable area around zoomed image
-  _imageContainerRef: React.RefObject<HTMLDivElement>; // For overall image editing area
 
   hotspotsWithPositions: Array<HotspotData & {pixelPosition: {x: number;y: number;baseX?: number;baseY?: number;} | null;}>;
   pulsingHotspotId: string | null;
@@ -27,9 +26,6 @@ interface ImageEditCanvasProps {
   // Event Handlers
   onImageLoad: (event: React.SyntheticEvent<HTMLImageElement>) => void;
   onImageOrHotspotClick?: (event: React.MouseEvent<HTMLDivElement>, hotspotId?: string) => void; // Updated prop
-  _onTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
-  _onTouchMove?: (event: React.TouchEvent<HTMLDivElement>) => void;
-  _onTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
 
   // Hotspot Interaction Callbacks
   onFocusHotspot: (hotspotId: string) => void;
@@ -56,7 +52,6 @@ interface ImageEditCanvasProps {
   // Standardized positioning functions
   getImageBounds?: () => {width: number;height: number;left: number;top: number;} | null;
   imageNaturalDimensions?: {width: number;height: number;} | null;
-  _imageFitMode?: string;
 
   // Props for "click to place" new hotspot
   isPlacingHotspot?: boolean;
@@ -71,7 +66,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   actualImageRef,
   zoomedImageContainerRef,
   scrollableContainerRef,
-  _imageContainerRef,
   hotspotsWithPositions,
   pulsingHotspotId,
   activeHotspotDisplayIds,
@@ -79,9 +73,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   getHighlightGradientStyle,
   onImageLoad,
   onImageOrHotspotClick,
-  _onTouchStart,
-  _onTouchMove,
-  _onTouchEnd,
   onFocusHotspot,
   onEditHotspotRequest,
   onHotspotPositionChange,
@@ -95,7 +86,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
   onPreviewOverlayUpdate,
   getImageBounds,
   imageNaturalDimensions,
-  _imageFitMode,
   isPlacingHotspot = false,
   onPlaceNewHotspot,
   previewingEvents = [],
