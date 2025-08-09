@@ -101,18 +101,18 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
   };
 
   // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, eventId: string) => {
+  const _handleDragStart = (e: React.DragEvent, eventId: string) => {
     setDraggedEventId(eventId);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', eventId);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const _handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, targetEventId: string) => {
+  const _handleDrop = (e: React.DragEvent, targetEventId: string) => {
     e.preventDefault();
     
     if (!draggedEventId || draggedEventId === targetEventId) {
@@ -293,7 +293,7 @@ const HotspotEditorToolbar: React.FC<HotspotEditorToolbarProps> = ({
             </label>
           </div>
           <div className="text-xs text-slate-400">
-            <p>Control when the hotspot info panel appears by adding a "Show Message" event to the timeline</p>
+            <p>Control when the hotspot info panel appears by adding a &ldquo;Show Message&rdquo; event to the timeline</p>
             <p className="mt-1">The panel will display when that event is triggered instead of immediately on click</p>
           </div>
         </div>

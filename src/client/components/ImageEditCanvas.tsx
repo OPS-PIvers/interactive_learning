@@ -432,7 +432,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                   left: 0, // Relative to the image
                   top: 0
                 };
-                boundsSource = 'fallback';
+                const _boundsSource = 'fallback';
 
 
 

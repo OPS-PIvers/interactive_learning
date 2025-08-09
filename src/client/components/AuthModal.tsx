@@ -267,7 +267,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     Forgot your password?
                   </button>
                   <div className="mt-2">
-                    <span className="text-slate-400 text-sm">Don't have an account? </span>
+                    <span className="text-slate-400 text-sm">Don&apos;t have an account? </span>
                     <button
                       onClick={() => setIsLogin(false)}
                       className={LINK_BUTTON_SEMIBOLD_CLASSES}

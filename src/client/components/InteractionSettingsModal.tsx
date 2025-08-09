@@ -626,7 +626,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   }, [event, onClose]);
 
   // Get error message for a specific field
-  const getFieldError = useCallback((fieldName: string) => {
+  const _getFieldError = useCallback((fieldName: string) => {
     return validationErrors.find(error => error.field === fieldName)?.message;
   }, [validationErrors]);
 

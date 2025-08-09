@@ -334,7 +334,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   };
 
   const baseColor = getHotspotColor();
-  const hoverColor = baseColor.replace('500', '400').replace('600', '500'); // Basic hover adjustment
+  const _hoverColor = baseColor.replace('500', '400').replace('600', '500'); // Basic hover adjustment
   const ringColor = baseColor.replace('bg-', 'ring-').replace('-500', '-400'); // For focus ring
 
   // Get hotspot size from multiple sources (priority: customProperties -> hotspot.size -> default)

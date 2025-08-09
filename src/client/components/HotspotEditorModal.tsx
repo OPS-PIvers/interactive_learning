@@ -75,6 +75,8 @@ const HotspotEditorToolbar: React.FC<{
   </div>
 );
 
+HotspotEditorToolbar.displayName = 'HotspotEditorToolbar';
+
 const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   editorState,
   editorActions,
@@ -206,7 +208,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     onDeleteEvent(eventId);
   };
 
-  const moveEvent = (dragIndex: number, hoverIndex: number) => {
+  const moveEvent = (_dragIndex: number, _hoverIndex: number) => {
 
 
     // This would need to be implemented based on your event ordering logic
@@ -314,7 +316,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   }
 
   const localHotspotEvents = relatedEvents.filter((event) => event.targetId === localHotspot.id);
-  const activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
+  const _activePreviewEventId = previewingEventIds[previewingEventIds.length - 1] || null;
 
 
 
@@ -571,7 +573,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                       <div className="text-center text-gray-400 py-8">
                               No interactions for this hotspot.
                               <br />
-                              Click "Add Interaction" to create one.
+                              Click &ldquo;Add Interaction&rdquo; to create one.
                             </div> :
 
                       <div className="space-y-2">
