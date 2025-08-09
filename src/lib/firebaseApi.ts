@@ -738,7 +738,9 @@ export class FirebaseProjectAPI {
           if (attempt === 3) {
             throw new Error(`Failed to get download URL after 3 attempts: ${urlError}`);
           }
-          await new Promise((resolve) => {setTimeout(resolve, 1000 * attempt);});
+          await new Promise(resolve => {
+            setTimeout(resolve, 1000 * attempt);
+          });
         }
       }
       throw new Error('Failed to get download URL after all attempts.');
@@ -852,7 +854,9 @@ export class FirebaseProjectAPI {
           if (attempt === 3) {
             throw new Error(`Failed to get thumbnail download URL after 3 attempts: ${urlError}`);
           }
-          await new Promise((resolve) => {setTimeout(resolve, 1000 * attempt);});
+          await new Promise(resolve => {
+            setTimeout(resolve, 1000 * attempt);
+          });
         }
       }
       throw new Error('Failed to get thumbnail download URL after all attempts.');

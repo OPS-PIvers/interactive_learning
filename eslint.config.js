@@ -56,6 +56,12 @@ export default [
         NodeJS: 'readonly',
         getComputedStyle: 'readonly',
         Image: 'readonly',
+        fetch: 'readonly',
+        Headers: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
       },
     },
     
