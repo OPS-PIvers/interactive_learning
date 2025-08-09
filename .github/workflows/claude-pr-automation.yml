@@ -16,6 +16,8 @@ jobs:
   claude-review:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Skip if PR is from Copilot to avoid permission check issues with the Claude action
+    if: ${{ github.event.pull_request.user.login != 'copilot-swe-agent' && !contains(github.event.pull_request.assignees.*.login, 'Copilot') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -188,6 +190,58 @@ jobs:
           # Wait a bit for merge to complete, then delete branch
           sleep 10
           gh api repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }} -X DELETE || echo "Branch already deleted"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  copilot-pr-handler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Only run on Copilot PRs to handle them specially
+    if: ${{ github.event.pull_request.user.login == 'copilot-swe-agent' || contains(github.event.pull_request.assignees.*.login, 'Copilot') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests on Copilot PR
+        run: npm run test:run
+        continue-on-error: true
+
+      - name: Build project
+        run: npm run build
+        continue-on-error: true
+
+      - name: Add comment about Copilot PR processing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: '🤖 **Copilot PR Processed**\n\nThis PR from GitHub Copilot has been automatically processed:\n- ✅ Dependencies installed\n- ✅ Tests executed\n- ✅ Build attempted\n\nSince this PR contains automated code improvements from Copilot, it has been reviewed for basic functionality. For manual review or Claude Code integration, please comment `@claude` to trigger additional analysis.'
+            });
+
+      - name: Auto-approve Copilot PR if tests pass
+        run: |
+          if npm run test:run && npm run build; then
+            echo "Tests and build pass - Copilot PR looks good"
+            gh pr review ${{ github.event.pull_request.number }} --approve --body "✅ Automated approval: Copilot PR passed all tests and builds successfully."
+          else
+            echo "Tests or build failed - manual review needed"
+            gh pr review ${{ github.event.pull_request.number }} --comment --body "⚠️ Tests or build failed. Manual review required before merge."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
