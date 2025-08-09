@@ -147,7 +147,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
 
     onSlideDeckChange(updatedSlideDeck);
-  }, [onSlideDeckChange, state.navigation.currentSlideIndex]);
+  }, [onSlideDeckChange]);
 
   // Handle element updates
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
@@ -488,7 +488,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       console.error('❌ Background upload failed:', error);
       throw error;
     }
-  }, [handleSlideUpdate, state.navigation.currentSlideIndex, currentSlide]);
+  }, [handleSlideUpdate]);
 
   const handleBackgroundRemove = useCallback(() => {
     handleSlideUpdate({}, ['backgroundMedia']);
@@ -560,7 +560,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     } finally {
       actions.setSaving(false);
     }
-  }, [actions, onSave, slideDeck, projectId, projectName, projectTheme, state.navigation.currentSlideIndex]);
+  }, [actions, onSave, slideDeck, projectId, projectName, projectTheme]);
 
   // Auto-dismiss help hint
   useEffect(() => {

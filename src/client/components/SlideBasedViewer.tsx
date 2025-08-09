@@ -97,7 +97,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
 
     }
-  }, [moduleState]);
+  }, []);
 
   const handleSlideSelect = useCallback((slideId: string) => {
     const slideIndex = slideDeck.slides.findIndex((s) => s.id === slideId);

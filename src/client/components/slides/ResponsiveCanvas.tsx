@@ -530,7 +530,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     }
 
     return dimensions;
-  }, [currentSlide, containerDimensions, deviceType]);
+  }, [currentSlide, containerDimensions]);
   // Render slide elements
   const renderElements = useCallback(() => {
     if (!currentSlide?.elements) return null;
