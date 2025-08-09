@@ -4,8 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
-  issue_comment:
-    types: [created]
 
 permissions:
   contents: write
@@ -16,8 +14,7 @@ jobs:
   claude-review:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Skip if PR is from AI coding agents to avoid permission check issues with the Claude action
-    if: ${{ github.event.pull_request.user.login != 'copilot-swe-agent' && github.event.pull_request.user.login != 'app/google-labs-jules' && !contains(github.event.pull_request.assignees.*.login, 'Copilot') }}
+    # Run for all PRs including AI agents (copilot, jules, claude)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,8 +80,9 @@ jobs:
             ];
             
             const codeReviewBots = [
-              'copilot', 'github-copilot', 'gemini-code-assist', 'sonarcloud',
-              'codeclimate', 'deepsource', 'codeacy', 'snyk-bot', 'dependabot'
+              'copilot', 'github-copilot', 'copilot-swe-agent',
+              'gemini', 'gemini-code-assist', 'google-labs-jules', 'jules',
+              'sonarcloud', 'codeclimate', 'deepsource', 'codeacy', 'snyk-bot', 'dependabot'
             ];
             
             for (const comment of allComments) {
@@ -148,7 +146,7 @@ jobs:
             
             {1}
             
-            Based on this feedback, review the PR and implement all valid suggestions. Pay special attention to GitHub Copilot comments which provide valuable code quality insights. Additionally, ensure:', steps.review-feedback.outputs.feedback_count, steps.review-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
+            Based on this feedback, review the PR and implement all valid suggestions. Pay special attention to GitHub Copilot and Gemini comments which provide valuable code quality insights. Additionally, ensure:', steps.review-feedback.outputs.feedback_count, steps.review-feedback.outputs.feedback) || 'Review this PR thoroughly and make any necessary changes to ensure:' }}
             1. Code follows project conventions in CLAUDE.md
             2. TypeScript types are correct and Promise patterns are consistent
             3. All tests pass after changes
@@ -156,9 +154,9 @@ jobs:
             5. Proper error handling with consistent patterns
             6. Accessibility requirements met
             7. Mobile responsiveness maintained
-            8. Address any automated tool suggestions (Copilot, ESLint, etc.)
+            8. Address any automated tool suggestions (GitHub Copilot, Gemini, ESLint, etc.)
             
-            Fix any issues found and commit the changes directly to this PR branch. If Copilot suggests code improvements, implement them unless there's a specific reason not to.
+            Fix any issues found and commit the changes directly to this PR branch. If Copilot or Gemini suggest code improvements, implement them unless there's a specific reason not to.
           
       - name: Run tests after Claude fixes
         run: npm run test:run
@@ -210,86 +208,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  ai-agent-pr-handler:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # Only run on AI coding agent PRs (Copilot, Jules) to handle them specially
-    if: ${{ github.event.pull_request.user.login == 'copilot-swe-agent' || github.event.pull_request.user.login == 'app/google-labs-jules' || contains(github.event.pull_request.assignees.*.login, 'Copilot') }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests on AI agent PR
-        run: npm run test:run
-        continue-on-error: true
-
-      - name: Build project
-        run: npm run build
-        continue-on-error: true
-
-      - name: Add comment about AI agent PR processing
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const author = context.payload.pull_request.user.login;
-            const agentName = author.includes('copilot') ? 'GitHub Copilot' : 
-                             author.includes('jules') ? 'Jules (async AI coding agent)' : 
-                             'AI coding agent';
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              body: `🤖 **AI Agent PR Processed**\n\nThis PR from ${agentName} has been automatically processed:\n- ✅ Dependencies installed\n- ✅ Tests executed\n- ✅ Build attempted\n\nSince this PR contains automated code improvements, it has been reviewed for basic functionality. For manual review or Claude Code integration, please comment \`@claude\` to trigger additional analysis.`
-            });
-
-      - name: Auto-approve AI agent PR if tests pass
-        run: |
-          if npm run test:run && npm run build; then
-            echo "Tests and build pass - AI agent PR looks good"
-            gh pr review ${{ github.event.pull_request.number }} --approve --body "✅ Automated approval: AI agent PR passed all tests and builds successfully."
-          else
-            echo "Tests or build failed - manual review needed"
-            gh pr review ${{ github.event.pull_request.number }} --comment --body "⚠️ Tests or build failed. Manual review required before merge."
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  claude-comment-trigger:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Claude Code Response
-        uses: anthropics/claude-code-action@beta
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_tools: bash
-          trigger_phrase: "@claude"
