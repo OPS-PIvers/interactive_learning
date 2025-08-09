@@ -31,7 +31,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   onClose,
   isSaving,
   isPublished,
-  onImageUpload,
+  onImageUpload: _onImageUpload,
   project
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);

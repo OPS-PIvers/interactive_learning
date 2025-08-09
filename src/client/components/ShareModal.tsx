@@ -37,7 +37,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [_isExpanded, _setIsExpanded] = useState(false);
 
   // Handle body scroll lock and focus management
   useEffect(() => {
