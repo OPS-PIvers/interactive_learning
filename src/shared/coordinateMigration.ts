@@ -148,7 +148,6 @@ export function logCoordinateValidation(hotspots: HotspotData[], _projectName?: 
     filter((r) => !r.validation.isValid || r.validation.issues.length > 0).
     forEach(({ hotspot: _hotspot, validation }) => {
 
-      validation.issues.forEach((_issue) => {});
     });
   }
 }

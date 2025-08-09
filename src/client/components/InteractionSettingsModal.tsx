@@ -545,7 +545,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
                 <label className={labelClasses}>Options</label>
                 <div className="space-y-2">
                     {(event.quizOptions || []).map((option, index) => (
-                        <div key={`quiz-option-${index}-${option.slice(0, 10)}`} className="flex items-center space-x-2">
+                        <div key={`quiz-option-${index}-${option.length}-${option.charAt(0) || 'empty'}`} className="flex items-center space-x-2">
                             <input
                                 type="radio"
                                 name="correctAnswer"
@@ -629,10 +629,6 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
     }
   }, [event, onClose]);
 
-  // Get error message for a specific field
-  const _getFieldError = useCallback((fieldName: string) => {
-    return validationErrors.find(error => error.field === fieldName)?.message;
-  }, [validationErrors]);
 
   if (!isOpen || !event) {
     return null;

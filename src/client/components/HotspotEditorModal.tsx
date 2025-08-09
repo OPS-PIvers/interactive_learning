@@ -208,12 +208,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     onDeleteEvent(eventId);
   };
 
-  const moveEvent = (_dragIndex: number, _hoverIndex: number) => {
-
-
-    // This would need to be implemented based on your event ordering logic
-    // For now, we'll just log the intended move
-  }; // Timeline control handlers
+  // Timeline control handlers
   const handleMoveEventUp = (eventId: string) => {
     const updatedEvents = moveEventUp(eventId, relatedEvents);
     // Apply the updates
