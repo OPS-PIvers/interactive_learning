@@ -16,7 +16,7 @@ export interface AnimationPreset {
 
 // Create preview components for each animation type
 const createPreviewComponent = (variants: Variants, duration: number = 300) => {
-  return ({ isActive }: { isActive: boolean }) => (
+  const PreviewComponent = ({ isActive }: { isActive: boolean }) => (
     <motion.div
       className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold"
       variants={variants}
@@ -27,6 +27,9 @@ const createPreviewComponent = (variants: Variants, duration: number = 300) => {
       A
     </motion.div>
   );
+  
+  PreviewComponent.displayName = 'AnimationPreviewComponent';
+  return PreviewComponent;
 };
 
 // Animation presets library

@@ -258,6 +258,7 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
         </div>
     );
 });
+TextInteractionEditor.displayName = 'TextInteractionEditor';
 
 /**
  * Placeholder component for editing audio interactions.
@@ -342,6 +343,7 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ e
         </div>
     );
 });
+AudioInteractionEditor.displayName = 'AudioInteractionEditor';
 
 /**
  * Placeholder component for editing video interactions.
@@ -493,6 +495,7 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ e
         </div>
     );
 });
+VideoInteractionEditor.displayName = 'VideoInteractionEditor';
 
 /**
  * Placeholder component for editing quiz interactions.
@@ -542,7 +545,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
                 <label className={labelClasses}>Options</label>
                 <div className="space-y-2">
                     {(event.quizOptions || []).map((option, index) => (
-                        <div key={index} className="flex items-center space-x-2">
+                        <div key={`quiz-option-${index}-${option.slice(0, 10)}`} className="flex items-center space-x-2">
                             <input
                                 type="radio"
                                 name="correctAnswer"
@@ -582,6 +585,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
         </div>
     );
 });
+QuizInteractionEditor.displayName = 'QuizInteractionEditor';
 
 
 interface InteractionSettingsModalProps {
@@ -686,7 +690,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
             <h3 className="text-sm font-semibold text-red-300 mb-2">Please fix the following errors:</h3>
             <ul className="text-xs text-red-200 space-y-1">
               {validationErrors.map((error, index) => (
-                <li key={index}>• {error.message}</li>
+                <li key={`error-${error.field}-${index}`}>• {error.message}</li>
               ))}
             </ul>
           </div>
