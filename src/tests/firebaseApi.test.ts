@@ -98,7 +98,7 @@ describe('FirebaseAPI - Slide Architecture', () => {
         }
       };
 
-      const { runTransaction, getDoc } = await import('firebase/firestore');
+      const { runTransaction, getDoc: _getDoc } = await import('firebase/firestore');
       const transaction = {
         get: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({ createdBy: 'test-user' }) }),
         update: vi.fn(),

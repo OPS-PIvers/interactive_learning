@@ -2,12 +2,12 @@
 import { generateId } from '../client/utils/generateId';
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
-import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Event as HotspotEvent, Project } from './types';
+import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Project } from './types';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map((event) => {
     // Migrate PAN_ZOOM_TO_HOTSPOT to PAN_ZOOM
-    if (event.type === 'PAN_ZOOM_TO_HOTSPOT' as any) {
+    if (event.type === 'PAN_ZOOM_TO_HOTSPOT' as InteractionType) {
       return {
         ...event,
         type: InteractionType.PAN_ZOOM,
@@ -20,7 +20,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate PULSE_HIGHLIGHT to SPOTLIGHT
-    if (event.type === 'PULSE_HIGHLIGHT' as any) {
+    if (event.type === 'PULSE_HIGHLIGHT' as InteractionType) {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,
@@ -357,8 +357,8 @@ const MOBILE_RESOLUTION = { width: 480, height: 800 };
 
 function convertHotspotToSlideElement(
 hotspot: HotspotData,
-timelineEvent: TimelineEventData,
-module: InteractiveModuleState)
+_timelineEvent: TimelineEventData,
+_module: InteractiveModuleState)
 : SlideElement {
   // Map hotspot size to dimensions (addressing hardcoded width/height issue)
   let width = 100,height = 100;

@@ -200,7 +200,7 @@ describe('React Error Detection Tests', () => {
     test('should detect useState hook dependency issues', async () => {
       const ProblematicComponent = () => {
         const [count, setCount] = React.useState(0);
-        const [data, setData] = React.useState<number | null>(null);
+        const [data, _setData] = React.useState<number | null>(null);
         
         // This useEffect has missing dependencies - should be caught by exhaustive-deps
         React.useEffect(() => {
@@ -215,7 +215,7 @@ describe('React Error Detection Tests', () => {
       render(<ProblematicComponent />);
       
       // Check for any React warnings about missing dependencies
-      const dependencyWarnings = consoleWarnSpy.mock.calls.filter(call =>
+      const _dependencyWarnings = consoleWarnSpy.mock.calls.filter(call =>
         call.some(arg => 
           typeof arg === 'string' && (
             arg.includes('exhaustive-deps') ||
