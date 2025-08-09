@@ -545,7 +545,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
                 <label className={labelClasses}>Options</label>
                 <div className="space-y-2">
                     {(event.quizOptions || []).map((option, index) => (
-                        <div key={`quiz-option-${index}-${option.length}-${option.charAt(0) || 'empty'}`} className="flex items-center space-x-2">
+                        <div key={`quiz-option-${index}-${option.length}-${option.charAt(0) || 'empty'}-${option.slice(-3)}`} className="flex items-center space-x-2">
                             <input
                                 type="radio"
                                 name="correctAnswer"

@@ -118,9 +118,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     setShowEventTypeSelector(false); // Reset on hotspot change
   }, [selectedHotspot]);
 
-  const _handleToggleEventTypeSelector = () => {
-    setShowEventTypeSelector((prev) => !prev);
-  };
 
   // Scroll to EventTypeSelector when it becomes visible
   useEffect(() => {
@@ -292,9 +289,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     }
   };
 
-  const _handleHotspotUpdate = (updatedHotspot: HotspotData) => {
-    setLocalHotspot(updatedHotspot);
-  };
 
   // Debug the early return condition
 
