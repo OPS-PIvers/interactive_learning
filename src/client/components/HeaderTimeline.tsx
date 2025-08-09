@@ -62,7 +62,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
   playbackSpeed = 1,
   onSpeedChange
 }) => {
-  const { isIOSSafariUIVisible } = useIOSSafariViewport();
+  const { isIOSSafariUIVisible: _isIOSSafariUIVisible } = useIOSSafariViewport();
   // Generate timeline steps from slides
   const timelineSteps = useMemo((): TimelineStep[] => {
     return slideDeck.slides.map((slide, index) => {
@@ -222,7 +222,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
                   {/* Enhanced hotspot indicators with modern styling */}
                   {step.hotspots.length > 0 && (
                     <div className="absolute -bottom-2.5 left-1/2 transform -translate-x-1/2 flex space-x-0.5 opacity-80 group-hover:opacity-100 transition-opacity duration-200">
-                      {step.hotspots.slice(0, 3).map((hotspot, i) => (
+                      {step.hotspots.slice(0, 3).map((hotspot) => (
                         <button
                           key={hotspot.id}
                           onClick={(e) => {

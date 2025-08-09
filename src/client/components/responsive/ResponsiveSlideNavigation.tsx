@@ -6,7 +6,7 @@
  * across all device types.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import ChevronDownIcon from '../icons/ChevronDownIcon';

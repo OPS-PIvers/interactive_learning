@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { DeviceType } from '../../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 export interface ResponsiveToolbarProps {

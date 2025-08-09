@@ -128,10 +128,6 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
     drop(cardRef);
   }
 
-  const inputBaseClasses = "w-full p-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:ring-purple-500 focus:border-purple-500 text-sm dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-purple-600 dark:focus:border-purple-600";
-  const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-slate-300 dark:text-slate-400";
-  const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500 focus:ring-offset-slate-800 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-offset-slate-900";
-
   const cardBaseClasses = `p-3 mb-2 rounded-lg shadow transition-opacity dark:shadow-md`;
   const cardBgColor = isDragging ? 'bg-slate-700 dark:bg-slate-800' : 'bg-slate-600 dark:bg-slate-700/50';
   const cardActiveColor = isActive ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-800 dark:ring-purple-600 dark:ring-offset-slate-900' : '';
