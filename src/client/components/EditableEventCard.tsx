@@ -2,8 +2,7 @@ import type { Identifier, XYCoord } from 'dnd-core';
 import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { TimelineEventData, HotspotData, MediaQuizTrigger } from '../../shared/types';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
+import { TimelineEventData, HotspotData } from '../../shared/types';
 import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import { ArrowDownIcon } from './icons/ArrowDownIcon';
 import { ArrowUpIcon } from './icons/ArrowUpIcon';
@@ -72,7 +71,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
   onTogglePreview,
   onEdit,
   isPreviewing,
-  allHotspots,
+  allHotspots: _allHotspots,
   isActive = false,
   onJumpToStep,
   className = '',

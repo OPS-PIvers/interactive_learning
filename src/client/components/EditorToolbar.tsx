@@ -5,7 +5,6 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { Project } from '../../shared/types';
-import { triggerHapticFeedback } from '../utils/hapticUtils'; // Import haptic utility
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import AuthButton from './AuthButton';
 import EnhancedModalEditorToolbar, { COLOR_SCHEMES } from './EnhancedModalEditorToolbar';
@@ -13,7 +12,6 @@ import { CheckIcon } from './icons/CheckIcon'; // Import CheckIcon
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 // Assuming these icons exist or will be created
 import { GearIcon } from './icons/GearIcon';
-import { MenuIcon } from './icons/MenuIcon';
 // Removed ZoomInIcon and ZoomOutIcon imports - incompatible with slide architecture
 import { SaveIcon } from './icons/SaveIcon'; // For mobile save button
 // Removed PlusCircleIcon import - Add Hotspot functionality incompatible with slide architecture

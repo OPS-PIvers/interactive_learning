@@ -9,7 +9,6 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
-  errorInfo?: React.ErrorInfo;
   errorType?: 'tdz' | 'reference' | 'hook' | 'runtime' | 'unknown';
 }
 
@@ -27,7 +26,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   static classifyError(error: Error): 'tdz' | 'reference' | 'hook' | 'runtime' | 'unknown' {
     const message = error.message.toLowerCase();
-    const stack = error.stack?.toLowerCase() || '';
+    const _stack = error.stack?.toLowerCase() || '';
     
     // Temporal Dead Zone errors
     if (message.includes('cannot access') && message.includes('before initialization')) {
@@ -63,9 +62,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     
     // Enhanced error reporting with classification
     this.reportError(error, errorInfo, errorType);
-    
-    // Store error info for better debugging
-    this.setState({ errorInfo });
     
     // Call the optional onError callback
     if (this.props.onError) {

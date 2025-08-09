@@ -53,7 +53,7 @@ const BackgroundMediaPanel: React.FC<BackgroundMediaPanelProps> = ({
   // Extract YouTube video ID from URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
     const match = url.match(regex);
     return match && match[1] ? match[1] : null;
   };
