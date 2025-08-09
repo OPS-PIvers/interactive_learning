@@ -32,7 +32,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   isPublished
 }) => {
   // ✅ ALWAYS call the same hooks in the same order
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [_isModalOpen, _setIsModalOpen] = useState(true);
   const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(
     selectedProject.slideDeck || null
   );
@@ -89,10 +89,10 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
           slideDeck={slideDeck}
           showTimeline={!isEditingMode}
           timelineAutoPlay={false}
-          onSlideChange={(slideId, slideIndex) => {
+          onSlideChange={(_slideId, _slideIndex) => {
 
           }}
-          onInteraction={(interaction) => {
+          onInteraction={(_interaction) => {
 
           }} /> :
 

@@ -163,7 +163,7 @@ const MainApp: React.FC = () => {
       setIsModalOpen(true);
     } catch (err: unknown) {
       console.error(`Failed to load project details for ${project.id}:`, err);
-      setError(`Could not load project details: ${err?.message || 'Please try again.'}`);
+      setError(`Could not load project details: ${(err as Error)?.message || 'Please try again.'}`);
       setSelectedProject(null);
     } finally {
       setIsProjectDetailsLoading(false);
@@ -221,7 +221,7 @@ const MainApp: React.FC = () => {
       setIsModalOpen(true);
     } catch (err: unknown) {
       console.error("Failed to create project:", err);
-      setError(`Failed to create new project: ${err?.message || ''}`);
+      setError(`Failed to create new project: ${(err as Error)?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -290,7 +290,7 @@ const MainApp: React.FC = () => {
 
     } catch (err: unknown) {
       console.error("Failed to save project:", err);
-      setError(`Failed to save project data: ${err?.message || ''}`);
+      setError(`Failed to save project data: ${(err as Error)?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -329,7 +329,7 @@ const MainApp: React.FC = () => {
       await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
     } catch (err: unknown) {
       console.error("Failed to upload image:", err);
-      setError(`Failed to upload image: ${err?.message || ''}`);
+      setError(`Failed to upload image: ${(err as Error)?.message || ''}`);
     } finally {
       setIsLoading(false);
     }
@@ -353,7 +353,7 @@ const MainApp: React.FC = () => {
       }
     } catch (err: unknown) {
       console.error("Failed to delete project:", err);
-      setError(`Failed to delete project: ${err?.message || ''}`);
+      setError(`Failed to delete project: ${(err as Error)?.message || ''}`);
     }
     finally {
       setIsLoading(false);

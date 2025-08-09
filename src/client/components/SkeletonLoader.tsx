@@ -37,7 +37,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     <div className="space-y-2" role="status" aria-label="Loading...">
       {Array.from({ length: lines }).map((_, index) => (
         <div
-          key={index}
+          key={`skeleton-line-${index}`}
           className={skeletonClass}
           style={{ 
             width: index === lines - 1 ? `${75 + Math.random() * 25}%` : width,

@@ -47,7 +47,7 @@ const QuizOverlay: React.FC<QuizOverlayProps> = ({
         <div className="space-y-3">
           {quiz.options.map((option, index) => (
             <button
-              key={index}
+              key={`quiz-option-${index}-${option.slice(0, 10)}`}
               onClick={() => handleAnswerSelect(index)}
               disabled={hasAnswered}
               className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 ${

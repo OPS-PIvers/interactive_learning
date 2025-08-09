@@ -115,7 +115,7 @@ const QuizTriggerEditor: React.FC<QuizTriggerEditorProps> = ({
               </button>
             </div>
             {trigger.quiz.options.map((option, optionIndex) => (
-              <div key={optionIndex} className="flex items-center space-x-2 mb-2">
+              <div key={`quiz-option-${optionIndex}-${option.slice(0, 10)}`} className="flex items-center space-x-2 mb-2">
                 <input
                   type="radio"
                   name={`correct-${trigger.id}`}

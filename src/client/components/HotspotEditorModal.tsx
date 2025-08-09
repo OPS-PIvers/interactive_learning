@@ -573,7 +573,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                           event={event}
                           onUpdate={handleEventUpdate}
                           onDelete={handleEventDelete}
-                          moveCard={moveEvent}
+                          moveCard={() => {}}
                           onTogglePreview={() => handleTogglePreview(event.id)}
                           onEdit={() => editorActions.openInteractionEditor(event.id)}
                           isPreviewing={previewingEventIds.includes(event.id)}

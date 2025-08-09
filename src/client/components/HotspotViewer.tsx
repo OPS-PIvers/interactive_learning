@@ -316,7 +316,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch (_error) {
+    } catch {
 
       // Ignore errors, pointer might not be captured.
     }

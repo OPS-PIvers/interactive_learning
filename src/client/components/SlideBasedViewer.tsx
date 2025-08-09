@@ -119,7 +119,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
 
   // Interaction handler
-  const handleInteraction = useCallback((interaction: any) => {
+  const handleInteraction = useCallback((_interaction: any) => {
     if (process.env['NODE_ENV'] === 'development') {
 
     }

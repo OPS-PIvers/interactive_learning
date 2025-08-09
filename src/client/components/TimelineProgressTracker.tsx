@@ -238,7 +238,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {timelineSteps.map((step, index) => (
             <button
-              key={index}
+              key={`timeline-step-${index}-${step.elementId || index}`}
               onClick={() => handleStepSelect(index)}
               className={`flex-shrink-0 w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 border-2 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                 index === progress.currentStep

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import React, { useState } from 'react';
 import { elementAnimationVariants } from './ElementAnimations';
 import { slideTransitionVariants } from './SlideTransitions';

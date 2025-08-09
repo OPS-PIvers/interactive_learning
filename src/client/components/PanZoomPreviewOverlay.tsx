@@ -93,8 +93,8 @@ const PanZoomPreviewOverlay: React.FC<PanZoomPreviewOverlayProps> = ({
         targetY: newY
       });
     } else if (isResizing) {
-      const currentWidth = zoomArea.width;
-      const currentHeight = zoomArea.height;
+      const _currentWidth = zoomArea.width;
+      const _currentHeight = zoomArea.height;
       
       const avgDelta = (Math.abs(deltaX) + Math.abs(deltaY)) / 2;
       const isIncreasing = deltaX > 0 || deltaY > 0;
