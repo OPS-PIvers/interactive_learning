@@ -3,7 +3,6 @@ import {
   doc,
   getDocs,
   setDoc,
-  deleteDoc,
   query,
   orderBy,
   // writeBatch, // No longer using batch directly in saveProject
@@ -15,28 +14,19 @@ import {
 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { debugLog } from '../client/utils/debugUtils';
-import { generateThumbnail } from '../client/utils/imageUtils';
 // Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor';
 import { SlideDeck } from '../shared/slideTypes';
 import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types';
 import { DataSanitizer } from './dataSanitizer';
 import { firebaseManager } from './firebaseConfig';
-import { saveOperationMonitor } from './saveOperationMonitor';
 import { DevAuthBypass } from './testAuthUtils';
 
 // Thumbnail Parameters
-const THUMBNAIL_WIDTH = 400;
-const THUMBNAIL_HEIGHT = 250;
-const THUMBNAIL_FORMAT = 'image/jpeg';
-const THUMBNAIL_QUALITY = 0.7;
-const THUMBNAIL_POSTFIX = '_thumbnails'; // Used for storage path organization
-const THUMBNAIL_FILE_PREFIX = 'thumb_'; // Used for filename
 const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads
 const projectCache = new Map<string, {data: any;timestamp: number;}>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {

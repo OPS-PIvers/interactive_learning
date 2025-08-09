@@ -122,7 +122,7 @@ export class DevAuthBypass {
       if (sessionUser) {
         try {
           userData = JSON.parse(sessionUser);
-        } catch (e) {
+        } catch (_e) {
           console.warn('Failed to parse session user data');
         }
       }
