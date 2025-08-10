@@ -3,6 +3,7 @@ import { ElementInteraction } from '../../../shared/slideTypes';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
 import { createTestDemoSlideDeck } from '../../../shared/testDemoSlideDeck';
 import { SlideViewer } from './SlideViewer';
+import { Z_INDEX } from '../../utils/zIndexLevels';
 import '../../styles/slide-components.css';
 
 /**
@@ -49,7 +50,7 @@ export const SlideBasedDemo: React.FC = () => {
         color: white;
         padding: 12px 24px;
         border-radius: 8px;
-        z-index: 10000;
+        z-index: ${Z_INDEX.TOAST};
         font-family: system-ui;
         font-weight: 500;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);

@@ -4,6 +4,7 @@ import { InteractiveModuleState } from '../../shared/types';
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { UnifiedSlideEditor } from './slides/UnifiedSlideEditor';
 import { SlideViewer } from './slides/SlideViewer';
+import { Z_INDEX } from '../utils/zIndexLevels';
 
 /**
  * Mobile Editor Test Component
@@ -16,7 +17,6 @@ export const MobileEditorTest: React.FC = () => {
   const [slideDeck, setSlideDeck] = useState<SlideDeck>(() => createTestDemoSlideDeck());
   const [debugInfo, setDebugInfo] = useState({
     viewport: `${window.innerWidth}x${window.innerHeight}`,
-    deviceType: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
     touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
     userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
   });
@@ -80,7 +80,7 @@ export const MobileEditorTest: React.FC = () => {
       color: white;
       padding: 8px 16px;
       border-radius: 6px;
-      z-index: 10000;
+      z-index: ${Z_INDEX.TOAST};
       font-family: system-ui;
       font-size: 14px;
       font-weight: 500;
@@ -101,7 +101,6 @@ export const MobileEditorTest: React.FC = () => {
   const refreshDebugInfo = () => {
     setDebugInfo({
       viewport: `${window.innerWidth}x${window.innerHeight}`,
-      deviceType: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
       touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
       userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
     });
@@ -157,7 +156,8 @@ export const MobileEditorTest: React.FC = () => {
             <span className="text-slate-400">Viewport:</span> {debugInfo.viewport}
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
-            <span className="text-slate-400">Device:</span> {debugInfo.deviceType}
+            <span className="text-slate-400">Device:</span> 
+            <span className="debug-device-type ml-1"></span>
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
             <span className="text-slate-400">Touch:</span> {debugInfo.touchSupport}

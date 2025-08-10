@@ -503,3 +503,116 @@
   /* Optimize rendering performance */
   contain: layout style paint;
 }
+
+/* Touch Feedback Styles - Mobile UX Enhancement */
+.touch-active {
+  transform: scale(0.95) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+/* Ripple effect animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.touch-ripple {
+  animation: ripple 0.4s linear;
+}
+
+/* Enhanced touch targets for mobile */
+@media (max-width: 768px) {
+  .slide-element[role="button"] {
+    /* Ensure minimum 44px touch targets */
+    min-width: 44px !important;
+    min-height: 44px !important;
+    
+    /* Enhanced touch feedback */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    
+    /* Expand touch area invisibly */
+    position: relative;
+  }
+  
+  .slide-element[role="button"]::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    /* This expands the touch area without visual change */
+  }
+  
+  .slide-element[role="button"]:active {
+    transform: scale(0.96) !important;
+    transition: transform 0.1s ease-out !important;
+  }
+  
+  /* Enhanced hotspot touch targets */
+  .slide-hotspot .hotspot-dot {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    /* Enhanced mobile visibility */
+    border-width: 3px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+  
+  .slide-hotspot:active .hotspot-dot {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Touch-only devices (no hover capability) */
+@media (hover: none) {
+  .slide-element[role="button"]:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .slide-hotspot:active .hotspot-dot {
+    background-color: var(--color-hotspot-active, #1d4ed8);
+    transform: scale(0.9);
+  }
+}
+
+/* Hover-capable devices */
+@media (hover: hover) {
+  .slide-element[role="button"]:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
+  
+  .slide-element[role="button"]:active {
+    transform: scale(0.98);
+  }
+}
+
+/* CSS-only device type detection (replaces JavaScript device branching) */
+.debug-device-type::after {
+  content: 'Desktop';
+}
+
+@media (max-width: 1023px) {
+  .debug-device-type::after { 
+    content: 'Tablet'; 
+  }
+}
+
+@media (max-width: 767px) {
+  .debug-device-type::after { 
+    content: 'Mobile'; 
+  }
+}
