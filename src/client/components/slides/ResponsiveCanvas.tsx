@@ -411,7 +411,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     const element = currentSlide?.elements?.find((el) => el.id === elementId);
     if (!element) return;
 
-    const touch = e.touches[0];
+    const touch = e.touches?.[0];
     if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -431,7 +431,7 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const handleTouchMoveElement = useCallback((e: React.TouchEvent) => {
     if (!touchState.isTouching || !touchState.elementId) return;
 
-    const touch = e.touches[0];
+    const touch = e.touches?.[0];
     if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;

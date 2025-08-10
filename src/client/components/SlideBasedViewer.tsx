@@ -35,7 +35,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
-  const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides[0]?.id || '');
+  const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides?.[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [_activeHotspotId, _setActiveHotspotId] = useState<string | null>(null);
   const [_completedHotspots, _setCompletedHotspots] = useState<Set<string>>(new Set());

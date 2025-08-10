@@ -50,7 +50,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     slides.findIndex((slide) => slide.id === initialSlideId) :
     0;
     const validIndex = Math.max(0, initialIndex);
-    const slideId = slides[validIndex]?.id || slides[0]?.id || null;
+    const slideId = slides?.[validIndex]?.id || slides?.[0]?.id || null;
 
     return {
       currentSlideId: slideId,
@@ -265,8 +265,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       }));
     } else if (e.touches.length === 2) {
       // Two finger touch - prepare for pinch zoom
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
+      const touch1 = e.touches?.[0];
+      const touch2 = e.touches?.[1];
       if (!touch1 || !touch2) return;
       const distance = Math.sqrt(
         Math.pow(touch2.clientX - touch1.clientX, 2) +
@@ -288,7 +288,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
     if (e.touches.length === 1) {
       // Single finger - pan or swipe detection
-      const touch = e.touches[0];
+      const touch = e.touches?.[0];
       if (!touch) return;
       const deltaX = touch.clientX - touchState.startX;
       const deltaY = touch.clientY - touchState.startY;
@@ -298,8 +298,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       }
     } else if (e.touches.length === 2 && touchState.initialDistance > 0) {
       // Two finger - pinch zoom
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
+      const touch1 = e.touches?.[0];
+      const touch2 = e.touches?.[1];
       if (!touch1 || !touch2) return;
       const distance = Math.sqrt(
         Math.pow(touch2.clientX - touch1.clientX, 2) +
