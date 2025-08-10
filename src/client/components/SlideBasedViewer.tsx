@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ElementInteraction } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
@@ -119,7 +119,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
 
   // Interaction handler
-  const handleInteraction = useCallback((_interaction: any) => {
+  const handleInteraction = useCallback((_interaction: ElementInteraction) => {
     if (process.env['NODE_ENV'] === 'development') {
 
     }

@@ -326,7 +326,8 @@ const MainApp: React.FC = () => {
         setTimeout(resolve, 50);
       });
       
-      await handleSaveProjectData(selectedProject!.id, updatedData as InteractiveModuleState);
+      if (!selectedProject) return;
+      await handleSaveProjectData(selectedProject.id, updatedData as InteractiveModuleState);
     } catch (err: unknown) {
       console.error("Failed to upload image:", err);
       setError(`Failed to upload image: ${(err as Error)?.message || ''}`);

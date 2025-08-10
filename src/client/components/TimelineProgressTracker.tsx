@@ -99,7 +99,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
       if (currentStep.interactionId) {
         setProgress(prev => ({
           ...prev,
-          completedInteractions: new Set([...prev.completedInteractions, currentStep.interactionId!])
+          completedInteractions: new Set([...prev.completedInteractions, currentStep.interactionId])
         }));
       }
 

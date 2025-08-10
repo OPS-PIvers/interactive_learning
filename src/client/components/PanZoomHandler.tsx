@@ -11,6 +11,14 @@ export interface PanZoomHandlerProps {
   children: React.ReactNode;
 }
 
+interface TransformEventTarget extends EventTarget {
+  state?: {
+    positionX: number;
+    positionY: number;
+    scale: number;
+  };
+}
+
 export const PanZoomHandler: React.FC<PanZoomHandlerProps> = ({ 
   onPanZoom, 
   children 
@@ -19,8 +27,9 @@ export const PanZoomHandler: React.FC<PanZoomHandlerProps> = ({
     // This component seems to be a placeholder or legacy component.
     // The event passed to onTransitionEnd does not have a `state` property.
     // This is likely a bug. For now, I will leave the logic as is but type the event.
-    if (onPanZoom && (event.target as any).state) {
-      const state = (event.target as any).state;
+    const target = event.target as TransformEventTarget;
+    if (onPanZoom && target.state) {
+      const state = target.state;
       onPanZoom({
         x: state.positionX,
         y: state.positionY,
