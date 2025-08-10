@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';

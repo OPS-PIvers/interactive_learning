@@ -2,7 +2,8 @@
 import { generateId } from '../client/utils/generateId';
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck, SlideElement, InteractiveSlide, ResponsivePosition, ElementContent, ElementInteraction, ElementStyle } from './slideTypes';
-import { TimelineEventData, VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Project } from './types';
+import { TimelineEventData } from './type-defs';
+import { VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, InteractiveModuleState, Project } from './types';
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map((event) => {

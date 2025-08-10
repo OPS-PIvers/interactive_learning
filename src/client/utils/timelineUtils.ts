@@ -1,4 +1,4 @@
-import { TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
 
 /**
  * Get the next available timeline step number for a new event

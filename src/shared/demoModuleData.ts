@@ -1,5 +1,6 @@
 import { InteractionType } from './InteractionPresets';
-import { InteractiveModuleState, HotspotData, TimelineEventData } from './types';
+import { TimelineEventData } from './type-defs';
+import { InteractiveModuleState, HotspotData } from './types';
 
 const hotspots: HotspotData[] = [
   { id: 'hs1', x: 20, y: 20, title: 'Pan & Zoom', description: 'The view will pan and zoom to this location.' },

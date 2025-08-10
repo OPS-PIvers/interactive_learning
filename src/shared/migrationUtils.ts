@@ -1,6 +1,7 @@
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
-import { InteractiveModuleState, HotspotData, TimelineEventData } from './types';
+import { TimelineEventData } from './type-defs';
+import { InteractiveModuleState, HotspotData } from './types';
 
 export interface ShowTextParameters {
     text: string;

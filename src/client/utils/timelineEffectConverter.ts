@@ -1,5 +1,5 @@
 import { SlideEffect, SlideElement, SlideDeck } from '../../shared/slideTypes';
-import { TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
 import { generateId } from './generateId';
 
 /**

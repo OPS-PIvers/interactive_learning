@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { FixedSizeList } from 'react-window';
-import { TimelineEventData, HotspotData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
+import { HotspotData } from '../../shared/types';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import ChevronDownIcon from './icons/ChevronDownIcon';

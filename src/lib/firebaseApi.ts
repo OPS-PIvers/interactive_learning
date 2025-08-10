@@ -17,7 +17,8 @@ import { debugLog } from '../client/utils/debugUtils';
 // Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor';
 import { SlideDeck } from '../shared/slideTypes';
-import { Project, HotspotData, TimelineEventData, InteractiveModuleState } from '../shared/types';
+import { TimelineEventData } from '../shared/type-defs';
+import { Project, HotspotData, InteractiveModuleState } from '../shared/types';
 import { DataSanitizer } from './dataSanitizer';
 import { firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';

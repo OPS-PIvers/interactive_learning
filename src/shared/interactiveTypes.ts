@@ -1,4 +1,5 @@
-import { HotspotData, TimelineEventData } from './types';
+import { TimelineEventData } from './type-defs';
+import { HotspotData } from './types';
 
 // Pan/Zoom Event Interface
 export interface PanZoomEvent {

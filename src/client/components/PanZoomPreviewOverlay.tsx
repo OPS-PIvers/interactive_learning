@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
 import { Z_INDEX } from '../constants/interactionConstants';
 import { throttle } from '../utils/asyncUtils';
 

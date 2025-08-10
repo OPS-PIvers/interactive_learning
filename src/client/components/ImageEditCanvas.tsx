@@ -1,6 +1,7 @@
 import React from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { HotspotData, TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
+import { HotspotData } from '../../shared/types';
 import { PREVIEW_DEFAULTS } from '../constants/interactionConstants';
 import { Z_INDEX } from '../utils/styleConstants';
 import FileUpload from './FileUpload';

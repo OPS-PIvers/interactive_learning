@@ -6,7 +6,8 @@
  */
 import React, { useState } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { HotspotData, TimelineEventData } from '../../shared/types';
+import { TimelineEventData } from '../../shared/type-defs';
+import { HotspotData } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import EditableEventCard from './EditableEventCard';
 import EventTypeSelector from './EventTypeSelector';

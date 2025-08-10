@@ -41,11 +41,13 @@ export enum InteractionType {
 // Default export for maximum compatibility
 export default InteractionType;
 
+import { TimelineEventData } from './type-defs';
+
 export interface InteractionPreset {
   icon: string;
   name: string;
   color: string;
-  settings: (keyof import('./types').TimelineEventData)[];
+  settings: (keyof TimelineEventData)[];
   description: string;
 }
 
