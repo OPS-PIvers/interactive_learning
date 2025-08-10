@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { getResponsiveHotspotSizeClasses, defaultHotspotSize, getHotspotPixelDimensions } from '../../../shared/hotspotStylePresets';
+import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
 import { ImageTransformState } from '../../../shared/types';

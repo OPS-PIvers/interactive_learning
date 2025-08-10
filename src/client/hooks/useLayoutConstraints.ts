@@ -8,7 +8,6 @@
  */
 
 import { useMemo } from 'react';
-import { DeviceType } from '../../shared/slideTypes';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { useDeviceDetection } from './useDeviceDetection';
 import { useViewportHeight } from './useViewportHeight';

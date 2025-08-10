@@ -7,7 +7,6 @@
 
 import React, { useState } from 'react';
 import { InteractiveSlide, BackgroundMedia } from '../../../shared/slideTypes';
-
 import FileUpload from '../FileUpload';
 import { TrashIcon } from '../icons/TrashIcon';
 import { ResponsiveModal } from './ResponsiveModal';

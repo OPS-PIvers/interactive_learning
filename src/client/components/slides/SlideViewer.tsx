@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { SlideDeck, InteractiveSlide, SlideViewerState, DeviceType, SlideEffect } from '../../../shared/slideTypes';
+import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
