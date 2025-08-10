@@ -623,21 +623,28 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full overflow-hidden bg-slate-100 ${className}`}>
+      className={`relative w-full h-full overflow-hidden bg-slate-100 ${className} ${
+        deviceType === 'mobile' ? 'mobile-canvas-container' : ''
+      }`}>
 
-      {/* Slide area container */}
+      {/* Slide area container with mobile optimization */}
       <div
         ref={slideAreaRef}
-        className="w-full h-full flex items-center justify-center p-4">
+        className={`w-full h-full flex items-center justify-center ${
+          deviceType === 'mobile' ? 'p-2' : 'p-4'
+        }`}>
 
-        {/* Canvas container with transform for mobile pan/zoom */}
+        {/* Canvas container with mobile-specific sizing */}
         <div
           ref={canvasContainerRef}
-          className="relative"
+          className="relative mobile-responsive-canvas"
           style={{
             transform: `scale(${canvasTransform.scale}) translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px)`,
             transformOrigin: 'center center',
-            transition: isTransforming ? 'none' : 'transform 0.3s ease-out'
+            transition: isTransforming ? 'none' : 'transform 0.3s ease-out',
+            minHeight: deviceType === 'mobile' ? '300px' : 'auto',
+            width: '100%',
+            height: '100%'
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}

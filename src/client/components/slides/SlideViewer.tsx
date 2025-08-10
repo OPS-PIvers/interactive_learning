@@ -659,8 +659,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
       )}
 
-      {/* Debug Info (development only) */}
-      {process.env['NODE_ENV'] === 'development' &&
+      {/* Debug Info (development only with explicit flag) */}
+      {process.env['NODE_ENV'] === 'development' && process.env['REACT_APP_DEBUG_OVERLAY'] === 'true' &&
       <div className={`absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded ${Z_INDEX_TAILWIND.DEBUG_OVERLAY}`}>
           Slide: {viewerState.currentSlideIndex + 1}/{slideDeck?.slides?.length || 0}<br />
           Device: {deviceType}<br />

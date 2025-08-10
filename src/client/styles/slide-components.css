@@ -782,18 +782,45 @@
 .unified-slide-editor {
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for iOS */
+  min-height: 100vh; /* Ensure minimum height */
   display: grid;
   grid-template-rows: auto 1fr auto;
   grid-template-areas: 
     "header"
     "main" 
     "toolbar";
+  overflow: hidden; /* Prevent scroll hell */
+  position: fixed; /* Force full viewport usage */
+  inset: 0;
+}
+
+/* Mobile-specific grid fixes */
+@media (max-width: 767px) {
+  .unified-slide-editor {
+    grid-template-rows: minmax(auto, 60px) 1fr minmax(auto, 80px);
+    gap: 0; /* Remove any gaps that cause overflow */
+  }
+  
+  .editor-main {
+    grid-area: main;
+    min-height: 0; /* Critical for grid overflow fix */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .editor-toolbar {
+    grid-area: toolbar;
+    display: block !important; /* Force visibility on mobile */
+    flex-shrink: 0;
+  }
 }
 
 @media (min-width: 768px) {
   .unified-slide-editor {
     display: flex;
     flex-direction: column;
+    position: relative; /* Reset position for desktop */
   }
 }
 
@@ -817,6 +844,25 @@
   position: relative;
 }
 
+/* Mobile canvas container optimization */
+.mobile-canvas-container {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+.mobile-responsive-canvas {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+@media (max-width: 767px) {
+  .mobile-canvas-container .slide-canvas-wrapper {
+    min-height: 300px;
+    height: 100%;
+    width: 100%;
+  }
+}
+
 .editor-toolbar {
   grid-area: toolbar;
   order: 3;
@@ -828,6 +874,16 @@
   
   /* Mobile collapsible behavior */
   transition: transform 0.3s ease-out;
+}
+
+/* Force mobile toolbar visibility */
+@media (max-width: 767px) {
+  .editor-toolbar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 60px;
+  }
 }
 
 @media (max-width: 767px) {

@@ -830,7 +830,116 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
           {/* Settings modal content */}
           <div className="p-4">
-            <p>Project settings content will go here</p>
+            <div className="space-y-6">
+              {/* Project Name */}
+              <div>
+                <label htmlFor="project-name" className="block text-sm font-medium text-slate-200 mb-2">
+                  Project Name
+                </label>
+                <input
+                  id="project-name"
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => {
+                    // TODO: Implement project name update in state management
+                    console.log('Project name change:', e.target.value);
+                  }}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter project name"
+                />
+              </div>
+
+              {/* Project Theme */}
+              <div>
+                <label htmlFor="project-theme" className="block text-sm font-medium text-slate-200 mb-2">
+                  Theme
+                </label>
+                <select
+                  id="project-theme"
+                  value={projectTheme}
+                  onChange={(e) => {
+                    // TODO: Implement project theme update in state management
+                    console.log('Project theme change:', e.target.value);
+                  }}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="professional">Professional</option>
+                  <option value="modern">Modern</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="vibrant">Vibrant</option>
+                </select>
+              </div>
+
+              {/* Slide Settings */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-200 mb-3">Slide Configuration</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Total Slides</span>
+                    <span className="text-sm text-white font-medium">
+                      {slideDeck?.slides?.length || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Aspect Ratio</span>
+                    <span className="text-sm text-white font-medium">
+                      16:9
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Export Options */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-200 mb-3">Export Options</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      console.log('Export as PDF functionality would go here');
+                      // TODO: Implement PDF export
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Share project functionality would go here');
+                      // TODO: Implement project sharing
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    </svg>
+                    Share Project
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-6 border-t border-slate-600 mt-6">
+              <button
+                onClick={() => actions.closeModal('settingsModal')}
+                className="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // Save settings and close modal
+                  console.log('Settings saved:', { projectName, projectTheme });
+                  actions.closeModal('settingsModal');
+                }}
+                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </ResponsiveModal>
       </div>

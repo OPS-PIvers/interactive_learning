@@ -10,6 +10,7 @@ import ErrorScreen from '../shared/ErrorScreen';
 import LoadingScreen from '../shared/LoadingScreen';
 import SlideBasedInteractiveModule from '../SlideBasedInteractiveModule';
 import SlideViewer from '../slides/SlideViewer';
+import ViewerFooterToolbar from '../ViewerFooterToolbar';
 
 const ViewerView: React.FC = () => {
   const { projectId } = useParams<{projectId: string;}>();
@@ -19,6 +20,9 @@ const ViewerView: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Add navigation state for mobile UX
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [viewerMode, setViewerMode] = useState<'idle' | 'learning' | 'exploring'>('idle');
 
   const loadProject = useCallback(async () => {
     if (!projectId || !user) return;
@@ -73,6 +77,38 @@ const ViewerView: React.FC = () => {
     loadProject();
   }, [loadProject]);
 
+  // Add slide navigation handlers for mobile UX
+  const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
+    setCurrentSlideIndex(slideIndex);
+  }, []);
+
+  const handlePreviousSlide = useCallback(() => {
+    if (project?.slideDeck && currentSlideIndex > 0) {
+      const prevSlideId = project.slideDeck.slides[currentSlideIndex - 1]?.id;
+      if (prevSlideId) {
+        handleSlideChange(prevSlideId, currentSlideIndex - 1);
+      }
+    }
+  }, [currentSlideIndex, project, handleSlideChange]);
+
+  const handleNextSlide = useCallback(() => {
+    if (project?.slideDeck && currentSlideIndex < project.slideDeck.slides.length - 1) {
+      const nextSlideId = project.slideDeck.slides[currentSlideIndex + 1]?.id;
+      if (nextSlideId) {
+        handleSlideChange(nextSlideId, currentSlideIndex + 1);
+      }
+    }
+  }, [currentSlideIndex, project, handleSlideChange]);
+
+  const handleSlideSelect = useCallback((slideId: string) => {
+    if (project?.slideDeck) {
+      const slideIndex = project.slideDeck.slides.findIndex(s => s.id === slideId);
+      if (slideIndex >= 0) {
+        handleSlideChange(slideId, slideIndex);
+      }
+    }
+  }, [project, handleSlideChange]);
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -87,7 +123,7 @@ const ViewerView: React.FC = () => {
   }
 
   return (
-    <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-slate-900`}>
+    <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-slate-900 slide-viewer mobile-viewport-fix mobile-safe-area`}>
       {/* Header with back button */}
       <div className={`absolute top-4 left-4 ${Z_INDEX_TAILWIND.FLOATING_CONTROLS}`}>
         <button
@@ -100,43 +136,74 @@ const ViewerView: React.FC = () => {
         </button>
       </div>
 
-      {/* Viewer content */}
-      {project.slideDeck ?
-      <SlideViewer
-        slideDeck={project.slideDeck}
-        showTimeline={true}
-        timelineAutoPlay={false}
-        onSlideChange={(slideId, slideIndex) => {
+      {/* Viewer content with mobile optimization */}
+      <div className="viewer-content-container h-full flex flex-col">
+        {/* Slide content area */}
+        <div className="flex-1 min-h-0 relative">
+          {project.slideDeck ? (
+            <>
+              <SlideViewer
+                slideDeck={project.slideDeck}
+                showTimeline={false} // Timeline handled by toolbar
+                timelineAutoPlay={false}
+                onSlideChange={handleSlideChange}
+                onInteraction={(interaction) => {
+                  console.log('Slide interaction:', interaction);
+                }}
+                className="viewer-slide-content"
+              />
+              
+              <ViewerFooterToolbar
+                projectName={project.title}
+                onBack={handleClose}
+                currentSlideIndex={currentSlideIndex}
+                totalSlides={project.slideDeck.slides.length}
+                slides={project.slideDeck.slides}
+                onSlideSelect={handleSlideSelect}
+                showProgress={true}
+                moduleState={viewerMode}
+                onStartLearning={() => setViewerMode('learning')}
+                onStartExploring={() => setViewerMode('exploring')}
+                hasContent={true}
+                onPreviousSlide={handlePreviousSlide}
+                onNextSlide={handleNextSlide}
+                canGoPrevious={currentSlideIndex > 0}
+                canGoNext={currentSlideIndex < project.slideDeck.slides.length - 1}
+                viewerModes={{
+                  explore: true,
+                  selfPaced: true,
+                  timed: false
+                }}
+              />
+            </>
+          ) :
 
-        }}
-        onInteraction={(interaction) => {
-
-        }} /> :
-
-      project.interactiveData ?
-      <SlideBasedInteractiveModule
-        key={`viewer-${project.id}`}
-        initialData={project.interactiveData}
-        isEditing={false}
-        onSave={() => {}} // No saving in viewer mode
-        onImageUpload={async () => {}} // No image upload in viewer mode
-        onClose={handleClose}
-        projectName={project.title}
-        projectId={project.id}
-        onReloadRequest={handleReloadRequest}
-        isPublished={project.isPublished || false}
-        viewerModes={{
-          explore: true,
-          selfPaced: true,
-          timed: false
-        }}
-        isSharedView={false} // This is authenticated user viewing their own project
-      /> :
-
-      <div className="flex items-center justify-center h-full">
-          <p className="text-slate-400 text-xl">No content available for this project</p>
+          project.interactiveData ? (
+            <SlideBasedInteractiveModule
+              key={`viewer-${project.id}`}
+              initialData={project.interactiveData}
+              isEditing={false}
+              onSave={() => {}} // No saving in viewer mode
+              onImageUpload={async () => {}} // No image upload in viewer mode
+              onClose={handleClose}
+              projectName={project.title}
+              projectId={project.id}
+              onReloadRequest={handleReloadRequest}
+              isPublished={project.isPublished || false}
+              viewerModes={{
+                explore: true,
+                selfPaced: true,
+                timed: false
+              }}
+              isSharedView={false} // This is authenticated user viewing their own project
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-slate-400 text-xl">No content available for this project</p>
+            </div>
+          )}
         </div>
-      }
+      </div>
     </div>);
 
 };
