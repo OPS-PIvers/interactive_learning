@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { hotspotSizePresets, HotspotSize, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
+import { hotspotSizePresets, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { SlideElement, DeviceType, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
+import { SlideElement, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import ChevronDownIcon from './icons/ChevronDownIcon';
@@ -103,9 +103,9 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   selectedElement,
-  currentSlide,
+  _currentSlide,
   onElementUpdate,
-  onSlideUpdate,
+  _onSlideUpdate,
   onDelete,
   onClose,
   className = '',
@@ -145,7 +145,6 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
   // Type mapping from InteractionType to SlideEffectType with proper parameters
   const createInteractionEffect = useCallback((interactionType: InteractionType): {type: SlideEffectType;parameters: Partial<EffectParameters>;} => {
-    const effectId = `effect-${Date.now()}`;
 
     switch (interactionType) {
       case InteractionType.MODAL:

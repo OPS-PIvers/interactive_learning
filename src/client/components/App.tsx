@@ -127,7 +127,7 @@ const MainApp: React.FC = () => {
                              !project.interactiveData?.timelineEvents ||
                              project.interactiveData?.hotspots?.length === 0 ||
                              project.interactiveData?.timelineEvents?.length === 0 ||
-                             (project.interactiveData as any)?._needsDetailLoad;
+                             (project.interactiveData as InteractiveModuleState & { _needsDetailLoad?: boolean })?._needsDetailLoad;
 
       if (needsDetailLoad) {
         const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
@@ -151,7 +151,7 @@ const MainApp: React.FC = () => {
         
         // Remove the loading flag
         if (updatedProject.interactiveData) {
-          delete (updatedProject.interactiveData as any)._needsDetailLoad;
+          delete (updatedProject.interactiveData as InteractiveModuleState & { _needsDetailLoad?: boolean })._needsDetailLoad;
         }
         
         setSelectedProject(updatedProject);
@@ -175,7 +175,7 @@ const MainApp: React.FC = () => {
   }, [loadProjectDetailsAndOpenEditor]);
   
   // Helper function to reduce code duplication
-  const createAndSetupProject = useCallback(async (title: string, description: string, demoData?: any) => {
+  const createAndSetupProject = useCallback(async (title: string, description: string, demoData?: unknown) => {
     setIsLoading(true);
     try {
       const newProject = await appScriptProxy.createProject(title, description);
@@ -198,9 +198,9 @@ const MainApp: React.FC = () => {
         try {
           await appScriptProxy.saveProject(projectWithDemoData);
           finalProject = projectWithDemoData;
-        } catch (saveErr: any) {
+        } catch (saveErr: unknown) {
           console.error("Failed to save demo project data:", saveErr);
-          setError(`Failed to save demo project data: ${saveErr?.message || 'Please try again.'}`);
+          setError(`Failed to save demo project data: ${saveErr instanceof Error ? saveErr.message : 'Please try again.'}`);
           return;
         }
       } else {
@@ -208,9 +208,9 @@ const MainApp: React.FC = () => {
         try {
           await appScriptProxy.saveProject(projectWithSlideType);
           finalProject = projectWithSlideType;
-        } catch (saveErr: any) {
+        } catch (saveErr: unknown) {
           console.error("Failed to save project type:", saveErr);
-          setError(`Failed to save project: ${saveErr?.message || 'Please try again.'}`);
+          setError(`Failed to save project: ${saveErr instanceof Error ? saveErr.message : 'Please try again.'}`);
           return;
         }
       }

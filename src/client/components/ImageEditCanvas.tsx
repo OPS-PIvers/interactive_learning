@@ -377,7 +377,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
                 {(() => {
               // Use standardized bounds if available, fallback to current method
               let containerBounds = null;
-              let _boundsSource = 'none';
+              const _boundsSource = 'none';
 
               if (getImageBounds && imageNaturalDimensions) {
                 // Calculate edit-mode bounds that match view-mode positioning

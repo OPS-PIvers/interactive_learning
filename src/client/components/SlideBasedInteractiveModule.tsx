@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
-import { ViewerModes, EditorCallbacks } from '../../shared/interactiveTypes';
+import { ViewerModes } from '../../shared/interactiveTypes';
 import { migrateProjectToSlides, MigrationResult } from '../../shared/migrationUtils';
 import { SlideDeck } from '../../shared/slideTypes';
 import { InteractiveModuleState } from '../../shared/types';
