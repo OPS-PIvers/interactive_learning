@@ -246,6 +246,17 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
     };
   }, [isPlaying, currentStepIndex, timelineSteps, playbackSpeed, handleStepChange]);
   
+  // Trigger current step effect when play starts
+  useEffect(() => {
+    if (isPlaying && timelineSteps.length > 0) {
+      const currentStep = timelineSteps[currentStepIndex];
+      if (currentStep) {
+        // Use handleStepChange to ensure consistent behavior
+        handleStepChange(currentStepIndex);
+      }
+    }
+  }, [isPlaying]); // Only trigger when play state changes
+  
   // Playback controls
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
@@ -301,7 +312,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const progress = timelineSteps.length > 0 ? (currentStepIndex / (timelineSteps.length - 1)) * 100 : 0;
   
   return (
-    <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 shadow-lg ${className}`}>
+    <div className={`slide-timeline bg-slate-800/95 backdrop-blur-sm border-t border-slate-700/50 shadow-lg pointer-events-auto ${className}`}>
       
       {/* Enhanced Current Step Info */}
       {currentStepData && (

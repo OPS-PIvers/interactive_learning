@@ -643,7 +643,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         onStepChange={handleTimelineStepChange}
         onEffectTrigger={handleTimelineEffectTrigger}
         autoPlay={timelineAutoPlay}
-        className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS}`} />
+        className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`} />
 
       }
 
