@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ElementInteraction } from '../../../shared/slideTypes';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
+import { createTestDemoSlideDeck } from '../../../shared/testDemoSlideDeck';
 import { SlideViewer } from './SlideViewer';
 import '../../styles/slide-components.css';
 
@@ -10,13 +11,16 @@ import '../../styles/slide-components.css';
  * This shows how fixed positioning eliminates coordinate alignment issues
  */
 export const SlideBasedDemo: React.FC = () => {
-  const [currentDemo, setCurrentDemo] = useState<'basic' | 'ai-studio'>('basic');
-  const [slideDeck, setSlideDeck] = useState(() => createDemoSlideDeck());
+  const [currentDemo, setCurrentDemo] = useState<'test' | 'basic' | 'ai-studio'>('test');
+  const [slideDeck, setSlideDeck] = useState(() => createTestDemoSlideDeck());
+  const [debugMode, setDebugMode] = useState(true);
 
-  const handleSwitchDemo = (demoType: 'basic' | 'ai-studio') => {
+  const handleSwitchDemo = (demoType: 'test' | 'basic' | 'ai-studio') => {
     setCurrentDemo(demoType);
 
-    if (demoType === 'basic') {
+    if (demoType === 'test') {
+      setSlideDeck(createTestDemoSlideDeck());
+    } else if (demoType === 'basic') {
       setSlideDeck(createDemoSlideDeck());
     } else {
       // For AI Studio demo, we'd use the actual image URL
@@ -26,11 +30,37 @@ export const SlideBasedDemo: React.FC = () => {
   };
 
   const handleSlideChange = (slideId: string, slideIndex: number) => {
-
+    if (debugMode) {
+      console.log('🔄 Slide changed:', { slideId, slideIndex });
+    }
   };
 
   const handleInteraction = (interaction: ElementInteraction) => {
-
+    if (debugMode) {
+      console.log('⚡ Interaction triggered:', interaction);
+      
+      // Also show visual feedback in demo
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-family: system-ui;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      `;
+      notification.textContent = `✅ Interaction: ${interaction.interactionType} on ${interaction.elementId}`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 3000);
+    }
   };
 
   return (
@@ -42,6 +72,16 @@ export const SlideBasedDemo: React.FC = () => {
             Slide-Based Architecture Demo
           </h2>
           <div className="flex space-x-2">
+            <button
+              className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              currentDemo === 'test' ?
+              'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg' :
+              'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'}`
+              }
+              onClick={() => handleSwitchDemo('test')}>
+
+              🧪 Test Demo
+            </button>
             <button
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
               currentDemo === 'basic' ?
@@ -66,6 +106,16 @@ export const SlideBasedDemo: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-3 text-sm">
+          <button
+            className={`px-3 py-1 rounded-lg font-semibold transition-all duration-200 ${
+            debugMode ?
+            'bg-gradient-to-r from-yellow-500 to-orange-600 text-white shadow-lg' :
+            'bg-slate-600 text-slate-300 hover:bg-slate-500 border border-slate-500'}`
+            }
+            onClick={() => setDebugMode(!debugMode)}>
+
+            🐛 Debug: {debugMode ? 'ON' : 'OFF'}
+          </button>
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1 rounded-lg font-semibold shadow-lg">
             ✓ Fixed Positioning
           </div>
@@ -115,11 +165,19 @@ export const SlideBasedDemo: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
-            <p className="text-slate-200">
-              <strong className="text-purple-400">Try the interactions:</strong> Click the blue hotspot for spotlight effect, 
-              click the purple hotspot for zoom effect. Notice how they're perfectly aligned 
-              with their targets - no more coordinate calculation issues!
-            </p>
+            {currentDemo === 'test' ? (
+              <p className="text-slate-200">
+                <strong className="text-green-400">Test Demo Active:</strong> Click the large colored hotspots to test interactions. 
+                Each hotspot has a different effect (Red=Spotlight, Green=Pan/Zoom, Blue=Text Overlay, Purple=Navigation). 
+                Debug mode shows interaction feedback and console logs.
+              </p>
+            ) : (
+              <p className="text-slate-200">
+                <strong className="text-purple-400">Try the interactions:</strong> Click the blue hotspot for spotlight effect, 
+                click the purple hotspot for zoom effect. Notice how they're perfectly aligned 
+                with their targets - no more coordinate calculation issues!
+              </p>
+            )}
           </div>
         </div>
       </div>
