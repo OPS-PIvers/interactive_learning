@@ -385,7 +385,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   const handleDeleteSlide = useCallback((slideIndex: number) => {
     if (slideDeck?.slides?.length <= 1) return; // Don't delete the last slide
 
-    const updatedSlides = slideDeck?.slides.filter((_, index) => index !== slideIndex);
+    const updatedSlides = slideDeck?.slides?.filter((_, index) => index !== slideIndex) || [];
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
 
     handleSlideDeckUpdate(updatedSlideDeck);

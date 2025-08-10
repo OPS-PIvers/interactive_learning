@@ -66,7 +66,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!allowSwipeDown || window.innerWidth > 768) return; // Only on mobile
     
-    const touch = e.touches[0];
+    const touch = e.touches?.[0];
     if (!touch) return;
     
     setStartY(touch.clientY);
@@ -76,7 +76,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging || !allowSwipeDown || window.innerWidth > 768) return;
     
-    const touch = e.touches[0];
+    const touch = e.touches?.[0];
     if (!touch) return;
     
     const deltaY = touch.clientY - startY;

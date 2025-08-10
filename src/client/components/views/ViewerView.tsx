@@ -83,7 +83,7 @@ const ViewerView: React.FC = () => {
   }, []);
 
   const handlePreviousSlide = useCallback(() => {
-    if (project?.slideDeck && currentSlideIndex > 0) {
+    if (project?.slideDeck?.slides && currentSlideIndex > 0) {
       const prevSlideId = project.slideDeck.slides[currentSlideIndex - 1]?.id;
       if (prevSlideId) {
         handleSlideChange(prevSlideId, currentSlideIndex - 1);
@@ -92,7 +92,7 @@ const ViewerView: React.FC = () => {
   }, [currentSlideIndex, project, handleSlideChange]);
 
   const handleNextSlide = useCallback(() => {
-    if (project?.slideDeck && currentSlideIndex < project.slideDeck.slides.length - 1) {
+    if (project?.slideDeck?.slides && currentSlideIndex < project.slideDeck.slides.length - 1) {
       const nextSlideId = project.slideDeck.slides[currentSlideIndex + 1]?.id;
       if (nextSlideId) {
         handleSlideChange(nextSlideId, currentSlideIndex + 1);
@@ -101,7 +101,7 @@ const ViewerView: React.FC = () => {
   }, [currentSlideIndex, project, handleSlideChange]);
 
   const handleSlideSelect = useCallback((slideId: string) => {
-    if (project?.slideDeck) {
+    if (project?.slideDeck?.slides) {
       const slideIndex = project.slideDeck.slides.findIndex(s => s.id === slideId);
       if (slideIndex >= 0) {
         handleSlideChange(slideId, slideIndex);
@@ -157,8 +157,8 @@ const ViewerView: React.FC = () => {
                 projectName={project.title}
                 onBack={handleClose}
                 currentSlideIndex={currentSlideIndex}
-                totalSlides={project.slideDeck.slides.length}
-                slides={project.slideDeck.slides}
+                totalSlides={project.slideDeck?.slides?.length || 0}
+                slides={project.slideDeck?.slides || []}
                 onSlideSelect={handleSlideSelect}
                 showProgress={true}
                 moduleState={viewerMode}
@@ -168,7 +168,7 @@ const ViewerView: React.FC = () => {
                 onPreviousSlide={handlePreviousSlide}
                 onNextSlide={handleNextSlide}
                 canGoPrevious={currentSlideIndex > 0}
-                canGoNext={currentSlideIndex < project.slideDeck.slides.length - 1}
+                canGoNext={currentSlideIndex < (project.slideDeck?.slides?.length || 0) - 1}
                 viewerModes={{
                   explore: true,
                   selfPaced: true,
