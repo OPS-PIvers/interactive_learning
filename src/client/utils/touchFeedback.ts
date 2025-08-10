@@ -161,8 +161,9 @@ export const isTouchDevice = (): boolean => {
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    // @ts-ignore - Some browsers have msMaxTouchPoints
-    navigator.msMaxTouchPoints > 0
+    (('msMaxTouchPoints' in navigator) &&
+      typeof (navigator as any).msMaxTouchPoints === 'number' &&
+      (navigator as any).msMaxTouchPoints > 0)
   );
 };
 

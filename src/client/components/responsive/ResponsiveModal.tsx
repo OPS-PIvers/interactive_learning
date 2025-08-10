@@ -135,46 +135,8 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   
   return (
     <>
-      {/* Bottom sheet styling for mobile */}
-      <style jsx>{`
-        @media (max-width: 767px) {
-          .responsive-modal-mobile {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: auto;
-            max-height: 85vh;
-            border-radius: 16px 16px 0 0;
-            transform: translateY(${isOpen ? '0' : '100%'});
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          
-          .responsive-modal-mobile .drag-handle {
-            width: 40px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            margin: 8px auto 16px;
-            cursor: grab;
-          }
-          
-          .responsive-modal-mobile .drag-handle:active {
-            cursor: grabbing;
-          }
-        }
-        
-        @media (min-width: 768px) {
-          .responsive-modal-desktop {
-            border-radius: 12px;
-            max-width: 90vw;
-            max-height: 90vh;
-          }
-        }
-      `}</style>
-      
       <div
-        className={`fixed inset-0 ${tailwindClasses.backdrop} flex
+        className={`responsive-modal-desktop ${tailwindClasses.backdrop} flex
                    /* Mobile: items-end for bottom sheet, Desktop: items-center for center */
                    items-end md:items-center justify-center md:justify-center`}
         style={{
@@ -189,8 +151,9 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
           ref={modalRef}
           className={`
             bg-slate-800 text-white shadow-2xl overflow-hidden
-            responsive-modal-mobile md:responsive-modal-desktop
+            responsive-modal-mobile md:modal-content
             w-full md:w-auto
+            ${isOpen ? 'open' : ''}
             ${className}
           `}
           style={styles.content}

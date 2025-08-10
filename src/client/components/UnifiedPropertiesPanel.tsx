@@ -4,6 +4,7 @@ import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideElement, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { BREAKPOINTS } from '../utils/styleConstants';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
 import InteractionEditor from './interactions/InteractionEditor';
@@ -114,7 +115,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   mode = 'auto' // Default to auto mode
 }) => {
   // Section state management - mobile starts with all collapsed to save space
-  const isMobileMode = mode === 'mobile' || (mode === 'auto' && window.innerWidth <= 767);
+  const isMobileMode = mode === 'mobile' || (mode === 'auto' && window.innerWidth <= BREAKPOINTS.MOBILE_MAX);
   const [stylesOpen, setStylesOpen] = useState(!isMobileMode);
   const [contentOpen, setContentOpen] = useState(false);
   const [interactionsOpen, setInteractionsOpen] = useState(false);

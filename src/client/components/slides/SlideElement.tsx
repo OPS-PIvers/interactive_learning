@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
 import { handleTouchInteraction, isMobileViewport } from '../../utils/touchFeedback';
+import { TOUCH_TARGET } from '../../utils/styleConstants';
 
 interface SlideElementProps {
   element: SlideElementType;
@@ -97,8 +98,8 @@ export const SlideElement: React.FC<SlideElementProps> = ({
                 className={`hotspot-dot ${
                   // Mobile-first touch target classes - fix from improvement plan
                   isMobileViewport() 
-                    ? 'w-12 h-12 min-w-[44px] min-h-[44px]' // 48px mobile (meets 44px requirement)
-                    : 'w-5 h-5' // 20px desktop for precision
+                    ? TOUCH_TARGET.MOBILE_HOTSPOT // 48px mobile (meets 44px requirement)
+                    : TOUCH_TARGET.DESKTOP_HOTSPOT // 20px desktop for precision
                 }`}
                 style={{
                   backgroundColor: style.backgroundColor || '#3b82f6',
