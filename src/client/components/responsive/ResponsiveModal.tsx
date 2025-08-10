@@ -67,6 +67,8 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     if (!allowSwipeDown || window.innerWidth > 768) return; // Only on mobile
     
     const touch = e.touches[0];
+    if (!touch) return;
+    
     setStartY(touch.clientY);
     setIsDragging(true);
   }, [allowSwipeDown]);
@@ -75,6 +77,8 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     if (!isDragging || !allowSwipeDown || window.innerWidth > 768) return;
     
     const touch = e.touches[0];
+    if (!touch) return;
+    
     const deltaY = touch.clientY - startY;
     
     // Only allow downward dragging

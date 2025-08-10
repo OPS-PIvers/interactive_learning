@@ -20,7 +20,7 @@ export const EditorTestPage: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState({
     viewport: `${window.innerWidth}x${window.innerHeight}`,
     touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
-    // Phase 3: Removed JavaScript device detection - use CSS-only approach
+    userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
   });
 
   // Mock project data for editor
@@ -171,7 +171,7 @@ export const EditorTestPage: React.FC = () => {
         </div>
         
         {/* Phase 3: CSS-only device detection styles */}
-        <style jsx>{`
+        <style>{`
           .debug-device-type::after {
             content: 'Desktop';
             color: #60a5fa;
