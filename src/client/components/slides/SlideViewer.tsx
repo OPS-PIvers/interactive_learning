@@ -461,7 +461,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   return (
     <div
       ref={containerRef}
-      className={`slide-viewer-container ${className}`}
+      className={`slide-viewer-container mobile-enhanced ${className}`}
       data-slide-id={currentSlide.id}
       data-device-type={deviceType}>
       

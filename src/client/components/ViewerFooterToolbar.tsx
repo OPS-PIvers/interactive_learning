@@ -74,7 +74,66 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   showProgress = false,
 }) => {
   const [showShortcuts, setShowShortcuts] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
   const shortcutsButtonRef = React.useRef<HTMLButtonElement>(null);
+  const collapseTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Auto-collapse behavior for mobile
+  React.useEffect(() => {
+    if (!isMobile) {
+      setIsCollapsed(false);
+      return;
+    }
+
+    const startCollapseTimer = () => {
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+      }
+      
+      collapseTimerRef.current = setTimeout(() => {
+        setIsCollapsed(true);
+      }, 3000); // Auto-collapse after 3 seconds
+    };
+
+    const showToolbar = () => {
+      setIsCollapsed(false);
+      startCollapseTimer();
+    };
+
+    // Show toolbar on any interaction
+    const handleTouchStart = () => showToolbar();
+    const handleMouseMove = () => showToolbar();
+    const handleScroll = () => showToolbar();
+
+    // Start initial timer
+    startCollapseTimer();
+
+    // Add event listeners
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+      }
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMobile]);
   
   // Determine what buttons to show based on viewer modes
   const showExploreButton = viewerModes.explore && moduleState === 'idle';
@@ -154,7 +213,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   
   // Unified responsive layout using CSS breakpoints
   return (
-    <div className={`viewer-footer-toolbar fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 transform transition-transform duration-300 ease-in-out ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+    <div className={`viewer-footer-toolbar ${isCollapsed && isMobile ? 'collapsed' : 'active'} fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 transform transition-transform duration-300 ease-in-out ${Z_INDEX_TAILWIND.TOOLBAR}`}>
       {/* Timeline Progress */}
       {showProgress && slides && slides.length > 0 && (
         <div className="timeline-progress px-4 py-2 bg-slate-800/60">

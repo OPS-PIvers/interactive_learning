@@ -633,12 +633,18 @@
     animation: auto-collapse 3s ease-in-out 2s forwards;
   }
   
-  /* Show on user interaction */
+  /* Show on user interaction with smooth animation */
   .viewer-footer-toolbar:hover,
   .viewer-footer-toolbar:focus-within,
   .viewer-footer-toolbar.active {
     transform: translateY(0) !important;
-    animation: none;
+    opacity: 1 !important;
+    animation: toolbar-show 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Button press animations */
+  .viewer-footer-toolbar button:active {
+    animation: button-press 0.15s ease-out;
   }
   
   /* Collapsed state - show only a hint */
@@ -678,21 +684,56 @@
   }
 }
 
-/* Auto-collapse animation keyframes */
+/* Auto-collapse animation keyframes with enhanced easing */
 @keyframes auto-collapse {
   0% {
     transform: translateY(0);
+    opacity: 1;
   }
-  90% {
+  85% {
     transform: translateY(0);
+    opacity: 1;
   }
   100% {
     transform: translateY(calc(100% - 12px));
+    opacity: 0.8;
   }
+}
+
+/* Smooth show animation */
+@keyframes toolbar-show {
+  0% {
+    transform: translateY(calc(100% - 12px));
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced micro-interactions */
+@keyframes button-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
 /* Phase 2: SlideViewer Layout Fixes - CSS Flexbox */
 @media (max-width: 768px) {
+  .slide-viewer-container.mobile-enhanced {
+    /* Full viewport height with flexbox layout */
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for iOS */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    /* Safe area handling */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  /* Fallback for slide-viewer-container without mobile-enhanced class */
   .slide-viewer-container {
     /* Full viewport height with flexbox layout */
     height: 100vh;
