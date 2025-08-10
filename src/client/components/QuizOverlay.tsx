@@ -45,7 +45,7 @@ const QuizOverlay: React.FC<QuizOverlayProps> = ({
         <p className="text-gray-800 mb-6">{quiz.question}</p>
         
         <div className="space-y-3">
-          {quiz.options.map((option, index) => (
+          {quiz.options.map((option: string, index: number) => (
             <button
               key={`quiz-option-${index}-${option.slice(0, 10)}`}
               onClick={() => handleAnswerSelect(index)}

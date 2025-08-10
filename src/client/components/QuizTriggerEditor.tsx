@@ -31,7 +31,7 @@ const QuizTriggerEditor: React.FC<QuizTriggerEditorProps> = ({
   const removeOption = (optionIndex: number) => {
     if (trigger.quiz.options.length <= 2) return; // Minimum 2 options
     
-    const newOptions = trigger.quiz.options.filter((_, i) => i !== optionIndex);
+    const newOptions = trigger.quiz.options.filter((_: string, i: number) => i !== optionIndex);
     const currentCorrect = typeof trigger.quiz.correctAnswer === 'number' ? trigger.quiz.correctAnswer : parseInt(trigger.quiz.correctAnswer as string, 10);
     const newCorrectAnswer = currentCorrect >= optionIndex && currentCorrect > 0
       ? currentCorrect - 1
@@ -114,7 +114,7 @@ const QuizTriggerEditor: React.FC<QuizTriggerEditorProps> = ({
                 + Option
               </button>
             </div>
-            {trigger.quiz.options.map((option, optionIndex) => (
+            {trigger.quiz.options.map((option: string, optionIndex: number) => (
               <div key={`quiz-option-${optionIndex}-${option.slice(0, 10)}`} className="flex items-center space-x-2 mb-2">
                 <input
                   type="radio"

@@ -2,7 +2,10 @@
 import { Timestamp } from 'firebase/firestore';
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck } from './slideTypes';
-import { TimelineEventData } from './type-defs';
+import { TimelineEventData, MediaQuizTrigger } from './type-defs';
+
+// Re-export types that other modules need
+export type { TimelineEventData, MediaQuizTrigger };
 
 
 export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';
