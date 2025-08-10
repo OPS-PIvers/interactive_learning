@@ -7,18 +7,20 @@ import { SlideViewer } from './slides/SlideViewer';
 import { Z_INDEX } from '../utils/zIndexLevels';
 
 /**
- * Mobile Editor Test Component
+ * Editor Test Page Component
  * 
- * Bypasses Firebase to test editor and viewer interfaces on mobile
+ * Bypasses Firebase to test editor and viewer interfaces across all devices
  * Uses mock data and local state for testing purposes
+ * 
+ * Phase 3 Enhancement: Renamed from MobileEditorTest to reflect unified nature
  */
-export const MobileEditorTest: React.FC = () => {
+export const EditorTestPage: React.FC = () => {
   const [mode, setMode] = useState<'editor' | 'viewer'>('editor');
   const [slideDeck, setSlideDeck] = useState<SlideDeck>(() => createTestDemoSlideDeck());
   const [debugInfo, setDebugInfo] = useState({
     viewport: `${window.innerWidth}x${window.innerHeight}`,
     touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
-    userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
+    // Phase 3: Removed JavaScript device detection - use CSS-only approach
   });
 
   // Mock project data for editor
@@ -163,9 +165,32 @@ export const MobileEditorTest: React.FC = () => {
             <span className="text-slate-400">Touch:</span> {debugInfo.touchSupport}
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
-            <span className="text-slate-400">UA:</span> {debugInfo.userAgent}
+            <span className="text-slate-400">Mode:</span> 
+            <span className="text-blue-400">Phase 3 Complete</span>
           </div>
         </div>
+        
+        {/* Phase 3: CSS-only device detection styles */}
+        <style jsx>{`
+          .debug-device-type::after {
+            content: 'Desktop';
+            color: #60a5fa;
+          }
+          
+          @media (max-width: 1023px) {
+            .debug-device-type::after { 
+              content: 'Tablet'; 
+              color: #34d399;
+            }
+          }
+          
+          @media (max-width: 767px) {
+            .debug-device-type::after { 
+              content: 'Mobile'; 
+              color: #f59e0b;
+            }
+          }
+        `}</style>
       </div>
 
       {/* Main Content Area */}
@@ -220,4 +245,4 @@ export const MobileEditorTest: React.FC = () => {
   );
 };
 
-export default MobileEditorTest;
+export default EditorTestPage;

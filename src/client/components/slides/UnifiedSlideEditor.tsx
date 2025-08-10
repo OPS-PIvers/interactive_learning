@@ -600,26 +600,100 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       {...projectTheme && { initialThemeId: projectTheme }}
       onThemeChange={handleThemeChange}>
 
-      <div className="unified-slide-editor fixed inset-0 h-full w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+      <div className="unified-slide-editor fixed inset-0 h-full w-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden
+                     /* Mobile-first layout improvements */
+                     h-screen
+                     h-[100dvh]
+                     md:h-full">
+        
+        {/* Mobile-first CSS Grid Layout */}
+        <style jsx>{`
+          .unified-slide-editor {
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for iOS */
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas: 
+              "header"
+              "main" 
+              "toolbar";
+          }
+          
+          @media (min-width: 768px) {
+            .unified-slide-editor {
+              display: flex;
+              flex-direction: column;
+            }
+          }
+          
+          .editor-header {
+            grid-area: header;
+          }
+          
+          .editor-main {
+            grid-area: main;
+            min-height: 0;
+            overflow: hidden;
+          }
+          
+          .editor-toolbar {
+            grid-area: toolbar;
+          }
+          
+          /* Mobile properties panel - collapsible drawer */
+          @media (max-width: 767px) {
+            .properties-panel-mobile {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              max-height: 60vh;
+              transform: translateY(calc(100% - 48px));
+              transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              z-index: 9998;
+              background: rgba(0, 0, 0, 0.95);
+              backdrop-filter: blur(8px);
+              border-radius: 16px 16px 0 0;
+            }
+            
+            .properties-panel-mobile.expanded {
+              transform: translateY(0);
+            }
+            
+            .properties-panel-mobile::before {
+              content: '';
+              position: absolute;
+              top: 8px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 40px;
+              height: 4px;
+              background: rgba(255, 255, 255, 0.3);
+              border-radius: 2px;
+              cursor: grab;
+            }
+          }
+        `}</style>
         
         {/* Responsive Header */}
-        <ResponsiveHeader
-          projectName={projectName}
-          isPreviewMode={state.navigation.isPreviewMode}
-          isSaving={state.operations.isSaving}
-          errorMessage={state.operations.error}
-          showSuccessMessage={state.ui.showSuccessMessage}
-          onTogglePreview={actions.togglePreviewMode}
-          onSave={handleSave}
-          onClose={onClose}
-          onOpenSettings={() => actions.openModal('settingsModal')}
-          onOpenShare={() => actions.openModal('shareModal')}
-          isPublished={isPublished} />
+        <div className="editor-header">
+          <ResponsiveHeader
+            projectName={projectName}
+            isPreviewMode={state.navigation.isPreviewMode}
+            isSaving={state.operations.isSaving}
+            errorMessage={state.operations.error}
+            showSuccessMessage={state.ui.showSuccessMessage}
+            onTogglePreview={actions.togglePreviewMode}
+            onSave={handleSave}
+            onClose={onClose}
+            onOpenSettings={() => actions.openModal('settingsModal')}
+            onOpenShare={() => actions.openModal('shareModal')}
+            isPublished={isPublished} />
+        </div>
 
-        
         {/* Main editor content */}
-        <div className="flex-1 flex overflow-hidden">
-          
+        <div className="editor-main flex-1 flex overflow-hidden 
+                        md:flex-row flex-col">
           
           {/* Main canvas area */}
           <div className="flex-1 flex flex-col relative min-h-0">
@@ -641,48 +715,74 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 onAspectRatioChange={handleAspectRatioChange} />
 
             </div>
-            
-            {/* Responsive Toolbar - positioned at bottom */}
-            {!state.navigation.isPreviewMode &&
-            <ResponsiveToolbar
-              onSlidesOpen={() => actions.openModal('slidesModal')}
-              onBackgroundOpen={() => actions.openModal('backgroundModal')}
-              onInsertOpen={() => actions.openModal('insertModal')}
-              onAspectRatioOpen={() => actions.openModal('aspectRatioModal')}
-              onPropertiesOpen={() => {
-                // Properties panel is automatically shown when element is selected
-                // This button can serve as a visual indicator or could scroll to element
-                if (selectedElement) {
-
-
-                }
-              }}
-              hasSelectedElement={!!selectedElement} />
-
-            }
           </div>
           
-          {/* Responsive Properties Panel */}
-          {!state.navigation.isPreviewMode && selectedElement &&
-          <ResponsivePropertiesPanel
-            selectedElement={selectedElement}
-            currentSlide={currentSlide ?? null}
-            onElementUpdate={handleElementUpdate}
-            onSlideUpdate={handleSlideUpdate}
-            onDelete={() => {
-              if (!selectedElement) return;
-              const updatedSlide = {
-                ...currentSlide,
-                elements: currentSlide?.elements?.filter((el) => el.id !== selectedElement.id) || []
-              };
-              handleSlideUpdate(updatedSlide);
-              actions.exitEditMode();
-            }}
+          {/* Desktop Properties Panel - positioned right */}
+          <div className="hidden md:block">
+            {!state.navigation.isPreviewMode && selectedElement &&
+            <ResponsivePropertiesPanel
+              selectedElement={selectedElement}
+              currentSlide={currentSlide ?? null}
+              onElementUpdate={handleElementUpdate}
+              onSlideUpdate={handleSlideUpdate}
+              onDelete={() => {
+                if (!selectedElement) return;
+                const updatedSlide = {
+                  ...currentSlide,
+                  elements: currentSlide?.elements?.filter((el) => el.id !== selectedElement.id) || []
+                };
+                handleSlideUpdate(updatedSlide);
+                actions.exitEditMode();
+              }}
             onClose={actions.exitEditMode}
             mode="auto" />
 
           }
+          </div>
         </div>
+
+        {/* Mobile Toolbar - positioned at bottom via CSS grid */}
+        <div className="editor-toolbar md:hidden">
+          {!state.navigation.isPreviewMode &&
+          <ResponsiveToolbar
+            onSlidesOpen={() => actions.openModal('slidesModal')}
+            onBackgroundOpen={() => actions.openModal('backgroundModal')}
+            onInsertOpen={() => actions.openModal('insertModal')}
+            onAspectRatioOpen={() => actions.openModal('aspectRatioModal')}
+            onPropertiesOpen={() => {
+              // Toggle mobile properties panel expansion
+              const panel = document.querySelector('.properties-panel-mobile') as HTMLElement;
+              if (panel) {
+                panel.classList.toggle('expanded');
+              }
+            }}
+            hasSelectedElement={!!selectedElement} />
+          }
+        </div>
+
+        {/* Mobile Properties Panel - collapsible bottom drawer */}
+        {!state.navigation.isPreviewMode && selectedElement &&
+        <div className={`properties-panel-mobile md:hidden ${Z_INDEX_TAILWIND.PROPERTIES_PANEL}`}>
+          <div className="overflow-y-auto p-4 pt-8">
+            <ResponsivePropertiesPanel
+              selectedElement={selectedElement}
+              currentSlide={currentSlide ?? null}
+              onElementUpdate={handleElementUpdate}
+              onSlideUpdate={handleSlideUpdate}
+              onDelete={() => {
+                if (!selectedElement) return;
+                const updatedSlide = {
+                  ...currentSlide,
+                  elements: currentSlide?.elements?.filter((el) => el.id !== selectedElement.id) || []
+                };
+                handleSlideUpdate(updatedSlide);
+                actions.exitEditMode();
+              }}
+            onClose={actions.exitEditMode}
+            mode="mobile" />
+          </div>
+        </div>
+        }
         
         {/* Help hint */}
         {state.ui.showHelpHint && !state.navigation.isPreviewMode &&

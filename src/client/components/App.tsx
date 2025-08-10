@@ -14,7 +14,7 @@ import HookErrorBoundary from './HookErrorBoundary';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import MigrationTestPage from './MigrationTestPage';
-import MobileEditorTest from './MobileEditorTest';
+import EditorTestPage from './EditorTestPage';
 import ProjectCard from './ProjectCard';
 import SharedModuleViewer from './SharedModuleViewer';
 import SlideBasedTestPage from './SlideBasedTestPage';
@@ -553,7 +553,7 @@ const App: React.FC = () => {
           } />
           <Route path="/slide-test" element={<SlideBasedTestPage />} />
           <Route path="/migration-test" element={<MigrationTestPage />} />
-          <Route path="/mobile-test" element={<MobileEditorTest />} />
+          <Route path="/mobile-test" element={<EditorTestPage />} />
         </Routes>
       </Router>
     </AuthProvider>

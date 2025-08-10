@@ -22,6 +22,7 @@ interface UnifiedPropertiesPanelProps {
   onClose?: () => void;
   className?: string;
   style?: React.CSSProperties;
+  mode?: 'auto' | 'desktop' | 'mobile'; // New: Support different layout modes
 }
 
 interface CollapsibleSectionProps {
@@ -109,10 +110,12 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   onDelete,
   onClose,
   className = '',
-  style = {}
+  style = {},
+  mode = 'auto' // Default to auto mode
 }) => {
-  // Section state management
-  const [stylesOpen, setStylesOpen] = useState(true);
+  // Section state management - mobile starts with all collapsed to save space
+  const isMobileMode = mode === 'mobile' || (mode === 'auto' && window.innerWidth <= 767);
+  const [stylesOpen, setStylesOpen] = useState(!isMobileMode);
   const [contentOpen, setContentOpen] = useState(false);
   const [interactionsOpen, setInteractionsOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
