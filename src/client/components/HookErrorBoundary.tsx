@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import { Component, ReactNode, ErrorInfo } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -33,10 +33,10 @@ class HookErrorBoundary extends Component<Props, State> {
     console.error('Hook Error Boundary caught an error:', error, errorInfo);
     
     // Enhanced detection for hook-related errors
-    const isHookError = error.message.includes('hooks') || 
-                       error.message.includes('Rendered more hooks') ||
-                       error.message.includes('Rendered fewer hooks') ||
-                       error.message.includes('Invariant');
+    const isHookError = error.message?.includes('hooks') || 
+                       error.message?.includes('Rendered more hooks') ||
+                       error.message?.includes('Rendered fewer hooks') ||
+                       error.message?.includes('Invariant');
     
     if (isHookError) {
       console.error('🚨 React Hooks Error Detected:', {

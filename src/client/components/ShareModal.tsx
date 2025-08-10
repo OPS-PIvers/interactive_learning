@@ -29,7 +29,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   });
   const [activeTab, setActiveTab] = useState<'url' | 'embed'>('url');
   const [copySuccess, setCopySuccess] = useState<string>('');
-  const [isPublished, setIsPublished] = useState(project?.isPublished || false);
+  const [isPublished, setIsPublished] = useState(project?.isPublished ?? false);
   const [isToggling, setIsToggling] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +77,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     setIsToggling(true);
     
     try {
-      await firebaseAPI.updateProjectPublishedStatus(project?.id, newPublishedStatus);
+      await firebaseAPI.updateProjectPublishedStatus(project?.id ?? '', newPublishedStatus);
       setIsPublished(newPublishedStatus);
       setCopySuccess(`Module is now ${newPublishedStatus ? 'published' : 'private'}`);
     } catch (error) {
@@ -103,7 +103,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
 
   // Generate the shareable URL
   const generateShareUrl = useCallback(() => {
-    const baseUrl = window?.location?.origin;
+    const baseUrl = window?.location?.origin ?? '';
     const params = new URLSearchParams();
     
     if (shareOptions.theme !== 'dark') {
@@ -117,7 +117,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     }
     
     const queryString = params.toString();
-    return `${baseUrl}/shared/${project?.id}${queryString ? `?${queryString}` : ''}`;
+    return `${baseUrl}/shared/${project?.id ?? ''}${queryString ? `?${queryString}` : ''}`;
   }, [project?.id, shareOptions]);
 
   // Generate embed code
@@ -126,7 +126,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
     const embedParams = new URLSearchParams(new URL(shareUrl).search);
     embedParams.append('embed', 'true');
     
-    const embedUrl = `${window?.location?.origin}/shared/${project?.id}?${embedParams.toString()}`;
+    const embedUrl = `${window?.location?.origin ?? ''}/shared/${project?.id ?? ''}?${embedParams.toString()}`;
     
     return `<iframe 
   src="${embedUrl}"
@@ -134,7 +134,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   height="${shareOptions.height}"
   frameborder="0"
   allowfullscreen
-  title="${project?.title || 'Interactive Learning Module'} - Interactive Learning Module"
+  title="${project?.title ?? 'Interactive Learning Module'} - Interactive Learning Module"
   style="border: none; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
 </iframe>`;
   }, [generateShareUrl, project?.id, project?.title, shareOptions]);

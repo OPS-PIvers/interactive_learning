@@ -268,8 +268,8 @@ function convertHotspotToSlideElement(
       zIndex: 10, // SLIDE_CONTENT level from Z_INDEX hierarchy
     },
     content: {
-      title: hotspot?.title,
-      description: hotspot?.description,
+      title: hotspot?.title ?? '',
+      description: hotspot?.description ?? '',
     },
     interactions,
     isVisible: true

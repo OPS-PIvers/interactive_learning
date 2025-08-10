@@ -50,17 +50,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const validateFileType = useCallback((file: File): boolean => {
     switch (acceptedTypes) {
       case 'image':
-        return file?.type?.startsWith('image/') || false;
+        return file?.type?.startsWith('image/') ?? false;
       case 'video':
-        return file?.type?.startsWith('video/') || false;
+        return file?.type?.startsWith('video/') ?? false;
       case 'audio':
-        return file?.type?.startsWith('audio/') || false;
+        return file?.type?.startsWith('audio/') ?? false;
       case 'all':
-        return file?.type?.startsWith('image/') || 
-               file?.type?.startsWith('video/') || 
-               file?.type?.startsWith('audio/') || false;
+        return (file?.type?.startsWith('image/') ?? false) || 
+               (file?.type?.startsWith('video/') ?? false) || 
+               (file?.type?.startsWith('audio/') ?? false);
       default:
-        return file?.type?.startsWith('image/') || false;
+        return file?.type?.startsWith('image/') ?? false;
     }
   }, [acceptedTypes]);
 

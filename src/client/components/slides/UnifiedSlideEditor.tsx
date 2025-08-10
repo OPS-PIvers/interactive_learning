@@ -367,13 +367,13 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       elements: slideToDuplicate.elements?.map((element) => ({
         ...element,
         id: generateId()
-      })) || []
+      })) ?? []
     };
 
     const updatedSlides = [
-    ...(slideDeck?.slides?.slice(0, slideIndex + 1) || []),
+    ...(slideDeck?.slides?.slice(0, slideIndex + 1) ?? []),
     duplicatedSlide,
-    ...(slideDeck?.slides?.slice(slideIndex + 1) || [])];
+    ...(slideDeck?.slides?.slice(slideIndex + 1) ?? [])];
 
 
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
