@@ -103,9 +103,9 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   selectedElement,
-  _currentSlide,
+  currentSlide,
   onElementUpdate,
-  _onSlideUpdate,
+  onSlideUpdate,
   onDelete,
   onClose,
   className = '',
@@ -239,7 +239,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
         id: `effect-${Date.now()}`,
         type: effectData.type,
         duration: 300,
-        parameters: effectData.parameters
+        parameters: effectData.parameters as EffectParameters
       }
     };
     const updatedInteractions = [...(selectedElement.interactions || []), newInteraction];

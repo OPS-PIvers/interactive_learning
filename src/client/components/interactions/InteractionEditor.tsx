@@ -18,7 +18,7 @@ interface InteractionEditorProps {
 const InteractionEditor: React.FC<InteractionEditorProps> = ({
   interaction,
   onInteractionUpdate,
-  _isCompact = false,
+  isCompact = false,
   className = ''
 }) => {
   const handleTriggerChange = useCallback((trigger: string) => {

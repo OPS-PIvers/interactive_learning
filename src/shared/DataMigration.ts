@@ -49,12 +49,12 @@ export class DataMigration {
     
     // Ensure we have a valid InteractiveModuleState structure
     const backgroundVideoType = typeof data['backgroundVideoType'] === 'string' &&
-        (['mp4', 'youtube'] as const).includes(data['backgroundVideoType'] as string)
+        (['mp4', 'youtube'] as const).includes(data['backgroundVideoType'] as 'mp4' | 'youtube')
         ? data['backgroundVideoType'] as 'mp4' | 'youtube'
         : null;
 
     const imageFitMode = typeof data['imageFitMode'] === 'string' &&
-        (['cover', 'contain', 'fill'] as const).includes(data['imageFitMode'] as string)
+        (['cover', 'contain', 'fill'] as const).includes(data['imageFitMode'] as 'cover' | 'contain' | 'fill')
         ? data['imageFitMode'] as 'cover' | 'contain' | 'fill'
         : null;
 

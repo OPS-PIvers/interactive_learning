@@ -35,7 +35,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate PULSE_HOTSPOT to SPOTLIGHT
-    if (event.type === 'PULSE_HOTSPOT') {
+    if ((event.type as any) === 'PULSE_HOTSPOT') {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,
@@ -109,7 +109,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate HIGHLIGHT_HOTSPOT to SPOTLIGHT
-    if (event.type === 'HIGHLIGHT_HOTSPOT') {
+    if ((event.type as any) === 'HIGHLIGHT_HOTSPOT') {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,
