@@ -1,12 +1,15 @@
 import React, { useCallback } from 'react';
 import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
+import { handleTouchInteraction, isMobileViewport } from '../../utils/touchFeedback';
+import { TOUCH_TARGET } from '../../utils/styleConstants';
 
 interface SlideElementProps {
   element: SlideElementType;
   deviceType: DeviceType;
   viewportInfo: ViewportInfo;
   onInteraction: (elementId: string, interactionId: string) => void;
+  onEdit?: (element: SlideElementType) => void; // Optional edit handler for editor mode
 }
 
 /**
@@ -18,27 +21,34 @@ export const SlideElement: React.FC<SlideElementProps> = ({
   element,
   deviceType,
   viewportInfo,
-  onInteraction
+  onInteraction,
+  onEdit
 }) => {
   // Get position for current device
   const position: FixedPosition = getResponsivePosition(element.position, deviceType);
 
-  // Handle interactions
-  const handleClick = useCallback(() => {
+  // Unified interaction handler - replaces double-click with single tap/click
+  const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    // Provide touch feedback on mobile viewports
+    if (e.currentTarget instanceof HTMLElement) {
+      handleTouchInteraction(e.currentTarget, e, 'light');
+    }
 
+    // Handle edit mode (for editor)
+    if (onEdit) {
+      onEdit(element);
+      return;
+    }
 
-
+    // Handle viewer interactions
     const clickInteraction = element.interactions.find(
       (interaction) => interaction.trigger === 'click'
     );
 
     if (clickInteraction) {
-
       onInteraction(element.id, clickInteraction.id);
-    } else {
-
     }
-  }, [element.id, element.interactions, onInteraction]);
+  }, [element, onInteraction, onEdit]);
 
   const handleHover = useCallback(() => {
     const hoverInteraction = element.interactions.find(
@@ -64,11 +74,14 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     borderRadius: style.borderRadius,
     opacity: style.opacity ?? 1,
     zIndex: style.zIndex ?? 10,
-    cursor: element.interactions.length > 0 ? 'pointer' : 'default',
+    cursor: element.interactions.length > 0 || onEdit ? 'pointer' : 'default',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'all 0.2s ease-in-out'
+    transition: 'all 0.2s ease-in-out',
+    // Ensure minimum touch targets on mobile
+    minWidth: isMobileViewport() ? '44px' : undefined,
+    minHeight: isMobileViewport() ? '44px' : undefined,
   };
 
   // Add animation classes
@@ -82,12 +95,20 @@ export const SlideElement: React.FC<SlideElementProps> = ({
           <div className={`slide-hotspot ${animationClasses}`}>
             <div className="hotspot-indicator">
               <div
-                className="hotspot-dot"
+                className={`hotspot-dot ${
+                  // Mobile-first touch target classes - fix from improvement plan
+                  isMobileViewport() 
+                    ? TOUCH_TARGET.MOBILE_HOTSPOT // 48px mobile (meets 44px requirement)
+                    : TOUCH_TARGET.DESKTOP_HOTSPOT // 20px desktop for precision
+                }`}
                 style={{
                   backgroundColor: style.backgroundColor || '#3b82f6',
                   borderColor: style.borderColor || style.backgroundColor || '#3b82f6',
                   borderWidth: style.borderWidth || 2,
-                  opacity: style.opacity || 1
+                  opacity: style.opacity || 1,
+                  borderRadius: '50%',
+                  border: '2px solid',
+                  transition: 'all 0.2s ease-in-out',
                 }} />
 
               {element.interactions.some((i) => i.trigger === 'hover') &&
@@ -155,18 +176,19 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     }
   };
 
-  const isInteractive = element.interactions.length > 0;
+  const isInteractive = element.interactions.length > 0 || onEdit;
 
   return (
     <div
-      className={`slide-element ${isInteractive ? 'transform-gpu hover:scale-105' : ''}`}
+      className={`slide-element ${isInteractive ? 'transform-gpu' : ''}`}
       style={elementStyle}
-      onClick={handleClick}
+      onClick={handleInteraction}
+      onTouchEnd={handleInteraction}
       onMouseEnter={handleHover}
       data-element-id={element.id}
       data-element-type={element.type}
-      role={element.interactions.length > 0 ? 'button' : undefined}
-      tabIndex={element.interactions.length > 0 ? 0 : undefined}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
       aria-label={element.content.title || `${element.type} element`}
       aria-roledescription={isInteractive ? `Interactive ${element.type}` : undefined}
       aria-describedby={element.type === 'hotspot' && element.interactions.some((i) => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}>

@@ -503,3 +503,468 @@
   /* Optimize rendering performance */
   contain: layout style paint;
 }
+
+/* Touch Feedback Styles - Mobile UX Enhancement */
+.touch-active {
+  transform: scale(0.95) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+/* Ripple effect animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.touch-ripple {
+  animation: ripple 0.4s linear;
+}
+
+/* Enhanced touch targets for mobile */
+@media (max-width: 768px) {
+  .slide-element[role="button"] {
+    /* Ensure minimum 44px touch targets */
+    min-width: 44px !important;
+    min-height: 44px !important;
+    
+    /* Enhanced touch feedback */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    
+    /* Expand touch area invisibly */
+    position: relative;
+  }
+  
+  .slide-element[role="button"]::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    /* This expands the touch area without visual change */
+  }
+  
+  .slide-element[role="button"]:active {
+    transform: scale(0.96) !important;
+    transition: transform 0.1s ease-out !important;
+  }
+  
+  /* Enhanced hotspot touch targets */
+  .slide-hotspot .hotspot-dot {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    /* Enhanced mobile visibility */
+    border-width: 3px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+  
+  .slide-hotspot:active .hotspot-dot {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Touch-only devices (no hover capability) */
+@media (hover: none) {
+  .slide-element[role="button"]:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .slide-hotspot:active .hotspot-dot {
+    background-color: var(--color-hotspot-active, #1d4ed8);
+    transform: scale(0.9);
+  }
+}
+
+/* Hover-capable devices */
+@media (hover: hover) {
+  .slide-element[role="button"]:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
+  
+  .slide-element[role="button"]:active {
+    transform: scale(0.98);
+  }
+}
+
+/* CSS-only device type detection (replaces JavaScript device branching) */
+.debug-device-type::after {
+  content: 'Desktop';
+}
+
+@media (max-width: 1023px) {
+  .debug-device-type::after { 
+    content: 'Tablet'; 
+  }
+}
+
+@media (max-width: 767px) {
+  .debug-device-type::after { 
+    content: 'Mobile'; 
+  }
+}
+
+/* Phase 2: ViewerFooterToolbar Collapsible Behavior - CSS-Only */
+@media (max-width: 768px) {
+  .viewer-footer-toolbar {
+    /* Collapsible footer pattern for mobile */
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.95); /* slate-900/95 */
+    
+    /* Safe area support for iOS */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* Auto-collapse when not in use */
+    animation: auto-collapse 3s ease-in-out 2s forwards;
+  }
+  
+  /* Show on user interaction */
+  .viewer-footer-toolbar:hover,
+  .viewer-footer-toolbar:focus-within,
+  .viewer-footer-toolbar.active {
+    transform: translateY(0) !important;
+    animation: none;
+  }
+  
+  /* Collapsed state - show only a hint */
+  .viewer-footer-toolbar.collapsed {
+    transform: translateY(calc(100% - 12px));
+  }
+  
+  /* Pull-up indicator for collapsed state */
+  .viewer-footer-toolbar::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .viewer-footer-toolbar.collapsed::before {
+    opacity: 1;
+  }
+  
+  /* Timeline progress optimization for mobile */
+  .viewer-footer-toolbar .timeline-progress {
+    padding: 8px 16px;
+    background: rgba(30, 41, 59, 0.6); /* slate-800/60 */
+  }
+  
+  /* Compact mobile toolbar spacing */
+  .viewer-footer-toolbar .toolbar-main {
+    padding: 12px 16px;
+    min-height: 56px; /* Reduced from 64px */
+  }
+}
+
+/* Auto-collapse animation keyframes */
+@keyframes auto-collapse {
+  0% {
+    transform: translateY(0);
+  }
+  90% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(100% - 12px));
+  }
+}
+
+/* Phase 2: SlideViewer Layout Fixes - CSS Flexbox */
+@media (max-width: 768px) {
+  .slide-viewer-container {
+    /* Full viewport height with flexbox layout */
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for iOS */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    /* Safe area handling */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .slide-viewer-main {
+    /* Main slide content - takes remaining space */
+    flex: 1;
+    min-height: 0; /* Allow flex shrinking */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  
+  .slide-canvas-wrapper {
+    /* Canvas wrapper - primary content area */
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    
+    /* Optimize for ≥90% viewport usage */
+    margin-bottom: 0;
+  }
+  
+  .slide-timeline-mobile {
+    /* Timeline at bottom - fixed height */
+    position: static !important; /* Remove fixed positioning */
+    order: 2;
+    height: auto;
+    max-height: 80px; /* Reduced from 120px */
+    flex-shrink: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(4px);
+    
+    /* Compact timeline for mobile */
+    padding: 8px;
+  }
+  
+  /* Footer toolbar positioning */
+  .viewer-footer-toolbar {
+    /* Positioned outside the slide container */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999; /* Z_INDEX.TOOLBAR */
+  }
+  
+  /* Ensure slide content doesn't get hidden behind toolbar */
+  .slide-viewer-container {
+    padding-bottom: 0; /* No padding needed with collapsible toolbar */
+  }
+  
+  /* When toolbar is visible, adjust content */
+  .slide-viewer-container:has(.viewer-footer-toolbar:not(.collapsed)) {
+    padding-bottom: 64px; /* Toolbar height */
+  }
+}
+
+/* Desktop layout - no changes needed, keep existing behavior */
+@media (min-width: 769px) {
+  .viewer-footer-toolbar {
+    /* Desktop - always visible, no auto-collapse */
+    transform: none !important;
+    animation: none !important;
+  }
+  
+  .slide-viewer-container {
+    /* Desktop flexbox layout */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+}
+
+/* ===== Extracted Inline Styles ===== */
+
+/* UnifiedSlideEditor CSS Grid Layout (extracted from inline styles) */
+.unified-slide-editor {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for iOS */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    "header"
+    "main" 
+    "toolbar";
+}
+
+@media (min-width: 768px) {
+  .unified-slide-editor {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.editor-header {
+  grid-area: header;
+  order: 1;
+  height: auto;
+  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+}
+
+.editor-main {
+  grid-area: main;
+  order: 2;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.editor-toolbar {
+  grid-area: toolbar;
+  order: 3;
+  height: auto;
+  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  
+  /* Mobile collapsible behavior */
+  transition: transform 0.3s ease-out;
+}
+
+@media (max-width: 767px) {
+  .editor-main {
+    flex-direction: column;
+  }
+  
+  .slide-canvas-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+  
+  .properties-drawer {
+    height: auto;
+    max-height: 40vh;
+    overflow-y: auto;
+    background: rgba(30, 41, 59, 0.95);
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    
+    /* Collapsible behavior */
+    transform: translateY(0);
+    transition: transform 0.3s ease-out;
+  }
+  
+  .properties-drawer.collapsed {
+    transform: translateY(calc(100% - 40px));
+  }
+}
+
+@media (min-width: 768px) {
+  .editor-main {
+    flex-direction: row;
+  }
+  
+  .slide-canvas-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+  
+  .properties-drawer {
+    width: 320px;
+    flex-shrink: 0;
+    background: rgba(30, 41, 59, 0.9);
+    border-left: 1px solid rgba(148, 163, 184, 0.2);
+    overflow-y: auto;
+  }
+}
+
+/* ResponsiveModal Bottom Sheet Styling (extracted from inline styles) */
+@media (max-width: 767px) {
+  .responsive-modal-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 -10px 25px -3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .responsive-modal-mobile.open {
+    transform: translateY(0);
+  }
+  
+  .responsive-modal-mobile .drag-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 8px auto 16px;
+    cursor: grab;
+    transition: background 0.2s ease;
+  }
+  
+  .responsive-modal-mobile .drag-handle:active {
+    cursor: grabbing;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  
+  .responsive-modal-mobile .modal-content {
+    padding: 0 20px 20px;
+    overflow-y: auto;
+    max-height: calc(85vh - 50px); /* Account for drag handle */
+  }
+  
+  /* Swipe-to-dismiss gesture area */
+  .responsive-modal-mobile .gesture-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    cursor: grab;
+    touch-action: none;
+  }
+  
+  .responsive-modal-mobile .gesture-area:active {
+    cursor: grabbing;
+  }
+}
+
+/* Desktop ResponsiveModal styling */
+@media (min-width: 768px) {
+  .responsive-modal-desktop {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+  }
+  
+  .responsive-modal-desktop .modal-content {
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 24px;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .responsive-modal-desktop.open .modal-content {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

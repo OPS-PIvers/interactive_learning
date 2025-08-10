@@ -7,6 +7,7 @@ import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { SlideEffectRenderer } from './SlideEffectRenderer';
 import { SlideElement } from './SlideElement';
 import { SlideTimeline } from './SlideTimeline';
+import '../../styles/slide-components.css';
 
 interface SlideViewerProps {
   slideDeck: SlideDeck;
@@ -460,18 +461,23 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   return (
     <div
       ref={containerRef}
-      className={`slide-viewer ${className}`}
-      style={containerStyle}
+      className={`slide-viewer-container ${className}`}
       data-slide-id={currentSlide.id}
       data-device-type={deviceType}>
-
-      {/* Scaled Slide Canvas with Touch Support */}
-      <div
-        className="slide-canvas"
-        style={slideCanvasStyle}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}>
+      
+      <div className="slide-viewer-main">
+        {/* Slide Canvas Wrapper - Takes remaining space */}
+        <div 
+          className="slide-canvas-wrapper"
+          style={containerStyle}
+        >
+          {/* Scaled Slide Canvas with Touch Support */}
+          <div
+            className="slide-canvas"
+            style={slideCanvasStyle}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}>
 
         {/* Background Media Renderer */}
         {currentSlide?.backgroundMedia && currentSlide.backgroundMedia.type !== 'none' &&
@@ -620,9 +626,28 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           })
           }
         </div>
-      </div>
+        </div> {/* Close slide-canvas */}
+        
+        {/* Timeline - Mobile positioned in flexbox layout */}
+        {showTimeline && (
+          <div className="slide-timeline-mobile">
+            <SlideTimeline
+              slideDeck={slideDeck}
+              currentSlideIndex={viewerState.currentSlideIndex}
+              initialStep={currentTimelineStep}
+              onStepChange={handleTimelineStepChange}
+              onEffectTrigger={handleTimelineEffectTrigger}
+              autoPlay={timelineAutoPlay}
+              className="w-full pointer-events-none" 
+            />
+          </div>
+        )}
+        
+      </div> {/* Close slide-canvas-wrapper */}
+      
+      </div> {/* Close slide-viewer-main */}
 
-      {/* Active Effects */}
+      {/* Active Effects - Positioned over entire viewer */}
       {activeEffects.map((effect) =>
       <SlideEffectRenderer
         key={effect.id}
@@ -633,19 +658,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
         onComplete={() => clearEffect(effect.id)} />
 
       )}
-
-      {/* Timeline (when enabled) */}
-      {showTimeline &&
-      <SlideTimeline
-        slideDeck={slideDeck}
-        currentSlideIndex={viewerState.currentSlideIndex}
-        initialStep={currentTimelineStep}
-        onStepChange={handleTimelineStepChange}
-        onEffectTrigger={handleTimelineEffectTrigger}
-        autoPlay={timelineAutoPlay}
-        className={`absolute bottom-0 left-0 right-0 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`} />
-
-      }
 
       {/* Debug Info (development only) */}
       {process.env['NODE_ENV'] === 'development' &&
