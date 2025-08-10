@@ -3,6 +3,7 @@ import { InteractiveSlide } from '../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import '../styles/slide-components.css';
 
 interface ViewerFooterToolbarProps {
   // Project info
@@ -153,10 +154,10 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   
   // Unified responsive layout using CSS breakpoints
   return (
-    <div className={`fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+    <div className={`viewer-footer-toolbar fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 transform transition-transform duration-300 ease-in-out ${Z_INDEX_TAILWIND.TOOLBAR}`}>
       {/* Timeline Progress */}
       {showProgress && slides && slides.length > 0 && (
-        <div className="px-4 py-2 bg-slate-800/60">
+        <div className="timeline-progress px-4 py-2 bg-slate-800/60">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-slate-300 font-medium">Progress</span>
             <span className="text-xs text-slate-400">
@@ -173,7 +174,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
       )}
 
       {/* Main Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 min-h-[64px] md:min-h-[56px]">
+      <div className="toolbar-main flex items-center justify-between px-4 py-3 min-h-[64px] md:min-h-[56px]">
         {/* Left Section */}
         <div className="flex items-center gap-3">
           <button
