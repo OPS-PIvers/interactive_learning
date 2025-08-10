@@ -126,18 +126,18 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 trigger: 'click',
                 effect: {
                   id: 'text-effect-test',
-                  type: 'text',
+                  type: 'show_text',
                   duration: 3500,
                   easing: 'ease-out',
                   parameters: {
                     text: 'TEXT OVERLAY WORKING! This interaction is functioning correctly.',
-                    position: { x: 300, y: 400 },
+                    position: { x: 300, y: 400, width: 300, height: 100 },
                     style: {
-                      fontSize: '24px',
+                      fontSize: 24,
                       color: '#fbbf24',
                       backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      padding: '20px',
-                      borderRadius: '8px'
+                      padding: 20,
+                      borderRadius: 8
                     }
                   }
                 }
@@ -319,13 +319,13 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 trigger: 'click',
                 effect: {
                   id: 'feedback-effect',
-                  type: 'highlight',
+                  type: 'spotlight',
                   duration: 2000,
                   parameters: {
                     position: { x: 300, y: 340, width: 300, height: 120 },
-                    color: '#fbbf24',
+                    shape: 'rectangle',
                     intensity: 85,
-                    pulsate: true
+                    fadeEdges: true
                   }
                 }
               }

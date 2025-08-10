@@ -33,7 +33,7 @@ export const MobileEditorTest: React.FC = () => {
     slideDeck: slideDeck,
     data: {
       backgroundImage: '',
-      backgroundType: 'color' as const,
+      backgroundType: 'image' as const,
       hotspots: [],
       timelineEvents: [],
       imageFitMode: 'contain' as const,

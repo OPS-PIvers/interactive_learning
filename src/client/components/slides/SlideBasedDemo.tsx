@@ -54,7 +54,7 @@ export const SlideBasedDemo: React.FC = () => {
         font-weight: 500;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       `;
-      notification.textContent = `✅ Interaction: ${interaction.interactionType} on ${interaction.elementId}`;
+      notification.textContent = `✅ Interaction: ${interaction.trigger} (${interaction.id})`;
       document.body.appendChild(notification);
       
       setTimeout(() => {
