@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ViewerModes } from '../../shared/interactiveTypes';
 import { MigrationResult } from '../../shared/migrationUtils';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ElementInteraction } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
@@ -119,7 +119,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
 
   // Interaction handler
-  const handleInteraction = useCallback((_interaction: any) => {
+  const handleInteraction = useCallback((_interaction: ElementInteraction) => {
     if (process.env['NODE_ENV'] === 'development') {
 
     }
@@ -178,7 +178,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
         <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}>
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
             <h2 className="text-3xl font-bold text-slate-800 mb-6">ExpliCoLearning</h2>
-            <p className="text-slate-600 mb-8">Choose how you'd like to experience this content:</p>
+            <p className="text-slate-600 mb-8">Choose how you&apos;d like to experience this content:</p>
             
             <div className="space-y-4">
               {viewerModes.explore &&

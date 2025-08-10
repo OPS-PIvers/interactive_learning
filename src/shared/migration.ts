@@ -35,7 +35,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate PULSE_HOTSPOT to SPOTLIGHT
-    if (event.type === 'PULSE_HOTSPOT' as any) {
+    if (event.type === 'PULSE_HOTSPOT') {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,
@@ -50,7 +50,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_YOUTUBE to PLAY_VIDEO
-    if (event.type === 'SHOW_YOUTUBE' as any) {
+    if (event.type === 'SHOW_YOUTUBE') {
       return {
         ...event,
         type: InteractionType.PLAY_VIDEO,
@@ -65,7 +65,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_VIDEO to PLAY_VIDEO  
-    if (event.type === 'SHOW_VIDEO' as any) {
+    if (event.type === 'SHOW_VIDEO') {
       return {
         ...event,
         type: InteractionType.PLAY_VIDEO,
@@ -80,7 +80,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_AUDIO_MODAL to PLAY_AUDIO
-    if (event.type === 'SHOW_AUDIO_MODAL' as any) {
+    if (event.type === 'SHOW_AUDIO_MODAL') {
       return {
         ...event,
         type: InteractionType.PLAY_AUDIO,
@@ -95,7 +95,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_MESSAGE to SHOW_TEXT
-    if (event.type === 'SHOW_MESSAGE' as any) {
+    if (event.type === 'SHOW_MESSAGE') {
       return {
         ...event,
         type: InteractionType.SHOW_TEXT,
@@ -109,7 +109,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate HIGHLIGHT_HOTSPOT to SPOTLIGHT
-    if (event.type === 'HIGHLIGHT_HOTSPOT' as any) {
+    if (event.type === 'HIGHLIGHT_HOTSPOT') {
       return {
         ...event,
         type: InteractionType.SPOTLIGHT,

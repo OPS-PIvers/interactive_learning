@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { SlideDeck, ElementInteraction } from '../../shared/slideTypes';
+import { SlideDeck } from '../../shared/slideTypes';
 
 interface TimelineProgressTrackerProps {
   slideDeck: SlideDeck;
@@ -99,7 +99,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
       if (currentStep.interactionId) {
         setProgress(prev => ({
           ...prev,
-          completedInteractions: new Set([...prev.completedInteractions, currentStep.interactionId!])
+          completedInteractions: new Set([...prev.completedInteractions, currentStep.interactionId])
         }));
       }
 

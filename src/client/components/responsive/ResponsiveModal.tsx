@@ -6,9 +6,8 @@
  * desktop and mobile modal implementations.
  */
 
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useModalConstraints } from '../../hooks/useLayoutConstraints';
-import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 export interface ResponsiveModalProps {
   type: 'slides' | 'background' | 'insert' | 'aspectRatio' | 'share' | 'settings' | 'properties';

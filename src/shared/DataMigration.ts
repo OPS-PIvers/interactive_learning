@@ -48,11 +48,13 @@ export class DataMigration {
     }
     
     // Ensure we have a valid InteractiveModuleState structure
-    const backgroundVideoType = (data['backgroundVideoType'] as any) === 'mp4' || (data['backgroundVideoType'] as any) === 'youtube'
+    const backgroundVideoType = typeof data['backgroundVideoType'] === 'string' &&
+        (['mp4', 'youtube'] as const).includes(data['backgroundVideoType'] as string)
         ? data['backgroundVideoType'] as 'mp4' | 'youtube'
         : null;
 
-    const imageFitMode = ['cover', 'contain', 'fill'].includes(data['imageFitMode'] as any)
+    const imageFitMode = typeof data['imageFitMode'] === 'string' &&
+        (['cover', 'contain', 'fill'] as const).includes(data['imageFitMode'] as string)
         ? data['imageFitMode'] as 'cover' | 'contain' | 'fill'
         : null;
 
@@ -64,7 +66,7 @@ export class DataMigration {
       hotspots: Array.isArray(data['hotspots']) ? data['hotspots'] as HotspotData[] : [],
       timelineEvents: data['timelineEvents'].map(this.convertLegacyEvent),
       ...(typeof data['backgroundImage'] === 'string' && { backgroundImage: data['backgroundImage'] }),
-      backgroundType: (data['backgroundType'] as any) === 'video' ? 'video' : 'image',
+      backgroundType: data['backgroundType'] === 'video' ? 'video' : 'image',
       ...(backgroundVideoType && { backgroundVideoType }),
       ...(imageFitMode && { imageFitMode }),
       ...(viewerModes && { viewerModes })

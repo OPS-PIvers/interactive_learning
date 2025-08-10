@@ -5,7 +5,7 @@
  * Provides a consistent API while allowing for device-specific implementations.
  */
 
-import { SlideElement, DeviceType, InteractiveSlide } from '../../../shared/slideTypes';
+import { SlideElement, InteractiveSlide } from '../../../shared/slideTypes';
 
 /**
  * Base properties that all property panels must support

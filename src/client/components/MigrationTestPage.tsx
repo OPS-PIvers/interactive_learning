@@ -284,10 +284,10 @@ export const MigrationTestPage: React.FC = () => {
           <div className="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
                 <SlideViewer
               slideDeck={migrationResult.slideDeck}
-              onSlideChange={(slideId, slideIndex) => {
+              onSlideChange={(_slideId, _slideIndex) => {
 
               }}
-              onInteraction={(interaction) => {
+              onInteraction={(_interaction) => {
 
               }}
               className="w-full h-full" />

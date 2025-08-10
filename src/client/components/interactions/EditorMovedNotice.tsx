@@ -13,7 +13,7 @@ const EditorMovedNotice: React.FC<EditorMovedNoticeProps> = ({
     <div className="text-center p-4 text-slate-400">
       <p className="font-bold">{interactionType} editing has moved!</p>
       <p className="text-sm mt-2">
-        To edit {interactionType.toLowerCase()}, please use the "Interactions" section of the main properties panel for this element.
+        To edit {interactionType.toLowerCase()}, please use the &quot;Interactions&quot; section of the main properties panel for this element.
       </p>
       <button
         onClick={onGoBack}

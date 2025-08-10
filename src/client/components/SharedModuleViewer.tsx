@@ -53,7 +53,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
           errorMessage = 'Module not found. The link may be invalid or the module may have been removed.';
         } else if (err.message?.includes('network')) {
           errorMessage = 'Network connection error. Please check your internet connection and try again.';
-        } else if ((err as any).code === 'unavailable') {
+        } else if ((err as Error & { code?: string }).code === 'unavailable') {
           errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
         } else if (err.message) {
           errorMessage = err.message;
