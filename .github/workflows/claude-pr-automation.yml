@@ -158,7 +158,56 @@ jobs:
             
             Fix any issues found and commit the changes directly to this PR branch. If Copilot or Gemini suggest code improvements, implement them unless there's a specific reason not to.
           
-      - name: Run tests after Claude fixes
+      - name: Initial TypeScript type checking
+        id: initial-typecheck
+        run: |
+          echo "Running initial TypeScript type checking..."
+          if npm run typecheck 2>&1; then
+            echo "typecheck_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ TypeScript checks passed initially"
+          else
+            echo "typecheck_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ TypeScript errors found - will attempt to fix"
+          fi
+        continue-on-error: true
+
+      - name: Fix TypeScript errors if found
+        if: steps.initial-typecheck.outputs.typecheck_passed == 'false'
+        uses: anthropics/claude-code-action@beta
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_tools: Edit,MultiEdit,Glob,Grep,LS,Read,Write,bash
+          direct_prompt: |
+            CRITICAL: TypeScript errors detected in the codebase. 
+            
+            Run `npm run typecheck` to see the exact TypeScript errors, then fix ALL of them.
+            
+            Requirements:
+            1. Fix every TypeScript error shown by `npm run typecheck`
+            2. Do NOT use @ts-ignore or any type suppression
+            3. Use proper TypeScript types and type guards
+            4. Test your fixes by running `npm run typecheck` again
+            5. Only commit when `npm run typecheck` passes with zero errors
+            6. If you cannot fix an error properly, explain why in the commit message
+            
+            This is a one-time fix attempt. If TypeScript errors remain after your changes, the PR will be rejected.
+
+      - name: Final TypeScript type checking
+        id: final-typecheck
+        run: |
+          echo "Running final TypeScript type checking..."
+          if npm run typecheck 2>&1; then
+            echo "typecheck_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ TypeScript checks passed"
+          else
+            echo "typecheck_passed=false" >> $GITHUB_OUTPUT
+            echo "❌ TypeScript errors still present after fix attempt"
+            echo "FAILING: TypeScript errors were not resolved"
+            exit 1
+          fi
+
+      - name: Run tests after all fixes
         run: npm run test:run
 
       - name: Build project
@@ -167,11 +216,13 @@ jobs:
       - name: Check if PR is ready for merge
         id: merge-check
         run: |
-          # Check if tests pass and build succeeds
-          if npm run test:run && npm run build; then
+          # All checks should have passed by this point
+          if npm run typecheck && npm run test:run && npm run build; then
             echo "ready=true" >> $GITHUB_OUTPUT
+            echo "✅ All checks passed - PR ready for merge"
           else
             echo "ready=false" >> $GITHUB_OUTPUT
+            echo "❌ Final validation failed - PR not ready for merge"
           fi
 
       - name: Auto-merge PR if ready
