@@ -239,7 +239,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
         id: `effect-${Date.now()}`,
         type: effectData.type,
         duration: 300,
-        parameters: effectData.parameters as any
+        parameters: effectData.parameters
       }
     };
     const updatedInteractions = [...(selectedElement.interactions || []), newInteraction];
@@ -281,7 +281,6 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 
   const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
-    const dimensions = getHotspotPixelDimensions(preset.value, false);
     onElementUpdate(selectedElement.id, {
       style: {
         ...selectedElement.style,

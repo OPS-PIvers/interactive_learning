@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
-import { ElementInteraction, SlideEffectType, EffectParameters } from '../../../shared/slideTypes';
+import { ElementInteraction, SlideEffectType, EffectParameters, InteractionTrigger } from '../../../shared/slideTypes';
 
 interface InteractionEditorProps {
   interaction: ElementInteraction | null;
@@ -18,12 +18,12 @@ interface InteractionEditorProps {
 const InteractionEditor: React.FC<InteractionEditorProps> = ({
   interaction,
   onInteractionUpdate,
-  isCompact = false,
+  _isCompact = false,
   className = ''
 }) => {
   const handleTriggerChange = useCallback((trigger: string) => {
     if (!interaction) return;
-    onInteractionUpdate(interaction.id, { trigger: trigger as any });
+    onInteractionUpdate(interaction.id, { trigger: trigger as InteractionTrigger });
   }, [interaction, onInteractionUpdate]);
 
   const handleEffectTypeChange = useCallback((effectType: SlideEffectType) => {
