@@ -354,10 +354,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       backgroundPosition: 'center'
     };
     if (currentSlide?.layout?.containerWidth) {
-      newSlideLayout.containerWidth = currentSlide.layout.containerWidth;
+      newSlideLayout.containerWidth = currentSlide?.layout?.containerWidth;
     }
     if (currentSlide?.layout?.containerHeight) {
-      newSlideLayout.containerHeight = currentSlide.layout.containerHeight;
+      newSlideLayout.containerHeight = currentSlide?.layout?.containerHeight;
     }
 
     const newSlide: InteractiveSlide = {
@@ -579,7 +579,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       }
     } catch (error) {
       console.error('❌ Save error:', error);
-      actions.setError(error instanceof Error ? error.message : 'Failed to save project');
+      actions.setError(error instanceof Error ? error?.message : 'Failed to save project');
     } finally {
       actions.setSaving(false);
     }

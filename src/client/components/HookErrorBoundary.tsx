@@ -65,7 +65,7 @@ class HookErrorBoundary extends Component<Props, State> {
                   Error Details
                 </summary>
                 <pre className="mt-2 text-xs bg-slate-800 p-2 rounded overflow-auto max-h-32">
-                  {this.state.error.message}
+                  {this.state.error?.message}
                 </pre>
               </details>
             )}

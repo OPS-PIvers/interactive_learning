@@ -59,7 +59,7 @@ const ViewerView: React.FC = () => {
       setProject(fullProject);
     } catch (err: unknown) {
       console.error('Failed to load project:', err);
-      setError(`Failed to load project: ${err instanceof Error ? err.message : String(err) || 'Please try again.'}`);
+      setError(`Failed to load project: ${err instanceof Error ? err?.message : String(err) || 'Please try again.'}`);
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ const ViewerView: React.FC = () => {
 
   const handlePreviousSlide = useCallback(() => {
     if (project?.slideDeck?.slides && currentSlideIndex > 0) {
-      const prevSlideId = project.slideDeck.slides[currentSlideIndex - 1]?.id;
+      const prevSlideId = project?.slideDeck?.slides[currentSlideIndex - 1]?.id;
       if (prevSlideId) {
         handleSlideChange(prevSlideId, currentSlideIndex - 1);
       }
@@ -92,8 +92,8 @@ const ViewerView: React.FC = () => {
   }, [currentSlideIndex, project, handleSlideChange]);
 
   const handleNextSlide = useCallback(() => {
-    if (project?.slideDeck?.slides && currentSlideIndex < project.slideDeck.slides.length - 1) {
-      const nextSlideId = project.slideDeck.slides[currentSlideIndex + 1]?.id;
+    if (project?.slideDeck?.slides && currentSlideIndex < (project?.slideDeck?.slides.length ?? 0) - 1) {
+      const nextSlideId = project?.slideDeck?.slides[currentSlideIndex + 1]?.id;
       if (nextSlideId) {
         handleSlideChange(nextSlideId, currentSlideIndex + 1);
       }
