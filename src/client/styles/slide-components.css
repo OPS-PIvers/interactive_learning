@@ -898,13 +898,6 @@
   }
 }
 
-@media (min-width: 768px) {
-  .unified-slide-editor {
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Reset position for desktop */
-  }
-}
 
 .editor-header {
   grid-area: header;
