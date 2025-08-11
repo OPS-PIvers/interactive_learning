@@ -137,6 +137,29 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
       return null;
     }
   }, [state.hotspotEditor.isOpen, state.hotspotEditor.selectedHotspotId, currentSlide, computed.effectiveDeviceType]);
+  
+  // NEW LOGIC: When a hotspot element is selected, open the HotspotEditorModal.
+  // When it's deselected or another element type is selected, ensure the modal is closed.
+  useEffect(() => {
+    if (selectedElement && selectedElement.type === 'hotspot') {
+      if (!state.hotspotEditor.isOpen || state.hotspotEditor.selectedHotspotId !== selectedElement.id) {
+        actions.openHotspotEditor(selectedElement.id);
+      }
+    } else {
+      if (state.hotspotEditor.isOpen) {
+        actions.closeHotspotEditor();
+      }
+    }
+  }, [selectedElement, state.hotspotEditor, actions]);
+
+  // Create a wrapper for editor actions to enhance close functionality
+  const hotspotEditorActions = {
+    ...actions,
+    closeHotspotEditor: () => {
+      actions.closeHotspotEditor();
+      actions.exitEditMode(); // Also deselect the element
+    },
+  };
 
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((updatedSlideDeck: SlideDeck) => {
@@ -644,9 +667,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             </div>
           </div>
           
-          {/* Desktop Properties Panel - positioned right */}
-          <div className="hidden md:block">
-            {!state.navigation.isPreviewMode && selectedElement &&
+          {/* Responsive Properties Panel (but not for hotspots) */}
+          {!state.navigation.isPreviewMode && selectedElement && selectedElement.type !== 'hotspot' && (
             <ResponsivePropertiesPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide ?? null}
@@ -746,22 +768,22 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         }
         
         {/* Hotspot Editor Modal */}
-        {state.hotspotEditor.isOpen && hotspotEditorData &&
-        <HotspotEditorModal
-          editorState={state}
-          editorActions={actions}
-          selectedHotspot={hotspotEditorData.selectedHotspot}
-          relatedEvents={hotspotEditorData.relatedEvents}
-          currentStep={1}
-          backgroundImage={hotspotEditorData.backgroundImage}
-          onUpdateHotspot={handleHotspotUpdate}
-          onDeleteHotspot={handleHotspotDelete}
-          onAddEvent={handleAddTimelineEvent}
-          onUpdateEvent={handleUpdateTimelineEvent}
-          onDeleteEvent={handleDeleteTimelineEvent}
-          allHotspots={hotspotEditorData.allHotspots} />
-
-        }
+        {state.hotspotEditor.isOpen && hotspotEditorData && (
+          <HotspotEditorModal
+            editorState={state}
+            editorActions={hotspotEditorActions}
+            selectedHotspot={hotspotEditorData.selectedHotspot}
+            relatedEvents={hotspotEditorData.relatedEvents}
+            currentStep={1}
+            backgroundImage={hotspotEditorData.backgroundImage}
+            onUpdateHotspot={handleHotspotUpdate}
+            onDeleteHotspot={handleHotspotDelete}
+            onAddEvent={handleAddTimelineEvent}
+            onUpdateEvent={handleUpdateTimelineEvent}
+            onDeleteEvent={handleDeleteTimelineEvent}
+            allHotspots={hotspotEditorData.allHotspots}
+          />
+        )}
         
         {/* Responsive Modals */}
         {/* Unified slides modal */}
