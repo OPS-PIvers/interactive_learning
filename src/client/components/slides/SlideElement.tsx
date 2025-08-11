@@ -66,7 +66,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     left: position.x,
     top: position.y,
     width: position.width,
-    height: position.height,
+    height: element.type === 'hotspot' ? position.width : position.height,
     backgroundColor: style.backgroundColor,
     borderColor: style.borderColor,
     borderWidth: style.borderWidth,
