@@ -1,23 +1,24 @@
 /**
- * Properties Panel
+ * Object Editor Panel
  * 
- * Unified properties panel that automatically adapts to different screen sizes using responsive CSS.
+ * Unified object editor panel that automatically adapts to different screen sizes using responsive CSS.
+ * Handles editing for text, shape, and media elements (hotspots use specialized HotspotEditorModal).
  * No device detection or conditional rendering - uses CSS-only responsive design.
  */
 
 import React from 'react';
-import { UnifiedPropertiesPanelProps } from '../shared/BasePropertiesPanel';
-import UnifiedPropertiesPanel from '../UnifiedPropertiesPanel';
+import { UnifiedObjectEditorProps } from '../shared/BasePropertiesPanel';
+import UnifiedObjectEditor from '../UnifiedObjectEditor';
 
 /**
- * Properties Panel - unified responsive component
+ * Object Editor Panel - unified responsive component for non-hotspot elements
  */
-export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = (props) => {
+export const ObjectEditorPanel: React.FC<UnifiedObjectEditorProps> = (props) => {
   if (!props.selectedElement || !props.currentSlide) {
     return null;
   }
   return (
-    <UnifiedPropertiesPanel
+    <UnifiedObjectEditor
       selectedElement={props.selectedElement}
       currentSlide={props.currentSlide}
       onElementUpdate={props.onElementUpdate}
@@ -31,14 +32,14 @@ export const ResponsivePropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = 
 };
 
 // Legacy exports for backward compatibility - these are now no-ops
-export const useResponsivePropertiesPanel = () => ({
+export const useObjectEditorPanel = () => ({
   mode: 'unified',
   shouldUseMobileLayout: false,
   shouldUseDesktopFeatures: false,
   breakpoint: 'responsive'
 });
 
-export const PropertiesPanelModeSelector: React.FC<{
+export const ObjectEditorPanelModeSelector: React.FC<{
   currentMode: string;
   onModeChange: (mode: string) => void;
 }> = () => {
@@ -46,4 +47,4 @@ export const PropertiesPanelModeSelector: React.FC<{
   return null;
 };
 
-export default ResponsivePropertiesPanel;
+export default ObjectEditorPanel;

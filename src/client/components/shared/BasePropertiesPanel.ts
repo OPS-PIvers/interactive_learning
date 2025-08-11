@@ -57,9 +57,9 @@ export interface DesktopPropertiesPanelProps extends ExtendedPropertiesPanelProp
 }
 
 /**
- * Unified properties panel configuration
+ * Unified object editor panel configuration
  */
-export interface UnifiedPropertiesPanelProps extends ExtendedPropertiesPanelProps {
+export interface UnifiedObjectEditorProps extends ExtendedPropertiesPanelProps {
   /** Render mode for the properties panel */
   mode: 'mobile' | 'desktop' | 'auto';
   
@@ -119,7 +119,7 @@ export interface ElementEditingState {
 export type PanelSpecificProps<T extends 'mobile' | 'desktop' | 'unified'> = 
   T extends 'mobile' ? MobilePropertiesPanelProps :
   T extends 'desktop' ? DesktopPropertiesPanelProps :
-  T extends 'unified' ? UnifiedPropertiesPanelProps :
+  T extends 'unified' ? UnifiedObjectEditorProps :
   never;
 
 /**

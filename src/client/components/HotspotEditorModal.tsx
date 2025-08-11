@@ -321,7 +321,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
         {/* Modern Fixed-Size Modal */}
         <div
           className={`
-            fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} bg-black bg-opacity-50 flex items-center justify-center p-4
+            fixed inset-0 ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-black bg-opacity-50 flex items-center justify-center p-4
             transform transition-all duration-300 ease-out
             ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
           `}
@@ -329,8 +329,10 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           
           <div
             className={`
-              ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-gray-800 text-white rounded-lg shadow-2xl
+              ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-gray-800 text-white rounded-lg shadow-2xl
               w-full max-w-2xl h-[80vh] max-h-[600px] flex flex-col
+              sm:w-full sm:max-w-2xl sm:h-[80vh] sm:max-h-[600px]
+              max-sm:w-[95vw] max-sm:h-[90vh] max-sm:max-h-[90vh] max-sm:rounded-lg
               transform transition-all duration-300 ease-out
               ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}
             `}
@@ -597,22 +599,14 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
       {/* InteractionTypeSelector Modal - Render conditionally */}
       {selectedInteractionId === 'new' &&
-        <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} bg-black bg-opacity-50`} onClick={() => setSelectedInteractionId(null)}>
-          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${Z_INDEX_TAILWIND.MODAL_CONTENT}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.NESTED_MODAL} bg-black bg-opacity-50`} onClick={() => setSelectedInteractionId(null)}>
+          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${Z_INDEX_TAILWIND.NESTED_MODAL}`} onClick={(e) => e.stopPropagation()}>
             <InteractionTypeSelector
               onSelectType={handleInteractionTypeSelected}
               onClose={() => setSelectedInteractionId(null)} />
 
           </div>
         </div>
-        }
-      
-      {/* Backdrop overlay for closing when clicking outside */}
-      {isOpen && !isSettingsModalOpen && selectedInteractionId !== 'new' &&
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-25 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
-          onClick={editorActions.closeHotspotEditor} />
-
         }
       </>
     </DndProvider>);

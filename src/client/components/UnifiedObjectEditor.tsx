@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { hotspotSizePresets, HotspotSizePreset, getHotspotPixelDimensions } from '../../shared/hotspotStylePresets';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideElement, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
@@ -14,7 +13,7 @@ import { TextInteractionEditor } from './interactions/TextInteractionEditor';
 import { LiquidColorSelector } from './ui/LiquidColorSelector';
 
 // Unified interfaces without device-specific distinctions
-interface UnifiedPropertiesPanelProps {
+interface UnifiedObjectEditorProps {
   selectedElement: SlideElement;
   currentSlide?: InteractiveSlide;
   onElementUpdate: (elementId: string, updates: Partial<SlideElement>) => void;
@@ -103,7 +102,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 };
 
-const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
+const UnifiedObjectEditor: React.FC<UnifiedObjectEditorProps> = ({
   selectedElement,
   currentSlide,
   onElementUpdate,
@@ -256,14 +255,6 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
     }
   }, [selectedElement.id, selectedElement.interactions, onElementUpdate]);
 
-  const handleSizePresetSelect = useCallback((preset: HotspotSizePreset) => {
-    onElementUpdate(selectedElement.id, {
-      style: {
-        ...selectedElement.style,
-        size: preset.value
-      }
-    });
-  }, [onElementUpdate, selectedElement]);
 
   return (
     <div
@@ -319,99 +310,8 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
         
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 min-h-0">
-          {/* Hotspot Styles Section */}
-          {selectedElement.type === 'hotspot' &&
-          <CollapsibleSection
-            title="Hotspot Style"
-            isOpen={stylesOpen}
-            onToggle={() => setStylesOpen(!stylesOpen)}>
 
-              <div className="space-y-3">
-                {/* Size Presets */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Size Presets
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {hotspotSizePresets.map((preset) =>
-                  <button
-                    key={preset.name}
-                    onClick={(e) => {
-
-                      e.stopPropagation();
-                      handleSizePresetSelect(preset);
-                    }}
-                    className={`
-                          p-3 lg:p-2 text-sm lg:text-xs rounded border transition-all
-                          ${(() => {
-                      const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
-                      return elementPosition?.width === dimensions.width && elementPosition?.height === dimensions.height;
-                    })() ?
-                    'border-blue-500 bg-blue-500/20 text-blue-300' :
-                    'border-slate-600 bg-slate-700 text-slate-300 hover:border-slate-500'}
-                        `
-                    }>
-
-                        <div className="font-medium">{preset.name}</div>
-                        <div className="text-xs opacity-75">
-                          {(() => {
-                        const dimensions = getHotspotPixelDimensions(preset.value, deviceType === 'mobile');
-                        return `${dimensions.width}×${dimensions.height}`;
-                      })()}
-                        </div>
-                      </button>
-                  )}
-                  </div>
-                </div>
-
-                {/* Color Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Color
-                  </label>
-                  <LiquidColorSelector
-                  selectedColor={elementStyle.backgroundColor || '#3b82f6'}
-                  onColorChange={(color) => handleStyleChange({ backgroundColor: color })}
-                  size="medium" />
-
-                </div>
-
-                {/* Opacity */}
-                <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
-                    Opacity: {Math.round((elementStyle.opacity || 1) * 100)}%
-                  </label>
-                  <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={elementStyle.opacity || 1}
-                  onChange={(e) => handleStyleChange({ opacity: parseFloat(e.target.value) })}
-                  className="w-full accent-blue-500" />
-
-                </div>
-
-                {/* Border Radius */}
-                <div>
-                  <label className="block text-sm lg:text-xs font-medium text-slate-300 mb-2 lg:mb-1">
-                    Border Radius: {elementStyle.borderRadius || 8}px
-                  </label>
-                  <input
-                  type="range"
-                  min="0"
-                  max="50"
-                  value={elementStyle.borderRadius || 8}
-                  onChange={(e) => handleStyleChange({ borderRadius: parseInt(e.target.value) })}
-                  className="w-full accent-blue-500" />
-
-                </div>
-              </div>
-            </CollapsibleSection>
-          }
-
-          {/* Element Content Section - Only for non-hotspot elements */}
-          {selectedElement.type !== 'hotspot' &&
+          {/* Element Content Section */}
           <CollapsibleSection
             title="Content"
             isOpen={contentOpen}
@@ -447,7 +347,6 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                 </div>
               </div>
             </CollapsibleSection>
-          }
 
           {/* Interactions Section */}
           <CollapsibleSection
@@ -587,4 +486,4 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
 };
 
-export default UnifiedPropertiesPanel;
+export default UnifiedObjectEditor;

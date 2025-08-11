@@ -265,7 +265,48 @@
   cursor: grabbing !important;
 }
 
-/* Properties panel */
+/* Object Editor Panel */
+.object-editor-panel {
+  max-width: 320px;
+  min-width: 280px;
+}
+
+.object-editor-panel h3 {
+  @apply border-b border-slate-600 pb-2;
+}
+
+/* Mobile Object Editor Panel - collapsible bottom drawer */
+.object-editor-panel-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  max-height: 40vh;
+  transform: translateY(calc(100% - 60px)); /* Show only handle by default */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000; /* Properties panel level */
+}
+
+.object-editor-panel-mobile.expanded {
+  transform: translateY(0); /* Show full panel when expanded */
+}
+
+.object-editor-panel-mobile::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 2px;
+}
+
+/* Legacy properties panel compatibility */
 .properties-panel {
   max-width: 320px;
   min-width: 280px;

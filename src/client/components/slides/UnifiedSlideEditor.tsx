@@ -33,7 +33,7 @@ import { ResponsiveModal } from '../responsive/ResponsiveModal';
 import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
 import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
 import { ResponsiveCanvas } from './ResponsiveCanvas';
-import { ResponsivePropertiesPanel } from './ResponsivePropertiesPanel';
+import { ObjectEditorPanel } from './ObjectEditorPanel';
 // Mobile toolbar hooks removed - functionality moved to responsive design
 
 // Import responsive components and modals (to be created)
@@ -667,9 +667,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             </div>
           </div>
           
-          {/* Responsive Properties Panel (but not for hotspots) */}
+          {/* Object Editor Panel (but not for hotspots) */}
           {!state.navigation.isPreviewMode && selectedElement && selectedElement.type !== 'hotspot' && (
-            <ResponsivePropertiesPanel
+            <ObjectEditorPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide ?? null}
               onElementUpdate={handleElementUpdate}
@@ -699,8 +699,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             onInsertOpen={() => actions.openModal('insertModal')}
             onAspectRatioOpen={() => actions.openModal('aspectRatioModal')}
             onPropertiesOpen={() => {
-              // Toggle mobile properties panel expansion
-              const panel = document.querySelector('.properties-panel-mobile') as HTMLElement;
+              // Toggle mobile object editor panel expansion
+              const panel = document.querySelector('.object-editor-panel-mobile') as HTMLElement;
               if (panel) {
                 panel.classList.toggle('expanded');
               }
@@ -709,11 +709,11 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           }
         </div>
 
-        {/* Mobile Properties Panel - collapsible bottom drawer */}
+        {/* Mobile Object Editor Panel - collapsible bottom drawer */}
         {!state.navigation.isPreviewMode && selectedElement &&
-        <div className={`properties-panel-mobile md:hidden ${Z_INDEX_TAILWIND.PROPERTIES_PANEL}`}>
+        <div className={`object-editor-panel-mobile md:hidden ${Z_INDEX_TAILWIND.PROPERTIES_PANEL}`}>
           <div className="overflow-y-auto p-4 pt-8">
-            <ResponsivePropertiesPanel
+            <ObjectEditorPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide ?? null}
               onElementUpdate={handleElementUpdate}
