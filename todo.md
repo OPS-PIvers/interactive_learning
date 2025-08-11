@@ -7,7 +7,7 @@ Prevoiusly, wiht the properites panel when it had hotspot info, I could edit the
 
 ISSUE #2:
 As I expand from medium to large screen, the editor toolbar  disappears entirely as I pass the breakpoint to the large screen.  
-  ☐ Fix toolbar appearing at top on large-medium screen breakpoint
+  ☑ Fix toolbar disappearing on large screens
 
 ISSUE #3
 When i click a hotspot, the hotspot editor modal appears.  Then, when I click the interactions tab and choose "add interaction", the background dims, but no interaction options show up. I imagine there is a modal opening underneath the hotspot editor modal.
