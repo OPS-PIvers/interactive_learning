@@ -610,7 +610,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       {/* Backdrop overlay for closing when clicking outside */}
       {isOpen && !isSettingsModalOpen && selectedInteractionId !== 'new' &&
         <div
-          className="fixed inset-0 bg-black bg-opacity-25 z-40"
+          className={`fixed inset-0 bg-black bg-opacity-25 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
           onClick={editorActions.closeHotspotEditor} />
 
         }

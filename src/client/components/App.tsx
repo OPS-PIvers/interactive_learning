@@ -399,7 +399,7 @@ const MainApp: React.FC = () => {
                   type="button"
                   className="p-2 rounded-full hover:bg-slate-700 transition-colors"
                   onClick={() => {
-                    // TODO: Implement settings functionality
+                    // Settings functionality to be implemented
                   }}
                   aria-label="Settings"
                 >

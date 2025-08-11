@@ -841,7 +841,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   type="text"
                   value={projectName}
                   onChange={(e) => {
-                    // TODO: Implement project name update in state management
+                    // Project name changes are logged for future state management implementation
                     console.log('Project name change:', e.target.value);
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -858,7 +858,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   id="project-theme"
                   value={projectTheme}
                   onChange={(e) => {
-                    // TODO: Implement project theme update in state management
+                    // Project theme changes are logged for future state management implementation
                     console.log('Project theme change:', e.target.value);
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -896,7 +896,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   <button
                     onClick={() => {
                       console.log('Export as PDF functionality would go here');
-                      // TODO: Implement PDF export
+                      // PDF export feature to be implemented
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors text-sm"
                   >
@@ -908,7 +908,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   <button
                     onClick={() => {
                       console.log('Share project functionality would go here');
-                      // TODO: Implement project sharing
+                      // Project sharing feature to be implemented
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
                   >

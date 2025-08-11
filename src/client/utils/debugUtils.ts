@@ -11,7 +11,7 @@ try {
 export const debugLog = {
   log: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
-
+      console.log(message, ...args);
     }
   },
   warn: (message: string, ...args: unknown[]) => {
@@ -25,7 +25,7 @@ export const debugLog = {
   },
   info: (message: string, ...args: unknown[]) => {
     if (debugEnabled) {
-
+      console.info(message, ...args);
     }
   },
   // New method to control debug logging dynamically

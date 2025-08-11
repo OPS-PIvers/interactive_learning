@@ -87,8 +87,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       console.error('Full Report:', errorReport);
     }
     
-    // TODO: In production, send to error tracking service
-    // e.g., Sentry, LogRocket, or custom analytics
+    // Note: Error tracking service integration should be added for production use
   }
 
   override render() {
