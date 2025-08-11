@@ -82,7 +82,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
       setCopySuccess(`Module is now ${newPublishedStatus ? 'published' : 'private'}`);
     } catch (error) {
       console.error('Failed to update published status:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error?.message ?? 'Unknown error' : 'Unknown error';
       
       // Provide specific error messages based on error type
       if (errorMessage.includes('permission')) {

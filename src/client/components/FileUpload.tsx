@@ -79,8 +79,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
     event.preventDefault();
     event.stopPropagation();
     setDragOver(false);
-    if (event.dataTransfer.files && event.dataTransfer.files[0]) {
-      const file = event.dataTransfer.files[0];
+
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
       if (validateFileType(file)) {
         onFileUpload(file);
       } else {

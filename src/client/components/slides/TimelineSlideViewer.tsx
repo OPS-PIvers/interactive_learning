@@ -318,7 +318,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         <SlideViewer
           ref={slideViewerRef}
           slideDeck={slideDeck}
-          {...slideDeck?.slides?.[currentSlideIndex]?.id && { initialSlideId: slideDeck.slides[currentSlideIndex].id }}
+            {...(slideDeck?.slides?.[currentSlideIndex]?.id && { initialSlideId: slideDeck?.slides?.[currentSlideIndex]?.id })}
           onSlideChange={handleSlideViewerChange}
           onInteraction={onInteraction || (() => {})}
           className="h-full"

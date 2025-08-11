@@ -264,7 +264,7 @@ function convertHotspotToSlideElement(
     type: 'hotspot',
     position: createResponsivePosition(hotspot, options),
     style: {
-      backgroundColor: hotspot.color || hotspot.backgroundColor || '#3b82f6',
+      backgroundColor: hotspot?.color || hotspot?.backgroundColor || '#3b82f6',
       borderRadius: 9999, // A large number to ensure it's a circle
       zIndex: 10, // SLIDE_CONTENT level from Z_INDEX hierarchy
     },
