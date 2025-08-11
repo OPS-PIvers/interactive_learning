@@ -138,6 +138,29 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     }
   }, [state.hotspotEditor.isOpen, state.hotspotEditor.selectedHotspotId, currentSlide, computed.effectiveDeviceType]);
   
+  // NEW LOGIC: When a hotspot element is selected, open the HotspotEditorModal.
+  // When it's deselected or another element type is selected, ensure the modal is closed.
+  useEffect(() => {
+    if (selectedElement && selectedElement.type === 'hotspot') {
+      if (!state.hotspotEditor.isOpen || state.hotspotEditor.selectedHotspotId !== selectedElement.id) {
+        actions.openHotspotEditor(selectedElement.id);
+      }
+    } else {
+      if (state.hotspotEditor.isOpen) {
+        actions.closeHotspotEditor();
+      }
+    }
+  }, [selectedElement, state.hotspotEditor, actions]);
+
+  // Create a wrapper for editor actions to enhance close functionality
+  const hotspotEditorActions = {
+    ...actions,
+    closeHotspotEditor: () => {
+      actions.closeHotspotEditor();
+      actions.exitEditMode(); // Also deselect the element
+    },
+  };
+
   // Handle slide deck updates
   const handleSlideDeckUpdate = useCallback((updatedSlideDeck: SlideDeck) => {
     console.log('🔄 handleSlideDeckUpdate called with:', {
@@ -662,8 +685,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             )}
           </div>
           
-          {/* Responsive Properties Panel */}
-          {!state.navigation.isPreviewMode && selectedElement && (
+          {/* Responsive Properties Panel (but not for hotspots) */}
+          {!state.navigation.isPreviewMode && selectedElement && selectedElement.type !== 'hotspot' && (
             <ResponsivePropertiesPanel
               selectedElement={selectedElement}
               currentSlide={currentSlide ?? null}
@@ -722,7 +745,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         {state.hotspotEditor.isOpen && hotspotEditorData && (
           <HotspotEditorModal
             editorState={state}
-            editorActions={actions}
+            editorActions={hotspotEditorActions}
             selectedHotspot={hotspotEditorData.selectedHotspot}
             relatedEvents={hotspotEditorData.relatedEvents}
             currentStep={1}
