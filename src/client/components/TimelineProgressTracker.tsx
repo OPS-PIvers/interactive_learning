@@ -97,9 +97,10 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
 
       // Mark interaction as completed
       if (currentStep.interactionId) {
+        const interactionId = currentStep.interactionId;
         setProgress(prev => ({
           ...prev,
-          completedInteractions: new Set([...prev.completedInteractions, currentStep.interactionId!])
+          completedInteractions: new Set([...prev.completedInteractions, interactionId])
         }));
       }
 
@@ -238,7 +239,7 @@ const TimelineProgressTracker: React.FC<TimelineProgressTrackerProps> = ({
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {timelineSteps.map((step, index) => (
             <button
-              key={`timeline-step-${index}-${step.elementId || index}`}
+              key={`${step.slideIndex}-${step.elementId || 'slide'}-${step.interactionId || 'entry'}-${index}`}
               onClick={() => handleStepSelect(index)}
               className={`flex-shrink-0 w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 border-2 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                 index === progress.currentStep

@@ -1,6 +1,6 @@
+import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideEffect, SlideElement, SlideDeck } from '../../shared/slideTypes';
 import { TimelineEventData } from '../../shared/type-defs';
-import { InteractionType } from '../../shared/InteractionPresets';
 import { generateId } from './generateId';
 
 /**

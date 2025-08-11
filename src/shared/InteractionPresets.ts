@@ -1,5 +1,7 @@
 // src/shared/InteractionPresets.ts - CANONICAL INTERACTION TYPES ONLY
 // Clean implementation with 7 canonical types
+import { TimelineEventData } from './type-defs';
+
 export enum InteractionType {
   TEXT = 'text',
   TOOLTIP = 'tooltip', 
@@ -12,8 +14,6 @@ export enum InteractionType {
 
 // Default export for maximum compatibility
 export default InteractionType;
-
-import { TimelineEventData } from './type-defs';
 
 export interface InteractionPreset {
   icon: string;

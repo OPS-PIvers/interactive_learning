@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ElementInteraction } from '../../../shared/slideTypes';
-import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
 import { createTestDemoSlideDeck } from '../../../shared/testDemoSlideDeck';
-import { SlideViewer } from './SlideViewer';
 import { Z_INDEX } from '../../utils/zIndexLevels';
+import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
+import { SlideViewer } from './SlideViewer';
 import '../../styles/slide-components.css';
 
 /**

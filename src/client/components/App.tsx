@@ -10,11 +10,11 @@ import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import AuthButton from './AuthButton';
 import { AuthModal } from './AuthModal';
+import EditorTestPage from './EditorTestPage';
 import HookErrorBoundary from './HookErrorBoundary';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import MigrationTestPage from './MigrationTestPage';
-import EditorTestPage from './EditorTestPage';
 import ProjectCard from './ProjectCard';
 import SharedModuleViewer from './SharedModuleViewer';
 import SlideBasedTestPage from './SlideBasedTestPage';
@@ -33,7 +33,7 @@ const LoadingScreen: React.FC = () => (
 
 // Main App Component for authenticated users
 const MainApp: React.FC = () => {
-  const { user, loading, logout } = useAuth()!;
+  const { user, loading, logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);

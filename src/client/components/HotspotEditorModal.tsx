@@ -10,8 +10,6 @@ import { UnifiedEditorState, EditorStateActions } from '../hooks/useUnifiedEdito
 import { getNextTimelineStep, moveEventUp, moveEventDown, getSortedEvents, canMoveUp, canMoveDown } from '../utils/timelineUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import EditableEventCard from './EditableEventCard';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
@@ -541,7 +539,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                 <div className="text-center text-gray-400 py-8">
                                   No interactions for this hotspot.
                                   <br />
-                                  Click "Add Interaction" to create one.
+                                  Click &quot;Add Interaction&quot; to create one.
                                 </div>
                               ) : (
                                 <div className="space-y-2">

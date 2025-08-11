@@ -143,6 +143,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const [timelineSteps, setTimelineSteps] = useState<TimelineStep[]>([]);
   const timelineRef = useRef<HTMLDivElement>(null);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const prevIsPlaying = useRef(autoPlay);
   
   // Generate timeline steps from slide interactions
   const generateTimelineSteps = useCallback(() => {
@@ -242,14 +243,15 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   
   // Trigger current step effect when play starts
   useEffect(() => {
-    if (isPlaying && timelineSteps.length > 0) {
+    if (isPlaying && !prevIsPlaying.current && timelineSteps.length > 0) {
       const currentStep = timelineSteps[currentStepIndex];
       if (currentStep) {
         // Use handleStepChange to ensure consistent behavior
         handleStepChange(currentStepIndex);
       }
     }
-  }, [isPlaying]); // Only trigger when play state changes
+    prevIsPlaying.current = isPlaying;
+  }, [isPlaying, currentStepIndex, timelineSteps, handleStepChange]);
   
   // Playback controls
   const handlePlay = useCallback(() => {

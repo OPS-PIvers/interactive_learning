@@ -3,9 +3,9 @@
  * Week 3 Cross-Platform Testing - Performance validation
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, act, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ViewerFooterToolbar from '../../client/components/ViewerFooterToolbar';
 
 // Performance testing utilities

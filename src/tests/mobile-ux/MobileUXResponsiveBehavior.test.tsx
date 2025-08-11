@@ -3,9 +3,9 @@
  * Week 3 Cross-Platform Testing - Automated validation
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ViewerFooterToolbar from '../../client/components/ViewerFooterToolbar';
 
 // Mock hooks and utilities

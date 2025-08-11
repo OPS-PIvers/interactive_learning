@@ -167,7 +167,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
           onTouchEnd={handleTouchEnd}
         >
           {/* Mobile drag handle - only visible on mobile */}
-          <div className="block md:hidden drag-handle"></div>
+          <div className="block md:hidden drag-handle" />
           
           {/* Modal Header */}
           <div className="flex items-center justify-between p-4 border-b border-slate-700">
