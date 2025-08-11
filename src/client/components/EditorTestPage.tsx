@@ -1,10 +1,20 @@
 import React, { useState, useCallback } from 'react';
-import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
-import { InteractiveModuleState } from '../../shared/types';
+import { SlideDeck } from '../../shared/slideTypes';
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
-import { UnifiedSlideEditor } from './slides/UnifiedSlideEditor';
-import { SlideViewer } from './slides/SlideViewer';
+import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
+import { SlideViewer } from './slides/SlideViewer';
+import { UnifiedSlideEditor } from './slides/UnifiedSlideEditor';
+
+interface InteractionLog {
+  timestamp: number;
+  slideId: string;
+  elementId: string;
+  interactionType: string;
+  details: {
+    interactionId: string;
+  };
+}
 
 /**
  * Editor Test Page Component
@@ -49,28 +59,28 @@ export const EditorTestPage: React.FC = () => {
 
   const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
     setSlideDeck(newSlideDeck);
-    console.log('📱 Mobile Test: Slide deck updated', newSlideDeck);
+    console.warn('📱 Mobile Test: Slide deck updated', newSlideDeck);
   }, []);
 
   const handleSave = useCallback(async (currentSlideDeck: SlideDeck) => {
-    console.log('📱 Mobile Test: Save requested', currentSlideDeck);
+    console.warn('📱 Mobile Test: Save requested', currentSlideDeck);
     setSlideDeck(currentSlideDeck);
     // Mock save - no actual Firebase calls
     return Promise.resolve();
   }, []);
 
   const handleImageUpload = useCallback(async (file: File) => {
-    console.log('📱 Mobile Test: Image upload requested', file.name);
+    console.warn('📱 Mobile Test: Image upload requested', file.name);
     // Mock upload - return a placeholder URL
     return Promise.resolve();
   }, []);
 
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
-    console.log('📱 Mobile Test: Slide changed', { slideId, slideIndex });
+    console.warn('📱 Mobile Test: Slide changed', { slideId, slideIndex });
   }, []);
 
-  const handleInteraction = useCallback((interaction: any) => {
-    console.log('📱 Mobile Test: Interaction triggered', interaction);
+  const handleInteraction = useCallback((interaction: InteractionLog) => {
+    console.warn('📱 Mobile Test: Interaction triggered', interaction);
     
     // Visual feedback
     const notification = document.createElement('div');
@@ -159,7 +169,7 @@ export const EditorTestPage: React.FC = () => {
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
             <span className="text-slate-400">Device:</span> 
-            <span className="debug-device-type ml-1"></span>
+            <span className="debug-device-type ml-1" />
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
             <span className="text-slate-400">Touch:</span> {debugInfo.touchSupport}

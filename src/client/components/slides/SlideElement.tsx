@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
-import { handleTouchInteraction, isMobileViewport } from '../../utils/touchFeedback';
 import { TOUCH_TARGET } from '../../utils/styleConstants';
+import { handleTouchInteraction, isMobileViewport } from '../../utils/touchFeedback';
 
 interface SlideElementProps {
   element: SlideElementType;

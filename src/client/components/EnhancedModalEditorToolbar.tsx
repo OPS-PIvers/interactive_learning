@@ -607,8 +607,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                         Preview
                       </label>
                       <div className="flex gap-2">
-                        {COLOR_SCHEMES.find(s => s.name === currentColorScheme)?.colors.map((color, i) => (
-                          <div key={`color-${color}-${i}`} className={`w-8 h-8 rounded-lg ${color} border-2 border-slate-300 dark:border-slate-600`} />
+                        {COLOR_SCHEMES.find(s => s.name === currentColorScheme)?.colors.map((color) => (
+                          <div key={color} className={`w-8 h-8 rounded-lg ${color} border-2 border-slate-300 dark:border-slate-600`} />
                         ))}
                       </div>
                     </div>

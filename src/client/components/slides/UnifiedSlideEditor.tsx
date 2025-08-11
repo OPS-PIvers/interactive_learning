@@ -32,8 +32,8 @@ import { ResponsiveInsertModal } from '../responsive/ResponsiveInsertModal';
 import { ResponsiveModal } from '../responsive/ResponsiveModal';
 import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
 import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
-import { ResponsiveCanvas } from './ResponsiveCanvas';
 import { ObjectEditorPanel } from './ObjectEditorPanel';
+import { ResponsiveCanvas } from './ResponsiveCanvas';
 // Mobile toolbar hooks removed - functionality moved to responsive design
 
 // Import responsive components and modals (to be created)

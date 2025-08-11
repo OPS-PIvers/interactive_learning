@@ -1,16 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
-import { SlideElement, ElementInteraction, ElementStyle, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
+import { SlideElement, ElementInteraction, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { BREAKPOINTS } from '../utils/styleConstants';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import { AudioInteractionEditor } from './interactions/AudioInteractionEditor';
 import InteractionEditor from './interactions/InteractionEditor';
 import InteractionsList from './interactions/InteractionsList';
 import { QuizInteractionEditor } from './interactions/QuizInteractionEditor';
 import { TextInteractionEditor } from './interactions/TextInteractionEditor';
-import { LiquidColorSelector } from './ui/LiquidColorSelector';
 
 // Unified interfaces without device-specific distinctions
 interface UnifiedObjectEditorProps {
@@ -104,18 +102,13 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 const UnifiedObjectEditor: React.FC<UnifiedObjectEditorProps> = ({
   selectedElement,
-  currentSlide,
   onElementUpdate,
-  onSlideUpdate,
   onDelete,
   onClose,
   className = '',
-  style = {},
-  mode = 'auto' // Default to auto mode
+  style = {}
 }) => {
   // Section state management - mobile starts with all collapsed to save space
-  const isMobileMode = mode === 'mobile' || (mode === 'auto' && window.innerWidth <= BREAKPOINTS.MOBILE_MAX);
-  const [stylesOpen, setStylesOpen] = useState(!isMobileMode);
   const [contentOpen, setContentOpen] = useState(false);
   const [interactionsOpen, setInteractionsOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<ElementInteraction | null>(null);
@@ -123,22 +116,14 @@ const UnifiedObjectEditor: React.FC<UnifiedObjectEditorProps> = ({
   const [isEditingParameters, setIsEditingParameters] = useState(false);
 
   // Get device type for responsive calculations
-  const { deviceType } = useDeviceDetection();
+  const { deviceType: _deviceType } = useDeviceDetection();
 
   // Reset parameter editing when interaction selection changes
   useEffect(() => {
     setIsEditingParameters(false);
   }, [selectedInteractionId]);
 
-  const elementStyle = useMemo(() => selectedElement.style || {}, [selectedElement.style]);
   const elementContent = useMemo(() => selectedElement.content || {}, [selectedElement.content]);
-  const elementPosition = selectedElement.position?.[deviceType] || selectedElement.position?.desktop || {};
-
-  const handleStyleChange = useCallback((updates: Partial<ElementStyle>) => {
-    onElementUpdate(selectedElement.id, {
-      style: { ...elementStyle, ...updates }
-    });
-  }, [selectedElement.id, elementStyle, onElementUpdate]);
 
   const handleContentChange = useCallback((updates: Partial<ElementContent>) => {
     onElementUpdate(selectedElement.id, {

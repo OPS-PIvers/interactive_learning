@@ -223,7 +223,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     }
 
     onInteraction?.(interactionLog);
-  }, [currentSlide, triggerEffect, navigateToSlide, onInteraction]);
+  }, [currentSlide, triggerEffect, onInteraction]);
 
   // Timeline step change handler
   const handleTimelineStepChange = useCallback((stepIndex: number) => {

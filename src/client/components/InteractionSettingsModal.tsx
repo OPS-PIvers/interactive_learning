@@ -544,7 +544,7 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
                 <label className={labelClasses}>Options</label>
                 <div className="space-y-2">
                     {(event.quizOptions || []).map((option, index) => (
-                        <div key={`quiz-option-${index}-${option.length}-${option.charAt(0) || 'empty'}-${option.slice(-3)}`} className="flex items-center space-x-2">
+                        <div key={`${option}-${index}`} className="flex items-center space-x-2">
                             <input
                                 type="radio"
                                 name="correctAnswer"
@@ -683,8 +683,8 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
             <h3 className="text-sm font-semibold text-red-300 mb-2">Please fix the following errors:</h3>
             <ul className="text-xs text-red-200 space-y-1">
-              {validationErrors.map((error, index) => (
-                <li key={`error-${error.field}-${index}`}>• {error.message}</li>
+              {validationErrors.map((error) => (
+                <li key={error.field + error.message}>• {error.message}</li>
               ))}
             </ul>
           </div>
