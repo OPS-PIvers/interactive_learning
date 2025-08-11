@@ -97,7 +97,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const eventIdCounter = useRef(0);
   const _timestampCounter = useRef(0);
 
-  const { isOpen, isCollapsed } = editorState.hotspotEditor;
+  const { isOpen } = editorState.hotspotEditor;
   const { isOpen: isSettingsModalOpen, editingEventId } = editorState.interactionEditor;
 
   // Local state for the hotspot being edited
@@ -110,7 +110,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
   // Legacy state (will be removed)
   const [showEventTypeSelector, setShowEventTypeSelector] = useState(false);
-  const [_isHotspotSettingsCollapsed, _setIsHotspotSettingsCollapsed] = useState(false);
   const eventTypeSelectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -319,35 +318,25 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <>
+        {/* Modern Fixed-Size Modal */}
         <div
           className={`
-            fixed top-0 right-0 ${Z_INDEX_TAILWIND.MODAL_CONTENT} h-screen
-            bg-gray-800 text-white shadow-2xl border-l border-gray-700
+            fixed inset-0 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} bg-black bg-opacity-50 flex items-center justify-center p-4
             transform transition-all duration-300 ease-out
-            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-            ${isCollapsed ? 'w-0' : 'w-full md:w-96'}
+            ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
           `}
-          style={{
-            visibility: isOpen ? 'visible' : 'hidden',
-            willChange: 'transform, width',
-            overflow: 'visible' // Allow arrow to be visible outside the collapsed area
-          }}>
-
-        {/* Collapse/Expand Arrow - Always visible */}
-        <button
-            onClick={editorActions.toggleHotspotEditorCollapse}
-            className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full ${Z_INDEX_TAILWIND.MODAL_CONTENT_FLOATING_CONTROL} bg-gray-800 text-white p-2 rounded-l-md border-l border-t border-b border-gray-700 hover:bg-gray-700 transition-colors`}
-            aria-label={isCollapsed ? "Expand hotspot editor" : "Collapse hotspot editor"}>
-
-          {isCollapsed ?
-            <ChevronLeftIcon className="w-4 h-4" /> :
-
-            <ChevronRightIcon className="w-4 h-4" />
-            }
-        </button>
-
-        <div className="w-full h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
-          {!isCollapsed &&
+          onClick={editorActions.closeHotspotEditor}>
+          
+          <div
+            className={`
+              ${Z_INDEX_TAILWIND.MODAL_CONTENT} bg-gray-800 text-white rounded-lg shadow-2xl
+              w-full max-w-2xl h-[80vh] max-h-[600px] flex flex-col
+              transform transition-all duration-300 ease-out
+              ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}
+            `}
+            onClick={(e) => e.stopPropagation()}>
+            
+            {/* Modal Header */}
             <HotspotEditorToolbar
               title={localHotspot.title || `Edit Hotspot`}
               onTitleChange={(title) => setLocalHotspot((prev) => prev ? { ...prev, title } : null)}
@@ -358,45 +347,34 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                   editorActions.closeHotspotEditor();
                 }
               }}
-              onClose={editorActions.closeHotspotEditor} />
-
-            }
-          
-          {/* Collapsed State UI - Only arrow tab visible */}
-          {isCollapsed &&
-            <div className="w-0 h-full">
-              {/* Empty - only the arrow tab should be visible */}
-            </div>
-            }
-          
-          {/* Full State UI - New Tabbed Interface */}
-          {!isCollapsed &&
+              onClose={editorActions.closeHotspotEditor}
+            />
+            
+            {/* Modal Content - Tabbed Interface */}
             <div className="flex-grow flex flex-col overflow-hidden">
               <TabContainer
                 defaultActiveTab={activeTab}
                 onTabChange={setActiveTab}
                 tabs={[
-                {
-                  id: 'hotspot',
-                  label: 'Hotspot',
-                  content:
-                  <div className="p-3">
+                  {
+                    id: 'hotspot',
+                    label: 'Hotspot',
+                    content: (
+                      <div className="p-4 overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                           <label htmlFor="display-hotspot-toggle" className="text-sm text-gray-300">
                             Display hotspot during event
                           </label>
                           <div
-                        onClick={() =>
-                        setLocalHotspot((prev) => prev ? { ...prev, displayHotspotInEvent: !prev.displayHotspotInEvent } : null)
-                        }
-                        id="display-hotspot-toggle"
-                        className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
-                                        ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}>
-
+                            onClick={() =>
+                              setLocalHotspot((prev) => prev ? { ...prev, displayHotspotInEvent: !prev.displayHotspotInEvent } : null)
+                            }
+                            id="display-hotspot-toggle"
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
+                              ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}>
                             <span
-                          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
-                                          ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`} />
-
+                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`} />
                           </div>
                         </div>
 
@@ -404,26 +382,24 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                         <div className="mb-4">
                           <label className="text-sm text-gray-300 mb-2 block">Style Presets</label>
                           <div className="grid grid-cols-2 gap-2 mb-3">
-                            {hotspotStylePresets.map((preset) =>
-                        <button
-                          key={preset.name}
-                          onClick={() => {
-                            if (localHotspot) {
-                              const updatedHotspot = applyStylePreset(localHotspot, preset);
-                              setLocalHotspot(updatedHotspot);
-                              onUpdateHotspot(updatedHotspot);
-                            }
-                          }}
-                          className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
-                          title={preset.description}>
-
+                            {hotspotStylePresets.map((preset) => (
+                              <button
+                                key={preset.name}
+                                onClick={() => {
+                                  if (localHotspot) {
+                                    const updatedHotspot = applyStylePreset(localHotspot, preset);
+                                    setLocalHotspot(updatedHotspot);
+                                    onUpdateHotspot(updatedHotspot);
+                                  }
+                                }}
+                                className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
+                                title={preset.description}>
                                 <div
-                            className="w-3 h-3 rounded-full border border-gray-400"
-                            style={{ backgroundColor: preset.style.color }} />
-
+                                  className="w-3 h-3 rounded-full border border-gray-400"
+                                  style={{ backgroundColor: preset.style.color }} />
                                 {preset.name}
                               </button>
-                        )}
+                            ))}
                           </div>
                         </div>
 
@@ -431,24 +407,23 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                         <div className="mb-4">
                           <label className="text-sm text-gray-300 mb-2 block">Size</label>
                           <div className="grid grid-cols-2 gap-2 mb-3">
-                            {hotspotSizePresets.map((sizePreset) =>
-                        <button
-                          key={sizePreset.value}
-                          onClick={() => {
-                            if (localHotspot) {
-                              setLocalHotspot((prev) => prev ? { ...prev, size: sizePreset.value } : null);
-                            }
-                          }}
-                          className={`px-3 py-2 rounded text-xs transition-colors ${
-                          localHotspot?.size === sizePreset.value ?
-                          'bg-purple-600 text-white' :
-                          'bg-gray-600 text-white hover:bg-gray-500'}`
-                          }
-                          title={sizePreset.description}>
-
+                            {hotspotSizePresets.map((sizePreset) => (
+                              <button
+                                key={sizePreset.value}
+                                onClick={() => {
+                                  if (localHotspot) {
+                                    setLocalHotspot((prev) => prev ? { ...prev, size: sizePreset.value } : null);
+                                  }
+                                }}
+                                className={`px-3 py-2 rounded text-xs transition-colors ${
+                                  localHotspot?.size === sizePreset.value ?
+                                  'bg-purple-600 text-white' :
+                                  'bg-gray-600 text-white hover:bg-gray-500'}`
+                                }
+                                title={sizePreset.description}>
                                 {sizePreset.name}
                               </button>
-                        )}
+                            ))}
                           </div>
                         </div>
 
@@ -458,146 +433,140 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                             Pulse Animation
                           </label>
                           <button
-                        type="button"
-                        role="switch"
-                        aria-checked={!!localHotspot.pulseAnimation}
-                        onClick={() =>
-                        setLocalHotspot((prev) => {
-                          if (!prev) return null;
-                          const newPulseAnimation = !prev.pulseAnimation;
-                          return {
-                            ...prev,
-                            pulseAnimation: newPulseAnimation,
-                            ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const })
-                          };
-                        })
-                        }
-                        id="pulse-animation-toggle"
-                        className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
-                                        ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}>
-
+                            type="button"
+                            role="switch"
+                            aria-checked={!!localHotspot.pulseAnimation}
+                            onClick={() =>
+                              setLocalHotspot((prev) => {
+                                if (!prev) return null;
+                                const newPulseAnimation = !prev.pulseAnimation;
+                                return {
+                                  ...prev,
+                                  pulseAnimation: newPulseAnimation,
+                                  ...(newPulseAnimation && !prev.pulseType && { pulseType: 'loop' as const })
+                                };
+                              })
+                            }
+                            id="pulse-animation-toggle"
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
+                              ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}>
                             <span
-                          className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
-                                          ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`} />
-
+                              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
+                                ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                         
                         {/* Pulse Type Radio Buttons */}
-                        {localHotspot.pulseAnimation &&
-                    <div className="mb-4">
+                        {localHotspot.pulseAnimation && (
+                          <div className="mb-4">
                             <label className="text-sm text-gray-300">Pulse Type</label>
                             <div className="flex items-center mt-2">
                               <input
-                          type="radio"
-                          id="pulse-loop"
-                          name="pulseType"
-                          value="loop"
-                          checked={localHotspot.pulseType === 'loop'}
-                          onChange={() =>
-                          setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'loop' } : null)
-                          }
-                          className="mr-2" />
-
+                                type="radio"
+                                id="pulse-loop"
+                                name="pulseType"
+                                value="loop"
+                                checked={localHotspot.pulseType === 'loop'}
+                                onChange={() =>
+                                  setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'loop' } : null)
+                                }
+                                className="mr-2" />
                               <label htmlFor="pulse-loop" className="text-sm text-gray-300">Loop</label>
                               <input
-                          type="radio"
-                          id="pulse-timed"
-                          name="pulseType"
-                          value="timed"
-                          checked={localHotspot.pulseType === 'timed'}
-                          onChange={() =>
-                          setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'timed' } : null)
-                          }
-                          className="ml-4 mr-2" />
-
+                                type="radio"
+                                id="pulse-timed"
+                                name="pulseType"
+                                value="timed"
+                                checked={localHotspot.pulseType === 'timed'}
+                                onChange={() =>
+                                  setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'timed' } : null)
+                                }
+                                className="ml-4 mr-2" />
                               <label htmlFor="pulse-timed" className="text-sm text-gray-300">Timed</label>
                             </div>
                           </div>
-                    }
+                        )}
                         
                         {/* Pulse Duration Input */}
-                        {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' &&
-                    <div className="mb-4">
+                        {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' && (
+                          <div className="mb-4">
                             <label htmlFor="pulse-duration" className="text-sm text-gray-300">
                               Pulse Duration (seconds)
                             </label>
                             <input
-                        type="number"
-                        id="pulse-duration"
-                        value={localHotspot.pulseDuration ?? ''}
-                        onChange={(e) => {
-                          const newDuration = parseFloat(e.target.value);
-                          setLocalHotspot((prev) => {
-                            if (!prev) return null;
-                            const updatedHotspot = { ...prev };
-                            if (isNaN(newDuration)) {
-                              delete updatedHotspot.pulseDuration;
-                            } else {
-                              updatedHotspot.pulseDuration = newDuration;
-                            }
-                            return updatedHotspot;
-                          });
-                        }}
-                        className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
-                        min="0"
-                        step="0.1"
-                        placeholder="Enter duration in seconds" />
-
+                              type="number"
+                              id="pulse-duration"
+                              value={localHotspot.pulseDuration ?? ''}
+                              onChange={(e) => {
+                                const newDuration = parseFloat(e.target.value);
+                                setLocalHotspot((prev) => {
+                                  if (!prev) return null;
+                                  const updatedHotspot = { ...prev };
+                                  if (isNaN(newDuration)) {
+                                    delete updatedHotspot.pulseDuration;
+                                  } else {
+                                    updatedHotspot.pulseDuration = newDuration;
+                                  }
+                                  return updatedHotspot;
+                                });
+                              }}
+                              className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
+                              min="0"
+                              step="0.1"
+                              placeholder="Enter duration in seconds" />
                           </div>
-                    }
+                        )}
                       </div>
-
-                },
-                {
-                  id: 'interactions',
-                  label: 'Interactions',
-                  content:
-                  <div className="p-3 flex flex-col h-full">
+                    )
+                  },
+                  {
+                    id: 'interactions',
+                    label: 'Interactions',
+                    content: (
+                      <div className="p-4 flex flex-col h-full">
                         <div className="mb-4">
                           <AddInteractionButton onClick={handleAddInteraction} />
                         </div>
                         
                         <div className="flex-grow overflow-y-auto">
-                          {localHotspotEvents?.length === 0 ?
-                      <div className="text-center text-gray-400 py-8">
+                          {localHotspotEvents?.length === 0 ? (
+                            <div className="text-center text-gray-400 py-8">
                               No interactions for this hotspot.
                               <br />
-                              Click &ldquo;Add Interaction&rdquo; to create one.
-                            </div> :
-
-                      <div className="space-y-2">
-                              {getSortedEvents(localHotspotEvents).map((event, index) =>
-                        <EditableEventCard
-                          key={event.id}
-                          index={index}
-                          event={event}
-                          onUpdate={handleEventUpdate}
-                          onDelete={handleEventDelete}
-                          moveCard={() => {}}
-                          onTogglePreview={() => handleTogglePreview(event.id)}
-                          onEdit={() => editorActions.openInteractionEditor(event.id)}
-                          isPreviewing={previewingEventIds.includes(event.id)}
-                          allHotspots={allHotspots}
-                          onMoveUp={handleMoveEventUp}
-                          onMoveDown={handleMoveEventDown}
-                          canMoveUp={canMoveUp(event.id, localHotspotEvents)}
-                          canMoveDown={canMoveDown(event.id, localHotspotEvents)} />
-
-                        )}
+                              Click "Add Interaction" to create one.
                             </div>
-                      }
+                          ) : (
+                            <div className="space-y-2">
+                              {getSortedEvents(localHotspotEvents).map((event, index) => (
+                                <EditableEventCard
+                                  key={event.id}
+                                  index={index}
+                                  event={event}
+                                  onUpdate={handleEventUpdate}
+                                  onDelete={handleEventDelete}
+                                  moveCard={() => {}}
+                                  onTogglePreview={() => handleTogglePreview(event.id)}
+                                  onEdit={() => editorActions.openInteractionEditor(event.id)}
+                                  isPreviewing={previewingEventIds.includes(event.id)}
+                                  allHotspots={allHotspots}
+                                  onMoveUp={handleMoveEventUp}
+                                  onMoveDown={handleMoveEventDown}
+                                  canMoveUp={canMoveUp(event.id, localHotspotEvents)}
+                                  canMoveDown={canMoveDown(event.id, localHotspotEvents)} />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                },
-                {
-                  id: 'properties',
-                  label: 'Properties',
-                  content:
-                  <div className="p-3">
-                        {editingEventId ?
-                    <div className="text-gray-300">
+                    )
+                  },
+                  {
+                    id: 'properties',
+                    label: 'Properties',
+                    content: (
+                      <div className="p-4">
+                        {editingEventId ? (
+                          <div className="text-gray-300">
                             <h3 className="text-lg font-semibold mb-4">Event Properties</h3>
                             <p className="text-sm text-gray-400 mb-4">
                               Editing properties for event: {relatedEvents.find((e) => e.id === editingEventId)?.name || 'Unknown'}
@@ -606,21 +575,20 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                             <div className="bg-gray-700 p-4 rounded-lg">
                               <p className="text-sm">Properties editor integration coming soon...</p>
                             </div>
-                          </div> :
-
-                    <div className="text-center text-gray-400 py-8">
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-400 py-8">
                             Select an interaction from the Interactions tab to edit its properties.
                           </div>
-                    }
+                        )}
                       </div>
-
-                }]
-                } />
-
+                    )
+                  }
+                ]}
+              />
             </div>
-            }
+          </div>
         </div>
-      </div>
       <InteractionSettingsModal
           isOpen={isSettingsModalOpen}
           event={relatedEvents.find((e) => e.id === editingEventId) || null}

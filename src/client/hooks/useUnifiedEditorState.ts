@@ -35,7 +35,6 @@ export interface ElementEditingState {
 export interface HotspotEditorState {
   isOpen: boolean;
   selectedHotspotId: string | null;
-  isCollapsed: boolean;
 }
 
 /**
@@ -105,7 +104,6 @@ export interface EditorStateActions {
   // Hotspot editor actions
   openHotspotEditor: (hotspotId: string) => void;
   closeHotspotEditor: () => void;
-  toggleHotspotEditorCollapse: () => void;
   
   // Interaction editor actions
   openInteractionEditor: (eventId: string) => void;
@@ -163,7 +161,6 @@ const createDefaultElementEditingState = (): ElementEditingState => ({
 const createDefaultHotspotEditorState = (): HotspotEditorState => ({
   isOpen: false,
   selectedHotspotId: null,
-  isCollapsed: false,
 });
 
 const createDefaultInteractionEditorState = (): InteractionEditorState => ({
@@ -283,9 +280,6 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     setUI(prev => ({ ...prev, hotspotEditorModal: false }));
   }, []);
   
-  const toggleHotspotEditorCollapse = useCallback(() => {
-    setHotspotEditor(prev => ({ ...prev, isCollapsed: !prev.isCollapsed }));
-  }, []);
 
   // Interaction editor actions
   const openInteractionEditor = useCallback((eventId: string) => {
@@ -444,7 +438,6 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       setTransforming,
       openHotspotEditor,
       closeHotspotEditor,
-      toggleHotspotEditorCollapse,
       openInteractionEditor,
       closeInteractionEditor,
       openModal,
