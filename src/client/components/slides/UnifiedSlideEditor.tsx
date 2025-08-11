@@ -683,10 +683,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                 handleSlideUpdate(updatedSlide);
                 actions.exitEditMode();
               }}
-            onClose={actions.exitEditMode}
-            mode="auto" />
-
-          }
+              onClose={actions.exitEditMode}
+              mode="auto"
+            />
+          )}
           </div>
         </div>
 
@@ -964,8 +964,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             </div>
           </div>
         </ResponsiveModal>
-      </div>
-    </ProjectThemeProvider>);
+    </ProjectThemeProvider>
+  );
 
 };
 
