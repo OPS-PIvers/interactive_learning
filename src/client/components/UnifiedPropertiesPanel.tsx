@@ -151,37 +151,9 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
   const createInteractionEffect = useCallback((interactionType: InteractionType): {type: SlideEffectType;parameters: Partial<EffectParameters>;} => {
 
     switch (interactionType) {
-      case InteractionType.MODAL:
-        return {
-          type: 'modal',
-          parameters: {
-            title: 'Modal Title',
-            message: 'Modal content'
-          }
-        };
-      case InteractionType.TRANSITION:
-        return {
-          type: 'transition',
-          parameters: {
-            targetSlideId: 'next',
-            direction: 'next',
-            transitionType: 'slide'
-          }
-        };
-      case InteractionType.SOUND:
-        return {
-          type: 'play_audio',
-          parameters: {
-            mediaUrl: '',
-            mediaType: 'audio',
-            autoplay: true,
-            controls: false,
-            volume: 0.8
-          }
-        };
       case InteractionType.TOOLTIP:
         return {
-          type: 'show_text',
+          type: 'text',
           parameters: {
             text: 'Tooltip text',
             position: { x: 0, y: 0, width: 200, height: 50 },
@@ -218,7 +190,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
       default:
         // Fallback for any unmapped types
         return {
-          type: 'show_text',
+          type: 'text',
           parameters: {
             text: `${interactionType} interaction`,
             position: { x: 100, y: 100, width: 200, height: 100 },
@@ -496,7 +468,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                     </svg>
                   </button>
                 </div>
-                {editingInteraction.effect.type === 'show_text' &&
+                {editingInteraction.effect.type === 'text' &&
               <TextInteractionEditor
                 interaction={editingInteraction}
                 onUpdate={(updated) => {
@@ -506,7 +478,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
                 onDone={() => setEditingInteraction(null)} />
 
               }
-                {editingInteraction.effect.type === 'play_audio' &&
+                {editingInteraction.effect.type === 'audio' &&
               <AudioInteractionEditor
                 interaction={editingInteraction}
                 onUpdate={(updated) => {
@@ -527,7 +499,7 @@ const UnifiedPropertiesPanel: React.FC<UnifiedPropertiesPanelProps> = ({
 
               }
                 {/* General InteractionEditor for other interaction types */}
-                {!['show_text', 'play_audio', 'quiz'].includes(editingInteraction.effect.type) &&
+                {!['text', 'audio', 'quiz'].includes(editingInteraction.effect.type) &&
               <InteractionEditor
                 interaction={editingInteraction}
                 onInteractionUpdate={handleInteractionParameterUpdate}

@@ -36,12 +36,13 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
 
   // Quick interaction presets for inline addition
   const quickInteractionTypes: InteractionType[] = [
-    InteractionType.MODAL,
-    InteractionType.TRANSITION,
-    InteractionType.SOUND,
     InteractionType.TOOLTIP,
     InteractionType.SPOTLIGHT,
-    InteractionType.PAN_ZOOM
+    InteractionType.PAN_ZOOM,
+    InteractionType.TEXT,
+    InteractionType.VIDEO,
+    InteractionType.AUDIO,
+    InteractionType.QUIZ
   ];
 
   return (

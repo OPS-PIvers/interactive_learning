@@ -271,7 +271,7 @@ describe('TypeScript Integration Tests', () => {
                     trigger: 'click',
                     effect: {
                       id: 'effect-1',
-                      type: 'show_text',
+                      type: 'text',
                       parameters: {
                         text: 'You clicked the hotspot!',
                         position: { x: 150, y: 150, width: 200, height: 100 },

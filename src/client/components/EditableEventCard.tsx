@@ -43,13 +43,13 @@ const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
         return 'spotlight';
       case InteractionType.PAN_ZOOM:
         return 'pan-zoom';
-      case InteractionType.SHOW_TEXT:
+      case InteractionType.TEXT:
         return 'text';
-      case InteractionType.PLAY_VIDEO:
+      case InteractionType.VIDEO:
         return 'media';
       case InteractionType.QUIZ:
         return 'question';
-      case InteractionType.PLAY_AUDIO:
+      case InteractionType.AUDIO:
         return 'audio';
       default:
         return type.toLowerCase().replace(/_/g, ' ').replace('hotspot', '').trim();

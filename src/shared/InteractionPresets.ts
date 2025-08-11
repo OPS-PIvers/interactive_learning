@@ -1,25 +1,13 @@
-// src/shared/InteractionPresets.ts - CANONICAL INTERACTION TYPES
-// Cleaned up to 6 canonical types as requested
+// src/shared/InteractionPresets.ts - CANONICAL INTERACTION TYPES ONLY
+// Clean implementation with 7 canonical types
 export enum InteractionType {
-  // === CANONICAL INTERACTION TYPES ===
   TEXT = 'text',
   TOOLTIP = 'tooltip', 
   AUDIO = 'audio',
   VIDEO = 'video',
   PAN_ZOOM = 'pan_zoom',
   SPOTLIGHT = 'spotlight',
-
-  // === LEGACY TYPES (for migration support) ===
-  // These will be automatically migrated to canonical types
-  SHOW_TEXT = 'SHOW_TEXT',
-  SHOW_MESSAGE = 'SHOW_MESSAGE',
-  PLAY_AUDIO = 'PLAY_AUDIO',
-  PLAY_VIDEO = 'PLAY_VIDEO',
-  SHOW_VIDEO = 'SHOW_VIDEO',
-  SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
-  SHOW_YOUTUBE = 'SHOW_YOUTUBE',
-  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
-  HIGHLIGHT = 'highlight'
+  QUIZ = 'quiz'
 }
 
 // Default export for maximum compatibility
@@ -35,7 +23,7 @@ export interface InteractionPreset {
   description: string;
 }
 
-// Canonical interaction presets - only the 6 core types users will see
+// Canonical interaction presets - only the 7 core types users will see
 export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
   [InteractionType.TEXT]: {
     icon: '📝',
@@ -47,8 +35,7 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
       'textX',
       'textY', 
       'textWidth',
-      'textHeight',
-      'displayMode'
+      'textHeight'
     ],
     description: 'Display text content with flexible positioning and styling'
   },
@@ -57,7 +44,7 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
     icon: '💬',
     name: 'Tooltip',
     color: 'bg-orange-500',
-    settings: ['textContent', 'position', 'arrow', 'delay'],
+    settings: ['textContent', 'textPosition'],
     description: 'Show contextual information on hover or click'
   },
   
@@ -67,9 +54,8 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
     color: 'bg-indigo-500',
     settings: [
       'audioUrl', 
-      'audioFile',
-      'displayMode', 
-      'showControls', 
+      'audioDisplayMode', 
+      'audioShowControls', 
       'volume', 
       'autoplay', 
       'loop',
@@ -85,11 +71,10 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
     settings: [
       'videoSource',
       'videoUrl',
-      'videoFile',
       'youtubeVideoId', 
-      'displayMode', 
-      'showControls', 
-      'poster', 
+      'videoDisplayMode', 
+      'videoShowControls', 
+      'videoPoster', 
       'autoplay', 
       'loop',
       'youtubeStartTime',
@@ -102,7 +87,7 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
     icon: '🔍',
     name: 'Pan & Zoom',
     color: 'bg-green-500',
-    settings: ['targetX', 'targetY', 'zoomLevel', 'duration', 'easing'],
+    settings: ['targetX', 'targetY', 'zoomLevel', 'duration'],
     description: 'Pan and zoom to specific coordinates with smooth animation'
   },
   
@@ -111,33 +96,31 @@ export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
     name: 'Spotlight',
     color: 'bg-yellow-500',
     settings: [
-      'position',
-      'shape',
-      'width', 
-      'height',
+      'spotlightShape',
+      'spotlightWidth', 
+      'spotlightHeight',
       'intensity',
-      'fadeEdges',
+      'backgroundDimPercentage',
       'message'
     ],
     description: 'Focus attention with customizable spotlight effects'
+  },
+  
+  [InteractionType.QUIZ]: {
+    icon: '❓',
+    name: 'Quiz',
+    color: 'bg-purple-500',
+    settings: [
+      'quizQuestion',
+      'quizOptions',
+      'quizCorrectAnswer',
+      'quizExplanation',
+      'questionType',
+      'quizShuffleOptions'
+    ],
+    description: 'Create interactive quiz questions with multiple choice or fill-in-the-blank'
   }
 };
 
-// Legacy type mappings for backward compatibility
-export const legacyInteractionPresets: Record<string, InteractionPreset> = {
-  [InteractionType.SHOW_TEXT]: canonicalInteractionPresets[InteractionType.TEXT],
-  [InteractionType.SHOW_MESSAGE]: canonicalInteractionPresets[InteractionType.TEXT],
-  [InteractionType.PLAY_AUDIO]: canonicalInteractionPresets[InteractionType.AUDIO],
-  [InteractionType.PLAY_VIDEO]: canonicalInteractionPresets[InteractionType.VIDEO],
-  [InteractionType.SHOW_VIDEO]: canonicalInteractionPresets[InteractionType.VIDEO],
-  [InteractionType.SHOW_AUDIO_MODAL]: canonicalInteractionPresets[InteractionType.AUDIO],
-  [InteractionType.SHOW_YOUTUBE]: canonicalInteractionPresets[InteractionType.VIDEO],
-  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: canonicalInteractionPresets[InteractionType.PAN_ZOOM],
-  [InteractionType.HIGHLIGHT]: canonicalInteractionPresets[InteractionType.SPOTLIGHT]
-};
-
-// Combined presets for migration support
-export const interactionPresets: Record<string, InteractionPreset> = {
-  ...canonicalInteractionPresets,
-  ...legacyInteractionPresets
-};
+// Export canonical presets as the main interaction presets
+export const interactionPresets: Record<string, InteractionPreset> = canonicalInteractionPresets;

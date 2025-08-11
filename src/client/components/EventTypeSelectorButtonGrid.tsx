@@ -12,11 +12,11 @@ interface EventTypeSelectorButtonGridProps {
 }
 
 const defaultMobileEventTypes: InteractionType[] = [
-  InteractionType.SHOW_TEXT,
+  InteractionType.TEXT,
   InteractionType.SPOTLIGHT,
   InteractionType.PAN_ZOOM,
-  InteractionType.PLAY_VIDEO, // Use the modern video player instead of legacy SHOW_VIDEO
-  InteractionType.PLAY_AUDIO, // Use the modern audio player instead of legacy SHOW_AUDIO_MODAL
+  InteractionType.VIDEO, // Use the modern video player instead of legacy SHOW_VIDEO
+  InteractionType.AUDIO, // Use the modern audio player instead of legacy SHOW_AUDIO_MODAL
   InteractionType.QUIZ,
 ];
 
@@ -26,7 +26,7 @@ const EventTypeSelectorButtonGrid: React.FC<EventTypeSelectorButtonGridProps> = 
 }) => {
   const typesToDisplay = eventTypesToShow
     .map(type => ({ type, preset: interactionPresets[type] }))
-    .filter(item => !!item.preset); // Ensure preset exists for the type
+    .filter((item): item is { type: InteractionType; preset: NonNullable<typeof item.preset> } => !!item.preset); // Ensure preset exists for the type
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-2 bg-slate-700 rounded-lg">
@@ -35,15 +35,15 @@ const EventTypeSelectorButtonGrid: React.FC<EventTypeSelectorButtonGridProps> = 
           key={type}
           onClick={() => onSelectEventType(type)}
           className="flex flex-col items-center justify-center p-3 bg-slate-600 hover:bg-purple-600 text-white rounded-lg transition-colors min-h-[80px] text-center"
-          title={preset.description || preset.name}
+          title={preset?.description || preset?.name || ''}
         >
           {/* Using preset.icon if available, else PlusIcon or preset.name */}
-          {preset.icon && preset.icon !== '❓' && preset.icon !== '👁️' && preset.icon !== '🚫' && preset.icon !== '💓' && preset.icon !== '✨' ? ( // Filter out less useful default emoji icons for this context
+          {preset?.icon && preset.icon !== '❓' && preset.icon !== '👁️' && preset.icon !== '🚫' && preset.icon !== '💓' && preset.icon !== '✨' ? ( // Filter out less useful default emoji icons for this context
             <span className="text-2xl mb-1">{preset.icon}</span>
           ) : (
             <PlusIcon className="w-6 h-6 mb-1 text-purple-300" /> // Generic icon
           )}
-          <span className="text-xs font-medium">{preset.name}</span>
+          <span className="text-xs font-medium">{preset?.name || type}</span>
         </button>
       ))}
       {typesToDisplay.length === 0 && (

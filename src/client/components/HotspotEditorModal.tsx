@@ -137,7 +137,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       targetId: localHotspot.id,
 
       // === UNIFIED VIDEO PROPERTIES ===
-      ...(type === InteractionType.PLAY_VIDEO && {
+      ...(type === InteractionType.VIDEO && {
         videoDisplayMode: 'inline',
         videoShowControls: true,
         autoplay: false,
@@ -145,7 +145,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
 
       // === UNIFIED AUDIO PROPERTIES ===
-      ...(type === InteractionType.PLAY_AUDIO && {
+      ...(type === InteractionType.AUDIO && {
         audioUrl: '',
         audioDisplayMode: 'background',
         audioShowControls: false,
@@ -154,7 +154,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
 
       // === UNIFIED TEXT PROPERTIES ===
-      ...(type === InteractionType.SHOW_TEXT && {
+      ...(type === InteractionType.TEXT && {
         textContent: 'Enter your text here',
         textPosition: 'center',
         textX: 50,
@@ -175,7 +175,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
       }),
 
       // === UNIFIED PAN_ZOOM PROPERTIES ===
-      ...((type === InteractionType.PAN_ZOOM || type === InteractionType.PAN_ZOOM_TO_HOTSPOT) && {
+      ...(type === InteractionType.PAN_ZOOM && {
         targetX: localHotspot.x,
         targetY: localHotspot.y,
         zoomLevel: 2,

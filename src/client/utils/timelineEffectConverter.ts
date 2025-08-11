@@ -1,5 +1,6 @@
 import { SlideEffect, SlideElement, SlideDeck } from '../../shared/slideTypes';
 import { TimelineEventData } from '../../shared/type-defs';
+import { InteractionType } from '../../shared/InteractionPresets';
 import { generateId } from './generateId';
 
 /**
@@ -40,22 +41,19 @@ options: TimelineEventToEffectOptions)
 
   // Convert based on timeline event type
   switch (timelineEvent.type) {
-    case 'SPOTLIGHT':
+    case 'spotlight':
       return createSpotlightEffect(timelineEvent, element, deviceType);
 
-    case 'PAN_ZOOM_TO_HOTSPOT':
-    case 'PAN_ZOOM':
+    case InteractionType.PAN_ZOOM:
+    case 'pan_zoom':
       return createPanZoomEffect(timelineEvent, element, deviceType);
 
-    case 'SHOW_MESSAGE':
+    case 'text':
       return createShowTextEffect(timelineEvent, element, deviceType);
 
-    case 'SHOW_VIDEO':
-    case 'SHOW_AUDIO_MODAL':
+    case 'video':
+    case 'audio':
       return createPlayMediaEffect(timelineEvent);
-
-    case 'SHOW_YOUTUBE':
-      return createPlayMediaEffect(timelineEvent, 'youtube');
 
     default:
       console.warn('[TimelineConverter] Unknown timeline event type:', timelineEvent.type);
@@ -194,7 +192,7 @@ deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
 
   return {
     id: generateId(),
-    type: 'show_text',
+    type: 'text',
     duration: 5000,
     parameters: {
       text,
@@ -236,7 +234,7 @@ mediaType?: 'youtube')
 
   return {
     id: generateId(),
-    type: 'play_media',
+    type: actualMediaType === 'video' ? 'video' : 'audio',
     duration: 0, // Duration depends on media
     parameters: {
       mediaType: actualMediaType as 'audio' | 'video',
@@ -280,6 +278,6 @@ deviceType: 'desktop' | 'tablet' | 'mobile' = 'desktop')
     id: generateId(),
     step: 1,
     name: element.content?.title || 'Element Effect',
-    type: 'SPOTLIGHT'
+    type: 'spotlight'
   } as TimelineEventData, element, deviceType);
 }

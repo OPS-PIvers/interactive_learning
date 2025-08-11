@@ -73,7 +73,7 @@ export const MigrationTestPage: React.FC = () => {
       id: 'event_3',
       step: 3,
       name: 'Text Display Demo',
-      type: InteractionType.SHOW_TEXT,
+      type: InteractionType.TEXT,
       targetId: 'hotspot_3',
       duration: 4000,
       textContent: 'This is a sample text overlay that demonstrates how text events are migrated to the new slide format.',

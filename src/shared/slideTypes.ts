@@ -183,12 +183,7 @@ export type SlideEffectType =
   | 'video'
   | 'pan_zoom'
   | 'spotlight'
-  
-  // Legacy types for migration
-  | 'show_text'
-  | 'play_media'
-  | 'play_video'
-  | 'play_audio';
+  | 'quiz';
 
 // Effect parameters
 export type EffectParameters = 

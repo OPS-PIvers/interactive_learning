@@ -150,7 +150,7 @@ function convertTimelineEventToInteraction(
         const targetY = event.targetY ?? hotspot.y;
         effect = {
             id: `effect_${event.id}`,
-            type: 'zoom',
+            type: 'pan_zoom',
             duration: event.duration || 2000,
             parameters: {
                 zoomLevel: event.zoomLevel || 2.0,
@@ -165,7 +165,7 @@ function convertTimelineEventToInteraction(
         };
         break;
 
-    case InteractionType.SHOW_TEXT:
+    case InteractionType.TEXT:
         const isCentered = event.modalPosition === 'center';
         const position: FixedPosition = isCentered
             ? { x: (options.canvasWidth || 1200) / 2 - 150, y: (options.canvasHeight || 800) / 2 - 50, width: 300, height: 100 }
@@ -178,7 +178,7 @@ function convertTimelineEventToInteraction(
 
         effect = {
             id: `effect_${event.id}`,
-            type: 'show_text',
+            type: 'text',
             duration: event.duration || 5000,
             parameters: {
                 text: event.message || 'Text content',
@@ -195,15 +195,15 @@ function convertTimelineEventToInteraction(
         };
         break;
 
-    case InteractionType.PLAY_VIDEO:
-    case InteractionType.PLAY_AUDIO:
+    case InteractionType.VIDEO:
+    case InteractionType.AUDIO:
       effect = {
         id: `effect_${event.id}`,
-        type: 'play_media',
+        type: event.type === InteractionType.VIDEO ? 'video' : 'audio',
         duration: event.duration || 0, // 0 means play until complete
         parameters: {
           mediaUrl: event.videoUrl || event.audioUrl || '',
-          mediaType: event.type === InteractionType.PLAY_VIDEO ? 'video' : 'audio',
+          mediaType: event.type === InteractionType.VIDEO ? 'video' : 'audio',
           autoplay: event.autoplay !== false,
           controls: true,
           loop: false,
@@ -216,7 +216,7 @@ function convertTimelineEventToInteraction(
       // Fallback for unsupported event types
       effect = {
         id: `effect_${event.id}`,
-        type: 'show_text',
+        type: 'text',
         duration: 3000,
         parameters: {
           text: `Legacy event: ${event.type}`,

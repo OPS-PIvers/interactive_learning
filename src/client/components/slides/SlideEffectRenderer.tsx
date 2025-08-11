@@ -194,7 +194,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   // Render zoom effect
   const renderZoomEffect = () => {
-    if (effect.type !== 'zoom') return null;
+    if (effect.type !== 'pan_zoom') return null;
 
     const params = effect.parameters as ZoomParameters;
 
@@ -285,7 +285,7 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   // Render text effect
   const renderShowTextEffect = () => {
-    if (effect.type !== 'show_text' || !slideCanvasInfo) return null;
+    if (effect.type !== 'text' || !slideCanvasInfo) return null;
 
     const params = effect.parameters as ShowTextParameters;
 
@@ -405,56 +405,10 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   };
 
-  // Render element animation effect
-  const renderAnimateEffect = () => {
-    if (effect.type !== 'animate') return null;
-
-    const params = effect.parameters as AnimateParameters;
-
-    return (
-      <AnimatePresence>
-        {isVisible &&
-        <motion.div
-          className={`absolute ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} pointer-events-none`}
-          style={{
-            left: params.fromPosition?.x || 0,
-            top: params.fromPosition?.y || 0,
-            width: params.fromPosition?.width || 'auto',
-            height: params.fromPosition?.height || 'auto'
-          }}
-          initial={{
-            x: 0,
-            y: 0,
-            scale: 1,
-            rotate: 0,
-            opacity: 1
-          }}
-          animate={{
-            x: params.toPosition ? params.toPosition.x - (params.fromPosition?.x || 0) : 0,
-            y: params.toPosition ? params.toPosition.y - (params.fromPosition?.y || 0) : 0,
-            scale: params.animationType === 'resize' ? 1.2 : 1,
-            rotate: params.animationType === 'rotate' ? 360 : 0,
-            opacity: params.animationType === 'fade' ? 0 : 1
-          }}
-          transition={{
-            duration: effect.duration / 1000,
-            ease: effect.easing as Easing || "easeInOut",
-            type: params.animationType === 'move' ? "spring" : "tween",
-            damping: 15,
-            stiffness: 100
-          }}>
-
-            {/* Animated element indicator */}
-            <div className="w-full h-full bg-purple-500/20 border-2 border-purple-500 rounded-lg" />
-          </motion.div>
-        }
-      </AnimatePresence>);
-
-  };
 
   // Render media playback effect
   const renderPlayMediaEffect = () => {
-    if (effect.type !== 'play_media' && effect.type !== 'play_video' && effect.type !== 'play_audio') return null;
+    if (effect.type !== 'video' && effect.type !== 'audio') return null;
 
     const params = effect.parameters as PlayMediaParameters;
 
@@ -611,17 +565,12 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
   switch (effect.type) {
     case 'spotlight':
       return renderSpotlightEffect() || <div />;
-    case 'zoom':
-      return renderZoomEffect() || <div />;
     case 'pan_zoom':
-      return renderPanZoomEffect() || <div />;
-    case 'show_text':
+      return renderZoomEffect() || <div />;
+    case 'text':
       return renderShowTextEffect() || <div />;
-    case 'animate':
-      return renderAnimateEffect() || <div />;
-    case 'play_media':
-    case 'play_video':
-    case 'play_audio':
+    case 'video':
+    case 'audio':
       return renderPlayMediaEffect() || <div />;
     case 'quiz':
       return renderQuizEffect() || <div />;

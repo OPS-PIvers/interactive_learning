@@ -81,7 +81,7 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 trigger: 'click',
                 effect: {
                   id: 'zoom-effect-test',
-                  type: 'zoom',
+                  type: 'pan_zoom',
                   duration: 2500,
                   easing: 'ease-in-out',
                   parameters: {
@@ -126,7 +126,7 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 trigger: 'click',
                 effect: {
                   id: 'text-effect-test',
-                  type: 'show_text',
+                  type: 'text',
                   duration: 3500,
                   easing: 'ease-out',
                   parameters: {
@@ -171,22 +171,7 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               title: 'Next Slide →',
               description: 'Navigate to second slide'
             },
-            interactions: [
-              {
-                id: 'slide-transition',
-                trigger: 'click',
-                effect: {
-                  id: 'transition-to-slide-2',
-                  type: 'transition',
-                  duration: 800,
-                  parameters: {
-                    targetSlideId: 'test-slide-2',
-                    direction: 'next',
-                    transitionType: 'slide'
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#8b5cf6', // Purple
               borderColor: '#ffffff',
@@ -274,22 +259,7 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               title: '← Back to Tests',
               description: 'Return to first slide'
             },
-            interactions: [
-              {
-                id: 'back-transition',
-                trigger: 'click',
-                effect: {
-                  id: 'transition-back-to-1',
-                  type: 'transition',
-                  duration: 600,
-                  parameters: {
-                    targetSlideId: 'test-slide-1',
-                    direction: 'previous',
-                    transitionType: 'slide'
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#10b981',
               borderColor: '#ffffff',

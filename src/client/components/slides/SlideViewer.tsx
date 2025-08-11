@@ -220,16 +220,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       // Trigger effect
       triggerEffect(interaction.effect);
 
-      // Handle special effect types
-      if (interaction.effect.type === 'transition') {
-        const params = interaction.effect.parameters as {targetSlideId?: string;};
-        const targetSlideId = params?.targetSlideId;
-        if (targetSlideId) {
-          setTimeout(() => {
-            navigateToSlide(targetSlideId);
-          }, interaction.effect.duration || 0);
-        }
-      }
     }
 
     onInteraction?.(interactionLog);

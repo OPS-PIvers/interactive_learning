@@ -16,7 +16,7 @@ export class DataMigration {
       // Ensure required properties exist
       name: event.name || 'Legacy Event',
       step: event.step || 1,
-      type: event.type || InteractionType.SHOW_TEXT
+      type: event.type || InteractionType.TEXT
     };
   }
 
@@ -29,7 +29,7 @@ export class DataMigration {
       ...event,
       name: event.name || 'Legacy Event',
       step: event.step || 1,
-      type: event.type || InteractionType.SHOW_TEXT
+      type: event.type || InteractionType.TEXT
     };
   }
 

@@ -17,8 +17,8 @@ export const MediaEffectSettings: React.FC<MediaEffectSettingsProps> = ({
   effect,
   onUpdate
 }) => {
-  const isVideoEffect = effect.type === 'play_video';
-  const isAudioEffect = effect.type === 'play_audio';
+  const isVideoEffect = effect.type === 'video';
+  const isAudioEffect = effect.type === 'audio';
 
   const handleVideoParameterUpdate = useCallback((paramUpdates: Partial<PlayVideoParameters>) => {
     const newParameters = {

@@ -17,7 +17,7 @@ interface EventTypeToggleProps {
 
 const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
   {
-    type: InteractionType.PAN_ZOOM_TO_HOTSPOT,
+    type: InteractionType.PAN_ZOOM,
     label: 'Pan & Zoom',
     description: 'Focus view',
     color: 'bg-blue-600',
@@ -33,7 +33,7 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     textColor: 'text-yellow-200'
   },
   {
-    type: InteractionType.SHOW_TEXT,
+    type: InteractionType.TEXT,
     label: 'Show Text',
     description: 'Display message',
     color: 'bg-purple-600',
@@ -49,28 +49,20 @@ const EVENT_TYPE_OPTIONS: EventTypeOption[] = [
     textColor: 'text-red-200'
   },
   {
-    type: InteractionType.SHOW_VIDEO,
+    type: InteractionType.VIDEO,
     label: 'Video',
-    description: 'Play video file',
+    description: 'Play video content',
     color: 'bg-green-600',
     hoverColor: 'hover:bg-green-700',
     textColor: 'text-green-200'
   },
   {
-    type: InteractionType.SHOW_AUDIO_MODAL,
+    type: InteractionType.AUDIO,
     label: 'Audio',
-    description: 'Play audio file',
+    description: 'Play audio content',
     color: 'bg-blue-600',
     hoverColor: 'hover:bg-blue-700',
     textColor: 'text-blue-200'
-  },
-  {
-    type: InteractionType.SHOW_YOUTUBE,
-    label: 'YouTube',
-    description: 'Play YouTube video',
-    color: 'bg-red-600',
-    hoverColor: 'hover:bg-red-700',
-    textColor: 'text-red-200'
   }
 ];
 

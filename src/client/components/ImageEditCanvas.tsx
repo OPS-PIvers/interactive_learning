@@ -114,8 +114,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
 
 
 
-        case InteractionType.SHOW_TEXT:
-        case InteractionType.SHOW_TEXT:
+        case InteractionType.TEXT:
           return (
             <div
               key={`preview-text-${event.id}`}
@@ -132,7 +131,6 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
             </div>);
 
 
-        case InteractionType.PAN_ZOOM:
         case InteractionType.PAN_ZOOM:
           // Apply zoom preview effect
           return (
@@ -462,7 +460,7 @@ const ImageEditCanvas: React.FC<ImageEditCanvasProps> = React.memo(({
 
               }
 
-              if (previewOverlayEvent.type === InteractionType.SHOW_TEXT) {
+              if (previewOverlayEvent.type === InteractionType.TEXT) {
                 return (
                   <TextPreviewOverlay
                     event={previewOverlayEvent}

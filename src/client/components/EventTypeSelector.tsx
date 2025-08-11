@@ -20,9 +20,9 @@ const eventTypeOptions: EventTypeOption[] = [
     description: 'Pan and zoom the image to focus on the hotspot'
   },
   {
-    value: InteractionType.SHOW_IMAGE,
-    label: 'Show Image',
-    description: 'Display an image with optional caption and modal'
+    value: InteractionType.VIDEO,
+    label: 'Show Media',
+    description: 'Display images and media with optional caption and modal'
   },
   {
     value: InteractionType.QUIZ,
@@ -30,17 +30,17 @@ const eventTypeOptions: EventTypeOption[] = [
     description: 'Show a quiz question'
   },
   {
-    value: InteractionType.PLAY_VIDEO,
+    value: InteractionType.VIDEO,
     label: 'Play Video',
     description: 'Play video from file, YouTube, or URL'
   },
   {
-    value: InteractionType.PLAY_AUDIO,
+    value: InteractionType.AUDIO,
     label: 'Play Audio',
     description: 'Play audio file with various display modes'
   },
   {
-    value: InteractionType.SHOW_TEXT,
+    value: InteractionType.TEXT,
     label: 'Show Text',
     description: 'Display text content'
   },

@@ -110,24 +110,18 @@ const getEffectDescription = (effect: SlideEffect): string => {
   switch (effect.type) {
     case 'spotlight':
       return 'Spotlight effect';
-    case 'zoom':
-      return 'Zoom to area';
     case 'pan_zoom':
       return 'Pan and zoom';
-    case 'show_text':
+    case 'text':
       return 'Show text overlay';
-    case 'play_media':
-      return 'Play media';
-    case 'play_video':
+    case 'video':
       return 'Play video';
-    case 'play_audio':
+    case 'audio':
       return 'Play audio';
     case 'quiz':
       return 'Interactive quiz';
-    case 'animate':
-      return 'Element animation';
-    case 'transition':
-      return 'Slide transition';
+    case 'tooltip':
+      return 'Show tooltip';
     default:
       return 'Interactive element';
   }

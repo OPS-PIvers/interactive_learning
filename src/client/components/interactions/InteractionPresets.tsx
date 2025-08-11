@@ -81,33 +81,19 @@ const InteractionPresets: React.FC<InteractionPresetsProps> = ({
  */
 function getUseCaseForType(type: InteractionType): string {
   switch (type) {
-    case 'modal':
-      return 'Perfect for displaying detailed information, forms, or confirmations';
-    case 'transition':
-      return 'Great for navigation between slides or sections';
-    case 'sound':
-      return 'Add audio feedback for button clicks or notifications';
-    case 'tooltip':
+    case InteractionType.TOOLTIP:
       return 'Provide contextual help and additional information on hover';
-    case 'showText':
+    case InteractionType.TEXT:
       return 'Reveal text content progressively or on demand';
-    case 'hideElement':
-      return 'Create interactive reveals and hide/show behaviors';
-    case 'showElement':
-      return 'Progressive disclosure and guided user experiences';
-    case 'highlight':
+    case InteractionType.SPOTLIGHT:
       return 'Draw attention to important elements or guide user focus';
-    case 'animation':
-      return 'Add visual flair and engaging micro-interactions';
-    case 'quiz':
+    case InteractionType.QUIZ:
       return 'Create interactive learning and assessment experiences';
-    case 'jump':
-      return 'Quick navigation to specific slides or content sections';
-    case 'playAudio':
+    case InteractionType.AUDIO:
       return 'Background music, narration, or sound effects';
-    case 'pauseAudio':
-      return 'Control audio playback and create audio-rich experiences';
-    case 'panZoom':
+    case InteractionType.VIDEO:
+      return 'Video content and multimedia experiences';
+    case InteractionType.PAN_ZOOM:
       return 'Allow users to explore detailed images or diagrams';
     default:
       return 'Interactive behavior for enhanced user engagement';

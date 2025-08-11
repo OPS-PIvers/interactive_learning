@@ -146,7 +146,7 @@ export function extractTimelineEventsFromElement(
         }
         break;
 
-      case 'zoom':
+      case 'pan_zoom':
         const zoomParams = effect.parameters as ZoomParameters;
         if (zoomParams.targetPosition) {
           event = {
@@ -159,7 +159,7 @@ export function extractTimelineEventsFromElement(
         }
         break;
 
-      case 'show_text':
+      case 'text':
         const showTextParams = effect.parameters as ShowTextParameters;
         event = {
           ...event,
@@ -175,11 +175,12 @@ export function extractTimelineEventsFromElement(
         }
         break;
 
-      case 'play_media':
+      case 'video':
+      case 'audio':
         const playMediaParams = effect.parameters as PlayMediaParameters;
         event = {
           ...event,
-          type: playMediaParams.mediaType === 'video' ? InteractionType.PLAY_VIDEO : InteractionType.PLAY_AUDIO,
+          type: playMediaParams.mediaType === 'video' ? InteractionType.VIDEO : InteractionType.AUDIO,
           autoplay: playMediaParams.autoplay !== false,
           loop: false,
           volume: playMediaParams.volume || 1.0,
@@ -210,20 +211,15 @@ function mapEffectTypeToInteractionType(effectType: SlideEffectType): Interactio
   switch (effectType) {
     case 'spotlight':
       return InteractionType.SPOTLIGHT;
-    case 'zoom':
     case 'pan_zoom':
       return InteractionType.PAN_ZOOM;
     case 'text':
-    case 'show_text':
       return InteractionType.TEXT;
     case 'tooltip':
       return InteractionType.TOOLTIP;
     case 'audio':
-    case 'play_audio':
       return InteractionType.AUDIO;
     case 'video':
-    case 'play_video':
-    case 'play_media':
       return InteractionType.VIDEO;
     default:
       return InteractionType.TEXT; // Fallback
@@ -280,7 +276,6 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       break;
 
     case InteractionType.TEXT:
-    case InteractionType.SHOW_TEXT:
       let position: FixedPosition;
       if (event.textPosition === 'center') {
         position = { x: 45, y: 45, width: 10, height: 10 }; // Default centered position
@@ -300,7 +295,6 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       break;
 
     case InteractionType.VIDEO:
-    case InteractionType.PLAY_VIDEO:
       baseInteraction.effect.parameters = {
         mediaUrl: event.videoUrl || '',
         mediaType: 'video',
@@ -311,7 +305,6 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       break;
 
     case InteractionType.AUDIO:
-    case InteractionType.PLAY_AUDIO:
       baseInteraction.effect.parameters = {
         mediaUrl: event.audioUrl || '',
         mediaType: 'audio',
@@ -342,13 +335,7 @@ function mapInteractionTypeToEffectType(interactionType: InteractionType): Slide
       return 'audio';
     case InteractionType.VIDEO:
       return 'video';
-    // Legacy type support
-    case InteractionType.SHOW_TEXT:
-      return 'text';
-    case InteractionType.PLAY_VIDEO:
-      return 'video';
-    case InteractionType.PLAY_AUDIO:
-      return 'audio';
+    // Legacy types should not exist in current codebase - included only for backward compatibility
     default:
       return 'text';
   }

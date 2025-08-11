@@ -7,20 +7,24 @@ import { VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, In
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map((event) => {
-    // Migrate legacy types to canonical types
-    if (event.type === InteractionType.SHOW_TEXT) {
+    // Migrate legacy types to canonical types - these legacy types should no longer exist in the codebase
+    // This mapping is kept for backward compatibility with existing data
+    if ((event.type as any) === 'SHOW_TEXT') {
       return { ...event, type: InteractionType.TEXT };
     }
-    if (event.type === InteractionType.PLAY_AUDIO) {
+    if ((event.type as any) === 'PLAY_AUDIO') {
       return { ...event, type: InteractionType.AUDIO };
     }
-    if (event.type === InteractionType.PLAY_VIDEO) {
+    if ((event.type as any) === 'PLAY_VIDEO') {
       return { ...event, type: InteractionType.VIDEO };
     }
-    if (event.type === InteractionType.HIGHLIGHT) {
+    if ((event.type as any) === 'SHOW_IMAGE') {
+      return { ...event, type: InteractionType.VIDEO }; // images are handled as media
+    }
+    if ((event.type as any) === 'HIGHLIGHT') {
       return { ...event, type: InteractionType.SPOTLIGHT };
     }
-    if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+    if ((event.type as any) === 'PAN_ZOOM_TO_HOTSPOT') {
       return { ...event, type: InteractionType.PAN_ZOOM };
     }
     // Migrate PAN_ZOOM_TO_HOTSPOT to PAN_ZOOM
@@ -67,7 +71,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_YOUTUBE to VIDEO
-    if (event.type === 'SHOW_YOUTUBE') {
+    if ((event.type as any) === 'SHOW_YOUTUBE') {
       return {
         ...event,
         type: InteractionType.VIDEO,
@@ -82,7 +86,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_VIDEO to VIDEO  
-    if (event.type === 'SHOW_VIDEO') {
+    if ((event.type as any) === 'SHOW_VIDEO') {
       return {
         ...event,
         type: InteractionType.VIDEO,
@@ -97,7 +101,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_AUDIO_MODAL to AUDIO
-    if (event.type === 'SHOW_AUDIO_MODAL') {
+    if ((event.type as any) === 'SHOW_AUDIO_MODAL') {
       return {
         ...event,
         type: InteractionType.AUDIO,
@@ -112,7 +116,7 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
     // Migrate SHOW_MESSAGE to TEXT
-    if (event.type === 'SHOW_MESSAGE') {
+    if ((event.type as any) === 'SHOW_MESSAGE') {
       return {
         ...event,
         type: InteractionType.TEXT,
@@ -150,8 +154,8 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
     }
 
 
-    // Update existing PLAY_VIDEO events to use unified properties
-    if (event.type === InteractionType.PLAY_VIDEO) {
+    // Update existing VIDEO events to use unified properties
+    if (event.type === InteractionType.VIDEO) {
       let videoSource: VideoSourceType = 'url';
       const videoUrl = event.videoUrl || event.url || '';
       let youtubeVideoId = event.youtubeVideoId;
@@ -179,8 +183,8 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       } as TimelineEventData;
     }
 
-    // Update existing PLAY_AUDIO events to use unified properties
-    if (event.type === InteractionType.PLAY_AUDIO) {
+    // Update existing AUDIO events to use unified properties
+    if (event.type === InteractionType.AUDIO) {
       return {
         ...event,
         audioUrl: event.audioUrl || event.url || '',
@@ -193,8 +197,8 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       } as TimelineEventData;
     }
 
-    // Update existing SHOW_TEXT events to use unified properties
-    if (event.type === InteractionType.SHOW_TEXT) {
+    // Update existing TEXT events to use unified properties
+    if (event.type === InteractionType.TEXT) {
       return {
         ...event,
         textContent: event.textContent || event.content || event.message || '',
@@ -358,11 +362,11 @@ export const getMigrationInfo = (event: TimelineEventData): MigrationInfo => {
       return { needsMigration: true, targetType: InteractionType.SPOTLIGHT, description: 'Unified spotlight highlighting' };
     case 'SHOW_YOUTUBE':
     case 'SHOW_VIDEO':
-      return { needsMigration: true, targetType: InteractionType.PLAY_VIDEO, description: 'Unified video playback with source detection' };
+      return { needsMigration: true, targetType: InteractionType.VIDEO, description: 'Unified video playback with source detection' };
     case 'SHOW_AUDIO_MODAL':
-      return { needsMigration: true, targetType: InteractionType.PLAY_AUDIO, description: 'Unified audio playback with display options' };
+      return { needsMigration: true, targetType: InteractionType.AUDIO, description: 'Unified audio playback with display options' };
     case 'SHOW_MESSAGE':
-      return { needsMigration: true, targetType: InteractionType.SHOW_TEXT, description: 'Unified text display with positioning' };
+      return { needsMigration: true, targetType: InteractionType.TEXT, description: 'Unified text display with positioning' };
     default:
       return { needsMigration: false };
   }
@@ -484,7 +488,7 @@ export function convertHotspotToSlideDeck(module: InteractiveModuleState): Slide
         const dummyEvent: TimelineEventData = {
           id: generateId(),
           name: hotspot.title || 'Untitled Event',
-          type: InteractionType.SHOW_TEXT,
+          type: InteractionType.TEXT,
           step: 1,
           targetId: hotspot.id,
           textContent: hotspot.description || 'Interactive hotspot'

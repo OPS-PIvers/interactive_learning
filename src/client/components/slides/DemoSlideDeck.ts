@@ -82,7 +82,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
                 trigger: 'click',
                 effect: {
                   id: 'zoom-effect-1',
-                  type: 'zoom',
+                  type: 'pan_zoom',
                   duration: 2000,
                   easing: 'ease-in-out',
                   parameters: {
@@ -155,22 +155,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Back to Demo',
               description: 'Return to first slide'
             },
-            interactions: [
-              {
-                id: 'back-transition',
-                trigger: 'click',
-                effect: {
-                  id: 'transition-back',
-                  type: 'transition',
-                  duration: 500,
-                  parameters: {
-                    targetSlideId: 'slide-1',
-                    direction: 'previous',
-                    transitionType: 'slide'
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#10b981',
               borderRadius: 8,
@@ -253,7 +238,7 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     
     // Update zoom to center exactly on this position
     const zoomEffect = bottomLeftHotspot.interactions?.[0]?.effect;
-    if (zoomEffect?.type === 'zoom') {
+    if (zoomEffect?.type === 'pan_zoom') {
       (zoomEffect.parameters as any).targetPosition = {
         x: 35, y: 635, width: 60, height: 60  // Centered on hotspot
       };

@@ -38,7 +38,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       // Default show text effect for text elements
       defaultEffect = {
         id: generateId(),
-        type: 'show_text',
+        type: 'text',
         duration: 5000,
         parameters: {
           text: element.content?.textContent || 'Text Element',
@@ -60,7 +60,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       if (element.content?.mediaUrl && (element.content?.mediaType === 'audio' || element.content?.mediaType === 'video')) {
         defaultEffect = {
           id: generateId(),
-          type: 'play_media',
+          type: element.content.mediaType === 'video' ? 'video' : 'audio',
           duration: 0, // Duration depends on media
           parameters: {
             mediaType: element.content.mediaType,

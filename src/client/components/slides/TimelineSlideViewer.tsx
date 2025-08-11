@@ -51,13 +51,12 @@ const getTimelineEventType = (effectType: string): InteractionType => {
       return InteractionType.SPOTLIGHT;
     case 'pan_zoom':
       return InteractionType.PAN_ZOOM;
-    case 'show_text':
-      return InteractionType.SHOW_TEXT;
-    case 'play_media':
-    case 'play_video':
-      return InteractionType.PLAY_VIDEO;
-    case 'play_audio':
-      return InteractionType.PLAY_AUDIO;
+    case 'text':
+      return InteractionType.TEXT;
+    case 'video':
+      return InteractionType.VIDEO;
+    case 'audio':
+      return InteractionType.AUDIO;
     default:
       return InteractionType.SPOTLIGHT; // Default fallback
   }

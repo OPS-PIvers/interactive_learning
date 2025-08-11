@@ -34,21 +34,21 @@ const INTERACTION_TYPES: InteractionTypeOption[] = [
     color: 'bg-green-500'
   },
   {
-    type: InteractionType.SHOW_TEXT,
+    type: InteractionType.TEXT,
     label: 'Text Display',
     description: 'Show text content with customizable positioning',
     icon: '📝',
     color: 'bg-blue-500'
   },
   {
-    type: InteractionType.PLAY_VIDEO,
+    type: InteractionType.VIDEO,
     label: 'Video',
     description: 'Play video content inline, modal, or overlay',
     icon: '🎬',
     color: 'bg-red-500'
   },
   {
-    type: InteractionType.PLAY_AUDIO,
+    type: InteractionType.AUDIO,
     label: 'Audio',
     description: 'Play audio with optional controls display',
     icon: '🎵',

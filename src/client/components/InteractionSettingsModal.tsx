@@ -152,14 +152,13 @@ const validateQuizParameters = (event: TimelineEventData): ValidationError[] => 
 // Main validation function
 const validateEventParameters = (event: TimelineEventData): ValidationError[] => {
   switch (event.type) {
-    case InteractionType.SHOW_TEXT:
+    case InteractionType.TEXT:
       return validateTextParameters(event);
-    case InteractionType.PLAY_AUDIO:
+    case InteractionType.AUDIO:
       return validateAudioParameters(event);
-    case InteractionType.PLAY_VIDEO:
+    case InteractionType.VIDEO:
       return validateVideoParameters(event);
     case InteractionType.PAN_ZOOM:
-    case InteractionType.PAN_ZOOM_TO_HOTSPOT:
       return validatePanZoomParameters(event);
     case InteractionType.SPOTLIGHT:
       return validateSpotlightParameters(event);
@@ -637,7 +636,6 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   const renderEditorForEvent = () => {
     switch (event.type) {
       case InteractionType.PAN_ZOOM:
-      case InteractionType.PAN_ZOOM_TO_HOTSPOT:
         return (
           <PanZoomSettings
             zoomLevel={event.zoomLevel || 2}
@@ -657,11 +655,11 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
             onShowTextBannerChange={(value) => handleUpdate({ showTextBanner: value })}
           />
         );
-      case InteractionType.SHOW_TEXT:
+      case InteractionType.TEXT:
         return <TextInteractionEditor event={event} onUpdate={handleUpdate} />;
-      case InteractionType.PLAY_AUDIO:
+      case InteractionType.AUDIO:
         return <AudioInteractionEditor event={event} onUpdate={handleUpdate} />;
-      case InteractionType.PLAY_VIDEO:
+      case InteractionType.VIDEO:
         return <VideoInteractionEditor event={event} onUpdate={handleUpdate} />;
       case InteractionType.QUIZ:
         return <QuizInteractionEditor event={event} onUpdate={handleUpdate} />;
