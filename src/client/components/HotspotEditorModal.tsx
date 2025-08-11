@@ -16,7 +16,7 @@ import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 import InteractionSettingsModal from './InteractionSettingsModal';
-import InteractionTypeSelector, { AddInteractionButton } from './InteractionTypeSelector';
+import { AddInteractionButton, InteractionTypeSelectorGrid } from './InteractionTypeSelector';
 import TabContainer from './ui/TabContainer';
 
 interface EnhancedHotspotEditorModalProps {
@@ -526,39 +526,48 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     label: 'Interactions',
                     content: (
                       <div className="p-4 flex flex-col h-full">
-                        <div className="mb-4">
-                          <AddInteractionButton onClick={handleAddInteraction} />
-                        </div>
-                        
-                        <div className="flex-grow overflow-y-auto">
-                          {localHotspotEvents?.length === 0 ? (
-                            <div className="text-center text-gray-400 py-8">
-                              No interactions for this hotspot.
-                              <br />
-                              Click "Add Interaction" to create one.
+                        {selectedInteractionId === 'new' ? (
+                          <InteractionTypeSelectorGrid
+                            onSelectType={handleInteractionTypeSelected}
+                            onClose={() => setSelectedInteractionId(null)}
+                          />
+                        ) : (
+                          <>
+                            <div className="mb-4">
+                              <AddInteractionButton onClick={handleAddInteraction} />
                             </div>
-                          ) : (
-                            <div className="space-y-2">
-                              {getSortedEvents(localHotspotEvents).map((event, index) => (
-                                <EditableEventCard
-                                  key={event.id}
-                                  index={index}
-                                  event={event}
-                                  onUpdate={handleEventUpdate}
-                                  onDelete={handleEventDelete}
-                                  moveCard={() => {}}
-                                  onTogglePreview={() => handleTogglePreview(event.id)}
-                                  onEdit={() => editorActions.openInteractionEditor(event.id)}
-                                  isPreviewing={previewingEventIds.includes(event.id)}
-                                  allHotspots={allHotspots}
-                                  onMoveUp={handleMoveEventUp}
-                                  onMoveDown={handleMoveEventDown}
-                                  canMoveUp={canMoveUp(event.id, localHotspotEvents)}
-                                  canMoveDown={canMoveDown(event.id, localHotspotEvents)} />
-                              ))}
+                            <div className="flex-grow overflow-y-auto">
+                              {localHotspotEvents?.length === 0 ? (
+                                <div className="text-center text-gray-400 py-8">
+                                  No interactions for this hotspot.
+                                  <br />
+                                  Click "Add Interaction" to create one.
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  {getSortedEvents(localHotspotEvents).map((event, index) => (
+                                    <EditableEventCard
+                                      key={event.id}
+                                      index={index}
+                                      event={event}
+                                      onUpdate={handleEventUpdate}
+                                      onDelete={handleEventDelete}
+                                      moveCard={() => {}}
+                                      onTogglePreview={() => handleTogglePreview(event.id)}
+                                      onEdit={() => editorActions.openInteractionEditor(event.id)}
+                                      isPreviewing={previewingEventIds.includes(event.id)}
+                                      allHotspots={allHotspots}
+                                      onMoveUp={handleMoveEventUp}
+                                      onMoveDown={handleMoveEventDown}
+                                      canMoveUp={canMoveUp(event.id, localHotspotEvents)}
+                                      canMoveDown={canMoveDown(event.id, localHotspotEvents)}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          </>
+                        )}
                       </div>
                     )
                   },
@@ -591,23 +600,12 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
         </div>
-      <InteractionSettingsModal
+        <InteractionSettingsModal
           isOpen={isSettingsModalOpen}
           event={relatedEvents.find((e) => e.id === editingEventId) || null}
           onUpdate={handleEventUpdate}
-          onClose={editorActions.closeInteractionEditor} />
-
-      {/* InteractionTypeSelector Modal - Render conditionally */}
-      {selectedInteractionId === 'new' &&
-        <div className={`fixed inset-0 ${Z_INDEX_TAILWIND.NESTED_MODAL} bg-black bg-opacity-50`} onClick={() => setSelectedInteractionId(null)}>
-          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${Z_INDEX_TAILWIND.NESTED_MODAL}`} onClick={(e) => e.stopPropagation()}>
-            <InteractionTypeSelector
-              onSelectType={handleInteractionTypeSelected}
-              onClose={() => setSelectedInteractionId(null)} />
-
-          </div>
-        </div>
-        }
+          onClose={editorActions.closeInteractionEditor}
+        />
       </>
     </DndProvider>);
 

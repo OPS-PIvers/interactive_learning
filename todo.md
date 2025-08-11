@@ -11,8 +11,9 @@ As I expand from medium to large screen, the editor toolbar  disappears entirely
 
 ISSUE #3
 When i click a hotspot, the hotspot editor modal appears.  Then, when I click the interactions tab and choose "add interaction", the background dims, but no interaction options show up. I imagine there is a modal opening underneath the hotspot editor modal.
-  ☐ Fix InteractionTypeSelector so it appears as a submenu within the hotspot editor modal, not as a modal outside of it.
+  ✅ Fix InteractionTypeSelector so it appears as a submenu within the hotspot editor modal, not as a modal outside of it.
 
 ISSUE #4 (CONTINUATION OF ISSUE #3)
 
-  ☐ Move all submenus to appear within their corresponding modal, not as separate modals as this causes layering issues.
+  ✅ Move all submenus to appear within their corresponding modal, not as separate modals as this causes layering issues.
+  **FIX**: Refactored `InteractionTypeSelector.tsx` to create an embeddable `InteractionTypeSelectorGrid` component. This was then integrated into the `HotspotEditorModal.tsx`'s "Interactions" tab, replacing the problematic modal-on-modal implementation. This ensures the interaction selection UI appears within the main modal, resolving the layering issue systemically. The old modal component in `InteractionTypeSelector.tsx` is left unused for now to prevent breaking other potential usages.
