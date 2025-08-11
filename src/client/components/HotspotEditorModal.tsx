@@ -15,7 +15,7 @@ import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
-import InteractionSettingsModal from './InteractionSettingsModal';
+import InteractionProperties from './interactions/InteractionProperties';
 import { AddInteractionButton, InteractionTypeSelectorGrid } from './InteractionTypeSelector';
 import TabContainer from './ui/TabContainer';
 
@@ -98,7 +98,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const _timestampCounter = useRef(0);
 
   const { isOpen } = editorState.hotspotEditor;
-  const { isOpen: isSettingsModalOpen, editingEventId } = editorState.interactionEditor;
+  const { editingEventId } = editorState.interactionEditor;
 
   // Local state for the hotspot being edited
   const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
@@ -117,6 +117,12 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
     setPreviewingEventIds([]);
     setShowEventTypeSelector(false); // Reset on hotspot change
   }, [selectedHotspot]);
+
+  useEffect(() => {
+    if (editingEventId) {
+      setActiveTab('properties');
+    }
+  }, [editingEventId]);
 
 
   // Scroll to EventTypeSelector when it becomes visible
@@ -575,23 +581,11 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     id: 'properties',
                     label: 'Properties',
                     content: (
-                      <div className="p-4">
-                        {editingEventId ? (
-                          <div className="text-gray-300">
-                            <h3 className="text-lg font-semibold mb-4">Event Properties</h3>
-                            <p className="text-sm text-gray-400 mb-4">
-                              Editing properties for event: {relatedEvents.find((e) => e.id === editingEventId)?.name || 'Unknown'}
-                            </p>
-                            {/* Properties content will be moved here from InteractionSettingsModal */}
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                              <p className="text-sm">Properties editor integration coming soon...</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center text-gray-400 py-8">
-                            Select an interaction from the Interactions tab to edit its properties.
-                          </div>
-                        )}
+                      <div className="p-4 overflow-y-auto">
+                        <InteractionProperties
+                          event={relatedEvents.find((e) => e.id === editingEventId) || null}
+                          onUpdate={handleEventUpdate}
+                        />
                       </div>
                     )
                   }
@@ -600,12 +594,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
         </div>
-        <InteractionSettingsModal
-          isOpen={isSettingsModalOpen}
-          event={relatedEvents.find((e) => e.id === editingEventId) || null}
-          onUpdate={handleEventUpdate}
-          onClose={editorActions.closeInteractionEditor}
-        />
       </>
     </DndProvider>);
 

@@ -60,9 +60,9 @@ describe('Component Compilation Integrity Tests', () => {
         }).not.toThrow();
     });
 
-    test('InteractionSettingsModal imports and compiles correctly', async () => {
+    test('InteractionProperties imports and compiles correctly', async () => {
         expect(async () => {
-            const module = await import('../../client/components/InteractionSettingsModal');
+            const module = await import('../../client/components/interactions/InteractionProperties');
             expect(module.default).toBeDefined();
         }).not.toThrow();
     });

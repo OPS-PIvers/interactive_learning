@@ -1,12 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { InteractionType } from '../../shared/InteractionPresets';
-import { TimelineEventData } from '../../shared/type-defs';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { PlusIcon } from './icons/PlusIcon';
-import { TrashIcon } from './icons/TrashIcon';
-import { XMarkIcon } from './icons/XMarkIcon';
-import PanZoomSettings from './PanZoomSettings';
-import SpotlightSettings from './SpotlightSettings';
+import React, { useCallback, useState } from 'react';
+import { InteractionType } from '../../../shared/InteractionPresets';
+import { TimelineEventData } from '../../../shared/type-defs';
+import { PlusIcon } from '../icons/PlusIcon';
+import { TrashIcon } from '../icons/TrashIcon';
+import PanZoomSettings from '../PanZoomSettings';
+import SpotlightSettings from '../SpotlightSettings';
 
 const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
 const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
@@ -150,7 +148,7 @@ const validateQuizParameters = (event: TimelineEventData): ValidationError[] => 
 };
 
 // Main validation function
-const validateEventParameters = (event: TimelineEventData): ValidationError[] => {
+export const validateEventParameters = (event: TimelineEventData): ValidationError[] => {
   switch (event.type) {
     case InteractionType.TEXT:
       return validateTextParameters(event);
@@ -174,15 +172,6 @@ interface InteractionEditorProps {
   onUpdate: (updates: Partial<TimelineEventData>) => void;
 }
 
-/**
- * Placeholder component for editing text interactions.
- * 
- * This is a temporary implementation. The final version should include:
- * - Rich text editing capabilities
- * - Text formatting options (bold, italic, colors)
- * - Advanced positioning and sizing controls
- * - Text animation and transition effects
- */
 const TextInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     return (
         <div className="space-y-4">
@@ -259,15 +248,6 @@ const TextInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
 });
 TextInteractionEditor.displayName = 'TextInteractionEditor';
 
-/**
- * Placeholder component for editing audio interactions.
- * 
- * This is a temporary implementation. The final version should include:
- * - Audio file upload and management
- * - Waveform visualization and editing
- * - Advanced playback controls and timing
- * - Audio effects and processing options
- */
 const AudioInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
@@ -344,15 +324,6 @@ const AudioInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ e
 });
 AudioInteractionEditor.displayName = 'AudioInteractionEditor';
 
-/**
- * Placeholder component for editing video interactions.
- * 
- * This is a temporary implementation. The final version should include:
- * - Video file upload and management
- * - Video preview and thumbnail generation
- * - Advanced timing and clipping controls
- * - Video quality and compression options
- */
 const VideoInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const checkboxLabelClasses = "flex items-center space-x-2 cursor-pointer text-sm text-gray-300";
     const checkboxInputClasses = "form-checkbox h-4 w-4 text-purple-600 bg-slate-600 border-slate-500 rounded focus:ring-purple-500";
@@ -496,15 +467,6 @@ const VideoInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ e
 });
 VideoInteractionEditor.displayName = 'VideoInteractionEditor';
 
-/**
- * Placeholder component for editing quiz interactions.
- * 
- * This is a temporary implementation. The final version should include:
- * - Advanced question types (multiple choice, fill-in-the-blank, drag-and-drop)
- * - Question randomization and shuffling
- * - Detailed explanation and feedback systems
- * - Quiz analytics and progress tracking
- */
 const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ event, onUpdate }) => {
     const handleOptionChange = (index: number, value: string) => {
         const newOptions = [...(event.quizOptions || [])];
@@ -586,16 +548,13 @@ const QuizInteractionEditor: React.FC<InteractionEditorProps> = React.memo(({ ev
 });
 QuizInteractionEditor.displayName = 'QuizInteractionEditor';
 
-
-interface InteractionSettingsModalProps {
-  isOpen: boolean;
+interface InteractionPropertiesProps {
   event: TimelineEventData | null;
   onUpdate: (event: TimelineEventData) => void;
-  onClose: () => void;
+  onClose?: () => void; // Optional: for future use if this component needs a close button
 }
 
-const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
-  isOpen,
+const InteractionProperties: React.FC<InteractionPropertiesProps> = ({
   event,
   onUpdate,
   onClose,
@@ -607,30 +566,19 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
     if (!event) return;
     const updatedEvent = { ...event, ...updates };
     
-    // Perform real-time validation
     const errors = validateEventParameters(updatedEvent);
     setValidationErrors(errors);
     setHasValidated(true);
     
-    // Always update the event, even with validation errors
-    // This allows users to see their changes while they fix issues
     onUpdate(updatedEvent);
   }, [event, onUpdate]);
 
-  const handleSave = useCallback(() => {
-    if (!event) return;
-    const errors = validateEventParameters(event);
-    setValidationErrors(errors);
-    setHasValidated(true);
-    
-    if (errors.length === 0) {
-      onClose();
-    }
-  }, [event, onClose]);
-
-
-  if (!isOpen || !event) {
-    return null;
+  if (!event) {
+    return (
+        <div className="text-center py-8 text-gray-400">
+            Select an interaction to see its properties.
+        </div>
+    );
   }
 
   const renderEditorForEvent = () => {
@@ -669,16 +617,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   };
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-60 ${Z_INDEX_TAILWIND.MODAL_BACKDROP} flex items-center justify-center p-4`} onClick={onClose}>
-      <div className="bg-gray-800 text-white rounded-lg shadow-xl p-4 w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-          <h2 className="text-lg font-semibold">Edit: {event.name}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-700 rounded-full">
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Validation Error Summary */}
+    <div className="space-y-4">
         {hasValidated && validationErrors.length > 0 && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
             <h3 className="text-sm font-semibold text-red-300 mb-2">Please fix the following errors:</h3>
@@ -689,34 +628,9 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
             </ul>
           </div>
         )}
-        
-        <div className="space-y-4 mb-6 overflow-y-auto max-h-[60vh] pr-2">
-          {renderEditorForEvent()}
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={hasValidated && validationErrors.length > 0}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              hasValidated && validationErrors.length > 0
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
-          >
-            {hasValidated && validationErrors.length > 0 ? 'Fix Errors First' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
+        {renderEditorForEvent()}
     </div>
   );
 };
 
-export default InteractionSettingsModal;
+export default InteractionProperties;
