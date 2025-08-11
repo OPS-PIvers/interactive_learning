@@ -191,14 +191,14 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
       if (slideAreaRef.current) {
         const rect = slideAreaRef.current.getBoundingClientRect();
         setContainerDimensions({
-          width: rect.width || window.innerWidth - 64,
-          height: rect.height || window.innerHeight - 120
+          width: rect.width || window.innerWidth - 32, // More reasonable fallback
+          height: rect.height || window.innerHeight - 160 // Header(60) + Toolbar(80) + padding
         });
       } else {
         // Fallback to window dimensions
         setContainerDimensions({
-          width: window.innerWidth - 64,
-          height: window.innerHeight - 120
+          width: window.innerWidth - 32,
+          height: window.innerHeight - 160
         });
       }
     };
