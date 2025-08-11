@@ -213,16 +213,20 @@ function mapEffectTypeToInteractionType(effectType: SlideEffectType): Interactio
     case 'zoom':
     case 'pan_zoom':
       return InteractionType.PAN_ZOOM;
+    case 'text':
     case 'show_text':
-      return InteractionType.SHOW_TEXT;
-    case 'play_media':
-      return InteractionType.PLAY_VIDEO; // Default to video, will be refined by parameters
-    case 'play_video':
-      return InteractionType.PLAY_VIDEO;
+      return InteractionType.TEXT;
+    case 'tooltip':
+      return InteractionType.TOOLTIP;
+    case 'audio':
     case 'play_audio':
-      return InteractionType.PLAY_AUDIO;
+      return InteractionType.AUDIO;
+    case 'video':
+    case 'play_video':
+    case 'play_media':
+      return InteractionType.VIDEO;
     default:
-      return InteractionType.SHOW_TEXT; // Fallback
+      return InteractionType.TEXT; // Fallback
   }
 }
 
@@ -275,6 +279,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       } as ZoomParameters;
       break;
 
+    case InteractionType.TEXT:
     case InteractionType.SHOW_TEXT:
       let position: FixedPosition;
       if (event.textPosition === 'center') {
@@ -294,6 +299,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       } as ShowTextParameters;
       break;
 
+    case InteractionType.VIDEO:
     case InteractionType.PLAY_VIDEO:
       baseInteraction.effect.parameters = {
         mediaUrl: event.videoUrl || '',
@@ -304,6 +310,7 @@ export function timelineEventToSlideInteraction(event: TimelineEventData): Eleme
       } as PlayMediaParameters;
       break;
 
+    case InteractionType.AUDIO:
     case InteractionType.PLAY_AUDIO:
       baseInteraction.effect.parameters = {
         mediaUrl: event.audioUrl || '',
@@ -326,15 +333,24 @@ function mapInteractionTypeToEffectType(interactionType: InteractionType): Slide
     case InteractionType.SPOTLIGHT:
       return 'spotlight';
     case InteractionType.PAN_ZOOM:
-      return 'zoom';
+      return 'pan_zoom';
+    case InteractionType.TEXT:
+      return 'text';
+    case InteractionType.TOOLTIP:
+      return 'tooltip';
+    case InteractionType.AUDIO:
+      return 'audio';
+    case InteractionType.VIDEO:
+      return 'video';
+    // Legacy type support
     case InteractionType.SHOW_TEXT:
-      return 'show_text';
+      return 'text';
     case InteractionType.PLAY_VIDEO:
-      return 'play_media';
+      return 'video';
     case InteractionType.PLAY_AUDIO:
-      return 'play_media';
+      return 'audio';
     default:
-      return 'show_text';
+      return 'text';
   }
 }
 

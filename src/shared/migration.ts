@@ -7,6 +7,22 @@ import { VideoSourceType, SpotlightShape, extractYouTubeVideoId, HotspotData, In
 
 export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventData[] => {
   return events.map((event) => {
+    // Migrate legacy types to canonical types
+    if (event.type === InteractionType.SHOW_TEXT) {
+      return { ...event, type: InteractionType.TEXT };
+    }
+    if (event.type === InteractionType.PLAY_AUDIO) {
+      return { ...event, type: InteractionType.AUDIO };
+    }
+    if (event.type === InteractionType.PLAY_VIDEO) {
+      return { ...event, type: InteractionType.VIDEO };
+    }
+    if (event.type === InteractionType.HIGHLIGHT) {
+      return { ...event, type: InteractionType.SPOTLIGHT };
+    }
+    if (event.type === InteractionType.PAN_ZOOM_TO_HOTSPOT) {
+      return { ...event, type: InteractionType.PAN_ZOOM };
+    }
     // Migrate PAN_ZOOM_TO_HOTSPOT to PAN_ZOOM
     if (event.type === 'PAN_ZOOM_TO_HOTSPOT' as InteractionType) {
       return {
@@ -50,11 +66,11 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       };
     }
 
-    // Migrate SHOW_YOUTUBE to PLAY_VIDEO
+    // Migrate SHOW_YOUTUBE to VIDEO
     if (event.type === 'SHOW_YOUTUBE') {
       return {
         ...event,
-        type: InteractionType.PLAY_VIDEO,
+        type: InteractionType.VIDEO,
         videoSource: 'youtube' as VideoSourceType,
         videoUrl: event.youtubeVideoId ? `https://youtube.com/watch?v=${event.youtubeVideoId}` : '',
         videoDisplayMode: 'modal' as const,
@@ -65,11 +81,11 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       };
     }
 
-    // Migrate SHOW_VIDEO to PLAY_VIDEO  
+    // Migrate SHOW_VIDEO to VIDEO  
     if (event.type === 'SHOW_VIDEO') {
       return {
         ...event,
-        type: InteractionType.PLAY_VIDEO,
+        type: InteractionType.VIDEO,
         videoSource: 'url' as VideoSourceType,
         videoUrl: event.videoUrl || event.url || '',
         videoDisplayMode: 'modal' as const,
@@ -80,11 +96,11 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       };
     }
 
-    // Migrate SHOW_AUDIO_MODAL to PLAY_AUDIO
+    // Migrate SHOW_AUDIO_MODAL to AUDIO
     if (event.type === 'SHOW_AUDIO_MODAL') {
       return {
         ...event,
-        type: InteractionType.PLAY_AUDIO,
+        type: InteractionType.AUDIO,
         audioUrl: event.audioUrl || event.url || '',
         audioDisplayMode: 'modal' as const,
         audioShowControls: true,
@@ -95,11 +111,11 @@ export const migrateEventTypes = (events: TimelineEventData[]): TimelineEventDat
       } as TimelineEventData;
     }
 
-    // Migrate SHOW_MESSAGE to SHOW_TEXT
+    // Migrate SHOW_MESSAGE to TEXT
     if (event.type === 'SHOW_MESSAGE') {
       return {
         ...event,
-        type: InteractionType.SHOW_TEXT,
+        type: InteractionType.TEXT,
         textContent: event.message || event.content || '',
         textPosition: 'center' as const,
         textX: 50,

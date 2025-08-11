@@ -1,41 +1,25 @@
-// src/shared/InteractionPresets.ts - CONSOLIDATED FILE
-// Proper enum for production build compatibility (fixes TDZ issue)
+// src/shared/InteractionPresets.ts - CANONICAL INTERACTION TYPES
+// Cleaned up to 6 canonical types as requested
 export enum InteractionType {
-  // Essential interaction types
-  PAN_ZOOM = 'PAN_ZOOM',
-  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
-  SHOW_IMAGE = 'SHOW_IMAGE',
-  QUIZ = 'QUIZ',
+  // === CANONICAL INTERACTION TYPES ===
+  TEXT = 'text',
+  TOOLTIP = 'tooltip', 
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  PAN_ZOOM = 'pan_zoom',
+  SPOTLIGHT = 'spotlight',
 
-  // === UNIFIED EVENT TYPES ===
-  PLAY_VIDEO = 'PLAY_VIDEO',
-  PLAY_AUDIO = 'PLAY_AUDIO',
+  // === LEGACY TYPES (for migration support) ===
+  // These will be automatically migrated to canonical types
   SHOW_TEXT = 'SHOW_TEXT',
   SHOW_MESSAGE = 'SHOW_MESSAGE',
-  SPOTLIGHT = 'SPOTLIGHT',
-
-  // === MEDIA INTERACTION TYPES ===
+  PLAY_AUDIO = 'PLAY_AUDIO',
+  PLAY_VIDEO = 'PLAY_VIDEO',
   SHOW_VIDEO = 'SHOW_VIDEO',
   SHOW_AUDIO_MODAL = 'SHOW_AUDIO_MODAL',
   SHOW_YOUTUBE = 'SHOW_YOUTUBE',
-
-  // === SLIDE-BASED INTERACTION TYPES ===
-  MODAL = 'modal',
-  TRANSITION = 'transition',
-  SOUND = 'sound',
-  TOOLTIP = 'tooltip',
-
-  // === ADDITIONAL INTERACTION TYPES ===
-  SHOW_TEXT_LOWERCASE = 'showText',
-  HIDE_ELEMENT = 'hideElement',
-  SHOW_ELEMENT = 'showElement',
-  HIGHLIGHT = 'highlight',
-  ANIMATION = 'animation',
-  QUIZ_LOWERCASE = 'quiz',
-  JUMP = 'jump',
-  PLAY_AUDIO_LOWERCASE = 'playAudio',
-  PAUSE_AUDIO = 'pauseAudio',
-  PAN_ZOOM_LOWERCASE = 'panZoom'
+  PAN_ZOOM_TO_HOTSPOT = 'PAN_ZOOM_TO_HOTSPOT',
+  HIGHLIGHT = 'highlight'
 }
 
 // Default export for maximum compatibility
@@ -51,105 +35,11 @@ export interface InteractionPreset {
   description: string;
 }
 
-export const interactionPresets: Record<InteractionType, InteractionPreset> = {
-  // Essential interaction types
-  [InteractionType.PAN_ZOOM]: {
-    icon: '🔍',
-    name: 'Pan & Zoom',
-    color: 'bg-green-500',
-    settings: ['targetX', 'targetY', 'zoomLevel', 'smooth'],
-    description: 'Pan and zoom to specific coordinates on the image'
-  },
-  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: {
-    icon: '🎯',
-    name: 'Zoom to Hotspot',
-    color: 'bg-teal-500',
-    settings: ['targetId', 'zoomLevel', 'smooth'],
-    description: 'Pan and zoom to a specific hotspot'
-  },
-  [InteractionType.SHOW_IMAGE]: {
-    icon: '🖼️',
-    name: 'Show Image',
-    color: 'bg-purple-500',
-    settings: ['imageUrl', 'caption', 'imageDisplayMode'],
-    description: 'Display image with optional caption and modal option'
-  },
-  [InteractionType.QUIZ]: {
-    icon: '❓',
-    name: 'Quiz Question',
-    color: 'bg-red-500',
-    settings: ['quizQuestion', 'quizOptions', 'quizCorrectAnswer', 'quizExplanation'],
-    description: 'Interactive quiz question'
-  },
-  
-  // === UNIFIED MEDIA TYPES ===
-  [InteractionType.PLAY_VIDEO]: {
-    icon: '🎥',
-    name: 'Play Video',
-    color: 'bg-red-500',
-    settings: [
-      'videoSource',
-      'videoUrl', 
-      'videoDisplayMode', 
-      'videoShowControls', 
-      'videoPoster', 
-      'autoplay', 
-      'loop',
-      'youtubeStartTime',
-      'youtubeEndTime'
-    ],
-    description: 'Play video from any source (file, YouTube, device recording, URL)'
-  },
-  
-  [InteractionType.PLAY_AUDIO]: {
-    icon: '🔊',
-    name: 'Play Audio',
-    color: 'bg-indigo-500',
-    settings: [
-      'audioUrl', 
-      'audioDisplayMode', 
-      'audioShowControls', 
-      'volume', 
-      'autoplay', 
-      'loop',
-      'audioTitle',
-      'audioArtist'
-    ],
-    description: 'Play audio from any source with flexible display options'
-  },
-  [InteractionType.SHOW_VIDEO]: {
-    icon: '🎬',
-    name: 'Show Video',
-    color: 'bg-rose-500',
-    settings: ['videoUrl', 'videoDisplayMode'],
-    description: 'Show a video in a modal or inline'
-  },
-  [InteractionType.SHOW_AUDIO_MODAL]: {
-    icon: '🎶',
-    name: 'Show Audio',
-    color: 'bg-purple-500',
-    settings: ['audioUrl', 'audioTitle', 'audioArtist'],
-    description: 'Show an audio player in a modal'
-  },
-  [InteractionType.SHOW_YOUTUBE]: {
-    icon: '📺',
-    name: 'Show YouTube',
-    color: 'bg-red-600',
-    settings: ['youtubeVideoId', 'youtubeStartTime', 'youtubeEndTime'],
-    description: 'Embed a YouTube video'
-  },
-  
-  // === UNIFIED TEXT AND SPOTLIGHT ===
-  [InteractionType.SHOW_MESSAGE]: {
-    icon: '💬',
-    name: 'Show Message',
-    color: 'bg-sky-500',
-    settings: ['textContent', 'textPosition'],
-    description: 'Display a simple text message'
-  },
-  [InteractionType.SHOW_TEXT]: {
+// Canonical interaction presets - only the 6 core types users will see
+export const canonicalInteractionPresets: Record<string, InteractionPreset> = {
+  [InteractionType.TEXT]: {
     icon: '📝',
-    name: 'Show Text',
+    name: 'Text',
     color: 'bg-blue-500',
     settings: [
       'textContent',
@@ -157,9 +47,63 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
       'textX',
       'textY', 
       'textWidth',
-      'textHeight'
+      'textHeight',
+      'displayMode'
     ],
-    description: 'Display text content with flexible positioning'
+    description: 'Display text content with flexible positioning and styling'
+  },
+  
+  [InteractionType.TOOLTIP]: {
+    icon: '💬',
+    name: 'Tooltip',
+    color: 'bg-orange-500',
+    settings: ['textContent', 'position', 'arrow', 'delay'],
+    description: 'Show contextual information on hover or click'
+  },
+  
+  [InteractionType.AUDIO]: {
+    icon: '🔊',
+    name: 'Audio',
+    color: 'bg-indigo-500',
+    settings: [
+      'audioUrl', 
+      'audioFile',
+      'displayMode', 
+      'showControls', 
+      'volume', 
+      'autoplay', 
+      'loop',
+      'audioTitle'
+    ],
+    description: 'Play audio from file upload or URL with flexible display options'
+  },
+  
+  [InteractionType.VIDEO]: {
+    icon: '🎥',
+    name: 'Video',
+    color: 'bg-red-500',
+    settings: [
+      'videoSource',
+      'videoUrl',
+      'videoFile',
+      'youtubeVideoId', 
+      'displayMode', 
+      'showControls', 
+      'poster', 
+      'autoplay', 
+      'loop',
+      'youtubeStartTime',
+      'youtubeEndTime'
+    ],
+    description: 'Play video from file upload or YouTube URL with customizable playback'
+  },
+  
+  [InteractionType.PAN_ZOOM]: {
+    icon: '🔍',
+    name: 'Pan & Zoom',
+    color: 'bg-green-500',
+    settings: ['targetX', 'targetY', 'zoomLevel', 'duration', 'easing'],
+    description: 'Pan and zoom to specific coordinates with smooth animation'
   },
   
   [InteractionType.SPOTLIGHT]: {
@@ -167,117 +111,33 @@ export const interactionPresets: Record<InteractionType, InteractionPreset> = {
     name: 'Spotlight',
     color: 'bg-yellow-500',
     settings: [
-      'spotlightShape',
-      'spotlightX',
-      'spotlightY',
-      'spotlightWidth', 
-      'spotlightHeight',
-      'backgroundDimPercentage'
+      'position',
+      'shape',
+      'width', 
+      'height',
+      'intensity',
+      'fadeEdges',
+      'message'
     ],
-    description: 'Focus attention with customizable spotlight effect'
-  },
-  
-  // === SLIDE-BASED INTERACTION TYPES ===
-  [InteractionType.MODAL]: {
-    icon: '📋',
-    name: 'Modal Dialog',
-    color: 'bg-blue-500',
-    settings: ['message'],
-    description: 'Show information in a popup dialog'
-  },
-  
-  [InteractionType.TRANSITION]: {
-    icon: '➡️',
-    name: 'Slide Transition',
-    color: 'bg-green-500',
-    settings: ['type'],
-    description: 'Navigate to another slide or section'
-  },
-  
-  [InteractionType.SOUND]: {
-    icon: '🔊',
-    name: 'Play Sound',
-    color: 'bg-purple-500',
-    settings: ['url', 'volume'],
-    description: 'Play an audio file or sound effect'
-  },
-  
-  [InteractionType.TOOLTIP]: {
-    icon: '💬',
-    name: 'Tooltip',
-    color: 'bg-orange-500',
-    settings: ['textContent', 'position'],
-    description: 'Show contextual information on hover or click'
-  },
-  // Add missing lowercase versions to satisfy the Record type
-  [InteractionType.QUIZ_LOWERCASE]: {
-    icon: '❓',
-    name: 'Quiz (Legacy)',
-    color: 'bg-gray-500',
-    settings: [],
-    description: 'Legacy quiz question'
-  },
-  [InteractionType.SHOW_TEXT_LOWERCASE]: {
-    icon: '📝',
-    name: 'Show Text (Legacy)',
-    color: 'bg-gray-500',
-    settings: [],
-    description: 'Legacy text display'
-  },
-  [InteractionType.HIDE_ELEMENT]: {
-    icon: '👁️‍🗨️',
-    name: 'Hide Element',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Hide an element on the slide'
-  },
-  [InteractionType.SHOW_ELEMENT]: {
-    icon: '👁️',
-    name: 'Show Element',
-    color: 'bg-gray-400',
-    settings: [],
-    description: 'Show a hidden element on the slide'
-  },
-  [InteractionType.HIGHLIGHT]: {
-    icon: '✨',
-    name: 'Highlight',
-    color: 'bg-yellow-400',
-    settings: [],
-    description: 'Highlight an element'
-  },
-  [InteractionType.ANIMATION]: {
-    icon: '🎬',
-    name: 'Animation',
-    color: 'bg-purple-400',
-    settings: [],
-    description: 'Play an animation'
-  },
-  [InteractionType.JUMP]: {
-    icon: '➡️',
-    name: 'Jump to Slide',
-    color: 'bg-green-400',
-    settings: [],
-    description: 'Jump to a different slide'
-  },
-  [InteractionType.PLAY_AUDIO_LOWERCASE]: {
-    icon: '🔊',
-    name: 'Play Audio (Legacy)',
-    color: 'bg-gray-500',
-    settings: [],
-    description: 'Legacy audio playback'
-  },
-  [InteractionType.PAUSE_AUDIO]: {
-    icon: '⏸️',
-    name: 'Pause Audio',
-    color: 'bg-indigo-400',
-    settings: [],
-    description: 'Pause the currently playing audio'
-  },
-  [InteractionType.PAN_ZOOM_LOWERCASE]: {
-    icon: '🔍',
-    name: 'Pan & Zoom (Legacy)',
-    color: 'bg-gray-500',
-    settings: [],
-    description: 'Legacy pan and zoom'
+    description: 'Focus attention with customizable spotlight effects'
   }
+};
+
+// Legacy type mappings for backward compatibility
+export const legacyInteractionPresets: Record<string, InteractionPreset> = {
+  [InteractionType.SHOW_TEXT]: canonicalInteractionPresets[InteractionType.TEXT],
+  [InteractionType.SHOW_MESSAGE]: canonicalInteractionPresets[InteractionType.TEXT],
+  [InteractionType.PLAY_AUDIO]: canonicalInteractionPresets[InteractionType.AUDIO],
+  [InteractionType.PLAY_VIDEO]: canonicalInteractionPresets[InteractionType.VIDEO],
+  [InteractionType.SHOW_VIDEO]: canonicalInteractionPresets[InteractionType.VIDEO],
+  [InteractionType.SHOW_AUDIO_MODAL]: canonicalInteractionPresets[InteractionType.AUDIO],
+  [InteractionType.SHOW_YOUTUBE]: canonicalInteractionPresets[InteractionType.VIDEO],
+  [InteractionType.PAN_ZOOM_TO_HOTSPOT]: canonicalInteractionPresets[InteractionType.PAN_ZOOM],
+  [InteractionType.HIGHLIGHT]: canonicalInteractionPresets[InteractionType.SPOTLIGHT]
+};
+
+// Combined presets for migration support
+export const interactionPresets: Record<string, InteractionPreset> = {
+  ...canonicalInteractionPresets,
+  ...legacyInteractionPresets
 };

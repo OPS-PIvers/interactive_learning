@@ -177,19 +177,18 @@ export interface SlideEffect {
 }
 
 export type SlideEffectType = 
-  | 'spotlight' 
-  | 'zoom' 
-  | 'transition' 
-  | 'animate'
+  | 'text'
+  | 'tooltip' 
+  | 'audio'
+  | 'video'
+  | 'pan_zoom'
+  | 'spotlight'
+  
+  // Legacy types for migration
   | 'show_text'
   | 'play_media'
   | 'play_video'
-  | 'play_audio'
-  | 'quiz'
-  | 'pan_zoom'
-  | 'modal'
-  | 'sound'
-  | 'tooltip';
+  | 'play_audio';
 
 // Effect parameters
 export type EffectParameters = 
