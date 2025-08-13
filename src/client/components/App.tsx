@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
@@ -393,7 +393,7 @@ const MainApp: React.FC = () => {
       );
       setSelectedProject(projectToUpdate);
     }
-  }, [user, projects, selectedProject]);
+  }, [user, selectedProject]);
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
