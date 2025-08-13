@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
@@ -361,6 +361,39 @@ const MainApp: React.FC = () => {
       setIsLoading(false);
     }
   }, [user, selectedProject, handleCloseModal]);
+
+  const handleProjectThemeChange = useCallback(async (theme: ThemePreset) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!selectedProject) {
+      setError("No project selected for saving theme.");
+      return;
+    }
+
+    const projectToUpdate = selectedProject;
+    const updatedProject = { ...projectToUpdate, theme };
+
+    // Optimistic update
+    setProjects(prevProjects =>
+      prevProjects.map(p => (p.id === projectToUpdate.id ? updatedProject : p))
+    );
+    setSelectedProject(updatedProject);
+
+    try {
+      await appScriptProxy.saveProject(updatedProject);
+    } catch (err: unknown) {
+      console.error("Failed to save project theme:", err);
+      setError(`Failed to save theme: ${(err as Error)?.message || ''}`);
+      // Rollback on error
+      setProjects(prevProjects =>
+        prevProjects.map(p => (p.id === projectToUpdate.id ? projectToUpdate : p))
+      );
+      setSelectedProject(projectToUpdate);
+    }
+  }, [user, selectedProject]);
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
@@ -509,6 +542,7 @@ const MainApp: React.FC = () => {
             onImageUpload={handleImageUpload}
             onReloadRequest={handleModuleReloadRequest}
             isPublished={selectedProject.isPublished ?? false}
+            onProjectThemeChange={handleProjectThemeChange}
           />
         </HookErrorBoundary>
       )}

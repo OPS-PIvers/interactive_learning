@@ -63,6 +63,7 @@ export interface UIVisibilityState {
   showHelpHint: boolean;
   showSuccessMessage: boolean;
   activeDropdownId: string | null;
+  isMobilePropertiesPanelOpen: boolean;
 }
 
 /**
@@ -127,6 +128,7 @@ export interface EditorStateActions {
   resetEditorState: () => void;
   enterEditMode: (elementId: string) => void;
   exitEditMode: () => void;
+  toggleMobilePropertiesPanel: () => void;
 }
 
 /**
@@ -180,6 +182,7 @@ const createDefaultUIVisibilityState = (): UIVisibilityState => ({
   showHelpHint: true,
   showSuccessMessage: false,
   activeDropdownId: null,
+  isMobilePropertiesPanelOpen: false,
 });
 
 const createDefaultOperationState = (): OperationState => ({
@@ -405,7 +408,11 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
     }));
     
     // Close properties panel
-    setUI(prev => ({ ...prev, propertiesPanel: false }));
+    setUI(prev => ({ ...prev, propertiesPanel: false, isMobilePropertiesPanelOpen: false }));
+  }, []);
+
+  const toggleMobilePropertiesPanel = useCallback(() => {
+    setUI(prev => ({ ...prev, isMobilePropertiesPanelOpen: !prev.isMobilePropertiesPanelOpen }));
   }, []);
   
   // Auto-dismiss help hint after 5 seconds
@@ -453,6 +460,7 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
       resetEditorState,
       enterEditMode,
       exitEditMode,
+      toggleMobilePropertiesPanel,
     },
     computed,
   };

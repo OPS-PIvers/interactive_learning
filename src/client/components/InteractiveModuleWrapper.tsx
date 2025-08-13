@@ -20,6 +20,7 @@ interface InteractiveModuleWrapperProps {
   onImageUpload: (file: File) => Promise<void>;
   onReloadRequest?: () => void;
   isPublished?: boolean;
+  onProjectThemeChange?: (themeId: ThemePreset) => void;
 }
 
 const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
@@ -29,7 +30,8 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
   onSave,
   onImageUpload,
   onReloadRequest,
-  isPublished
+  isPublished,
+  onProjectThemeChange
 }) => {
   // ✅ ALWAYS call the same hooks in the same order
   const [_isModalOpen, _setIsModalOpen] = useState(true);
@@ -78,6 +80,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             projectId={selectedProject.id}
             projectTheme={selectedProject.theme as ThemePreset || 'professional'}
             onSlideDeckChange={handleSlideDeckChange}
+            onProjectThemeChange={onProjectThemeChange}
             onSave={handleImmediateSave}
             onImageUpload={onImageUpload}
             onClose={onClose}
