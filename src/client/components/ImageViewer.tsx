@@ -14,13 +14,24 @@ interface ImageViewerProps {
   onFocusAnimationComplete?: () => void;
 }
 
-const ZoomController: React.FC<{
+interface ZoomControllerProps {
   focusHotspotTarget: ImageViewerProps['focusHotspotTarget'];
   onFocusAnimationComplete: ImageViewerProps['onFocusAnimationComplete'];
   imageRef: React.RefObject<HTMLImageElement>;
   containerRef: React.RefObject<HTMLDivElement>;
-}> = ({ focusHotspotTarget, onFocusAnimationComplete, imageRef, containerRef }) => {
+}
+
+const ZoomController: React.FC<ZoomControllerProps> = ({ 
+  focusHotspotTarget, 
+  onFocusAnimationComplete, 
+  imageRef, 
+  containerRef 
+}) => {
   const { setTransform } = useControls();
+  const onFocusAnimationCompleteRef = useRef(onFocusAnimationComplete);
+  
+  // Keep the callback ref up to date without triggering effect re-runs
+  onFocusAnimationCompleteRef.current = onFocusAnimationComplete;
 
   useEffect(() => {
     if (focusHotspotTarget && imageRef.current && containerRef.current) {
@@ -45,20 +56,18 @@ const ZoomController: React.FC<{
 
       setTransform(panX, panY, scale, PAN_ZOOM_ANIMATION.duration, 'easeOut');
 
-      // The library does not seem to provide a promise or callback for animation completion.
-      // The original setTimeout was buggy, but removing it without a replacement
+      // As of react-zoom-pan-pinch v3.7.0, the library does not provide a promise or callback for animation completion.
+      // The original setTimeout was buggy due to lack of cleanup, but removing it without a replacement
       // means the onFocusAnimationComplete will not be called.
-      // A more robust solution would be to poll for the state, but that is complex.
-      // Given the constraints, we will use a timeout but ensure it can be cancelled.
+      // A more robust solution would be to poll for the transform state, but that adds complexity
+      // and potential performance overhead. Given the constraints, we use a cancellable timeout.
       const timeoutId = setTimeout(() => {
-        if (onFocusAnimationComplete) {
-          onFocusAnimationComplete();
-        }
+        onFocusAnimationCompleteRef.current?.();
       }, PAN_ZOOM_ANIMATION.duration);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [focusHotspotTarget, onFocusAnimationComplete, setTransform, imageRef, containerRef]);
+  }, [focusHotspotTarget, setTransform, imageRef, containerRef]);
 
   return null;
 };
