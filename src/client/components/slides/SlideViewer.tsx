@@ -69,17 +69,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTimelineStep, setCurrentTimelineStep] = useState(0);
 
-  // Touch gesture state for mobile
-  const [touchState, setTouchState] = useState({
-    startX: 0,
-    startY: 0,
-    startTime: 0,
-    isDragging: false,
-    panX: 0,
-    panY: 0,
-    scale: 1,
-    initialDistance: 0
-  });
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // Get current slide and ensure elements have interactions
   const currentSlide = React.useMemo(() => {
@@ -235,108 +225,44 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     triggerEffect(effect);
   }, [triggerEffect]);
 
-  // Touch gesture handlers for mobile
+  // Simplified touch gesture handlers for mobile swipe
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!slideDeck?.settings?.touchGestures) return;
-
-    const touch = e.touches?.[0];
-    if (!touch) return;
-
-    const now = Date.now();
-
-    if (e.touches.length === 1) {
-      // Single touch - prepare for swipe or pan
-      setTouchState((prev) => ({
-        ...prev,
-        startX: touch.clientX,
-        startY: touch.clientY,
-        startTime: now,
-        isDragging: false
-      }));
-    } else if (e.touches.length === 2) {
-      // Two finger touch - prepare for pinch zoom
-      const touch1 = e.touches?.[0];
-      const touch2 = e.touches?.[1];
-      if (!touch1 || !touch2) return;
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-
-      setTouchState((prev) => ({
-        ...prev,
-        initialDistance: distance,
-        isDragging: false
-      }));
+    if (!slideDeck?.settings?.touchGestures || e.touches.length !== 1) {
+      touchStartRef.current = null;
+      return;
     }
+    const touch = e.touches[0];
+    if (!touch) return;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
   }, [slideDeck]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!slideDeck?.settings?.touchGestures) return;
-
-    e.preventDefault(); // Prevent scrolling while handling gestures
-
-    if (e.touches.length === 1) {
-      // Single finger - pan or swipe detection
-      const touch = e.touches?.[0];
-      if (!touch) return;
-      const deltaX = touch.clientX - touchState.startX;
-      const deltaY = touch.clientY - touchState.startY;
-
-      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-        setTouchState((prev) => ({ ...prev, isDragging: true, panX: deltaX, panY: deltaY }));
-      }
-    } else if (e.touches.length === 2 && touchState.initialDistance > 0) {
-      // Two finger - pinch zoom
-      const touch1 = e.touches?.[0];
-      const touch2 = e.touches?.[1];
-      if (!touch1 || !touch2) return;
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-
-      const scale = Math.max(0.5, Math.min(3, distance / touchState.initialDistance));
-      setTouchState((prev) => ({ ...prev, scale, isDragging: true }));
-    }
-  }, [slideDeck, touchState.startX, touchState.startY, touchState.initialDistance]);
-
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!slideDeck?.settings?.touchGestures) return;
+    if (!slideDeck?.settings?.touchGestures || !touchStartRef.current || e.changedTouches.length !== 1) {
+      return;
+    }
 
     const touch = e.changedTouches[0];
     if (!touch) return;
-
-    const deltaX = touch.clientX - touchState.startX;
-    const deltaY = touch.clientY - touchState.startY;
-    const deltaTime = Date.now() - touchState.startTime;
-
-    // Reset dragging state
-    setTouchState((prev) => ({ ...prev, isDragging: false, panX: 0, panY: 0 }));
+    const touchStart = touchStartRef.current;
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    const deltaTime = Date.now() - touchStart.time;
 
     // Detect swipe gestures (fast horizontal movement)
-    if (!touchState.isDragging && deltaTime < 300) {
-      const minSwipeDistance = 50;
-      const maxVerticalMovement = 100;
+    if (deltaTime < 500) { // Max swipe duration
+      const minSwipeDistance = 50; // Min horizontal movement
+      const maxVerticalMovement = 100; // Max vertical movement allowed
 
       if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaY) < maxVerticalMovement) {
         if (deltaX > 0) {
-          // Swipe right - go to previous slide
           navigateToPrevious();
         } else {
-          // Swipe left - go to next slide
           navigateToNext();
         }
       }
     }
-
-    // Reset scale if it was adjusted
-    if (touchState.scale !== 1) {
-      setTimeout(() => {
-        setTouchState((prev) => ({ ...prev, scale: 1 }));
-      }, 300);
-    }
-  }, [slideDeck, touchState, navigateToNext, navigateToPrevious]);
+    touchStartRef.current = null;
+  }, [slideDeck, navigateToNext, navigateToPrevious]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -436,8 +362,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     height: canvasDimensions.height,
     position: 'relative',
     backgroundColor: currentSlide?.backgroundColor || 'transparent',
-    transform: `translate(${touchState.panX}px, ${touchState.panY}px) scale(${touchState.scale})`,
-    transition: touchState.isDragging ? 'none' : 'transform 0.3s ease-out',
     touchAction: slideDeck?.settings?.touchGestures ? 'none' : 'auto'
   };
 
@@ -452,8 +376,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     <div
       ref={containerRef}
       className={`slide-viewer-container mobile-enhanced ${className}`}
-      data-slide-id={currentSlide.id}
-      data-device-type={deviceType}>
+      data-slide-id={currentSlide.id}>
       
       <div className="slide-viewer-main">
         {/* Slide Canvas Wrapper - Takes remaining space */}
@@ -466,7 +389,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             className="slide-canvas"
             style={slideCanvasStyle}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}>
 
         {/* Background Media Renderer */}
@@ -487,7 +409,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url &&
           <img
             src={currentSlide.backgroundMedia.url}
-            alt="Slide background"
+            alt=""
             className="absolute inset-0 w-full h-full object-cover"
             style={{
               objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' ?

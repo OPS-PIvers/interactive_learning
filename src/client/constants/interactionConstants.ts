@@ -53,3 +53,8 @@ export const PREVIEW_DEFAULTS = {
   ZOOM_PREVIEW_WIDTH_PERCENT: 20,
   ZOOM_PREVIEW_HEIGHT_PERCENT: 20,
 } as const;
+
+export const GESTURE_DEFAULTS = {
+  DRAG_THRESHOLD: 8, // pixels
+  HOLD_TO_EDIT_TIMEOUT: 700, // ms
+} as const;

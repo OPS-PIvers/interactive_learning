@@ -88,16 +88,18 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
   useEffect(() => {
     const container = canvasContainerRef.current;
-    if (container) {
-      const resizeObserver = new ResizeObserver(entries => {
-        if (entries[0]) {
-          const { width, height } = entries[0].contentRect;
-          setCanvasContainerDimensions({ width, height });
-        }
-      });
-      resizeObserver.observe(container);
-      return () => resizeObserver.disconnect();
+    if (!container) {
+      return;
     }
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      if (entries[0]) {
+        const { width, height } = entries[0].contentRect;
+        setCanvasContainerDimensions({ width, height });
+      }
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
   }, []);
 
   // Mobile toolbar configuration removed - using responsive design instead
