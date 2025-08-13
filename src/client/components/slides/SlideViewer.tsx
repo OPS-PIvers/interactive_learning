@@ -452,8 +452,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     <div
       ref={containerRef}
       className={`slide-viewer-container mobile-enhanced ${className}`}
-      data-slide-id={currentSlide.id}
-      data-device-type={deviceType}>
+      data-slide-id={currentSlide.id}>
       
       <div className="slide-viewer-main">
         {/* Slide Canvas Wrapper - Takes remaining space */}
