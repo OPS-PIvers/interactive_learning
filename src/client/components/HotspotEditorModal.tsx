@@ -412,7 +412,9 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                 key={sizePreset.value}
                                 onClick={() => {
                                   if (localHotspot) {
-                                    setLocalHotspot((prev) => prev ? { ...prev, size: sizePreset.value } : null);
+                                    const updatedHotspot = { ...localHotspot, size: sizePreset.value };
+                                    setLocalHotspot(updatedHotspot);
+                                    onUpdateHotspot(updatedHotspot);
                                   }
                                 }}
                                 className={`px-3 py-2 rounded text-xs transition-colors ${
