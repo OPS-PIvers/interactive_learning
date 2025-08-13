@@ -361,6 +361,43 @@ const MainApp: React.FC = () => {
       setIsLoading(false);
     }
   }, [user, selectedProject, handleCloseModal]);
+
+  const handleProjectThemeChange = useCallback(async (projectId: string, theme: ThemePreset) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    const projectToUpdate = projects.find(p => p.id === projectId);
+    if (!projectToUpdate) {
+      setError("Project not found for saving.");
+      return;
+    }
+
+    const updatedProject = { ...projectToUpdate, theme };
+
+    // Optimistic update
+    setProjects(prevProjects =>
+      prevProjects.map(p => (p.id === projectId ? updatedProject : p))
+    );
+    if (selectedProject?.id === projectId) {
+      setSelectedProject(updatedProject);
+    }
+
+    try {
+      await appScriptProxy.saveProject(updatedProject);
+    } catch (err: unknown) {
+      console.error("Failed to save project theme:", err);
+      setError(`Failed to save theme: ${(err as Error)?.message || ''}`);
+      // Rollback on error
+      setProjects(prevProjects =>
+        prevProjects.map(p => (p.id === projectId ? projectToUpdate : p))
+      );
+      if (selectedProject?.id === projectId) {
+        setSelectedProject(projectToUpdate);
+      }
+    }
+  }, [user, projects, selectedProject]);
   
   const handleModuleReloadRequest = useCallback(async () => {
     if (selectedProject) {
@@ -509,6 +546,7 @@ const MainApp: React.FC = () => {
             onImageUpload={handleImageUpload}
             onReloadRequest={handleModuleReloadRequest}
             isPublished={selectedProject.isPublished ?? false}
+            onProjectThemeChange={(theme) => handleProjectThemeChange(selectedProject.id, theme)}
           />
         </HookErrorBoundary>
       )}

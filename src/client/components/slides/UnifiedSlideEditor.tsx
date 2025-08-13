@@ -6,7 +6,7 @@
  * providing optimal experience across all device types.
  */
 
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { firebaseAPI } from '../../../lib/firebaseApi';
 import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { MigrationResult } from '../../../shared/migrationUtils';
@@ -50,6 +50,7 @@ export interface UnifiedSlideEditorProps {
   projectId?: string;
   projectTheme?: ThemePreset;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
+  onProjectThemeChange?: (themeId: ThemePreset) => void;
   onSave: (currentSlideDeck: SlideDeck) => Promise<void>;
   onImageUpload: (file: File) => Promise<void>;
   onClose: () => void;
@@ -66,6 +67,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   projectId,
   projectTheme,
   onSlideDeckChange,
+  onProjectThemeChange,
   onSave,
   onImageUpload,
   onClose,
@@ -78,6 +80,23 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     actions,
     computed
   } = useUnifiedEditorState();
+
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasContainerDimensions, setCanvasContainerDimensions] = useState({ width: 1200, height: 800 });
+
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (container) {
+      const resizeObserver = new ResizeObserver(entries => {
+        if (entries[0]) {
+          const { width, height } = entries[0].contentRect;
+          setCanvasContainerDimensions({ width, height });
+        }
+      });
+      resizeObserver.observe(container);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
 
   // Mobile toolbar configuration removed - using responsive design instead
 
@@ -101,8 +120,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     if (!selectedHotspotElement) return null;
 
     // Get canvas dimensions for coordinate conversion
-    const containerDimensions = { width: 1200, height: 800 }; // Default, will be refined
-    const canvasDimensions = getCanvasDimensionsFromSlide(currentSlide, containerDimensions);
+    const canvasDimensions = getCanvasDimensionsFromSlide(currentSlide, canvasContainerDimensions);
 
     try {
       // Convert slide element to legacy hotspot data
@@ -523,9 +541,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
   // Handle theme changes
   const handleThemeChange = useCallback((theme: any, themeId: ThemePreset) => {
-
-
-  }, []);
+    if (onProjectThemeChange) {
+      onProjectThemeChange(themeId);
+    }
+  }, [onProjectThemeChange]);
 
   // Handle save operation
   const handleSave = useCallback(async () => {
@@ -646,7 +665,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                         md:flex-row flex-col">
           
           {/* Main canvas area */}
-          <div className="flex-1 flex flex-col relative min-h-0">
+          <div className="flex-1 flex flex-col relative min-h-0" ref={canvasContainerRef}>
             
             {/* Responsive Canvas - with proper height constraint */}
             <div className="flex-1 overflow-hidden relative">
@@ -698,20 +717,14 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             onBackgroundOpen={() => actions.openModal('backgroundModal')}
             onInsertOpen={() => actions.openModal('insertModal')}
             onAspectRatioOpen={() => actions.openModal('aspectRatioModal')}
-            onPropertiesOpen={() => {
-              // Toggle mobile object editor panel expansion
-              const panel = document.querySelector('.object-editor-panel-mobile') as HTMLElement;
-              if (panel) {
-                panel.classList.toggle('expanded');
-              }
-            }}
+            onPropertiesOpen={actions.toggleMobilePropertiesPanel}
             hasSelectedElement={!!selectedElement} />
           }
         </div>
 
         {/* Mobile Object Editor Panel - collapsible bottom drawer */}
         {!state.navigation.isPreviewMode && selectedElement &&
-        <div className={`object-editor-panel-mobile md:hidden ${Z_INDEX_TAILWIND.PROPERTIES_PANEL}`}>
+        <div className={`object-editor-panel-mobile md:hidden ${Z_INDEX_TAILWIND.PROPERTIES_PANEL} ${state.ui.isMobilePropertiesPanelOpen ? 'expanded' : ''}`}>
           <div className="overflow-y-auto p-4 pt-8">
             <ObjectEditorPanel
               selectedElement={selectedElement}
