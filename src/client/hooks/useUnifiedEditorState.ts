@@ -58,6 +58,7 @@ export interface UIVisibilityState {
   settingsModal: boolean;
   propertiesPanel: boolean;
   hotspotEditorModal: boolean;
+  interactionEditor: boolean;
   
   // UI elements
   showHelpHint: boolean;
@@ -179,6 +180,7 @@ const createDefaultUIVisibilityState = (): UIVisibilityState => ({
   settingsModal: false,
   propertiesPanel: false,
   hotspotEditorModal: false,
+  interactionEditor: false,
   showHelpHint: true,
   showSuccessMessage: false,
   activeDropdownId: null,
@@ -287,10 +289,23 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   // Interaction editor actions
   const openInteractionEditor = useCallback((eventId: string) => {
     setInteractionEditor({ isOpen: true, editingEventId: eventId });
+    setUI(prev => ({
+      ...prev,
+      slidesModal: false,
+      backgroundModal: false,
+      insertModal: false,
+      aspectRatioModal: false,
+      shareModal: false,
+      settingsModal: false,
+      propertiesPanel: false,
+      hotspotEditorModal: false,
+      interactionEditor: true,
+    }));
   }, []);
 
   const closeInteractionEditor = useCallback(() => {
     setInteractionEditor({ isOpen: false, editingEventId: null });
+    setUI(prev => ({ ...prev, interactionEditor: false }));
   }, []);
   
   // UI visibility actions

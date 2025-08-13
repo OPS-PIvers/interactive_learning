@@ -24,7 +24,6 @@ interface InteractionLog {
  * 
  * Phase 3 Enhancement: Renamed from MobileEditorTest to reflect unified nature
  */
-import { ThemePreset } from '../../shared/slideTypes';
 export const EditorTestPage: React.FC = () => {
   const [mode, setMode] = useState<'editor' | 'viewer'>('editor');
   const [slideDeck, setSlideDeck] = useState<SlideDeck>(() => createTestDemoSlideDeck());
@@ -34,13 +33,10 @@ export const EditorTestPage: React.FC = () => {
     userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
   });
 
-  const [projectName, setProjectName] = useState('Mobile Editor Test');
-  const [projectTheme, setProjectTheme] = useState<ThemePreset>('modern');
-
   // Mock project data for editor
   const mockProject = {
     id: 'mobile-test-project',
-    title: projectName,
+    title: 'Mobile Editor Test',
     description: 'Testing mobile editor interface',
     created: Date.now(),
     modified: Date.now(),
@@ -59,14 +55,6 @@ export const EditorTestPage: React.FC = () => {
         timed: false,
       },
     } as InteractiveModuleState
-  };
-
-  const handleProjectNameChange = (newName: string) => {
-    setProjectName(newName);
-  };
-
-  const handleProjectThemeChange = (newTheme: ThemePreset) => {
-    setProjectTheme(newTheme);
   };
 
   const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
@@ -221,10 +209,7 @@ export const EditorTestPage: React.FC = () => {
           <div className="h-full">
             <UnifiedSlideEditor
               slideDeck={slideDeck}
-              projectName={projectName}
-              onProjectNameChange={handleProjectNameChange}
-              projectTheme={projectTheme}
-              onProjectThemeChange={handleProjectThemeChange}
+              projectName={mockProject.title}
               projectId={mockProject.id}
               onSlideDeckChange={handleSlideDeckChange}
               onSave={handleSave}

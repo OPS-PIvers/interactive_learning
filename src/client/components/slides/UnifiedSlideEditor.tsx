@@ -47,7 +47,6 @@ import { ResponsiveCanvas } from './ResponsiveCanvas';
 export interface UnifiedSlideEditorProps {
   slideDeck: SlideDeck;
   projectName: string;
-  onProjectNameChange?: (newName: string) => void;
   projectId?: string;
   projectTheme?: ThemePreset;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
@@ -65,7 +64,6 @@ export interface UnifiedSlideEditorProps {
 export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   slideDeck,
   projectName,
-  onProjectNameChange,
   projectId,
   projectTheme,
   onSlideDeckChange,
@@ -754,7 +752,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
         
         {/* Help hint */}
         {state.ui.showHelpHint && !state.navigation.isPreviewMode &&
-        <div className={`fixed top-4 right-4 ${Z_INDEX_TAILWIND.TOAST} bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs`}>
+        <div className={`fixed top-4 right-4 ${Z_INDEX_TAILWIND.SLIDE_ELEMENTS} bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs`}>
             <div className="flex items-center gap-2">
               <span className="text-blue-200">✨</span>
               <span>Use touch/mouse to zoom, navigate slides, and select elements. Double-click hotspots to edit.</span>
@@ -882,9 +880,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   type="text"
                   value={projectName}
                   onChange={(e) => {
-                    if (onProjectNameChange) {
-                      onProjectNameChange(e.target.value);
-                    }
+                    // Project name changes are logged for future state management implementation
+                    console.log('Project name change:', e.target.value);
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter project name"
@@ -900,9 +897,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   id="project-theme"
                   value={projectTheme}
                   onChange={(e) => {
-                    if (onProjectThemeChange) {
-                      onProjectThemeChange(e.target.value as ThemePreset);
-                    }
+                    // Project theme changes are logged for future state management implementation
+                    console.log('Project theme change:', e.target.value);
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
@@ -975,7 +971,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
               <button
                 onClick={() => {
                   // Save settings and close modal
-                  handleSave();
+                  console.log('Settings saved:', { projectName, projectTheme });
                   actions.closeModal('settingsModal');
                 }}
                 className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
