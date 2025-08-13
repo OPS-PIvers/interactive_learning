@@ -83,8 +83,8 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
   const { height: viewportHeight, availableHeight } = useViewportHeight();
 
   // Define key UI element heights for consistent calculations
-  const headerHeight = isMobile ? 44 : 0; // Represents mobile status bar area
-  const toolbarHeight = preventToolbarOverlap ? (deviceType === 'mobile' ? 56 : 64) : 0;
+  const headerHeight = 0; // This should be handled by CSS safe-area-insets
+  const toolbarHeight = preventToolbarOverlap ? 64 : 0; // Use a single value
 
   // Calculate safe area boundaries based on device type and viewport
   const safeArea = useMemo(() => {
@@ -96,11 +96,8 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
       right: 0
     };
 
-    // Add device-specific safe areas
-    if (isMobile) {
-      base.top = headerHeight; // Status bar + safe area
-      base.bottom = 34; // Home indicator safe area
-    }
+    // The safe area should be determined by CSS env() variables, not device detection.
+    // These values can be read from CSS custom properties if needed.
 
     // Account for toolbar height if overlap prevention is on
     base.bottom += toolbarHeight;
@@ -122,29 +119,29 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
       maxWidth = availableWidth;
       maxHeight = availableModalHeight;
     } else {
-      // Responsive sizing based on device type
-      const widthRatio = deviceType === 'mobile' ? 0.95 : deviceType === 'tablet' ? 0.9 : 0.8;
-      const heightRatio = deviceType === 'mobile' ? 0.85 : deviceType === 'tablet' ? 0.8 : 0.75;
+      // Unified sizing, adaptable with CSS
+      const widthRatio = 0.9;
+      const heightRatio = 0.85;
 
       switch (size) {
         case 'small':
-          maxWidth = Math.min(availableWidth * widthRatio, deviceType === 'mobile' ? 320 : 400);
-          maxHeight = Math.min(availableModalHeight * heightRatio, deviceType === 'mobile' ? 400 : 300);
+          maxWidth = Math.min(availableWidth * widthRatio, 400);
+          maxHeight = Math.min(availableModalHeight * heightRatio, 300);
           break;
         case 'large':
-          maxWidth = Math.min(availableWidth * widthRatio, deviceType === 'mobile' ? availableWidth : 800);
-          maxHeight = Math.min(availableModalHeight * heightRatio, deviceType === 'mobile' ? availableModalHeight * 0.9 : 600);
+          maxWidth = Math.min(availableWidth * widthRatio, 800);
+          maxHeight = Math.min(availableModalHeight * heightRatio, 600);
           break;
         case 'medium':
         default:
-          maxWidth = Math.min(availableWidth * widthRatio, deviceType === 'mobile' ? 480 : 600);
-          maxHeight = Math.min(availableModalHeight * heightRatio, deviceType === 'mobile' ? availableModalHeight * 0.8 : 500);
+          maxWidth = Math.min(availableWidth * widthRatio, 600);
+          maxHeight = Math.min(availableModalHeight * heightRatio, 500);
           break;
       }
     }
 
-    // Position-specific margins based on device type
-    const baseMargin = deviceType === 'mobile' ? 16 : deviceType === 'tablet' ? 24 : 32;
+    // Unified margin, adaptable with CSS
+    const baseMargin = 16;
     
     return {
       maxWidth,
@@ -225,8 +222,8 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     modal,
     zIndex,
     cssVariables,
-    isMobile,
-    layoutMode: deviceType === 'mobile' ? 'compact' : deviceType === 'tablet' ? 'standard' : 'expanded',
+    isMobile: false, // This should not be used for rendering
+    layoutMode: 'standard', // This should be handled by CSS
     orientation: viewportInfo.orientation,
     toolbarHeight,
     headerHeight,
@@ -242,11 +239,7 @@ export function useModalConstraints(options: ModalConstraintOptions = {}) {
   // Generate positioning styles for direct application
   const positioningStyles = useMemo(() => {
     const { position = 'auto' } = options;
-    const effectivePosition = position === 'auto' 
-      ? constraints.isMobile 
-        ? (options.type === 'properties' ? 'bottom' : 'center')
-        : (options.type === 'properties' ? 'right' : 'center')
-      : position;
+    const effectivePosition = position;
 
     const baseStyles = {
       maxWidth: constraints.modal.maxWidth,
