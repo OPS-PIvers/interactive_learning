@@ -5,7 +5,7 @@ import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements'
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { GESTURE_DEFAULTS } from '../../constants/interactionConstants';
+import { GESTURE_DEFAULTS } from '../constants/interactionConstants';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;

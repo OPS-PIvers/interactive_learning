@@ -34,39 +34,41 @@ const ZoomController: React.FC<ZoomControllerProps> = ({
   onFocusAnimationCompleteRef.current = onFocusAnimationComplete;
 
   useEffect(() => {
-    if (focusHotspotTarget && imageRef.current && containerRef.current) {
-      const { xPercent, yPercent, targetScale } = focusHotspotTarget;
-      const scale = targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale;
-
-      const image = imageRef.current;
-      const container = containerRef.current;
-
-      const imageWidth = image.naturalWidth;
-      const imageHeight = image.naturalHeight;
-      const containerWidth = container.offsetWidth;
-      const containerHeight = container.offsetHeight;
-
-      // Calculate the target coordinates in pixels on the image
-      const targetX = (imageWidth * xPercent) / 100;
-      const targetY = (imageHeight * yPercent) / 100;
-
-      // Calculate the pan required to center the target point in the container
-      const panX = containerWidth / 2 - targetX * scale;
-      const panY = containerHeight / 2 - targetY * scale;
-
-      setTransform(panX, panY, scale, PAN_ZOOM_ANIMATION.duration, 'easeOut');
-
-      // As of react-zoom-pan-pinch v3.7.0, the library does not provide a promise or callback for animation completion.
-      // The original setTimeout was buggy due to lack of cleanup, but removing it without a replacement
-      // means the onFocusAnimationComplete will not be called.
-      // A more robust solution would be to poll for the transform state, but that adds complexity
-      // and potential performance overhead. Given the constraints, we use a cancellable timeout.
-      const timeoutId = setTimeout(() => {
-        onFocusAnimationCompleteRef.current?.();
-      }, PAN_ZOOM_ANIMATION.duration);
-
-      return () => clearTimeout(timeoutId);
+    if (!focusHotspotTarget || !imageRef.current || !containerRef.current) {
+      return;
     }
+    
+    const { xPercent, yPercent, targetScale } = focusHotspotTarget;
+    const scale = targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale;
+
+    const image = imageRef.current;
+    const container = containerRef.current;
+
+    const imageWidth = image.naturalWidth;
+    const imageHeight = image.naturalHeight;
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
+    // Calculate the target coordinates in pixels on the image
+    const targetX = (imageWidth * xPercent) / 100;
+    const targetY = (imageHeight * yPercent) / 100;
+
+    // Calculate the pan required to center the target point in the container
+    const panX = containerWidth / 2 - targetX * scale;
+    const panY = containerHeight / 2 - targetY * scale;
+
+    setTransform(panX, panY, scale, PAN_ZOOM_ANIMATION.duration, 'easeOut');
+
+    // As of react-zoom-pan-pinch v3.7.0, the library does not provide a promise or callback for animation completion.
+    // The original setTimeout was buggy due to lack of cleanup, but removing it without a replacement
+    // means the onFocusAnimationComplete will not be called.
+    // A more robust solution would be to poll for the transform state, but that adds complexity
+    // and potential performance overhead. Given the constraints, we use a cancellable timeout.
+    const timeoutId = setTimeout(() => {
+      onFocusAnimationCompleteRef.current?.();
+    }, PAN_ZOOM_ANIMATION.duration);
+
+    return () => clearTimeout(timeoutId);
   }, [focusHotspotTarget, setTransform, imageRef, containerRef]);
 
   return null;

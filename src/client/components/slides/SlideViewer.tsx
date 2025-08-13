@@ -232,6 +232,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       return;
     }
     const touch = e.touches[0];
+    if (!touch) return;
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
   }, [slideDeck]);
 
@@ -241,6 +242,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     }
 
     const touch = e.changedTouches[0];
+    if (!touch) return;
     const touchStart = touchStartRef.current;
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
@@ -374,8 +376,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     <div
       ref={containerRef}
       className={`slide-viewer-container mobile-enhanced ${className}`}
-      data-slide-id={currentSlide.id}
-      data-device-type={deviceType}>
+      data-slide-id={currentSlide.id}>
       
       <div className="slide-viewer-main">
         {/* Slide Canvas Wrapper - Takes remaining space */}
@@ -388,7 +389,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             className="slide-canvas"
             style={slideCanvasStyle}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}>
 
         {/* Background Media Renderer */}
