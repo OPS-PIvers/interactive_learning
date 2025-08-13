@@ -37,12 +37,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides?.[0]?.id || '');
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [_activeHotspotId, _setActiveHotspotId] = useState<string | null>(null);
-  const [_completedHotspots, _setCompletedHotspots] = useState<Set<string>>(new Set());
-
-  // Auto-progression state
-  const [_isPlaying, _setIsPlaying] = useState(false);
-  const [_playbackSpeed, _setPlaybackSpeed] = useState(1);
 
   // Navigation handlers for footer toolbar
   const handlePreviousSlide = useCallback(() => {
@@ -89,14 +83,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
     setCurrentSlideId(slideId);
     setCurrentSlideIndex(slideIndex);
-
-    if (process.env['NODE_ENV'] === 'development') {
-
-
-
-
-
-    }
   }, []);
 
   const handleSlideSelect = useCallback((slideId: string) => {
@@ -106,53 +92,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     }
   }, [slideDeck.slides, handleSlideChange]);
 
-  // Timeline navigation handler
-  const _handleTimelineStepSelect = useCallback((stepSlideIndex: number) => {
-    if (stepSlideIndex >= 0 && stepSlideIndex < slideDeck.slides.length) {
-      const slide = slideDeck.slides[stepSlideIndex];
-      if (slide) {
-        handleSlideChange(slide.id, stepSlideIndex);
-      }
-    }
-  }, [slideDeck.slides, handleSlideChange]);
-
-
-
   // Interaction handler
   const handleInteraction = useCallback((_interaction: ElementInteraction) => {
-    if (process.env['NODE_ENV'] === 'development') {
-
-    }
-  }, []);
-
-  // Hotspot state handlers
-  const _handleHotspotFocus = useCallback((_hotspotId: string, slideIndex: number) => {
-    _setActiveHotspotId(_hotspotId);
-    // If hotspot is on different slide, navigate there
-    if (slideIndex !== currentSlideIndex) {
-      const slide = slideDeck.slides[slideIndex];
-      if (slide) {
-        handleSlideChange(slide.id, slideIndex);
-      }
-    }
-  }, [currentSlideIndex, slideDeck.slides, handleSlideChange]);
-
-  const _handleHotspotComplete = useCallback((hotspotId: string) => {
-    _setCompletedHotspots((prev) => new Set([...prev, hotspotId]));
-    _setActiveHotspotId(null);
-  }, []);
-
-  // Auto-progression handlers
-  const _handlePlay = useCallback(() => {
-    _setIsPlaying(true);
-  }, []);
-
-  const _handlePause = useCallback(() => {
-    _setIsPlaying(false);
-  }, []);
-
-  const _handleSpeedChange = useCallback((speed: number) => {
-    _setPlaybackSpeed(speed);
+    // This is a placeholder for future interaction handling logic
   }, []);
 
   // Enhanced slide deck with viewer mode settings
@@ -241,7 +183,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
           onNextSlide={handleNextSlide}
           canGoPrevious={currentSlideIndex > 0}
           canGoNext={currentSlideIndex < slideDeck.slides.length - 1}
-          moduleState={moduleState === 'exploring' ? 'idle' : moduleState}
+          moduleState={moduleState}
           onStartLearning={handleStartLearning}
           onStartExploring={handleStartExploring}
           hasContent={slideDeck.slides.length > 0}
