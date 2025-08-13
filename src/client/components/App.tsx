@@ -362,27 +362,25 @@ const MainApp: React.FC = () => {
     }
   }, [user, selectedProject, handleCloseModal]);
 
-  const handleProjectThemeChange = useCallback(async (projectId: string, theme: ThemePreset) => {
+  const handleProjectThemeChange = useCallback(async (theme: ThemePreset) => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
-    const projectToUpdate = projects.find(p => p.id === projectId);
-    if (!projectToUpdate) {
-      setError("Project not found for saving.");
+    if (!selectedProject) {
+      setError("No project selected for saving theme.");
       return;
     }
 
+    const projectToUpdate = selectedProject;
     const updatedProject = { ...projectToUpdate, theme };
 
     // Optimistic update
     setProjects(prevProjects =>
-      prevProjects.map(p => (p.id === projectId ? updatedProject : p))
+      prevProjects.map(p => (p.id === projectToUpdate.id ? updatedProject : p))
     );
-    if (selectedProject?.id === projectId) {
-      setSelectedProject(updatedProject);
-    }
+    setSelectedProject(updatedProject);
 
     try {
       await appScriptProxy.saveProject(updatedProject);
@@ -391,11 +389,9 @@ const MainApp: React.FC = () => {
       setError(`Failed to save theme: ${(err as Error)?.message || ''}`);
       // Rollback on error
       setProjects(prevProjects =>
-        prevProjects.map(p => (p.id === projectId ? projectToUpdate : p))
+        prevProjects.map(p => (p.id === projectToUpdate.id ? projectToUpdate : p))
       );
-      if (selectedProject?.id === projectId) {
-        setSelectedProject(projectToUpdate);
-      }
+      setSelectedProject(projectToUpdate);
     }
   }, [user, projects, selectedProject]);
   
@@ -546,7 +542,7 @@ const MainApp: React.FC = () => {
             onImageUpload={handleImageUpload}
             onReloadRequest={handleModuleReloadRequest}
             isPublished={selectedProject.isPublished ?? false}
-            onProjectThemeChange={(theme) => handleProjectThemeChange(selectedProject.id, theme)}
+            onProjectThemeChange={handleProjectThemeChange}
           />
         </HookErrorBoundary>
       )}

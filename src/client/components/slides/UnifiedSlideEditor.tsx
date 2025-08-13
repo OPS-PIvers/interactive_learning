@@ -81,8 +81,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     computed
   } = useUnifiedEditorState();
 
+  const DEFAULT_CANVAS_WIDTH = 1200;
+  const DEFAULT_CANVAS_HEIGHT = 800;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const [canvasContainerDimensions, setCanvasContainerDimensions] = useState({ width: 1200, height: 800 });
+  const [canvasContainerDimensions, setCanvasContainerDimensions] = useState({ width: DEFAULT_CANVAS_WIDTH, height: DEFAULT_CANVAS_HEIGHT });
 
   useEffect(() => {
     const container = canvasContainerRef.current;
