@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { PanZoomEvent } from '../../shared/interactiveTypes';
+import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
 import { ZOOM_LIMITS, PAN_ZOOM_ANIMATION } from '../constants/interactionConstants';
 
 interface ImageViewerProps {
@@ -15,8 +14,55 @@ interface ImageViewerProps {
   onFocusAnimationComplete?: () => void;
 }
 
-// Use constant from shared constants
-// const DEFAULT_HOTSPOT_FOCUS_SCALE = 1.75; // Moved to PAN_ZOOM_ANIMATION.defaultHotspotScale
+const ZoomController: React.FC<{
+  focusHotspotTarget: ImageViewerProps['focusHotspotTarget'];
+  onFocusAnimationComplete: ImageViewerProps['onFocusAnimationComplete'];
+  imageRef: React.RefObject<HTMLImageElement>;
+  containerRef: React.RefObject<HTMLDivElement>;
+}> = ({ focusHotspotTarget, onFocusAnimationComplete, imageRef, containerRef }) => {
+  const { setTransform } = useControls();
+
+  useEffect(() => {
+    if (focusHotspotTarget && imageRef.current && containerRef.current) {
+      const { xPercent, yPercent, targetScale } = focusHotspotTarget;
+      const scale = targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale;
+
+      const image = imageRef.current;
+      const container = containerRef.current;
+
+      const imageWidth = image.naturalWidth;
+      const imageHeight = image.naturalHeight;
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
+
+      // Calculate the target coordinates in pixels on the image
+      const targetX = (imageWidth * xPercent) / 100;
+      const targetY = (imageHeight * yPercent) / 100;
+
+      // Calculate the pan required to center the target point in the container
+      const panX = containerWidth / 2 - targetX * scale;
+      const panY = containerHeight / 2 - targetY * scale;
+
+      setTransform(panX, panY, scale, PAN_ZOOM_ANIMATION.duration, 'easeOut');
+
+      // The library does not seem to provide a promise or callback for animation completion.
+      // The original setTimeout was buggy, but removing it without a replacement
+      // means the onFocusAnimationComplete will not be called.
+      // A more robust solution would be to poll for the state, but that is complex.
+      // Given the constraints, we will use a timeout but ensure it can be cancelled.
+      const timeoutId = setTimeout(() => {
+        if (onFocusAnimationComplete) {
+          onFocusAnimationComplete();
+        }
+      }, PAN_ZOOM_ANIMATION.duration);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [focusHotspotTarget, onFocusAnimationComplete, setTransform, imageRef, containerRef]);
+
+  return null;
+};
+
 
 const ImageViewer: React.FC<ImageViewerProps> = ({
   src,
@@ -27,22 +73,6 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 }) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [_panZoomToEvent, setPanZoomToEvent] = React.useState<PanZoomEvent | null>(null);
-
-  useEffect(() => {
-    if (focusHotspotTarget) {
-      setPanZoomToEvent({
-        x: focusHotspotTarget.xPercent / 100,
-        y: focusHotspotTarget.yPercent / 100,
-        scale: focusHotspotTarget.targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale,
-      });
-      if (onFocusAnimationComplete) {
-        setTimeout(() => {
-          onFocusAnimationComplete();
-        }, PAN_ZOOM_ANIMATION.duration); // Use shared animation duration constant
-      }
-    }
-  }, [focusHotspotTarget, onFocusAnimationComplete]);
 
   return (
     <div ref={containerRef} className={`viewer-container relative overflow-hidden bg-slate-900 ${className}`}>
@@ -53,18 +83,22 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         doubleClick={{ step: ZOOM_LIMITS.doubleTapZoomFactor, mode: "zoomIn" }}
         wheel={{ step: 0.2 }}
       >
-        <>
-          <TransformComponent wrapperClass="transform-wrapper w-full h-full" contentClass="transform-content">
-            <img
-              ref={imageRef}
-              src={src}
-              alt={alt}
-              className="max-w-none select-none"
-              draggable={false}
-              loading="lazy"
-            />
-          </TransformComponent>
-        </>
+        <ZoomController
+          focusHotspotTarget={focusHotspotTarget}
+          onFocusAnimationComplete={onFocusAnimationComplete}
+          imageRef={imageRef}
+          containerRef={containerRef}
+        />
+        <TransformComponent wrapperClass="transform-wrapper w-full h-full" contentClass="transform-content">
+          <img
+            ref={imageRef}
+            src={src}
+            alt={alt}
+            className="max-w-none select-none"
+            draggable={false}
+            loading="lazy"
+          />
+        </TransformComponent>
       </TransformWrapper>
     </div>
   );

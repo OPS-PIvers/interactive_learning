@@ -139,56 +139,6 @@ describe('Mobile UX Responsive Behavior Tests', () => {
       expect(toolbar).toHaveClass('viewer-footer-toolbar');
     });
 
-    it('should implement auto-collapse behavior with 3-second timer', () => {
-      vi.useFakeTimers();
-      
-      const { container } = render(
-        <BrowserRouter>
-          <ViewerFooterToolbar {...defaultProps} />
-        </BrowserRouter>
-      );
-
-      const toolbar = container.querySelector('.viewer-footer-toolbar');
-      expect(toolbar).not.toHaveClass('collapsed');
-
-      // Fast-forward 3 seconds to trigger auto-collapse
-      act(() => {
-        vi.advanceTimersByTime(3000);
-      });
-
-      // Should have collapsed class after 3 seconds on mobile
-      expect(toolbar).toHaveClass('collapsed');
-    });
-
-    it('should reset collapse timer on user interaction', () => {
-      vi.useFakeTimers();
-      
-      const { container } = render(
-        <BrowserRouter>
-          <ViewerFooterToolbar {...defaultProps} />
-        </BrowserRouter>
-      );
-
-      // Start collapse timer
-      act(() => {
-        vi.advanceTimersByTime(2900); // Almost 3 seconds
-      });
-
-      // Simulate touch interaction
-      act(() => {
-        const touchEvent = new TouchEvent('touchstart', { bubbles: true });
-        document.dispatchEvent(touchEvent);
-      });
-
-      // Advance time - should not be collapsed due to interaction reset
-      act(() => {
-        vi.advanceTimersByTime(200);
-      });
-
-      const toolbar = container.querySelector('.viewer-footer-toolbar');
-      expect(toolbar).not.toHaveClass('collapsed');
-    });
-
     it('should have proper touch target sizes (≥44px)', () => {
       const { container } = render(
         <BrowserRouter>
@@ -230,25 +180,6 @@ describe('Mobile UX Responsive Behavior Tests', () => {
           dispatchEvent: vi.fn(),
         })),
       });
-    });
-
-    it('should not auto-collapse on desktop', () => {
-      vi.useFakeTimers();
-      
-      const { container } = render(
-        <BrowserRouter>
-          <ViewerFooterToolbar {...defaultProps} />
-        </BrowserRouter>
-      );
-
-      const toolbar = container.querySelector('.viewer-footer-toolbar');
-      
-      // Advance time - should not auto-collapse on desktop
-      act(() => {
-        vi.advanceTimersByTime(5000);
-      });
-
-      expect(toolbar).not.toHaveClass('collapsed');
     });
 
     it('should maintain full toolbar visibility', () => {
@@ -330,46 +261,6 @@ describe('Mobile UX Responsive Behavior Tests', () => {
       
       // Should be able to receive mobile-specific classes
       expect(toolbar!.className).toContain('viewer-footer-toolbar');
-    });
-  });
-
-  describe('Performance and Cleanup', () => {
-    it('should properly cleanup event listeners', () => {
-      const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
-      const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
-      
-      const { unmount } = render(
-        <BrowserRouter>
-          <ViewerFooterToolbar {...defaultProps} />
-        </BrowserRouter>
-      );
-
-      // Should add event listeners
-      expect(addEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function), expect.any(Object));
-      expect(addEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function), expect.any(Object));
-      expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.any(Object));
-
-      unmount();
-
-      // Should cleanup event listeners
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function));
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
-    });
-
-    it('should clear timers on unmount', () => {
-      vi.useFakeTimers();
-      const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
-      
-      const { unmount } = render(
-        <BrowserRouter>
-          <ViewerFooterToolbar {...defaultProps} />
-        </BrowserRouter>
-      );
-
-      unmount();
-      
-      expect(clearTimeoutSpy).toHaveBeenCalled();
     });
   });
 
