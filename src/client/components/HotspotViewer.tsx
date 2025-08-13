@@ -5,6 +5,7 @@ import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements'
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { GESTURE_DEFAULTS } from '../../constants/interactionConstants';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;
@@ -190,7 +191,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
         // Reset drag state if we're going to edit instead of drag
         if (onDragStateChange) onDragStateChange(false);
       }
-    }, 700); // Use fixed timeout value instead of device-specific logic
+    }, GESTURE_DEFAULTS.HOLD_TO_EDIT_TIMEOUT); // Use fixed timeout value instead of device-specific logic
 
     // Capture pointer for reliable drag behavior
     try {
@@ -217,7 +218,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
 
     // Start dragging if we've moved beyond threshold (only if not already dragging)
     if (!isDragging) {
-      const threshold = 8; // Use fixed threshold value for all devices
+      const threshold = GESTURE_DEFAULTS.DRAG_THRESHOLD; // Use fixed threshold value for all devices
       if (Math.abs(deltaX_viewport) > threshold || Math.abs(deltaY_viewport) > threshold) {
         setIsDragging(true);
         setIsHolding(false); // No longer just holding
@@ -393,8 +394,7 @@ const HotspotViewer: React.FC<HotspotViewerProps> = (props) => {
   '';
 
   // Inner dot for visual flair, especially on larger hotspots - responsive via CSS
-  const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150
-    ${hotspot.size === 'large' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 sm:opacity-100'}`;
+  const innerDotClasses = `absolute w-1/3 h-1/3 rounded-full bg-white/70 group-hover:bg-white/90 transition-opacity duration-150 opacity-0 group-hover:opacity-100 sm:opacity-100`;
 
 
   return (

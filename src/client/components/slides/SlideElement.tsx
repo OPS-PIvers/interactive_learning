@@ -79,9 +79,6 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     transition: 'all 0.2s ease-in-out',
-    // Ensure minimum touch targets on mobile
-    minWidth: isMobileViewport() ? '44px' : undefined,
-    minHeight: isMobileViewport() ? '44px' : undefined,
   };
 
   // Add animation classes
@@ -180,7 +177,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 
   return (
     <div
-      className={`slide-element ${isInteractive ? 'transform-gpu' : ''}`}
+      className={`slide-element ${isInteractive ? 'transform-gpu' : ''} min-w-11 min-h-11 sm:min-w-0 sm:min-h-0`}
       style={elementStyle}
       onClick={handleInteraction}
       onTouchEnd={handleInteraction}
