@@ -80,7 +80,7 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
             projectId={selectedProject.id}
             projectTheme={selectedProject.theme as ThemePreset || 'professional'}
             onSlideDeckChange={handleSlideDeckChange}
-            onProjectThemeChange={onProjectThemeChange}
+            {...(onProjectThemeChange && { onProjectThemeChange })}
             onSave={handleImmediateSave}
             onImageUpload={onImageUpload}
             onClose={onClose}

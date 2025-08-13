@@ -486,7 +486,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             {currentSlide.backgroundMedia.type === 'image' && currentSlide.backgroundMedia.url &&
           <img
             src={currentSlide.backgroundMedia.url}
-            alt="Slide background"
+            alt=""
             className="absolute inset-0 w-full h-full object-cover"
             style={{
               objectFit: currentSlide.backgroundMedia.settings?.size === 'contain' ?
