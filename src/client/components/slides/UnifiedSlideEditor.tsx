@@ -50,6 +50,7 @@ export interface UnifiedSlideEditorProps {
   projectId?: string;
   projectTheme?: ThemePreset;
   onSlideDeckChange: (slideDeck: SlideDeck) => void;
+  onProjectNameChange?: (name: string) => void;
   onProjectThemeChange?: (themeId: ThemePreset) => void;
   onSave: (currentSlideDeck: SlideDeck) => Promise<void>;
   onImageUpload: (file: File) => Promise<void>;
@@ -67,6 +68,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   projectId,
   projectTheme,
   onSlideDeckChange,
+  onProjectNameChange,
   onProjectThemeChange,
   onSave,
   onImageUpload,
@@ -74,6 +76,10 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   isPublished,
   migrationResult
 }) => {
+  // Type guard for ThemePreset validation
+  const isValidThemePreset = (value: string): value is ThemePreset => {
+    return ['professional', 'vibrant', 'earth', 'dark', 'custom'].includes(value);
+  };
   // Unified state management
   const {
     state,
@@ -880,8 +886,9 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   type="text"
                   value={projectName}
                   onChange={(e) => {
-                    // Project name changes are logged for future state management implementation
-                    console.log('Project name change:', e.target.value);
+                    if (onProjectNameChange) {
+                      onProjectNameChange(e.target.value);
+                    }
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter project name"
@@ -897,15 +904,18 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
                   id="project-theme"
                   value={projectTheme}
                   onChange={(e) => {
-                    // Project theme changes are logged for future state management implementation
-                    console.log('Project theme change:', e.target.value);
+                    const value = e.target.value;
+                    if (isValidThemePreset(value) && onProjectThemeChange) {
+                      onProjectThemeChange(value);
+                    }
                   }}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="professional">Professional</option>
-                  <option value="modern">Modern</option>
-                  <option value="minimal">Minimal</option>
                   <option value="vibrant">Vibrant</option>
+                  <option value="earth">Earth</option>
+                  <option value="dark">Dark</option>
+                  <option value="custom">Custom</option>
                 </select>
               </div>
 
