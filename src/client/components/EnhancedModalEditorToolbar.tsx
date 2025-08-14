@@ -204,10 +204,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
       >
         {/* Modal Content */}
         <div 
-          className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden h-full max-h-none flex flex-col md:max-h-[90vh] md:block"
-          style={{
-            maxHeight: 'calc(100vh - env(keyboard-inset-height, 0px) - 2rem)'
-          }}
+          className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden h-full md:h-auto md:max-h-[calc(100vh-2rem)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
@@ -266,42 +263,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
             </nav>
           </div>
 
-          {/* Mobile Zoom Controls Bar - Only visible on small screens */}
-          {currentZoom !== undefined && onZoomIn && onZoomOut && onZoomReset && (
-            <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 block md:hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Zoom: {Math.round(currentZoom * 100)}%
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={onZoomOut}
-                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
-                  >
-                    −
-                  </button>
-                  <button
-                    onClick={onZoomReset}
-                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    onClick={onZoomIn}
-                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Tab Content */}
-          <div className="p-6 overflow-y-auto flex-1 min-h-0 md:flex-none md:max-h-[60vh]"
-            style={{
-              maxHeight: 'calc(100vh - env(keyboard-inset-height, 0px) - 20rem)'
-            }}>
+          <div className="p-6 overflow-y-auto flex-1">
             {/* General Tab */}
             {activeTab === 'general' && (
               <div className="space-y-6">
