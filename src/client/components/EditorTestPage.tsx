@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
@@ -33,6 +33,9 @@ export const EditorTestPage: React.FC = () => {
     userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
   });
 
+  const [projectName, setProjectName] = useState('Mobile Editor Test');
+  const [projectTheme, setProjectTheme] = useState<ThemePreset>('professional');
+
   // Mock project data for editor
   const mockProject = {
     id: 'mobile-test-project',
@@ -56,6 +59,14 @@ export const EditorTestPage: React.FC = () => {
       },
     } as InteractiveModuleState
   };
+
+  const handleProjectNameChange = useCallback((newName: string) => {
+    setProjectName(newName);
+  }, []);
+
+  const handleProjectThemeChange = useCallback((newTheme: ThemePreset) => {
+    setProjectTheme(newTheme);
+  }, []);
 
   const handleSlideDeckChange = useCallback((newSlideDeck: SlideDeck) => {
     setSlideDeck(newSlideDeck);
@@ -209,9 +220,12 @@ export const EditorTestPage: React.FC = () => {
           <div className="h-full">
             <UnifiedSlideEditor
               slideDeck={slideDeck}
-              projectName={mockProject.title}
+              projectName={projectName}
+              projectTheme={projectTheme}
               projectId={mockProject.id}
               onSlideDeckChange={handleSlideDeckChange}
+              onProjectNameChange={handleProjectNameChange}
+              onProjectThemeChange={handleProjectThemeChange}
               onSave={handleSave}
               onImageUpload={handleImageUpload}
               onClose={() => setMode('viewer')}

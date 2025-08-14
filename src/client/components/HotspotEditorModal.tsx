@@ -552,7 +552,10 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                       onDelete={handleEventDelete}
                                       moveCard={() => {}}
                                       onTogglePreview={() => handleTogglePreview(event.id)}
-                                      onEdit={() => editorActions.openInteractionEditor(event.id)}
+                                      onEdit={() => {
+                                        editorActions.openInteractionEditor(event.id);
+                                        setActiveTab('properties');
+                                      }}
                                       isPreviewing={previewingEventIds.includes(event.id)}
                                       allHotspots={allHotspots}
                                       onMoveUp={handleMoveEventUp}
@@ -575,16 +578,12 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     content: (
                       <div className="p-4">
                         {editingEventId ? (
-                          <div className="text-gray-300">
-                            <h3 className="text-lg font-semibold mb-4">Event Properties</h3>
-                            <p className="text-sm text-gray-400 mb-4">
-                              Editing properties for event: {relatedEvents.find((e) => e.id === editingEventId)?.name || 'Unknown'}
-                            </p>
-                            {/* Properties content will be moved here from InteractionSettingsModal */}
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                              <p className="text-sm">Properties editor integration coming soon...</p>
-                            </div>
-                          </div>
+                          <InteractionSettingsModal
+                            isOpen={isSettingsModalOpen}
+                            event={relatedEvents.find((e) => e.id === editingEventId) || null}
+                            onUpdate={handleEventUpdate}
+                            onClose={editorActions.closeInteractionEditor}
+                          />
                         ) : (
                           <div className="text-center text-gray-400 py-8">
                             Select an interaction from the Interactions tab to edit its properties.
@@ -598,12 +597,6 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
             </div>
           </div>
         </div>
-        <InteractionSettingsModal
-          isOpen={isSettingsModalOpen}
-          event={relatedEvents.find((e) => e.id === editingEventId) || null}
-          onUpdate={handleEventUpdate}
-          onClose={editorActions.closeInteractionEditor}
-        />
       </>
     </DndProvider>);
 
