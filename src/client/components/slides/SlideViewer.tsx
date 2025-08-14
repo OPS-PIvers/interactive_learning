@@ -435,19 +435,18 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId &&
           <div className="absolute inset-0 w-full h-full">
                 <iframe
-              src={`https://www.youtube.com/embed/${
-                currentSlide.backgroundMedia.youtubeId
-              }?autoplay=${currentSlide.backgroundMedia.autoplay ? 1 : 0}&loop=${
-                currentSlide.backgroundMedia.loop ? 1 : 0
-              }&mute=${currentSlide.backgroundMedia.muted ? 1 : 0}&controls=${
-                currentSlide.backgroundMedia.controls ? 1 : 0
-              }&start=${currentSlide.backgroundMedia.startTime || 0}&end=${
-                currentSlide.backgroundMedia.endTime || ''
-              }&rel=0&modestbranding=1&playsinline=1${
-                currentSlide.backgroundMedia.loop
-                  ? `&playlist=${currentSlide.backgroundMedia.youtubeId}`
-                  : ''
-              }`}
+              src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?${new URLSearchParams({
+                autoplay: currentSlide.backgroundMedia.autoplay ? '1' : '0',
+                loop: currentSlide.backgroundMedia.loop ? '1' : '0',
+                mute: currentSlide.backgroundMedia.muted ? '1' : '0',
+                controls: currentSlide.backgroundMedia.controls ? '1' : '0',
+                start: String(currentSlide.backgroundMedia.startTime || 0),
+                end: String(currentSlide.backgroundMedia.endTime || ''),
+                rel: '0',
+                modestbranding: '1',
+                playsinline: '1',
+                ...(currentSlide.backgroundMedia.loop && { playlist: currentSlide.backgroundMedia.youtubeId }),
+              })}`}
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media"
               allowFullScreen
