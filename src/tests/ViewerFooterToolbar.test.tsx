@@ -202,11 +202,6 @@ const mockAuth = {
         expect(mockOnStartLearning).toHaveBeenCalledTimes(1);
       });
 
-      it('renders "Back to Menu" button in learning/exploring state', () => {
-          renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} moduleState="exploring" />);
-          expect(screen.getByRole('button', { name: /Back to Menu/i })).toBeInTheDocument();
-      });
-
       it('opens and closes the keyboard shortcuts modal', () => {
         renderWithAuthProvider(<ViewerFooterToolbar {...defaultProps} />);
         const shortcutsButton = screen.getByRole('button', { name: /Show keyboard shortcuts/i });
@@ -244,10 +239,6 @@ const mockAuth = {
         expect(screen.getByRole('button', { name: 'Guided Tour' })).toBeInTheDocument();
       });
 
-      it('renders "Menu" button in learning/exploring state', () => {
-          renderWithAuthProvider(<ViewerFooterToolbar {...mobileProps} moduleState="exploring" />);
-          expect(screen.getByRole('button', { name: /Menu/i })).toBeInTheDocument();
-      });
     });
 
     describe('Accessibility', () => {

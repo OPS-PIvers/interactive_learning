@@ -97,6 +97,36 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     // This is a placeholder for future interaction handling logic
   }, []);
 
+  // Centralized keyboard navigation for Home/End
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (slideDeck.slides.length === 0) return;
+
+      // Ensure we're not inside an input field
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (event.key) {
+        case 'Home':
+          event.preventDefault();
+          handleSlideSelect(slideDeck.slides[0].id);
+          break;
+        case 'End':
+          event.preventDefault();
+          handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1].id);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [slideDeck.slides, handleSlideSelect]);
+
   // Enhanced slide deck with viewer mode settings
   const enhancedSlideDeck = useMemo(() => ({
     ...slideDeck,
