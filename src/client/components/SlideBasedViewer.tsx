@@ -35,7 +35,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
-  const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides?.[0]?.id || '');
+  const [currentSlideId, setCurrentSlideId] = useState<string>(
+    slideDeck.slides && slideDeck.slides.length > 0 ? slideDeck.slides[0].id : ''
+  );
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   // Navigation handlers for footer toolbar
@@ -43,7 +45,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     if (currentSlideIndex > 0) {
       const prevIndex = currentSlideIndex - 1;
       setCurrentSlideIndex(prevIndex);
-      setCurrentSlideId(slideDeck.slides[prevIndex]?.id || '');
+      setCurrentSlideId(
+        prevIndex < slideDeck.slides.length ? slideDeck.slides[prevIndex]?.id || '' : ''
+      );
     }
   }, [currentSlideIndex, slideDeck.slides]);
 
@@ -51,7 +55,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     if (currentSlideIndex < slideDeck.slides.length - 1) {
       const nextIndex = currentSlideIndex + 1;
       setCurrentSlideIndex(nextIndex);
-      setCurrentSlideId(slideDeck.slides[nextIndex]?.id || '');
+      setCurrentSlideId(
+        nextIndex < slideDeck.slides.length ? slideDeck.slides[nextIndex]?.id || '' : ''
+      );
     }
   }, [currentSlideIndex, slideDeck.slides]);
 
@@ -110,11 +116,15 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       switch (event.key) {
         case 'Home':
           event.preventDefault();
-          handleSlideSelect(slideDeck.slides[0].id);
+          if (slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[0].id);
+          }
           break;
         case 'End':
           event.preventDefault();
-          handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1].id);
+          if (slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1].id);
+          }
           break;
         default:
           break;
