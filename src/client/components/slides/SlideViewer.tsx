@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { SlideDeck, SlideViewerState, SlideEffect } from '../../../shared/slideTypes';
+import { SlideDeck, SlideViewerState, SlideEffect, ElementInteraction, DeviceType } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
@@ -13,7 +13,7 @@ interface SlideViewerProps {
   slideDeck: SlideDeck;
   initialSlideId?: string;
   onSlideChange?: (slideId: string, slideIndex: number) => void;
-  onInteraction?: (interaction: any) => void;
+  onInteraction?: (interaction: ElementInteraction) => void;
   className?: string;
   showTimeline?: boolean;
   timelineAutoPlay?: boolean;
@@ -50,7 +50,11 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     slides.findIndex((slide) => slide.id === initialSlideId) :
     0;
     const validIndex = Math.max(0, initialIndex);
-    const slideId = slides?.[validIndex]?.id || slides?.[0]?.id || null;
+    const slideId = (slides && validIndex < slides.length) 
+      ? slides[validIndex]?.id 
+      : (slides && slides.length > 0) 
+        ? slides[0]?.id 
+        : null;
 
     return {
       currentSlideId: slideId,
@@ -118,7 +122,9 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   const navigateToNext = useCallback(() => {
     const nextIndex = viewerState.currentSlideIndex + 1;
     if (slideDeck?.slides && nextIndex < slideDeck.slides.length) {
-      const nextSlideId = slideDeck.slides[nextIndex]?.id;
+      const nextSlideId = nextIndex < slideDeck.slides.length 
+        ? slideDeck.slides[nextIndex]?.id 
+        : undefined;
       if (nextSlideId) {
         navigateToSlide(nextSlideId);
       }
@@ -128,7 +134,9 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   const navigateToPrevious = useCallback(() => {
     const prevIndex = viewerState.currentSlideIndex - 1;
     if (slideDeck?.slides && prevIndex >= 0) {
-      const prevSlideId = slideDeck.slides[prevIndex]?.id;
+      const prevSlideId = prevIndex >= 0 && prevIndex < slideDeck.slides.length
+        ? slideDeck.slides[prevIndex]?.id 
+        : undefined;
       if (prevSlideId) {
         navigateToSlide(prevSlideId);
       }
@@ -279,22 +287,6 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           event.preventDefault();
           navigateToPrevious();
           break;
-        case 'Home':{
-            event.preventDefault();
-            const firstSlideId = slideDeck?.slides?.[0]?.id;
-            if (firstSlideId) {
-              navigateToSlide(firstSlideId);
-            }
-            break;
-          }
-        case 'End':{
-            event.preventDefault();
-            const lastSlideId = slideDeck?.slides?.[slideDeck.slides.length - 1]?.id;
-            if (lastSlideId) {
-              navigateToSlide(lastSlideId);
-            }
-            break;
-          }
         case 'Escape':
           event.preventDefault();
           setActiveEffects([]);
@@ -451,19 +443,18 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             {currentSlide.backgroundMedia.type === 'youtube' && currentSlide.backgroundMedia.youtubeId &&
           <div className="absolute inset-0 w-full h-full">
                 <iframe
-              src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?autoplay=${
-              currentSlide.backgroundMedia.autoplay ? 1 : 0}&loop=${
-
-              currentSlide.backgroundMedia.loop ? 1 : 0}&mute=${
-
-              currentSlide.backgroundMedia.muted ? 1 : 0}&controls=${
-
-              currentSlide.backgroundMedia.controls ? 1 : 0}&start=${
-
-              currentSlide.backgroundMedia.startTime || 0}&end=${
-
-              currentSlide.backgroundMedia.endTime || ''}&rel=0&modestbranding=1&playsinline=1`
-              }
+              src={`https://www.youtube.com/embed/${currentSlide.backgroundMedia.youtubeId}?${new URLSearchParams({
+                autoplay: currentSlide.backgroundMedia.autoplay ? '1' : '0',
+                loop: currentSlide.backgroundMedia.loop ? '1' : '0',
+                mute: currentSlide.backgroundMedia.muted ? '1' : '0',
+                controls: currentSlide.backgroundMedia.controls ? '1' : '0',
+                start: String(currentSlide.backgroundMedia.startTime || 0),
+                end: String(currentSlide.backgroundMedia.endTime || ''),
+                rel: '0',
+                modestbranding: '1',
+                playsinline: '1',
+                ...(currentSlide.backgroundMedia.loop && { playlist: currentSlide.backgroundMedia.youtubeId }),
+              })}`}
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media"
               allowFullScreen
@@ -508,7 +499,9 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           {currentSlide?.elements?.
           filter((element) => element.isVisible).
           map((element) => {
-            const devicePosition = element.position?.[deviceType] || element.position?.desktop;
+            const devicePosition = element.position && element.position[deviceType as keyof typeof element.position] 
+              ? element.position[deviceType as keyof typeof element.position]
+              : element.position?.desktop;
             if (!devicePosition) return null;
 
             // Apply scaling to element positions
@@ -523,7 +516,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
                   width: devicePosition.width * canvasDimensions.scale,
                   height: devicePosition.height * canvasDimensions.scale
                 }
-              }
+              } as typeof element.position
             };
 
             return (

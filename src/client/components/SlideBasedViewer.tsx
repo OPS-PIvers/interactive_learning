@@ -35,7 +35,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
-  const [currentSlideId, setCurrentSlideId] = useState<string>(slideDeck.slides?.[0]?.id || '');
+  const [currentSlideId, setCurrentSlideId] = useState<string>(
+    slideDeck.slides && slideDeck.slides.length > 0 ? slideDeck.slides[0].id : ''
+  );
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   // Navigation handlers for footer toolbar
@@ -43,7 +45,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     if (currentSlideIndex > 0) {
       const prevIndex = currentSlideIndex - 1;
       setCurrentSlideIndex(prevIndex);
-      setCurrentSlideId(slideDeck.slides[prevIndex]?.id || '');
+      setCurrentSlideId(
+        prevIndex < slideDeck.slides.length ? slideDeck.slides[prevIndex]?.id || '' : ''
+      );
     }
   }, [currentSlideIndex, slideDeck.slides]);
 
@@ -51,7 +55,9 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     if (currentSlideIndex < slideDeck.slides.length - 1) {
       const nextIndex = currentSlideIndex + 1;
       setCurrentSlideIndex(nextIndex);
-      setCurrentSlideId(slideDeck.slides[nextIndex]?.id || '');
+      setCurrentSlideId(
+        nextIndex < slideDeck.slides.length ? slideDeck.slides[nextIndex]?.id || '' : ''
+      );
     }
   }, [currentSlideIndex, slideDeck.slides]);
 
@@ -96,6 +102,40 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   const handleInteraction = useCallback((_interaction: ElementInteraction) => {
     // This is a placeholder for future interaction handling logic
   }, []);
+
+  // Centralized keyboard navigation for Home/End
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (slideDeck.slides.length === 0) return;
+
+      // Ensure we're not inside an input field
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (event.key) {
+        case 'Home':
+          event.preventDefault();
+          if (slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[0].id);
+          }
+          break;
+        case 'End':
+          event.preventDefault();
+          if (slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1].id);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [slideDeck.slides, handleSlideSelect]);
 
   // Enhanced slide deck with viewer mode settings
   const enhancedSlideDeck = useMemo(() => ({

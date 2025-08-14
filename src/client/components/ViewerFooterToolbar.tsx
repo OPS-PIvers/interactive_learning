@@ -79,7 +79,6 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   // Determine what buttons to show based on viewer modes
   const showExploreButton = viewerModes.explore && moduleState === 'idle';
   const showTourButton = (viewerModes.selfPaced || viewerModes.timed) && moduleState === 'idle';
-  const showBackToMenuButton = moduleState !== 'idle';
 
   const modalRef = React.useRef<HTMLDivElement>(null);
 
@@ -98,8 +97,8 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
           );
           if (!focusableElements || focusableElements.length === 0) return;
 
-          const firstElement = focusableElements[0];
-          const lastElement = focusableElements[focusableElements.length - 1];
+          const firstElement = focusableElements[0]!;
+          const lastElement = focusableElements[focusableElements.length - 1]!;
 
           if (e.shiftKey) {
             if (document.activeElement === firstElement && lastElement) {
@@ -296,19 +295,6 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               <ChevronRightIcon className="w-4 h-4" />
             </button>
 
-            {/* Back to Menu button for exploring mode */}
-            {showBackToMenuButton && (
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
-                aria-label="Back to Menu"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <span className="hidden sm:inline">Back to Menu</span>
-              </button>
-            )}
           </div>
         )}
 
