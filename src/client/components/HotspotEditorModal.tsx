@@ -327,10 +327,9 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           
           <div
             className={`
-              ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-gray-800 text-white rounded-lg shadow-2xl
-              w-full max-w-2xl h-[80vh] max-h-[600px] flex flex-col
+              ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-gray-800 text-white rounded-lg shadow-2xl flex flex-col
+              w-[95vw] h-[90vh]
               sm:w-full sm:max-w-2xl sm:h-[80vh] sm:max-h-[600px]
-              max-sm:w-[95vw] max-sm:h-[90vh] max-sm:max-h-[90vh] max-sm:rounded-lg
               transform transition-all duration-300 ease-out
               ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}
             `}
