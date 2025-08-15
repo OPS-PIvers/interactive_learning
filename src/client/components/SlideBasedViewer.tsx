@@ -114,6 +114,14 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       }
 
       switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          handlePreviousSlide();
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          handleNextSlide();
+          break;
         case 'Home':
           event.preventDefault();
           if (slideDeck.slides && slideDeck.slides.length > 0) {
@@ -166,7 +174,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               {viewerModes.explore &&
               <button
                 onClick={handleStartExploring}
-                className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3">
+                className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-transform duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
 
                   🔍 Explore Freely
                 </button>
@@ -175,7 +183,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               {(viewerModes.selfPaced || viewerModes.timed) &&
               <button
                 onClick={handleStartLearning}
-                className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-3">
+                className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-transform duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
 
                   🎯 Guided Experience
                 </button>
