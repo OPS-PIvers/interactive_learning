@@ -143,7 +143,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [slideDeck.slides, handleSlideSelect]);
+  }, [slideDeck.slides, handleSlideSelect, handlePreviousSlide, handleNextSlide]);
 
   // Enhanced slide deck with viewer mode settings
   const enhancedSlideDeck = useMemo(() => ({
@@ -174,7 +174,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               {viewerModes.explore &&
               <button
                 onClick={handleStartExploring}
-                className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-transform duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
+                className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
 
                   🔍 Explore Freely
                 </button>
@@ -183,7 +183,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
               {(viewerModes.selfPaced || viewerModes.timed) &&
               <button
                 onClick={handleStartLearning}
-                className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-transform duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
+                className="w-full px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-3 active:scale-95 transform">
 
                   🎯 Guided Experience
                 </button>
