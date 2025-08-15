@@ -56,3 +56,6 @@ authenticated-session.png
 screenshots/
 test-screenshots/
 puppeteer-*.png
+
+# Firebase
+.firebase/
