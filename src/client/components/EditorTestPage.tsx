@@ -1,20 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset, ElementInteraction } from '../../shared/slideTypes';
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
 import { UnifiedSlideEditor } from './slides/UnifiedSlideEditor';
 
-interface InteractionLog {
-  timestamp: number;
-  slideId: string;
-  elementId: string;
-  interactionType: string;
-  details: {
-    interactionId: string;
-  };
-}
 
 /**
  * Editor Test Page Component
@@ -90,7 +81,7 @@ export const EditorTestPage: React.FC = () => {
     console.warn('📱 Mobile Test: Slide changed', { slideId, slideIndex });
   }, []);
 
-  const handleInteraction = useCallback((interaction: InteractionLog) => {
+  const handleInteraction = useCallback((interaction: ElementInteraction) => {
     console.warn('📱 Mobile Test: Interaction triggered', interaction);
     
     // Visual feedback
@@ -111,7 +102,7 @@ export const EditorTestPage: React.FC = () => {
       max-width: calc(100vw - 40px);
       word-wrap: break-word;
     `;
-    notification.textContent = `✅ ${interaction.interactionType || 'Interaction'} on ${interaction.elementId || 'element'}`;
+    notification.textContent = `✅ ${interaction.trigger || 'Interaction'} (ID: ${interaction.id})`;
     document.body.appendChild(notification);
     
     setTimeout(() => {

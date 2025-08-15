@@ -51,9 +51,9 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     0;
     const validIndex = Math.max(0, initialIndex);
     const slideId = (slides && validIndex < slides.length) 
-      ? slides[validIndex]?.id 
+      ? slides[validIndex]?.id || null
       : (slides && slides.length > 0) 
-        ? slides[0]?.id 
+        ? slides[0]?.id || null
         : null;
 
     return {
@@ -200,7 +200,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
 
 
-    // Log interaction
+    // Log interaction for internal state
     const interactionLog = {
       timestamp: Date.now(),
       slideId: currentSlide.id,
@@ -220,7 +220,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
     }
 
-    onInteraction?.(interactionLog);
+    // Pass the ElementInteraction object to the callback
+    onInteraction?.(interaction);
   }, [currentSlide, triggerEffect, onInteraction]);
 
   // Timeline step change handler

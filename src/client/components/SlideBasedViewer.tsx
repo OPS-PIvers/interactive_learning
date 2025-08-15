@@ -36,7 +36,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   // Viewer state
   const [moduleState, setModuleState] = useState<'idle' | 'exploring' | 'learning'>('idle');
   const [currentSlideId, setCurrentSlideId] = useState<string>(
-    slideDeck.slides && slideDeck.slides.length > 0 ? slideDeck.slides[0].id : ''
+    slideDeck.slides && slideDeck.slides.length > 0 ? slideDeck.slides[0]?.id || '' : ''
   );
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
@@ -116,14 +116,14 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
       switch (event.key) {
         case 'Home':
           event.preventDefault();
-          if (slideDeck.slides.length > 0) {
-            handleSlideSelect(slideDeck.slides[0].id);
+          if (slideDeck.slides && slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[0]?.id || '');
           }
           break;
         case 'End':
           event.preventDefault();
-          if (slideDeck.slides.length > 0) {
-            handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1].id);
+          if (slideDeck.slides && slideDeck.slides.length > 0) {
+            handleSlideSelect(slideDeck.slides[slideDeck.slides.length - 1]?.id || '');
           }
           break;
         default:
