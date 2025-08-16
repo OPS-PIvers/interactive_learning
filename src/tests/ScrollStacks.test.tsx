@@ -12,8 +12,8 @@ mockIntersectionObserver.mockReturnValue({
   disconnect: vi.fn(),
 });
 
-// @ts-ignore
-global.IntersectionObserver = mockIntersectionObserver;
+// Define global IntersectionObserver for testing environment
+(global as any).IntersectionObserver = mockIntersectionObserver;
 
 // Mock the ProjectCard component
 vi.mock('../client/components/ProjectCard', () => ({
@@ -32,31 +32,37 @@ const mockProjects: Project[] = [
     id: '1',
     title: 'Test Project 1',
     description: 'First test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '2',
     title: 'Test Project 2',
     description: 'Second test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '3',
     title: 'Test Project 3',
     description: 'Third test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   }
 ];
 
@@ -66,21 +72,25 @@ const manyProjects: Project[] = [
     id: '4',
     title: 'Test Project 4',
     description: 'Fourth test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '5',
     title: 'Test Project 5',
     description: 'Fifth test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   }
 ];
 
