@@ -15,6 +15,7 @@ import { GearIcon } from '../icons/GearIcon';
 import { PencilIcon } from '../icons/PencilIcon';
 import { SaveIcon } from '../icons/SaveIcon';
 import { ShareIcon } from '../icons/ShareIcon';
+import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
 
 export interface ResponsiveHeaderProps {
   projectName: string;
@@ -23,6 +24,7 @@ export interface ResponsiveHeaderProps {
   errorMessage: string | null;
   showSuccessMessage: boolean;
   onTogglePreview: () => void;
+  onLivePreview: () => void;
   onSave: () => void;
   onClose: () => void;
   onOpenSettings: () => void;
@@ -40,6 +42,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
   errorMessage,
   showSuccessMessage,
   onTogglePreview,
+  onLivePreview,
   onSave,
   onClose,
   onOpenSettings,
@@ -105,6 +108,18 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
         
         {/* Right section - Actions */}
         <div className="flex items-center gap-1 sm:gap-3">
+          {/* Live Preview button */}
+          {!isPreviewMode && (
+            <button
+              onClick={onLivePreview}
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm bg-teal-600 text-white hover:bg-teal-700"
+              title="Live Preview"
+            >
+              <ExternalLinkIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Live Preview</span>
+            </button>
+          )}
+
           {/* Preview toggle */}
           <button
             onClick={onTogglePreview}

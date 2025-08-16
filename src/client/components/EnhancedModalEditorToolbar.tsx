@@ -19,6 +19,7 @@ interface EnhancedModalEditorToolbarProps {
   onClose: () => void;
   projectName: string;
   onBack: () => void;
+  onLivePreview: () => void;
   onReplaceImage: (file: File) => void;
   
   // Auto-progression
@@ -103,6 +104,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
   onClose,
   projectName,
   onBack,
+  onLivePreview,
   onReplaceImage,
   isAutoProgression,
   onToggleAutoProgression,
@@ -210,6 +212,12 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-4">
+              <button
+                onClick={onLivePreview}
+                className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <span className="font-medium">Live Preview</span>
+              </button>
               <button
                 onClick={onBack}
                 className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"

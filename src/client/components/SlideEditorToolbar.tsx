@@ -4,6 +4,8 @@ import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import AuthButton from './AuthButton';
 import { CheckIcon } from './icons/CheckIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
+import { EyeIcon } from './icons/EyeIcon';
+import { ExternalLinkIcon } from './icons/ExternalLinkIcon';
 import { GearIcon } from './icons/GearIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { ShareIcon } from './icons/ShareIcon';
@@ -17,6 +19,9 @@ interface SlideEditorToolbarProps {
   isPublished: boolean;
   onImageUpload: (file: File) => void;
   project?: Project;
+  onTogglePreview: () => void;
+  onLivePreview: () => void;
+  isPreview: boolean;
 }
 
 /**
@@ -32,7 +37,10 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   isSaving,
   isPublished,
   onImageUpload: _onImageUpload,
-  project
+  project,
+  onTogglePreview,
+  onLivePreview,
+  isPreview
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -85,6 +93,26 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1 md:gap-3">
+            <button
+              onClick={onTogglePreview}
+              className={`flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:font-medium ${
+                isPreview ? 'md:bg-blue-700' : 'md:bg-blue-600 md:hover:bg-blue-700'
+              }`}
+              aria-label="Toggle preview"
+            >
+              <EyeIcon className="w-4 h-4" />
+              <span className="hidden md:inline">{isPreview ? 'Editing' : 'Preview'}</span>
+            </button>
+
+            <button
+              onClick={onLivePreview}
+              className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-teal-600 md:hover:bg-teal-700 md:font-medium"
+              aria-label="Live preview"
+            >
+              <ExternalLinkIcon className="w-4 h-4" />
+              <span className="hidden md:inline">Live Preview</span>
+            </button>
+
             {/* Save Button - responsive design */}
             <button
               onClick={handleSave}

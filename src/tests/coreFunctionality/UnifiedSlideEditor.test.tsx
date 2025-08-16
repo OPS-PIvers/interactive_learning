@@ -170,12 +170,11 @@ describe('UnifiedSlideEditor', () => {
 
     await waitFor(() => {
         expect(onSlideDeckChange).toHaveBeenCalled();
+        const updatedDeck = onSlideDeckChange.mock.calls[0]?.[0] as SlideDeck;
+        if (updatedDeck) {
+            expect(updatedDeck.slides!).toHaveLength(2);
+        }
     });
-
-    const updatedDeck = onSlideDeckChange.mock.calls[0]?.[0] as SlideDeck;
-    if (updatedDeck) {
-        expect(updatedDeck.slides!).toHaveLength(2);
-    }
   });
 
   test('saves the project when save button is clicked', async () => {
