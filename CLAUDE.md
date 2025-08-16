@@ -16,9 +16,9 @@ Interactive web application for creating slide-based multimedia training modules
 ## Architecture Context
 - **Main Components**: `src/client/components/SlideBasedEditor.tsx` and `src/client/components/SlideBasedViewer.tsx` - Core containers for slide-based editing and viewing
 - **Slide Editor**: `src/client/components/slides/SlideEditor.tsx` - Visual drag-and-drop editor with responsive positioning
-- **Unified Responsive Design**: Single components that adapt to mobile/desktop through conditional rendering and responsive CSS
+- **Unified Responsive Design**: Single components that adapt to all screen sizes using a CSS-first approach with Tailwind CSS. JavaScript-based device detection for rendering is strictly forbidden.
 - **State Management**: React useState with callback patterns and complex interdependencies
-- **Mobile Detection**: `useIsMobile()` hook drives conditional rendering with debounced resize handling
+- **Device Detection for Calculations**: Device detection hooks are used exclusively for mathematical calculations (e.g., canvas dimensions, drag boundaries), not for rendering UI.
 - **Touch Handling**: `useTouchGestures` hook with momentum physics for pan/zoom coordination
 - **Modal System**: Unified modal constraint system preventing toolbar overlap with responsive positioning
 - **Z-Index Management**: Centralized system in `zIndexLevels.ts` for consistent layering across all components
@@ -393,7 +393,7 @@ The application is transitioning from separate mobile/desktop components to a un
 - **Duplicate Responsive Logic**: Consolidate conditional rendering into unified components
 
 ### Preferred Modern Patterns
-- **Unified Components**: Single components with `useIsMobile()` hook for responsive behavior
+- **Unified Components**: Single components that use CSS-first responsive design with Tailwind breakpoints.
 - **Centralized Z-Index**: Always use `zIndexLevels.ts` for layering
 - **Responsive CSS**: Use Tailwind responsive classes and conditional className logic
 - **Legacy Migration**: Convert deprecated components to unified responsive versions
