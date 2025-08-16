@@ -132,6 +132,7 @@ export interface Project {
   projectType?: 'hotspot' | 'slide';
   slideDeck?: SlideDeck;
   theme?: string;           // Theme preset ID for this project
+  userId?: string;
 }
 
 export interface UserProfile {

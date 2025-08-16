@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import type { ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
 import { ZOOM_LIMITS, PAN_ZOOM_ANIMATION } from '../constants/interactionConstants';
 
 interface ImageViewerProps {
@@ -19,17 +20,18 @@ interface ZoomControllerProps {
   onFocusAnimationComplete: ImageViewerProps['onFocusAnimationComplete'];
   imageRef: React.RefObject<HTMLImageElement>;
   containerRef: React.RefObject<HTMLDivElement>;
+  setTransform: ReactZoomPanPinchRef['setTransform'];
 }
 
-const ZoomController: React.FC<ZoomControllerProps> = ({ 
-  focusHotspotTarget, 
-  onFocusAnimationComplete, 
-  imageRef, 
-  containerRef 
+const ZoomController: React.FC<ZoomControllerProps> = ({
+  focusHotspotTarget,
+  onFocusAnimationComplete,
+  imageRef,
+  containerRef,
+  setTransform,
 }) => {
-  const { setTransform } = useControls();
   const onFocusAnimationCompleteRef = useRef(onFocusAnimationComplete);
-  
+
   // Keep the callback ref up to date without triggering effect re-runs
   onFocusAnimationCompleteRef.current = onFocusAnimationComplete;
 
@@ -37,7 +39,7 @@ const ZoomController: React.FC<ZoomControllerProps> = ({
     if (!focusHotspotTarget || !imageRef.current || !containerRef.current) {
       return;
     }
-    
+
     const { xPercent, yPercent, targetScale } = focusHotspotTarget;
     const scale = targetScale || PAN_ZOOM_ANIMATION.defaultHotspotScale;
 
@@ -94,22 +96,30 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         doubleClick={{ step: ZOOM_LIMITS.doubleTapZoomFactor, mode: "zoomIn" }}
         wheel={{ step: 0.2 }}
       >
-        <ZoomController
-          focusHotspotTarget={focusHotspotTarget}
-          onFocusAnimationComplete={onFocusAnimationComplete}
-          imageRef={imageRef}
-          containerRef={containerRef}
-        />
-        <TransformComponent wrapperClass="transform-wrapper w-full h-full" contentClass="transform-content">
-          <img
-            ref={imageRef}
-            src={src}
-            alt={alt}
-            className="max-w-none select-none"
-            draggable={false}
-            loading="lazy"
-          />
-        </TransformComponent>
+        {({ setTransform }) => (
+          <>
+            <ZoomController
+              focusHotspotTarget={focusHotspotTarget}
+              onFocusAnimationComplete={onFocusAnimationComplete}
+              imageRef={imageRef}
+              containerRef={containerRef}
+              setTransform={setTransform}
+            />
+            <TransformComponent
+              wrapperProps={{ className: 'transform-wrapper w-full h-full' }}
+              contentProps={{ className: 'transform-content' }}
+            >
+              <img
+                ref={imageRef}
+                src={src}
+                alt={alt}
+                className="max-w-none select-none"
+                draggable={false}
+                loading="lazy"
+              />
+            </TransformComponent>
+          </>
+        )}
       </TransformWrapper>
     </div>
   );

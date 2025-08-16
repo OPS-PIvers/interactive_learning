@@ -152,7 +152,9 @@ describe('ScrollStacks', () => {
     );
 
     const editButton = screen.getAllByText('Edit')[0];
-    editButton.click();
+    if (editButton) {
+      editButton.click();
+    }
 
     expect(mockOnEdit).toHaveBeenCalledWith(mockProjects[0]);
   });
@@ -169,7 +171,9 @@ describe('ScrollStacks', () => {
     );
 
     const deleteButton = screen.getAllByText('Delete')[0];
-    deleteButton.click();
+    if (deleteButton) {
+      deleteButton.click();
+    }
 
     expect(mockOnDelete).toHaveBeenCalledWith('1');
   });
