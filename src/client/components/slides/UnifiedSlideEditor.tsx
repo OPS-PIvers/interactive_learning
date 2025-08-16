@@ -34,6 +34,7 @@ import { ResponsiveSlidesModal } from '../responsive/ResponsiveSlidesModal';
 import { ResponsiveToolbar } from '../responsive/ResponsiveToolbar';
 import { ObjectEditorPanel } from './ObjectEditorPanel';
 import { ResponsiveCanvas } from './ResponsiveCanvas';
+import SlidePreview from './SlidePreview';
 // Mobile toolbar hooks removed - functionality moved to responsive design
 
 // Import responsive components and modals (to be created)
@@ -404,7 +405,6 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
     handleSlideDeckUpdate(updatedSlideDeck);
-    actions.setCurrentSlide(insertIndex);
   }, [slideDeck, state.navigation.currentSlideIndex, currentSlide, handleSlideDeckUpdate, actions]);
 
   // Handle duplicating slides
@@ -647,6 +647,11 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     }
   }), [slideDeck]);
 
+  const handleLivePreview = useCallback(() => {
+    const previewUrl = `/preview/${projectId}`;
+    window.open(previewUrl, '_blank');
+  }, [projectId]);
+
   return (
     <ProjectThemeProvider
       {...projectTheme && { initialThemeId: projectTheme }}
@@ -663,6 +668,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             errorMessage={state.operations.error}
             showSuccessMessage={state.ui.showSuccessMessage}
             onTogglePreview={actions.togglePreviewMode}
+            onLivePreview={handleLivePreview}
             onSave={handleSave}
             onClose={onClose}
             onOpenSettings={() => actions.openModal('settingsModal')}
@@ -670,9 +676,17 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
             isPublished={isPublished} />
         </div>
 
+        {state.navigation.isPreviewMode && (
+          <SlidePreview
+            slideDeck={slideDeck}
+            projectName={projectName}
+            onClose={actions.togglePreviewMode}
+          />
+        )}
+
         {/* Main editor content */}
-        <div className="editor-main flex-1 flex overflow-hidden 
-                        md:flex-row flex-col">
+        <div className={`editor-main flex-1 flex overflow-hidden
+                        md:flex-row flex-col ${state.navigation.isPreviewMode ? 'blur-sm' : ''}`}>
           
           {/* Main canvas area */}
           <div className="flex-1 flex flex-col relative min-h-0" ref={canvasContainerRef}>

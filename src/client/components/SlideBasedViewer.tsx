@@ -7,6 +7,7 @@ import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerFooterToolbar from './ViewerFooterToolbar';
+import InteractionOverlay from './InteractionOverlay';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
@@ -39,6 +40,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
     slideDeck.slides && slideDeck.slides.length > 0 ? slideDeck.slides[0]?.id || '' : ''
   );
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [activeInteractions, setActiveInteractions] = useState<ElementInteraction[]>([]);
 
   // Navigation handlers for footer toolbar
   const handlePreviousSlide = useCallback(() => {
@@ -99,8 +101,14 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }, [slideDeck.slides, handleSlideChange]);
 
   // Interaction handler
-  const handleInteraction = useCallback((_interaction: ElementInteraction) => {
-    // This is a placeholder for future interaction handling logic
+  const handleInteraction = useCallback((interaction: ElementInteraction) => {
+    if (interaction.action.type === 'show-text') {
+      setActiveInteractions((prev) => [...prev, interaction]);
+    }
+  }, []);
+
+  const handleCloseInteraction = useCallback((interactionId: string) => {
+    setActiveInteractions((prev) => prev.filter((i) => i.id !== interactionId));
   }, []);
 
   // Centralized keyboard navigation for Home/End
@@ -196,7 +204,8 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   }
 
   return (
-    <div className="w-screen h-[calc(var(--vh,1vh)*100)] flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="w-screen h-[calc(var(--vh,1vh)*100)] flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 relative">
+      <InteractionOverlay interactions={activeInteractions} onClose={handleCloseInteraction} />
       {/* Slide viewer content area - use flex-1 for proper sizing */}
       <div className="flex-1 overflow-auto">
         {moduleState === 'learning' && (viewerModes.selfPaced || viewerModes.timed) ?
