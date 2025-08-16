@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ScrollStacks from '../client/components/ScrollStacks';
 import { Project } from '../shared/types';
@@ -151,10 +151,9 @@ describe('ScrollStacks', () => {
       </BrowserRouter>
     );
 
-    const editButton = screen.getAllByText('Edit')[0];
-    if (editButton) {
-      editButton.click();
-    }
+    const projectCard = screen.getByTestId('project-card-1');
+    const editButton = within(projectCard).getByText('Edit');
+    editButton.click();
 
     expect(mockOnEdit).toHaveBeenCalledWith(mockProjects[0]);
   });
@@ -170,10 +169,9 @@ describe('ScrollStacks', () => {
       </BrowserRouter>
     );
 
-    const deleteButton = screen.getAllByText('Delete')[0];
-    if (deleteButton) {
-      deleteButton.click();
-    }
+    const projectCard = screen.getByTestId('project-card-1');
+    const deleteButton = within(projectCard).getByText('Delete');
+    deleteButton.click();
 
     expect(mockOnDelete).toHaveBeenCalledWith('1');
   });
