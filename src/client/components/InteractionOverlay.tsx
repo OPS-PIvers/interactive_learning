@@ -1,5 +1,5 @@
 import React from 'react';
-import { ElementInteraction } from '../../shared/slideTypes';
+import { ElementInteraction, ShowTextParameters } from '../../shared/slideTypes';
 
 interface InteractionOverlayProps {
   interactions: ElementInteraction[];
@@ -13,14 +13,20 @@ const InteractionOverlay: React.FC<InteractionOverlayProps> = ({ interactions, o
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      {interactions.map((interaction) => (
-        <div key={interaction.id} className="bg-white p-4 rounded-lg shadow-lg">
-          <p>{interaction.action.payload.text}</p>
-          <button onClick={() => onClose(interaction.id)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-            Close
-          </button>
-        </div>
-      ))}
+      {interactions.map((interaction) => {
+        if (interaction.effect.type !== 'text') {
+          return null;
+        }
+        const params = interaction.effect.parameters as ShowTextParameters;
+        return (
+          <div key={interaction.id} className="bg-white p-4 rounded-lg shadow-lg">
+            <p>{params.text}</p>
+            <button onClick={() => onClose(interaction.id)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
+              Close
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 };

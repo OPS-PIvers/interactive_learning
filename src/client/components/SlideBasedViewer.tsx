@@ -102,7 +102,7 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
 
   // Interaction handler
   const handleInteraction = useCallback((interaction: ElementInteraction) => {
-    if (interaction.action.type === 'show-text') {
+    if (interaction.effect.type === 'text') {
       setActiveInteractions((prev) => [...prev, interaction]);
     }
   }, []);

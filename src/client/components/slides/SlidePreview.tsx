@@ -11,7 +11,7 @@ interface SlidePreviewProps {
 const SlidePreview: React.FC<SlidePreviewProps> = ({ slideDeck, projectName, onClose }) => {
   return (
     <div className="absolute inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
-      <div className="w-full h-full max-w-4xl max-h-4xl bg-white rounded-lg overflow-hidden shadow-2xl">
+      <div className="w-full h-full max-w-4xl max-h-[80vh] bg-white rounded-lg overflow-hidden shadow-2xl">
         <SlideBasedViewer
           slideDeck={slideDeck}
           projectName={projectName}

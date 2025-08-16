@@ -405,6 +405,7 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
     const updatedSlideDeck = { ...slideDeck, slides: updatedSlides };
     handleSlideDeckUpdate(updatedSlideDeck);
+    actions.setCurrentSlide(insertIndex);
   }, [slideDeck, state.navigation.currentSlideIndex, currentSlide, handleSlideDeckUpdate, actions]);
 
   // Handle duplicating slides
