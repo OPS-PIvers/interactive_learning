@@ -269,3 +269,47 @@ body {
 @keyframes skeleton-shine {
   to { background-position: -200% 0; }
 } */
+
+/* Scroll Stacks Animation */
+@keyframes stack-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-stack-reveal {
+  animation: stack-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scroll stacks progressive stacking effect */
+.scroll-stack-card {
+  will-change: transform, opacity;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Enhanced hover effects for stacked cards */
+.scroll-stack-card:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mobile-optimized scroll stacks */
+@media (max-width: 768px) {
+  .scroll-stack-card {
+    transform: translateY(0) scale(1) !important;
+    opacity: 1 !important;
+    position: relative !important;
+    top: 0 !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .scroll-stack-card:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+  }
+}

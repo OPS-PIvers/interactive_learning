@@ -16,6 +16,7 @@ import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
 import MigrationTestPage from './MigrationTestPage';
 import ProjectCard from './ProjectCard';
+import ScrollStacks from './ScrollStacks';
 import SharedModuleViewer from './SharedModuleViewer';
 import SlideBasedTestPage from './SlideBasedTestPage';
 import { GradientCreateButton } from './ui/GradientCreateButton';
@@ -519,16 +520,11 @@ const MainApp: React.FC = () => {
           </div>
         )}
         {!isLoading && !error && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map(project => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onEdit={() => handleEditProject(project)}
-                onDelete={handleDeleteProject}
-              />
-            ))}
-          </div>
+          <ScrollStacks
+            projects={projects}
+            onEdit={handleEditProject}
+            onDelete={handleDeleteProject}
+          />
         )}
       </div>
 
