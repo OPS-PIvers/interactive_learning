@@ -734,8 +734,8 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
           </div>
         </div>
 
-        {/* Mobile Toolbar - positioned at bottom via CSS grid */}
-        <div className="editor-toolbar md:hidden">
+        {/* Unified Toolbar - positioned at bottom, visible on all screen sizes */}
+        <div className="editor-toolbar">
           {!state.navigation.isPreviewMode &&
           <ResponsiveToolbar
             onSlidesOpen={() => actions.openModal('slidesModal')}

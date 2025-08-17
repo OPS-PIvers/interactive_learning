@@ -1,7 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { useLayoutConstraints } from '../hooks/useLayoutConstraints';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { useModalConstraints } from '../hooks/useLayoutConstraints';
 import { XMarkIcon } from './icons/XMarkIcon';
 
 interface ModalProps {
@@ -14,8 +13,14 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  // Uses CSS responsive breakpoints for layout
-  const layoutConstraints = useLayoutConstraints({ preventToolbarOverlap: true });
+
+  // Use the modern, unified constraint system for positioning
+  const { styles, tailwindClasses } = useModalConstraints({
+    preventToolbarOverlap: true,
+    type: 'standard',
+    size: 'medium',
+    position: 'center'
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -68,52 +73,24 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   if (!isOpen) return null;
 
-  // Calculate modal positioning to start just below header toolbar
-  const getModalStyle = () => {
-    // Header heights based on EditorToolbar implementation
-    const headerHeight = 56; // Unified header height
-    const safeAreaTop = 'env(safe-area-inset-top, 0px)';
-    const safeAreaBottom = 'env(safe-area-inset-bottom, 0px)';
-    
-    // Calculate top position: header height + safe area top + small margin
-    const topMargin = '12px'; // Unified top margin
-    const topPosition = `calc(${headerHeight}px + ${safeAreaTop} + ${topMargin})`;
-    
-    // Calculate available height for modal content using unified constraints
-    const bottomMargin = '24px'; // Unified bottom margin for footer toolbar
-    const safetyBuffer = '20px'; // Unified safety buffer for dynamic toolbars
-    
-    const maxHeight = `calc(100vh - ${headerHeight}px - ${safeAreaTop} - ${safeAreaBottom} - ${topMargin} - ${bottomMargin} - ${layoutConstraints.toolbarHeight}px - ${safetyBuffer})`;
-    
-    return {
-      top: topPosition,
-      maxHeight: maxHeight,
-      height: 'auto' // Let content determine height up to maxHeight
-    };
-  };
-
-  const modalStyle = getModalStyle();
-
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm ${Z_INDEX_TAILWIND.MODAL_CONTENT} transition-opacity duration-300 ease-in-out mobile-viewport-fix`}
+      className={`fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center ${tailwindClasses.backdrop} transition-opacity duration-300 ease-in-out mobile-viewport-fix`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
       onTouchMove={(e) => e.preventDefault()}
-      style={{ touchAction: 'none' }}
+      style={{ ...styles.backdrop, touchAction: 'none' }}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
-        className="absolute left-2 right-2 bg-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-700 mobile-safe-area"
+        className={`bg-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-700 mobile-safe-area ${tailwindClasses.content}`}
         onTouchMove={(e) => e.stopPropagation()}
         style={{ 
+          ...styles.content,
           touchAction: 'pan-y',
-          top: modalStyle.top,
-          height: modalStyle.height,
-          maxHeight: modalStyle.maxHeight,
-          maxWidth: 'min(90vw, calc(100vw - 16px))' // Responsive max width
+          width: '100%', // Let maxWidth from styles control size
         }}
       >
         <header className="p-4 sm:p-6 flex justify-between items-center border-b border-slate-700 bg-slate-800/50">

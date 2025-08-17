@@ -91,25 +91,43 @@ const mockSlideDeck: SlideDeck = {
   }
 };
 
-const renderEditor = (props: Partial<UnifiedSlideEditorProps> = {}) => {
-  const defaultProps = {
-    slideDeck: mockSlideDeck,
-    projectName: 'Unified Editor Test',
-    onSlideDeckChange: vi.fn(),
-    onSave: vi.fn().mockResolvedValue(undefined),
-    onImageUpload: vi.fn().mockResolvedValue(undefined),
-    onClose: vi.fn(),
-    isPublished: false,
+// A stateful wrapper for the editor to simulate prop updates
+const StatefulEditor: React.FC<Partial<UnifiedSlideEditorProps>> = (props) => {
+    const [slideDeck, setSlideDeck] = React.useState(props.slideDeck || mockSlideDeck);
+
+    const handleSlideDeckChange = (newDeck: SlideDeck) => {
+      setSlideDeck(newDeck);
+      props.onSlideDeckChange?.(newDeck);
+    };
+
+    return (
+      <UnifiedSlideEditor
+        {...props}
+        slideDeck={slideDeck}
+        onSlideDeckChange={handleSlideDeckChange}
+      />
+    );
   };
 
-  return render(
-    <AuthProvider>
-      <ToastProvider>
-        <UnifiedSlideEditor {...defaultProps} {...props} />
-      </ToastProvider>
-    </AuthProvider>
-  );
-};
+  const renderEditor = (props: Partial<UnifiedSlideEditorProps> = {}) => {
+    const defaultProps: UnifiedSlideEditorProps = {
+      slideDeck: mockSlideDeck,
+      projectName: 'Unified Editor Test',
+      onSlideDeckChange: vi.fn(),
+      onSave: vi.fn().mockResolvedValue(undefined),
+      onImageUpload: vi.fn().mockResolvedValue(Promise.resolve()),
+      onClose: vi.fn(),
+      isPublished: false,
+    };
+
+    return render(
+      <AuthProvider>
+        <ToastProvider>
+          <StatefulEditor {...defaultProps} {...props} />
+        </ToastProvider>
+      </AuthProvider>
+    );
+  };
 
 describe('UnifiedSlideEditor', () => {
   beforeEach(() => {
