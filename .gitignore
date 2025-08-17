@@ -18,6 +18,10 @@ dist-ssr
 .idea
 .DS_Store
 *.suo
+
+# Playwright MCP screenshots and test files
+.playwright-mcp/
+test-interaction.html
 *.ntvs*
 *.njsproj
 *.sln
