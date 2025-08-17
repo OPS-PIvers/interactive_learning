@@ -21,6 +21,38 @@ This rebuild will strictly adhere to the principles outlined in `AGENTS.md`. All
 
 ## 3. Project Phases & Actionable Checklists
 
+### Phase 0: Baseline Metrics & Current State Assessment (Week 0)
+
+**Goal:** Establish comprehensive baseline metrics for the current application to accurately measure the success of the rebuild against our ambitious targets.
+
+**Key Outcomes:**
+- Documented baseline performance metrics (load times, bundle sizes, Lighthouse scores)
+- Current user workflow analysis with click counts and task completion times
+- Technical debt assessment and component complexity analysis
+- Accessibility audit of existing application
+
+**Actionable Checklist:**
+- [ ] Run comprehensive Lighthouse audits on all key pages (dashboard, editor, viewer)
+- [ ] Measure current page load times (LCP, FID, CLS) using Chrome DevTools
+- [ ] Document current bundle sizes and analyze webpack bundle analyzer output
+- [ ] Conduct user workflow analysis for 5 most common tasks (create project, add hotspot, preview, publish, share)
+- [ ] Count actual clicks required for each workflow in current application
+- [ ] Run accessibility audit using axe-core and document current WCAG compliance level
+- [ ] Analyze current codebase: count components, measure code duplication, assess TypeScript coverage
+- [ ] Document current test coverage percentage across all modules
+- [ ] Survey current users about pain points and friction areas (optional but recommended)
+- [ ] Create baseline metrics dashboard for ongoing comparison during rebuild
+
+**Definition of Done:**
+- [ ] Complete baseline metrics report documented in `BASELINE_METRICS.md`
+- [ ] All performance measurements recorded with specific numbers and timestamps
+- [ ] User workflow documentation with detailed click-by-click analysis
+- [ ] Technical debt assessment completed with concrete component counts and complexity metrics
+- [ ] **Stakeholder Review:** Baseline report reviewed and approved by product and engineering teams
+- [ ] Metrics tracking dashboard established for ongoing monitoring
+
+---
+
 ### Phase 1: Design System & Foundation (Weeks 1-2)
 
 **Goal:** Establish the visual and architectural foundation of the entire application.
@@ -116,13 +148,205 @@ This rebuild will strictly adhere to the principles outlined in `AGENTS.md`. All
 - [ ] All code passes linting and component tests with >95% coverage.
 
 ---
-_The remaining phases would follow a similar, detailed, and actionable structure._
-- **Phase 5: Hotspot System Implementation (Week 7)**
-- **Phase 6: Content & Interaction Effects System (Weeks 8-9)**
-- **Phase 7: Viewer Experience (Weeks 10-11)**
-- **Phase 8: Mobile Experience & Touch Polish (Week 12)**
-- **Phase 9: Performance, Accessibility & Polish (Weeks 13-14)**
-- **Phase 10: Data Migration & Launch (Week 15)**
+
+### Phase 5: Hotspot System Implementation (Week 7)
+
+**Goal:** Implement the core unified hotspot system that will replace all current interactive element types (text, media, shapes) with a single, universal hotspot architecture.
+
+**Key Outcomes:**
+- Universal `Hotspot` component that handles all interaction types
+- Hotspot creation, positioning, and configuration workflows
+- Integration with the slide editor canvas and properties panel
+- Backward compatibility with existing hotspot data
+
+**Actionable Checklist:**
+- [ ] Create the universal `Hotspot.tsx` component with responsive positioning
+- [ ] Implement `HotspotCreationTool.tsx` for adding hotspots to slides
+- [ ] Build `HotspotPropertiesPanel.tsx` for configuring hotspot behavior
+- [ ] Implement hotspot selection, movement, and resizing on canvas
+- [ ] Create hotspot state management and persistence logic
+- [ ] Build hotspot preview functionality in the editor
+- [ ] Implement hotspot deletion and duplication features
+- [ ] Add keyboard shortcuts for hotspot operations
+- [ ] Create migration utilities for existing text/media/shape elements to hotspots
+
+**Definition of Done:**
+- [ ] Universal hotspot system is fully functional in the slide editor
+- [ ] Users can create, configure, move, resize, and delete hotspots
+- [ ] All hotspot operations work consistently across desktop and mobile
+- [ ] Backward compatibility with existing data is maintained
+- [ ] **Stakeholder Review:** Hotspot system functionality approved by product team
+- [ ] All code passes linting and unit tests with >95% coverage
+
+---
+
+### Phase 6: Content & Interaction Effects System (Weeks 8-9)
+
+**Goal:** Build the effects system that defines what happens when users interact with hotspots, including text overlays, media playouts, shape displays, and complex interactive sequences.
+
+**Key Outcomes:**
+- Comprehensive effects library (text, image, video, audio, shape, quiz, navigation)
+- Effect configuration and preview system
+- Animation and transition framework for effects
+- Effect timing and sequencing controls
+
+**Actionable Checklist:**
+- [ ] Design and implement the `Effect` base interface and type system
+- [ ] Create `TextEffect.tsx` for text overlay displays
+- [ ] Create `MediaEffect.tsx` for image, video, and audio playback
+- [ ] Create `ShapeEffect.tsx` for geometric shape displays
+- [ ] Create `QuizEffect.tsx` for interactive question sequences
+- [ ] Create `NavigationEffect.tsx` for slide transitions and jumps
+- [ ] Implement `EffectPropertiesPanel.tsx` for configuring effects
+- [ ] Build effect preview system within the editor
+- [ ] Implement effect timing controls (delay, duration, auto-advance)
+- [ ] Create effect animation system using Framer Motion
+- [ ] Build effect sequencing for multiple effects per hotspot
+- [ ] Implement conditional effects based on user progress/state
+
+**Definition of Done:**
+- [ ] All effect types are implemented and configurable
+- [ ] Effects can be previewed accurately in the editor
+- [ ] Effect timing and animations work smoothly across all devices
+- [ ] Complex effect sequences can be created and managed
+- [ ] **Stakeholder Review:** Effects system demonstrates the full range of interactive capabilities
+- [ ] All code passes linting and integration tests with >95% coverage
+
+---
+
+### Phase 7: Viewer Experience (Weeks 10-11)
+
+**Goal:** Create the end-user viewing experience where learners interact with published slide decks, complete with hotspot interactions, effect playback, and progress tracking.
+
+**Key Outcomes:**
+- Responsive slide viewer with touch and keyboard navigation
+- Hotspot interaction handling and effect execution
+- Progress tracking and analytics collection
+- Unified toolbar with navigation and mode controls
+
+**Actionable Checklist:**
+- [ ] Build the main `SlideViewer.tsx` component with responsive design
+- [ ] Implement slide navigation (previous, next, jump to slide)
+- [ ] Create hotspot interaction handling (click, touch, hover)
+- [ ] Implement effect execution engine for the viewer
+- [ ] Build progress tracking and completion state management
+- [ ] Create `ViewerToolbar.tsx` with navigation and mode controls
+- [ ] Implement "Explore" mode for free-form interaction
+- [ ] Implement "Guided Tour" mode for sequential learning
+- [ ] Add keyboard shortcuts and accessibility support
+- [ ] Implement viewer analytics and interaction logging
+- [ ] Create full-screen mode for immersive viewing
+- [ ] Build mobile-optimized touch gestures and controls
+
+**Definition of Done:**
+- [ ] Slide viewer works flawlessly on all device types and screen sizes
+- [ ] All hotspot interactions and effects execute correctly
+- [ ] Both viewing modes (Explore, Guided Tour) function as designed
+- [ ] Progress tracking accurately captures user engagement
+- [ ] **Stakeholder Review:** Viewer experience meets learning objectives and UX standards
+- [ ] Accessibility compliance verified (WCAG 2.1 AA)
+
+---
+
+### Phase 8: Mobile Experience & Touch Polish (Week 12)
+
+**Goal:** Optimize the entire application for mobile devices with refined touch interactions, gesture support, and mobile-specific UX enhancements.
+
+**Key Outcomes:**
+- Smooth touch interactions across all components
+- Mobile-optimized layouts and navigation patterns
+- Gesture support for common operations
+- Performance optimization for mobile devices
+
+**Actionable Checklist:**
+- [ ] Audit and optimize all touch targets for minimum 44px size
+- [ ] Implement swipe gestures for slide navigation in viewer
+- [ ] Add pinch-to-zoom support for detailed slide content
+- [ ] Optimize modal presentations for mobile screens
+- [ ] Implement pull-to-refresh where appropriate
+- [ ] Add haptic feedback for touch interactions (where supported)
+- [ ] Optimize image loading and lazy loading for mobile networks
+- [ ] Test and optimize battery usage and performance
+- [ ] Implement mobile-specific keyboard handling
+- [ ] Add touch-friendly drag and drop for editor on mobile
+- [ ] Optimize text input experiences for mobile keyboards
+- [ ] Test extensively on real devices (iOS and Android)
+
+**Definition of Done:**
+- [ ] All touch interactions feel natural and responsive
+- [ ] Mobile performance meets or exceeds desktop performance
+- [ ] No horizontal scrolling or layout breaks on any supported device
+- [ ] Touch gestures work consistently across iOS and Android
+- [ ] **Stakeholder Review:** Mobile experience approved by UX and product teams
+- [ ] Real device testing completed with no critical issues
+
+---
+
+### Phase 9: Performance, Accessibility & Polish (Weeks 13-14)
+
+**Goal:** Achieve production-ready quality with optimized performance, full accessibility compliance, and polished user experience details.
+
+**Key Outcomes:**
+- Lighthouse scores of 95+ across all categories
+- Full WCAG 2.1 AA compliance
+- Optimized bundle sizes and loading performance
+- Comprehensive error handling and edge case coverage
+
+**Actionable Checklist:**
+- [ ] Run comprehensive performance audit and optimize critical paths
+- [ ] Implement code splitting and lazy loading for optimal bundle sizes
+- [ ] Optimize all images and assets for web delivery
+- [ ] Complete accessibility audit and fix all WCAG violations
+- [ ] Implement comprehensive error boundaries and error handling
+- [ ] Add loading states and skeleton screens for all async operations
+- [ ] Optimize database queries and caching strategies
+- [ ] Implement comprehensive form validation and user feedback
+- [ ] Add keyboard navigation support for all interactive elements
+- [ ] Implement screen reader support with proper ARIA labels
+- [ ] Test with real assistive technology users
+- [ ] Create comprehensive documentation and help system
+
+**Definition of Done:**
+- [ ] Lighthouse audit scores 95+ on Performance, Accessibility, Best Practices, SEO
+- [ ] WCAG 2.1 AA compliance verified by automated and manual testing
+- [ ] Page load times under 2.0s on 3G networks
+- [ ] Zero console errors or warnings in production build
+- [ ] **Stakeholder Review:** Quality and accessibility standards approved
+- [ ] All edge cases and error scenarios handled gracefully
+
+---
+
+### Phase 10: Data Migration & Launch (Week 15)
+
+**Goal:** Successfully migrate existing user data to the new architecture and launch the rebuilt application with minimal disruption to users.
+
+**Key Outcomes:**
+- Complete data migration with zero data loss
+- Smooth user transition with minimal training required
+- Production deployment with rollback capability
+- Post-launch monitoring and issue resolution
+
+**Actionable Checklist:**
+- [ ] Develop and test comprehensive data migration scripts
+- [ ] Create rollback procedures for emergency situations
+- [ ] Implement feature flags for gradual rollout
+- [ ] Prepare user communication and training materials
+- [ ] Set up production monitoring and alerting
+- [ ] Conduct final security review and penetration testing
+- [ ] Perform load testing with expected user volumes
+- [ ] Create post-launch support documentation
+- [ ] Train customer support team on new features
+- [ ] Execute staged deployment (beta users first, then full rollout)
+- [ ] Monitor key metrics during initial launch period
+- [ ] Gather user feedback and plan immediate follow-up improvements
+
+**Definition of Done:**
+- [ ] All existing user data successfully migrated with validation
+- [ ] Production system stable with no critical issues
+- [ ] User adoption metrics meet or exceed baseline expectations
+- [ ] Support ticket volume remains manageable with good resolution times
+- [ ] **Stakeholder Review:** Launch success confirmed by product and engineering teams
+- [ ] Post-launch retrospective completed with lessons learned documented
 
 ---
 
