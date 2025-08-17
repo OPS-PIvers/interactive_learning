@@ -179,16 +179,175 @@ export const createDemoSlideDeck = (): SlideDeck => {
             isVisible: true
           },
           {
+            id: 'tooltip-hotspot',
+            type: 'hotspot',
+            position: {
+              desktop: { x: 150, y: 350, width: 50, height: 50 },
+              tablet: { x: 120, y: 280, width: 45, height: 45 },
+              mobile: { x: 60, y: 220, width: 40, height: 40 }
+            },
+            content: {
+              title: 'Tooltip Demo',
+              description: 'Click to show a tooltip message'
+            },
+            interactions: [
+              {
+                id: generateId(),
+                trigger: 'click',
+                effect: {
+                  id: generateId(),
+                  type: 'tooltip',
+                  duration: 3000,
+                  easing: 'ease-out',
+                  parameters: {
+                    text: 'This is a tooltip! Perfect for showing contextual information without interrupting the flow.',
+                    position: 'top',
+                    maxWidth: 250,
+                    arrow: true,
+                    delay: 0
+                  }
+                }
+              }
+            ],
+            style: {
+              backgroundColor: '#f59e0b', // amber-500
+              borderRadius: 25,
+              opacity: 0.9
+            },
+            isVisible: true
+          },
+          {
+            id: 'audio-hotspot',
+            type: 'hotspot',
+            position: {
+              desktop: { x: 350, y: 350, width: 50, height: 50 },
+              tablet: { x: 280, y: 280, width: 45, height: 45 },
+              mobile: { x: 150, y: 220, width: 40, height: 40 }
+            },
+            content: {
+              title: 'Audio Player',
+              description: 'Click to play audio content'
+            },
+            interactions: [
+              {
+                id: generateId(),
+                trigger: 'click',
+                effect: {
+                  id: generateId(),
+                  type: 'audio',
+                  duration: 0, // Audio controls duration
+                  easing: 'ease-in-out',
+                  parameters: {
+                    mediaUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+                    mediaType: 'audio',
+                    autoplay: true,
+                    controls: true,
+                    volume: 0.7
+                  }
+                }
+              }
+            ],
+            style: {
+              backgroundColor: '#06b6d4', // cyan-500
+              borderRadius: 25,
+              opacity: 0.9
+            },
+            isVisible: true
+          },
+          {
+            id: 'video-hotspot',
+            type: 'hotspot',
+            position: {
+              desktop: { x: 550, y: 350, width: 50, height: 50 },
+              tablet: { x: 440, y: 280, width: 45, height: 45 },
+              mobile: { x: 240, y: 220, width: 40, height: 40 }
+            },
+            content: {
+              title: 'Video Player',
+              description: 'Click to play video content'
+            },
+            interactions: [
+              {
+                id: generateId(),
+                trigger: 'click',
+                effect: {
+                  id: generateId(),
+                  type: 'video',
+                  duration: 0, // Video controls duration
+                  easing: 'ease-in-out',
+                  parameters: {
+                    mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+                    mediaType: 'video',
+                    autoplay: false,
+                    controls: true,
+                    volume: 0.8
+                  }
+                }
+              }
+            ],
+            style: {
+              backgroundColor: '#dc2626', // red-600
+              borderRadius: 25,
+              opacity: 0.9
+            },
+            isVisible: true
+          },
+          {
+            id: 'quiz-hotspot',
+            type: 'hotspot',
+            position: {
+              desktop: { x: 750, y: 250, width: 50, height: 50 },
+              tablet: { x: 600, y: 200, width: 45, height: 45 },
+              mobile: { x: 60, y: 290, width: 40, height: 40 }
+            },
+            content: {
+              title: 'Interactive Quiz',
+              description: 'Click to start a quiz question'
+            },
+            interactions: [
+              {
+                id: generateId(),
+                trigger: 'click',
+                effect: {
+                  id: generateId(),
+                  type: 'quiz',
+                  duration: 0, // Quiz controls duration
+                  easing: 'ease-in-out',
+                  parameters: {
+                    question: 'What is the primary benefit of interactive learning?',
+                    questionType: 'multiple-choice',
+                    choices: [
+                      'Better engagement and retention',
+                      'Faster completion times',
+                      'Lower development costs',
+                      'Simpler content creation'
+                    ],
+                    correctAnswer: 'Better engagement and retention',
+                    explanation: 'Interactive learning increases engagement, which leads to better knowledge retention and understanding.',
+                    allowMultipleAttempts: false,
+                    resumeAfterCompletion: true
+                  }
+                }
+              }
+            ],
+            style: {
+              backgroundColor: '#7c3aed', // violet-600
+              borderRadius: 25,
+              opacity: 0.9
+            },
+            isVisible: true
+          },
+          {
             id: 'instructions-text',
             type: 'text',
             position: {
-              desktop: { x: 150, y: 380, width: 500, height: 60 },
-              tablet: { x: 100, y: 320, width: 400, height: 55 },
-              mobile: { x: 20, y: 230, width: 280, height: 50 }
+              desktop: { x: 150, y: 480, width: 600, height: 80 },
+              tablet: { x: 100, y: 400, width: 500, height: 70 },
+              mobile: { x: 20, y: 360, width: 280, height: 60 }
             },
             content: {
               title: 'Instructions',
-              description: 'Click any colored hotspot above to test different interaction effects. Each demonstrates a different capability of the system.'
+              description: 'All 7 interaction types ready to test: ⭐ Spotlight, 📝 Text, 🔍 Pan&Zoom, 💬 Tooltip, 🔊 Audio, 🎥 Video, ❓ Quiz. Click the colored hotspots to see each effect in action!'
             },
             interactions: [],
             style: {

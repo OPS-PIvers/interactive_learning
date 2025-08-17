@@ -158,6 +158,10 @@ export interface ElementInteraction {
 export type InteractionTrigger = 
   | 'click' 
   | 'hover' 
+  | 'double-click'
+  | 'long-press'
+  | 'touch-start'
+  | 'touch-end'
   | 'timeline' 
   | 'auto';
 

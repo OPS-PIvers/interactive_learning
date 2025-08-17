@@ -69,6 +69,7 @@ export const Z_INDEX_TAILWIND = {
   HOTSPOTS: 'z-20',
   SLIDE_ELEMENTS: 'z-30',
   LOADING_OVERLAY: 'z-[60]',
+  TOOLTIP: 'z-[100]',
   TOOLTIPS: 'z-[100]',
   DROPDOWNS: 'z-[200]',
   POPOVERS: 'z-[300]',

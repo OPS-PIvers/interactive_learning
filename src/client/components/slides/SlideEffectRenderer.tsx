@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, Easing, MotionStyle } from 'framer-motion';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters } from '../../../shared/slideTypes';
+import { SlideEffect, DeviceType, SpotlightParameters, ZoomParameters, PanZoomParameters, AnimateParameters, PlayMediaParameters, QuizParameters, ShowTextParameters, TooltipParameters } from '../../../shared/slideTypes';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { AnimatedElement } from '../animations/ElementAnimations';
 
@@ -479,6 +479,67 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
 
   };
 
+  // Render tooltip effect
+  const renderTooltipEffect = () => {
+    if (effect.type !== 'tooltip' || !slideCanvasInfo) return null;
+
+    const params = effect.parameters as TooltipParameters;
+
+    return (
+      <AnimatePresence>
+        {isVisible &&
+        <motion.div
+          className={`absolute ${Z_INDEX_TAILWIND.TOOLTIP} pointer-events-auto`}
+          style={{
+            left: slideCanvasInfo.offsetX + (slideCanvasInfo.canvasRect.width / 2),
+            top: slideCanvasInfo.offsetY + (slideCanvasInfo.canvasRect.height / 4),
+            transform: 'translate(-50%, -50%)',
+            maxWidth: params.maxWidth || 300,
+            width: params.width || 'auto'
+          }}
+          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: -10 }}
+          transition={{ 
+            type: "spring", 
+            damping: 15, 
+            stiffness: 150,
+            delay: (params.delay || 0) / 1000
+          }}>
+
+            <div 
+              className="bg-slate-800 text-white p-3 rounded-lg shadow-lg relative"
+              style={{
+                fontSize: '14px',
+                lineHeight: '1.4'
+              }}>
+              
+              {/* Tooltip arrow */}
+              {params.arrow !== false &&
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                  <div className="border-l-8 border-r-8 border-t-8 border-transparent border-t-slate-800" />
+                </div>
+              }
+              
+              {params.text}
+              
+              {/* Click to dismiss */}
+              <button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onComplete, 200);
+                }}
+                className="absolute top-1 right-1 text-white/70 hover:text-white text-lg font-bold leading-none"
+                aria-label="Close tooltip">
+                ×
+              </button>
+            </div>
+          </motion.div>
+        }
+      </AnimatePresence>
+    );
+  };
+
   // Render quiz effect
   const renderQuizEffect = () => {
     if (effect.type !== 'quiz') return null;
@@ -569,12 +630,15 @@ export const SlideEffectRenderer: React.FC<SlideEffectRendererProps> = ({
       return renderZoomEffect() || <div />;
     case 'text':
       return renderShowTextEffect() || <div />;
+    case 'tooltip':
+      return renderTooltipEffect() || <div />;
     case 'video':
     case 'audio':
       return renderPlayMediaEffect() || <div />;
     case 'quiz':
       return renderQuizEffect() || <div />;
     default:
+      console.warn(`Unknown effect type: ${effect.type}`);
       return null;
   }
 };
