@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
+import { createDemoSlideDeck } from '../../shared/demoSlideDeckData';
 import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
@@ -187,7 +188,7 @@ const MainApp: React.FC = () => {
       const projectWithSlideType = {
         ...newProject,
         projectType: 'slide' as const,
-        slideDeck: createDefaultSlideDeck(newProject.id, newProject.title),
+        slideDeck: demoData ? createDemoSlideDeck() : createDefaultSlideDeck(newProject.id, newProject.title),
       };
 
       // If demo data is provided, save it with the project

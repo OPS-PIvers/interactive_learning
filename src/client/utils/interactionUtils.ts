@@ -133,6 +133,11 @@ export function ensureElementInteractions(element: SlideElement): SlideElement {
     return element;
   }
   
+  // Ensure interactions array exists
+  if (!element.interactions) {
+    element.interactions = [];
+  }
+  
   // Add default click interaction
   const defaultInteraction = createDefaultClickInteraction(element);
   

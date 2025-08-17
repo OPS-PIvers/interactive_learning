@@ -176,25 +176,24 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
   // Element interaction handler
   const handleElementInteraction = useCallback((elementId: string, interactionId: string) => {
-
+    console.log('🎯 INTERACTION TRIGGERED:', { elementId, interactionId, currentSlideId: currentSlide?.id });
 
     if (!currentSlide) {
-
+      console.log('❌ No current slide available');
       return;
     }
 
     const element = currentSlide?.elements?.find((el) => el.id === elementId);
     if (!element) {
-
+      console.log('❌ Element not found:', elementId, 'Available elements:', currentSlide.elements?.map(e => e.id));
       return;
     }
 
-
-
+    console.log('✅ Element found:', element.type, element.interactions?.length, 'interactions');
 
     const interaction = element?.interactions?.find((int) => int.id === interactionId);
     if (!interaction) {
-
+      console.log('❌ Interaction not found:', interactionId, 'Available interactions:', element.interactions?.map(i => i.id));
       return;
     }
 
@@ -214,10 +213,14 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       userInteractions: [...prev.userInteractions, interactionLog]
     }));
 
+    console.log('✅ Interaction found:', interaction.trigger, 'Effect type:', interaction.effect?.type);
+    
     if (interaction.effect) {
       // Trigger effect
+      console.log('🎨 Triggering effect:', interaction.effect.type, 'Duration:', interaction.effect.duration);
       triggerEffect(interaction.effect);
-
+    } else {
+      console.log('❌ No effect defined for interaction');
     }
 
     // Pass the ElementInteraction object to the callback
@@ -497,13 +500,17 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
         {/* Slide Elements */}
         <div className="slide-elements-container absolute inset-0">
-          {currentSlide?.elements?.
-          filter((element) => element.isVisible).
-          map((element) => {
+          {(() => {
+            const elements = currentSlide?.elements?.filter((element) => element.isVisible !== false) || [];
+            console.log('🎨 RENDERING ELEMENTS:', elements.length, 'elements on slide', currentSlide?.id);
+            return elements.map((element) => {
             const devicePosition = element.position && element.position[deviceType as keyof typeof element.position] 
               ? element.position[deviceType as keyof typeof element.position]
-              : element.position?.desktop;
-            if (!devicePosition) return null;
+              : element.position?.desktop || element.position?.tablet || element.position?.mobile;
+            if (!devicePosition) {
+              console.warn(`No position found for element ${element.id} on device ${deviceType}`);
+              return null;
+            }
 
             // Apply scaling to element positions
             const scaledElement = {
@@ -527,10 +534,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
                 deviceType={deviceType}
                 viewportInfo={viewportInfo}
                 onInteraction={handleElementInteraction} />);
-
-
-          })
-          }
+          });
+          })()}
         </div>
         </div> {/* Close slide-canvas */}
         

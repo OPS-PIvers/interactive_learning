@@ -29,6 +29,13 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 
   // Unified interaction handler - replaces double-click with single tap/click
   const handleInteraction = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    console.log('🖱️ ELEMENT CLICKED:', { 
+      elementId: element.id, 
+      elementType: element.type, 
+      hasInteractions: element.interactions?.length || 0,
+      isEditMode: !!onEdit 
+    });
+    
     // Provide touch feedback on mobile viewports
     if (e.currentTarget instanceof HTMLElement) {
       handleTouchInteraction(e.currentTarget, e, 'light');
@@ -36,22 +43,26 @@ export const SlideElement: React.FC<SlideElementProps> = ({
 
     // Handle edit mode (for editor)
     if (onEdit) {
+      console.log('📝 Opening element for editing');
       onEdit(element);
       return;
     }
 
     // Handle viewer interactions
-    const clickInteraction = element.interactions.find(
+    const clickInteraction = element.interactions?.find(
       (interaction) => interaction.trigger === 'click'
     );
 
     if (clickInteraction) {
+      console.log('▶️ Calling onInteraction with:', element.id, clickInteraction.id);
       onInteraction(element.id, clickInteraction.id);
+    } else {
+      console.log('❌ No click interaction found for element:', element.id);
     }
   }, [element, onInteraction, onEdit]);
 
   const handleHover = useCallback(() => {
-    const hoverInteraction = element.interactions.find(
+    const hoverInteraction = element.interactions?.find(
       (interaction) => interaction.trigger === 'hover'
     );
     if (hoverInteraction) {
@@ -74,7 +85,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     borderRadius: style.borderRadius,
     opacity: style.opacity ?? 1,
     zIndex: style.zIndex ?? 10,
-    cursor: element.interactions.length > 0 || onEdit ? 'pointer' : 'default',
+    cursor: (element.interactions?.length || 0) > 0 || onEdit ? 'pointer' : 'default',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -108,7 +119,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
                   transition: 'all 0.2s ease-in-out',
                 }} />
 
-              {element.interactions.some((i) => i.trigger === 'hover') &&
+              {element.interactions?.some((i) => i.trigger === 'hover') &&
               <div className="hotspot-tooltip" id={`${element.id}-tooltip`} role="tooltip">
                   <h4>{element.content.title}</h4>
                   {element.content.description &&
@@ -173,7 +184,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     }
   };
 
-  const isInteractive = element.interactions.length > 0 || onEdit;
+  const isInteractive = (element.interactions?.length || 0) > 0 || onEdit;
 
   return (
     <div
@@ -188,7 +199,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
       tabIndex={isInteractive ? 0 : undefined}
       aria-label={element.content.title || `${element.type} element`}
       aria-roledescription={isInteractive ? `Interactive ${element.type}` : undefined}
-      aria-describedby={element.type === 'hotspot' && element.interactions.some((i) => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}>
+      aria-describedby={element.type === 'hotspot' && element.interactions?.some((i) => i.trigger === 'hover') ? `${element.id}-tooltip` : element.content.description ? `${element.id}-desc` : undefined}>
 
       {renderElementContent()}
     </div>);
