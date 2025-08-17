@@ -12,7 +12,6 @@ interface LiquidColorSelectorProps {
   selectedColor: string;
   onColorChange: (color: string) => void;
   colors?: ColorOption[];
-  isMobile?: boolean;
   size?: 'small' | 'medium' | 'large';
   showLiquidAnimation?: boolean;
 }
@@ -27,7 +26,6 @@ export const LiquidColorSelector: React.FC<LiquidColorSelectorProps> = ({
   selectedColor,
   onColorChange,
   colors,
-  isMobile = false,
   size = 'medium',
   showLiquidAnimation = true
 }) => {

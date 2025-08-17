@@ -64,7 +64,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   
   // Touch gesture handlers for mobile bottom sheet behavior
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!allowSwipeDown || (window.innerWidth && window.innerWidth > 768)) return; // Only on mobile
+    if (!allowSwipeDown) return;
     
     const touch = e.touches?.[0];
     if (!touch) return;
@@ -74,7 +74,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   }, [allowSwipeDown]);
   
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !allowSwipeDown || (window.innerWidth && window.innerWidth > 768)) return;
+    if (!isDragging || !allowSwipeDown) return;
     
     const touch = e.touches?.[0];
     if (!touch) return;

@@ -454,24 +454,21 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     if (!currentSlide) return;
 
     // Calculate initial position (center of canvas)
-    const getInitialDimensions = (deviceType: DeviceType) => {
+    const getInitialDimensions = () => {
       if (elementType === 'hotspot') {
-        const isMobile = deviceType === 'mobile';
-        const dimensions = getHotspotPixelDimensions(defaultHotspotSize, isMobile);
+        const dimensions = getHotspotPixelDimensions(defaultHotspotSize, false);
         return { width: dimensions.width, height: dimensions.height };
       }
-      return deviceType === 'desktop' ? { width: 100, height: 100 } :
-      deviceType === 'tablet' ? { width: 80, height: 80 } :
-      { width: 60, height: 60 };
+      return { width: 100, height: 100 };
     };
 
     const newElement: SlideElement = {
       id: generateId(),
       type: elementType,
       position: {
-        desktop: { x: 300, y: 200, ...getInitialDimensions('desktop') },
-        tablet: { x: 250, y: 150, ...getInitialDimensions('tablet') },
-        mobile: { x: 150, y: 100, ...getInitialDimensions('mobile') }
+        desktop: { x: 300, y: 200, ...getInitialDimensions() },
+        tablet: { x: 250, y: 150, ...getInitialDimensions() },
+        mobile: { x: 150, y: 100, ...getInitialDimensions() }
       },
       style: {
         ...(elementType === 'shape' && { backgroundColor: '#e2e8f0' }),
