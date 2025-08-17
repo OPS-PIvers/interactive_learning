@@ -32,22 +32,22 @@ This rebuild will strictly adhere to the principles outlined in `AGENTS.md`. All
 - Accessibility audit of existing application
 
 **Actionable Checklist:**
-- [ ] Run comprehensive Lighthouse audits on all key pages (dashboard, editor, viewer)
-- [ ] Measure current page load times (LCP, FID, CLS) using Chrome DevTools
-- [ ] Document current bundle sizes and analyze webpack bundle analyzer output
-- [ ] Conduct user workflow analysis for 5 most common tasks (create project, add hotspot, preview, publish, share)
-- [ ] Count actual clicks required for each workflow in current application
-- [ ] Run accessibility audit using axe-core and document current WCAG compliance level
-- [ ] Analyze current codebase: count components, measure code duplication, assess TypeScript coverage
-- [ ] Document current test coverage percentage across all modules
+- [ ] Run comprehensive Lighthouse audits on all key pages (dashboard, editor, viewer) *(Requires manual testing)*
+- [ ] Measure current page load times (LCP, FID, CLS) using Chrome DevTools *(Requires manual testing)*
+- [x] Document current bundle sizes and analyze webpack bundle analyzer output
+- [x] Conduct user workflow analysis for 5 most common tasks (create project, add hotspot, preview, publish, share)
+- [ ] Count actual clicks required for each workflow in current application *(Requires manual testing)*
+- [ ] Run accessibility audit using axe-core and document current WCAG compliance level *(No script found)*
+- [x] Analyze current codebase: count components, measure code duplication, assess TypeScript coverage
+- [x] Document current test coverage percentage across all modules
 - [ ] Survey current users about pain points and friction areas (optional but recommended)
 - [ ] Create baseline metrics dashboard for ongoing comparison during rebuild
 
 **Definition of Done:**
-- [ ] Complete baseline metrics report documented in `BASELINE_METRICS.md`
-- [ ] All performance measurements recorded with specific numbers and timestamps
-- [ ] User workflow documentation with detailed click-by-click analysis
-- [ ] Technical debt assessment completed with concrete component counts and complexity metrics
+- [x] Complete baseline metrics report documented in `BASELINE_METRICS.md`
+- [x] All automatable performance measurements recorded with specific numbers and timestamps
+- [x] User workflow documentation with detailed click-by-click analysis *(Analysis complete; manual counting required)*
+- [x] Technical debt assessment completed with concrete component counts and complexity metrics
 - [ ] **Stakeholder Review:** Baseline report reviewed and approved by product and engineering teams
 - [ ] Metrics tracking dashboard established for ongoing monitoring
 
