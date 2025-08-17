@@ -198,6 +198,39 @@ The application features a comprehensive modal layout constraint system that pre
 - **Migration Support**: Include data migration utilities for legacy-to-slide conversion
 - **Type Guards**: Implement type guards for runtime type checking
 
+## Build & Deploy Failure Prevention
+**CRITICAL**: Always run these commands before committing to prevent build failures:
+
+1. **Type Check**: `npm run typecheck` - MUST pass with zero errors
+2. **Tests**: `npm run test:run` - MUST pass all tests  
+3. **Build**: `npm run build` - MUST compile successfully
+
+### Common TypeScript Error Patterns to Avoid
+- **Missing React Imports**: Always include `useEffect`, `useState`, etc. in React imports
+- **Interface Compliance**: 
+  - `SlideDeck` requires `metadata: DeckMetadata` property
+  - `QuizParameters` requires `questionType`, `allowMultipleAttempts`, `resumeAfterCompletion`
+  - `TextStyle` interface doesn't include `boxShadow` property
+  - `ElementAnimation.type` only allows: 'pulse' | 'glow' | 'bounce' | 'fade' | 'none'
+- **Complete Object Definitions**: Ensure all required interface properties are provided
+- **Type Compatibility**: Verify parameter objects match expected interface definitions
+
+### Pre-Commit Checklist
+```bash
+# 1. Always run type checking first
+npm run typecheck
+
+# 2. Run all tests
+npm run test:run
+
+# 3. Build the application
+npm run build
+
+# 4. Only commit if ALL THREE pass without errors
+```
+
+**NEVER commit code that fails any of these checks - it WILL break the deployment pipeline.**
+
 ## Performance Optimization
 - **Debouncing**: Use `lodash.debounce` for input handling and resize events
 - **Memory Management**: Implement proper cleanup in useEffect hooks

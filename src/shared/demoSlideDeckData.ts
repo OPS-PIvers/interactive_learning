@@ -118,7 +118,6 @@ export const createDemoSlideDeck = (): SlideDeck => {
                       fontSize: 16,
                       fontWeight: 'bold',
                       textAlign: 'center',
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
                     }
                   }
                 }
@@ -172,7 +171,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               borderRadius: 25,
               opacity: 0.9,
               animation: {
-                type: 'spin',
+                type: 'glow',
                 duration: 3000,
                 iterationCount: 'infinite'
               }
@@ -335,6 +334,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
                   easing: 'ease-in-out',
                   parameters: {
                     question: 'What is the main benefit of the new slide-based architecture?',
+                    questionType: 'multiple-choice',
                     choices: [
                       'Better performance',
                       'Perfect positioning alignment',
@@ -342,7 +342,9 @@ export const createDemoSlideDeck = (): SlideDeck => {
                       'Easier installation'
                     ],
                     correctAnswer: 'Perfect positioning alignment',
-                    explanation: 'The slide-based architecture eliminates coordinate calculation errors and ensures perfect alignment across all devices.'
+                    explanation: 'The slide-based architecture eliminates coordinate calculation errors and ensures perfect alignment across all devices.',
+                    allowMultipleAttempts: true,
+                    resumeAfterCompletion: true
                   }
                 }
               }
@@ -398,7 +400,13 @@ export const createDemoSlideDeck = (): SlideDeck => {
       touchGestures: true,
       fullscreenMode: false
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    metadata: {
+      created: Date.now(),
+      modified: Date.now(),
+      author: 'Demo System',
+      version: '1.0.0',
+      tags: ['demo', 'interactive', 'tutorial'],
+      isPublic: true
+    }
   };
 };

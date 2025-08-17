@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideElement, ElementInteraction, ElementContent, SlideEffectType, EffectParameters, InteractiveSlide } from '../../shared/slideTypes';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
