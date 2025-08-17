@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
 import { SlideElement } from '../../../shared/slideTypes';
 import { PlusIcon } from '../icons/PlusIcon';
 import { XMarkIcon } from '../icons/XMarkIcon';
+import { SettingsIcon } from '../icons/SettingsIcon';
+import InteractionEditor from './InteractionEditor';
 
 interface InteractionsListProps {
   element: SlideElement;
@@ -10,6 +12,7 @@ interface InteractionsListProps {
   onInteractionSelect: (id: string) => void;
   onInteractionAdd: (type: InteractionType) => void;
   onInteractionRemove: (id: string) => void;
+  onInteractionUpdate?: (id: string, updates: any) => void;
   isCompact?: boolean;
   className?: string;
 }
@@ -26,13 +29,21 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
   onInteractionSelect,
   onInteractionAdd,
   onInteractionRemove,
+  onInteractionUpdate,
   isCompact = false,
   className = ''
 }) => {
+  const [expandedSettingsId, setExpandedSettingsId] = useState<string | null>(null);
+
   const handleRemoveInteraction = useCallback((id: string, event: React.MouseEvent) => {
     event.stopPropagation();
     onInteractionRemove(id);
   }, [onInteractionRemove]);
+
+  const handleSettingsInteraction = useCallback((id: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedSettingsId(expandedSettingsId === id ? null : id);
+  }, [expandedSettingsId]);
 
   // Quick interaction presets for inline addition
   const quickInteractionTypes: InteractionType[] = [
@@ -88,38 +99,40 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => handleRemoveInteraction(interaction.id, e)}
-                    className="p-1 text-slate-400 hover:text-red-400 transition-colors flex-shrink-0 ml-2"
-                    aria-label="Remove interaction"
-                    title="Remove interaction"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                    <button
+                      onClick={(e) => handleSettingsInteraction(interaction.id, e)}
+                      className={`p-1 transition-colors ${
+                        expandedSettingsId === interaction.id 
+                          ? 'text-blue-400' 
+                          : 'text-slate-400 hover:text-blue-400'
+                      }`}
+                      aria-label="Edit interaction settings"
+                      title="Edit settings"
+                    >
+                      <SettingsIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleRemoveInteraction(interaction.id, e)}
+                      className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                      aria-label="Remove interaction"
+                      title="Remove interaction"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 
-                {/* Show additional info when selected */}
-                {isSelected && (
-                  <div className="mt-2 pt-2 border-t border-slate-600/50">
-                    <div className="text-xs text-slate-300 space-y-1">
-                      <div>Effect: <span className="text-purple-300">{interaction.effect.type}</span></div>
-                      {interaction.effect.delay && interaction.effect.delay > 0 && (
-                        <div>Delay: <span className="text-purple-300">{interaction.effect.delay}ms</span></div>
-                      )}
-                      {interaction.effect.parameters && Object.keys(interaction.effect.parameters).length > 0 && (
-                        <div className="text-xs text-slate-400 mt-1">
-                          <div className="font-medium text-slate-300 mb-1">Parameters:</div>
-                          {Object.entries(interaction.effect.parameters).slice(0, 3).map(([key, value]) => (
-                            <div key={key} className="truncate">
-                              {key}: <span className="text-slate-200">{String(value).substring(0, 30)}{String(value).length > 30 ? '...' : ''}</span>
-                            </div>
-                          ))}
-                          {Object.keys(interaction.effect.parameters).length > 3 && (
-                            <div className="text-slate-500">...and {Object.keys(interaction.effect.parameters).length - 3} more</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                {/* Expandable settings section */}
+                {expandedSettingsId === interaction.id && (
+                  <div className="mt-3 pt-3 border-t border-slate-600/50">
+                    <InteractionEditor
+                      interaction={interaction}
+                      onInteractionUpdate={(interactionId, updates) => {
+                        onInteractionUpdate?.(interactionId, updates);
+                      }}
+                      isCompact={true}
+                    />
                   </div>
                 )}
               </div>
