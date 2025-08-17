@@ -32,31 +32,34 @@ const mockProjects: Project[] = [
     id: '1',
     title: 'Test Project 1',
     description: 'First test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '2',
     title: 'Test Project 2',
     description: 'Second test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '3',
     title: 'Test Project 3',
     description: 'Third test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   }
 ];
 
@@ -66,21 +69,23 @@ const manyProjects: Project[] = [
     id: '4',
     title: 'Test Project 4',
     description: 'Fourth test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   },
   {
     id: '5',
     title: 'Test Project 5',
     description: 'Fifth test project',
+    createdBy: 'test-user',
     createdAt: new Date(),
     updatedAt: new Date(),
-    userId: 'test-user',
     isPublished: false,
-    projectType: 'slide'
+    projectType: 'slide',
+    interactiveData: {}
   }
 ];
 
@@ -151,8 +156,9 @@ describe('ScrollStacks', () => {
       </BrowserRouter>
     );
 
-    const editButton = screen.getAllByText('Edit')[0];
-    editButton.click();
+    const editButtons = screen.getAllByText('Edit');
+    expect(editButtons.length).toBeGreaterThan(0);
+    editButtons[0]!.click();
 
     expect(mockOnEdit).toHaveBeenCalledWith(mockProjects[0]);
   });
@@ -168,8 +174,9 @@ describe('ScrollStacks', () => {
       </BrowserRouter>
     );
 
-    const deleteButton = screen.getAllByText('Delete')[0];
-    deleteButton.click();
+    const deleteButtons = screen.getAllByText('Delete');
+    expect(deleteButtons.length).toBeGreaterThan(0);
+    deleteButtons[0]!.click();
 
     expect(mockOnDelete).toHaveBeenCalledWith('1');
   });
