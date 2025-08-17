@@ -9,6 +9,11 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts'],
     alias: {
       '@firebase/analytics': './src/tests/mocks/firebaseAnalytics.ts',
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage'
     }
   },
 })
