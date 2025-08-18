@@ -63,3 +63,6 @@ puppeteer-*.png
 
 # Firebase
 .firebase/
+
+# Test coverage reports
+coverage/
