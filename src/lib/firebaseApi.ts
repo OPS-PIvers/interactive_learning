@@ -588,7 +588,11 @@ export class FirebaseProjectAPI {
       const sanitizedData = this.sanitizeForFirestore(updateData);
 
       // Simple save without transaction complexity
-      await setDoc(projectRef, sanitizedData as DocumentData, { merge: true });
+      // Ensure sanitizedData is a valid DocumentData object before saving
+      const documentData = (typeof sanitizedData === 'object' && sanitizedData !== null) 
+        ? sanitizedData as DocumentData 
+        : {} as DocumentData;
+      await setDoc(projectRef, documentData, { merge: true });
 
 
 
@@ -597,9 +601,9 @@ export class FirebaseProjectAPI {
         thumbnailUrl: updateData.thumbnailUrl ?? project.thumbnailUrl ?? '',
         interactiveData: {
           ...project.interactiveData,
-          backgroundImage: updateData.interactiveData?.backgroundImage ?? project.interactiveData.backgroundImage ?? '',
-          imageFitMode: updateData.interactiveData?.imageFitMode ?? project.interactiveData.imageFitMode ?? 'cover',
-          viewerModes: updateData.interactiveData?.viewerModes || project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
+          backgroundImage: updateData.interactiveData?.backgroundImage ?? project.interactiveData?.backgroundImage ?? '',
+          imageFitMode: updateData.interactiveData?.imageFitMode ?? project.interactiveData?.imageFitMode ?? 'cover',
+          viewerModes: updateData.interactiveData?.viewerModes ?? project.interactiveData?.viewerModes ?? { explore: true, selfPaced: true, timed: true },
         },
       };
 
