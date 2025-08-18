@@ -10,14 +10,38 @@ import {
   where,
   getDoc,
   runTransaction, // Import runTransaction
-  Timestamp } from
-'firebase/firestore';
+  Timestamp,
+  FieldValue,
+} from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { debugLog } from '../client/utils/debugUtils';
 // Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor';
-import { SlideDeck } from '../shared/slideTypes';
+import { SlideDeck, InteractiveSlide } from '../shared/slideTypes';
 import { TimelineEventData } from '../shared/type-defs';
+
+interface ProjectUpdateData {
+  title: string;
+  description: string;
+  thumbnailUrl: string | null;
+  isPublished: boolean;
+  projectType: 'hotspot' | 'slide';
+  updatedAt: FieldValue;
+  createdBy: string;
+  interactiveData?: {
+    backgroundImage?: string | null;
+    imageFitMode?: 'cover' | 'contain' | 'fill';
+    viewerModes?: {
+      explore?: boolean;
+      selfPaced?: boolean;
+      timed?: boolean;
+    };
+    hotspots?: [];
+    timelineEvents?: [];
+  };
+  slideDeck?: SlideDeck;
+  createdAt?: FieldValue;
+}
 import { Project, HotspotData, InteractiveModuleState } from '../shared/types';
 import { DataSanitizer } from './dataSanitizer';
 import { firebaseManager } from './firebaseConfig';
@@ -28,7 +52,15 @@ const THUMBNAIL_FILE_PREFIX = 'thumb_';
 const NEW_PROJECT_ID = 'temp';
 
 // Simple cache to reduce Firebase reads
-const projectCache = new Map<string, {data: any;timestamp: number;}>();
+const projectCache = new Map<string, {data: Project;timestamp: number;}>();
+
+interface SaveProjectError extends Error {
+  operationId?: string;
+  projectId?: string;
+  errorCategory?: string;
+  attempts?: number;
+  originalError?: Error;
+}
 
 export class FirebaseProjectAPI {
   private logUsage(operation: string, count: number = 1) {
@@ -152,17 +184,17 @@ export class FirebaseProjectAPI {
     }
 
     // Add operation context
-    const contextMessage = `\\n\\nOperation details:\\n- Project ID: ${projectId}\\n- Operation ID: ${operationId}\\n- Attempts made: ${attempts}\\n- Error category: ${errorCategory}`;
+    const contextMessage = `\n\nOperation details:\n- Project ID: ${projectId}\n- Operation ID: ${operationId}\n- Attempts made: ${attempts}\n- Error category: ${errorCategory}`;
 
-    const error = new Error(enhancedMessage + contextMessage);
+    const error: SaveProjectError = new Error(enhancedMessage + contextMessage);
     error.name = `SaveProjectError_${errorCategory}`;
 
     // Add custom properties for programmatic access
-    (error as any).operationId = operationId;
-    (error as any).projectId = projectId;
-    (error as any).errorCategory = errorCategory;
-    (error as any).attempts = attempts;
-    (error as any).originalError = originalError;
+    error.operationId = operationId;
+    error.projectId = projectId;
+    error.errorCategory = errorCategory;
+    error.attempts = attempts;
+    error.originalError = originalError;
 
     return error;
   }
@@ -299,7 +331,7 @@ export class FirebaseProjectAPI {
       // Check project type and handle accordingly
       const projectType = projectData['projectType'] || 'hotspot'; // Default to hotspot for backward compatibility
 
-      let slideDeck: any = null;
+      let slideDeck: SlideDeck | null = null;
 
       // Helper function to build fallback interactiveData from legacy fields
       const buildFallbackInteractiveData = () => ({
@@ -311,7 +343,7 @@ export class FirebaseProjectAPI {
       });
 
       // Build interactiveData, preferring nested structure with legacy fallback
-      const interactiveData: any = projectData['interactiveData'] ?
+      const interactiveData: InteractiveModuleState = projectData['interactiveData'] ?
       { ...projectData['interactiveData'] } :
       buildFallbackInteractiveData();
 
@@ -342,7 +374,7 @@ export class FirebaseProjectAPI {
         isPublished: projectData['isPublished'] || false,
         projectType: projectType,
         interactiveData,
-        slideDeck
+        slideDeck: slideDeck ?? undefined,
       } as Project;
     } catch (error) {
       // Only log as error for unexpected errors, not permission/not-found errors
@@ -385,7 +417,7 @@ export class FirebaseProjectAPI {
       this.logUsage('READ_OPERATIONS_DETAILS_SUBCOLLECTIONS', 2);
 
 
-      let result: Partial<InteractiveModuleState> & {slideDeck?: any;};
+      let result: Partial<InteractiveModuleState> & {slideDeck?: SlideDeck;};
 
       // Prefer the 'interactiveData' field but fall back to legacy fields.
       if (projectData['interactiveData']) {
@@ -411,7 +443,7 @@ export class FirebaseProjectAPI {
         result.slideDeck = projectData['slideDeck'];
         debugLog.log(`[FirebaseAPI] Loaded slide deck for project ${projectId}:`, {
           slideCount: projectData['slideDeck']?.slides?.length || 0,
-          totalElements: projectData['slideDeck']?.slides?.reduce((acc: number, slide: any) => acc + (slide.elements?.length || 0), 0) || 0
+          totalElements: projectData['slideDeck']?.slides?.reduce((acc: number, slide: InteractiveSlide) => acc + (slide.elements?.length || 0), 0) || 0
         });
       } else {
         debugLog.log(`[FirebaseAPI] No slide deck found for project ${projectId}`);
@@ -523,7 +555,7 @@ export class FirebaseProjectAPI {
       }
 
       // Simplified save - just save the main project document without complex validation
-      const updateData: any = {
+      const updateData: Partial<ProjectUpdateData> = {
         title: project.title,
         description: project.description,
         thumbnailUrl: project.thumbnailUrl || null,
@@ -543,11 +575,6 @@ export class FirebaseProjectAPI {
       // Add slide deck if it exists
       if (project.projectType === 'slide' && project.slideDeck) {
         updateData.slideDeck = project.slideDeck;
-        const slideDeckString = JSON.stringify(project.slideDeck);
-
-
-
-
       }
 
       // Add createdAt for new projects
@@ -566,8 +593,13 @@ export class FirebaseProjectAPI {
 
       return {
         ...project,
-        thumbnailUrl: updateData.thumbnailUrl,
-        interactiveData: updateData.interactiveData
+        thumbnailUrl: updateData.thumbnailUrl ?? undefined,
+        interactiveData: {
+          ...project.interactiveData,
+          backgroundImage: updateData.interactiveData?.backgroundImage,
+          imageFitMode: updateData.interactiveData?.imageFitMode,
+          viewerModes: updateData.interactiveData?.viewerModes || project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
+        },
       };
 
     } catch (error) {
@@ -579,7 +611,7 @@ export class FirebaseProjectAPI {
   /**
    * Recursively sanitize data to remove undefined values for Firestore
    */
-  private sanitizeForFirestore(data: any): any {
+  private sanitizeForFirestore(data: unknown): unknown {
     if (data === null || data === undefined) {
       return null;
     }
@@ -588,9 +620,9 @@ export class FirebaseProjectAPI {
       return data.map((item) => this.sanitizeForFirestore(item)).filter((item) => item !== null && item !== undefined);
     }
 
-    if (typeof data === 'object' && data.constructor === Object) {
-      const sanitized: any = {};
-      for (const [key, value] of Object.entries(data)) {
+    if (typeof data === 'object' && data !== null && data.constructor === Object) {
+      const sanitized: {[key: string]: unknown} = {};
+      for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
         const sanitizedValue = this.sanitizeForFirestore(value);
         // Only add to result if the value is not undefined
         if (sanitizedValue !== undefined) {
@@ -892,7 +924,7 @@ export class FirebaseProjectAPI {
       try {
         currentUser = this.getCurrentUser();
       } catch (error) {
-        reject(error);
+        reject(error as Error);
         return;
       }
 
@@ -1099,10 +1131,10 @@ export class FirebaseProjectAPI {
       const imageRef = ref(storage, imageUrl);
       await deleteObject(imageRef);
       debugLog.log(`Successfully deleted image from storage: ${imageUrl}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // It's common for "object-not-found" errors if the file was already deleted
       // or the URL was incorrect. We can often ignore these.
-      if (error.code === 'storage/object-not-found') {
+      if (error instanceof Error && 'code' in error && (error as {code:string}).code === 'storage/object-not-found') {
         debugLog.warn(`Old image not found during deletion attempt, skipping: ${imageUrl}`);
       } else {
         debugLog.error(`Failed to delete image from storage (${imageUrl}):`, error);

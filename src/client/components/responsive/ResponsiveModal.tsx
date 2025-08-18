@@ -153,6 +153,9 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
       >
         <div
           ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="responsive-modal-title"
           className={`
             bg-slate-800 text-white shadow-2xl overflow-hidden
             responsive-modal-mobile md:modal-content
@@ -171,7 +174,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
           
           {/* Modal Header */}
           <div className="flex items-center justify-between p-4 border-b border-slate-700">
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
+            <h2 id="responsive-modal-title" className="text-lg font-semibold text-white">{title}</h2>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"

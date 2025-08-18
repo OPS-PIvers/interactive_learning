@@ -29,7 +29,7 @@ export const ResponsiveToolbar: React.FC<ResponsiveToolbarProps> = ({
   hasSelectedElement = false,
 }) => {
   return (
-    <div className={`bg-slate-800 border-t border-slate-700 p-2 sm:p-4 flex-shrink-0 ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+    <div role="toolbar" className={`bg-slate-800 border-t border-slate-700 p-2 sm:p-4 flex-shrink-0 ${Z_INDEX_TAILWIND.TOOLBAR}`}>
       <div className="flex items-center justify-center gap-2">
         {/* Left section - Main actions */}
         <div className="flex items-center gap-1 sm:gap-3 flex-wrap">

@@ -43,7 +43,8 @@
     "mcp:demo": "node scripts/mcp-dev-workflow.js demo",
     "auth:test": "node scripts/puppeteer-auth-helper.js",
     "auth:demo": "node scripts/puppeteer-auth-helper.js",
-    "test:auth": "node scripts/puppeteer-auth-helper.js"
+    "test:auth": "node scripts/puppeteer-auth-helper.js",
+    "test:responsive-patterns": "vitest run src/tests/responsive-patterns.test.tsx"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
