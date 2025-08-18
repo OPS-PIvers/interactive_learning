@@ -5,6 +5,15 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getPerformance } from 'firebase/performance';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 // Firebase configuration and initialization
+interface FirebaseConfiguration {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId: string;
+}
 
 // Debug environment variables (development only)
 if (import.meta.env['DEV']) {
@@ -17,7 +26,7 @@ if (import.meta.env['DEV']) {
 
 }
 
-const firebaseConfig = {
+const firebaseConfig: FirebaseConfiguration = {
   apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
   authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || "interactive-learning-278.firebaseapp.com",
   projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || "interactive-learning-278",

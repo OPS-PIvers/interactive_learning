@@ -153,6 +153,9 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
       >
         <div
           ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="responsive-modal-title"
           className={`
             bg-slate-800 text-white shadow-2xl overflow-hidden
             responsive-modal-mobile md:modal-content
