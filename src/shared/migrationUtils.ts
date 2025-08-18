@@ -2,6 +2,7 @@ import { InteractionType } from './InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect, DeviceType, FixedPosition, ResponsivePosition } from './slideTypes';
 import { TimelineEventData } from './type-defs';
 import { InteractiveModuleState, HotspotData } from './types';
+import { Z_INDEX } from '../client/utils/zIndexLevels';
 
 export interface ShowTextParameters {
     text: string;
@@ -266,7 +267,7 @@ function convertHotspotToSlideElement(
     style: {
       backgroundColor: hotspot?.color || hotspot?.backgroundColor || '#3b82f6',
       borderRadius: 9999, // A large number to ensure it's a circle
-      zIndex: 10, // SLIDE_CONTENT level from Z_INDEX hierarchy
+      zIndex: Z_INDEX.SLIDE_ELEMENT,
     },
     content: {
       title: hotspot?.title ?? '',

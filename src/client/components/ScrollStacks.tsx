@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Project } from '../../shared/types';
+import { Z_INDEX } from '../utils/zIndexLevels';
 import ProjectCard from './ProjectCard';
 
 interface ScrollStacksProps {
@@ -85,7 +86,7 @@ const ScrollStacks: React.FC<ScrollStacksProps> = ({ projects, onEdit, onDelete 
                 ? 'translateY(0) scale(1)' 
                 : `translateY(${stackOffset}px) scale(${1 - scaleReduction})`,
               opacity: isVisible ? 1 : (1 - opacityReduction),
-              zIndex: projects.length - index,
+              zIndex: Z_INDEX.SLIDE_CONTENT + (projects.length - index),
               marginBottom: index === projects.length - 1 ? '20vh' : `${120 + stackOffset}px`,
             }}
           >

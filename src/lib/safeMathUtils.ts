@@ -38,14 +38,17 @@ export function safePercentageDelta(
 /**
  * Validate image bounds object
  */
-export function isValidImageBounds(bounds: any): bounds is { width: number; height: number } {
-  return bounds && 
-         typeof bounds.width === 'number' && 
-         typeof bounds.height === 'number' &&
-         bounds.width > 0 && 
-         bounds.height > 0 &&
-         isFinite(bounds.width) && 
-         isFinite(bounds.height);
+export function isValidImageBounds(bounds: unknown): bounds is { width: number; height: number } {
+  return typeof bounds === 'object' && 
+         bounds !== null && 
+         'width' in bounds && 
+         'height' in bounds &&
+         typeof (bounds as any).width === 'number' && 
+         typeof (bounds as any).height === 'number' &&
+         (bounds as any).width > 0 && 
+         (bounds as any).height > 0 &&
+         isFinite((bounds as any).width) && 
+         isFinite((bounds as any).height);
 }
 
 /**
@@ -104,14 +107,17 @@ export function sanitizeHotspotPosition(
 }
 
 // Type guard for checking if a rect has valid dimensions
-export function hasValidDimensions(rect: any): rect is { width: number; height: number } {
-  return rect && 
-         typeof rect.width === 'number' && 
-         typeof rect.height === 'number' &&
-         rect.width > 0 && 
-         rect.height > 0 &&
-         isFinite(rect.width) && 
-         isFinite(rect.height);
+export function hasValidDimensions(rect: unknown): rect is { width: number; height: number } {
+  return typeof rect === 'object' && 
+         rect !== null && 
+         'width' in rect && 
+         'height' in rect &&
+         typeof (rect as any).width === 'number' && 
+         typeof (rect as any).height === 'number' &&
+         (rect as any).width > 0 && 
+         (rect as any).height > 0 &&
+         isFinite((rect as any).width) && 
+         isFinite((rect as any).height);
 }
 
 /**

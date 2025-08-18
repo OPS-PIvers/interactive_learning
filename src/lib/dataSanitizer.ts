@@ -1,6 +1,6 @@
 import { SlideDeck, InteractiveSlide, SlideElement, ResponsivePosition, FixedPosition } from '../shared/slideTypes';
 import { TimelineEventData } from '../shared/type-defs';
-import { HotspotData } from '../shared/types';
+import { HotspotData, Project } from '../shared/types';
 
 /**
  * Data sanitization utility to remove undefined values before Firebase operations
@@ -337,24 +337,32 @@ export class DataSanitizer {
    * @param project - Project to validate
    * @returns Validation result with errors and warnings
    */
-  static validateProjectConsistency(project: any): { isValid: boolean; errors: string[]; warnings: string[] } {
+  static validateProjectConsistency(project: unknown): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
     
+    // Type check the input
+    if (typeof project !== 'object' || project === null) {
+      errors.push('Invalid project data - expected an object');
+      return { isValid: false, errors, warnings };
+    }
+    
+    const typedProject = project as Partial<Project>;
+    
     // Check for mixed architectures (should use either hotspots OR slides, not both)
-    const hasHotspots = project.interactiveData?.hotspots?.length > 0;
-    const hasSlides = project.slideDeck?.slides?.length > 0;
+    const hasHotspots = (typedProject.interactiveData?.hotspots?.length ?? 0) > 0;
+    const hasSlides = (typedProject.slideDeck?.slides?.length ?? 0) > 0;
     
     if (hasHotspots && hasSlides) {
       warnings.push('Project contains both legacy hotspots and slide deck - recommend migrating to slide-only architecture');
     }
     
     // Validate project type consistency
-    if (project.projectType === 'slide' && !hasSlides) {
+    if (typedProject.projectType === 'slide' && !hasSlides) {
       errors.push('Project marked as slide type but contains no slide deck');
     }
     
-    if (project.projectType === 'hotspot' && !hasHotspots) {
+    if (typedProject.projectType === 'hotspot' && !hasHotspots) {
       warnings.push('Project marked as hotspot type but contains no hotspots');
     }
     

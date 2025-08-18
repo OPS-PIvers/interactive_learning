@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
 import { handleTouchInteraction } from '../../utils/touchFeedback';
+import { Z_INDEX } from '../../utils/zIndexLevels';
 
 interface SlideElementProps {
   element: SlideElementType;
@@ -199,7 +200,7 @@ export const SlideElement: React.FC<SlideElementProps> = ({
     borderStyle: style.borderWidth ? 'solid' : 'none',
     borderRadius: style.borderRadius,
     opacity: style.opacity ?? 1,
-    zIndex: style.zIndex ?? 10,
+    zIndex: style.zIndex ?? Z_INDEX.SLIDE_ELEMENT,
     cursor: (element.interactions?.length || 0) > 0 || onEdit ? 'pointer' : 'default',
     transform: isPressed ? 'scale(0.95)' : 'scale(1)',
     display: 'flex',

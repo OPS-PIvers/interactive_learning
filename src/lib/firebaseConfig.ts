@@ -1,9 +1,9 @@
-import { getAnalytics, isSupported } from 'firebase/analytics';
-import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getPerformance } from 'firebase/performance';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
+import { getPerformance, FirebasePerformance } from 'firebase/performance';
+import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
 // Firebase configuration and initialization
 interface FirebaseConfiguration {
   apiKey: string;
