@@ -443,8 +443,8 @@ export function createLayoutBoundaries(
   safeAreaInsets: { top: number; bottom: number; left: number; right: number } = { top: 0, bottom: 0, left: 0, right: 0 }
 ): LayoutBoundaries {
   const viewport = {
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
   };
 
   const safeArea = {

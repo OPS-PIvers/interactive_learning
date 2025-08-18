@@ -19,7 +19,7 @@ export const EditorTestPage: React.FC = () => {
   const [mode, setMode] = useState<'editor' | 'viewer'>('editor');
   const [slideDeck, setSlideDeck] = useState<SlideDeck>(() => createTestDemoSlideDeck());
   const [debugInfo, setDebugInfo] = useState({
-    viewport: `${window.innerWidth}x${window.innerHeight}`,
+    viewport: `${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
     touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
     userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
   });
@@ -114,7 +114,7 @@ export const EditorTestPage: React.FC = () => {
 
   const refreshDebugInfo = () => {
     setDebugInfo({
-      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      viewport: `${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
       touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
       userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
     });

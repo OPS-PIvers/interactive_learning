@@ -112,8 +112,8 @@ export function calculateCanvasDimensions(
   if (isMobileLandscape || availableWidth <= 768) {
     const isBrowser = typeof window !== 'undefined';
     // Mobile-specific maximum constraints
-    const maxMobileWidth = isBrowser ? Math.min(availableWidth, window.innerWidth - 32) : availableWidth;
-    const maxMobileHeight = isBrowser ? Math.min(availableHeight, window.innerHeight - (isMobileLandscape ? 64 : 120)) : availableHeight;
+    const maxMobileWidth = isBrowser ? Math.min(availableWidth, document.documentElement.clientWidth - 32) : availableWidth;
+    const maxMobileHeight = isBrowser ? Math.min(availableHeight, document.documentElement.clientHeight - (isMobileLandscape ? 64 : 120)) : availableHeight;
     
     if (canvasWidth > maxMobileWidth) {
       canvasWidth = maxMobileWidth;

@@ -290,7 +290,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
     if (showPreviews && event.detail === 2) {
       const rect = (event.target as HTMLElement).getBoundingClientRect();
       const containerRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
+      const viewportWidth = document.documentElement.clientWidth;
       
       let x = rect.left - containerRect.left + rect.width / 2;
       // Adjust if the preview card would go off-screen
@@ -362,7 +362,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
         <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent rounded-full transform -translate-y-1/2" />
         <FixedSizeList
           height={80}
-          width={viewerTimelineRef.current?.offsetWidth || window.innerWidth}
+          width={viewerTimelineRef.current?.offsetWidth || 800}
           itemCount={uniqueSortedSteps.length}
           itemSize={ITEM_WIDTH}
           layout="horizontal"

@@ -326,8 +326,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
 
     return calculateCanvasDimensions(
       currentSlide.layout.aspectRatio,
-      containerRect.width || window.innerWidth,
-      containerRect.height || window.innerHeight,
+      containerRect.width || document.documentElement.clientWidth,
+      containerRect.height || document.documentElement.clientHeight,
       16, // Standard padding - CSS handles responsive behavior
       false // Remove device-specific logic
     );

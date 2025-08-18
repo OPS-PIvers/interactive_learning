@@ -37,8 +37,8 @@ export const TextTipInteraction: React.FC<TextTipInteractionProps> = ({
     if (!tipRef.current) return position;
 
     const tipRect = tipRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
     
     let newX = position.x;
     let newY = position.y;

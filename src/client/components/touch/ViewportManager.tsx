@@ -56,10 +56,10 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
   } = config;
 
   const [viewport, setViewport] = useState<ViewportState>({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    isLandscape: window.innerWidth > window.innerHeight,
-    isPortrait: window.innerHeight > window.innerWidth,
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
+    isLandscape: document.documentElement.clientWidth > document.documentElement.clientHeight,
+    isPortrait: document.documentElement.clientHeight > document.documentElement.clientWidth,
     devicePixelRatio: window.devicePixelRatio || 1,
     safeAreaInsets: {
       top: 0,
@@ -136,10 +136,10 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
   // Update viewport state
   const updateViewport = useCallback(() => {
     const newViewport: ViewportState = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      isLandscape: window.innerWidth > window.innerHeight,
-      isPortrait: window.innerHeight > window.innerWidth,
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+      isLandscape: document.documentElement.clientWidth > document.documentElement.clientHeight,
+      isPortrait: document.documentElement.clientHeight > document.documentElement.clientWidth,
       devicePixelRatio: window.devicePixelRatio || 1,
       safeAreaInsets: getSafeAreaInsets()
     };
@@ -220,7 +220,7 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     if (!CSS.supports('height', '100dvh')) {
       root.style.setProperty('--dvh', `${vh}px`);
       root.style.setProperty('--svh', `${vh}px`);
-      root.style.setProperty('--lvh', `${window.innerHeight * 0.01}px`);
+      root.style.setProperty('--lvh', `${document.documentElement.clientHeight * 0.01}px`);
     }
   }, [viewport, optimalScale]);
 
