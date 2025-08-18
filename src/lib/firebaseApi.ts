@@ -17,7 +17,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } 
 import { debugLog } from '../client/utils/debugUtils';
 // Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor';
-import { SlideDeck } from '../shared/slideTypes';
+import { SlideDeck, InteractiveSlide } from '../shared/slideTypes';
 import { TimelineEventData } from '../shared/type-defs';
 
 interface ProjectUpdateData {
@@ -443,7 +443,7 @@ export class FirebaseProjectAPI {
         result.slideDeck = projectData['slideDeck'];
         debugLog.log(`[FirebaseAPI] Loaded slide deck for project ${projectId}:`, {
           slideCount: projectData['slideDeck']?.slides?.length || 0,
-          totalElements: projectData['slideDeck']?.slides?.reduce((acc: number, slide: { elements?: [] }) => acc + (slide.elements?.length || 0), 0) || 0
+          totalElements: projectData['slideDeck']?.slides?.reduce((acc: number, slide: InteractiveSlide) => acc + (slide.elements?.length || 0), 0) || 0
         });
       } else {
         debugLog.log(`[FirebaseAPI] No slide deck found for project ${projectId}`);
@@ -566,7 +566,7 @@ export class FirebaseProjectAPI {
         interactiveData: {
           backgroundImage: project.interactiveData?.backgroundImage || null,
           imageFitMode: project.interactiveData?.imageFitMode || 'cover',
-          viewerModes: project.interactiveData?.viewerModes,
+          viewerModes: project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
           hotspots: [],
           timelineEvents: []
         }
@@ -596,7 +596,9 @@ export class FirebaseProjectAPI {
         thumbnailUrl: updateData.thumbnailUrl ?? undefined,
         interactiveData: {
           ...project.interactiveData,
-          ...updateData.interactiveData,
+          backgroundImage: updateData.interactiveData?.backgroundImage,
+          imageFitMode: updateData.interactiveData?.imageFitMode,
+          viewerModes: updateData.interactiveData?.viewerModes || project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
         },
       };
 
@@ -618,7 +620,7 @@ export class FirebaseProjectAPI {
       return data.map((item) => this.sanitizeForFirestore(item)).filter((item) => item !== null && item !== undefined);
     }
 
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === 'object' && data !== null && data.constructor === Object) {
       const sanitized: {[key: string]: unknown} = {};
       for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
         const sanitizedValue = this.sanitizeForFirestore(value);
