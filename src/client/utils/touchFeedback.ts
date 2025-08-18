@@ -14,7 +14,7 @@ export const provideTouchFeedback = {
    */
   light: () => {
     // Only provide haptic feedback on mobile viewports
-    if ('vibrate' in navigator && window.innerWidth <= 768) {
+    if ('vibrate' in navigator) {
       try {
         navigator.vibrate(10);
       } catch (error) {
@@ -27,7 +27,7 @@ export const provideTouchFeedback = {
    * Medium haptic feedback for moderate interactions (slide changes, confirmations)
    */
   medium: () => {
-    if ('vibrate' in navigator && window.innerWidth <= 768) {
+    if ('vibrate' in navigator) {
       try {
         navigator.vibrate(20);
       } catch (error) {
@@ -40,7 +40,7 @@ export const provideTouchFeedback = {
    * Heavy haptic feedback for significant interactions (success, error, important actions)
    */
   heavy: () => {
-    if ('vibrate' in navigator && window.innerWidth <= 768) {
+    if ('vibrate' in navigator) {
       try {
         navigator.vibrate([30, 10, 30]);
       } catch (error) {
@@ -53,7 +53,7 @@ export const provideTouchFeedback = {
    * Double tap feedback pattern for confirmation actions
    */
   doubleTap: () => {
-    if ('vibrate' in navigator && window.innerWidth <= 768) {
+    if ('vibrate' in navigator) {
       try {
         navigator.vibrate([15, 50, 15]);
       } catch (error) {
@@ -148,9 +148,7 @@ export const handleTouchInteraction = (
     visualTouchFeedback.addActiveState(element);
   } else if (event.type === 'click') {
     // Add subtle visual feedback for mouse clicks on mobile viewports
-    if (window.innerWidth <= 768) {
-      visualTouchFeedback.addScaleFeedback(element, 0.98);
-    }
+    visualTouchFeedback.addScaleFeedback(element, 0.98);
   }
 };
 
@@ -167,18 +165,9 @@ export const isTouchDevice = (): boolean => {
   );
 };
 
-/**
- * Check if current viewport is mobile-sized (for touch interaction patterns only)
- * NOTE: This is for interaction logic only, NOT for UI rendering
- */
-export const isMobileViewport = (): boolean => {
-  return window.innerWidth <= 768;
-};
-
 export default {
   provideTouchFeedback,
   visualTouchFeedback,
   handleTouchInteraction,
   isTouchDevice,
-  isMobileViewport
 };
