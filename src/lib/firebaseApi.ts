@@ -12,6 +12,7 @@ import {
   runTransaction, // Import runTransaction
   Timestamp,
   FieldValue,
+  DocumentData,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { debugLog } from '../client/utils/debugUtils';
@@ -587,18 +588,22 @@ export class FirebaseProjectAPI {
       const sanitizedData = this.sanitizeForFirestore(updateData);
 
       // Simple save without transaction complexity
-      await setDoc(projectRef, sanitizedData, { merge: true });
+      // Ensure sanitizedData is a valid DocumentData object before saving
+      const documentData = (typeof sanitizedData === 'object' && sanitizedData !== null) 
+        ? sanitizedData as DocumentData 
+        : {} as DocumentData;
+      await setDoc(projectRef, documentData, { merge: true });
 
 
 
       return {
         ...project,
-        thumbnailUrl: updateData.thumbnailUrl ?? undefined,
+        thumbnailUrl: updateData.thumbnailUrl ?? project.thumbnailUrl ?? '',
         interactiveData: {
           ...project.interactiveData,
-          backgroundImage: updateData.interactiveData?.backgroundImage,
-          imageFitMode: updateData.interactiveData?.imageFitMode,
-          viewerModes: updateData.interactiveData?.viewerModes || project.interactiveData?.viewerModes || { explore: true, selfPaced: true, timed: true },
+          backgroundImage: updateData.interactiveData?.backgroundImage ?? project.interactiveData?.backgroundImage ?? '',
+          imageFitMode: updateData.interactiveData?.imageFitMode ?? project.interactiveData?.imageFitMode ?? 'cover',
+          viewerModes: updateData.interactiveData?.viewerModes ?? project.interactiveData?.viewerModes ?? { explore: true, selfPaced: true, timed: true },
         },
       };
 
