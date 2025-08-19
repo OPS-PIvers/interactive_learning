@@ -1,6 +1,6 @@
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../../lib/firebaseConfig';
+import { firebaseManager } from '../../lib/firebaseConfig';
 
 // Constants
 const CROSS_DEVICE_SYNC_COLLECTION = 'crossDeviceSync';
@@ -26,30 +26,54 @@ export const useCrossDeviceSync = (moduleId: string | null) => {
   useEffect(() => {
     if (!moduleId) return;
 
-    const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
+    let unsubscribe: (() => void) | undefined;
+    
+    const setupSync = async () => {
+      try {
+        // Ensure Firebase is initialized first
+        await firebaseManager.initialize();
+        const db = firebaseManager.getFirestore();
+        const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
 
-    const unsubscribe = onSnapshot(docRef, (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        if (isSyncData(data)) {
-          setSyncData(data);
-        } else {
-          console.warn('Invalid sync data received from Firestore:', data);
-        }
+        unsubscribe = onSnapshot(docRef, (doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+            if (isSyncData(data)) {
+              setSyncData(data);
+            } else {
+              console.warn('Invalid sync data received from Firestore:', data);
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Failed to setup cross-device sync:', error);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    setupSync();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [moduleId]);
 
   const updateSyncPosition = useCallback(async (position: number) => {
     if (!moduleId) return;
-    const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
-    const data: SyncData = {
-      position,
-      lastUpdated: Date.now(),
-    };
-    await setDoc(docRef, data, { merge: true });
+    try {
+      // Ensure Firebase is initialized first
+      await firebaseManager.initialize();
+      const db = firebaseManager.getFirestore();
+      const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
+      const data: SyncData = {
+        position,
+        lastUpdated: Date.now(),
+      };
+      await setDoc(docRef, data, { merge: true });
+    } catch (error) {
+      console.error('Failed to update sync position:', error);
+    }
   }, [moduleId]);
 
   return { syncData, updateSyncPosition };

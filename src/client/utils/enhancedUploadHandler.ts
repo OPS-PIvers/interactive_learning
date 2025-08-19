@@ -1,4 +1,4 @@
-import { auth } from '../../lib/firebaseConfig';
+import { firebaseManager } from '../../lib/firebaseConfig';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { ImageTransformState, HotspotData } from '../../shared/types';
 // Enhanced upload handler for all devices
@@ -47,6 +47,9 @@ const getNetworkDetails = () => {
 // Get authentication details for debugging
 const getAuthDetails = async () => {
   try {
+    // Ensure Firebase is initialized first
+    await firebaseManager.initialize();
+    const auth = firebaseManager.getAuth();
     const user = auth.currentUser;
 
     if (!user) {
@@ -103,6 +106,10 @@ const checkNetworkConnectivity = async () => {
   }
 
   try {
+    // Ensure Firebase is initialized first
+    await firebaseManager.initialize();
+    const auth = firebaseManager.getAuth();
+    
     if (auth.currentUser) {
       const startTime = Date.now();
       await auth.currentUser.getIdToken(true);

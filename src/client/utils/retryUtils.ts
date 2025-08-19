@@ -1,5 +1,5 @@
 // Retry utilities for network operations with exponential backoff
-import { auth } from '../../lib/firebaseConfig';
+import { firebaseManager } from '../../lib/firebaseConfig';
 
 export interface RetryOptions {
   maxAttempts: number;
@@ -145,6 +145,9 @@ options: Partial<RetryOptions> = {})
  */
 export async function refreshAuthTokenIfNeeded(): Promise<boolean> {
   try {
+    // Ensure Firebase is initialized first
+    await firebaseManager.initialize();
+    const auth = firebaseManager.getAuth();
     const user = auth.currentUser;
 
     if (!user) {
