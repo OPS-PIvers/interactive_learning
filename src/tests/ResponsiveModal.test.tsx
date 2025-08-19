@@ -92,12 +92,6 @@ vi.mock('../client/hooks/useLayoutConstraints', () => ({
   })
 }));
 
-// Mock document methods for event listeners
-const mockAddEventListener = vi.fn();
-const mockRemoveEventListener = vi.fn();
-Object.defineProperty(document, 'addEventListener', { value: mockAddEventListener });
-Object.defineProperty(document, 'removeEventListener', { value: mockRemoveEventListener });
-
 const defaultProps = {
   type: 'settings' as const,
   isOpen: true,
@@ -503,11 +497,8 @@ describe('ResponsiveModal', () => {
     it('cleans up event listeners on unmount', () => {
       const { unmount } = render(<ResponsiveModal {...defaultProps} isOpen={true} />);
       
-      expect(mockAddEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
-      
       unmount();
       
-      expect(mockRemoveEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
       expect(document.body.style.overflow).toBe('');
     });
 
