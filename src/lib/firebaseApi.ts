@@ -1,22 +1,6 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  query,
-  orderBy,
-  // writeBatch, // No longer using batch directly in saveProject
-  serverTimestamp,
-  where,
-  getDoc,
-  runTransaction, // Import runTransaction
-  Timestamp,
-  FieldValue,
-  DocumentData,
-} from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
-import { getFunctions, httpsCallable, HttpsCallable } from 'firebase/functions';
-import { getAnalytics, logEvent } from 'firebase/analytics';
+// Firebase v8 API imports
+import { db, storage } from './firebaseConfig';
+import firebase from 'firebase/app';
 import { debugLog } from '../client/utils/debugUtils';
 import { networkMonitor } from '../client/utils/networkMonitor';
 import { InteractiveSlide, SlideDeck } from '../shared/slideTypes';
