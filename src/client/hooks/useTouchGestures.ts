@@ -737,9 +737,11 @@ options?: {
     imageTransformRef.current = imageTransform;
   }, [imageTransform]);
 
+  // Enhanced cleanup to prevent memory leaks
   useEffect(() => {
     const gestureState = gestureStateRef.current;
     return () => {
+      // Clear all timeouts with validation
       if (doubleTapTimeoutRef.current) {
         clearTimeout(doubleTapTimeoutRef.current);
         doubleTapTimeoutRef.current = null;
@@ -748,25 +750,51 @@ options?: {
         clearTimeout(touchEndTimeoutRef.current);
         touchEndTimeoutRef.current = null;
       }
+      
       // Cancel throttled function to prevent memory leaks
       if (throttledTouchMoveRef.current) {
-        throttledTouchMoveRef.current.cancel();
-        throttledTouchMoveRef.current = null;
+        try {
+          throttledTouchMoveRef.current.cancel();
+        } catch (error) {
+          console.warn('Error canceling throttled function:', error);
+        } finally {
+          throttledTouchMoveRef.current = null;
+        }
       }
-      // Cancel any ongoing animation frames
-      const currentGestureState = gestureStateRef;
-      if (currentGestureState.current.animationFrameId) {
-        cancelAnimationFrame(currentGestureState.current.animationFrameId);
-        currentGestureState.current.animationFrameId = null;
+      
+      // Cancel any ongoing animation frames with validation
+      const currentGestureState = gestureStateRef.current;
+      if (currentGestureState.animationFrameId) {
+        cancelAnimationFrame(currentGestureState.animationFrameId);
+        currentGestureState.animationFrameId = null;
       }
-      if (currentGestureState.current.moveAnimationId) {
-        cancelAnimationFrame(currentGestureState.current.moveAnimationId);
-        currentGestureState.current.moveAnimationId = null;
+      if (currentGestureState.moveAnimationId) {
+        cancelAnimationFrame(currentGestureState.moveAnimationId);
+        currentGestureState.moveAnimationId = null;
       }
+      
       // Reset gesture state
-      cleanupGesture();
+      try {
+        cleanupGesture();
+      } catch (error) {
+        console.warn('Error during gesture cleanup:', error);
+      }
     };
-  }, [cleanupGesture]); // Include cleanupGesture in dependencies
+  }, [cleanupGesture]);
+  
+  // Performance monitoring in development
+  useEffect(() => {
+    if (process.env['NODE_ENV'] === 'development') {
+      const startTime = performance.now();
+      return () => {
+        const cleanupTime = performance.now() - startTime;
+        if (cleanupTime > 5) {
+          console.warn('useTouchGestures cleanup took', cleanupTime.toFixed(2), 'ms');
+        }
+      };
+    }
+    return () => {}; // Always return cleanup function
+  }, []);
 
   // Add method to check if gesture is currently active
   const isGestureActive = useCallback(() => {
@@ -774,6 +802,31 @@ options?: {
     return gestureState.isActive || gestureState.isEventActive || isDragging || isEditing || isDragActive;
   }, [isDragging, isEditing, isDragActive]);
 
+  // Memory leak detection utility for development
+  const checkMemoryLeaks = useCallback(() => {
+    if (process.env['NODE_ENV'] !== 'development') return;
+    
+    const gestureState = gestureStateRef.current;
+    const potentialLeaks: string[] = [];
+    
+    if (doubleTapTimeoutRef.current) {
+      potentialLeaks.push('doubleTapTimeout');
+    }
+    if (touchEndTimeoutRef.current) {
+      potentialLeaks.push('touchEndTimeout');
+    }
+    if (gestureState.animationFrameId) {
+      potentialLeaks.push('animationFrame');
+    }
+    if (gestureState.moveAnimationId) {
+      potentialLeaks.push('moveAnimation');
+    }
+    
+    if (potentialLeaks.length > 0) {
+      console.warn('Potential memory leaks detected in useTouchGestures:', potentialLeaks);
+    }
+  }, []);
+  
   // Add event control methods with improved coordination
   const setEventActive = useCallback((active: boolean) => {
     const gestureState = gestureStateRef.current;

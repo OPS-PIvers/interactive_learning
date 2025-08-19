@@ -6,7 +6,7 @@
  * providing optimal experience across all device types.
  */
 
-import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef, useState, memo } from 'react';
 import { firebaseAPI } from '../../../lib/firebaseApi';
 import { getHotspotPixelDimensions, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { MigrationResult } from '../../../shared/migrationUtils';
@@ -63,7 +63,7 @@ export interface UnifiedSlideEditorProps {
 /**
  * UnifiedSlideEditor - Mobile-first responsive editor
  */
-export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
+const UnifiedSlideEditorComponent: React.FC<UnifiedSlideEditorProps> = ({
   slideDeck,
   projectName,
   projectId,
@@ -201,24 +201,23 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
     onSlideDeckChange(updatedSlideDeck);
   }, [onSlideDeckChange]);
 
-  // Handle element updates
+  // Handle element updates - Optimized to prevent cascade re-renders
   const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
-    const updatedSlideDeck = {
-      ...slideDeck,
-      slides: slideDeck?.slides?.map((slide, index) => {
-        if (index !== state.navigation.currentSlideIndex) return slide;
-
-        return {
-          ...slide,
-          elements: slide.elements?.map((element) =>
-          element.id === elementId ? { ...element, ...updates } : element
-          ) || []
-        };
-      })
-    };
-
-    handleSlideDeckUpdate(updatedSlideDeck);
-  }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
+    if (!slideDeck) return;
+    
+    const slides = slideDeck.slides.map((slide: InteractiveSlide, index: number) => {
+      if (index !== state.navigation.currentSlideIndex) return slide;
+      
+      const elements = slide.elements?.map((element: SlideElement) => 
+        element.id === elementId ? { ...element, ...updates } : element
+      ) || [];
+      
+      return { ...slide, elements };
+    });
+    
+    const updatedSlideDeck = { ...slideDeck, slides };
+    onSlideDeckChange(updatedSlideDeck);
+  }, [slideDeck, state.navigation.currentSlideIndex, onSlideDeckChange]);
 
   // Handle slide updates
   const handleSlideUpdate = useCallback((slideUpdates: Partial<InteractiveSlide>, propertiesToRemove: (keyof InteractiveSlide)[] = []) => {
@@ -228,23 +227,21 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
 
 
 
-    const updatedSlideDeck = {
-      ...slideDeck,
-      slides: slideDeck?.slides?.map((slide, index) => {
-        if (index !== state.navigation.currentSlideIndex) return slide;
+    if (!slideDeck) return;
+    
+    const slides = slideDeck.slides.map((slide: InteractiveSlide, index: number) => {
+      if (index !== state.navigation.currentSlideIndex) return slide;
 
-        const updatedSlide = { ...slide, ...slideUpdates };
-        for (const prop of propertiesToRemove) {
-          delete (updatedSlide as any)[prop];
-        }
-        return updatedSlide;
-      })
-    };
-
-
-
-    handleSlideDeckUpdate(updatedSlideDeck);
-  }, [slideDeck, state.navigation.currentSlideIndex, handleSlideDeckUpdate]);
+      const updatedSlide = { ...slide, ...slideUpdates };
+      for (const prop of propertiesToRemove) {
+        delete (updatedSlide as any)[prop];
+      }
+      return updatedSlide;
+    });
+    
+    const updatedSlideDeck = { ...slideDeck, slides };
+    onSlideDeckChange(updatedSlideDeck);
+  }, [slideDeck, state.navigation.currentSlideIndex, onSlideDeckChange]);
 
   // Handle hotspot double-click to open editor
   const handleHotspotDoubleClick = useCallback((elementId: string) => {
@@ -1007,5 +1004,18 @@ export const UnifiedSlideEditor: React.FC<UnifiedSlideEditorProps> = ({
   );
 
 };
+
+// Memoize UnifiedSlideEditor for performance optimization
+export const UnifiedSlideEditor = memo(UnifiedSlideEditorComponent, (prevProps, nextProps) => {
+  // Custom comparison for props that frequently change
+  return (
+    prevProps.slideDeck === nextProps.slideDeck &&
+    prevProps.projectName === nextProps.projectName &&
+    prevProps.projectTheme === nextProps.projectTheme &&
+    prevProps.isPublished === nextProps.isPublished
+  );
+});
+
+UnifiedSlideEditor.displayName = 'UnifiedSlideEditor';
 
 export default UnifiedSlideEditor;

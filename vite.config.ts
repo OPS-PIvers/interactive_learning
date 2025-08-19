@@ -74,9 +74,22 @@ export default defineConfig(({ mode, command }) => {
                 return undefined; // Keep in main bundle
               }
               
-              // Firebase dependencies - largest external dependency
+              // Firebase dependencies - split by service for better caching
+              if (id.includes('firebase/app')) {
+                return 'firebase-core';
+              }
+              if (id.includes('firebase/firestore')) {
+                return 'firebase-firestore';
+              }
+              if (id.includes('firebase/storage')) {
+                return 'firebase-storage';
+              }
+              if (id.includes('firebase/auth')) {
+                return 'firebase-auth';
+              }
+              // Fallback for any other Firebase modules
               if (id.includes('firebase')) {
-                return 'firebase';
+                return 'firebase-other';
               }
               
               // React core libraries
@@ -133,7 +146,19 @@ export default defineConfig(({ mode, command }) => {
         }
       },
       optimizeDeps: {
-        include: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage'],
+        // Tree-shake Firebase - only include modules we actually use
+        include: [
+          'react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage', 'firebase/auth'
+        ],
+        // Explicitly exclude unused Firebase modules for bundle optimization
+        exclude: [
+          'firebase/analytics',
+          'firebase/performance', 
+          'firebase/functions',
+          'firebase/messaging',
+          'firebase/remote-config',
+          'firebase/database'
+        ],
         // Force pre-bundling in development for consistency
         force: isDevelopment
       },

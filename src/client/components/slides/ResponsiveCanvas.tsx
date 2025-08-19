@@ -6,7 +6,7 @@
  * Supports both touch and mouse interactions seamlessly.
  */
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
@@ -81,7 +81,7 @@ newPosition: FixedPosition)
 /**
  * ResponsiveCanvas - Unified canvas supporting both touch and mouse interactions
  */
-export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
+const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   slideDeck,
   currentSlideIndex,
   onSlideDeckChange,
@@ -95,9 +95,12 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   isEditable = true,
   onAspectRatioChange
 }) => {
-  // Device detection
+  // Device detection - Memoized to prevent unnecessary recalculations
   const { deviceType: detectedDeviceType } = useDeviceDetection();
-  const deviceType = deviceTypeOverride || detectedDeviceType;
+  const deviceType = useMemo(() => 
+    deviceTypeOverride || detectedDeviceType, 
+    [deviceTypeOverride, detectedDeviceType]
+  );
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,7 +146,11 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
   // Current slide and elements
-  const currentSlide = slideDeck.slides[currentSlideIndex];
+  // Memoize current slide to prevent object recreation
+  const currentSlide = useMemo(() => 
+    slideDeck?.slides?.[currentSlideIndex], 
+    [slideDeck?.slides, currentSlideIndex]
+  );
 
   // Enhanced debug logging for canvas rendering
   useEffect(() => {
@@ -748,5 +755,20 @@ export const ResponsiveCanvas: React.FC<ResponsiveCanvasProps> = ({
     </div>);
 
 };
+
+// Memoize ResponsiveCanvas to prevent unnecessary re-renders
+export const ResponsiveCanvas = memo(ResponsiveCanvasComponent, (prevProps, nextProps) => {
+  // Custom comparison for complex objects
+  return (
+    prevProps.currentSlideIndex === nextProps.currentSlideIndex &&
+    prevProps.selectedElementId === nextProps.selectedElementId &&
+    prevProps.deviceTypeOverride === nextProps.deviceTypeOverride &&
+    prevProps.isEditable === nextProps.isEditable &&
+    prevProps.className === nextProps.className &&
+    prevProps.slideDeck === nextProps.slideDeck
+  );
+});
+
+ResponsiveCanvas.displayName = 'ResponsiveCanvas';
 
 export default ResponsiveCanvas;

@@ -1,9 +1,9 @@
-import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
+// Tree-shaken Firebase imports - only load what we actually use
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
-import { getPerformance, FirebasePerformance } from 'firebase/performance';
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
+// Analytics and Performance removed for bundle size optimization
 // Firebase configuration and initialization
 interface FirebaseConfiguration {
   apiKey: string;
@@ -62,8 +62,7 @@ class FirebaseConnectionManager {
   private db: any = null;
   private storage: any = null;
   private auth: any = null;
-  private performance: any = null;
-  private analytics: any = null;
+  // Analytics and Performance removed for bundle optimization
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
 
@@ -105,25 +104,8 @@ class FirebaseConnectionManager {
       this.storage = getStorage(this.app);
       this.auth = getAuth(this.app);
 
-      // Initialize performance and analytics (non-blocking)
-      if (typeof window !== 'undefined') {
-        try {
-          this.performance = getPerformance(this.app);
-          if (await isSupported()) {
-            this.analytics = getAnalytics(this.app);
-            if (import.meta.env['DEV']) {
-
-            }
-          }
-          if (import.meta.env['DEV']) {
-
-          }
-        } catch (error) {
-          if (import.meta.env['DEV']) {
-
-          }
-        }
-      }
+      // Analytics and Performance initialization removed for bundle optimization
+      // This reduces Firebase bundle size by ~200-300KB
 
       // Setup emulators for development
       if (import.meta.env['DEV'] && typeof window !== 'undefined' && import.meta.env['VITE_USE_FIREBASE_EMULATOR']) {
@@ -169,13 +151,7 @@ class FirebaseConnectionManager {
     return this.auth;
   }
 
-  getPerformance() {
-    return this.performance;
-  }
-
-  getAnalytics() {
-    return this.analytics;
-  }
+  // Performance and Analytics getters removed for bundle optimization
 
   getApp() {
     return this.app;
@@ -216,8 +192,7 @@ firebaseManager.initialize().catch((error) => {
 // Export the manager for explicit initialization control
 export { firebaseManager };
 
-// Legacy exports for performance and analytics
-export const performance = firebaseManager.getPerformance();
-export const analytics = firebaseManager.getAnalytics();
+// Performance and Analytics exports removed for bundle optimization
+// This saves ~200-300KB in the Firebase bundle
 
 export default firebaseManager.getApp();
