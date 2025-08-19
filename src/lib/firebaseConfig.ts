@@ -165,24 +165,27 @@ class FirebaseConnectionManager {
 // Create singleton instance
 const firebaseManager = FirebaseConnectionManager.getInstance();
 
-// Legacy exports for backward compatibility - these will throw if not initialized
-export const db = new Proxy({} as any, {
-  get(target, prop) {
-    return firebaseManager.getFirestore()[prop];
+// Legacy exports for backward compatibility - these functions ensure proper initialization
+export const getDb = () => {
+  if (!firebaseManager.isReady()) {
+    throw new Error('Firebase not initialized. Call firebaseManager.initialize() first.');
   }
-});
+  return firebaseManager.getFirestore();
+};
 
-export const storage = new Proxy({} as any, {
-  get(target, prop) {
-    return firebaseManager.getStorage()[prop];
+export const getStorageService = () => {
+  if (!firebaseManager.isReady()) {
+    throw new Error('Firebase not initialized. Call firebaseManager.initialize() first.');
   }
-});
+  return firebaseManager.getStorage();
+};
 
-export const auth = new Proxy({} as any, {
-  get(target, prop) {
-    return firebaseManager.getAuth()[prop];
+export const getAuthService = () => {
+  if (!firebaseManager.isReady()) {
+    throw new Error('Firebase not initialized. Call firebaseManager.initialize() first.');
   }
-});
+  return firebaseManager.getAuth();
+};
 
 // Initialize Firebase immediately but non-blocking
 firebaseManager.initialize().catch((error) => {
