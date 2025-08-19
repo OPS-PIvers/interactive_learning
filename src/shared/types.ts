@@ -1,5 +1,11 @@
 
-import { Timestamp } from 'firebase/firestore';
+// Local Timestamp interface to avoid importing Firebase at top level
+export interface Timestamp {
+  seconds: number;
+  nanoseconds: number;
+  toDate(): Date;
+  toMillis(): number;
+}
 import { InteractionType } from './InteractionPresets';
 import { SlideDeck } from './slideTypes';
 import { TimelineEventData, MediaQuizTrigger } from './type-defs';
