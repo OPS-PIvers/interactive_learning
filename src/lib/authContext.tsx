@@ -1,17 +1,13 @@
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile
-} from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { firebaseManager } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
+
+// User type - will be loaded dynamically from Firebase
+interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -53,35 +49,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const bypassUser = devBypass.getBypassUser();
       setUser(bypassUser);
       setLoading(false);
-      setFirebaseInitialized(true); // Consider bypass as "initialized"
+      setFirebaseInitialized(true);
       return;
     }
 
-    // Setup auth state listener with Firebase initialization check
+    // Defer Firebase initialization until after React has rendered
     let unsubscribe: (() => void) | undefined;
     
     const initializeAuth = async () => {
       try {
-        // Wait for Firebase to be fully initialized
+        // Wait for next tick to ensure React has fully rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Dynamically import Firebase modules to prevent TDZ issues
+        const { firebaseManager } = await import('./firebaseConfig');
+        const { onAuthStateChanged } = await import('firebase/auth');
+        
+        // Initialize Firebase
         await firebaseManager.initialize();
         setFirebaseInitialized(true);
         
-        // Setup auth state listener after Firebase is ready
+        // Setup auth state listener
         unsubscribe = onAuthStateChanged(firebaseManager.getAuth(), (user) => {
-          setUser(user);
+          setUser(user as User);
           setLoading(false);
         }, (error) => {
           console.error('Auth state change error:', error);
           setLoading(false);
         });
       } catch (error) {
-        console.error('Failed to initialize Firebase or setup auth listener:', error);
+        console.error('Failed to initialize Firebase:', error);
         setFirebaseInitialized(false);
         setLoading(false);
       }
     };
 
-    // Start initialization process
     initializeAuth();
 
     return () => {
@@ -93,7 +95,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Ensure Firebase is initialized before attempting sign in
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       await signInWithEmailAndPassword(firebaseManager.getAuth(), email, password);
     } catch (error) {
@@ -104,6 +108,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const switchAccount = async () => {
     try {
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
@@ -116,6 +123,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       const result = await createUserWithEmailAndPassword(firebaseManager.getAuth(), email, password);
       await updateProfile(result.user, { displayName });
@@ -127,6 +137,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       const provider = new GoogleAuthProvider();
       await signInWithPopup(firebaseManager.getAuth(), provider);
@@ -138,6 +151,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { signOut } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       await signOut(firebaseManager.getAuth());
     } catch (error) {
@@ -148,6 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
+      const { firebaseManager } = await import('./firebaseConfig');
+      const { sendPasswordResetEmail } = await import('firebase/auth');
+      
       await firebaseManager.initialize();
       await sendPasswordResetEmail(firebaseManager.getAuth(), email);
     } catch (error) {
