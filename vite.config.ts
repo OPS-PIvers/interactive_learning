@@ -74,22 +74,10 @@ export default defineConfig(({ mode, command }) => {
                 return undefined; // Keep in main bundle
               }
               
-              // Firebase dependencies - split by service for better caching
-              if (id.includes('firebase/app')) {
-                return 'firebase-core';
-              }
-              if (id.includes('firebase/firestore')) {
-                return 'firebase-firestore';
-              }
-              if (id.includes('firebase/storage')) {
-                return 'firebase-storage';
-              }
-              if (id.includes('firebase/auth')) {
-                return 'firebase-auth';
-              }
-              // Fallback for any other Firebase modules
+              // Keep Firebase in main bundle to prevent TDZ initialization issues
+              // Firebase modules need to be initialized in a specific order
               if (id.includes('firebase')) {
-                return 'firebase-other';
+                return undefined; // Keep in main bundle
               }
               
               // React core libraries
