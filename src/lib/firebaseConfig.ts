@@ -1,8 +1,5 @@
-// Tree-shaken Firebase imports - only load what we actually use
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
+// Dynamic Firebase imports to prevent TDZ issues in production builds
+// All Firebase modules are loaded dynamically when needed
 // Analytics and Performance removed for bundle size optimization
 // Firebase configuration and initialization
 interface FirebaseConfiguration {
@@ -96,6 +93,12 @@ class FirebaseConnectionManager {
       if (import.meta.env['DEV']) {
 
       }
+
+      // Dynamic import Firebase modules to prevent TDZ issues
+      const { initializeApp } = await import('firebase/app');
+      const { getAuth, connectAuthEmulator } = await import('firebase/auth');
+      const { getFirestore, connectFirestoreEmulator } = await import('firebase/firestore');
+      const { getStorage, connectStorageEmulator } = await import('firebase/storage');
 
       // Initialize Firebase app
       this.app = initializeApp(getFirebaseConfig());
