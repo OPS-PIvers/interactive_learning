@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import firebase from 'firebase/app';
 import { auth } from './firebaseConfig';
 import { DevAuthBypass } from './testAuthUtils';
 
@@ -79,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const switchAccount = async () => {
     try {
-      const provider = new auth.GoogleAuthProvider();
+      const provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await auth.signInWithPopup(provider);
     } catch (error) {
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
-      const provider = new auth.GoogleAuthProvider();
+      const provider = new firebase.auth.GoogleAuthProvider();
       await auth.signInWithPopup(provider);
     } catch (error) {
       console.error('Google sign in error:', error);
