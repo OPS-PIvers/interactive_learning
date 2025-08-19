@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../lib/authContext';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 
@@ -14,15 +14,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [displayName, setDisplayName] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [showReset, setShowReset] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading, firebaseInitialized } = useAuth();
+
+  const displayNameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const resetEmailInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Focus the correct input when the modal opens or form changes
+    if (isOpen) {
+      if (showReset) {
+        resetEmailInputRef.current?.focus();
+      } else if (isLogin) {
+        emailInputRef.current?.focus();
+      } else {
+        displayNameInputRef.current?.focus();
+      }
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isLogin, showReset, onClose]);
+
+  useEffect(() => {
+    setError('');
+    setMessage('');
+  }, [isLogin, showReset]);
 
   // CSS class constants to avoid duplication
   const INPUT_CLASSES = "w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-100";
   const PRIMARY_BUTTON_CLASSES = "w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors";
+  const IS_DISABLED = loading || !firebaseInitialized;
   const LINK_BUTTON_CLASSES = "text-purple-400 hover:text-purple-300 text-sm transition-colors";
   const LINK_BUTTON_SEMIBOLD_CLASSES = "text-purple-400 hover:text-purple-300 text-sm font-semibold";
 
@@ -63,7 +99,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     setMessage('');
 
@@ -77,13 +112,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       resetForm();
     } catch (error: unknown) {
       setError(getErrorMessage((error as { code: string }).code));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
     setError('');
     try {
       await signInWithGoogle();
@@ -91,25 +123,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       resetForm();
     } catch (error: unknown) {
       setError(getErrorMessage((error as { code: string }).code));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     
     try {
       await resetPassword(resetEmail);
       setMessage('Password reset email sent! Check your inbox.');
-      setShowReset(false);
       setResetEmail('');
     } catch (error: unknown) {
       setError(getErrorMessage((error as { code: string }).code));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -152,20 +178,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         {showReset ? (
           <form onSubmit={handlePasswordReset} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">
+              <label htmlFor="reset-email" className="block text-sm font-medium text-slate-400 mb-1">
                 Email Address
               </label>
               <input
+                id="reset-email"
                 type="email"
+                ref={resetEmailInputRef}
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
                 className={INPUT_CLASSES}
                 required
+                disabled={IS_DISABLED}
               />
             </div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={IS_DISABLED}
               className={PRIMARY_BUTTON_CLASSES}
             >
               {loading ? 'Sending...' : 'Send Reset Email'}
@@ -183,49 +212,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">
+                  <label htmlFor="display-name" className="block text-sm font-medium text-slate-400 mb-1">
                     Display Name
                   </label>
                   <input
+                    id="display-name"
                     type="text"
+                    ref={displayNameInputRef}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className={INPUT_CLASSES}
                     required
+                    disabled={IS_DISABLED}
                   />
                 </div>
               )}
               
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-slate-400 mb-1">
                   Email Address
                 </label>
                 <input
+                  id="email"
                   type="email"
+                  ref={emailInputRef}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={INPUT_CLASSES}
                   required
+                  disabled={IS_DISABLED}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-slate-400 mb-1">
                   Password
                 </label>
                 <input
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={INPUT_CLASSES}
                   required
                   minLength={6}
+                  disabled={IS_DISABLED}
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={IS_DISABLED}
                 className={PRIMARY_BUTTON_CLASSES}
               >
                 {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
@@ -244,7 +281,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
               <button
                 onClick={handleGoogleSignIn}
-                disabled={loading}
+                disabled={IS_DISABLED}
                 className="mt-3 w-full bg-slate-700 border border-slate-600 text-slate-200 py-2 px-4 rounded-md hover:bg-slate-600 disabled:opacity-50 flex items-center justify-center transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

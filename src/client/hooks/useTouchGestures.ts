@@ -763,14 +763,13 @@ options?: {
       }
       
       // Cancel any ongoing animation frames with validation
-      const currentGestureState = gestureStateRef.current;
-      if (currentGestureState.animationFrameId) {
-        cancelAnimationFrame(currentGestureState.animationFrameId);
-        currentGestureState.animationFrameId = null;
+      if (gestureState.animationFrameId) {
+        cancelAnimationFrame(gestureState.animationFrameId);
+        gestureState.animationFrameId = null;
       }
-      if (currentGestureState.moveAnimationId) {
-        cancelAnimationFrame(currentGestureState.moveAnimationId);
-        currentGestureState.moveAnimationId = null;
+      if (gestureState.moveAnimationId) {
+        cancelAnimationFrame(gestureState.moveAnimationId);
+        gestureState.moveAnimationId = null;
       }
       
       // Reset gesture state

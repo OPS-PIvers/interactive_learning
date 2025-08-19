@@ -165,7 +165,7 @@ const UnifiedSlideEditorComponent: React.FC<UnifiedSlideEditorProps> = ({
       console.error('Error preparing hotspot editor data:', error);
       return null;
     }
-  }, [state.hotspotEditor.isOpen, state.hotspotEditor.selectedHotspotId, currentSlide, computed.effectiveDeviceType]);
+  }, [state.hotspotEditor.isOpen, state.hotspotEditor.selectedHotspotId, currentSlide, computed.effectiveDeviceType, canvasContainerDimensions]);
   
   // NEW LOGIC: When a hotspot element is selected, open the HotspotEditorModal.
   // When it's deselected or another element type is selected, ensure the modal is closed.

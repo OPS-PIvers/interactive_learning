@@ -103,7 +103,7 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     base.bottom += toolbarHeight;
 
     return base;
-  }, [isMobile, headerHeight, toolbarHeight]);
+  }, [toolbarHeight]);
 
   // Calculate modal constraints based on safe area
   const modal = useMemo(() => {
@@ -151,7 +151,7 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
       marginLeft: safeArea.left + baseMargin,
       marginRight: safeArea.right + baseMargin
     };
-  }, [viewportInfo, availableHeight, viewportHeight, safeArea, size, deviceType, respectKeyboard]);
+  }, [viewportInfo, availableHeight, viewportHeight, safeArea, size, respectKeyboard]);
 
   // Z-index management based on modal type using unified system
   const zIndex = useMemo(() => {

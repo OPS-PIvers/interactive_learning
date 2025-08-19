@@ -14,12 +14,17 @@ import {
   FieldValue,
   DocumentData,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
+import { getFunctions, httpsCallable, HttpsCallable } from 'firebase/functions';
+import { getAnalytics, logEvent } from 'firebase/analytics';
 import { debugLog } from '../client/utils/debugUtils';
-// Firebase API for project management
 import { networkMonitor } from '../client/utils/networkMonitor';
-import { SlideDeck, InteractiveSlide } from '../shared/slideTypes';
+import { InteractiveSlide, SlideDeck } from '../shared/slideTypes';
 import { TimelineEventData } from '../shared/type-defs';
+import { HotspotData, InteractiveModuleState, Project, UserProfile } from '../shared/types';
+import { DataSanitizer } from './dataSanitizer';
+import { firebaseManager } from './firebaseConfig';
+import { DevAuthBypass } from './testAuthUtils';
 
 interface ProjectUpdateData {
   title: string;
@@ -43,10 +48,6 @@ interface ProjectUpdateData {
   slideDeck?: SlideDeck;
   createdAt?: FieldValue;
 }
-import { Project, HotspotData, InteractiveModuleState } from '../shared/types';
-import { DataSanitizer } from './dataSanitizer';
-import { firebaseManager } from './firebaseConfig';
-import { DevAuthBypass } from './testAuthUtils';
 
 // Thumbnail Parameters
 const THUMBNAIL_FILE_PREFIX = 'thumb_';
