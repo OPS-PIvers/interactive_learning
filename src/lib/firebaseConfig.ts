@@ -26,15 +26,18 @@ if (import.meta.env['DEV']) {
 
 }
 
-const firebaseConfig: FirebaseConfiguration = {
-  apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
-  authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || "interactive-learning-278.firebaseapp.com",
-  projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || "interactive-learning-278",
-  storageBucket: import.meta.env['VITE_FIREBASE_STORAGE_BUCKET'] || "interactive-learning-278.firebasestorage.app",
-  messagingSenderId: import.meta.env['VITE_FIREBASE_MESSAGING_SENDER_ID'] || "559846873035",
-  appId: import.meta.env['VITE_FIREBASE_APP_ID'] || "1:559846873035:web:f0abe20a8d354b02a9084e",
-  measurementId: import.meta.env['VITE_FIREBASE_MEASUREMENT_ID'] || "G-FQZK3QEV9L"
-};
+// Lazy configuration getter to prevent issues with import.meta.env in production builds
+function getFirebaseConfig(): FirebaseConfiguration {
+  return {
+    apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
+    authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || "interactive-learning-278.firebaseapp.com",
+    projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || "interactive-learning-278",
+    storageBucket: import.meta.env['VITE_FIREBASE_STORAGE_BUCKET'] || "interactive-learning-278.firebasestorage.app",
+    messagingSenderId: import.meta.env['VITE_FIREBASE_MESSAGING_SENDER_ID'] || "559846873035",
+    appId: import.meta.env['VITE_FIREBASE_APP_ID'] || "1:559846873035:web:f0abe20a8d354b02a9084e",
+    measurementId: import.meta.env['VITE_FIREBASE_MEASUREMENT_ID'] || "G-FQZK3QEV9L"
+  };
+}
 
 // Validate required environment variables function (called during initialization)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -95,7 +98,7 @@ class FirebaseConnectionManager {
       }
 
       // Initialize Firebase app
-      this.app = initializeApp(firebaseConfig);
+      this.app = initializeApp(getFirebaseConfig());
 
       // Initialize Firestore with standard settings for all devices
       this.db = getFirestore(this.app);
