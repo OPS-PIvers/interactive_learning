@@ -187,10 +187,8 @@ export const getAuthService = () => {
   return firebaseManager.getAuth();
 };
 
-// Initialize Firebase immediately but non-blocking
-firebaseManager.initialize().catch((error) => {
-  console.error('Firebase initialization failed:', error);
-});
+// Note: Firebase initialization is now handled explicitly by components
+// This prevents circular dependency issues in production builds
 
 // Export the manager for explicit initialization control
 export { firebaseManager };

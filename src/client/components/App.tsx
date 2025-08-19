@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../lib/authContext';
+import { firebaseManager } from '../../lib/firebaseConfig';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
 import { createDemoSlideDeck } from '../../shared/demoSlideDeckData';
@@ -566,6 +567,11 @@ const AuthenticatedApp: React.FC = () => {
     </div>
   );
 };
+
+// Initialize Firebase early to prevent production build issues
+firebaseManager.initialize().catch((error) => {
+  console.error('Failed to initialize Firebase:', error);
+});
 
 // Main App Component with Routing and Authentication
 const App: React.FC = () => {
