@@ -23,37 +23,21 @@ if (import.meta.env['DEV']) {
 
 }
 
-// Lazy configuration getter to prevent issues with import.meta.env in production builds
+// Hardcoded Firebase config to eliminate import.meta.env TDZ issues
 function getFirebaseConfig(): FirebaseConfiguration {
+  // Hardcoded configuration to eliminate any import.meta.env access during initialization
   return {
-    apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] || "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
-    authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] || "interactive-learning-278.firebaseapp.com",
-    projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] || "interactive-learning-278",
-    storageBucket: import.meta.env['VITE_FIREBASE_STORAGE_BUCKET'] || "interactive-learning-278.firebasestorage.app",
-    messagingSenderId: import.meta.env['VITE_FIREBASE_MESSAGING_SENDER_ID'] || "559846873035",
-    appId: import.meta.env['VITE_FIREBASE_APP_ID'] || "1:559846873035:web:f0abe20a8d354b02a9084e",
-    measurementId: import.meta.env['VITE_FIREBASE_MEASUREMENT_ID'] || "G-FQZK3QEV9L"
+    apiKey: "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
+    authDomain: "interactive-learning-278.firebaseapp.com",
+    projectId: "interactive-learning-278",
+    storageBucket: "interactive-learning-278.firebasestorage.app",
+    messagingSenderId: "559846873035",
+    appId: "1:559846873035:web:f0abe20a8d354b02a9084e",
+    measurementId: "G-FQZK3QEV9L"
   };
 }
 
-// Validate required environment variables function (called during initialization)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function validateFirebaseConfig(): string[] {
-  const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN',
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID'];
-
-
-  return requiredEnvVars.filter((varName) => !import.meta.env[varName]);
-}
-
-if (import.meta.env['DEV']) {
-
-}
+// Environment validation removed to prevent import.meta.env access during initialization
 
 // Firebase Connection Manager with singleton pattern and mobile optimization
 class FirebaseConnectionManager {
@@ -90,10 +74,6 @@ class FirebaseConnectionManager {
 
   private async _doInitialize(): Promise<void> {
     try {
-      if (import.meta.env['DEV']) {
-
-      }
-
       // Dynamic import Firebase modules to prevent TDZ issues
       const { initializeApp } = await import('firebase/app');
       const { getAuth, connectAuthEmulator } = await import('firebase/auth');
@@ -113,22 +93,9 @@ class FirebaseConnectionManager {
       // Analytics and Performance initialization removed for bundle optimization
       // This reduces Firebase bundle size by ~200-300KB
 
-      // Setup emulators for development
-      if (import.meta.env['DEV'] && typeof window !== 'undefined' && import.meta.env['VITE_USE_FIREBASE_EMULATOR']) {
-        try {
-          connectFirestoreEmulator(this.db, 'localhost', 8080);
-          connectStorageEmulator(this.storage, 'localhost', 9199);
-          connectAuthEmulator(this.auth, 'http://localhost:9099');
-
-        } catch (error) {
-
-        }
-      }
+      // Emulator setup removed to prevent import.meta.env access
 
       this.isInitialized = true;
-      if (import.meta.env['DEV']) {
-
-      }
     } catch (error) {
       console.error('Firebase Connection Manager: Initialization failed:', error);
       this.initPromise = null;
