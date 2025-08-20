@@ -1,9 +1,9 @@
 # CLAUDE.md - ExpliCoLearning
 
 ## Project Overview
-Interactive web application for creating slide-based multimedia training modules with element-based learning experiences. Users can create multi-slide presentations, add interactive elements (hotspots, text, media, shapes) with responsive positioning, and create interactive learning sequences. The application features a mobile-first design with comprehensive touch gesture support and accessibility features.
+Modern interactive web application for creating slide-based multimedia learning experiences. The app features a simplified, working interaction system that executes real effects when users interact with slide elements. Built with React and TypeScript, using a mobile-first responsive design.
 
-**Architecture Migration**: The app has migrated from complex coordinate systems to a predictable slide-based architecture with fixed positioning and responsive breakpoints.
+**Core Innovation**: Real-time effect execution system that actually makes interactions work - no more "fake" interactions that just log to console. Click a hotspot and see spotlight effects, text displays, videos, quizzes, and more.
 
 ## Development Commands
 - `npm run dev` - Start development server on port 3000
@@ -13,16 +13,27 @@ Interactive web application for creating slide-based multimedia training modules
 - `npm run test:ui` - Run tests with UI
 - `npm run preview` - Preview production build locally
 
-## Architecture Context
-- **Main Components**: `src/client/components/SlideBasedEditor.tsx` and `src/client/components/SlideBasedViewer.tsx` - Core containers for slide-based editing and viewing
-- **Slide Editor**: `src/client/components/slides/SlideEditor.tsx` - Visual drag-and-drop editor with responsive positioning
-- **Unified Responsive Design**: Single components that adapt to all screen sizes using a CSS-first approach with Tailwind CSS. JavaScript-based device detection for rendering is strictly forbidden.
-- **State Management**: React useState with callback patterns and complex interdependencies
-- **Device Detection for Calculations**: Device detection hooks are used exclusively for mathematical calculations (e.g., canvas dimensions, drag boundaries), not for rendering UI.
-- **Touch Handling**: `useTouchGestures` hook with momentum physics for pan/zoom coordination
-- **Modal System**: Unified modal constraint system preventing toolbar overlap with responsive positioning
-- **Z-Index Management**: Centralized system in `zIndexLevels.ts` for consistent layering across all components
-- **Accessibility**: `useScreenReaderAnnouncements` hook with live regions for screen reader support
+## Core Architecture
+
+### Effect Execution System
+- **EffectExecutor** (`src/client/utils/EffectExecutor.ts`) - The heart of the interaction system
+- **Real Effects**: Spotlight overlays, text displays, video players, quiz modals, pan/zoom, tooltips
+- **Lifecycle Management**: Automatic cleanup, duration handling, multiple effect coordination
+- **Device Agnostic**: Works consistently across mobile, tablet, and desktop
+
+### Component Architecture
+- **SlideViewer** (`src/client/components/slides/SlideViewer.tsx`) - Core viewer with EffectExecutor integration
+- **SlideElement** (`src/client/components/slides/SlideElement.tsx`) - Individual interactive elements
+- **Unified Responsive Design**: CSS-first approach, no JavaScript device branching
+- **Z-Index Management**: Centralized system in `zIndexLevels.ts`
+- **Touch-First**: Designed for touch interactions that work with mouse/keyboard
+
+### Data Flow
+1. User interacts with SlideElement (click, hover, touch)
+2. SlideElement calls onInteraction with element and interaction IDs
+3. SlideViewer finds the interaction and its effect
+4. EffectExecutor.executeEffect() creates real DOM elements and animations
+5. Effects auto-cleanup after duration or user dismissal
 
 ## Key Dependencies
 - **React 18.3.1** with TypeScript
@@ -34,28 +45,32 @@ Interactive web application for creating slide-based multimedia training modules
 - **lodash.debounce** for performance optimization
 - **react-router-dom** for client-side routing
 
-## File Structure Patterns
+## Simplified File Structure
 ```
 src/
 ├── client/
-│   ├── components/          # 132 React components (unified responsive design)
-│   │   ├── slides/         # Slide-specific components including effects/
+│   ├── components/
+│   │   ├── slides/         # Core slide components (SlideViewer, SlideElement)
 │   │   ├── responsive/     # Unified responsive modal components
-│   │   ├── icons/          # Custom icon components
-│   │   ├── interactions/   # Interaction system components
-│   │   ├── animations/     # Animation and transition components
-│   │   ├── touch/          # Touch gesture handling components
 │   │   ├── ui/             # Reusable UI components
-│   │   ├── views/          # Page-level view components
 │   │   └── shared/         # Error boundaries and loading states
-│   ├── hooks/              # 20 custom hooks for responsive behavior
-│   ├── utils/              # 33 utility modules including zIndexLevels.ts
-│   ├── contexts/           # React context providers
+│   ├── hooks/              # Custom hooks (device detection for calculations only)
+│   ├── utils/              # Core utilities:
+│   │   ├── EffectExecutor.ts   # THE KEY FILE - makes interactions work
+│   │   ├── zIndexLevels.ts     # Centralized z-index management
+│   │   └── interactionUtils.ts # Default interaction creation
 │   └── styles/             # CSS modules and stylesheets
-├── lib/                    # Firebase integration and core utilities
-├── shared/                 # Types, slide architecture, and migration logic
-└── tests/                  # Vitest test suite with error detection
+├── lib/                    # Firebase integration
+├── shared/                 # Types and slide architecture (simplified)
+└── tests/                  # Vitest test suite
 ```
+
+## What Was Removed
+- **All migration code** - No backward compatibility with old formats
+- **Complex timeline converters** - Simplified interaction model
+- **Duplicate mobile/desktop components** - Unified responsive components only
+- **Legacy effect renderers** - Replaced with working EffectExecutor
+- **Unused parameter interfaces** - Streamlined to what's actually used
 
 ## Component Conventions
 - **Naming**: PascalCase with descriptive prefixes (no `Mobile*`/`Desktop*` - unified components only)
@@ -98,15 +113,39 @@ The application uses unified toolbar components that adapt automatically to all 
 - **Migration Support**: Automatic migration from legacy hotspot-based system to slide architecture
 - **Backward Compatibility**: Legacy timeline events supported alongside new slide system
 
-## Working with Slide Elements
-- Elements use fixed pixel positioning with responsive breakpoints (desktop/tablet/mobile)
-- Use `ResponsivePosition` interface for consistent cross-device positioning
-- dnd-kit drag-and-drop API for accessible element positioning within slide canvas
-- Element editing uses slide-specific property panels with device-responsive controls
-- **Responsive Editing**: Property panels adapt to device type with touch-optimized controls on mobile
-- **Element Types**: Support for hotspots, text, media, and shape elements
-- **Device Detection**: `useDeviceDetection()` hook for responsive positioning calculations
-- **Canvas System**: Slide editor canvas with visual drag-and-drop interface
+## Working Interaction System
+
+### Creating Interactive Elements
+```typescript
+// Elements automatically get default click interactions
+const hotspotElement = {
+  type: 'hotspot',
+  position: { desktop: { x: 100, y: 100, width: 50, height: 50 } },
+  interactions: [{
+    trigger: 'click',
+    effect: {
+      type: 'spotlight',
+      duration: 3000,
+      parameters: { shape: 'circle', intensity: 70 }
+    }
+  }]
+};
+```
+
+### Effect Types That Actually Work
+- **spotlight**: Dark overlay with highlighted area + optional message
+- **text**: Floating text boxes with custom styling
+- **tooltip**: Quick popup messages
+- **video**: Modal video players (YouTube supported)
+- **audio**: Background audio or mini-players
+- **quiz**: Interactive question modals with multiple choice
+- **pan_zoom**: Slide canvas transformation with smooth animations
+
+### Element Types
+- **hotspot**: Circular indicators for click interactions
+- **text**: Text content that can show additional text on interaction
+- **media**: Images/videos that can trigger video players
+- **shape**: Geometric shapes for layout and interaction
 
 ## Testing Guidelines
 - Use Vitest for unit tests
@@ -166,17 +205,44 @@ The application features a comprehensive modal layout constraint system that pre
 - Use transactions for data consistency
 - Implement proper error handling for network operations
 
-## Responsive Design Notes
-- **CSS-First Approach**: Use Tailwind responsive classes (`sm:`, `md:`, `lg:`) instead of JavaScript device detection
-- **FORBIDDEN PATTERNS**: Never use `isMobile`, `window.innerWidth < 768`, `isDesktop`, or any JavaScript device detection for UI rendering
-- **CORRECT PATTERN**: `<div className="h-16 py-2 md:h-14 md:py-0">` (CSS-only responsive)
-- **INCORRECT PATTERN**: `const height = isMobile ? '64px' : '56px'` (JavaScript device branching)
-- **Performance**: Implement debounced inputs and throttled events for optimal performance
-- **Touch-First Design**: Design for touch interactions that also work with mouse/keyboard
-- **Progressive Enhancement**: Start with mobile-optimized design, enhance for larger screens
-- **Viewport Handling**: Use CSS viewport units and `env()` for safe areas
-- **Accessibility**: Ensure components work with screen readers and keyboard navigation
-- **Testing**: Test across all device types and screen sizes
+## Development Workflow
+
+### Adding New Effects
+1. Add effect type to `SlideEffectType` in `slideTypes.ts`
+2. Create parameter interface (e.g., `MyEffectParameters`)
+3. Add handler method to `EffectExecutor` class
+4. Test across devices
+
+### Responsive Design Rules
+- **CSS-Only**: Use Tailwind classes (`sm:`, `md:`, `lg:`) for responsive behavior
+- **No JS Branching**: Never use `isMobile` or `window.innerWidth` for UI rendering
+- **Device Detection**: Only for mathematical calculations (drag boundaries, canvas size)
+- **Touch-First**: Design for touch, enhance for mouse/keyboard
+
+### Effect Development
+```typescript
+// In EffectExecutor.ts
+private async executeMyEffect(effect: SlideEffect): Promise<void> {
+  const params = effect.parameters as MyEffectParameters;
+  
+  // Create DOM elements
+  const element = document.createElement('div');
+  element.style.cssText = `
+    position: fixed;
+    z-index: ${Z_INDEX.MODAL_CONTENT};
+    /* your styles */
+  `;
+  
+  this.container.appendChild(element);
+  
+  // Store for cleanup
+  this.activeEffects.set(effect.id, {
+    element,
+    type: 'my_effect',
+    cleanup: () => element.remove()
+  });
+}
+```
 
 ## Custom Hook Patterns
 - **Layout Calculations**: `useDeviceDetection()` and `useLayoutConstraints()` for mathematical positioning calculations ONLY - NEVER for UI rendering
@@ -198,38 +264,30 @@ The application features a comprehensive modal layout constraint system that pre
 - **Migration Support**: Include data migration utilities for legacy-to-slide conversion
 - **Type Guards**: Implement type guards for runtime type checking
 
-## Build & Deploy Failure Prevention
-**CRITICAL**: Always run these commands before committing to prevent build failures:
+## Testing Interactions
 
-1. **Type Check**: `npm run typecheck` - MUST pass with zero errors
-2. **Tests**: `npm run test:run` - MUST pass all tests  
-3. **Build**: `npm run build` - MUST compile successfully
+### Manual Testing
+1. `npm run dev`
+2. Create slides with interactive elements
+3. Click hotspots - should see actual effects, not just console logs
+4. Test on mobile: touch interactions should work smoothly
+5. Test cleanup: effects should disappear after duration
 
-### Common TypeScript Error Patterns to Avoid
-- **Missing React Imports**: Always include `useEffect`, `useState`, etc. in React imports
-- **Interface Compliance**: 
-  - `SlideDeck` requires `metadata: DeckMetadata` property
-  - `QuizParameters` requires `questionType`, `allowMultipleAttempts`, `resumeAfterCompletion`
-  - `TextStyle` interface doesn't include `boxShadow` property
-  - `ElementAnimation.type` only allows: 'pulse' | 'glow' | 'bounce' | 'fade' | 'none'
-- **Complete Object Definitions**: Ensure all required interface properties are provided
-- **Type Compatibility**: Verify parameter objects match expected interface definitions
-
-### Pre-Commit Checklist
+### Build Verification
 ```bash
-# 1. Always run type checking first
-npm run typecheck
-
-# 2. Run all tests
-npm run test:run
-
-# 3. Build the application
-npm run build
-
-# 4. Only commit if ALL THREE pass without errors
+npm run typecheck  # Must pass
+npm run test:run   # Must pass  
+npm run build      # Must compile
 ```
 
-**NEVER commit code that fails any of these checks - it WILL break the deployment pipeline.**
+### Core Working Features
+- ✅ Click hotspots → Real spotlight effects
+- ✅ Text elements → Show additional text
+- ✅ Media elements → Play videos/audio
+- ✅ Quiz interactions → Modal quizzes
+- ✅ Effect cleanup → No memory leaks
+- ✅ Mobile touch → Smooth interactions
+- ✅ Cross-device → Consistent behavior
 
 ## Performance Optimization
 - **Debouncing**: Use `lodash.debounce` for input handling and resize events

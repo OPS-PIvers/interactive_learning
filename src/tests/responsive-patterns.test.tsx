@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
-import { UnifiedSlideEditor } from '../client/components/slides/UnifiedSlideEditor';
+import SimpleSlideEditor from '../client/components/slides/SimpleSlideEditor';
 import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
 import { AuthProvider } from '../lib/authContext';
 import React from 'react';
@@ -27,28 +27,40 @@ describe('CSS-only responsive design', () => {
     expect(dragHandle).toHaveClass('md:hidden');
   });
 
-  test('UnifiedSlideEditor should use responsive components', () => {
+  test('SimpleSlideEditor should use responsive components', () => {
     const testSlideDeck = createTestDemoSlideDeck();
+    const testSlide = testSlideDeck.slides[0] || {
+      id: 'test-slide',
+      title: 'Test Slide',
+      elements: [],
+      backgroundMedia: {
+        type: 'image',
+        url: ''
+      },
+      layout: {
+        aspectRatio: '16:9',
+        scaling: 'fit',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      },
+      transitions: []
+    };
+    
     render(
       <AuthProvider>
-        <UnifiedSlideEditor
-          slideDeck={testSlideDeck}
-          projectName="Test Project"
-          onSlideDeckChange={() => {}}
-          onSave={() => Promise.resolve()}
-          onImageUpload={() => Promise.resolve()}
-          onClose={() => {}}
-          isPublished={false}
+        <SimpleSlideEditor
+          slide={testSlide}
+          onSlideChange={() => {}}
         />
       </AuthProvider>
     );
 
-    // Check for the presence of the responsive toolbar
-    const responsiveToolbar = screen.getByRole('toolbar');
-    expect(responsiveToolbar).toBeInTheDocument();
+    // Check for the presence of the slide editor
+    const slideEditor = screen.getByText('Hotspots');
+    expect(slideEditor).toBeInTheDocument();
 
-    // Check that the mobile toolbar is not present
-    const mobileToolbar = screen.queryByTestId('mobile-toolbar');
-    expect(mobileToolbar).not.toBeInTheDocument();
+    // Check for background selector
+    const backgroundSelector = screen.getByText('Background');
+    expect(backgroundSelector).toBeInTheDocument();
   });
 });

@@ -139,8 +139,9 @@ describe('React Hooks Compliance Tests', () => {
       }).not.toThrow();
 
       // Result should have expected properties
-      expect(typeof result.current.isMobile).toBe('boolean');
-      expect(typeof result.current.deviceType).toBe('string');
+      expect(typeof result.current.viewportInfo).toBe('object');
+      expect(typeof result.current.isPortrait).toBe('boolean');
+      expect(typeof result.current.isLandscape).toBe('boolean');
     });
 
     test('useToast hook maintains consistent behavior', async () => {

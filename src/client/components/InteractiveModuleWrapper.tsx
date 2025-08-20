@@ -8,7 +8,7 @@ import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import SlideViewer from './slides/SlideViewer';
 
 // Lazy load the heavy editor component
-const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));
+const SimpleSlideEditor = lazy(() => import('./slides/SimpleSlideEditor'));
 
 // Note: This wrapper is now primarily for editing mode.
 // Viewing mode uses the separate ViewerView component with its own route.
@@ -74,17 +74,32 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
         {/* Native slide projects - use comprehensive slide editor */}
         {slideDeck && isEditingMode ?
         <Suspense fallback={<LoadingScreen message="Loading Slide Editor..." />}>
-            <UnifiedSlideEditor
-            slideDeck={slideDeck}
-            projectName={selectedProject.title}
-            projectId={selectedProject.id}
-            projectTheme={selectedProject.theme as ThemePreset || 'professional'}
-            onSlideDeckChange={handleSlideDeckChange}
-            {...(onProjectThemeChange && { onProjectThemeChange })}
-            onSave={handleImmediateSave}
-            onImageUpload={onImageUpload}
-            onClose={onClose}
-            isPublished={selectedProject.isPublished || false} />
+            <SimpleSlideEditor
+              slide={slideDeck.slides[0] || {
+                id: 'default-slide',
+                title: selectedProject.title || 'New Slide',
+                elements: [],
+                backgroundMedia: {
+                  type: 'image',
+                  url: ''
+                },
+                layout: {
+                  aspectRatio: '16:9',
+                  scaling: 'fit',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                },
+                transitions: []
+              }}
+              onSlideChange={(updatedSlide) => {
+                const updatedDeck = {
+                  ...slideDeck,
+                  slides: [updatedSlide]
+                };
+                handleSlideDeckChange(updatedDeck);
+              }}
+              className="h-full"
+            />
 
           </Suspense> :
         slideDeck ?

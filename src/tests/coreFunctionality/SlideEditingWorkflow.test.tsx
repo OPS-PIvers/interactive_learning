@@ -16,7 +16,7 @@ vi.mock('../../client/hooks/useToast', () => ({
 }));
 
 vi.mock('../../client/hooks/useDeviceDetection', () => ({
-  useDeviceDetection: () => ({ isMobile: false, deviceType: 'desktop', isTablet: false, isDesktop: true })
+  useDeviceDetection: () => ({ viewportInfo: { width: 1024, height: 768, pixelRatio: 1, orientation: 'landscape' }, isPortrait: false, isLandscape: true })
 }));
 
 vi.mock('../../lib/firebaseApi', () => ({

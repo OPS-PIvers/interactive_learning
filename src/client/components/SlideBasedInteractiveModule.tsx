@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { ViewerModes } from '../../shared/interactiveTypes';
-import { migrateProjectToSlides, MigrationResult } from '../../shared/migrationUtils';
 import { SlideDeck } from '../../shared/slideTypes';
 import { InteractiveModuleState } from '../../shared/types';
 import ErrorScreen from './shared/ErrorScreen';
@@ -8,7 +7,7 @@ import LoadingScreen from './shared/LoadingScreen';
 import SlideBasedViewer from './SlideBasedViewer';
 
 // Lazy load the heavy editor component
-const UnifiedSlideEditor = lazy(() => import('./slides/UnifiedSlideEditor'));
+const SimpleSlideEditor = lazy(() => import('./slides/SimpleSlideEditor'));
 
 interface SlideBasedInteractiveModuleProps {
   initialData: InteractiveModuleState;
@@ -55,49 +54,17 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [currentSlideDeck, setCurrentSlideDeck] = useState<SlideDeck | null>(null);
-  const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null);
 
-  // Handle project initialization based on type
+  // Handle project initialization
   const processedSlideDeck = useMemo(() => {
     try {
-      // If we have a slide deck passed in, use it directly (for published slide projects)
+      // Use slide deck directly - no migration needed
       if (slideDeck) {
-        if (process.env['NODE_ENV'] === 'development') {
-
-
-
-
-
-        }
-        return { slideDeck, migrationResult: null };
+        return { slideDeck };
       }
 
-      // If it's a hotspot project or needs migration, migrate the hotspot data
-      if (!initialData) return { slideDeck: null, migrationResult: null };
-
-      const result = migrateProjectToSlides(
-        initialData,
-        projectName,
-        {
-          preserveHotspotIds: true,
-          canvasWidth: 1200,
-          canvasHeight: 800,
-          defaultSlideTitle: `${projectName} - Interactive Slide`
-        }
-      );
-
-      if (process.env['NODE_ENV'] === 'development') {
-
-
-
-
-
-
-
-
-      }
-
-      return { slideDeck: result.slideDeck, migrationResult: result };
+      // For now, require slide deck format
+      return { slideDeck: null };
     } catch (error) {
       console.error('Failed to process project:', error);
       throw new Error(`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -112,7 +79,6 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
       }
 
       setCurrentSlideDeck(processedSlideDeck.slideDeck);
-      setMigrationResult(processedSlideDeck.migrationResult);
       setIsInitialized(true);
     } catch (error) {
       console.error('Failed to initialize slide-based module:', error);
@@ -193,16 +159,32 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   if (isEditing) {
     return (
       <Suspense fallback={<LoadingScreen message="Loading Editor..." />}>
-        <UnifiedSlideEditor
-          slideDeck={currentSlideDeck}
-          projectName={projectName}
-          {...projectId && { projectId }}
-          onSlideDeckChange={handleSlideDeckChange}
-          onSave={handleSave}
-          onImageUpload={onImageUpload}
-          onClose={handleClose}
-          isPublished={isPublished}
-          migrationResult={migrationResult} />
+        <SimpleSlideEditor
+          slide={currentSlideDeck.slides[0] || {
+            id: 'default-slide',
+            title: projectName || 'New Slide',
+            elements: [],
+            backgroundMedia: {
+              type: 'image',
+              url: ''
+            },
+            layout: {
+              aspectRatio: '16:9',
+              scaling: 'fit',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            },
+            transitions: []
+          }}
+          onSlideChange={(updatedSlide) => {
+            const updatedDeck = {
+              ...currentSlideDeck,
+              slides: [updatedSlide]
+            };
+            handleSlideDeckChange(updatedDeck);
+          }}
+          className="h-full"
+        />
 
       </Suspense>);
 
@@ -214,7 +196,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
         viewerModes={viewerModes}
         autoStart={autoStart}
         onClose={handleClose}
-        migrationResult={migrationResult} />);
+ />);
 
 
   }

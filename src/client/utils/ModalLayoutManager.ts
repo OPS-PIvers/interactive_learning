@@ -64,7 +64,7 @@ export interface ModalConfig {
   allowResize?: boolean;
   preventOverlap?: boolean;
   respectKeyboard?: boolean;
-  isMobile?: boolean;
+  viewportWidth?: number; // For calculations only
 }
 
 /**
@@ -87,7 +87,8 @@ export class ModalLayoutManager {
    */
   calculateConstraints(): ModalConstraints {
     const { available, safeArea, toolbar } = this.boundaries;
-    const { size, placement, isMobile, preventOverlap } = this.config;
+    const { size, placement, viewportWidth, preventOverlap } = this.config;
+    const isNarrow = (viewportWidth || 1024) < 768;
 
     // Base constraints from available space
     let maxWidth = available.width;
@@ -103,16 +104,16 @@ export class ModalLayoutManager {
     }
 
     // Size-based adjustments
-    const sizeMultipliers = this.getSizeMultipliers(size, isMobile);
+    const sizeMultipliers = this.getSizeMultipliers(size, isNarrow);
     maxWidth = Math.floor(maxWidth * sizeMultipliers.width);
     maxHeight = Math.floor(maxHeight * sizeMultipliers.height);
 
     // Minimum constraints
-    const minWidth = isMobile ? 280 : 320;
-    const minHeight = isMobile ? 200 : 240;
+    const minWidth = isNarrow ? 280 : 320;
+    const minHeight = isNarrow ? 200 : 240;
 
     // Calculate margins based on placement and safe areas
-    const margins = this.calculateMargins(placement, safeArea, isMobile);
+    const margins = this.calculateMargins(placement, safeArea, isNarrow);
 
     return {
       minWidth,
@@ -127,11 +128,12 @@ export class ModalLayoutManager {
    * Calculate optimal modal position within constraints
    */
   calculatePosition(dimensions: ModalDimensions): ModalPosition {
-    const { placement, isMobile } = this.config;
+    const { placement, viewportWidth } = this.config;
     const { available, safeArea } = this.boundaries;
+    const isNarrow = (viewportWidth || 1024) < 768;
 
     const effectivePlacement = placement === 'auto' 
-      ? this.getAutoPlacement(isMobile) 
+      ? this.getAutoPlacement(isNarrow) 
       : placement;
 
     switch (effectivePlacement) {
@@ -179,7 +181,7 @@ export class ModalLayoutManager {
    * Get appropriate z-index values for modal type and device
    */
   getZIndexValues(): { backdrop: number; content: number; tailwind: { backdrop: string; content: string } } {
-    const { type, isMobile } = this.config;
+    const { type } = this.config;
 
     let backdrop: number;
     let content: number;
@@ -244,7 +246,8 @@ export class ModalLayoutManager {
   } {
     const constraints = this.calculateConstraints();
     const zIndex = this.getZIndexValues();
-    const { placement, isMobile } = this.config;
+    const { placement, viewportWidth } = this.config;
+    const isNarrow = (viewportWidth || 1024) < 768;
 
     const backdropStyles: React.CSSProperties = {
       position: 'fixed',
@@ -256,7 +259,7 @@ export class ModalLayoutManager {
       display: 'flex',
       alignItems: this.getFlexAlignment(placement),
       justifyContent: this.getFlexJustification(placement),
-      padding: this.getBackdropPadding(constraints, isMobile),
+      padding: this.getBackdropPadding(constraints, isNarrow),
     };
 
     const contentStyles: React.CSSProperties = {
@@ -341,8 +344,8 @@ export class ModalLayoutManager {
 
   // Private helper methods
 
-  private getSizeMultipliers(size: ModalSize, isMobile?: boolean): { width: number; height: number } {
-    const mobile = isMobile ?? false;
+  private getSizeMultipliers(size: ModalSize, isNarrow?: boolean): { width: number; height: number } {
+    const mobile = isNarrow ?? false;
 
     switch (size) {
       case 'small':
@@ -359,13 +362,13 @@ export class ModalLayoutManager {
     }
   }
 
-  private calculateMargins(placement: ModalPlacement, safeArea: LayoutBoundaries['safeArea'], isMobile?: boolean): {
+  private calculateMargins(placement: ModalPlacement, safeArea: LayoutBoundaries['safeArea'], isNarrow?: boolean): {
     marginTop: number;
     marginBottom: number;
     marginLeft: number;
     marginRight: number;
   } {
-    const basePadding = isMobile ? 16 : 24;
+    const basePadding = isNarrow ? 16 : 24;
 
     return {
       marginTop: safeArea.top + basePadding,
@@ -375,10 +378,10 @@ export class ModalLayoutManager {
     };
   }
 
-  private getAutoPlacement(isMobile?: boolean): ModalPlacement {
+  private getAutoPlacement(isNarrow?: boolean): ModalPlacement {
     const { type } = this.config;
     
-    if (isMobile) {
+    if (isNarrow) {
       return type === 'properties' ? 'bottom' : 'center';
     } else {
       return type === 'properties' ? 'right' : 'center';
@@ -407,7 +410,7 @@ export class ModalLayoutManager {
     }
   }
 
-  private getBackdropPadding(constraints: ModalConstraints, isMobile?: boolean): string {
+  private getBackdropPadding(constraints: ModalConstraints, isNarrow?: boolean): string {
     const { marginTop, marginRight, marginBottom, marginLeft } = constraints;
     return `${marginTop}px ${marginRight}px ${marginBottom}px ${marginLeft}px`;
   }

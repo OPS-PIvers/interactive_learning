@@ -23,7 +23,7 @@ export interface HotspotPositioningUtils {
 }
 
 export const useHotspotPositioning = (
-  isMobile: boolean
+  viewportWidth: number = 1024
 ) => {
   const getPixelPosition = useCallback(
     (

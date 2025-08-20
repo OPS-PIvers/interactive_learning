@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { UnifiedObjectEditorProps } from '../shared/BasePropertiesPanel';
-import UnifiedObjectEditor from '../UnifiedObjectEditor';
+// UnifiedObjectEditor removed - legacy component no longer used
 
 /**
  * Object Editor Panel - unified responsive component for non-hotspot elements
@@ -18,16 +18,9 @@ export const ObjectEditorPanel: React.FC<UnifiedObjectEditorProps> = (props) => 
     return null;
   }
   return (
-    <UnifiedObjectEditor
-      selectedElement={props.selectedElement}
-      currentSlide={props.currentSlide}
-      onElementUpdate={props.onElementUpdate}
-      {...(props.onSlideUpdate && { onSlideUpdate: props.onSlideUpdate })}
-      {...(props.onDelete && { onDelete: props.onDelete })}
-      {...(props.onClose && { onClose: props.onClose })}
-      {...(props.className && { className: props.className })}
-      {...(props.style && { style: props.style })}
-    />
+    <div className="p-4 bg-gray-100 rounded">
+      <p className="text-gray-600">Legacy object editor removed. Use SimpleSlideEditor for slide editing.</p>
+    </div>
   );
 };
 

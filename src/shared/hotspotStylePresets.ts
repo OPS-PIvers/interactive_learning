@@ -164,15 +164,15 @@ export const hotspotSizePresets: HotspotSizePreset[] = [
 // Default size
 export const defaultHotspotSize: HotspotSize = 'small';
 
-// Helper function to get size classes
-export const getHotspotSizeClasses = (size: HotspotSize = defaultHotspotSize, isMobile: boolean = false): string => {
+// Helper function to get responsive size classes
+export const getHotspotSizeClasses = (size: HotspotSize = defaultHotspotSize): string => {
   const preset = hotspotSizePresets.find(p => p.value === size);
   if (!preset) {
     // Fallback to small if size not found
     const fallback = hotspotSizePresets.find(p => p.value === 'small');
-    return isMobile ? fallback?.mobileClasses || 'h-12 w-12' : fallback?.desktopClasses || 'h-5 w-5';
+    return `${fallback?.mobileClasses || 'h-12 w-12'} md:${fallback?.desktopClasses || 'h-5 w-5'}`;
   }
-  return isMobile ? preset.mobileClasses : preset.desktopClasses;
+  return `${preset.mobileClasses} md:${preset.desktopClasses}`;
 };
 
 // New helper for responsive classes
@@ -200,17 +200,17 @@ const tailwindSizeMap: Record<string, number> = {
   'h-16': 64, 'w-16': 64
 };
 
-// Helper function to get hotspot pixel dimensions
-export const getHotspotPixelDimensions = (size: HotspotSize = defaultHotspotSize, isMobile: boolean = false): { width: number; height: number } => {
+// Helper function to get hotspot pixel dimensions (returns desktop size by default)
+export const getHotspotPixelDimensions = (size: HotspotSize = defaultHotspotSize, useDesktopSize: boolean = true): { width: number; height: number } => {
   const preset = hotspotSizePresets.find(p => p.value === size);
   if (!preset) {
     // Fallback to small if size not found
     const fallback = hotspotSizePresets.find(p => p.value === 'small');
-    const classes = isMobile ? fallback?.mobileClasses || 'h-12 w-12' : fallback?.desktopClasses || 'h-5 w-5';
+    const classes = useDesktopSize ? fallback?.desktopClasses || 'h-5 w-5' : fallback?.mobileClasses || 'h-12 w-12';
     return parseClassesToDimensions(classes);
   }
   
-  const classes = isMobile ? preset.mobileClasses : preset.desktopClasses;
+  const classes = useDesktopSize ? preset.desktopClasses : preset.mobileClasses;
   return parseClassesToDimensions(classes);
 };
 

@@ -84,10 +84,10 @@ export const ViewportManager: React.FC<ViewportManagerProps> = ({
     return 16 / 9; // Default to 16:9
   }, []);
 
-  // Calculate optimal scale for mobile
+  // Calculate optimal scale for narrow viewports
   const calculateOptimalScale = useCallback((viewportState: ViewportState) => {
-    const isMobile = viewportState.width < 768;
-    if (!isMobile || !enableAutoScale) return 1;
+    const isNarrow = viewportState.width < 768;
+    if (!isNarrow || !enableAutoScale) return 1;
 
     const targetAspectRatio = parseAspectRatio(aspectRatio);
     const padding = viewportState.isLandscape ? landscapePadding : portraitPadding;

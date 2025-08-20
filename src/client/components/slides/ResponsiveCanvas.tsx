@@ -95,12 +95,15 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   isEditable = true,
   onAspectRatioChange
 }) => {
-  // Device detection - Memoized to prevent unnecessary recalculations
-  const { deviceType: detectedDeviceType } = useDeviceDetection();
-  const deviceType = useMemo(() => 
-    deviceTypeOverride || detectedDeviceType, 
-    [deviceTypeOverride, detectedDeviceType]
-  );
+  // Viewport info for calculations - Memoized to prevent unnecessary recalculations
+  const { viewportInfo } = useDeviceDetection();
+  const deviceType = useMemo(() => {
+    if (deviceTypeOverride) return deviceTypeOverride;
+    // Determine device type from viewport width for calculations
+    if (viewportInfo.width < 768) return 'mobile';
+    if (viewportInfo.width < 1024) return 'tablet';
+    return 'desktop';
+  }, [deviceTypeOverride, viewportInfo.width]);
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -342,7 +345,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const currentPosition = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
+    const currentPosition = element.position?.[deviceType as keyof typeof element.position] || { x: 0, y: 0, width: 100, height: 100 };
 
     setDragState({
       isDragging: true,
@@ -423,7 +426,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const currentPosition = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
+    const currentPosition = element.position?.[deviceType as keyof typeof element.position] || { x: 0, y: 0, width: 100, height: 100 };
 
     setTouchState({
       isTouching: true,
@@ -543,7 +546,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     if (!currentSlide?.elements) return null;
 
     return currentSlide.elements.map((element) => {
-      const position = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
+      const position = element.position?.[deviceType as keyof typeof element.position] || { x: 0, y: 0, width: 100, height: 100 };
       const isSelected = element.id === selectedElementId;
 
       return (

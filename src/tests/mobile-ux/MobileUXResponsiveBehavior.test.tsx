@@ -11,14 +11,14 @@ import ViewerFooterToolbar from '../../client/components/ViewerFooterToolbar';
 // Mock hooks and utilities
 vi.mock('../../client/hooks/useDeviceDetection', () => ({
   useDeviceDetection: () => ({
-    deviceType: 'mobile',
     viewportInfo: {
       width: 390,
       height: 844,
-      isMobile: true,
-      isTablet: false,
-      isDesktop: false
-    }
+      pixelRatio: 2,
+      orientation: 'portrait'
+    },
+    isPortrait: true,
+    isLandscape: false
   })
 }));
 

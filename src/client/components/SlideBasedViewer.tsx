@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ViewerModes } from '../../shared/interactiveTypes';
-import { MigrationResult } from '../../shared/migrationUtils';
 import { SlideDeck, ElementInteraction } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -15,7 +14,6 @@ interface SlideBasedViewerProps {
   viewerModes: ViewerModes;
   autoStart?: boolean;
   onClose: () => void;
-  migrationResult?: MigrationResult | null;
 }
 
 /**
@@ -30,7 +28,6 @@ const SlideBasedViewer: React.FC<SlideBasedViewerProps> = ({
   viewerModes,
   autoStart = false,
   onClose,
-  migrationResult: _migrationResult
 }) => {
   useViewportHeight();
 

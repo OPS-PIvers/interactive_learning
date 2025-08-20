@@ -12,17 +12,12 @@ import { useDeviceDetection } from '../client/hooks/useDeviceDetection';
 // Mock device detection hook
 vi.mock('../client/hooks/useDeviceDetection', () => ({
   useDeviceDetection: vi.fn(() => ({
-    deviceType: 'desktop' as const,
     viewportInfo: {
       width: 1280,
       height: 800,
-      deviceType: 'desktop' as const,
       pixelRatio: 1,
       orientation: 'landscape' as const
     },
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
     isPortrait: false,
     isLandscape: true
   }))
@@ -246,7 +241,7 @@ describe('useLayoutConstraints Hook', () => {
       const constraints = result.current;
       
       // Note: These flags should NOT be used for UI rendering, only calculations
-      expect(typeof constraints.isMobile).toBe('boolean');
+      expect(typeof constraints.orientation).toBe('string');
       expect(constraints.layoutMode).toBe('standard'); // Should be CSS-controlled
       expect(constraints.orientation).toBe('landscape');
     });
@@ -423,17 +418,12 @@ describe('Edge Cases and Error Handling', () => {
     it('handles very small viewport gracefully', () => {
       // Mock extremely small viewport
       vi.mocked(useDeviceDetection).mockReturnValue({
-        deviceType: 'mobile',
         viewportInfo: {
           width: 100,
           height: 100,
-          deviceType: 'mobile',
           pixelRatio: 1,
           orientation: 'portrait'
         },
-        isMobile: true,
-        isTablet: false,
-        isDesktop: false,
         isPortrait: true,
         isLandscape: false
       });
@@ -448,17 +438,12 @@ describe('Edge Cases and Error Handling', () => {
     it('handles very large viewport gracefully', () => {
       // Mock extremely large viewport
       vi.mocked(useDeviceDetection).mockReturnValue({
-        deviceType: 'desktop',
         viewportInfo: {
           width: 5000,
           height: 5000,
-          deviceType: 'desktop',
           pixelRatio: 1,
           orientation: 'landscape'
         },
-        isMobile: false,
-        isTablet: false,
-        isDesktop: true,
         isPortrait: false,
         isLandscape: true
       });

@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
-import { DeviceType, ViewportInfo, ResponsivePosition } from '../../shared/slideTypes';
 
 /**
- * Hook for detecting device type and viewport information
- * Used by slide system for responsive positioning
+ * Hook for viewport information
+ * Used for mathematical calculations only - NOT for conditional UI rendering
+ * UI responsiveness should be handled with CSS breakpoints
  */
 export const useDeviceDetection = () => {
-  const [viewportInfo, setViewportInfo] = useState<ViewportInfo>(() => {
+  const [viewportInfo, setViewportInfo] = useState(() => {
     if (typeof window === 'undefined') {
       return {
         width: 1024,
         height: 768,
-        deviceType: 'desktop',
         pixelRatio: 1,
         orientation: 'landscape'
       };
@@ -20,7 +19,6 @@ export const useDeviceDetection = () => {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
-      deviceType: getDeviceType(window.innerWidth),
       pixelRatio: window.devicePixelRatio || 1,
       orientation: window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
     };
@@ -31,7 +29,6 @@ export const useDeviceDetection = () => {
       setViewportInfo({
         width: window.innerWidth,
         height: window.innerHeight,
-        deviceType: getDeviceType(window.innerWidth),
         pixelRatio: window.devicePixelRatio || 1,
         orientation: window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
       });
@@ -55,35 +52,26 @@ export const useDeviceDetection = () => {
   }, []);
 
   return {
-    deviceType: viewportInfo.deviceType,
     viewportInfo,
-    isMobile: viewportInfo.deviceType === 'mobile',
-    isTablet: viewportInfo.deviceType === 'tablet',
-    isDesktop: viewportInfo.deviceType === 'desktop',
+    // Orientation for calculations only
     isPortrait: viewportInfo.orientation === 'portrait',
     isLandscape: viewportInfo.orientation === 'landscape'
   };
 };
 
 /**
- * Determine device type based on viewport width
- */
-function getDeviceType(width: number): DeviceType {
-  if (width < 768) {
-    return 'mobile';
-  } else if (width < 1024) {
-    return 'tablet';
-  } else {
-    return 'desktop';
-  }
-}
-
-/**
- * Get responsive position based on device type
+ * Get responsive position for calculations
+ * Uses viewport width to determine appropriate responsive values
  */
 export const getResponsivePosition = (
-  responsivePosition: ResponsivePosition,
-  deviceType: DeviceType
+  responsivePosition: { desktop?: any; tablet?: any; mobile?: any },
+  viewportWidth: number
 ) => {
-  return responsivePosition[deviceType] || responsivePosition.desktop || responsivePosition;
+  if (viewportWidth < 768) {
+    return responsivePosition.mobile || responsivePosition.desktop || responsivePosition;
+  } else if (viewportWidth < 1024) {
+    return responsivePosition.tablet || responsivePosition.desktop || responsivePosition;
+  } else {
+    return responsivePosition.desktop || responsivePosition;
+  }
 };

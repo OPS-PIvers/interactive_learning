@@ -28,7 +28,6 @@ const mockConstraints = {
       '--layout-modal-max-width': '600px',
       '--layout-modal-max-height': '500px'
     },
-    isMobile: false,
     layoutMode: 'standard' as const,
     orientation: 'landscape' as const,
     toolbarHeight: 64,
@@ -63,7 +62,6 @@ const mockMobileConstraints = {
       maxWidth: 337,
       maxHeight: 450
     },
-    isMobile: true,
     layoutMode: 'compact' as const,
     orientation: 'portrait' as const
   },

@@ -24,8 +24,8 @@ export const SlideElement: React.FC<SlideElementProps> = ({
   onInteraction,
   onEdit
 }) => {
-  // Get position for current device
-  const position: FixedPosition = getResponsivePosition(element.position, deviceType);
+  // Get position for current viewport
+  const position: FixedPosition = getResponsivePosition(element.position, viewportInfo.width);
 
   // Interaction state management
   const [isPressed, setIsPressed] = useState(false);

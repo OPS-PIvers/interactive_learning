@@ -4,7 +4,7 @@ import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { SlideEffectRenderer } from './SlideEffectRenderer';
+import { EffectExecutor } from '../../utils/EffectExecutor';
 import { SlideElement } from './SlideElement';
 import { SlideTimeline } from './SlideTimeline';
 import '../../styles/slide-components.css';
@@ -41,7 +41,23 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   timelineAutoPlay = false
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { deviceType, viewportInfo } = useDeviceDetection();
+  const effectExecutorRef = useRef<EffectExecutor | null>(null);
+  const { viewportInfo } = useDeviceDetection();
+  const deviceType = viewportInfo.width < 768 ? 'mobile' : viewportInfo.width < 1024 ? 'tablet' : 'desktop';
+
+  // Initialize EffectExecutor
+  useEffect(() => {
+    if (containerRef.current && !effectExecutorRef.current) {
+      effectExecutorRef.current = new EffectExecutor(containerRef.current);
+    }
+  }, []);
+
+  // Cleanup effects on unmount
+  useEffect(() => {
+    return () => {
+      effectExecutorRef.current?.cleanupAllEffects();
+    };
+  }, []);
 
   // Viewer state
   const [viewerState, setViewerState] = useState<SlideViewerState>(() => {
@@ -66,8 +82,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     };
   });
 
-  // Active slide effects
-  const [activeEffects, setActiveEffects] = useState<SlideEffect[]>([]);
+  // Track active effect IDs for debugging
+  const [activeEffectIds, setActiveEffectIds] = useState<string[]>([]);
 
   // Timeline and playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -103,7 +119,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
     }));
 
     // Clear active effects when changing slides
-    setActiveEffects([]);
+    effectExecutorRef.current?.cleanupAllEffects();
+    setActiveEffectIds([]);
 
     onSlideChange?.(slideId, slideIndex);
   }, [slideDeck, onSlideChange]);
@@ -144,27 +161,32 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
   }, [viewerState.currentSlideIndex, slideDeck, navigateToSlide]);
 
   // Effect handling
-  const triggerEffect = useCallback((effect: SlideEffect) => {
+  const triggerEffect = useCallback(async (effect: SlideEffect) => {
+    console.log('🎬 Triggering effect via EffectExecutor:', effect.type, effect.id);
+    
+    if (!effectExecutorRef.current) {
+      console.warn('⚠️ EffectExecutor not initialized');
+      return;
+    }
 
-
-    setActiveEffects((prev) => {
-      const newEffects = [...prev, effect];
-
-      return newEffects;
-    });
-
-    // Auto-remove effect after duration
-    if (effect.duration > 0) {
-
-      setTimeout(() => {
-        setActiveEffects((prev) => prev.filter((e) => e.id !== effect.id));
-
-      }, effect.duration);
+    try {
+      await effectExecutorRef.current.executeEffect(effect);
+      setActiveEffectIds(prev => [...prev, effect.id]);
+      
+      // Track for cleanup
+      if (effect.duration > 0) {
+        setTimeout(() => {
+          setActiveEffectIds(prev => prev.filter(id => id !== effect.id));
+        }, effect.duration);
+      }
+    } catch (error) {
+      console.error('❌ Failed to execute effect:', error);
     }
   }, []);
 
   const clearEffect = useCallback((effectId: string) => {
-    setActiveEffects((prev) => prev.filter((e) => e.id !== effectId));
+    effectExecutorRef.current?.cleanupAllEffects();
+    setActiveEffectIds(prev => prev.filter(id => id !== effectId));
   }, []);
 
   // Expose methods via ref
@@ -293,7 +315,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           break;
         case 'Escape':
           event.preventDefault();
-          setActiveEffects([]);
+          effectExecutorRef.current?.cleanupAllEffects();
+          setActiveEffectIds([]);
           break;
       }
     };
@@ -532,7 +555,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
                 key={element.id}
                 element={scaledElement}
                 deviceType={deviceType}
-                viewportInfo={viewportInfo}
+                viewportInfo={{...viewportInfo, deviceType, orientation: viewportInfo.orientation as 'portrait' | 'landscape'}}
                 onInteraction={handleElementInteraction} />);
           });
           })()}
@@ -558,17 +581,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
       
       </div> {/* Close slide-viewer-main */}
 
-      {/* Active Effects - Positioned over entire viewer */}
-      {activeEffects.map((effect) =>
-      <SlideEffectRenderer
-        key={effect.id}
-        effect={effect}
-        containerRef={containerRef}
-        deviceType={deviceType}
-        canvasDimensions={canvasDimensions}
-        onComplete={() => clearEffect(effect.id)} />
-
-      )}
+      {/* Active Effects are now handled by EffectExecutor */}
 
       {/* Debug Info (development only with explicit flag) */}
       {process.env['NODE_ENV'] === 'development' && process.env['REACT_APP_DEBUG_OVERLAY'] === 'true' &&
@@ -577,7 +590,7 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
           Device: {deviceType}<br />
           Canvas: {canvasDimensions.width}x{canvasDimensions.height}<br />
           Scale: {canvasDimensions.scale.toFixed(2)}<br />
-          Effects: {activeEffects.length}<br />
+          Effects: {activeEffectIds.length}<br />
           Timeline: External control
         </div>
       }

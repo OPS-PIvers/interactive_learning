@@ -4,7 +4,7 @@ import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
 import { SlideViewer } from './slides/SlideViewer';
-import { UnifiedSlideEditor } from './slides/UnifiedSlideEditor';
+import SimpleSlideEditor from './slides/SimpleSlideEditor';
 
 
 /**
@@ -21,7 +21,7 @@ export const EditorTestPage: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState({
     viewport: `${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
     touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
-    userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
+    browser: 'CSS-responsive'
   });
 
   const [projectName, setProjectName] = useState('Mobile Editor Test');
@@ -116,7 +116,7 @@ export const EditorTestPage: React.FC = () => {
     setDebugInfo({
       viewport: `${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
       touchSupport: 'ontouchstart' in window ? 'Yes' : 'No',
-      userAgent: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'
+      browser: 'CSS-responsive'
     });
   };
 
@@ -170,7 +170,7 @@ export const EditorTestPage: React.FC = () => {
             <span className="text-slate-400">Viewport:</span> {debugInfo.viewport}
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
-            <span className="text-slate-400">Device:</span> 
+            <span className="text-slate-400">Layout:</span> 
             <span className="debug-device-type ml-1" />
           </div>
           <div className="bg-slate-700/50 p-2 rounded">
@@ -185,20 +185,20 @@ export const EditorTestPage: React.FC = () => {
         {/* Phase 3: CSS-only device detection styles */}
         <style>{`
           .debug-device-type::after {
-            content: 'Desktop';
+            content: 'Large';
             color: #60a5fa;
           }
           
           @media (max-width: 1023px) {
             .debug-device-type::after { 
-              content: 'Tablet'; 
+              content: 'Medium'; 
               color: #34d399;
             }
           }
           
           @media (max-width: 767px) {
             .debug-device-type::after { 
-              content: 'Mobile'; 
+              content: 'Small'; 
               color: #f59e0b;
             }
           }
@@ -209,18 +209,31 @@ export const EditorTestPage: React.FC = () => {
       <div className="flex-1 relative">
         {mode === 'editor' ? (
           <div className="h-full">
-            <UnifiedSlideEditor
-              slideDeck={slideDeck}
-              projectName={projectName}
-              projectTheme={projectTheme}
-              projectId={mockProject.id}
-              onSlideDeckChange={handleSlideDeckChange}
-              onProjectNameChange={handleProjectNameChange}
-              onProjectThemeChange={handleProjectThemeChange}
-              onSave={handleSave}
-              onImageUpload={handleImageUpload}
-              onClose={() => setMode('viewer')}
-              isPublished={false}
+            <SimpleSlideEditor
+              slide={slideDeck.slides[0] || {
+                id: 'test-slide',
+                title: 'Test Slide',
+                elements: [],
+                backgroundMedia: {
+                  type: 'image',
+                  url: ''
+                },
+                layout: {
+                  aspectRatio: '16:9',
+                  scaling: 'fit',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                },
+                transitions: []
+              }}
+              onSlideChange={(updatedSlide) => {
+                const updatedDeck = {
+                  ...slideDeck,
+                  slides: [updatedSlide]
+                };
+                handleSlideDeckChange(updatedDeck);
+              }}
+              className="h-full"
             />
           </div>
         ) : (

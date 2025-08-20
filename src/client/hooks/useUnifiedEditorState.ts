@@ -207,7 +207,8 @@ export const useUnifiedEditorState = (): UseUnifiedEditorStateReturn => {
   const [operations, setOperations] = useState<OperationState>(createDefaultOperationState);
   const [hotspotEditor, setHotspotEditor] = useState<HotspotEditorState>(createDefaultHotspotEditorState);
   const [interactionEditor, setInteractionEditor] = useState<InteractionEditorState>(createDefaultInteractionEditorState);
-  const { deviceType } = useDeviceDetection();
+  const { viewportInfo } = useDeviceDetection();
+  const deviceType = viewportInfo.width < 768 ? 'mobile' : viewportInfo.width < 1024 ? 'tablet' : 'desktop';
   
   // Computed values (device-agnostic)
   const computed = useMemo(() => {

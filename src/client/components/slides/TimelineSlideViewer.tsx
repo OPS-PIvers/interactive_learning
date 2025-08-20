@@ -11,7 +11,6 @@ import { InteractionType } from '../../../shared/InteractionPresets';
 import { SlideDeck, SlideViewerState, SlideEffect, EffectParameters } from '../../../shared/slideTypes';
 import { TimelineEventData } from '../../../shared/types';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
-import { convertTimelineEventToSlideEffect } from '../../utils/timelineEffectConverter';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { SlideViewer, SlideViewerRef } from './SlideViewer';
 
@@ -70,7 +69,8 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
   onClose,
   className = ''
 }) => {
-  const { deviceType } = useDeviceDetection();
+  const { viewportInfo } = useDeviceDetection();
+  const deviceType = viewportInfo.width < 768 ? 'mobile' : viewportInfo.width < 1024 ? 'tablet' : 'desktop';
 
   // Timeline and navigation state
   const [currentStep, setCurrentStep] = useState(1);
@@ -175,12 +175,13 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         const targetElement = slideDeck?.slides?.[slideIndex]?.elements?.find((el) => el.id === stepEvent.elementId);
 
         if (targetElement) {
-          const slideEffect = convertTimelineEventToSlideEffect(stepEvent.timelineEventData, {
+          // TODO: Implement timeline effect conversion
+          const slideEffect = null; /*convertTimelineEventToSlideEffect(stepEvent.timelineEventData, {
             slideDeck,
             currentSlideIndex: slideIndex !== -1 ? slideIndex : currentSlideIndex,
             targetElement,
             deviceType
-          });
+          });*/
 
 
 

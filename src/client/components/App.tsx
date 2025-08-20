@@ -15,7 +15,6 @@ import EditorTestPage from './EditorTestPage';
 import HookErrorBoundary from './HookErrorBoundary';
 import { SettingsIcon } from './icons/SettingsIcon';
 import InteractiveModuleWrapper from './InteractiveModuleWrapper';
-import MigrationTestPage from './MigrationTestPage';
 import ProjectCard from './ProjectCard';
 import ScrollStacks from './ScrollStacks';
 import SharedModuleViewer from './SharedModuleViewer';
@@ -585,7 +584,6 @@ const App: React.FC = () => {
             </div>
           } />
           <Route path="/slide-test" element={<SlideBasedTestPage />} />
-          <Route path="/migration-test" element={<MigrationTestPage />} />
           <Route path="/mobile-test" element={<EditorTestPage />} />
         </Routes>
       </Router>

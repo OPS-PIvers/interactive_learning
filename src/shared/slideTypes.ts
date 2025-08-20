@@ -537,5 +537,4 @@ export interface ThemePresetDefinition {
   theme: ProjectTheme;
 }
 
-// Migration from legacy format
-// This interface has been moved to src/shared/migration.ts to avoid circular dependencies.
+// End of slideTypes.ts

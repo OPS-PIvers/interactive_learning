@@ -49,8 +49,7 @@ export interface LayoutConstraints {
   // CSS variables for dynamic styling
   cssVariables: Record<string, string>;
   
-  // Device-specific flags
-  isMobile: boolean;
+  // Layout information for calculations only
   layoutMode: 'compact' | 'standard' | 'expanded';
   orientation: 'portrait' | 'landscape';
 
@@ -79,7 +78,7 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     respectKeyboard = true
   } = options;
 
-  const { deviceType, viewportInfo, isMobile } = useDeviceDetection();
+  const { viewportInfo } = useDeviceDetection();
   const { height: viewportHeight, availableHeight } = useViewportHeight();
 
   // Define key UI element heights for consistent calculations
@@ -222,9 +221,8 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     modal,
     zIndex,
     cssVariables,
-    isMobile: false, // This should not be used for rendering
     layoutMode: 'standard', // This should be handled by CSS
-    orientation: viewportInfo.orientation,
+    orientation: viewportInfo.orientation as 'portrait' | 'landscape',
     toolbarHeight,
     headerHeight,
   };
