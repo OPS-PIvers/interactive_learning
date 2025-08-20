@@ -71,6 +71,13 @@
   border-radius: 2px;
   margin: 8px auto;
   flex-shrink: 0;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .drag-handle {
+    display: none;
+  }
 }
 
 .modal-header {
@@ -104,4 +111,11 @@
   flex-grow: 1;
   overflow-y: auto;
   padding: 1rem;
+  max-height: 60vh;
+}
+
+@media (min-width: 768px) {
+  .modal-body {
+    max-height: none;
+  }
 }

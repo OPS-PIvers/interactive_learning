@@ -68,7 +68,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!allowSwipeDown || !modalRef.current) return;
     
-    const touch = e.touches?.[0];
+    const touch = e.touches && e.touches.length > 0 ? e.touches[0] : undefined;
     if (!touch) return;
     
     setStartY(touch.clientY);
@@ -79,7 +79,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging || !allowSwipeDown || !modalRef.current) return;
     
-    const touch = e.touches?.[0];
+    const touch = e.touches && e.touches.length > 0 ? e.touches[0] : undefined;
     if (!touch) return;
     
     const deltaY = touch.clientY - startY;
@@ -155,7 +155,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const contentClasses = [
     'responsive-modal-content',
     isDragging ? 'is-dragging' : '',
-    className,
+    className || '',
   ].join(' ');
 
   return (
@@ -175,7 +175,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="block md:hidden drag-handle" />
+        <div className="drag-handle" />
         <div className="modal-header">
           <h2 id="responsive-modal-title" className="modal-title">{title}</h2>
           <button
