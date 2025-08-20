@@ -1,7 +1,7 @@
+import { Firestore, Transaction } from 'firebase/firestore';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { firebaseAPI } from '../lib/firebaseApi';
 import { SlideDeck, InteractiveSlide, SlideElement, DeckMetadata, QuizParameters, TextStyle } from '../shared/slideTypes';
-import { Firestore, Transaction } from 'firebase/firestore';
 
 // Mock Firebase completely for type safety testing
 vi.mock('../lib/firebaseConfig', () => ({

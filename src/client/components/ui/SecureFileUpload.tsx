@@ -90,7 +90,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         {isUploading ? (
           <>
             <div className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500">
-              <div className="rounded-full border-2 border-gray-300 border-t-gray-600 w-full h-full"></div>
+              <div className="rounded-full border-2 border-gray-300 border-t-gray-600 w-full h-full" />
             </div>
             Uploading...
           </>

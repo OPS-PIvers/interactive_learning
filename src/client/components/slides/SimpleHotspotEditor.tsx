@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { SlideElement, ElementInteraction, SlideEffect, SlideEffectType } from '../../../shared/slideTypes';
-import { generateId } from '../../utils/generateId';
 import { EffectExecutor } from '../../utils/EffectExecutor';
+import { generateId } from '../../utils/generateId';
 import { Z_INDEX } from '../../utils/zIndexLevels';
 
 interface SimpleHotspotEditorProps {
@@ -86,7 +86,7 @@ export const SimpleHotspotEditor: React.FC<SimpleHotspotEditorProps> = ({
   }, [effectExecutor]);
 
   // Update hotspot appearance
-  const handleAppearanceChange = useCallback((field: string, value: any) => {
+  const handleAppearanceChange = useCallback((field: string, value: string | boolean) => {
     setEditedHotspot(prev => ({
       ...prev,
       style: {

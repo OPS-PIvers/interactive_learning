@@ -101,8 +101,8 @@ export const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
                         isSelected ? 'border-blue-400' : 'border-gray-300'
                       }`}
                       style={{
-                        width: Math.max(40, Math.min(60, 40 * (w! / h!))),
-                        height: Math.max(30, Math.min(40, 40 * (h! / w!))),
+                        width: Math.max(40, Math.min(60, 40 * (w / h))),
+                        height: Math.max(30, Math.min(40, 40 * (h / w))),
                       }}
                     />
                   </div>

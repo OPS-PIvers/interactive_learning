@@ -204,7 +204,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         });
       }
     }
-  }, [timelineEvents, slideDeck, currentSlideIndex, onSlideChange, onInteraction, deviceType]);
+  }, [timelineEvents, slideDeck, currentSlideIndex, onSlideChange, onInteraction]);
 
   // Handle previous step navigation
   const handlePrevStep = useCallback(() => {

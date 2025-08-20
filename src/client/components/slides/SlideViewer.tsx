@@ -2,9 +2,9 @@ import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperat
 import { SlideDeck, SlideViewerState, SlideEffect, ElementInteraction, DeviceType } from '../../../shared/slideTypes';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
+import { EffectExecutor } from '../../utils/EffectExecutor';
 import { ensureSlideElementInteractions } from '../../utils/interactionUtils';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { EffectExecutor } from '../../utils/EffectExecutor';
 import { SlideElement } from './SlideElement';
 import { SlideTimeline } from './SlideTimeline';
 import '../../styles/slide-components.css';

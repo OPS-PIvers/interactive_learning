@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useDeviceDetection } from '../client/hooks/useDeviceDetection';
 import { 
   useLayoutConstraints, 
   useModalConstraints, 
@@ -7,7 +8,6 @@ import {
   LayoutConstraints,
   ModalConstraintOptions 
 } from '../client/hooks/useLayoutConstraints';
-import { useDeviceDetection } from '../client/hooks/useDeviceDetection';
 
 // Mock device detection hook
 vi.mock('../client/hooks/useDeviceDetection', () => ({

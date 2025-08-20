@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         // Wait for next tick to ensure React has fully rendered
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => { setTimeout(resolve, 100); });
         
         // Dynamically import Firebase modules to prevent TDZ issues
         const { firebaseManager } = await import('./firebaseConfig');

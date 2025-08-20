@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { InteractiveSlide, SlideElement, BackgroundMedia } from '../../../shared/slideTypes';
-import { generateId } from '../../utils/generateId';
 import { EffectExecutor } from '../../utils/EffectExecutor';
-import SlideCanvas from './SlideCanvas';
-import BackgroundSelector from './BackgroundSelector';
+import { generateId } from '../../utils/generateId';
 import AspectRatioSelector from './AspectRatioSelector';
+import BackgroundSelector from './BackgroundSelector';
 import HotspotManager from './HotspotManager';
-import SimpleTimeline from './SimpleTimeline';
 import SimpleHotspotEditor from './SimpleHotspotEditor';
+import SimpleTimeline from './SimpleTimeline';
+import SlideCanvas from './SlideCanvas';
 
 interface RelativePosition {
   x: number; // 0-1 (percentage of canvas width)

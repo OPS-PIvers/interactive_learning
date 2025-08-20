@@ -8,15 +8,13 @@
 
 import React, { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../../shared/hotspotStylePresets';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { SlideDeck, InteractiveSlide, SlideElement, DeviceType, FixedPosition, ResponsivePosition, ElementInteraction } from '../../../shared/slideTypes';
+import { SlideDeck, SlideElement, DeviceType, FixedPosition, ResponsivePosition } from '../../../shared/slideTypes';
 import { ImageTransformState } from '../../../shared/types';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { useTouchGestures } from '../../hooks/useTouchGestures';
 import { calculateCanvasDimensions } from '../../utils/aspectRatioUtils';
 import { ViewportBounds } from '../../utils/touchUtils';
 import { Z_INDEX, Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { HotspotFeedbackAnimation } from '../ui/HotspotFeedbackAnimation';
 
 export interface ResponsiveCanvasProps {
   slideDeck: SlideDeck;
@@ -25,12 +23,10 @@ export interface ResponsiveCanvasProps {
   selectedElementId?: string | null;
   onElementSelect?: (elementId: string | null) => void;
   onElementUpdate?: (elementId: string, updates: Partial<SlideElement>) => void;
-  onSlideUpdate?: (slideUpdates: Partial<InteractiveSlide>) => void;
   onHotspotDoubleClick?: (elementId: string) => void;
   deviceTypeOverride?: DeviceType;
   className?: string;
   isEditable?: boolean;
-  onAspectRatioChange?: (slideIndex: number, aspectRatio: string) => void;
 }
 
 interface DragState {
@@ -88,12 +84,10 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   selectedElementId: propSelectedElementId,
   onElementSelect,
   onElementUpdate,
-  onSlideUpdate,
   onHotspotDoubleClick,
   deviceTypeOverride,
   className = '',
-  isEditable = true,
-  onAspectRatioChange
+  isEditable = true
 }) => {
   // Viewport info for calculations - Memoized to prevent unnecessary recalculations
   const { viewportInfo } = useDeviceDetection();
@@ -231,10 +225,6 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     };
   }, []);
 
-  const selectedElement = useMemo(() => {
-    if (!selectedElementId || !currentSlide) return null;
-    return currentSlide.elements?.find((el) => el.id === selectedElementId) || null;
-  }, [selectedElementId, currentSlide]);
 
   // Calculate viewport bounds for touch constraints
   const calculateViewportBounds = useCallback((): ViewportBounds => {
@@ -473,7 +463,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     }
   }, [touchState, deviceType, handleElementUpdate, currentSlide]);
 
-  const handleTouchEndElement = useCallback((e: React.TouchEvent) => {
+  const handleTouchEndElement = useCallback((_e: React.TouchEvent) => {
     if (!touchState.isTouching) return;
 
     const touchDuration = Date.now() - touchState.startTimestamp;
@@ -693,7 +683,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
                 src={currentSlide.backgroundMedia.url}
                 alt="Slide background"
                 className="w-full h-full object-cover"
-                onLoad={(e) => {
+                onLoad={() => {
 
 
 

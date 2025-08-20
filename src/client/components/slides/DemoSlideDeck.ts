@@ -1,4 +1,4 @@
-import { SlideDeck } from '../../../shared/slideTypes';
+import { PanZoomParameters, SlideDeck, SpotlightParameters } from '../../../shared/slideTypes';
 
 /**
  * Demo slide deck to test the new slide-based architecture
@@ -222,7 +222,7 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     // Update spotlight to center exactly on this position
     const spotlightEffect = welcomeHotspot.interactions?.[0]?.effect;
     if (spotlightEffect?.type === 'spotlight' && spotlightEffect.parameters) {
-      (spotlightEffect.parameters as any).position = {
+      (spotlightEffect.parameters as SpotlightParameters).position = {
         x: 705, y: 345, width: 60, height: 60  // Centered on hotspot
       };
     }
@@ -239,9 +239,12 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     // Update zoom to center exactly on this position
     const zoomEffect = bottomLeftHotspot.interactions?.[0]?.effect;
     if (zoomEffect?.type === 'pan_zoom' && zoomEffect.parameters) {
-      (zoomEffect.parameters as any)!.targetPosition = {
-        x: 35, y: 635, width: 60, height: 60  // Centered on hotspot
-      };
+      const params = zoomEffect.parameters as PanZoomParameters;
+      if (params) {
+        params.targetPosition = {
+          x: 35, y: 635, width: 60, height: 60  // Centered on hotspot
+        };
+      }
     }
   }
   

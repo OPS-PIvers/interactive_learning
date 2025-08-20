@@ -1,11 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../shared/hotspotStylePresets';
 import { HotspotData, HotspotSize } from '../../shared/types';
+import { GESTURE_DEFAULTS } from '../constants/interactionConstants';
 import useScreenReaderAnnouncements from '../hooks/useScreenReaderAnnouncements';
 import { triggerHapticFeedback } from '../utils/hapticUtils';
 import { getActualImageVisibleBoundsRelative, getCachedBoundingClientRect } from '../utils/imageBounds';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { GESTURE_DEFAULTS } from '../constants/interactionConstants';
 
 interface HotspotViewerProps {
   hotspot: HotspotData;

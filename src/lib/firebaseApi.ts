@@ -1,3 +1,4 @@
+import { getAnalytics, logEvent } from 'firebase/analytics';
 import {
   collection,
   doc,
@@ -14,9 +15,8 @@ import {
   FieldValue,
   DocumentData,
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { getFunctions, httpsCallable, HttpsCallable } from 'firebase/functions';
-import { getAnalytics, logEvent } from 'firebase/analytics';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { debugLog } from '../client/utils/debugUtils';
 import { networkMonitor } from '../client/utils/networkMonitor';
 import { InteractiveSlide, SlideDeck } from '../shared/slideTypes';

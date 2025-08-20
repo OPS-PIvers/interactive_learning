@@ -113,7 +113,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, [checkForQuizTriggers]);
+  }, [checkForQuizTriggers, isQuizActive, quizTriggers.length]);
 
   const togglePlay = () => {
     if (audioRef.current) {

@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import React from 'react';
 import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
 import SimpleSlideEditor from '../client/components/slides/SimpleSlideEditor';
-import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
 import { AuthProvider } from '../lib/authContext';
-import React from 'react';
+import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
 
 describe('CSS-only responsive design', () => {
   test('ResponsiveModal should use CSS media queries for responsiveness', () => {

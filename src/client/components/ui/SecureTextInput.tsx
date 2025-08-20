@@ -107,7 +107,7 @@ export const SecureTextInput: React.FC<SecureTextInputProps> = ({
       {autoSanitize && (
         <div className="mt-1 text-xs text-gray-500">
           <span className="inline-flex items-center">
-            <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+            <div className="w-2 h-2 bg-green-400 rounded-full mr-1" />
             Input is automatically sanitized
           </span>
         </div>

@@ -10,12 +10,12 @@ import AuthButton from '../AuthButton';
 import { CheckIcon } from '../icons/CheckIcon';
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 import { ExclamationCircleIcon } from '../icons/ExclamationCircleIcon';
+import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
 import { EyeIcon } from '../icons/EyeIcon';
 import { GearIcon } from '../icons/GearIcon';
 import { PencilIcon } from '../icons/PencilIcon';
 import { SaveIcon } from '../icons/SaveIcon';
 import { ShareIcon } from '../icons/ShareIcon';
-import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
 
 export interface ResponsiveHeaderProps {
   projectName: string;

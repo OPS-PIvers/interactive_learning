@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { SlideElement } from '../../../shared/slideTypes';
-import { generateId } from '../../utils/generateId';
 
 interface RelativePosition {
   x: number; // 0-1 (percentage of canvas width)
@@ -65,7 +64,7 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
 
   // Handle hotspot deletion with confirmation
   const handleDelete = (hotspotId: string, hotspotTitle: string) => {
-    if (confirm(`Delete hotspot "${hotspotTitle}"?`)) {
+    if (confirm(`Delete hotspot '${hotspotTitle}'?`)) {
       onHotspotDelete(hotspotId);
     }
   };

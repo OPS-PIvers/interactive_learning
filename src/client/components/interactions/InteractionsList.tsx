@@ -2,8 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
 import { SlideElement } from '../../../shared/slideTypes';
 import { PlusIcon } from '../icons/PlusIcon';
-import { XMarkIcon } from '../icons/XMarkIcon';
 import { SettingsIcon } from '../icons/SettingsIcon';
+import { XMarkIcon } from '../icons/XMarkIcon';
 import InteractionEditor from './InteractionEditor';
 
 interface InteractionsListProps {

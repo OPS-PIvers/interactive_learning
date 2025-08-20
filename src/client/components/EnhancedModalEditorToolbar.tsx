@@ -206,7 +206,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
       >
         {/* Modal Content */}
         <div 
-          className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto"
+          className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}

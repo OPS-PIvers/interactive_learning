@@ -3,8 +3,8 @@ import { SlideDeck, ThemePreset, ElementInteraction } from '../../shared/slideTy
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
-import { SlideViewer } from './slides/SlideViewer';
 import SimpleSlideEditor from './slides/SimpleSlideEditor';
+import { SlideViewer } from './slides/SlideViewer';
 
 
 /**

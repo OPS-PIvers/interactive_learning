@@ -4,8 +4,8 @@ import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import AuthButton from './AuthButton';
 import { CheckIcon } from './icons/CheckIcon';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { EyeIcon } from './icons/EyeIcon';
 import { ExternalLinkIcon } from './icons/ExternalLinkIcon';
+import { EyeIcon } from './icons/EyeIcon';
 import { GearIcon } from './icons/GearIcon';
 import { SaveIcon } from './icons/SaveIcon';
 import { ShareIcon } from './icons/ShareIcon';
@@ -63,7 +63,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   // Unified responsive toolbar using CSS breakpoints
   return (
     <>
-      <div className={`slide-editor-toolbar bg-slate-800 border-b border-slate-700 text-white shadow-2xl ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+      <div className={`slide-editor-toolbar bg-slate-900/80 border-b border-slate-700/50 text-white shadow-2xl backdrop-blur-sm ${Z_INDEX_TAILWIND.TOOLBAR}`}>
         <div className="flex items-center justify-between p-3 md:p-4">
           {/* Left: Back button and project info */}
           <div className="flex items-center gap-2 md:gap-4 min-w-0">

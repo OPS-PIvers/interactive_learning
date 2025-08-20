@@ -69,7 +69,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
       console.error('Failed to process project:', error);
       throw new Error(`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [initialData, slideDeck, projectName]);
+  }, [slideDeck]);
 
   // Initialize component
   useEffect(() => {

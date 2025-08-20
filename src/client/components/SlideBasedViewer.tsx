@@ -3,10 +3,10 @@ import { ViewerModes } from '../../shared/interactiveTypes';
 import { SlideDeck, ElementInteraction } from '../../shared/slideTypes';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import InteractionOverlay from './InteractionOverlay';
 import { SlideViewer } from './slides/SlideViewer';
 import TimelineSlideViewer from './slides/TimelineSlideViewer';
 import ViewerFooterToolbar from './ViewerFooterToolbar';
-import InteractionOverlay from './InteractionOverlay';
 
 interface SlideBasedViewerProps {
   slideDeck: SlideDeck;
