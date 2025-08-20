@@ -75,7 +75,7 @@ export const setDynamicViewportProperties = (): (() => void) => {
   updateViewport(); // Set initial values
 
   // Use throttling to avoid excessive updates
-  let timeout: NodeJS.Timeout;
+  let timeout: number;
   const throttledUpdate = () => {
     clearTimeout(timeout);
     timeout = setTimeout(updateViewport, 100);
