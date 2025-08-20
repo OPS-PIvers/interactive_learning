@@ -3,7 +3,7 @@ export function throttle<T extends (...args: unknown[]) => void>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let lastFunc: NodeJS.Timeout | undefined;
+  let lastFunc: number | undefined;
   let lastRan: number | undefined;
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
@@ -35,7 +35,7 @@ export function debounce<T extends (...args: unknown[]) => void>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | undefined;
+  let timeoutId: number | undefined;
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
      

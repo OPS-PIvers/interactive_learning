@@ -1,3 +1,4 @@
+import React from 'react';
 import { TimelineEventData } from './type-defs';
 import { HotspotData } from './types';
 

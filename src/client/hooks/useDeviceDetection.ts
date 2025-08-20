@@ -35,7 +35,7 @@ export const useDeviceDetection = () => {
     };
 
     // Debounced resize handler
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: number;
     const debouncedResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(updateViewportInfo, 150);
