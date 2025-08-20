@@ -209,30 +209,32 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center gap-4">
+          {/* Modal Header - Improved mobile touch targets */}
+          <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 md:gap-4 min-w-0">
               <button
                 onClick={onLivePreview}
-                className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                aria-label="Open live preview of project"
               >
-                <span className="font-medium">Live Preview</span>
+                <span className="text-sm md:text-base font-medium">Preview</span>
               </button>
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                aria-label="Go back to editing mode"
               >
-                <ChevronLeftIcon className="w-5 h-5" />
-                <span className="font-medium">Back</span>
+                <ChevronLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden md:inline text-sm md:text-base font-medium">Back</span>
               </button>
               
-              <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
+              <div className="hidden md:block h-6 w-px bg-slate-300 dark:bg-slate-600" />
               
-              <div>
-                <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white truncate">
                   Editor Settings
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">
                   {projectName}
                 </p>
               </div>
@@ -240,16 +242,16 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="Close settings"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+              aria-label="Close editor settings modal"
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - Mobile responsive */}
           <div className="border-b border-slate-200 dark:border-slate-700">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+            <nav className="flex space-x-4 md:space-x-8 px-4 md:px-6 overflow-x-auto scrollbar-hide" aria-label="Editor settings tabs" role="tablist">
               {[
                 { id: 'general', name: 'General', icon: null },
                 { id: 'appearance', name: 'Appearance', icon: null },
@@ -258,11 +260,14 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`flex items-center gap-1 md:gap-2 py-3 md:py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-base transition-colors min-w-[44px] min-h-[44px] whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                   }`}
+                  aria-selected={activeTab === tab.id}
+                  role="tab"
+                  aria-controls={`${tab.id}-panel`}
                 >
                   {tab.icon && <span>{tab.icon}</span>}
                   <span>{tab.name}</span>
@@ -271,8 +276,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
             </nav>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6 overflow-y-auto flex-1">
+          {/* Tab Content - Mobile responsive padding */}
+          <div className="p-4 md:p-6 overflow-y-auto flex-1">
             {/* General Tab */}
             {activeTab === 'general' && (
               <div className="space-y-6">
