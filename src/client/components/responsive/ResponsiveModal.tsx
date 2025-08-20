@@ -137,14 +137,14 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
-  
+
   // Handle backdrop click
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !preventCloseOnBackdropClick) {
       onClose();
     }
   }, [onClose, preventCloseOnBackdropClick]);
-  
+
   if (!isRendered) return null;
 
   const backdropClasses = [

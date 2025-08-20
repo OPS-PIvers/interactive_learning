@@ -532,6 +532,29 @@ return (
 
 ---
 
+## 🚨 Preventing Build Failures
+
+To prevent regressions and ensure the application always remains in a deployable state, it is **mandatory** to run type checks before every commit. Future agents should consider implementing a pre-commit hook to automate this process.
+
+### Recommended Pre-Commit Hook Setup
+
+You can use a library like `husky` to set up a pre-commit hook.
+
+1.  **Install husky:**
+    ```bash
+    npm install husky --save-dev
+    ```
+2.  **Activate hooks:**
+    ```bash
+    npx husky install
+    ```
+3.  **Add a pre-commit hook:**
+    ```bash
+    npx husky add .husky/pre-commit "npm run typecheck"
+    ```
+
+This will ensure that `npm run typecheck` is run automatically before every commit, catching TypeScript errors locally and preventing them from breaking the build and deploy workflow.
+
 ## 🚨 CRITICAL: Unified Architecture Enforcement
 
 **This application uses 100% unified responsive architecture. Any violation of these principles will break the system's consistency and maintainability.**
