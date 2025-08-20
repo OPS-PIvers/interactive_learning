@@ -10,6 +10,7 @@
 
 import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { useModalConstraints } from '../../hooks/useLayoutConstraints';
+import './ResponsiveModal.css';
 
 export interface ResponsiveModalProps {
   type: 'slides' | 'background' | 'insert' | 'aspectRatio' | 'share' | 'settings' | 'properties';
@@ -41,7 +42,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   allowSwipeDown = true,
 }) => {
   // Use the unified constraint system for responsive modal positioning
-  const { constraints, styles, tailwindClasses } = useModalConstraints({
+  const { constraints } = useModalConstraints({
     type: type === 'properties' ? 'properties' : 'standard',
     position,
     size,
@@ -64,17 +65,18 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   
   // Touch gesture handlers for mobile bottom sheet behavior
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!allowSwipeDown) return;
+    if (!allowSwipeDown || !modalRef.current) return;
     
     const touch = e.touches?.[0];
     if (!touch) return;
     
     setStartY(touch.clientY);
     setIsDragging(true);
+    modalRef.current.style.transition = 'none'; // Disable transition during drag
   }, [allowSwipeDown]);
   
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !allowSwipeDown) return;
+    if (!isDragging || !allowSwipeDown || !modalRef.current) return;
     
     const touch = e.touches?.[0];
     if (!touch) return;
@@ -84,29 +86,22 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     // Only allow downward dragging
     if (deltaY > 0) {
       setDragY(deltaY);
-      
-      // Update modal position during drag
-      if (modalRef.current) {
-        modalRef.current.style.transform = `translateY(${deltaY}px)`;
-        modalRef.current.style.transition = 'none';
-      }
+      modalRef.current.style.transform = `translateY(${deltaY}px)`;
     }
   }, [isDragging, startY, allowSwipeDown]);
   
   const handleTouchEnd = useCallback(() => {
-    if (!isDragging || !allowSwipeDown) return;
+    if (!isDragging || !allowSwipeDown || !modalRef.current) return;
     
     setIsDragging(false);
+    modalRef.current.style.transition = ''; // Re-enable transition
     
     // If dragged down more than 100px, close the modal
     if (dragY > 100) {
       onClose();
     } else {
       // Snap back to original position
-      if (modalRef.current) {
-        modalRef.current.style.transform = '';
-        modalRef.current.style.transition = '';
-      }
+      modalRef.current.style.transform = '';
     }
     
     setDragY(0);
@@ -135,64 +130,56 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     }
   }, [onClose, preventCloseOnBackdropClick]);
   
-  if (!isOpen) return null;
-  
+  if (!isOpen && !isDragging) return null;
+
+  const backdropClasses = [
+    'responsive-modal-backdrop',
+    isOpen ? 'open' : '',
+    `items-end md:items-center`,
+    `justify-center`,
+  ].join(' ');
+
+  const contentClasses = [
+    'responsive-modal-content',
+    isDragging ? 'is-dragging' : '',
+    className,
+  ].join(' ');
+
   return (
-    <>
+    <div
+      className={backdropClasses}
+      style={constraints.cssVariables}
+      onClick={handleBackdropClick}
+    >
       <div
-        className={`responsive-modal-desktop ${tailwindClasses.backdrop} flex
-                   /* Mobile: items-end for bottom sheet, Desktop: items-center for center */
-                   items-end md:items-center justify-center md:justify-center`}
-        style={{
-          ...styles.backdrop,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-        }}
-        onClick={handleBackdropClick}
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="responsive-modal-title"
+        className={contentClasses}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        <div
-          ref={modalRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="responsive-modal-title"
-          className={`
-            bg-slate-800 text-white shadow-2xl overflow-hidden
-            responsive-modal-mobile md:modal-content
-            w-full md:w-auto
-            ${isOpen ? 'open' : ''}
-            ${className}
-          `}
-          style={styles.content}
-          onClick={(e) => e.stopPropagation()}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Mobile drag handle - only visible on mobile */}
-          <div className="block md:hidden drag-handle" />
-          
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-700">
-            <h2 id="responsive-modal-title" className="text-lg font-semibold text-white">{title}</h2>
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
-              aria-label="Close modal"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          {/* Modal Content */}
-          <div className="flex-1 overflow-y-auto max-h-[60vh] md:max-h-none">
-            {children}
-          </div>
+        <div className="block md:hidden drag-handle" />
+        <div className="modal-header">
+          <h2 id="responsive-modal-title" className="modal-title">{title}</h2>
+          <button
+            onClick={onClose}
+            className="modal-close-button"
+            aria-label="Close modal"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="modal-body">
+          {children}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
