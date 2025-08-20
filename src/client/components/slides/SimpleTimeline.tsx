@@ -62,7 +62,7 @@ export const SimpleTimeline: React.FC<SimpleTimelineProps> = ({
 
   // Get effect type display
   const getEffectDisplay = (interaction: ElementInteraction) => {
-    const type = interaction.effect.type;
+    const type = interaction?.effect?.type;
     const icons: Record<string, string> = {
       'spotlight': '🎯',
       'text': '📝',
@@ -171,9 +171,9 @@ export const SimpleTimeline: React.FC<SimpleTimelineProps> = ({
                             </div>
                             <div className="text-sm text-gray-500 flex items-center gap-2">
                               <span>{effectIcon}</span>
-                              <span className="capitalize">{event.interaction.effect.type}</span>
-                              {event.interaction.effect.duration > 0 && (
-                                <span>• {event.interaction.effect.duration}ms</span>
+                              <span className="capitalize">{event.interaction?.effect?.type}</span>
+                              {event.interaction?.effect?.duration > 0 && (
+                                <span>• {event.interaction?.effect?.duration}ms</span>
                               )}
                             </div>
                           </div>

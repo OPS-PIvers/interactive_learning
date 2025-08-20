@@ -310,8 +310,8 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
                     : 'bg-blue-400 border-blue-500 hover:bg-blue-500'
                 }`}
                 style={{
-                  backgroundColor: hotspot.element.style?.backgroundColor || '#3b82f6',
-                  borderColor: hotspot.element.style?.borderColor || '#1e40af',
+                  backgroundColor: hotspot.element?.style ? hotspot.element.style.backgroundColor : '#3b82f6',
+                  borderColor: hotspot.element?.style ? hotspot.element.style.borderColor : '#1e40af',
                   opacity: isDragging ? 0.8 : 1,
                 }}
               >

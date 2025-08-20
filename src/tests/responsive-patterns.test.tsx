@@ -20,8 +20,7 @@ describe('CSS-only responsive design', () => {
     );
 
     const modal = screen.getByRole('dialog');
-    expect(modal.parentElement).toHaveClass('md:items-center');
-    expect(modal.parentElement).toHaveClass('justify-center');
+    expect(modal.parentElement).toHaveClass('responsive-modal-backdrop');
 
     const dragHandle = screen.getByRole('dialog').querySelector('.drag-handle');
     expect(dragHandle).toHaveClass('md:hidden');

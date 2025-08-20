@@ -239,7 +239,7 @@ export const convertAIStudioToSlides = (aiStudioImageUrl: string): SlideDeck => 
     // Update zoom to center exactly on this position
     const zoomEffect = bottomLeftHotspot.interactions?.[0]?.effect;
     if (zoomEffect?.type === 'pan_zoom' && zoomEffect.parameters) {
-      (zoomEffect.parameters as any).targetPosition = {
+      (zoomEffect.parameters as any)!.targetPosition = {
         x: 35, y: 635, width: 60, height: 60  // Centered on hotspot
       };
     }

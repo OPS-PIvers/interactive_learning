@@ -176,7 +176,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="drag-handle" />
+        <div className="drag-handle md:hidden" />
         <div className="modal-header">
           <h2 id="responsive-modal-title" className="modal-title">{title}</h2>
           <button

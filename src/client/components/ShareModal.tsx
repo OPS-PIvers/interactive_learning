@@ -29,7 +29,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
   });
   const [activeTab, setActiveTab] = useState<'url' | 'embed'>('url');
   const [copySuccess, setCopySuccess] = useState<string>('');
-  const [isPublished, setIsPublished] = useState(project?.isPublished ?? false);
+  const [isPublished, setIsPublished] = useState(project ? project.isPublished : false);
   const [isToggling, setIsToggling] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const urlInputRef = useRef<HTMLInputElement>(null);

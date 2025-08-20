@@ -101,8 +101,8 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
           ) : (
             hotspots.map((hotspot) => {
               const isSelected = selectedHotspotId === hotspot.id;
-              const title = hotspot.element.content?.title || `Hotspot ${hotspot.id.slice(-4)}`;
-              const hasInteractions = (hotspot.element.interactions?.length || 0) > 0;
+              const title = hotspot.element?.content?.title || `Hotspot ${hotspot.id.slice(-4)}`;
+              const hasInteractions = (hotspot.element?.interactions?.length || 0) > 0;
               
               return (
                 <div
@@ -120,8 +120,8 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
                       <div
                         className="w-4 h-4 rounded-full border-2"
                         style={{
-                          backgroundColor: hotspot.element.style?.backgroundColor || '#3b82f6',
-                          borderColor: hotspot.element.style?.borderColor || '#1e40af',
+                          backgroundColor: hotspot.element.style ? hotspot.element.style.backgroundColor : '#3b82f6',
+                          borderColor: hotspot.element.style ? hotspot.element.style.borderColor : '#1e40af',
                         }}
                       />
                       
@@ -184,10 +184,10 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="text-xs text-gray-500 space-y-1">
               <div>
-                Interactive: {hotspots.filter(h => (h.element.interactions?.length || 0) > 0).length} of {hotspots.length}
+                Interactive: {hotspots.filter(h => (h.element && h.element.interactions?.length || 0) > 0).length} of {hotspots.length}
               </div>
               <div>
-                Total interactions: {hotspots.reduce((sum, h) => sum + (h.element.interactions?.length || 0), 0)}
+                Total interactions: {hotspots.reduce((sum, h) => sum + (h.element && h.element.interactions?.length || 0), 0)}
               </div>
             </div>
           </div>

@@ -8,9 +8,9 @@ import { AuthProvider } from '../lib/authContext';
 import { SlideDeck, DeviceType } from '../shared/slideTypes';
 
 // Mock child components to isolate testing
-vi.mock('../client/components/slides/UnifiedSlideEditor', () => ({
+vi.mock('../client/components/slides/SimpleSlideEditor', () => ({
   __esModule: true,
-  default: () => <div data-testid="unified-slide-editor-mock">UnifiedSlideEditor</div>,
+  default: () => <div data-testid="unified-slide-editor">SimpleSlideEditor</div>,
 }));
 vi.mock('../client/components/SlideBasedViewer', () => ({
   __esModule: true,
@@ -127,7 +127,7 @@ describe('React Error Detection Tests', () => {
         </AuthProvider>
       );
       await waitFor(() => {
-        expect(screen.getByTestId('unified-slide-editor-mock')).toBeInTheDocument();
+        expect(screen.getByTestId('unified-slide-editor')).toBeInTheDocument();
       });
       const hookErrors = consoleErrorSpy.mock.calls.filter(call =>
         call.some(arg => typeof arg === 'string' && arg.includes('Rules of Hooks'))

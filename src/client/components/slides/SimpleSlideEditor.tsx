@@ -267,7 +267,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   );
 
   return (
-    <div className={`simple-slide-editor ${className}`}>
+    <div className={`simple-slide-editor ${className}`} data-testid="unified-slide-editor">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
         {/* Left Sidebar - Controls */}
         <div className="space-y-6 overflow-y-auto">
