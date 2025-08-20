@@ -128,7 +128,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
-      return () => {}; // Return a no-op cleanup function
     } else {
       // Let the close animation finish before unmounting
       const timer = setTimeout(() => {
@@ -151,9 +150,6 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const backdropClasses = [
     'responsive-modal-backdrop',
     isOpen ? 'open' : '',
-    'items-end',
-    'md:items-center',
-    'justify-center',
   ].join(' ');
 
   const contentClasses = [
@@ -179,7 +175,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="drag-handle md:hidden" />
+        <div className="drag-handle" />
         <div className="modal-header">
           <h2 id="responsive-modal-title" className="modal-title">{title}</h2>
           <button
