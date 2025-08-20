@@ -128,6 +128,9 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
+      return () => {
+        // No cleanup needed when opening, but returning a function for type consistency.
+      };
     } else {
       // Let the close animation finish before unmounting
       const timer = setTimeout(() => {

@@ -224,7 +224,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
         if (currentStep && nextStep) {
           const delay = (nextStep.timestamp - currentStep.timestamp) * 1000 / playbackSpeed;
 
-          autoPlayTimerRef.current = setTimeout(() => {
+          autoPlayTimerRef.current = window.setTimeout(() => {
             handleStepChange(nextStepIndex);
           }, Math.max(delay, 1000)); // Minimum 1 second between steps
         }
@@ -236,7 +236,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
     
     return () => {
       if (autoPlayTimerRef.current) {
-        clearTimeout(autoPlayTimerRef.current);
+        window.clearTimeout(autoPlayTimerRef.current);
       }
     };
   }, [isPlaying, currentStepIndex, timelineSteps, playbackSpeed, handleStepChange]);
@@ -261,7 +261,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const handlePause = useCallback(() => {
     setIsPlaying(false);
     if (autoPlayTimerRef.current) {
-      clearTimeout(autoPlayTimerRef.current);
+      window.clearTimeout(autoPlayTimerRef.current);
     }
   }, []);
   
@@ -269,7 +269,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
     setIsPlaying(false);
     setCurrentStepIndex(0);
     if (autoPlayTimerRef.current) {
-      clearTimeout(autoPlayTimerRef.current);
+      window.clearTimeout(autoPlayTimerRef.current);
     }
   }, []);
   

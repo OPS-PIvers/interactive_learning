@@ -54,7 +54,7 @@ export const useSlideAnimations = () => {
       // Wait for delay before starting animation
       if (sequence.delay > 0) {
         await new Promise(resolve => {
-          sequenceTimeoutRef.current = setTimeout(resolve, sequence.delay);
+          sequenceTimeoutRef.current = window.setTimeout(resolve, sequence.delay);
         });
       }
 
@@ -83,7 +83,7 @@ export const useSlideAnimations = () => {
   // Stop animation sequence
   const stopAnimationSequence = useCallback(() => {
     if (sequenceTimeoutRef.current) {
-      clearTimeout(sequenceTimeoutRef.current);
+      window.clearTimeout(sequenceTimeoutRef.current);
       sequenceTimeoutRef.current = null;
     }
 
@@ -127,7 +127,7 @@ export const useSlideAnimations = () => {
   useEffect(() => {
     return () => {
       if (sequenceTimeoutRef.current) {
-        clearTimeout(sequenceTimeoutRef.current);
+        window.clearTimeout(sequenceTimeoutRef.current);
       }
     };
   }, []);
@@ -220,7 +220,7 @@ export const useSequencedAnimations = () => {
       
       if (i < elementIds.length - 1) {
         await new Promise(resolve => {
-          setTimeout(resolve, staggerDelay);
+          window.setTimeout(resolve, staggerDelay);
         });
       }
     }

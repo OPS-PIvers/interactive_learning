@@ -40,15 +40,15 @@ export const useDeviceDetection = () => {
     // Debounced resize handler
     let timeoutId: number;
     const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(updateViewportInfo, 150);
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(updateViewportInfo, 150);
     };
 
     window.addEventListener('resize', debouncedResize);
     window.addEventListener('orientationchange', updateViewportInfo);
 
     return () => {
-      clearTimeout(timeoutId);
+      window.clearTimeout(timeoutId);
       window.removeEventListener('resize', debouncedResize);
       window.removeEventListener('orientationchange', updateViewportInfo);
     };

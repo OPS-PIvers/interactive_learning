@@ -77,8 +77,8 @@ export const setDynamicViewportProperties = (): (() => void) => {
   // Use throttling to avoid excessive updates
   let timeout: number;
   const throttledUpdate = () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(updateViewport, 100);
+    window.clearTimeout(timeout);
+    timeout = window.setTimeout(updateViewport, 100);
   };
 
   // Listen to all relevant viewport change events
@@ -92,7 +92,7 @@ export const setDynamicViewportProperties = (): (() => void) => {
 
   // Return cleanup function
   return () => {
-    clearTimeout(timeout);
+    window.clearTimeout(timeout);
     window.removeEventListener('resize', throttledUpdate);
     window.removeEventListener('orientationchange', throttledUpdate);
     if (window.visualViewport) {

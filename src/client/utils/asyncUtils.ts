@@ -14,9 +14,9 @@ export function throttle<T extends (...args: unknown[]) => void>(
       lastRan = Date.now();
     } else {
       if (lastFunc) {
-        clearTimeout(lastFunc);
+        window.clearTimeout(lastFunc);
       }
-      lastFunc = setTimeout(
+      lastFunc = window.setTimeout(
         () => {
           if (Date.now() - (lastRan || 0) >= limit) {
             func.apply(context, args);
@@ -41,9 +41,9 @@ export function debounce<T extends (...args: unknown[]) => void>(
      
     const context = this;
     if (timeoutId) {
-      clearTimeout(timeoutId);
+      window.clearTimeout(timeoutId);
     }
-    timeoutId = setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       func.apply(context, args);
     }, delay);
   };
