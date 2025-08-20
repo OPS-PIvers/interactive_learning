@@ -28,7 +28,7 @@ export const useSlideAnimations = () => {
   });
 
   const animationControls = useAnimationControls();
-  const sequenceTimeoutRef = useRef<number | null>(null);
+  const sequenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationSequenceRef = useRef<AnimationSequence[]>([]);
 
   // Play a sequence of animations

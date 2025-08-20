@@ -128,6 +128,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
+      return; // Early return for the isOpen case
     } else {
       // Let the close animation finish before unmounting
       const timer = setTimeout(() => {

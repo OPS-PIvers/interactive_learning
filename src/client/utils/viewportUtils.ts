@@ -75,7 +75,7 @@ export const setDynamicViewportProperties = (): (() => void) => {
   updateViewport(); // Set initial values
 
   // Use throttling to avoid excessive updates
-  let timeout: number;
+  let timeout: ReturnType<typeof setTimeout>;
   const throttledUpdate = () => {
     clearTimeout(timeout);
     timeout = setTimeout(updateViewport, 100);

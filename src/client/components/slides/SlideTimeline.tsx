@@ -142,7 +142,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [timelineSteps, setTimelineSteps] = useState<TimelineStep[]>([]);
   const timelineRef = useRef<HTMLDivElement>(null);
-  const autoPlayTimerRef = useRef<number | null>(null);
+  const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevIsPlaying = useRef(autoPlay);
   
   // Generate timeline steps from slide interactions
