@@ -55,15 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setMessage('');
   }, [isLogin, showReset]);
 
-  // CSS class constants to avoid duplication
-  const INPUT_CLASSES = "w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-100";
-  const PRIMARY_BUTTON_CLASSES = "w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors";
-  const IS_DISABLED = loading || !firebaseInitialized;
-  const LINK_BUTTON_CLASSES = "text-purple-400 hover:text-purple-300 text-sm transition-colors";
-  const LINK_BUTTON_SEMIBOLD_CLASSES = "text-purple-400 hover:text-purple-300 text-sm font-semibold";
-
-  if (!isOpen) return null;
-
+  // Error message mapping function
   const getErrorMessage = (errorCode: string): string => {
     switch (errorCode) {
       case 'auth/user-not-found':
@@ -86,6 +78,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         return 'An error occurred. Please try again.';
     }
   };
+
+  // CSS class constants to avoid duplication
+  const INPUT_CLASSES = "w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-100";
+  const PRIMARY_BUTTON_CLASSES = "w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors";
+  const IS_DISABLED = loading || !firebaseInitialized;
+  const LINK_BUTTON_CLASSES = "text-purple-400 hover:text-purple-300 text-sm transition-colors";
+  const LINK_BUTTON_SEMIBOLD_CLASSES = "text-purple-400 hover:text-purple-300 text-sm font-semibold";
+
+  if (!isOpen) return null;
 
   const resetForm = () => {
     setEmail('');
