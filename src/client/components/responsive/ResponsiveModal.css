@@ -10,6 +10,8 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
+  align-items: flex-end; /* Mobile-first default */
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   z-index: var(--layout-z-backdrop);
@@ -45,6 +47,10 @@
 }
 
 @media (min-width: 768px) {
+  .responsive-modal-backdrop {
+    align-items: center; /* Desktop override */
+  }
+
   .responsive-modal-content {
     transform: scale(0.95);
     border-radius: 0.75rem;

@@ -54,6 +54,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [startY, setStartY] = useState(0);
+  const [isRendered, setIsRendered] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
   
   // Handle escape key
@@ -72,7 +73,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     
     setStartY(touch.clientY);
     setIsDragging(true);
-    modalRef.current.style.transition = 'none'; // Disable transition during drag
+    // Transition is disabled via CSS class 'is-dragging'
   }, [allowSwipeDown]);
   
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -123,6 +124,20 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     };
   }, [isOpen, handleKeyDown]);
   
+  // Manage rendering state for closing animation
+  useEffect(() => {
+    if (isOpen) {
+      setIsRendered(true);
+    } else {
+      // Let the close animation finish before unmounting
+      const timer = setTimeout(() => {
+        setIsRendered(false);
+      }, 300); // Match CSS transition duration
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+  
   // Handle backdrop click
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !preventCloseOnBackdropClick) {
@@ -130,13 +145,11 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     }
   }, [onClose, preventCloseOnBackdropClick]);
   
-  if (!isOpen && !isDragging) return null;
+  if (!isRendered) return null;
 
   const backdropClasses = [
     'responsive-modal-backdrop',
     isOpen ? 'open' : '',
-    `items-end md:items-center`,
-    `justify-center`,
   ].join(' ');
 
   const contentClasses = [
