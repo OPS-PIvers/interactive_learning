@@ -268,9 +268,10 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   return (
     <div className={`simple-slide-editor ${className}`} data-testid="unified-slide-editor">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
-        {/* Left Sidebar - Controls */}
-        <div className="space-y-6 overflow-y-auto">
+      {/* Fixed: Replace unstable CSS Grid with Flexbox for better mobile touch compatibility */}
+      <div className="flex flex-col lg:flex-row lg:gap-6 h-full overflow-hidden">
+        {/* Left Sidebar - Controls - Mobile: bottom sheet, Desktop: sidebar */}
+        <div className="lg:w-1/4 lg:flex-shrink-0 space-y-4 lg:space-y-6 overflow-y-auto p-4 lg:p-0 bg-slate-50 lg:bg-transparent border-t lg:border-t-0 lg:border-r border-slate-200 order-3 lg:order-1">
           <BackgroundSelector
             background={slide.backgroundMedia}
             onBackgroundChange={handleBackgroundChange}
@@ -293,9 +294,9 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
           />
         </div>
 
-        {/* Center - Canvas */}
-        <div className="lg:col-span-2 flex flex-col">
-          <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg p-4">
+        {/* Center - Canvas - Protected container with isolation */}
+        <div className="flex-1 lg:flex-grow-2 flex flex-col min-w-0 order-1 lg:order-2" style={{ isolation: 'isolate', contain: 'layout style' }}>
+          <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg p-4 touch-manipulation" style={{ touchAction: 'pan-x pan-y' }}>
             <SlideCanvas
               background={slide.backgroundMedia}
               hotspots={hotspots}
@@ -309,7 +310,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
         </div>
 
         {/* Right Sidebar - Timeline */}
-        <div className="space-y-6 overflow-y-auto">
+        <div className="lg:w-1/4 lg:flex-shrink-0 space-y-4 lg:space-y-6 overflow-y-auto p-4 lg:p-0 bg-slate-50 lg:bg-transparent border-t lg:border-t-0 lg:border-l border-slate-200 order-2 lg:order-3">
           <SimpleTimeline
             events={timelineEvents}
             currentStep={timelineStep}

@@ -644,11 +644,23 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
             transition: isTransforming ? 'none' : 'transform 0.3s ease-out',
             minHeight: deviceType === 'mobile' ? '300px' : 'auto',
             width: '100%',
-            height: '100%'
+            height: '100%',
+            touchAction: 'pan-x pan-y',
+            isolation: 'isolate',
+            contain: 'layout style'
           }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}>
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            handleTouchStart(e);
+          }}
+          onTouchMove={(e) => {
+            e.stopPropagation();
+            handleTouchMove(e);
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            handleTouchEnd(e);
+          }}>
 
           {/* Main canvas */}
           <div
