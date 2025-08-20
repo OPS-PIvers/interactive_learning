@@ -53,7 +53,7 @@ class HookErrorBoundary extends Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
+        <div className="flex items-center justify-center min-h-screen-dynamic bg-slate-900 text-white">
           <div className="text-center p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4 text-red-400">Component Error</h2>
             <p className="text-slate-300 mb-4">
