@@ -290,7 +290,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
             <div
               key={hotspot.id}
               className={`absolute cursor-pointer transition-all duration-200 ${
-                isDragging ? 'z-50 scale-110' : 'hover:scale-105'
+                isDragging ? 'scale-110' : 'hover:scale-105'
               }`}
               style={{
                 left: pixelPos.x - pixelPos.width / 2,

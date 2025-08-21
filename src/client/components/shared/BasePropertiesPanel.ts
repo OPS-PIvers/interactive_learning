@@ -34,8 +34,8 @@ export interface ExtendedPropertiesPanelProps extends BasePropertiesPanelProps {
   /** Callback to update slide-level properties */
   onSlideUpdate: (slideUpdates: Partial<InteractiveSlide>) => void;
   
-  /** Whether panel is running in mobile mode (for responsive behavior) */
-  isMobile?: boolean;
+  /** Additional layout className for responsive styling (use CSS media queries) */
+  responsiveClassName?: string;
 }
 
 /**
@@ -60,11 +60,11 @@ export interface DesktopPropertiesPanelProps extends ExtendedPropertiesPanelProp
  * Unified object editor panel configuration
  */
 export interface UnifiedObjectEditorProps extends ExtendedPropertiesPanelProps {
-  /** Render mode for the properties panel */
-  mode: 'mobile' | 'desktop' | 'auto';
+  /** Render mode for the properties panel - use 'responsive' for CSS-first design */
+  mode: 'responsive' | 'compact' | 'full';
   
-  /** Override mobile detection for testing/forced modes */
-  forceMobile?: boolean;
+  /** Override layout size for testing purposes */
+  forceCompact?: boolean;
   
   /** Additional styling classes */
   className?: string;
@@ -116,10 +116,10 @@ export interface ElementEditingState {
 /**
  * Utility type for panel-specific props
  */
-export type PanelSpecificProps<T extends 'mobile' | 'desktop' | 'unified'> = 
-  T extends 'mobile' ? MobilePropertiesPanelProps :
-  T extends 'desktop' ? DesktopPropertiesPanelProps :
-  T extends 'unified' ? UnifiedObjectEditorProps :
+export type PanelSpecificProps<T extends 'compact' | 'full' | 'responsive'> = 
+  T extends 'compact' ? MobilePropertiesPanelProps :
+  T extends 'full' ? DesktopPropertiesPanelProps :
+  T extends 'responsive' ? UnifiedObjectEditorProps :
   never;
 
 /**
@@ -144,17 +144,17 @@ export const getDefaultSections = (elementType?: string): PropertiesPanelSection
 });
 
 /**
- * Responsive breakpoints for properties panel behavior
+ * Responsive breakpoints for CSS media queries (reference only - use Tailwind breakpoints in CSS)
  */
 export const PROPERTIES_PANEL_BREAKPOINTS = {
-  /** Switch to mobile mode below this width */
-  MOBILE_THRESHOLD: 768,
+  /** Compact layout for smaller screens */
+  COMPACT_THRESHOLD: 768,
   
-  /** Compact mode threshold */
-  COMPACT_THRESHOLD: 1024,
+  /** Medium layout threshold */
+  MEDIUM_THRESHOLD: 1024,
   
-  /** Full desktop mode above this width */
-  DESKTOP_THRESHOLD: 1280,
+  /** Full layout for larger screens */
+  FULL_THRESHOLD: 1280,
 } as const;
 
 /**

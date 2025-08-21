@@ -1,6 +1,7 @@
 import React from 'react';
 import { SlideDeck } from '../../../shared/slideTypes';
 import SlideBasedViewer from '../SlideBasedViewer';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 
 interface SlidePreviewProps {
   slideDeck: SlideDeck;
@@ -10,7 +11,7 @@ interface SlidePreviewProps {
 
 const SlidePreview: React.FC<SlidePreviewProps> = ({ slideDeck, projectName, onClose }) => {
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div className={`absolute inset-0 bg-black bg-opacity-75 ${Z_INDEX_TAILWIND.MODAL_CONTENT} flex items-center justify-center`}>
       <div className="w-full h-full max-w-4xl max-h-[80vh] bg-white rounded-lg overflow-hidden shadow-2xl">
         <SlideBasedViewer
           slideDeck={slideDeck}

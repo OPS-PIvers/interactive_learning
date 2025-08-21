@@ -155,10 +155,5 @@ export default defineConfig(({ mode, command }) => {
         // Ensure const assertions are preserved in production
         keepNames: true,
       },
-      test: {
-        globals: true,
-        environment: 'jsdom',
-        setupFiles: './src/tests/setup.ts',
-      }
     };
 });
