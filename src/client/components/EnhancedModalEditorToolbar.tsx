@@ -211,7 +211,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header - Improved mobile touch targets */}
-          <div className="flex items-center justify-between p-4 md:p-6">
+          <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-700">
             <div className="flex items-center gap-2 md:gap-4 min-w-0">
               <button
                 onClick={onLivePreview}
@@ -251,7 +251,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           </div>
 
           {/* Tabs - Mobile responsive */}
-          <div>
+          <div className="border-b border-slate-700">
             <nav className="flex space-x-4 md:space-x-8 px-4 md:px-6 overflow-x-auto scrollbar-hide" aria-label="Editor settings tabs" role="tablist">
               {[
                 { id: 'general', name: 'General', icon: null },
@@ -338,7 +338,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                           ) : (
                             <div className="w-full h-32 bg-slate-700 rounded-lg border border-slate-600 flex items-center justify-center">
                               <div className="text-center">
-                                <span className="text-4xl mb-2 block">🎥</span>
+                                <VideoIcon className="w-10 h-10 mx-auto mb-2 text-slate-500" />
                                 <p className="text-sm text-slate-400">
                                   {backgroundVideoType === 'youtube' ? 'YouTube Video' : 'MP4 Video'}
                                 </p>

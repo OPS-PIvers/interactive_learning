@@ -34,7 +34,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Tab Navigation */}
-      <div className="flex">
+      <div className="flex border-b border-slate-700">
         {tabs.map((tab) => (
           <button
             key={tab.id}

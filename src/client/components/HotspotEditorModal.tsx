@@ -43,7 +43,7 @@ const HotspotEditorToolbar: React.FC<{
   onDelete: () => void;
   onClose: () => void;
 }> = React.memo(({ title, onTitleChange, onSave, onDelete, onClose }) =>
-<div className="p-2 flex items-center justify-between">
+<div className="p-2 flex items-center justify-between bg-slate-900 border-b border-slate-700">
     <input
     type="text"
     value={title}
