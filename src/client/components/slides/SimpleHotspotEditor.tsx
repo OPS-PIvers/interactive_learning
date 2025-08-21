@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { SlideElement, ElementInteraction, SlideEffect, SlideEffectType } from '../../../shared/slideTypes';
 import { EffectExecutor } from '../../utils/EffectExecutor';
 import { generateId } from '../../utils/generateId';
-import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import InteractionWizard from './InteractionWizard';
+import { ResponsiveModal } from '../responsive/ResponsiveModal';
 
 interface SimpleHotspotEditorProps {
   hotspot: SlideElement;
@@ -184,20 +184,15 @@ export const SimpleHotspotEditor: React.FC<SimpleHotspotEditorProps> = ({
   }, []);
 
   return (
-    <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}>
-      <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}>
-        {/* Header - Consistent with project styling */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Edit Hotspot</h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-xl"
-            aria-label="Close hotspot editor"
-          >
-            ×
-          </button>
-        </div>
-
+    <ResponsiveModal
+      isOpen={true}
+      onClose={onClose}
+      title="Edit Hotspot"
+      type="properties"
+      size="large"
+      noPadding={true}
+    >
+      <div className="flex flex-col h-full">
         {/* Tabs - Mobile responsive with consistent styling */}
         <div className="flex border-b border-slate-200 dark:border-slate-700">
           <button
@@ -391,7 +386,7 @@ export const SimpleHotspotEditor: React.FC<SimpleHotspotEditorProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

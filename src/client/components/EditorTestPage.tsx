@@ -32,12 +32,13 @@ export const EditorTestPage: React.FC = () => {
     id: 'mobile-test-project',
     title: 'Mobile Editor Test',
     description: 'Testing mobile editor interface',
-    created: Date.now(),
-    modified: Date.now(),
+    createdBy: 'dev-user',
+    createdAt: new Date(),
+    updatedAt: new Date(),
     thumbnailUrl: '',
     isPublished: false,
     slideDeck: slideDeck,
-    data: {
+    interactiveData: {
       backgroundImage: '',
       backgroundType: 'image' as const,
       hotspots: [],
@@ -64,18 +65,35 @@ export const EditorTestPage: React.FC = () => {
     console.warn('📱 Mobile Test: Slide deck updated', newSlideDeck);
   }, []);
 
-  const handleSave = useCallback(async (currentSlideDeck: SlideDeck) => {
-    console.warn('📱 Mobile Test: Save requested', currentSlideDeck);
-    setSlideDeck(currentSlideDeck);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    console.warn('📱 Mobile Test: Save requested', slideDeck);
     // Mock save - no actual Firebase calls
-    return Promise.resolve();
-  }, []);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsSaving(false);
+  }, [slideDeck]);
 
   const handleImageUpload = useCallback(async (file: File) => {
     console.warn('📱 Mobile Test: Image upload requested', file.name);
     // Mock upload - return a placeholder URL
-    return Promise.resolve();
+    const url = URL.createObjectURL(file);
+    // Clean up object URL after some time to prevent memory leaks
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return Promise.resolve(url);
   }, []);
+
+  const handleClose = useCallback(() => {
+    console.warn('📱 Mobile Test: Close requested');
+    setMode('viewer');
+  }, []);
+
+  const handleLivePreview = useCallback(() => {
+    console.warn('📱 Mobile Test: Live preview requested');
+    const url = `/shared/${mockProject.id}`;
+    window.open(url, '_blank');
+  }, [mockProject.id]);
 
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
     console.warn('📱 Mobile Test: Slide changed', { slideId, slideIndex });
@@ -234,6 +252,14 @@ export const EditorTestPage: React.FC = () => {
                 handleSlideDeckChange(updatedDeck);
               }}
               className="h-full"
+              projectName={projectName}
+              onSave={handleSave}
+              onClose={handleClose}
+              isSaving={isSaving}
+              isPublished={mockProject.isPublished}
+              onImageUpload={handleImageUpload}
+              project={mockProject}
+              onLivePreview={handleLivePreview}
             />
           </div>
         ) : (

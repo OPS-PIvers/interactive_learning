@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { InteractiveSlide, SlideElement, BackgroundMedia } from '../../../shared/slideTypes';
+import { InteractiveSlide, SlideElement, BackgroundMedia, Project } from '../../../shared/types';
 import { EffectExecutor } from '../../utils/EffectExecutor';
 import { generateId } from '../../utils/generateId';
 import AspectRatioSelector from './AspectRatioSelector';
@@ -8,6 +8,7 @@ import HotspotManager from './HotspotManager';
 import SimpleHotspotEditor from './SimpleHotspotEditor';
 import SimpleTimeline from './SimpleTimeline';
 import SlideCanvas from './SlideCanvas';
+import SlideEditorToolbar from '../SlideEditorToolbar';
 
 interface RelativePosition {
   x: number; // 0-1 (percentage of canvas width)
@@ -26,6 +27,14 @@ interface SimpleSlideEditorProps {
   slide: InteractiveSlide;
   onSlideChange: (slide: InteractiveSlide) => void;
   className?: string;
+  projectName: string;
+  onSave: () => Promise<void>;
+  onClose: () => void;
+  isSaving: boolean;
+  isPublished: boolean;
+  onImageUpload: (file: File) => void;
+  project?: Project;
+  onLivePreview: () => void;
 }
 
 /**
@@ -42,7 +51,15 @@ interface SimpleSlideEditorProps {
 export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   slide,
   onSlideChange,
-  className = ''
+  className = '',
+  projectName,
+  onSave,
+  onClose,
+  isSaving,
+  isPublished,
+  onImageUpload,
+  project,
+  onLivePreview,
 }) => {
   const effectExecutorRef = useRef<EffectExecutor | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +70,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   const [selectedHotspotId, setSelectedHotspotId] = useState<string>();
   const [editingHotspot, setEditingHotspot] = useState<Hotspot | null>(null);
   const [timelineStep, setTimelineStep] = useState(0);
+  const [isPreview, setIsPreview] = useState(false);
   
   // Panel visibility for mobile-first progressive disclosure
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
@@ -288,6 +306,18 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
         contain: 'layout style',
         isolation: 'isolate'
       }}>
+      <SlideEditorToolbar
+        projectName={projectName}
+        onSave={onSave}
+        onClose={onClose}
+        isSaving={isSaving}
+        isPublished={isPublished}
+        onImageUpload={onImageUpload}
+        project={project}
+        onTogglePreview={() => setIsPreview(!isPreview)}
+        onLivePreview={onLivePreview}
+        isPreview={isPreview}
+      />
       
       {/* Mobile-first layout with enhanced stability */}
       <div 
@@ -297,43 +327,9 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
           minHeight: '100vh',
           minWidth: '100vw',
           contain: 'layout style',
-          position: 'relative'
+          position: 'relative',
+          paddingTop: '60px'
         }}>
-        
-        {/* Quick Action Bar - Always visible on mobile */}
-        <div 
-          className="flex items-center gap-2 p-3 bg-white border-b border-slate-200 md:hidden editor-mobile-header"
-          style={{
-            flexShrink: 0,
-            minHeight: '60px',
-            width: '100%',
-            contain: 'layout style'
-          }}>
-          <button
-            onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
-              showSettingsPanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            ⚙️ Settings
-          </button>
-          <button
-            onClick={() => setShowHotspotsPanel(!showHotspotsPanel)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
-              showHotspotsPanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            🎯 Hotspots ({hotspots.length})
-          </button>
-          <button
-            onClick={() => setShowTimelinePanel(!showTimelinePanel)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
-              showTimelinePanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            📅 Timeline
-          </button>
-        </div>
 
         {/* Main Editor Layout - Enhanced Flexbox with stability */}
         <div 
@@ -424,7 +420,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
             style={{
               // Critical: Ensure canvas area never collapses
               minWidth: '320px',
-              minHeight: 'calc(100vh - 60px)',
+              minHeight: 'calc(100vh - 120px)',
               width: 'auto',
               contain: 'layout style',
               isolation: 'isolate',
@@ -456,7 +452,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
         </div>
 
         {/* Mobile Bottom Panels - Progressive disclosure */}
-        {showSettingsPanel && (
+        {(showSettingsPanel && !isPreview) && (
           <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Slide Settings</h3>
@@ -482,7 +478,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
           </div>
         )}
 
-        {showHotspotsPanel && (
+        {(showHotspotsPanel && !isPreview) && (
           <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Hotspots</h3>
@@ -504,7 +500,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
           </div>
         )}
 
-        {showTimelinePanel && (
+        {(showTimelinePanel && !isPreview) && (
           <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Timeline</h3>
@@ -551,7 +547,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
       </div>
 
       {/* Hotspot Editor Modal */}
-      {editingHotspot && (
+      {(editingHotspot && !isPreview) && (
         <SimpleHotspotEditor
           hotspot={editingHotspot.element}
           onSave={handleHotspotSave}

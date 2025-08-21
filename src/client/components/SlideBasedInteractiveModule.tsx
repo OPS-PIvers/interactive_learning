@@ -91,19 +91,13 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     setCurrentSlideDeck(newSlideDeck);
   }, []);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   // Save functionality - properly pass slide deck data for persistence
   const handleSave = useCallback(async () => {
     if (!currentSlideDeck) return;
 
-
-
-
-
-
-
-
-
-
+    setIsSaving(true);
     // Create updated interactive data that preserves the original structure 
     // but includes any legacy compatibility needs
     const newBackgroundImage = currentSlideDeck?.slides?.[0]?.backgroundMedia?.type === 'image' ?
@@ -123,15 +117,9 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
       interactiveData: updatedData
     };
 
-
-
-
-
-
-
-
     // Save the complete project object with slide deck data
     await onSave(projectWithSlideDeck);
+    setIsSaving(false);
   }, [onSave, currentSlideDeck, initialData]);
 
   const handleClose = useCallback(() => {
@@ -184,6 +172,29 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
             handleSlideDeckChange(updatedDeck);
           }}
           className="h-full"
+          projectName={projectName}
+          onSave={handleSave}
+          onClose={handleClose}
+          isSaving={isSaving}
+          isPublished={isPublished}
+          onImageUpload={onImageUpload}
+          project={{
+            id: projectId || '',
+            title: projectName,
+            description: '',
+            createdBy: 'dev-user', // TODO: Replace with actual user ID when auth is available
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            isPublished: isPublished,
+            thumbnailUrl: '',
+            interactiveData: initialData,
+            slideDeck: currentSlideDeck,
+          }}
+          onLivePreview={() => {
+            if (projectId) {
+              window.open(`/shared/${projectId}`, '_blank');
+            }
+          }}
         />
 
       </Suspense>);
