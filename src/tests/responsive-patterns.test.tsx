@@ -50,6 +50,21 @@ describe('CSS-only responsive design', () => {
         <SimpleSlideEditor
           slide={testSlide}
           onSlideChange={() => {}}
+          projectName="Test Project"
+          onSave={async () => {}}
+          onClose={() => {}}
+          isSaving={false}
+          isPublished={false}
+          onImageUpload={async () => {}}
+          project={{
+            id: 'test-project',
+            title: 'Test Project',
+            description: 'Test Description',
+            createdBy: 'test-user',
+            interactiveData: {},
+            projectType: 'slide'
+          }}
+          onLivePreview={() => {}}
         />
       </AuthProvider>
     );

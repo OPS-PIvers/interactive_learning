@@ -99,6 +99,14 @@ const InteractiveModuleWrapper: React.FC<InteractiveModuleWrapperProps> = ({
                 handleSlideDeckChange(updatedDeck);
               }}
               className="h-full"
+              projectName={selectedProject.title}
+              onSave={() => handleImmediateSave(slideDeck!)}
+              onClose={onClose}
+              isSaving={false}
+              isPublished={isPublished || false}
+              onImageUpload={onImageUpload}
+              project={selectedProject}
+              onLivePreview={() => {}}
             />
 
           </Suspense> :

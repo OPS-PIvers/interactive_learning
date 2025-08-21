@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { InteractiveSlide, SlideElement, BackgroundMedia, Project } from '../../../shared/types';
+import { InteractiveSlide, SlideElement, BackgroundMedia } from '../../../shared/slideTypes';
+import { Project } from '../../../shared/types';
 import { EffectExecutor } from '../../utils/EffectExecutor';
 import { generateId } from '../../utils/generateId';
 import AspectRatioSelector from './AspectRatioSelector';
@@ -85,7 +86,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   }, []);
 
   // Convert slide elements to hotspots
-  const hotspots: Hotspot[] = slide.elements.map(element => ({
+  const hotspots: Hotspot[] = slide.elements.map((element: SlideElement) => ({
     id: element.id,
     relativePosition: {
       x: (element.position?.[developmentMode]?.x || 0) / 800, // Assuming 800px base width
@@ -167,7 +168,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   // Update hotspot position when dragged
   const handleHotspotDrag = useCallback((hotspotId: string, newRelativePosition: RelativePosition) => {
-    const updatedElements = slide.elements.map(element => {
+    const updatedElements = slide.elements.map((element: SlideElement) => {
       if (element.id === hotspotId) {
         return {
           ...element,
@@ -214,7 +215,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   // Handle hotspot deletion
   const handleHotspotDelete = useCallback((hotspotId: string) => {
-    const updatedElements = slide.elements.filter(element => element.id !== hotspotId);
+    const updatedElements = slide.elements.filter((element: SlideElement) => element.id !== hotspotId);
     onSlideChange({
       ...slide,
       elements: updatedElements
@@ -226,7 +227,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   // Handle hotspot duplication
   const handleHotspotDuplicate = useCallback((hotspotId: string) => {
-    const originalElement = slide.elements.find(el => el.id === hotspotId);
+    const originalElement = slide.elements.find((el: SlideElement) => el.id === hotspotId);
     if (originalElement) {
       const duplicatedElement: SlideElement = {
         ...originalElement,
@@ -266,7 +267,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   // Save hotspot from editor
   const handleHotspotSave = useCallback((updatedHotspot: SlideElement) => {
-    const updatedElements = slide.elements.map(element =>
+    const updatedElements = slide.elements.map((element: SlideElement) =>
       element.id === updatedHotspot.id ? updatedHotspot : element
     );
 
@@ -280,7 +281,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   // Create timeline events from interactions
   const timelineEvents = hotspots.flatMap((hotspot, hotspotIndex) =>
-    hotspot.element.interactions?.map((interaction, interactionIndex) => ({
+    hotspot.element.interactions?.map((interaction: any, interactionIndex: number) => ({
       id: `${hotspot.id}-${interaction.id}`,
       hotspotId: hotspot.id,
       hotspotTitle: hotspot.element.content?.title || `Hotspot ${hotspotIndex + 1}`,
@@ -313,7 +314,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
         isSaving={isSaving}
         isPublished={isPublished}
         onImageUpload={onImageUpload}
-        project={project}
+        project={project!}
         onTogglePreview={() => setIsPreview(!isPreview)}
         onLivePreview={onLivePreview}
         isPreview={isPreview}
@@ -392,11 +393,11 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
                   }}
                   onEventRemove={(eventId) => {
                     const [hotspotId, interactionId] = eventId.split('-');
-                    const updatedElements = slide.elements.map(element => {
+                    const updatedElements = slide.elements.map((element: SlideElement) => {
                       if (element.id === hotspotId) {
                         return {
                           ...element,
-                          interactions: element.interactions?.filter(i => i.id !== interactionId) || []
+                          interactions: element.interactions?.filter((i: any) => i.id !== interactionId) || []
                         };
                       }
                       return element;
@@ -524,11 +525,11 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
               }}
               onEventRemove={(eventId) => {
                 const [hotspotId, interactionId] = eventId.split('-');
-                const updatedElements = slide.elements.map(element => {
+                const updatedElements = slide.elements.map((element: SlideElement) => {
                   if (element.id === hotspotId) {
                     return {
                       ...element,
-                      interactions: element.interactions?.filter(i => i.id !== interactionId) || []
+                      interactions: element.interactions?.filter((i: any) => i.id !== interactionId) || []
                     };
                   }
                   return element;
