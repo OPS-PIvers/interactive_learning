@@ -24,7 +24,7 @@ import ViewerView from './views/ViewerView';
 
 
 const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center">
+  <div className="min-h-screen-dynamic flex items-center justify-center">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
       <p className="mt-4 text-gray-600">Loading...</p>
@@ -418,7 +418,7 @@ const MainApp: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white transition-all duration-2000 ${showInitialAnimation ? 'scale-105 opacity-95' : 'scale-100 opacity-100'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
+    <div className={`min-h-screen-dynamic bg-gradient-to-br from-slate-900 to-slate-800 text-white transition-all duration-2000 ${showInitialAnimation ? 'scale-105 opacity-95' : 'scale-100 opacity-100'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
       <header className="mb-6 sm:mb-8 text-center" style={{ paddingTop: '16px' }}>
         <div className="max-w-6xl mx-auto">
           <div className="block sm:hidden">
@@ -558,7 +558,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
+    <div className="h-screen-dynamic bg-gray-50 overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       <main>
         <MainApp />
       </main>
@@ -577,7 +577,7 @@ const App: React.FC = () => {
           <Route path="/" element={<AuthenticatedApp />} />
           <Route path="/view/:projectId" element={<ViewerView />} />
           <Route path="/shared/:moduleId" element={
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen-dynamic bg-gray-50">
               <main>
                 <SharedModuleViewer />
               </main>
