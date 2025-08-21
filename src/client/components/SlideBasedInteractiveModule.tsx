@@ -182,11 +182,12 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
             id: projectId || '',
             title: projectName,
             description: '',
+            createdBy: '', // TODO: Replace with actual user ID when auth is available
+            createdAt: new Date(),
+            updatedAt: new Date(),
             isPublished: isPublished,
-            created: Date.now(),
-            modified: Date.now(),
             thumbnailUrl: '',
-            data: initialData,
+            interactiveData: initialData,
             slideDeck: currentSlideDeck,
           }}
           onLivePreview={() => {

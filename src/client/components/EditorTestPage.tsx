@@ -70,16 +70,17 @@ export const EditorTestPage: React.FC = () => {
     setIsSaving(true);
     console.warn('📱 Mobile Test: Save requested', slideDeck);
     // Mock save - no actual Firebase calls
-    setTimeout(() => {
-      setIsSaving(false);
-    }, 1500);
-    return Promise.resolve();
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsSaving(false);
   }, [slideDeck]);
 
   const handleImageUpload = useCallback(async (file: File) => {
     console.warn('📱 Mobile Test: Image upload requested', file.name);
     // Mock upload - return a placeholder URL
-    return Promise.resolve(URL.createObjectURL(file));
+    const url = URL.createObjectURL(file);
+    // Clean up object URL after some time to prevent memory leaks
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return Promise.resolve(url);
   }, []);
 
   const handleClose = useCallback(() => {

@@ -190,8 +190,9 @@ export const SimpleHotspotEditor: React.FC<SimpleHotspotEditorProps> = ({
       title="Edit Hotspot"
       type="properties"
       size="large"
+      noPadding={true}
     >
-      <div className="flex flex-col h-full -m-6">
+      <div className="flex flex-col h-full">
         {/* Tabs - Mobile responsive with consistent styling */}
         <div className="flex border-b border-slate-200 dark:border-slate-700">
           <button

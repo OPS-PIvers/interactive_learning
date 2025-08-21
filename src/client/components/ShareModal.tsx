@@ -164,8 +164,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, project }) => 
       title={`Share "${project.title}"`}
       type="share"
       size="large"
+      noPadding={true}
     >
-      <div className="flex flex-col md:flex-row flex-1 overflow-y-auto -m-6 bg-slate-800 text-white">
+      <div className="flex flex-col md:flex-row flex-1 overflow-y-auto bg-slate-800 text-white">
         {/* Left Panel - Options (Desktop Only) */}
         <div className="hidden md:block md:w-1/3 p-6 border-b md:border-b-0 md:border-r border-slate-700">
           <h3 className="text-lg font-medium text-white mb-4">Customization</h3>

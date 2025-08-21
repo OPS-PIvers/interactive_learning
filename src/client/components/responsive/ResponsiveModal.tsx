@@ -23,6 +23,7 @@ export interface ResponsiveModalProps {
   className?: string;
   preventCloseOnBackdropClick?: boolean;
   allowSwipeDown?: boolean; // New: Enable swipe-to-dismiss on mobile
+  noPadding?: boolean; // New: Disable default padding in modal body
 }
 
 /**
@@ -40,6 +41,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   className = '',
   preventCloseOnBackdropClick = false,
   allowSwipeDown = true,
+  noPadding = false,
 }) => {
   // Use the unified constraint system for responsive modal positioning
   const { constraints } = useModalConstraints({
@@ -189,7 +191,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
             </svg>
           </button>
         </div>
-        <div className="modal-body">
+        <div className={`modal-body ${noPadding ? 'p-0' : ''}`}>
           {children}
         </div>
       </div>

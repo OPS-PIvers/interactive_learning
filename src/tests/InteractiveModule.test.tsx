@@ -13,7 +13,7 @@ vi.mock('../client/components/SlideBasedViewer', () => ({
 }));
 vi.mock('../client/components/slides/SimpleSlideEditor', () => ({
   __esModule: true,
-  default: (props: any) => <div data-testid="unified-slide-editor" {...props} />,
+  default: (props: any) => <div data-testid="simple-slide-editor" {...props} />,
 }));
 vi.mock('../client/components/shared/LoadingScreen', () => ({
   __esModule: true,
@@ -104,7 +104,7 @@ describe('SlideBasedInteractiveModule', () => {
         <SlideBasedInteractiveModule {...getProps(true)} />
       </ToastProvider>
     );
-    expect(await screen.findByTestId('unified-slide-editor')).toBeInTheDocument();
+    expect(await screen.findByTestId('simple-slide-editor')).toBeInTheDocument();
     expect(screen.queryByTestId('slide-viewer')).not.toBeInTheDocument();
   });
 });
