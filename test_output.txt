@@ -1,0 +1,63 @@
+
+> explicolearning@0.0.0 test:run
+> node --max-old-space-size=8192 node_modules/.bin/vitest run
+
+
+ RUN  v3.2.4 /app
+
+ ✓ src/tests/buildIntegrity/ComponentCompilation.test.tsx (18 tests) 1193ms
+   ✓ Component Compilation Integrity Tests > Critical Path Component Loading > all critical components can be loaded simultaneously  1142ms
+ ❯ src/tests/InteractiveModule.test.tsx (2 tests | 1 failed) 1097ms
+   ✓ SlideBasedInteractiveModule > renders viewer when not in editing mode 62ms
+   × SlideBasedInteractiveModule > renders editor when in editing mode 1031ms
+     → Unable to find an element by: [data-testid="unified-slide-editor"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-testid[39m=[32m"loading-screen"[39m
+    [36m/>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mdata-testid[39m=[32m"loading-screen"[39m
+      [36m/>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ✓ src/tests/AuthModal.test.tsx (33 tests) 2756ms
+   ✓ AuthModal > Sign Up Functionality > submits sign up form with valid data  353ms
+ ✓ src/tests/buildIntegrity/ReactHooksCompliance.test.tsx (10 tests) 444ms
+ ✓ src/tests/ViewerFooterToolbar.test.tsx (16 tests) 538ms
+ ✓ src/tests/ResponsiveModal.test.tsx (22 tests) 287ms
+ ✓ src/tests/coreFunctionality/SlideEditingWorkflow.test.tsx (6 tests) 244ms
+ ✓ src/tests/mobile-ux/MobileUXResponsiveBehavior.test.tsx (8 tests) 211ms
+ ✓ src/tests/buildIntegrity/ImportExportIntegrity.test.ts (16 tests) 168ms
+ ✓ src/tests/ReactErrorDetection.test.tsx (8 tests) 276ms
+ ✓ src/tests/responsive-patterns.test.tsx (2 tests) 198ms
+ ✓ src/tests/LayoutConstraints.test.ts (29 tests) 83ms
+ ✓ src/tests/mobile-ux/PerformanceOptimization.test.tsx (6 tests) 110ms
+ ✓ src/tests/TouchContainer.test.tsx (21 tests) 116ms
+ ✓ src/tests/ScrollStacks.test.tsx (5 tests) 96ms
+ ✓ src/tests/FirebaseTypeSafety.test.ts (18 tests) 17ms
+ ✓ src/tests/safeMathUtils.test.ts (23 tests) 15ms
+ ✓ src/tests/firebaseApi.test.ts (9 tests) 14ms
+ ✓ src/tests/firebaseApi.validation.test.ts (10 tests) 14ms
+ ✓ src/tests/buildIntegrity/TypeScriptIntegrity.test.ts (16 tests) 12ms
+ ✓ src/tests/ResponsivePosition.test.ts (20 tests) 13ms
+ ✓ src/tests/useDeviceDetection.test.tsx (12 tests) 9ms
+ ✓ src/tests/slideDeckUtils.test.ts (3 tests) 7ms
+ ↓ src/tests/integration/ConcurrentOperations.test.ts (7 tests | 7 skipped)
+ ↓ src/tests/integration/FirebaseIntegration.test.ts (8 tests | 8 skipped)
+
+ Test Files  1 failed | 22 passed | 2 skipped (25)
+      Tests  1 failed | 312 passed | 15 skipped (328)
+   Start at  20:49:05
+   Duration  15.98s (transform 3.67s, setup 3.93s, collect 6.18s, tests 7.92s, environment 17.28s, prepare 3.49s)

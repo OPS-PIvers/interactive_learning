@@ -64,18 +64,34 @@ export const EditorTestPage: React.FC = () => {
     console.warn('📱 Mobile Test: Slide deck updated', newSlideDeck);
   }, []);
 
-  const handleSave = useCallback(async (currentSlideDeck: SlideDeck) => {
-    console.warn('📱 Mobile Test: Save requested', currentSlideDeck);
-    setSlideDeck(currentSlideDeck);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    console.warn('📱 Mobile Test: Save requested', slideDeck);
     // Mock save - no actual Firebase calls
+    setTimeout(() => {
+      setIsSaving(false);
+    }, 1500);
     return Promise.resolve();
-  }, []);
+  }, [slideDeck]);
 
   const handleImageUpload = useCallback(async (file: File) => {
     console.warn('📱 Mobile Test: Image upload requested', file.name);
     // Mock upload - return a placeholder URL
-    return Promise.resolve();
+    return Promise.resolve(URL.createObjectURL(file));
   }, []);
+
+  const handleClose = useCallback(() => {
+    console.warn('📱 Mobile Test: Close requested');
+    setMode('viewer');
+  }, []);
+
+  const handleLivePreview = useCallback(() => {
+    console.warn('📱 Mobile Test: Live preview requested');
+    const url = `/shared/${mockProject.id}`;
+    window.open(url, '_blank');
+  }, [mockProject.id]);
 
   const handleSlideChange = useCallback((slideId: string, slideIndex: number) => {
     console.warn('📱 Mobile Test: Slide changed', { slideId, slideIndex });
@@ -234,6 +250,14 @@ export const EditorTestPage: React.FC = () => {
                 handleSlideDeckChange(updatedDeck);
               }}
               className="h-full"
+              projectName={projectName}
+              onSave={handleSave}
+              onClose={handleClose}
+              isSaving={isSaving}
+              isPublished={mockProject.isPublished}
+              onImageUpload={handleImageUpload}
+              project={mockProject}
+              onLivePreview={handleLivePreview}
             />
           </div>
         ) : (
