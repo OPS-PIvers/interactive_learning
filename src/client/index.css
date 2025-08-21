@@ -29,6 +29,33 @@ body {
   touch-action: manipulation;
 }
 
+/*
+ * Dynamic screen height utilities.
+ * These use the --vh custom property set by the setDynamicViewportProperties utility
+ * to correctly handle mobile browser UI elements that can shrink the viewport.
+ */
+.min-h-screen-dynamic {
+  min-height: 100vh; /* Fallback for older browsers */
+  min-height: calc(var(--vh, 1vh) * 100); /* JS-based fallback */
+}
+
+.h-screen-dynamic {
+  height: 100vh; /* Fallback for older browsers */
+  height: calc(var(--vh, 1vh) * 100); /* JS-based fallback */
+}
+
+@supports (min-height: 100dvh) {
+  .min-h-screen-dynamic {
+    min-height: 100dvh; /* Modern CSS solution */
+  }
+}
+
+@supports (height: 100dvh) {
+  .h-screen-dynamic {
+    height: 100dvh; /* Modern CSS solution */
+  }
+}
+
 
 /* Hotspot Editor Toolbar specific styles if needed beyond Tailwind */
 .toolbar-scroll::-webkit-scrollbar {

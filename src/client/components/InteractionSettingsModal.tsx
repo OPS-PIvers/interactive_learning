@@ -8,8 +8,8 @@ import { XMarkIcon } from './icons/XMarkIcon';
 import PanZoomSettings from './PanZoomSettings';
 import SpotlightSettings from './SpotlightSettings';
 
-const inputClasses = "w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-purple-500 focus:border-purple-500";
-const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
+const inputClasses = "w-full bg-slate-700 p-2 rounded border border-slate-600 focus:ring-purple-500 focus:border-purple-500";
+const labelClasses = "block text-sm font-medium text-slate-300 mb-1";
 
 // Validation error interface
 interface ValidationError {
@@ -669,10 +669,10 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
   };
 
   return (
-    <div className="bg-gray-800 text-white w-full">
-      <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+    <div className="text-white w-full">
+      <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
         <h2 className="text-lg font-semibold">Edit: {event.name}</h2>
-        <button onClick={onClose} className="p-1 hover:bg-gray-700 rounded-full">
+        <button onClick={onClose} className="p-1 hover:bg-slate-700 rounded-full">
           <XMarkIcon className="w-5 h-5" />
         </button>
       </div>
@@ -694,10 +694,10 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700">
         <button
           onClick={onClose}
-          className="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          className="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
         >
           Cancel
         </button>
@@ -706,8 +706,8 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
           disabled={hasValidated && validationErrors.length > 0}
           className={`px-4 py-2 rounded-lg transition-colors ${
             hasValidated && validationErrors.length > 0
-              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700 text-white'
           }`}
         >
           {hasValidated && validationErrors.length > 0 ? 'Fix Errors First' : 'Save Changes'}

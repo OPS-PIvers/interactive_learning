@@ -128,7 +128,7 @@ export const EditorTestPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="mobile-editor-test min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="mobile-editor-test min-h-screen-dynamic bg-slate-900 text-white flex flex-col">
       {/* Header with mode switching and debug info */}
       <div className="bg-slate-800 border-b border-slate-700 p-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">

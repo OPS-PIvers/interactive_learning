@@ -65,7 +65,7 @@ const ScrollStacks: React.FC<ScrollStacksProps> = ({ projects, onEdit, onDelete 
   return (
     <div 
       ref={containerRef}
-      className="relative min-h-screen"
+      className="relative min-h-screen-dynamic"
     >
       {projects.map((project, index) => {
         const isVisible = visibleCards.includes(index);

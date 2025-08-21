@@ -95,7 +95,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${baseBgColor} ${baseTextColor} p-4`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+      <div className={`min-h-screen-dynamic flex items-center justify-center ${baseBgColor} ${baseTextColor} p-4`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
         <div className="flex flex-col items-center space-y-4">
           <svg className={`animate-spin h-10 w-10 text-${accentColor}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -110,7 +110,7 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
 
   if (error) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${baseBgColor} ${baseTextColor} p-4`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+      <div className={`min-h-screen-dynamic flex items-center justify-center ${baseBgColor} ${baseTextColor} p-4`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
         <div className={`text-center max-w-lg mx-auto p-6 sm:p-8 rounded-xl shadow-2xl ${cardBgColor} border ${cardBorderColor}`}>
           <div className={`mb-5 text-red-500 dark:text-red-400`}>
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -135,14 +135,14 @@ const SharedModuleViewer: React.FC<SharedModuleViewerProps> = () => {
   if (!project) {
     // This case should ideally be covered by error state, but good for robustness
     return (
-      <div className={`min-h-screen flex items-center justify-center ${baseBgColor} ${baseTextColor}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+      <div className={`min-h-screen-dynamic flex items-center justify-center ${baseBgColor} ${baseTextColor}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
             <p>Module data is not available.</p>
         </div>);
 
   }
 
   return (
-    <div className={`flex flex-col min-h-screen ${baseBgColor} ${baseTextColor} ${isEmbedMode ? 'h-screen overflow-hidden' : 'relative'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
+    <div className={`flex flex-col min-h-screen-dynamic ${baseBgColor} ${baseTextColor} ${isEmbedMode ? 'h-screen-dynamic overflow-hidden' : 'relative'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
       <a
         href="#main-content"
         className={`skip-to-main-content-link ${theme === 'light' ? 'bg-gray-200 text-gray-800 border-gray-400 hover:bg-gray-300' : 'bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600'}`}>

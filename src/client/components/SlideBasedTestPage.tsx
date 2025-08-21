@@ -11,7 +11,7 @@ export const SlideBasedTestPage: React.FC = () => {
   const [showComparison, setShowComparison] = useState(false);
 
   return (
-    <div className="slide-based-test-page w-screen h-screen flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="slide-based-test-page w-screen h-screen-dynamic flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
       {/* Header - Matches app header styling */}
       <div className="test-header bg-slate-800 border-b border-slate-700 text-white p-4 flex items-center justify-between flex-shrink-0 shadow-2xl">
         <div className="flex items-center space-x-4">
