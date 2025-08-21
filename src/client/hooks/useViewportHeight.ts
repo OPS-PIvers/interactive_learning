@@ -59,10 +59,8 @@ export function useViewportHeight() {
     if (window?.visualViewport) {
       // Use visualViewport for better mobile support
       window.visualViewport.addEventListener('resize', handleResize);
-      window.visualViewport.addEventListener('scroll', handleResize);
       cleanup = () => {
         window.visualViewport?.removeEventListener('resize', handleResize);
-        window.visualViewport?.removeEventListener('scroll', handleResize);
       };
     } else {
       // Fallback to window resize
