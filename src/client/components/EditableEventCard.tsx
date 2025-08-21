@@ -57,7 +57,7 @@ const EventTypeToggle: React.FC<{ type: InteractionType }> = ({ type }) => {
   };
 
   return (
-    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200 dark:text-purple-300 dark:bg-purple-700">
+    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-300 bg-purple-700">
       {getTypeLabel()}
     </span>
   );
@@ -129,9 +129,9 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
     drop(cardRef);
   }
 
-  const cardBaseClasses = `p-3 mb-2 rounded-lg shadow transition-opacity dark:shadow-md`;
-  const cardBgColor = isDragging ? 'bg-slate-700 dark:bg-slate-800' : 'bg-slate-600 dark:bg-slate-700/50';
-  const cardActiveColor = isActive ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-slate-800 dark:ring-purple-600 dark:ring-offset-slate-900' : '';
+  const cardBaseClasses = `p-3 mb-2 rounded-lg shadow-md transition-opacity`;
+  const cardBgColor = isDragging ? 'bg-slate-800' : 'bg-slate-700/50';
+  const cardActiveColor = isActive ? 'ring-2 ring-purple-600 ring-offset-2 ring-offset-slate-900' : '';
 
   return (
     <div
@@ -144,7 +144,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         <div className="flex items-center flex-grow min-w-0">
           <div ref={dragHandleRef} className="cursor-grab active:cursor-grabbing touch-manipulation p-1 -ml-1">
             <DragHandle
-              className="text-slate-400 dark:text-slate-500"
+              className="text-slate-500"
               isDragging={isDragging}
             />
           </div>
@@ -162,19 +162,19 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
                   }}
                   onKeyDown={(e) => { if (e.key === 'Enter') { setIsEditingTitle(false); onUpdate({ ...event, name: title });}}}
                   autoFocus
-                  className="ml-2 p-1 bg-slate-700 border border-slate-500 rounded-md text-white text-sm font-semibold flex-grow min-w-0 dark:bg-slate-800 dark:border-slate-600"
+                  className="ml-2 p-1 bg-slate-800 border border-slate-600 rounded-md text-white text-sm font-semibold flex-grow min-w-0"
                 />
               ) : (
                 <button
                   onClick={() => onJumpToStep && onJumpToStep(event.step)}
-                  className="ml-2 text-sm font-semibold text-left text-white dark:text-slate-200 truncate hover:text-purple-300 dark:hover:text-purple-400 transition-colors"
+                  className="ml-2 text-sm font-semibold text-left text-slate-200 truncate hover:text-purple-400 transition-colors"
                   title={event.name}
                 >
                   {event.name || `Event at step ${event.step}`}
                 </button>
               )}
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 ml-0">
+            <p className="text-xs text-slate-500 ml-0">
               Step: {event.step}{event.duration ? `, Duration: ${event.duration/1000}s` : ''}
             </p>
           </div>
@@ -183,7 +183,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
         <div className="flex items-center space-x-0.5 flex-shrink-0 ml-1">
           <button
             onClick={(e) => { e.stopPropagation(); onTogglePreview(); }}
-            className="p-1.5 text-slate-400 hover:text-purple-400 rounded-md hover:bg-slate-700 dark:text-slate-500 dark:hover:text-purple-500 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-purple-500 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Toggle Preview"
           >
             {isPreviewing ? ( <EyeSlashIcon className="w-5 h-5" /> ) : ( <EyeIcon className="w-5 h-5" /> )}
@@ -196,8 +196,8 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               disabled={!canMoveUp}
               className={`p-1.5 rounded-md transition-colors ${
                 canMoveUp 
-                  ? 'text-slate-400 hover:text-green-400 hover:bg-slate-700 dark:text-slate-500 dark:hover:text-green-500 dark:hover:bg-slate-800' 
-                  : 'text-slate-600 cursor-not-allowed dark:text-slate-700'
+                  ? 'text-slate-500 hover:text-purple-500 hover:bg-slate-800'
+                  : 'text-slate-700 cursor-not-allowed'
               }`}
               aria-label="Move Up"
               title="Move event up in timeline"
@@ -212,8 +212,8 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               disabled={!canMoveDown}
               className={`p-1.5 rounded-md transition-colors ${
                 canMoveDown 
-                  ? 'text-slate-400 hover:text-green-400 hover:bg-slate-700 dark:text-slate-500 dark:hover:text-green-500 dark:hover:bg-slate-800' 
-                  : 'text-slate-600 cursor-not-allowed dark:text-slate-700'
+                  ? 'text-slate-500 hover:text-purple-500 hover:bg-slate-800'
+                  : 'text-slate-700 cursor-not-allowed'
               }`}
               aria-label="Move Down"
               title="Move event down in timeline"
@@ -224,21 +224,21 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
           
           <button
             onClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }}
-            className="p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-700 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Edit Title"
           >
             <PencilIcon className="w-4 h-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-700 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Edit Parameters"
           >
             <GearIcon className="w-5 h-5" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(event.id); }}
-            className="p-1.5 text-slate-400 hover:text-red-500 rounded-md hover:bg-slate-700 dark:text-slate-500 dark:hover:text-red-600 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Delete Event"
           >
             <TrashIcon className="w-4 h-4" />

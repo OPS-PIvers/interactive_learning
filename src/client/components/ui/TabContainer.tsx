@@ -34,7 +34,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-600 bg-gray-800">
+      <div className="flex">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -43,8 +43,8 @@ const TabContainer: React.FC<TabContainerProps> = ({
               flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors
               border-b-2 whitespace-nowrap
               ${activeTab === tab.id
-                ? 'border-purple-500 text-white bg-gray-700'
-                : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-700'
+                ? 'border-purple-500 text-white'
+                : 'border-transparent text-slate-300 hover:text-white'
               }
             `}
           >
