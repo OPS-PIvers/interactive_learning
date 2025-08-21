@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Canvas Collapse Fix Validation</title>
+    <style>
+        /* Simulate the mobile canvas layout structure */
+        .mobile-layout-stable {
+            contain: layout style paint size;
+            isolation: isolate;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mobile-slide-area {
+            contain: layout style;
+            isolation: isolate;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            min-width: 100% !important;
+            min-height: 300px !important;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .canvas-transform-container {
+            contain: layout style paint size;
+            isolation: isolate;
+            transform-origin: center center;
+            position: relative;
+            z-index: 2;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            touch-action: pan-x pan-y;
+            min-width: 320px;
+            min-height: 240px;
+        }
+
+        /* Test layout structure */
+        .test-container {
+            width: 100vw;
+            height: 100vh;
+            background: #1e293b;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            inset: 0;
+        }
+
+        .test-header {
+            background: #334155;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .test-canvas-area {
+            flex: 1;
+            background: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-width: 320px;
+            padding: 16px;
+        }
+
+        .test-canvas {
+            width: 300px;
+            height: 200px;
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .test-status {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .status-good { background: rgba(34, 197, 94, 0.9); }
+        .status-warning { background: rgba(245, 158, 11, 0.9); }
+        .status-bad { background: rgba(239, 68, 68, 0.9); }
+    </style>
+</head>
+<body>
+    <div class="test-container mobile-layout-stable">
+        <div class="test-header">
+            <h1>Mobile Canvas Collapse Fix Test</h1>
+            <p>Touch and swipe the canvas below</p>
+        </div>
+        
+        <div class="test-canvas-area mobile-slide-area">
+            <div class="test-canvas canvas-transform-container" id="testCanvas">
+                <span>Touch me and swipe!</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-status" id="status">
+        Status: Ready for testing
+    </div>
+
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const status = document.getElementById('status');
+        let touchStartTime = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let transformScale = 1;
+
+        function updateStatus(message, type = 'default') {
+            status.textContent = message;
+            status.className = 'test-status';
+            if (type === 'good') status.classList.add('status-good');
+            if (type === 'warning') status.classList.add('status-warning');
+            if (type === 'bad') status.classList.add('status-bad');
+        }
+
+        function checkLayoutStability() {
+            const canvasRect = canvas.getBoundingClientRect();
+            const containerRect = canvas.parentElement.getBoundingClientRect();
+            
+            if (canvasRect.width < 50) {
+                updateStatus('❌ LAYOUT COLLAPSED! Width: ' + canvasRect.width + 'px', 'bad');
+                return false;
+            } else if (canvasRect.width < 200) {
+                updateStatus('⚠️ Layout unstable. Width: ' + canvasRect.width + 'px', 'warning');
+                return false;
+            } else {
+                updateStatus('✅ Layout stable. Width: ' + canvasRect.width + 'px, Height: ' + canvasRect.height + 'px', 'good');
+                return true;
+            }
+        }
+
+        canvas.addEventListener('touchstart', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            touchStartTime = Date.now();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            
+            updateStatus('Touch started. Checking layout stability...');
+            setTimeout(checkLayoutStability, 50);
+        });
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            
+            // Simulate transform updates that could trigger layout issues
+            const newScale = Math.max(0.5, Math.min(2, transformScale + deltaY * 0.01));
+            canvas.style.transform = `scale(${newScale}) translate(${deltaX * 0.5}px, ${deltaY * 0.5}px)`;
+            
+            updateStatus('Touch moving. Delta: ' + Math.round(Math.sqrt(deltaX*deltaX + deltaY*deltaY)) + 'px');
+            setTimeout(checkLayoutStability, 10);
+        });
+
+        canvas.addEventListener('touchend', function(e) {
+            e.stopPropagation();
+            
+            const touchDuration = Date.now() - touchStartTime;
+            
+            // Reset transform
+            canvas.style.transform = 'scale(1) translate(0px, 0px)';
+            transformScale = 1;
+            
+            setTimeout(() => {
+                const stable = checkLayoutStability();
+                if (stable) {
+                    updateStatus('✅ Touch interaction completed successfully! Duration: ' + touchDuration + 'ms', 'good');
+                }
+            }, 100);
+        });
+
+        // Initial stability check
+        setTimeout(checkLayoutStability, 500);
+
+        // Periodic stability monitoring
+        setInterval(checkLayoutStability, 2000);
+    </script>
+</body>
+</html>

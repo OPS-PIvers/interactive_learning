@@ -189,41 +189,74 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     }
   }, [currentSlide, currentSlideIndex, slideDeck, deviceType]);
 
-  // Update container dimensions when layout changes
+  // Update container dimensions with mobile stability enhancements
   useEffect(() => {
     const updateContainerDimensions = () => {
       if (slideAreaRef.current) {
         const rect = slideAreaRef.current.getBoundingClientRect();
-        setContainerDimensions({
-          width: rect.width || document.documentElement.clientWidth - 32, // More reasonable fallback
-          height: rect.height || document.documentElement.clientHeight - 160 // Header(60) + Toolbar(80) + padding
-        });
+        
+        // Enhanced mobile dimension calculation for stability
+        if (deviceType === 'mobile') {
+          // Use stable viewport dimensions for mobile to prevent collapse
+          const safeWidth = Math.max(rect.width || 0, 320); // Minimum 320px width
+          const safeHeight = Math.max(rect.height || 0, 240); // Minimum 240px height
+          
+          setContainerDimensions({
+            width: safeWidth,
+            height: safeHeight
+          });
+        } else {
+          // Desktop/tablet uses measured dimensions with fallbacks
+          setContainerDimensions({
+            width: rect.width || document.documentElement.clientWidth - 32,
+            height: rect.height || document.documentElement.clientHeight - 160
+          });
+        }
       } else {
-        // Fallback to document dimensions
+        // Enhanced fallback dimensions based on device type
+        const fallbackWidth = deviceType === 'mobile' ? 
+          Math.min(document.documentElement.clientWidth - 16, 768) : 
+          document.documentElement.clientWidth - 32;
+        const fallbackHeight = deviceType === 'mobile' ?
+          Math.min(document.documentElement.clientHeight - 100, 600) :
+          document.documentElement.clientHeight - 160;
+          
         setContainerDimensions({
-          width: document.documentElement.clientWidth - 32,
-          height: document.documentElement.clientHeight - 160
+          width: fallbackWidth,
+          height: fallbackHeight
         });
       }
     };
 
-    // Initial update
-    updateContainerDimensions();
+    // Initial update with delay for iOS Safari layout settling
+    const initialTimeout = deviceType === 'mobile' ? 150 : 0;
+    setTimeout(updateContainerDimensions, initialTimeout);
 
-    // Update on window resize
+    // Debounced resize handler to prevent rapid dimension changes
     const handleResize = () => {
-      // Small delay to allow layout to settle
-      setTimeout(updateContainerDimensions, 100);
+      // Longer delay for mobile to allow iOS Safari viewport changes
+      const delay = deviceType === 'mobile' ? 200 : 100;
+      setTimeout(updateContainerDimensions, delay);
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
+    
+    // Additional iOS Safari viewport events
+    if (deviceType === 'mobile') {
+      window.addEventListener('visualViewportChange', handleResize);
+      document.addEventListener('scroll', handleResize, { passive: true });
+    }
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
+      if (deviceType === 'mobile') {
+        window.removeEventListener('visualViewportChange', handleResize);
+        document.removeEventListener('scroll', handleResize);
+      }
     };
-  }, []);
+  }, [deviceType]);
 
 
   // Calculate viewport bounds for touch constraints
@@ -402,11 +435,17 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     });
   }, [dragState.isDragging, dragState.hasMovedBeyondThreshold, dragState.elementId, currentSlide, handleHotspotClick, handleElementSelect]);
 
-  // Touch event handlers (mobile-first - available on all devices)
+  // Touch event handlers with enhanced isolation for mobile stability
   const handleTouchStartElement = useCallback((e: React.TouchEvent, elementId: string) => {
     if (!isEditable) return;
 
+    // Critical: Stop all event propagation to prevent parent layout interference
     e.stopPropagation();
+    
+    // iOS Safari: Prevent default behavior that can trigger layout recalculation
+    if (deviceType === 'mobile') {
+      e.preventDefault();
+    }
 
     const element = currentSlide?.elements?.find((el) => el.id === elementId);
     if (!element) return;
@@ -431,6 +470,9 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   const handleTouchMoveElement = useCallback((e: React.TouchEvent) => {
     if (!touchState.isTouching || !touchState.elementId) return;
 
+    // Enhanced event isolation to prevent parent layout interference
+    e.stopPropagation();
+
     const touch = e.touches?.[0];
     if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -447,8 +489,9 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     }
 
     if (touchState.isDragging) {
-      e.preventDefault(); // Prevent scrolling while dragging
-
+      // Critical: Prevent all iOS default behaviors during drag
+      e.preventDefault(); 
+      
       const newPosition = {
         ...touchState.startElementPosition,
         x: Math.max(0, touchState.startElementPosition.x + deltaX),
@@ -463,8 +506,11 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     }
   }, [touchState, deviceType, handleElementUpdate, currentSlide]);
 
-  const handleTouchEndElement = useCallback((_e: React.TouchEvent) => {
+  const handleTouchEndElement = useCallback((e: React.TouchEvent) => {
     if (!touchState.isTouching) return;
+
+    // Enhanced event isolation for touch end
+    e.stopPropagation();
 
     const touchDuration = Date.now() - touchState.startTimestamp;
 
@@ -478,6 +524,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
       }
     }
 
+    // Clean up touch state
     setTouchState({
       isTouching: false,
       isDragging: false,
@@ -624,37 +671,84 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
     <div
       ref={containerRef}
       className={`relative w-full h-full overflow-hidden bg-slate-100 ${className} ${
-        deviceType === 'mobile' ? 'mobile-canvas-container' : ''
-      }`}>
+        deviceType === 'mobile' ? 'mobile-canvas-container mobile-layout-stable' : ''
+      }`}
+      style={{
+        // iOS Safari-specific viewport and layout stability
+        minHeight: deviceType === 'mobile' ? 'calc(100vh - 120px)' : 'auto',
+        contain: 'layout style paint',
+        isolation: 'isolate',
+        willChange: deviceType === 'mobile' ? 'auto' : 'transform',
+        // Prevent iOS bounce scrolling from affecting layout
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'none',
+        // iOS Safari safe area handling
+        paddingTop: deviceType === 'mobile' ? 'max(env(safe-area-inset-top, 0px), 0px)' : '0px',
+        paddingBottom: deviceType === 'mobile' ? 'max(env(safe-area-inset-bottom, 0px), 0px)' : '0px'
+      }}>
 
-      {/* Slide area container with mobile optimization */}
+      {/* Slide area container with mobile layout reinforcement */}
       <div
         ref={slideAreaRef}
         className={`w-full h-full flex items-center justify-center ${
-          deviceType === 'mobile' ? 'p-2' : 'p-4'
-        }`}>
+          deviceType === 'mobile' ? 'p-2 mobile-slide-area' : 'p-4'
+        }`}
+        style={{
+          // Critical: Force stable dimensions to prevent collapse
+          minWidth: '100%',
+          minHeight: deviceType === 'mobile' ? '300px' : '100%',
+          // Contain any transform effects from propagating up
+          contain: 'layout style',
+          position: 'relative',
+          // iOS-specific layout stability
+          WebkitTransform: 'translateZ(0)', // Force hardware acceleration
+          backfaceVisibility: 'hidden'
+        }}>
 
-        {/* Canvas container with mobile-specific sizing */}
+        {/* Canvas container with enhanced mobile stability */}
         <div
           ref={canvasContainerRef}
-          className="relative mobile-responsive-canvas"
+          className="relative mobile-responsive-canvas canvas-transform-container"
           style={{
             transform: `scale(${canvasTransform.scale}) translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px)`,
             transformOrigin: 'center center',
             transition: isTransforming ? 'none' : 'transform 0.3s ease-out',
-            minHeight: deviceType === 'mobile' ? '300px' : 'auto',
+            // Critical dimension stability for mobile
+            minWidth: deviceType === 'mobile' ? '320px' : canvasDimensions.width,
+            minHeight: deviceType === 'mobile' ? '240px' : canvasDimensions.height,
+            maxWidth: '100%',
+            maxHeight: '100%',
             width: '100%',
             height: '100%',
-            touchAction: 'pan-x pan-y',
+            // iOS Safari touch handling
+            touchAction: deviceType === 'mobile' ? 'pan-x pan-y' : 'auto',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            // Transform isolation and containment
             isolation: 'isolate',
-            contain: 'layout style'
+            contain: 'layout style paint size',
+            // iOS-specific performance optimizations
+            WebkitTransformStyle: 'preserve-3d',
+            transformStyle: 'preserve-3d',
+            willChange: isTransforming ? 'transform' : 'auto',
+            // Prevent layout thrashing
+            position: 'relative',
+            zIndex: 1
           }}
           onTouchStart={(e) => {
+            // Enhanced touch event isolation for iOS Safari
             e.stopPropagation();
+            if (deviceType === 'mobile') {
+              e.preventDefault(); // Prevent iOS bounce/scroll interference
+            }
             handleTouchStart(e);
           }}
           onTouchMove={(e) => {
+            // Critical: Prevent touch move from affecting parent layout
             e.stopPropagation();
+            if (deviceType === 'mobile' && isTransforming) {
+              e.preventDefault(); // Prevent iOS scroll during transform
+            }
             handleTouchMove(e);
           }}
           onTouchEnd={(e) => {

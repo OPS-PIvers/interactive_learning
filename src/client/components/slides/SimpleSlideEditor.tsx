@@ -272,12 +272,43 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   );
 
   return (
-    <div className={`simple-slide-editor ${className}`} data-testid="unified-slide-editor">
-      {/* Mobile-first layout with progressive disclosure */}
-      <div className="flex flex-col h-full">
+    <div 
+      className={`simple-slide-editor editor-layout-stable ${className}`} 
+      data-testid="unified-slide-editor"
+      style={{
+        // Force stable layout dimensions
+        height: '100vh',
+        minHeight: '100vh',
+        maxHeight: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        position: 'fixed',
+        inset: '0',
+        // Layout containment for stability
+        contain: 'layout style',
+        isolation: 'isolate'
+      }}>
+      
+      {/* Mobile-first layout with enhanced stability */}
+      <div 
+        className="flex flex-col h-full w-full mobile-editor-container"
+        style={{
+          // Critical: Prevent any layout collapse
+          minHeight: '100vh',
+          minWidth: '100vw',
+          contain: 'layout style',
+          position: 'relative'
+        }}>
         
         {/* Quick Action Bar - Always visible on mobile */}
-        <div className="flex items-center gap-2 p-3 bg-white border-b border-slate-200 md:hidden">
+        <div 
+          className="flex items-center gap-2 p-3 bg-white border-b border-slate-200 md:hidden editor-mobile-header"
+          style={{
+            flexShrink: 0,
+            minHeight: '60px',
+            width: '100%',
+            contain: 'layout style'
+          }}>
           <button
             onClick={() => setShowSettingsPanel(!showSettingsPanel)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
@@ -304,11 +335,26 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
           </button>
         </div>
 
-        {/* Desktop layout with sidebar */}
-        <div className="flex flex-1 overflow-hidden">
+        {/* Main Editor Layout - Enhanced Flexbox with stability */}
+        <div 
+          className="flex flex-1 overflow-hidden editor-main-layout"
+          style={{
+            // Critical layout stability
+            minHeight: 'calc(100vh - 60px)',
+            width: '100%',
+            contain: 'layout style',
+            position: 'relative'
+          }}>
           
           {/* Desktop Sidebar - Always visible on large screens */}
-          <div className="hidden md:flex md:flex-col md:w-80 md:border-r border-slate-200 bg-slate-50">
+          <div 
+            className="hidden md:flex md:flex-col md:w-80 md:border-r border-slate-200 bg-slate-50 editor-sidebar"
+            style={{
+              flexShrink: 0,
+              contain: 'layout style',
+              minWidth: '320px',
+              maxWidth: '320px'
+            }}>
             <div className="p-4 space-y-4 overflow-y-auto">
               <div className="bg-white rounded-lg shadow-sm border p-4">
                 <h3 className="text-lg font-semibold mb-4">Slide Settings</h3>
@@ -372,9 +418,30 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
             </div>
           </div>
 
-          {/* Main Canvas Area */}
-          <div className="flex-1 flex flex-col relative">
-            <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center bg-gray-50 p-4 touch-manipulation" style={{ touchAction: 'pan-x pan-y' }}>
+          {/* Main Canvas Area - Enhanced stability */}
+          <div 
+            className="flex-1 flex flex-col relative editor-canvas-area"
+            style={{
+              // Critical: Ensure canvas area never collapses
+              minWidth: '320px',
+              minHeight: 'calc(100vh - 60px)',
+              width: 'auto',
+              contain: 'layout style',
+              isolation: 'isolate',
+              position: 'relative'
+            }}>
+            <div 
+              ref={canvasContainerRef} 
+              className="flex-1 flex items-center justify-center bg-gray-50 p-4 touch-manipulation canvas-wrapper-stable" 
+              style={{ 
+                touchAction: 'pan-x pan-y',
+                // Critical stability properties
+                minHeight: 'calc(100vh - 120px)',
+                width: '100%',
+                contain: 'layout style paint',
+                isolation: 'isolate',
+                position: 'relative'
+              }}>
               <SlideCanvas
                 background={slide.backgroundMedia}
                 hotspots={hotspots}
