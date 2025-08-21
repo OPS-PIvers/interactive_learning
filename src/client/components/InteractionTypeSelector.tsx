@@ -1,5 +1,6 @@
 import React from 'react';
 import { InteractionType } from '../../shared/InteractionPresets';
+import { SunIcon, ZoomInIcon, TextIcon, VideoIcon, SpeakerLoudIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { PlusIcon } from './icons/PlusIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 
@@ -7,7 +8,7 @@ interface InteractionTypeOption {
   type: InteractionType;
   label: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
 }
 
@@ -17,42 +18,42 @@ const INTERACTION_TYPES: InteractionTypeOption[] = [
     type: InteractionType.SPOTLIGHT,
     label: 'Spotlight',
     description: 'Highlight an area with a spotlight effect',
-    icon: '💡',
+    icon: <SunIcon className="w-5 h-5" />,
     color: 'bg-yellow-500'
   },
   {
     type: InteractionType.PAN_ZOOM,
     label: 'Pan & Zoom',
     description: 'Navigate to specific coordinates with zoom',
-    icon: '🔍',
+    icon: <ZoomInIcon className="w-5 h-5" />,
     color: 'bg-green-500'
   },
   {
     type: InteractionType.TEXT,
     label: 'Text Display',
     description: 'Show text content with customizable positioning',
-    icon: '📝',
+    icon: <TextIcon className="w-5 h-5" />,
     color: 'bg-blue-500'
   },
   {
     type: InteractionType.VIDEO,
     label: 'Video',
     description: 'Play video content inline, modal, or overlay',
-    icon: '🎬',
+    icon: <VideoIcon className="w-5 h-5" />,
     color: 'bg-red-500'
   },
   {
     type: InteractionType.AUDIO,
     label: 'Audio',
     description: 'Play audio with optional controls display',
-    icon: '🎵',
+    icon: <SpeakerLoudIcon className="w-5 h-5" />,
     color: 'bg-purple-500'
   },
   {
     type: InteractionType.QUIZ,
     label: 'Quiz Question',
     description: 'Interactive quiz with multiple choice answers',
-    icon: '❓',
+    icon: <QuestionMarkCircledIcon className="w-5 h-5" />,
     color: 'bg-orange-500'
   }
 ];
@@ -65,12 +66,12 @@ interface InteractionTypeSelectorGridProps {
 
 export const InteractionTypeSelectorGrid: React.FC<InteractionTypeSelectorGridProps> = ({ onSelectType, onClose }) => {
   return (
-    <div className="bg-gray-700 rounded-lg shadow-lg border border-gray-600">
-      <div className="flex items-center justify-between p-4 border-b border-gray-600">
+    <div className="bg-slate-800/50 rounded-lg shadow-lg border border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-slate-700">
         <h3 className="text-lg font-semibold text-white">Select Interaction Type</h3>
         <button
           onClick={onClose}
-          className="p-1 text-gray-400 hover:text-white rounded-md hover:bg-gray-700 transition-colors"
+          className="p-1 text-slate-400 hover:text-white rounded-md hover:bg-slate-700 transition-colors"
         >
           <XMarkIcon className="w-5 h-5" />
         </button>
@@ -81,14 +82,14 @@ export const InteractionTypeSelectorGrid: React.FC<InteractionTypeSelectorGridPr
             <button
               key={option.type}
               onClick={() => onSelectType(option.type)}
-              className="flex items-start gap-3 p-3 text-left rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors w-full"
+              className="flex items-start gap-3 p-3 text-left rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors w-full"
             >
               <div className={`flex-shrink-0 w-10 h-10 rounded-lg ${option.color} flex items-center justify-center text-white text-lg`}>
                 {option.icon}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-white mb-1">{option.label}</div>
-                <div className="text-sm text-gray-300 leading-snug">{option.description}</div>
+                <div className="text-sm text-slate-300 leading-snug">{option.description}</div>
               </div>
             </button>
           ))}

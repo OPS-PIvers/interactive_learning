@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { extractYouTubeVideoId } from '../../shared/types';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
+import { ImageIcon, FileIcon, VideoIcon, Link2Icon } from '@radix-ui/react-icons';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { XMarkIcon } from './icons/XMarkIcon';
 
@@ -206,35 +207,35 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
       >
         {/* Modal Content */}
         <div 
-          className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
+          className={`bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto ${Z_INDEX_TAILWIND.MODAL_CONTENT}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header - Improved mobile touch targets */}
-          <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-700">
             <div className="flex items-center gap-2 md:gap-4 min-w-0">
               <button
                 onClick={onLivePreview}
-                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
                 aria-label="Open live preview of project"
               >
                 <span className="text-sm md:text-base font-medium">Preview</span>
               </button>
               <button
                 onClick={onBack}
-                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="flex items-center gap-1 md:gap-2 min-w-[44px] min-h-[44px] px-2 md:px-3 py-2 text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
                 aria-label="Go back to editing mode"
               >
                 <ChevronLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
                 <span className="hidden md:inline text-sm md:text-base font-medium">Back</span>
               </button>
               
-              <div className="hidden md:block h-6 w-px bg-slate-300 dark:bg-slate-600" />
+              <div className="hidden md:block h-6 w-px bg-slate-600" />
               
               <div className="min-w-0">
-                <h1 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white truncate">
+                <h1 className="text-lg md:text-xl font-semibold text-white truncate">
                   Editor Settings
                 </h1>
-                <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">
+                <p className="text-xs md:text-sm text-slate-300 truncate">
                   {projectName}
                 </p>
               </div>
@@ -242,7 +243,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+              className="text-slate-300 hover:text-white transition-colors min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-slate-700 flex items-center justify-center"
               aria-label="Close editor settings modal"
             >
               <XMarkIcon className="w-5 h-5" />
@@ -250,7 +251,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           </div>
 
           {/* Tabs - Mobile responsive */}
-          <div className="border-b border-slate-200 dark:border-slate-700">
+          <div className="border-b border-slate-700">
             <nav className="flex space-x-4 md:space-x-8 px-4 md:px-6 overflow-x-auto scrollbar-hide" aria-label="Editor settings tabs" role="tablist">
               {[
                 { id: 'general', name: 'General', icon: null },
@@ -262,8 +263,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1 md:gap-2 py-3 md:py-4 px-2 md:px-1 border-b-2 font-medium text-sm md:text-base transition-colors min-w-[44px] min-h-[44px] whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                      ? 'border-purple-500 text-purple-400'
+                      : 'border-transparent text-slate-300 hover:text-white'
                   }`}
                   aria-selected={activeTab === tab.id}
                   role="tab"
@@ -283,13 +284,13 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
               <div className="space-y-6">
                 {/* Background Settings - Enhanced with preview and prominence */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white flex items-center gap-2">
-                    <span className="text-xl">🖼️</span>
+                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5" />
                     Background Settings
                   </h3>
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-lg p-4 space-y-4 border border-blue-200 dark:border-slate-600">
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-4 border border-slate-700">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
                         Background Type
                       </label>
                       <div className="flex gap-x-6 gap-y-2 flex-wrap">
@@ -300,9 +301,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             value="image"
                             checked={backgroundType === 'image'}
                             onChange={() => onBackgroundTypeChange('image')}
-                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                           />
-                          <span className="text-sm text-slate-700 dark:text-slate-300">Image</span>
+                          <span className="text-sm text-slate-300">Image</span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input
@@ -311,9 +312,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             value="video"
                             checked={backgroundType === 'video'}
                             onChange={() => onBackgroundTypeChange('video')}
-                            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                           />
-                          <span className="text-sm text-slate-700 dark:text-slate-300">Video</span>
+                          <span className="text-sm text-slate-300">Video</span>
                         </label>
                       </div>
                     </div>
@@ -321,7 +322,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                     {/* Current Background Preview */}
                     {currentBackgroundImageUrl && (
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <label className="block text-sm font-medium text-slate-300">
                           Current Background
                         </label>
                         <div className="relative">
@@ -329,16 +330,16 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             <img 
                               src={currentBackgroundImageUrl} 
                               alt="Current background" 
-                              className="w-full h-32 object-cover rounded-lg border border-slate-300 dark:border-slate-600"
+                              className="w-full h-32 object-cover rounded-lg border border-slate-600"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
                               }}
                             />
                           ) : (
-                            <div className="w-full h-32 bg-slate-200 dark:bg-slate-700 rounded-lg border border-slate-300 dark:border-slate-600 flex items-center justify-center">
+                            <div className="w-full h-32 bg-slate-700 rounded-lg border border-slate-600 flex items-center justify-center">
                               <div className="text-center">
-                                <span className="text-4xl mb-2 block">🎥</span>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                <VideoIcon className="w-10 h-10 mx-auto mb-2 text-slate-500" />
+                                <p className="text-sm text-slate-400">
                                   {backgroundVideoType === 'youtube' ? 'YouTube Video' : 'MP4 Video'}
                                 </p>
                               </div>
@@ -353,8 +354,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                     {/* Enhanced Upload Interface */}
                     <div className="space-y-4">
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <span className="text-purple-400 font-semibold">
                           {currentBackgroundImageUrl ? 'Replace Background' : 'Add Background'}
                         </span>
                         {backgroundType === 'image' ? ' Image' : ' Video'}
@@ -374,9 +375,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             />
                             <label
                               htmlFor="enhanced-image-upload"
-                              className="w-full inline-flex items-center justify-center px-4 py-3 border-2 border-blue-300 dark:border-blue-600 text-sm font-medium rounded-lg text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 cursor-pointer transition-colors shadow-sm"
+                              className="w-full inline-flex items-center justify-center px-4 py-3 border-2 border-purple-600 text-sm font-medium rounded-lg text-purple-300 bg-purple-900/30 hover:bg-purple-900/50 cursor-pointer transition-colors shadow-sm"
                             >
-                              📁 Choose Image File
+                              <FileIcon className="w-4 h-4 mr-2" /> Choose Image File
                             </label>
                           </div>
                         )}
@@ -387,9 +388,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             <button
                               type="button"
                               onClick={() => setShowYouTubeInput(!showYouTubeInput)}
-                              className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                              className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-600 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
                             >
-                              🎥 Add YouTube URL
+                              <VideoIcon className="w-4 h-4 mr-2" /> Add YouTube URL
                             </button>
                           </div>
                         )}
@@ -399,17 +400,17 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                           <button
                             type="button"
                             onClick={() => setShowUrlInput(!showUrlInput)}
-                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-slate-600 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
                           >
-                            🔗 Add {backgroundType === 'image' ? 'Image' : 'Video'} URL
+                            <Link2Icon className="w-4 h-4 mr-2" /> Add {backgroundType === 'image' ? 'Image' : 'Video'} URL
                           </button>
                         </div>
                       </div>
 
                       {/* YouTube URL Input */}
                       {backgroundType === 'video' && showYouTubeInput && (
-                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                          <label htmlFor="youtube-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                          <label htmlFor="youtube-url" className="block text-sm font-medium text-slate-300 mb-2">
                             YouTube URL
                           </label>
                           <input
@@ -419,9 +420,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             onChange={handleYouTubeUrlChange}
                             onBlur={handleYouTubeUrlBlur}
                             placeholder="https://youtube.com/watch?v=... or youtu.be/..."
-                            className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 text-base border border-slate-600 rounded-md bg-slate-800 text-slate-100 focus:ring-purple-500 focus:border-purple-500"
                           />
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          <p className="mt-1 text-xs text-slate-400">
                             Paste any YouTube URL format - video ID will be extracted automatically
                           </p>
                         </div>
@@ -429,8 +430,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                       {/* General URL Input */}
                       {showUrlInput && (
-                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                          <label htmlFor="background-url" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                          <label htmlFor="background-url" className="block text-sm font-medium text-slate-300 mb-2">
                             {backgroundType === 'image' ? 'Image URL' : 'Video URL (YouTube or MP4)'}
                           </label>
                           <input
@@ -440,7 +441,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             onChange={handleUrlInputChange}
                             onBlur={handleUrlInputBlur}
                             placeholder={backgroundType === 'image' ? 'https://example.com/image.png' : 'https://youtube.com/watch?v=... or https://example.com/video.mp4'}
-                            className="w-full px-3 py-2 text-base border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 text-base border border-slate-600 rounded-md bg-slate-800 text-slate-100 focus:ring-purple-500 focus:border-purple-500"
                           />
                         </div>
                       )}
@@ -448,7 +449,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                     {backgroundType === 'video' && (
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
                           Video Format (auto-detected, can override)
                         </label>
                         <div className="flex gap-x-6 gap-y-2 flex-wrap">
@@ -459,9 +460,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                               value="youtube"
                               checked={backgroundVideoType === 'youtube'}
                               onChange={() => onBackgroundVideoTypeChange('youtube')}
-                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                             />
-                            <span className="text-sm text-slate-700 dark:text-slate-300">YouTube</span>
+                            <span className="text-sm text-slate-300">YouTube</span>
                           </label>
                           <label className="flex items-center gap-2">
                             <input
@@ -470,9 +471,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                               value="mp4"
                               checked={backgroundVideoType === 'mp4'}
                               onChange={() => onBackgroundVideoTypeChange('mp4')}
-                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                             />
-                            <span className="text-sm text-slate-700 dark:text-slate-300">MP4</span>
+                            <span className="text-sm text-slate-300">MP4</span>
                           </label>
                         </div>
                       </div>
@@ -482,17 +483,17 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                 {/* Auto-progression */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Auto-progression</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                  <h3 className="text-lg font-medium text-white">Auto-progression</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={isAutoProgression}
                           onChange={(e) => onToggleAutoProgression(e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                         />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <span className="text-sm font-medium text-slate-300">
                           Enable auto-progression
                         </span>
                       </label>
@@ -500,7 +501,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                     
                     {isAutoProgression && (
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
                           Duration: {autoProgressionDuration / 1000}s
                         </label>
                         <div className="flex items-center gap-4">
@@ -511,12 +512,12 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             step="1000"
                             value={autoProgressionDuration}
                             onChange={(e) => onAutoProgressionDurationChange(Number(e.target.value))}
-                            className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
+                            className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
                           />
                           <select
                             value={autoProgressionDuration}
                             onChange={(e) => onAutoProgressionDurationChange(Number(e.target.value))}
-                            className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            className="px-3 py-1 text-sm border border-slate-600 rounded-md bg-slate-800 text-slate-100"
                           >
                             <option value={2000}>2s</option>
                             <option value={3000}>3s</option>
@@ -531,8 +532,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                 {/* Viewer Modes */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Viewer Modes</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                  <h3 className="text-lg font-medium text-white">Viewer Modes</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-4">
                     {['explore', 'selfPaced', 'timed'].map((mode) => (
                       <div key={mode} className="flex items-center justify-between">
                         <label className="flex items-center gap-3">
@@ -540,9 +541,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                             type="checkbox"
                             checked={viewerModes[mode as keyof typeof viewerModes] ?? false}
                             onChange={(e) => onViewerModeChange(mode as 'explore' | 'selfPaced' | 'timed', e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                           />
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">
+                          <span className="text-sm font-medium text-slate-300 capitalize">
                             {mode.replace(/([A-Z])/g, ' $1')} Mode
                           </span>
                         </label>
@@ -558,16 +559,16 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
               <div className="space-y-6">
                 {/* Color Schemes */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Color Schemes</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                  <h3 className="text-lg font-medium text-white">Color Schemes</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
                         Theme
                       </label>
                       <select
                         value={currentColorScheme}
                         onChange={(e) => onColorSchemeChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                        className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-800 text-slate-100"
                       >
                         {COLOR_SCHEMES.map(scheme => (
                           <option key={scheme.name} value={scheme.name}>
@@ -579,12 +580,12 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                     
                     {/* Color preview */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
                         Preview
                       </label>
                       <div className="flex gap-2">
                         {COLOR_SCHEMES.find(s => s.name === currentColorScheme)?.colors.map((color) => (
-                          <div key={color} className={`w-8 h-8 rounded-lg ${color} border-2 border-slate-300 dark:border-slate-600`} />
+                          <div key={color} className={`w-8 h-8 rounded-lg ${color} border-2 border-slate-600`} />
                         ))}
                       </div>
                     </div>
@@ -593,9 +594,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
 
                 {/* Color Presets */}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">Hotspot Colors</h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                  <h3 className="text-lg font-medium text-white">Hotspot Colors</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-slate-300 mb-3">
                       Quick Color Selection
                     </label>
                     <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
@@ -605,8 +606,8 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                           onClick={() => setSelectedColorPreset(color.value)}
                           className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-105 ${
                             selectedColorPreset === color.value 
-                              ? 'border-slate-900 dark:border-white scale-110' 
-                              : 'border-slate-300 dark:border-slate-600 hover:border-slate-500'
+                              ? 'border-white scale-110'
+                              : 'border-slate-600 hover:border-slate-500'
                           }`}
                           style={{ backgroundColor: color.value }}
                           title={color.name}
@@ -624,10 +625,10 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                 {/* Zoom Controls */}
                 {currentZoom !== undefined && onZoomIn && onZoomOut && onZoomReset && onCenter && (
                   <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">Zoom Controls</h3>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-4">
+                    <h3 className="text-lg font-medium text-white">Zoom Controls</h3>
+                    <div className="bg-slate-800/50 rounded-lg p-4 space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <span className="text-sm font-medium text-slate-300">
                           Current Zoom: {Math.round(currentZoom * 100)}%
                         </span>
                       </div>
@@ -635,25 +636,25 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                       <div className="flex items-center gap-3">
                         <button
                           onClick={onZoomOut}
-                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors font-medium"
                         >
                           Zoom Out
                         </button>
                         <button
                           onClick={onZoomIn}
-                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors font-medium"
                         >
                           Zoom In
                         </button>
                         <button
                           onClick={onZoomReset}
-                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors font-medium"
                         >
                           Reset
                         </button>
                         <button
                           onClick={onCenter}
-                          className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-md transition-colors font-medium"
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors font-medium"
                         >
                           Center
                         </button>
@@ -666,10 +667,10 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+          <div className="flex items-center justify-between p-6">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Close
             </button>
@@ -682,7 +683,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = ({
                     ? 'bg-green-500 cursor-not-allowed' 
                     : showSuccessMessage 
                       ? 'bg-green-500' 
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-purple-600 hover:bg-purple-700'
                 } text-white`}
               >
                 {isSaving ? (

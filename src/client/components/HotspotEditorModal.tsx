@@ -43,17 +43,17 @@ const HotspotEditorToolbar: React.FC<{
   onDelete: () => void;
   onClose: () => void;
 }> = React.memo(({ title, onTitleChange, onSave, onDelete, onClose }) =>
-<div className="p-2 bg-gray-900 flex items-center justify-between border-b border-gray-700">
+<div className="p-2 flex items-center justify-between bg-slate-900 border-b border-slate-700">
     <input
     type="text"
     value={title}
     onChange={(e) => onTitleChange(e.target.value)}
-    className="bg-gray-700 text-xl font-bold p-1 rounded" />
+    className="bg-slate-700 text-xl font-bold p-1 rounded" />
 
     <div className="flex items-center space-x-2">
       <button
       onClick={onSave}
-      className="p-2 bg-green-600 rounded hover:bg-green-700"
+      className="p-2 bg-purple-600 rounded hover:bg-purple-700"
       title="Save & Close">
 
         <SaveIcon className="w-4 h-4" />
@@ -66,7 +66,7 @@ const HotspotEditorToolbar: React.FC<{
       </button>
       <button
       onClick={onClose}
-      className="p-2 bg-gray-600 rounded hover:bg-gray-700">
+      className="p-2 bg-slate-600 rounded hover:bg-slate-700">
 
         <XMarkIcon className="w-4 h-4" />
       </button>
@@ -327,7 +327,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
           
           <div
             className={`
-              ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-gray-800 text-white rounded-lg shadow-2xl flex flex-col
+              ${Z_INDEX_TAILWIND.SYSTEM_MODAL} bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl flex flex-col
               w-[95vw] h-[90vh]
               sm:w-full sm:max-w-2xl sm:h-[80vh] sm:max-h-[600px]
               transform transition-all duration-300 ease-out
@@ -361,7 +361,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                     content: (
                       <div className="p-4 overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
-                          <label htmlFor="display-hotspot-toggle" className="text-sm text-gray-300">
+                          <label htmlFor="display-hotspot-toggle" className="text-sm text-slate-300">
                             Display hotspot during event
                           </label>
                           <div
@@ -370,7 +370,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                             }
                             id="display-hotspot-toggle"
                             className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors
-                              ${localHotspot.displayHotspotInEvent ? 'bg-green-500' : 'bg-gray-600'}`}>
+                              ${localHotspot.displayHotspotInEvent ? 'bg-purple-500' : 'bg-slate-600'}`}>
                             <span
                               className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
                                 ${localHotspot.displayHotspotInEvent ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -379,7 +379,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
                         {/* Style Presets */}
                         <div className="mb-4">
-                          <label className="text-sm text-gray-300 mb-2 block">Style Presets</label>
+                          <label className="text-sm text-slate-300 mb-2 block">Style Presets</label>
                           <div className="grid grid-cols-2 gap-2 mb-3">
                             {hotspotStylePresets.map((preset) => (
                               <button
@@ -391,10 +391,10 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                     onUpdateHotspot(updatedHotspot);
                                   }
                                 }}
-                                className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-xs transition-colors flex items-center gap-2"
+                                className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 text-xs transition-colors flex items-center gap-2"
                                 title={preset.description}>
                                 <div
-                                  className="w-3 h-3 rounded-full border border-gray-400"
+                                  className="w-3 h-3 rounded-full border border-slate-400"
                                   style={{ backgroundColor: preset.style.color }} />
                                 {preset.name}
                               </button>
@@ -404,7 +404,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
                         {/* Size Options */}
                         <div className="mb-4">
-                          <label className="text-sm text-gray-300 mb-2 block">Size</label>
+                          <label className="text-sm text-slate-300 mb-2 block">Size</label>
                           <div className="grid grid-cols-2 gap-2 mb-3">
                             {hotspotSizePresets.map((sizePreset) => (
                               <button
@@ -417,7 +417,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                 className={`px-3 py-2 rounded text-xs transition-colors ${
                                   localHotspot?.size === sizePreset.value ?
                                   'bg-purple-600 text-white' :
-                                  'bg-gray-600 text-white hover:bg-gray-500'}`
+                                  'bg-slate-600 text-white hover:bg-slate-500'}`
                                 }
                                 title={sizePreset.description}>
                                 {sizePreset.name}
@@ -428,7 +428,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
 
                         {/* Pulse Animation Toggle */}
                         <div className="flex items-center justify-between mb-4">
-                          <label htmlFor="pulse-animation-toggle" className="text-sm text-gray-300">
+                          <label htmlFor="pulse-animation-toggle" className="text-sm text-slate-300">
                             Pulse Animation
                           </label>
                           <button
@@ -447,8 +447,8 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                               })
                             }
                             id="pulse-animation-toggle"
-                            className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800
-                              ${localHotspot.pulseAnimation ? 'bg-green-500' : 'bg-gray-600'}`}>
+                            className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800
+                              ${localHotspot.pulseAnimation ? 'bg-purple-500' : 'bg-slate-600'}`}>
                             <span
                               className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform
                                 ${localHotspot.pulseAnimation ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -458,7 +458,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                         {/* Pulse Type Radio Buttons */}
                         {localHotspot.pulseAnimation && (
                           <div className="mb-4">
-                            <label className="text-sm text-gray-300">Pulse Type</label>
+                            <label className="text-sm text-slate-300">Pulse Type</label>
                             <div className="flex items-center mt-2">
                               <input
                                 type="radio"
@@ -470,7 +470,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                   setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'loop' } : null)
                                 }
                                 className="mr-2" />
-                              <label htmlFor="pulse-loop" className="text-sm text-gray-300">Loop</label>
+                              <label htmlFor="pulse-loop" className="text-sm text-slate-300">Loop</label>
                               <input
                                 type="radio"
                                 id="pulse-timed"
@@ -481,7 +481,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                   setLocalHotspot((prev) => prev ? { ...prev, pulseType: 'timed' } : null)
                                 }
                                 className="ml-4 mr-2" />
-                              <label htmlFor="pulse-timed" className="text-sm text-gray-300">Timed</label>
+                              <label htmlFor="pulse-timed" className="text-sm text-slate-300">Timed</label>
                             </div>
                           </div>
                         )}
@@ -489,7 +489,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                         {/* Pulse Duration Input */}
                         {localHotspot.pulseAnimation && localHotspot.pulseType === 'timed' && (
                           <div className="mb-4">
-                            <label htmlFor="pulse-duration" className="text-sm text-gray-300">
+                            <label htmlFor="pulse-duration" className="text-sm text-slate-300">
                               Pulse Duration (seconds)
                             </label>
                             <input
@@ -509,7 +509,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                                   return updatedHotspot;
                                 });
                               }}
-                              className="w-full bg-gray-600 border border-gray-500 rounded px-3 py-2 text-white mt-2"
+                              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white mt-2"
                               min="0"
                               step="0.1"
                               placeholder="Enter duration in seconds" />
@@ -535,7 +535,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                             </div>
                             <div className="flex-grow overflow-y-auto">
                               {localHotspotEvents?.length === 0 ? (
-                                <div className="text-center text-gray-400 py-8">
+                                <div className="text-center text-slate-400 py-8">
                                   No interactions for this hotspot.
                                   <br />
                                   Click &quot;Add Interaction&quot; to create one.
@@ -584,7 +584,7 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
                             onClose={editorActions.closeInteractionEditor}
                           />
                         ) : (
-                          <div className="text-center text-gray-400 py-8">
+                          <div className="text-center text-slate-400 py-8">
                             Select an interaction from the Interactions tab to edit its properties.
                           </div>
                         )}
