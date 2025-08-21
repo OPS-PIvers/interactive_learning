@@ -95,7 +95,7 @@ describe('SlideBasedInteractiveModule', () => {
     await waitFor(() => {
       expect(screen.getByTestId('slide-viewer')).toBeInTheDocument();
     });
-    expect(screen.queryByTestId('unified-slide-editor')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('simple-slide-editor')).not.toBeInTheDocument();
   });
 
   test('renders editor when in editing mode', async () => {

@@ -32,12 +32,13 @@ export const EditorTestPage: React.FC = () => {
     id: 'mobile-test-project',
     title: 'Mobile Editor Test',
     description: 'Testing mobile editor interface',
-    created: Date.now(),
-    modified: Date.now(),
+    createdBy: 'dev-user',
+    createdAt: new Date(),
+    updatedAt: new Date(),
     thumbnailUrl: '',
     isPublished: false,
     slideDeck: slideDeck,
-    data: {
+    interactiveData: {
       backgroundImage: '',
       backgroundType: 'image' as const,
       hotspots: [],
