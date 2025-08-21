@@ -43,6 +43,7 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
   className = ''
 }) => {
   const [isAddMode, setIsAddMode] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{hotspotId: string, title: string} | null>(null);
 
   // Handle add hotspot button
   const handleAddHotspot = () => {
@@ -64,8 +65,13 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
 
   // Handle hotspot deletion with confirmation
   const handleDelete = (hotspotId: string, hotspotTitle: string) => {
-    if (confirm(`Delete hotspot '${hotspotTitle}'?`)) {
-      onHotspotDelete(hotspotId);
+    setDeleteConfirmation({ hotspotId, title: hotspotTitle });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation) {
+      onHotspotDelete(deleteConfirmation.hotspotId);
+      setDeleteConfirmation(null);
     }
   };
 
@@ -83,7 +89,7 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
         <button
           onClick={handleAddHotspot}
           disabled={isAddMode}
-          className="w-full mb-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          className="w-full mb-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px]"
         >
           <span className="text-lg">+</span>
           {isAddMode ? 'Adding Hotspot...' : 'Add Hotspot'}
@@ -148,8 +154,9 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
                           e.stopPropagation();
                           onHotspotDuplicate(hotspot.id);
                         }}
-                        className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700"
+                        className="p-2 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         title="Duplicate hotspot"
+                        aria-label="Duplicate hotspot"
                       >
                         📄
                       </button>
@@ -158,8 +165,9 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
                           e.stopPropagation();
                           handleDelete(hotspot.id, title);
                         }}
-                        className="p-1 hover:bg-red-100 rounded text-gray-500 hover:text-red-600"
+                        className="p-2 hover:bg-red-100 rounded text-gray-500 hover:text-red-600 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         title="Delete hotspot"
+                        aria-label="Delete hotspot"
                       >
                         🗑️
                       </button>
@@ -205,6 +213,34 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[10000]">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Delete Hotspot</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
+                Are you sure you want to delete "{deleteConfirmation.title}"? This action cannot be undone.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirmation(null)}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 min-h-[44px] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors min-h-[44px] font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -53,6 +53,11 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   const [selectedHotspotId, setSelectedHotspotId] = useState<string>();
   const [editingHotspot, setEditingHotspot] = useState<Hotspot | null>(null);
   const [timelineStep, setTimelineStep] = useState(0);
+  
+  // Panel visibility for mobile-first progressive disclosure
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [showHotspotsPanel, setShowHotspotsPanel] = useState(false);
+  const [showTimelinePanel, setShowTimelinePanel] = useState(false);
 
   // Initialize EffectExecutor
   useEffect(() => {
@@ -268,84 +273,214 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   return (
     <div className={`simple-slide-editor ${className}`} data-testid="unified-slide-editor">
-      {/* Fixed: Replace unstable CSS Grid with Flexbox for better mobile touch compatibility */}
-      <div className="flex flex-col lg:flex-row lg:gap-6 h-full overflow-hidden">
-        {/* Left Sidebar - Controls - Mobile: bottom sheet, Desktop: sidebar */}
-        <div className="lg:w-1/4 lg:flex-shrink-0 space-y-4 lg:space-y-6 overflow-y-auto p-4 lg:p-0 bg-slate-50 lg:bg-transparent border-t lg:border-t-0 lg:border-r border-slate-200 order-3 lg:order-1">
-          <BackgroundSelector
-            background={slide.backgroundMedia}
-            onBackgroundChange={handleBackgroundChange}
-          />
-          
-          <AspectRatioSelector
-            aspectRatio={aspectRatio}
-            developmentMode={developmentMode}
-            onAspectRatioChange={handleAspectRatioChange}
-            onDevelopmentModeChange={setDevelopmentMode}
-          />
-
-          <HotspotManager
-            hotspots={hotspots}
-            selectedHotspotId={selectedHotspotId}
-            onHotspotAdd={handleHotspotAdd}
-            onHotspotSelect={handleHotspotSelect}
-            onHotspotDelete={handleHotspotDelete}
-            onHotspotDuplicate={handleHotspotDuplicate}
-          />
+      {/* Mobile-first layout with progressive disclosure */}
+      <div className="flex flex-col h-full">
+        
+        {/* Quick Action Bar - Always visible on mobile */}
+        <div className="flex items-center gap-2 p-3 bg-white border-b border-slate-200 md:hidden">
+          <button
+            onClick={() => setShowSettingsPanel(!showSettingsPanel)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
+              showSettingsPanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            ⚙️ Settings
+          </button>
+          <button
+            onClick={() => setShowHotspotsPanel(!showHotspotsPanel)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
+              showHotspotsPanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            🎯 Hotspots ({hotspots.length})
+          </button>
+          <button
+            onClick={() => setShowTimelinePanel(!showTimelinePanel)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium min-h-[44px] transition-colors ${
+              showTimelinePanel ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            📅 Timeline
+          </button>
         </div>
 
-        {/* Center - Canvas - Protected container with isolation */}
-        <div className="flex-1 lg:flex-grow-2 flex flex-col min-w-0 order-1 lg:order-2" style={{ isolation: 'isolate', contain: 'layout style' }}>
-          <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg p-4 touch-manipulation" style={{ touchAction: 'pan-x pan-y' }}>
-            <SlideCanvas
-              background={slide.backgroundMedia}
-              hotspots={hotspots}
-              aspectRatio={aspectRatio}
-              developmentMode={developmentMode}
-              onHotspotClick={handleHotspotClick}
-              onHotspotDrag={handleHotspotDrag}
-              onCanvasClick={handleHotspotAdd}
-            />
+        {/* Desktop layout with sidebar */}
+        <div className="flex flex-1 overflow-hidden">
+          
+          {/* Desktop Sidebar - Always visible on large screens */}
+          <div className="hidden md:flex md:flex-col md:w-80 md:border-r border-slate-200 bg-slate-50">
+            <div className="p-4 space-y-4 overflow-y-auto">
+              <div className="bg-white rounded-lg shadow-sm border p-4">
+                <h3 className="text-lg font-semibold mb-4">Slide Settings</h3>
+                <div className="space-y-4">
+                  <BackgroundSelector
+                    background={slide.backgroundMedia}
+                    onBackgroundChange={handleBackgroundChange}
+                  />
+                  <AspectRatioSelector
+                    aspectRatio={aspectRatio}
+                    developmentMode={developmentMode}
+                    onAspectRatioChange={handleAspectRatioChange}
+                    onDevelopmentModeChange={setDevelopmentMode}
+                  />
+                </div>
+              </div>
+              
+              <HotspotManager
+                hotspots={hotspots}
+                selectedHotspotId={selectedHotspotId}
+                onHotspotAdd={handleHotspotAdd}
+                onHotspotSelect={handleHotspotSelect}
+                onHotspotDelete={handleHotspotDelete}
+                onHotspotDuplicate={handleHotspotDuplicate}
+              />
+              
+              <div className="bg-white rounded-lg shadow-sm border p-4">
+                <h3 className="text-lg font-semibold mb-4">Timeline</h3>
+                <SimpleTimeline
+                  events={timelineEvents}
+                  currentStep={timelineStep}
+                  onStepChange={setTimelineStep}
+                  onEventAdd={(hotspotId) => {
+                    setSelectedHotspotId(hotspotId);
+                    const hotspot = hotspots.find(h => h.id === hotspotId);
+                    if (hotspot) {
+                      setEditingHotspot(hotspot);
+                    }
+                  }}
+                  onEventRemove={(eventId) => {
+                    const [hotspotId, interactionId] = eventId.split('-');
+                    const updatedElements = slide.elements.map(element => {
+                      if (element.id === hotspotId) {
+                        return {
+                          ...element,
+                          interactions: element.interactions?.filter(i => i.id !== interactionId) || []
+                        };
+                      }
+                      return element;
+                    });
+                    onSlideChange({
+                      ...slide,
+                      elements: updatedElements
+                    });
+                  }}
+                  onEventReorder={(eventId, newSequence) => {
+                    console.log('Reorder event', eventId, 'to sequence', newSequence);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Main Canvas Area */}
+          <div className="flex-1 flex flex-col relative">
+            <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center bg-gray-50 p-4 touch-manipulation" style={{ touchAction: 'pan-x pan-y' }}>
+              <SlideCanvas
+                background={slide.backgroundMedia}
+                hotspots={hotspots}
+                aspectRatio={aspectRatio}
+                developmentMode={developmentMode}
+                onHotspotClick={handleHotspotClick}
+                onHotspotDrag={handleHotspotDrag}
+                onCanvasClick={handleHotspotAdd}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Right Sidebar - Timeline */}
-        <div className="lg:w-1/4 lg:flex-shrink-0 space-y-4 lg:space-y-6 overflow-y-auto p-4 lg:p-0 bg-slate-50 lg:bg-transparent border-t lg:border-t-0 lg:border-l border-slate-200 order-2 lg:order-3">
-          <SimpleTimeline
-            events={timelineEvents}
-            currentStep={timelineStep}
-            onStepChange={setTimelineStep}
-            onEventAdd={(hotspotId) => {
-              // Focus on the hotspot to add interactions
-              setSelectedHotspotId(hotspotId);
-              const hotspot = hotspots.find(h => h.id === hotspotId);
-              if (hotspot) {
-                setEditingHotspot(hotspot);
-              }
-            }}
-            onEventRemove={(eventId) => {
-              // Remove interaction from timeline
-              const [hotspotId, interactionId] = eventId.split('-');
-              const updatedElements = slide.elements.map(element => {
-                if (element.id === hotspotId) {
-                  return {
-                    ...element,
-                    interactions: element.interactions?.filter(i => i.id !== interactionId) || []
-                  };
+        {/* Mobile Bottom Panels - Progressive disclosure */}
+        {showSettingsPanel && (
+          <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Slide Settings</h3>
+              <button
+                onClick={() => setShowSettingsPanel(false)}
+                className="text-slate-500 hover:text-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <BackgroundSelector
+                background={slide.backgroundMedia}
+                onBackgroundChange={handleBackgroundChange}
+              />
+              <AspectRatioSelector
+                aspectRatio={aspectRatio}
+                developmentMode={developmentMode}
+                onAspectRatioChange={handleAspectRatioChange}
+                onDevelopmentModeChange={setDevelopmentMode}
+              />
+            </div>
+          </div>
+        )}
+
+        {showHotspotsPanel && (
+          <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Hotspots</h3>
+              <button
+                onClick={() => setShowHotspotsPanel(false)}
+                className="text-slate-500 hover:text-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+            <HotspotManager
+              hotspots={hotspots}
+              selectedHotspotId={selectedHotspotId}
+              onHotspotAdd={handleHotspotAdd}
+              onHotspotSelect={handleHotspotSelect}
+              onHotspotDelete={handleHotspotDelete}
+              onHotspotDuplicate={handleHotspotDuplicate}
+            />
+          </div>
+        )}
+
+        {showTimelinePanel && (
+          <div className="md:hidden bg-white border-t border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Timeline</h3>
+              <button
+                onClick={() => setShowTimelinePanel(false)}
+                className="text-slate-500 hover:text-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+            <SimpleTimeline
+              events={timelineEvents}
+              currentStep={timelineStep}
+              onStepChange={setTimelineStep}
+              onEventAdd={(hotspotId) => {
+                setSelectedHotspotId(hotspotId);
+                const hotspot = hotspots.find(h => h.id === hotspotId);
+                if (hotspot) {
+                  setEditingHotspot(hotspot);
                 }
-                return element;
-              });
-              onSlideChange({
-                ...slide,
-                elements: updatedElements
-              });
-            }}
-            onEventReorder={(eventId, newSequence) => {
-              // TODO: Implement event reordering
-              console.log('Reorder event', eventId, 'to sequence', newSequence);
-            }}
-          />
-        </div>
+              }}
+              onEventRemove={(eventId) => {
+                const [hotspotId, interactionId] = eventId.split('-');
+                const updatedElements = slide.elements.map(element => {
+                  if (element.id === hotspotId) {
+                    return {
+                      ...element,
+                      interactions: element.interactions?.filter(i => i.id !== interactionId) || []
+                    };
+                  }
+                  return element;
+                });
+                onSlideChange({
+                  ...slide,
+                  elements: updatedElements
+                });
+              }}
+              onEventReorder={(eventId, newSequence) => {
+                console.log('Reorder event', eventId, 'to sequence', newSequence);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Hotspot Editor Modal */}
