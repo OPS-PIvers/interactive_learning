@@ -21,13 +21,16 @@ describe.skip('Concurrent Operations Integration Tests', () => {
     }
 
     const auth = firebaseManager.getAuth();
+    if (!auth) throw new Error('Auth not available');
     const userCredential = await signInAnonymously(auth);
     _testUserId = userCredential.user.uid;
   });
 
   afterAll(async () => {
     const auth = firebaseManager.getAuth();
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
   });
 
   beforeEach(async () => {
@@ -41,6 +44,7 @@ describe.skip('Concurrent Operations Integration Tests', () => {
   async function cleanupTestProjects() {
     try {
       const db = firebaseManager.getFirestore();
+      if (!db) return;
       const projectsRef = collection(db, 'projects');
       const snapshot = await getDocs(projectsRef);
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import ChevronDownIcon from './icons/ChevronDownIcon';
-import { PlusIcon } from './icons/PlusIcon';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import ChevronDownIcon from '../icons/ChevronDownIcon';
+import { PlusIcon } from '../icons/PlusIcon';
 
 interface HeaderInsertDropdownProps {
   onAddElement: (elementType: 'hotspot' | 'text' | 'media' | 'shape') => void;

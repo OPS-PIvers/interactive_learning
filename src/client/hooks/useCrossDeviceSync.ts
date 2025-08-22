@@ -33,6 +33,9 @@ export const useCrossDeviceSync = (moduleId: string | null) => {
         // Ensure Firebase is initialized first
         await firebaseManager.initialize();
         const db = firebaseManager.getFirestore();
+        if (!db) {
+          throw new Error('Firestore not initialized');
+        }
         const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
 
         unsubscribe = onSnapshot(docRef, (doc) => {
@@ -65,6 +68,9 @@ export const useCrossDeviceSync = (moduleId: string | null) => {
       // Ensure Firebase is initialized first
       await firebaseManager.initialize();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
       const docRef = doc(db, CROSS_DEVICE_SYNC_COLLECTION, moduleId);
       const data: SyncData = {
         position,

@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { SlideDeck } from '../../shared/slideTypes';
-import { useIOSSafariViewport } from '../hooks/useViewportHeight';
-import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../utils/iosZIndexManager';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
-import { ChevronRightIcon } from './icons/ChevronRightIcon';
-import { PauseIcon } from './icons/PauseIcon';
-import { PlayIcon } from './icons/PlayIcon';
+import { SlideDeck } from '../../../shared/slideTypes';
+import { useIOSSafariViewport } from '../../hooks/useViewportHeight';
+import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../../utils/iosZIndexManager';
+import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../icons/ChevronRightIcon';
+import { PauseIcon } from '../icons/PauseIcon';
+import { PlayIcon } from '../icons/PlayIcon';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;
@@ -65,16 +65,16 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
   const { isIOSSafariUIVisible: _isIOSSafariUIVisible } = useIOSSafariViewport();
   // Generate timeline steps from slides
   const timelineSteps = useMemo((): TimelineStep[] => {
-    return slideDeck.slides.map((slide, index) => {
-      const hotspotElements = slide.elements.filter(element => element.type === 'hotspot');
+    return slideDeck.slides.map((slide: any, index: number) => {
+      const hotspotElements = slide.elements.filter((element: any) => element.type === 'hotspot');
       
       return {
         slideIndex: index,
         slideId: slide.id,
         title: slide.title || `Slide ${index + 1}`,
-        hasInteractions: slide.elements.some(element => element.interactions && element.interactions.length > 0),
+        hasInteractions: slide.elements.some((element: any) => element.interactions && element.interactions.length > 0),
         hotspotCount: hotspotElements.length,
-        hotspots: hotspotElements.map(element => {
+        hotspots: hotspotElements.map((element: any) => {
           const getSafeColor = () => {
             const backgroundColor = element.style?.backgroundColor || element.content.customProperties?.['backgroundColor'];
             if (typeof backgroundColor === 'string') return backgroundColor;

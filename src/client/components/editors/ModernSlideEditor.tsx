@@ -345,11 +345,11 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
         isSaving={isSaving}
         isPublished={isPublished}
         onImageUpload={onImageUpload}
-        project={project}
+        {...(project && { project })}
         onTogglePreview={() => setIsPreview(!isPreview)}
         onLivePreview={onLivePreview}
         isPreview={isPreview}
-        selectedHotspotId={selectedHotspotId}
+        {...(selectedHotspotId && { selectedHotspotId })}
         onDeleteHotspot={handleDeleteHotspot}
       />
       

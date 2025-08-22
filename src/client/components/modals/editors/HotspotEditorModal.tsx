@@ -273,7 +273,8 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
 
   return (
     <ResponsiveModal
-      type="fullscreen"
+      type="properties"
+      size="fullscreen"
       isOpen={isOpen}
       onClose={onClose}
       title="Edit Hotspot"

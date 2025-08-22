@@ -24,6 +24,7 @@ describe.skip('Firebase Integration Tests', () => {
 
     // Sign in anonymously for testing
     const auth = firebaseManager.getAuth();
+    if (!auth) throw new Error('Auth not available');
     const userCredential = await signInAnonymously(auth);
     testUserId = userCredential.user.uid;
 
@@ -33,7 +34,9 @@ describe.skip('Firebase Integration Tests', () => {
   afterAll(async () => {
     // Clean up: sign out
     const auth = firebaseManager.getAuth();
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
   });
 
   beforeEach(async () => {
@@ -52,6 +55,7 @@ describe.skip('Firebase Integration Tests', () => {
   async function cleanupTestProjects() {
     try {
       const db = firebaseManager.getFirestore();
+      if (!db) return;
       const projectsRef = collection(db, 'projects');
       const snapshot = await getDocs(projectsRef);
 
@@ -372,7 +376,9 @@ describe.skip('Firebase Integration Tests', () => {
     it('should provide detailed error context for save failures', async () => {
       // Try to save a project with invalid user authentication
       const auth = firebaseManager.getAuth();
-      await signOut(auth);
+      if (auth) {
+        await signOut(auth);
+      }
 
       try {
         const project = await firebaseAPI.createProject('TEST_PROJECT_ERROR', 'Error test');
@@ -381,8 +387,10 @@ describe.skip('Firebase Integration Tests', () => {
         toThrow(/authentication/i);
       } finally {
         // Restore authentication
-        const userCredential = await signInAnonymously(auth);
-        testUserId = userCredential.user.uid;
+        if (auth) {
+          const userCredential = await signInAnonymously(auth);
+          testUserId = userCredential.user.uid;
+        }
       }
     });
 

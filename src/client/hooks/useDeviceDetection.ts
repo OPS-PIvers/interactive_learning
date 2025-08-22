@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DeviceType, FixedPosition } from '../../shared/slideTypes';
+import { DeviceType, FixedPosition, ResponsivePosition } from '../../shared/slideTypes';
 
 /**
  * Hook for viewport information
@@ -72,14 +72,25 @@ export const useDeviceDetection = () => {
  * Uses viewport width to determine appropriate responsive values
  */
 export const getResponsivePosition = (
-  responsivePosition: { desktop?: FixedPosition; tablet?: FixedPosition; mobile?: FixedPosition },
+  responsivePosition: ResponsivePosition | FixedPosition,
   viewportWidth: number
-) => {
+): FixedPosition => {
+  // If it's already a FixedPosition, return it directly
+  if ('x' in responsivePosition && 'y' in responsivePosition) {
+    return responsivePosition;
+  }
+  
+  // It's a ResponsivePosition, get the appropriate breakpoint
+  const rp = responsivePosition as ResponsivePosition;
+  
+  // Default fallback position if no breakpoints are defined
+  const defaultPosition: FixedPosition = { x: 0, y: 0, width: 100, height: 100 };
+  
   if (viewportWidth < 768) {
-    return responsivePosition.mobile || responsivePosition.desktop || responsivePosition;
+    return rp.mobile || rp.tablet || rp.desktop || defaultPosition;
   } else if (viewportWidth < 1024) {
-    return responsivePosition.tablet || responsivePosition.desktop || responsivePosition;
+    return rp.tablet || rp.desktop || defaultPosition;
   } else {
-    return responsivePosition.desktop || responsivePosition;
+    return rp.desktop || defaultPosition;
   }
 };

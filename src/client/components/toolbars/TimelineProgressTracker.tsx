@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { SlideDeck } from '../../shared/slideTypes';
+import { SlideDeck } from '../../../shared/slideTypes';
 
 interface TimelineProgressTrackerProps {
   slideDeck: SlideDeck;

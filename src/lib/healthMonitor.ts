@@ -99,6 +99,17 @@ class DatabaseHealthMonitor {
   private async checkSingleProject(projectId: string): Promise<HealthCheckResult[]> {
     const checks: HealthCheckResult[] = [];
     const db = firebaseManager.getFirestore();
+    if (!db) {
+      checks.push({
+        checkId: `firestore_unavailable_${projectId}`,
+        timestamp: Date.now(),
+        passed: false,
+        checkType: 'system_connectivity',
+        details: 'Firestore is not available',
+        severity: 'critical'
+      });
+      return checks;
+    }
 
     try {
       // Check if project exists
@@ -274,6 +285,17 @@ class DatabaseHealthMonitor {
   private async checkSystemHealth(): Promise<HealthCheckResult[]> {
     const checks: HealthCheckResult[] = [];
     const db = firebaseManager.getFirestore();
+    if (!db) {
+      checks.push({
+        checkId: `firestore_unavailable_system`,
+        timestamp: Date.now(),
+        passed: false,
+        checkType: 'system_connectivity',
+        details: 'Firestore is not available',
+        severity: 'critical'
+      });
+      return checks;
+    }
 
     try {
       // Check Firebase connection
