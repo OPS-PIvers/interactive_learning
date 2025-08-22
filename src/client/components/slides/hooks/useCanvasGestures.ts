@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { SlideElement, DeviceType, FixedPosition, ResponsivePosition } from '../../../../shared/slideTypes';
 
-const DRAG_THRESHOLD_PIXELS = 10;
+const DRAG_THRESHOLD_PIXELS = 60;
 const TAP_MAX_DURATION = 300;
 
 interface DragState {
@@ -20,6 +20,23 @@ interface TouchState {
   startElementPosition: FixedPosition;
   startTimestamp: number;
 }
+
+const INITIAL_DRAG_STATE: DragState = {
+  isDragging: false,
+  elementId: null,
+  startPosition: { x: 0, y: 0 },
+  startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
+  hasMovedBeyondThreshold: false,
+};
+
+const INITIAL_TOUCH_STATE: TouchState = {
+  isTouching: false,
+  isDragging: false,
+  elementId: null,
+  startPosition: { x: 0, y: 0 },
+  startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
+  startTimestamp: 0,
+};
 
 const createResponsivePosition = (
   existingPosition: ResponsivePosition | undefined,
@@ -44,22 +61,9 @@ export const useCanvasGestures = (
   handleElementSelect: (elementId: string | null) => void,
   handleHotspotClick: (elementId: string, element: SlideElement) => void
 ) => {
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    elementId: null,
-    startPosition: { x: 0, y: 0 },
-    startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
-    hasMovedBeyondThreshold: false,
-  });
+  const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE);
 
-  const [touchState, setTouchState] = useState<TouchState>({
-    isTouching: false,
-    isDragging: false,
-    elementId: null,
-    startPosition: { x: 0, y: 0 },
-    startElementPosition: { x: 0, y: 0, width: 100, height: 100 },
-    startTimestamp: 0,
-  });
+  const [touchState, setTouchState] = useState<TouchState>(INITIAL_TOUCH_STATE);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
     if (!isEditable) return;
@@ -114,7 +118,7 @@ export const useCanvasGestures = (
         handleElementSelect(dragState.elementId);
       }
     }
-    setDragState({ isDragging: false, elementId: null, startPosition: { x: 0, y: 0 }, startElementPosition: { x: 0, y: 0, width: 100, height: 100 }, hasMovedBeyondThreshold: false });
+    setDragState(INITIAL_DRAG_STATE);
   }, [dragState, currentSlide, handleHotspotClick, handleElementSelect]);
 
   const handleTouchStartElement = useCallback((e: React.TouchEvent, elementId: string) => {
@@ -178,7 +182,7 @@ export const useCanvasGestures = (
         handleElementSelect(touchState.elementId);
       }
     }
-    setTouchState({ isTouching: false, isDragging: false, elementId: null, startPosition: { x: 0, y: 0 }, startElementPosition: { x: 0, y: 0, width: 100, height: 100 }, startTimestamp: 0 });
+    setTouchState(INITIAL_TOUCH_STATE);
   }, [touchState, handleHotspotClick, handleElementSelect, currentSlide]);
 
   return {

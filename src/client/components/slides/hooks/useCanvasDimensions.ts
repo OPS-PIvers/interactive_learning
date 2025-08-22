@@ -61,7 +61,7 @@ export const useCanvasDimensions = (
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange',handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       if (deviceType === 'mobile') {
         window.removeEventListener('visualViewportChange', handleResize);
         document.removeEventListener('scroll', handleResize);
