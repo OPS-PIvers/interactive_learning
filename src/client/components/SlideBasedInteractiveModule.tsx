@@ -7,7 +7,7 @@ import LoadingScreen from './shared/LoadingScreen';
 import SlideBasedViewer from './SlideBasedViewer';
 
 // Lazy load the heavy editor component
-const SimpleSlideEditor = lazy(() => import('./slides/SimpleSlideEditor'));
+const ModernSlideEditor = lazy(() => import('./editors/ModernSlideEditor'));
 
 interface SlideBasedInteractiveModuleProps {
   initialData: InteractiveModuleState;
@@ -147,7 +147,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
   if (isEditing) {
     return (
       <Suspense fallback={<LoadingScreen message="Loading Editor..." />}>
-        <SimpleSlideEditor
+        <ModernSlideEditor
           {...rest}
           slide={currentSlideDeck.slides[0] || {
             id: 'default-slide',

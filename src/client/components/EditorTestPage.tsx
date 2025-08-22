@@ -3,7 +3,7 @@ import { SlideDeck, ThemePreset, ElementInteraction } from '../../shared/slideTy
 import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
 import { Z_INDEX } from '../utils/zIndexLevels';
-import SimpleSlideEditor from './slides/SimpleSlideEditor';
+import ModernSlideEditor from './editors/ModernSlideEditor';
 import { SlideViewer } from './slides/SlideViewer';
 
 
@@ -227,7 +227,7 @@ export const EditorTestPage: React.FC = () => {
       <div className="flex-1 relative">
         {mode === 'editor' ? (
           <div className="h-full">
-            <SimpleSlideEditor
+            <ModernSlideEditor
               slide={slideDeck.slides[0] || {
                 id: 'test-slide',
                 title: 'Test Slide',

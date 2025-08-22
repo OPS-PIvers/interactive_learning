@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
 import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
-import SimpleSlideEditor from '../client/components/slides/SimpleSlideEditor';
+import ModernSlideEditor from '../client/components/editors/ModernSlideEditor';
 import { AuthProvider } from '../lib/authContext';
 import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
 
@@ -26,7 +26,7 @@ describe('CSS-only responsive design', () => {
     expect(dragHandle).toHaveClass('md:hidden');
   });
 
-  test('SimpleSlideEditor should use responsive components', () => {
+  test('ModernSlideEditor should use responsive components', () => {
     const testSlideDeck = createTestDemoSlideDeck();
     const testSlide = testSlideDeck.slides[0] || {
       id: 'test-slide',
@@ -47,7 +47,7 @@ describe('CSS-only responsive design', () => {
     
     render(
       <AuthProvider>
-        <SimpleSlideEditor
+        <ModernSlideEditor
           slide={testSlide}
           onSlideChange={() => {}}
           projectName="Test Project"
@@ -69,12 +69,12 @@ describe('CSS-only responsive design', () => {
       </AuthProvider>
     );
 
-    // Check for the presence of the slide editor
-    const slideEditor = screen.getByText('Hotspots');
+    // Check for the presence of the modern slide editor
+    const slideEditor = screen.getByTestId('modern-slide-editor');
     expect(slideEditor).toBeInTheDocument();
 
-    // Check for background selector
-    const backgroundSelector = screen.getByText('Background');
-    expect(backgroundSelector).toBeInTheDocument();
+    // Check for modern footer controls
+    const backgroundButton = screen.getByText('Background');
+    expect(backgroundButton).toBeInTheDocument();
   });
 });
