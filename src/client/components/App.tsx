@@ -4,8 +4,9 @@ import { AuthProvider, useAuth } from '../../lib/authContext';
 import { appScriptProxy } from '../../lib/firebaseProxy';
 import { demoModuleData } from '../../shared/demoModuleData';
 import { createDemoSlideDeck } from '../../shared/demoSlideDeckData';
-import { SlideDeck, ThemePreset } from '../../shared/slideTypes';
+import { SlideDeck, ThemePreset, BackgroundMedia } from '../../shared/slideTypes';
 import { Project, InteractiveModuleState } from '../../shared/types';
+import { ensureProjectCompatibility } from '../../shared/migrationUtils';
 import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
 import { setDynamicViewportProperties } from '../utils/viewportUtils';
 import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
@@ -84,7 +85,10 @@ const MainApp: React.FC = () => {
       // Firebase connection manager handles initialization automatically
       // Only call init once during app lifecycle, not on every project load
       const fetchedProjects = await appScriptProxy.listProjects();
-      setProjects(fetchedProjects);
+      
+      // Ensure all projects have proper compatibility between legacy and new formats
+      const migratedProjects = fetchedProjects.map(project => ensureProjectCompatibility(project));
+      setProjects(migratedProjects);
     } catch (err: unknown) {
       console.error("Failed to load projects:", err);
       const errorMessage = err instanceof Error ? err.message : 'Please try again later.';
@@ -305,16 +309,92 @@ const MainApp: React.FC = () => {
     }
 
     setIsLoading(true);
+    console.log('Starting image upload:', { fileName: file.name, fileSize: file.size, projectId: selectedProject.id });
+    
     try {
       const imageUrl = await appScriptProxy.uploadImage(file, selectedProject.id);
+      console.log('Image upload successful:', { imageUrl });
+      
+      // Create background media object in the new slide format
+      const backgroundMedia: BackgroundMedia = {
+        type: 'image',
+        url: imageUrl
+      };
+      
+      // Update legacy interactiveData for backward compatibility
       const updatedData = {
         ...selectedProject?.interactiveData,
         backgroundImage: imageUrl,
       };
       
-      const updatedProject = {
+      // Update slide deck if it exists (new slide architecture)
+      let updatedSlideDeck: SlideDeck | undefined = selectedProject.slideDeck;
+      if (updatedSlideDeck?.slides && updatedSlideDeck.slides.length > 0) {
+        // Update the first slide's background media
+        updatedSlideDeck = {
+          ...updatedSlideDeck,
+          slides: updatedSlideDeck.slides.map((slide, index) => 
+            index === 0 ? { ...slide, backgroundMedia } : slide
+          )
+        };
+      } else if (updatedSlideDeck) {
+        // Create a default slide with the background if none exists
+        updatedSlideDeck = {
+          ...updatedSlideDeck,
+          slides: [{
+            id: 'default-slide',
+            title: selectedProject.title,
+            backgroundMedia,
+            elements: [],
+            transitions: [],
+            layout: {
+              aspectRatio: '16:9',
+              scaling: 'fit',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }
+          }]
+        };
+      } else {
+        // Create a new slide deck if none exists
+        updatedSlideDeck = {
+          id: selectedProject.id,
+          title: selectedProject.title,
+          slides: [{
+            id: 'default-slide',
+            title: selectedProject.title,
+            backgroundMedia,
+            elements: [],
+            transitions: [],
+            layout: {
+              aspectRatio: '16:9',
+              scaling: 'fit',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }
+          }],
+          settings: {
+            autoAdvance: false,
+            allowNavigation: true,
+            showProgress: true,
+            showControls: true,
+            keyboardShortcuts: true,
+            touchGestures: true,
+            fullscreenMode: false
+          },
+          metadata: {
+            created: Date.now(),
+            modified: Date.now(),
+            version: '1.0.0',
+            isPublic: false
+          }
+        };
+      }
+      
+      const updatedProject: Project = {
         ...selectedProject,
         interactiveData: updatedData,
+        slideDeck: updatedSlideDeck
       };
 
       // Update local project state first to ensure React state is current
@@ -329,10 +409,33 @@ const MainApp: React.FC = () => {
       });
       
       if (!selectedProject) return;
-      await handleSaveProjectData(selectedProject.id, updatedData as InteractiveModuleState);
+      await handleSaveProjectData(selectedProject.id, updatedData as InteractiveModuleState, undefined, updatedSlideDeck);
+      console.log('Project data saved successfully with new background image');
     } catch (err: unknown) {
       console.error("Failed to upload image:", err);
-      setError(`Failed to upload image: ${(err as Error)?.message || ''}`);
+      
+      // Provide more helpful error messages based on error type
+      let errorMessage = 'Unknown error occurred';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      
+      // Check for common Firebase Storage errors and provide user-friendly messages
+      if (errorMessage.includes('storage/unauthorized')) {
+        errorMessage = 'You do not have permission to upload images. Please check your authentication.';
+      } else if (errorMessage.includes('storage/canceled')) {
+        errorMessage = 'Image upload was canceled.';
+      } else if (errorMessage.includes('storage/timeout')) {
+        errorMessage = 'Image upload timed out. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('storage/invalid-format')) {
+        errorMessage = 'Invalid image format. Please use JPG, PNG, or other supported image formats.';
+      } else if (errorMessage.includes('storage/too-large')) {
+        errorMessage = 'Image file is too large. Please use an image smaller than 10MB.';
+      }
+      
+      setError(`Failed to upload background image: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
