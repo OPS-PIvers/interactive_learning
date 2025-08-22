@@ -6,7 +6,7 @@ import { ViewportBounds } from '../../../utils/touchUtils';
 interface CanvasContainerProps {
   children: React.ReactNode;
   canvasTransform: ImageTransformState;
-  setCanvasTransform: (transform: ImageTransformState) => void;
+  setCanvasTransform: (transform: ImageTransformState | ((prevTransform: ImageTransformState) => ImageTransformState)) => void;
   isTransforming: boolean;
   setIsTransforming: (isTransforming: boolean) => void;
   viewportBounds: ViewportBounds;
