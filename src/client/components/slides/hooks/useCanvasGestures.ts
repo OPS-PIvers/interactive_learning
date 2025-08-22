@@ -89,8 +89,8 @@ export const useCanvasGestures = (
 
     const newPosition: FixedPosition = {
       ...dragState.startElementPosition,
-      x: dragState.startElementPosition.x + deltaX,
-      y: dragState.startElementPosition.y + deltaY,
+      x: Math.max(0, dragState.startElementPosition.x + deltaX),
+      y: Math.max(0, dragState.startElementPosition.y + deltaY),
     };
 
     const element = currentSlideElements?.find(el => el.id === dragState.elementId);
@@ -117,16 +117,75 @@ export const useCanvasGestures = (
     setDragState(INITIAL_DRAG_STATE);
   }, [dragState, currentSlideElements, handleHotspotClick, handleElementSelect]);
 
-  // Touch events would be refactored similarly, for brevity we focus on mouse events
-  const handleTouchStartElement = (e: React.TouchEvent, elementId: string) => {
-    // Similar logic as handleMouseDown
-  };
-  const handleTouchMoveElement = (e: React.TouchEvent) => {
-    // Similar logic as handleMouseMove
-  };
-  const handleTouchEndElement = (e: React.TouchEvent) => {
-    // Similar logic as handleMouseUp
-  };
+  const handleTouchStartElement = useCallback((e: React.TouchEvent, elementId: string) => {
+    if (!isEditable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const element = currentSlideElements?.find((el) => el.id === elementId);
+    if (!element) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const startElementPosition = getElementPositionForDevice(element);
+    setDragState({
+      isDragging: true,
+      elementId,
+      startPosition: { x: touch.clientX - rect.left, y: touch.clientY - rect.top },
+      startElementPosition,
+      hasMovedBeyondThreshold: false,
+    });
+  }, [isEditable, currentSlideElements, canvasRef, getElementPositionForDevice]);
+
+  const handleTouchMoveElement = useCallback((e: React.TouchEvent) => {
+    if (!dragState.isDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+    const deltaX = currentX - dragState.startPosition.x;
+    const deltaY = currentY - dragState.startPosition.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    if (!dragState.hasMovedBeyondThreshold && distance < DRAG_THRESHOLD_PIXELS) {
+      return;
+    }
+
+    if (!dragState.hasMovedBeyondThreshold) {
+      setDragState(prev => ({...prev, hasMovedBeyondThreshold: true}));
+    }
+
+    if (dragState.elementId) {
+      const element = currentSlideElements?.find((el) => el.id === dragState.elementId);
+      if (!element) return;
+      const newPosition: FixedPosition = {
+        ...dragState.startElementPosition,
+        x: Math.max(0, dragState.startElementPosition.x + deltaX),
+        y: Math.max(0, dragState.startElementPosition.y + deltaY),
+      };
+      const updatedPosition = createUpdatedResponsivePosition(element.position, newPosition);
+      handleElementUpdate(dragState.elementId, { position: updatedPosition });
+    }
+  }, [dragState, currentSlideElements, canvasRef, handleElementUpdate, createUpdatedResponsivePosition]);
+
+  const handleTouchEndElement = useCallback((e: React.TouchEvent) => {
+    if (!dragState.isDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragState.hasMovedBeyondThreshold && dragState.elementId) {
+      const element = currentSlideElements?.find((el) => el.id === dragState.elementId);
+      if (element?.type === 'hotspot') {
+        handleHotspotClick(dragState.elementId, element);
+      } else if (element) {
+        handleElementSelect(dragState.elementId);
+      }
+    }
+    setDragState(INITIAL_DRAG_STATE);
+  }, [dragState, currentSlideElements, handleHotspotClick, handleElementSelect]);
 
 
   return {

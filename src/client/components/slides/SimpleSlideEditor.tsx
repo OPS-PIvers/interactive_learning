@@ -147,6 +147,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
         title: `Hotspot ${slide.elements.length + 1}`,
         description: 'New hotspot'
       },
+      interactions: [],
       style: {
         backgroundColor: '#3b82f6',
         borderColor: '#1e40af',
