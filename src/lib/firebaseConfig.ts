@@ -42,10 +42,10 @@ function getFirebaseConfig(): FirebaseConfiguration {
 // Firebase Connection Manager with singleton pattern and mobile optimization
 class FirebaseConnectionManager {
   private static instance: FirebaseConnectionManager;
-  private app: any = null;
-  private db: any = null;
-  private storage: any = null;
-  private auth: any = null;
+  private app: import('firebase/app').FirebaseApp | null = null;
+  private db: import('firebase/firestore').Firestore | null = null;
+  private storage: import('firebase/storage').FirebaseStorage | null = null;
+  private auth: import('firebase/auth').Auth | null = null;
   // Analytics and Performance removed for bundle optimization
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;

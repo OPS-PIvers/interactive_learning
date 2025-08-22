@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DeviceType } from '../../shared/slideTypes';
+import { DeviceType, FixedPosition } from '../../shared/slideTypes';
 
 /**
  * Hook for viewport information
@@ -72,7 +72,7 @@ export const useDeviceDetection = () => {
  * Uses viewport width to determine appropriate responsive values
  */
 export const getResponsivePosition = (
-  responsivePosition: { desktop?: any; tablet?: any; mobile?: any },
+  responsivePosition: { desktop?: FixedPosition; tablet?: FixedPosition; mobile?: FixedPosition },
   viewportWidth: number
 ) => {
   if (viewportWidth < 768) {
