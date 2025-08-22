@@ -21,7 +21,10 @@ const ModernSlideEditorDemo: React.FC = () => {
     elements: [],
     transitions: [],
     layout: {
-      aspectRatio: '16:9'
+      aspectRatio: '16:9',
+      scaling: 'fit',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
     },
     backgroundMedia: {
       type: 'image',
@@ -42,7 +45,22 @@ const ModernSlideEditorDemo: React.FC = () => {
     slideDeck: {
       id: generateId(),
       title: 'Demo Slide Deck',
-      slides: [slide]
+      slides: [slide],
+      settings: {
+        autoAdvance: false,
+        allowNavigation: true,
+        showProgress: true,
+        showControls: true,
+        keyboardShortcuts: true,
+        touchGestures: true,
+        fullscreenMode: false
+      },
+      metadata: {
+        created: Date.now(),
+        modified: Date.now(),
+        version: '1.0.0',
+        isPublic: false
+      }
     }
   };
 
