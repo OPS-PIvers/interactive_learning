@@ -48,7 +48,7 @@ describe('Component Compilation Integrity Tests', () => {
   describe('Hotspot Editor Components', () => {
     test('HotspotEditorModal imports and compiles correctly', async () => {
       expect(async () => {
-        const module = await import('../../client/components/HotspotEditorModal');
+         const module = await import("../../client/components/modals/editors/HotspotEditorModal");
         expect(module.default).toBeDefined();
       }).not.toThrow();
     });
@@ -62,7 +62,7 @@ describe('Component Compilation Integrity Tests', () => {
 
     test('InteractionSettingsModal imports and compiles correctly', async () => {
         expect(async () => {
-            const module = await import('../../client/components/InteractionSettingsModal');
+         const module = await import("../../client/components/interactions/InteractionSettingsModal");
             expect(module.default).toBeDefined();
         }).not.toThrow();
     });
