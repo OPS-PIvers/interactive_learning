@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ScrollStacks from '../client/components/ScrollStacks';
+import ScrollStacks from '../client/components/views/ScrollStacks';
 import { Project } from '../shared/types';
 
 // Mock IntersectionObserver
@@ -16,7 +16,7 @@ mockIntersectionObserver.mockReturnValue({
 global.IntersectionObserver = mockIntersectionObserver;
 
 // Mock the ProjectCard component
-vi.mock('../client/components/ProjectCard', () => ({
+vi.mock('../client/components/ui/ProjectCard', () => ({
   default: ({ project, onEdit, onDelete }: { project: Project; onEdit: () => void; onDelete: (id: string) => void }) => (
     <div data-testid={`project-card-${project.id}`}>
       <h3>{project.title}</h3>

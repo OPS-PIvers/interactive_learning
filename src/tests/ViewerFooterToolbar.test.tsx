@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ViewerFooterToolbar } from '../client/components/ViewerFooterToolbar';
+import { ViewerFooterToolbar } from '../client/components/toolbars/ViewerFooterToolbar';
 import { AuthContext } from '../lib/authContext';
 import { InteractiveSlide } from '../shared/slideTypes';
 

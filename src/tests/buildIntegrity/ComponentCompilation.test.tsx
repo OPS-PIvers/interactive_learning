@@ -31,7 +31,7 @@ describe('Component Compilation Integrity Tests', () => {
   describe('Core Component Imports', () => {
     test('SlideBasedInteractiveModule imports without errors', async () => {
       expect(async () => {
-        const module = await import('../../client/components/SlideBasedInteractiveModule');
+        const module = await import('../../client/components/views/SlideBasedInteractiveModule');
         expect(module.default).toBeDefined();
       }).not.toThrow();
     });
@@ -39,7 +39,7 @@ describe('Component Compilation Integrity Tests', () => {
 
     test('AuthButton imports and compiles correctly', async () => {
       expect(async () => {
-        const module = await import('../../client/components/AuthButton');
+        const module = await import('../../client/components/auth/AuthButton');
         expect(module.default).toBeDefined();
       }).not.toThrow();
     });
@@ -55,7 +55,7 @@ describe('Component Compilation Integrity Tests', () => {
 
     test('EditableEventCard imports and compiles correctly', async () => {
         expect(async () => {
-          const module = await import('../../client/components/EditableEventCard');
+          const module = await import('../../client/components/ui/EditableEventCard');
           expect(module.default).toBeDefined();
         }).not.toThrow();
     });
@@ -130,7 +130,7 @@ describe('Component Compilation Integrity Tests', () => {
 
     test('SlideBasedInteractiveModule can be instantiated with minimal props', async () => {
       expect(async () => {
-        const SlideBasedInteractiveModuleModule = await import('../../client/components/SlideBasedInteractiveModule');
+        const SlideBasedInteractiveModuleModule = await import('../../client/components/views/SlideBasedInteractiveModule');
         const SlideBasedInteractiveModule = SlideBasedInteractiveModuleModule.default;
         const mockSlideDeck = {
           id: 'test',
@@ -196,8 +196,8 @@ describe('Component Compilation Integrity Tests', () => {
   describe('Critical Path Component Loading', () => {
     test('all critical components can be loaded simultaneously', async () => {
       const criticalComponents = [
-        import('../../client/components/SlideBasedInteractiveModule'),
-        import('../../client/components/AuthButton')
+        import('../../client/components/views/SlideBasedInteractiveModule'),
+        import('../../client/components/auth/AuthButton')
       ];
 
       const results = await Promise.allSettled(criticalComponents);
@@ -218,7 +218,7 @@ describe('Component Compilation Integrity Tests', () => {
       };
 
       const concurrentLoads = [
-        loadComponent('../../client/components/SlideBasedInteractiveModule'),
+        loadComponent('../../client/components/views/SlideBasedInteractiveModule'),
         loadComponent('../../shared/slideTypes'),
         loadComponent('../../shared/types')
       ];

@@ -2,8 +2,8 @@ import React from 'react';
 import { TimelineEventData } from '../../../../../shared/type-defs';
 import { HotspotData } from '../../../../../shared/types';
 import { InteractionType } from '../../../../../shared/InteractionPresets';
-import EditableEventCard from '../../../EditableEventCard';
-import { AddInteractionButton, InteractionTypeSelectorGrid } from '../../../InteractionTypeSelector';
+import EditableEventCard from '../../../ui/EditableEventCard';
+import { AddInteractionButton, InteractionTypeSelectorGrid } from '../../../selectors/InteractionTypeSelector';
 import { getSortedEvents, canMoveUp, canMoveDown } from '../../../../utils/timelineUtils';
 
 interface InteractionsTabProps {

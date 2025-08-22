@@ -1,313 +1,263 @@
-/**
- * Responsive Background Modal Component
- * 
- * Unified modal for slide background and aspect ratio management that adapts to all screen sizes.
- * Progressive enhancement from mobile-first foundation to desktop features.
- */
-
-import React, { useState } from 'react';
-import { InteractiveSlide, BackgroundMedia } from '../../../shared/slideTypes';
-import FileUpload from '../FileUpload';
-import { TrashIcon } from '../icons/TrashIcon';
+import React, { useState, useEffect } from 'react';
+import { extractYouTubeVideoId } from '../../../shared/types';
 import { ResponsiveModal } from './ResponsiveModal';
 
 interface ResponsiveBackgroundModalProps {
-  currentSlide: InteractiveSlide;
-  onAspectRatioChange: (ratio: string) => void;
-  onBackgroundUpload: (file: File) => Promise<void>;
-  onBackgroundRemove: () => void;
-  onBackgroundUpdate: (mediaConfig: BackgroundMedia) => void;
+  isOpen: boolean;
   onClose: () => void;
+  backgroundImage?: string;
+  backgroundType?: 'image' | 'video';
+  backgroundVideoType?: 'youtube' | 'mp4';
+  onBackgroundImageChange: (url: string) => void;
+  onBackgroundTypeChange: (type: 'image' | 'video') => void;
+  onBackgroundVideoTypeChange: (type: 'youtube' | 'mp4') => void;
+  onReplaceImage: (file: File) => void;
 }
 
+type BackgroundOption = 'none' | 'color' | 'image' | 'video' | 'youtube';
+
 /**
- * ResponsiveBackgroundModal - Unified modal for slide background and aspect ratio management
+ * ResponsiveBackgroundModal - Unified modal for background settings
+ * 
+ * Features:
+ * - Five background type options: None, Color, Image, Video, YouTube
+ * - YouTube URL input with auto-processing
+ * - File upload for images and videos
+ * - Responsive design using ResponsiveModal base
  */
-export const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps> = ({
-  currentSlide,
-  onAspectRatioChange,
-  onBackgroundUpload,
-  onBackgroundRemove,
-  onBackgroundUpdate,
-  onClose
+const ResponsiveBackgroundModal: React.FC<ResponsiveBackgroundModalProps> = ({
+  isOpen,
+  onClose,
+  backgroundImage = '',
+  backgroundType = 'image',
+  backgroundVideoType = 'mp4',
+  onBackgroundImageChange,
+  onBackgroundTypeChange,
+  onBackgroundVideoTypeChange,
+  onReplaceImage,
 }) => {
-  const [activeTab, setActiveTab] = useState<'aspectRatio' | 'background'>('aspectRatio');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  
-  const backgroundMedia = currentSlide.backgroundMedia;
-  const currentAspectRatio = currentSlide.layout?.aspectRatio || '16:9';
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [selectedOption, setSelectedOption] = useState<BackgroundOption>(() => {
+    if (!backgroundImage) return 'none';
+    if (backgroundType === 'video' && backgroundVideoType === 'youtube') return 'youtube';
+    if (backgroundType === 'video') return 'video';
+    return backgroundType as BackgroundOption;
+  });
 
-  const handleFileUpload = async (file: File) => {
-    setIsUploading(true);
-    setUploadError(null);
+  useEffect(() => {
+    // Only update selectedOption based on props if we have a background image
+    // This prevents overriding user selection when no background is set
+    if (backgroundImage) {
+      if (backgroundType === 'video' && backgroundVideoType === 'youtube') {
+        setSelectedOption('youtube');
+      } else if (backgroundType === 'video') {
+        setSelectedOption('video');
+      } else {
+        setSelectedOption(backgroundType as BackgroundOption);
+      }
+    }
+  }, [backgroundImage, backgroundType, backgroundVideoType]);
+
+  const handleOptionSelect = (option: BackgroundOption) => {
+    setSelectedOption(option);
     
-    try {
-      await onBackgroundUpload(file);
-      // Switch to background tab after successful upload
-      setActiveTab('background');
-    } catch (error) {
-      console.error('Background upload failed:', error);
-      setUploadError(error instanceof Error ? error.message : 'Upload failed. Please try again.');
-    } finally {
-      setIsUploading(false);
+    switch (option) {
+      case 'none':
+        onBackgroundImageChange('');
+        break;
+      case 'color':
+        // For now, just clear the background - could add color picker later
+        onBackgroundImageChange('');
+        break;
+      case 'image':
+        onBackgroundTypeChange('image');
+        break;
+      case 'video':
+        onBackgroundTypeChange('video');
+        onBackgroundVideoTypeChange('mp4');
+        break;
+      case 'youtube':
+        onBackgroundTypeChange('video');
+        onBackgroundVideoTypeChange('youtube');
+        break;
     }
   };
 
-  const handleBackgroundRemove = () => {
-    if (window.confirm('Remove background media?')) {
-      onBackgroundRemove();
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'video') => {
+    if (event.target.files && event.target.files[0]) {
+      onReplaceImage(event.target.files[0]);
+      onBackgroundTypeChange(fileType);
+      setSelectedOption(fileType);
     }
   };
 
-  const handleBackgroundSizeChange = (size: 'cover' | 'contain' | 'auto' | 'stretch') => {
-    if (backgroundMedia) {
-      onBackgroundUpdate({
-        ...backgroundMedia,
-        settings: {
-          size,
-          position: backgroundMedia.settings?.position || 'center',
-          repeat: backgroundMedia.settings?.repeat || 'no-repeat',
-          attachment: backgroundMedia.settings?.attachment || 'scroll',
-        }
-      });
+  const handleYouTubeUrlSubmit = () => {
+    if (youtubeUrl.trim()) {
+      const videoId = extractYouTubeVideoId(youtubeUrl);
+      if (videoId) {
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        onBackgroundImageChange(embedUrl);
+        onBackgroundTypeChange('video');
+        onBackgroundVideoTypeChange('youtube');
+        setYoutubeUrl('');
+        setSelectedOption('youtube');
+      } else {
+        onBackgroundImageChange(youtubeUrl);
+        onBackgroundTypeChange('video');
+        onBackgroundVideoTypeChange('youtube');
+      }
     }
   };
 
-  const handleBackgroundPositionChange = (position: string) => {
-    if (backgroundMedia) {
-      onBackgroundUpdate({
-        ...backgroundMedia,
-        settings: {
-          size: backgroundMedia.settings?.size || 'cover',
-          position: position as 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
-          repeat: backgroundMedia.settings?.repeat || 'no-repeat',
-          attachment: backgroundMedia.settings?.attachment || 'scroll',
-        }
-      });
-    }
-  };
+  const backgroundOptions = [
+    { id: 'none' as BackgroundOption, icon: 'block', label: 'None' },
+    { id: 'color' as BackgroundOption, icon: 'palette', label: 'Color' },
+    { id: 'image' as BackgroundOption, icon: 'image', label: 'Image' },
+    { id: 'video' as BackgroundOption, icon: 'videocam', label: 'Video' },
+  ];
 
   return (
     <ResponsiveModal
-      type="background"
-      isOpen={true}
+      type="properties"
+      isOpen={isOpen}
       onClose={onClose}
-      title="Background & Layout"
+      title="Background Settings"
     >
-      <div className="p-4 sm:p-6">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-            Background & Layout
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+      <div className="p-4 sm:p-6 space-y-6">
+        <div>
+          <h3 className="text-md font-semibold mb-3 text-gray-900">Background Type</h3>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {backgroundOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => handleOptionSelect(option.id)}
+                className={`flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${
+                  selectedOption === option.id
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <span className="material-icons text-lg mb-1">{option.icon}</span>
+                <span className="text-xs">{option.label}</span>
+              </button>
+            ))}
+            
+            {/* YouTube Special Button */}
+            <button
+              onClick={() => handleOptionSelect('youtube')}
+              className={`col-span-3 flex items-center justify-center p-3 rounded-lg transition-colors ${
+                selectedOption === 'youtube'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-red-500 text-white hover:bg-red-600'
+              }`}
+            >
+              <span className="material-icons mr-2 text-lg">smart_display</span>
+              <span className="text-sm font-medium">YouTube</span>
+            </button>
+          </div>
 
-        {/* Tab navigation */}
-        <div className="flex mb-4 sm:mb-6 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('aspectRatio')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'aspectRatio'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Aspect Ratio
-          </button>
-          <button
-            onClick={() => setActiveTab('background')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'background'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Background
-          </button>
-        </div>
-        
-        {/* Scrollable content area */}
-        <div className="max-h-64 sm:max-h-96 overflow-y-auto">
-
-          {/* Aspect Ratio Tab */}
-          {activeTab === 'aspectRatio' && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  Select Aspect Ratio
-                </h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {['16:9', '4:3', '1:1', '9:16'].map((ratio) => (
-                    <button
-                      key={ratio}
-                      onClick={() => onAspectRatioChange(ratio)}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                        currentAspectRatio === ratio
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
-                    >
-                      <div className="text-sm font-medium">{ratio}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {ratio === '16:9' ? 'Widescreen' :
-                         ratio === '4:3' ? 'Standard' :
-                         ratio === '1:1' ? 'Square' : 'Portrait'}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-                <strong>Current:</strong> {currentAspectRatio}
-                {currentSlide.layout?.containerWidth && currentSlide.layout?.containerHeight && (
-                  <span> • {currentSlide.layout.containerWidth}×{currentSlide.layout.containerHeight}px</span>
-                )}
-              </div>
+          {/* File Upload for Images */}
+          {selectedOption === 'image' && (
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e, 'image')}
+                className="hidden"
+                id="background-image-upload"
+              />
+              <label
+                htmlFor="background-image-upload"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <span className="material-icons mr-2 text-lg">upload</span>
+                Upload Image
+              </label>
             </div>
           )}
 
-          {/* Background Tab */}
-          {activeTab === 'background' && (
-            <div className="space-y-4">
-              {/* Current background preview */}
-              {backgroundMedia && (
-                <div className="relative">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                    Current Background
-                  </h3>
-                  <div className="relative bg-gray-100 rounded-lg overflow-hidden">
-                    {backgroundMedia.type === 'image' ? (
-                      <img
-                        src={backgroundMedia.url}
-                        alt="Background"
-                        className="w-full h-32 sm:h-40 object-cover"
-                      />
-                    ) : backgroundMedia.type === 'video' ? (
-                      <video
-                        src={backgroundMedia.url}
-                        className="w-full h-32 sm:h-40 object-cover"
-                        muted
-                      />
-                    ) : (
-                      <div 
-                        className="w-full h-32 sm:h-40"
-                        style={{ backgroundColor: backgroundMedia.url }}
-                      />
-                    )}
-                    <button
-                      onClick={handleBackgroundRemove}
-                      className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
-                      title="Remove background"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* File Upload for Videos */}
+          {selectedOption === 'video' && (
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => handleFileUpload(e, 'video')}
+                className="hidden"
+                id="background-video-upload"
+              />
+              <label
+                htmlFor="background-video-upload"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <span className="material-icons mr-2 text-lg">upload</span>
+                Upload Video
+              </label>
+            </div>
+          )}
+        </div>
 
-              {/* Upload new background */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                  {backgroundMedia ? 'Change Background' : 'Add Background'}
-                </h3>
-                
-                {/* Upload error message */}
-                {uploadError && (
-                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {uploadError}
-                  </div>
-                )}
-                
-                {/* Upload status */}
-                {isUploading && (
-                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
-                    <div className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Uploading background media...
-                    </div>
-                  </div>
-                )}
-                
-                <FileUpload
-                  onFileUpload={handleFileUpload}
-                  acceptedTypes="all"
-                  label={`${backgroundMedia ? 'Change' : 'Upload'} Image or Video`}
+        {/* YouTube URL Input */}
+        {selectedOption === 'youtube' && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              YouTube URL
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="Paste your YouTube video URL"
+                className="flex-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleYouTubeUrlSubmit();
+                  }
+                }}
+              />
+              <button
+                onClick={handleYouTubeUrlSubmit}
+                className="px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Current Background Preview */}
+        {backgroundImage && (
+          <div className="border-t border-gray-200 pt-4">
+            <label className="block text-xs font-medium text-gray-700 mb-2">
+              Current Background
+            </label>
+            <div className="relative">
+              {backgroundType === 'image' ? (
+                <img
+                  src={backgroundImage}
+                  alt="Current background"
+                  className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
-              </div>
-
-              {/* Background settings */}
-              {backgroundMedia && (
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Background Size
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['cover', 'contain', 'auto'] as const).map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => handleBackgroundSizeChange(size)}
-                          className={`py-2 px-3 text-xs sm:text-sm rounded-md border transition-colors ${
-                            backgroundMedia.settings?.size === size
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                          }`}
-                        >
-                          {size.charAt(0).toUpperCase() + size.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Background Position
-                    </label>
-                    <select
-                      value={backgroundMedia.settings?.position || 'center'}
-                      onChange={(e) => handleBackgroundPositionChange(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="center">Center</option>
-                      <option value="top">Top</option>
-                      <option value="bottom">Bottom</option>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                      <option value="top left">Top Left</option>
-                      <option value="top right">Top Right</option>
-                      <option value="bottom left">Bottom Left</option>
-                      <option value="bottom right">Bottom Right</option>
-                    </select>
+              ) : (
+                <div className="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
+                  <div className="text-center">
+                    <span className="material-icons text-gray-500 text-2xl mb-1 block">videocam</span>
+                    <p className="text-xs text-gray-500">
+                      {backgroundVideoType === 'youtube' ? 'YouTube Video' : 'MP4 Video'}
+                    </p>
                   </div>
                 </div>
               )}
+              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                {backgroundType === 'image' ? 'Image' : 'Video'}
+              </div>
             </div>
-          )}
-
-        </div>
-        
-        {/* Action buttons */}
-        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
-          >
-            Done
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </ResponsiveModal>
   );

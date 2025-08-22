@@ -5,7 +5,7 @@ import { extractYouTubeVideoId } from '../../../shared/types';
 import { EffectExecutor } from '../../utils/EffectExecutor';
 import { generateId } from '../../utils/generateId';
 import SlideCanvas from '../slides/SlideCanvas';
-import SlideEditorToolbar from '../SlideEditorToolbar';
+import SlideEditorToolbar from '../toolbars/SlideEditorToolbar';
 import EditorFooterControls from '../toolbars/EditorFooterControls';
 import HotspotEditorModal from '../modals/editors/HotspotEditorModal';
 import { UnifiedEditorState, EditorStateActions } from '../../hooks/useUnifiedEditorState';

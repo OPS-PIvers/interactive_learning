@@ -2,7 +2,7 @@ import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
-import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
+import SlideBasedInteractiveModule from '../client/components/views/SlideBasedInteractiveModule';
 import { ToastProvider } from '../client/hooks/useToast';
 import { AuthProvider } from '../lib/authContext';
 import { SlideDeck, DeviceType } from '../shared/slideTypes';
@@ -76,6 +76,7 @@ describe('React Error Detection Tests', () => {
     onImageUpload: mockOnImageUpload,
     projectName: 'Test Project',
     deviceType: 'desktop' as DeviceType,
+    viewerModes: { explore: true, selfPaced: true, timed: true },
   });
 
   const getEditorProps = () => ({
@@ -105,7 +106,7 @@ describe('React Error Detection Tests', () => {
       render(
         <AuthProvider>
           <ToastProvider>
-            <SlideBasedInteractiveModule {...getViewerProps()} />
+            <SlideBasedInteractiveModule {...getViewerProps()} autoStart={true} />
           </ToastProvider>
         </AuthProvider>
       );

@@ -6,7 +6,7 @@
 import { render, act, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ViewerFooterToolbar from '../../client/components/ViewerFooterToolbar';
+import ViewerFooterToolbar from '../../client/components/toolbars/ViewerFooterToolbar';
 
 // Performance testing utilities
 const measurePerformance = async (operation: () => void | Promise<void>) => {

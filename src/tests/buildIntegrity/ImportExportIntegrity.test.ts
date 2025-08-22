@@ -29,7 +29,7 @@ describe('Import/Export Integrity Tests', () => {
 
   describe('Component Module Structure', () => {
     test('SlideBasedInteractiveModule has default export', async () => {
-      const module = await import('../../client/components/SlideBasedInteractiveModule');
+      const module = await import('../../client/components/views/SlideBasedInteractiveModule');
       expect(module.default).toBeDefined();
       expect(typeof module.default).toBe('function');
     });
@@ -119,7 +119,7 @@ describe('Import/Export Integrity Tests', () => {
       };
 
       const components = await Promise.all([
-        loadComponent('../../client/components/SlideBasedInteractiveModule')
+        loadComponent('../../client/components/views/SlideBasedInteractiveModule')
       ]);
 
       components.forEach(({ module, loadTime }) => {
@@ -142,7 +142,7 @@ describe('Import/Export Integrity Tests', () => {
     });
 
     test('default exports work correctly', async () => {
-      const SlideBasedInteractiveModule = (await import('../../client/components/SlideBasedInteractiveModule')).default;
+      const SlideBasedInteractiveModule = (await import('../../client/components/views/SlideBasedInteractiveModule')).default;
       
       expect(SlideBasedInteractiveModule).toBeDefined();
     });

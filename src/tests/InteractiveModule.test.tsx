@@ -2,12 +2,12 @@ import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import SlideBasedInteractiveModule from '../client/components/SlideBasedInteractiveModule';
+import SlideBasedInteractiveModule from '../client/components/views/SlideBasedInteractiveModule';
 import { ToastProvider } from '../client/hooks/useToast';
 import { InteractiveSlide } from '../shared/slideTypes';
 
 // Mock child components
-vi.mock('../client/components/SlideBasedViewer', () => ({
+vi.mock('../client/components/views/SlideBasedViewer', () => ({
   __esModule: true,
   default: () => <div data-testid="slide-viewer" />,
 }));

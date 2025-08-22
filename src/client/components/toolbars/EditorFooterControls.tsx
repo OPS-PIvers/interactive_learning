@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import BackgroundSettingsPopup from '../popups/BackgroundSettingsPopup';
-import AspectRatioSettingsPopup from '../popups/AspectRatioSettingsPopup';
+import ResponsiveBackgroundModal from '../responsive/ResponsiveBackgroundModal';
+import ResponsiveAspectRatioModal from '../responsive/ResponsiveAspectRatioModal';
 
 interface EditorFooterControlsProps {
   // Background settings
@@ -127,7 +127,7 @@ const EditorFooterControls: React.FC<EditorFooterControlsProps> = ({
           <span className="font-medium">Background</span>
         </button>
         
-        <BackgroundSettingsPopup
+        <ResponsiveBackgroundModal
           isOpen={backgroundPopupOpen}
           onClose={() => setBackgroundPopupOpen(false)}
           backgroundImage={backgroundImage || ''}
@@ -137,7 +137,6 @@ const EditorFooterControls: React.FC<EditorFooterControlsProps> = ({
           onBackgroundTypeChange={onBackgroundTypeChange}
           onBackgroundVideoTypeChange={onBackgroundVideoTypeChange}
           onReplaceImage={onReplaceImage}
-          position="bottom-left"
         />
       </div>
 
@@ -157,14 +156,13 @@ const EditorFooterControls: React.FC<EditorFooterControlsProps> = ({
           <span className="font-medium">Aspect Ratio</span>
         </button>
         
-        <AspectRatioSettingsPopup
+        <ResponsiveAspectRatioModal
           isOpen={aspectRatioPopupOpen}
           onClose={() => setAspectRatioPopupOpen(false)}
           aspectRatio={aspectRatio}
           developmentMode={developmentMode}
           onAspectRatioChange={onAspectRatioChange}
           onDevelopmentModeChange={onDevelopmentModeChange}
-          position="bottom-center"
         />
       </div>
 

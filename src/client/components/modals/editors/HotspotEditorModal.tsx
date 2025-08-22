@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SlideElement, ElementInteraction, SlideEffect } from '../../../../shared/slideTypes';
-import { Z_INDEX_TAILWIND } from '../../../utils/zIndexLevels';
+import { ResponsiveModal } from '../../responsive/ResponsiveModal';
 
 interface HotspotEditorModalProps {
   hotspot: SlideElement;
@@ -271,82 +271,64 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div 
-      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
-      onClick={onClose}
+    <ResponsiveModal
+      type="fullscreen"
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Hotspot"
     >
-      <div 
-        className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-semibold">Edit Hotspot</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-6">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Hotspot title..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 h-20"
-                placeholder="Optional description..."
-              />
-            </div>
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* Basic Info */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="Hotspot title..."
+            />
           </div>
-
-          {/* Effect Configuration */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Effect Type</label>
-              <select 
-                value={selectedEffectType}
-                onChange={(e) => setSelectedEffectType(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              >
-                <option value="spotlight">Spotlight</option>
-                <option value="text">Show Text</option>
-                <option value="video">Play Video</option>
-                <option value="quiz">Quiz</option>
-                <option value="pan_zoom">Pan & Zoom</option>
-                <option value="tooltip">Tooltip</option>
-              </select>
-            </div>
-            
-            {renderEffectParameters()}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+              placeholder="Optional description..."
+            />
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+        {/* Effect Configuration */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Effect Type</label>
+            <select 
+              value={selectedEffectType}
+              onChange={(e) => setSelectedEffectType(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="spotlight">Spotlight</option>
+              <option value="text">Show Text</option>
+              <option value="video">Play Video</option>
+              <option value="quiz">Quiz</option>
+              <option value="pan_zoom">Pan & Zoom</option>
+              <option value="tooltip">Tooltip</option>
+            </select>
+          </div>
+          
+          {renderEffectParameters()}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <button
             onClick={handleDelete}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm sm:text-base"
           >
             Delete
           </button>
@@ -354,20 +336,20 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
           <div className="flex space-x-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm sm:text-base"
             >
               Save
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </ResponsiveModal>
   );
 };
 

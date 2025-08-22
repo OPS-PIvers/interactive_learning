@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import AuthButton from '../AuthButton';
+import AuthButton from '../auth/AuthButton';
 import { CheckIcon } from '../icons/CheckIcon';
 import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
 import { ExclamationCircleIcon } from '../icons/ExclamationCircleIcon';
