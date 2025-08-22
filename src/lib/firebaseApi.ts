@@ -91,6 +91,9 @@ export class FirebaseProjectAPI {
 
     // Fallback to Firebase auth
     const auth = firebaseManager.getAuth();
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
     if (!auth.currentUser) {
       throw new Error('User must be authenticated to access projects');
     }
@@ -252,6 +255,12 @@ export class FirebaseProjectAPI {
 
       this.logUsage('READ_OPERATIONS', 1);
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
       const projectsRef = collection(db, 'projects');
 
       // Query projects created by the current user
@@ -311,6 +320,9 @@ export class FirebaseProjectAPI {
   async getPublicProject(projectId: string): Promise<Project | null> {
     try {
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
       this.logUsage('READ_OPERATIONS_PUBLIC', 1);
       const projectDocRef = doc(db, 'projects', projectId);
       const projectDoc = await getDoc(projectDocRef);
@@ -397,6 +409,9 @@ export class FirebaseProjectAPI {
   async getProjectDetails(projectId: string): Promise<Partial<InteractiveModuleState>> {
     try {
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
       this.logUsage('READ_OPERATIONS_DETAILS', 1); // For project document read
       const projectDocRef = doc(db, 'projects', projectId);
       const projectDocSnap = await getDoc(projectDocRef);
@@ -471,6 +486,9 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
       const projectId = this.generateProjectId();
 
@@ -526,6 +544,9 @@ export class FirebaseProjectAPI {
 
       await this.ensureFirebaseReady();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
@@ -650,6 +671,9 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
       const projectRef = doc(db, 'projects', projectId);
       let thumbnailUrlToDelete: string | null = null;
@@ -667,7 +691,11 @@ export class FirebaseProjectAPI {
         thumbnailUrlToDelete = projectData['thumbnailUrl'] || null;
       }
 
-      await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
+      const transactionDb = firebaseManager.getFirestore();
+      if (!transactionDb) {
+        throw new Error('Firestore not initialized');
+      }
+      await runTransaction(transactionDb, async (transaction) => {
         this.logUsage('TRANSACTION_DELETE_PROJECT', 1);
 
         // Optional: Re-read project document with transaction.get(projectRef) to ensure it still exists
@@ -729,6 +757,9 @@ export class FirebaseProjectAPI {
       const fileName = `images/${currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
 
       const storage = firebaseManager.getStorage();
+      if (!storage) {
+        throw new Error('Firebase Storage not initialized');
+      }
       const imageRef = ref(storage, fileName);
 
       debugLog.log(`Uploading image: ${fileName} (${file.size} bytes, type: ${file.type})`);
@@ -844,6 +875,9 @@ export class FirebaseProjectAPI {
       const fileName = `projects/${projectId}/thumbnails/${thumbId}`;
 
       const storage = firebaseManager.getStorage();
+      if (!storage) {
+        throw new Error('Firebase Storage not initialized');
+      }
       const thumbnailRef = ref(storage, fileName);
 
       debugLog.log(`Uploading thumbnail: ${fileName} (${file.size} bytes, type: ${file.type})`);
@@ -945,6 +979,9 @@ export class FirebaseProjectAPI {
       const fileName = `uploads/${currentUser.uid}/${timestamp}_${randomSuffix}_${sanitizedName}`;
 
       const storage = firebaseManager.getStorage();
+      if (!storage) {
+        throw new Error('Firebase Storage not initialized');
+      }
       const fileRef = ref(storage, fileName);
 
       const metadata = {
@@ -993,6 +1030,9 @@ export class FirebaseProjectAPI {
 
 
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
 
       const hotspotsRef = collection(db, 'projects', projectId, 'hotspots');
@@ -1021,6 +1061,9 @@ export class FirebaseProjectAPI {
 
 
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
 
       const eventsRef = collection(db, 'projects', projectId, 'timeline_events');
@@ -1050,6 +1093,9 @@ export class FirebaseProjectAPI {
   : Promise<void> {
     try {
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
       const hotspotsColRef = collection(db, 'projects', projectId, 'hotspots');
       const eventsColRef = collection(db, 'projects', projectId, 'timeline_events');
 
@@ -1098,7 +1144,11 @@ export class FirebaseProjectAPI {
       for (let i = 0; i < allOrphanedRefs.length; i += batchSize) {
         const batch = allOrphanedRefs.slice(i, i + batchSize);
 
-        await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
+        const transactionDb = firebaseManager.getFirestore();
+      if (!transactionDb) {
+        throw new Error('Firestore not initialized');
+      }
+      await runTransaction(transactionDb, async (transaction) => {
           batch.forEach((ref) => transaction.delete(ref));
         });
 
@@ -1134,6 +1184,9 @@ export class FirebaseProjectAPI {
       // Firebase SDK's ref() can take a gs:// URL or an https:// URL
       // directly from Firebase Storage.
       const storage = firebaseManager.getStorage();
+      if (!storage) {
+        throw new Error('Firebase Storage not initialized');
+      }
       const imageRef = ref(storage, imageUrl);
       await deleteObject(imageRef);
       debugLog.log(`Successfully deleted image from storage: ${imageUrl}`);
@@ -1155,6 +1208,9 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
@@ -1201,6 +1257,9 @@ export class FirebaseProjectAPI {
       // Get current user with bypass support
       const currentUser = this.getCurrentUser();
       const db = firebaseManager.getFirestore();
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
 
       const projectRef = doc(db, 'projects', projectId);
       const projectSnap = await getDoc(projectRef);
@@ -1230,9 +1289,17 @@ export class FirebaseProjectAPI {
       throw new Error("Invalid input for saving slide deck.");
     }
 
-    const projectRef = doc(firebaseManager.getFirestore(), 'projects', slideDeck.id);
+    const db = firebaseManager.getFirestore();
+    if (!db) {
+      throw new Error('Firestore not initialized');
+    }
+    const projectRef = doc(db, 'projects', slideDeck.id);
 
-    await runTransaction(firebaseManager.getFirestore(), async (transaction) => {
+    const transactionDb = firebaseManager.getFirestore();
+      if (!transactionDb) {
+        throw new Error('Firestore not initialized');
+      }
+      await runTransaction(transactionDb, async (transaction) => {
       const projectDoc = await transaction.get(projectRef);
       if (!projectDoc.exists()) {
         throw new Error("Project not found.");
@@ -1258,7 +1325,11 @@ export class FirebaseProjectAPI {
       throw new Error("Invalid input for loading slide deck.");
     }
 
-    const projectRef = doc(firebaseManager.getFirestore(), 'projects', projectId);
+    const db = firebaseManager.getFirestore();
+    if (!db) {
+      throw new Error('Firestore not initialized');
+    }
+    const projectRef = doc(db, 'projects', projectId);
     const projectDoc = await getDoc(projectRef);
 
     if (!projectDoc.exists()) {
