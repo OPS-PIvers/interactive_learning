@@ -77,7 +77,7 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
   };
 
   return (
-    <div className={`hotspot-manager ${className}`}>
+    <div className={`hotspot-manager ${className || ''}`}>
       <div className="bg-white rounded-lg shadow-sm border p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Hotspots</h3>
@@ -126,8 +126,8 @@ export const HotspotManager: React.FC<HotspotManagerProps> = ({
                       <div
                         className="w-4 h-4 rounded-full border-2"
                         style={{
-                          backgroundColor: hotspot.element.style ? hotspot.element.style.backgroundColor : '#3b82f6',
-                          borderColor: hotspot.element.style ? hotspot.element.style.borderColor : '#1e40af',
+                          backgroundColor: hotspot.element.style?.backgroundColor || '#3b82f6',
+                          borderColor: hotspot.element.style?.borderColor || '#1e40af',
                         }}
                       />
                       

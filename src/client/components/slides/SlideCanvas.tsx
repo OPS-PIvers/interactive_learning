@@ -218,7 +218,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
       case 'image':
         return (
           <img
-            src={background.url}
+            src={background.url || ''}
             alt="Slide background"
             className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
@@ -228,7 +228,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
       case 'video':
         return (
           <video
-            src={background.url}
+            src={background.url || ''}
             className="absolute inset-0 w-full h-full object-cover"
             autoPlay={background.autoplay}
             loop={background.loop}

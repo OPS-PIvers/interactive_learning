@@ -84,18 +84,18 @@ const ViewerView: React.FC = () => {
 
   const handlePreviousSlide = useCallback(() => {
     if (project?.slideDeck?.slides && currentSlideIndex > 0) {
-      const prevSlideId = project.slideDeck.slides[currentSlideIndex - 1]?.id;
-      if (prevSlideId) {
-        handleSlideChange(prevSlideId, currentSlideIndex - 1);
+      const prevSlide = project.slideDeck.slides[currentSlideIndex - 1];
+      if (prevSlide?.id) {
+        handleSlideChange(prevSlide.id, currentSlideIndex - 1);
       }
     }
   }, [currentSlideIndex, project, handleSlideChange]);
 
   const handleNextSlide = useCallback(() => {
     if (project?.slideDeck?.slides && currentSlideIndex < (project?.slideDeck?.slides.length ?? 0) - 1) {
-      const nextSlideId = project?.slideDeck?.slides[currentSlideIndex + 1]?.id;
-      if (nextSlideId) {
-        handleSlideChange(nextSlideId, currentSlideIndex + 1);
+      const nextSlide = project.slideDeck.slides[currentSlideIndex + 1];
+      if (nextSlide?.id) {
+        handleSlideChange(nextSlide.id, currentSlideIndex + 1);
       }
     }
   }, [currentSlideIndex, project, handleSlideChange]);
