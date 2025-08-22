@@ -1,5 +1,6 @@
 import React from 'react';
-import { TimelineEventData, HotspotData } from '../../../../../shared/type-defs';
+import { TimelineEventData } from '../../../../../shared/type-defs';
+import { HotspotData } from '../../../../../shared/types';
 import { InteractionType } from '../../../../../shared/InteractionPresets';
 import EditableEventCard from '../../../EditableEventCard';
 import { AddInteractionButton, InteractionTypeSelectorGrid } from '../../../InteractionTypeSelector';

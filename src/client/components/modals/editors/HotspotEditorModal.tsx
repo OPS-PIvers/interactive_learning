@@ -75,11 +75,20 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('hotspot');
   const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
+  const [pendingEventIdToOpen, setPendingEventIdToOpen] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalHotspot(selectedHotspot);
     setPreviewingEventIds([]);
   }, [selectedHotspot]);
+
+  // Handle opening editor for newly created events
+  useEffect(() => {
+    if (pendingEventIdToOpen && relatedEvents.some(e => e.id === pendingEventIdToOpen)) {
+      editorActions.openInteractionEditor(pendingEventIdToOpen);
+      setPendingEventIdToOpen(null);
+    }
+  }, [pendingEventIdToOpen, relatedEvents, editorActions]);
 
   const handleAddEvent = (type: InteractionType) => {
     if (!localHotspot) return;
@@ -111,26 +120,41 @@ const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
   };
 
   const handleMoveEventUp = (eventId: string) => {
-    const updatedEvents = moveEventUp(eventId, relatedEvents);
-    updatedEvents.forEach((event) => onUpdateEvent(event));
+    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
+    const currentIndex = sortedEvents.findIndex(e => e.id === eventId);
+    if (currentIndex > 0) {
+      const currentEvent = sortedEvents[currentIndex];
+      const previousEvent = sortedEvents[currentIndex - 1];
+      if (currentEvent && previousEvent) {
+        // Swap step numbers and update only the two affected events
+        onUpdateEvent({ ...currentEvent, step: previousEvent.step });
+        onUpdateEvent({ ...previousEvent, step: currentEvent.step });
+      }
+    }
   };
 
   const handleMoveEventDown = (eventId: string) => {
-    const updatedEvents = moveEventDown(eventId, relatedEvents);
-    updatedEvents.forEach((event) => onUpdateEvent(event));
+    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
+    const currentIndex = sortedEvents.findIndex(e => e.id === eventId);
+    if (currentIndex >= 0 && currentIndex < sortedEvents.length - 1) {
+      const currentEvent = sortedEvents[currentIndex];
+      const nextEvent = sortedEvents[currentIndex + 1];
+      if (currentEvent && nextEvent) {
+        // Swap step numbers and update only the two affected events
+        onUpdateEvent({ ...currentEvent, step: nextEvent.step });
+        onUpdateEvent({ ...nextEvent, step: currentEvent.step });
+      }
+    }
   };
 
   const handleInteractionTypeSelected = (type: InteractionType) => {
-    handleAddEvent(type);
+    if (!localHotspot) return;
+    
+    const newEventId = `event_${eventIdCounter.current + 1}`;
+    setPendingEventIdToOpen(newEventId);
     setSelectedInteractionId(null);
     setActiveTab('properties');
-    setTimeout(() => {
-      const newEvents = relatedEvents.filter((e) => e.targetId === localHotspot?.id);
-      const latestEvent = newEvents[newEvents.length - 1];
-      if (latestEvent) {
-        editorActions.openInteractionEditor(latestEvent.id);
-      }
-    }, 100);
+    handleAddEvent(type);
   };
 
   const handleSave = () => {

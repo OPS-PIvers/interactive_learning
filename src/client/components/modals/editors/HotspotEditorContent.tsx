@@ -1,5 +1,6 @@
 import React from 'react';
-import { HotspotData, TimelineEventData } from '../../../../shared/type-defs';
+import { TimelineEventData } from '../../../../shared/type-defs';
+import { HotspotData } from '../../../../shared/types';
 import EditorTabContainer from './shared/EditorTabContainer';
 import StyleTab from './tabs/StyleTab';
 import InteractionsTab from './tabs/InteractionsTab';

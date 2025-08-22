@@ -101,9 +101,9 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = (p
           {activeTab === 'general' && (
             <div className="space-y-6">
               <EditingToolsSection
-                backgroundImage={props.backgroundImage}
-                backgroundType={props.backgroundType}
-                backgroundVideoType={props.backgroundVideoType}
+                backgroundImage={props.backgroundImage || ''}
+                backgroundType={props.backgroundType || 'image'}
+                backgroundVideoType={props.backgroundVideoType || 'mp4'}
                 onBackgroundImageChange={props.onBackgroundImageChange}
                 onBackgroundTypeChange={props.onBackgroundTypeChange}
                 onBackgroundVideoTypeChange={props.onBackgroundVideoTypeChange}
@@ -129,11 +129,11 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = (p
 
           {activeTab === 'controls' && (
             <ControlsSection
-              currentZoom={props.currentZoom}
-              onZoomIn={props.onZoomIn}
-              onZoomOut={props.onZoomOut}
-              onZoomReset={props.onZoomReset}
-              onCenter={props.onCenter}
+              currentZoom={props.currentZoom || 1}
+              onZoomIn={props.onZoomIn || (() => {})}
+              onZoomOut={props.onZoomOut || (() => {})}
+              onZoomReset={props.onZoomReset || (() => {})}
+              onCenter={props.onCenter || (() => {})}
             />
           )}
         </div>
