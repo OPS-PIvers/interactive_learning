@@ -9,6 +9,7 @@ import { EyeIcon } from '../icons/EyeIcon';
 import { GearIcon } from '../icons/GearIcon';
 import { SaveIcon } from '../icons/SaveIcon';
 import { ShareIcon } from '../icons/ShareIcon';
+import { TrashIcon } from '../icons/TrashIcon';
 import ShareModal from '../modals/ShareModal';
 
 interface SlideEditorToolbarProps {
@@ -22,6 +23,8 @@ interface SlideEditorToolbarProps {
   onTogglePreview: () => void;
   onLivePreview: () => void;
   isPreview: boolean;
+  selectedHotspotId?: string;
+  onDeleteHotspot: (hotspotId: string) => void;
 }
 
 /**
@@ -40,7 +43,9 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   project,
   onTogglePreview,
   onLivePreview,
-  isPreview
+  isPreview,
+  selectedHotspotId,
+  onDeleteHotspot,
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -175,6 +180,18 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
 
             {/* Divider - desktop only */}
             <div className="hidden md:block h-6 w-px bg-slate-600" />
+
+            {/* Delete Hotspot Button */}
+            {selectedHotspotId && (
+              <button
+                onClick={() => onDeleteHotspot(selectedHotspotId)}
+                className="flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 text-red-400 hover:text-white transition-colors rounded-lg hover:bg-red-600"
+                aria-label="Delete hotspot"
+              >
+                <TrashIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Delete</span>
+              </button>
+            )}
 
             {/* Settings Button */}
             <button

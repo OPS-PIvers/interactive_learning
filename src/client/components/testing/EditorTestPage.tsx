@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { SlideDeck, ThemePreset, ElementInteraction } from '../../shared/slideTypes';
-import { createTestDemoSlideDeck } from '../../shared/testDemoSlideDeck';
+import { createTestDemoSlideDeck } from '../../../shared/testDemoSlideDeck';
 import { InteractiveModuleState } from '../../shared/types';
-import { Z_INDEX } from '../utils/zIndexLevels';
+import { Z_INDEX } from '../../utils/zIndexLevels';
 import ModernSlideEditor from './editors/ModernSlideEditor';
 import { SlideViewer } from './slides/SlideViewer';
 

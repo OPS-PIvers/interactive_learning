@@ -69,8 +69,16 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
   const [editingHotspot, setEditingHotspot] = useState<Hotspot | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   
-  // For now, disable the hotspot editor modal integration since it requires extensive refactoring
-  // Will implement proper integration in a future iteration
+  const handleDeleteHotspot = useCallback((hotspotId: string) => {
+    const updatedElements = slide.elements.filter(
+      (element: SlideElement) => element.id !== hotspotId
+    );
+    onSlideChange({
+      ...slide,
+      elements: updatedElements,
+    });
+    setSelectedHotspotId(undefined);
+  }, [slide, onSlideChange]);
 
   // Initialize EffectExecutor
   useEffect(() => {
@@ -341,6 +349,8 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
         onTogglePreview={() => setIsPreview(!isPreview)}
         onLivePreview={onLivePreview}
         isPreview={isPreview}
+        selectedHotspotId={selectedHotspotId}
+        onDeleteHotspot={handleDeleteHotspot}
       />
       
       {/* Main Canvas Area */}

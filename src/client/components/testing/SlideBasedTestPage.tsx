@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SlideBasedDemo } from './slides/SlideBasedDemo';
+import { SlideBasedDemo } from '../slides/SlideBasedDemo';
 
 /**
  * SlideBasedTestPage - Test page for the new slide-based architecture
