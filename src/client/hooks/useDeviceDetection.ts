@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { DeviceType } from '../../shared/slideTypes';
 
 /**
  * Hook for viewport information
@@ -51,8 +52,15 @@ export const useDeviceDetection = () => {
     };
   }, []);
 
+  const deviceType: DeviceType = useMemo(() => {
+    if (viewportInfo.width < 768) return 'mobile';
+    if (viewportInfo.width < 1024) return 'tablet';
+    return 'desktop';
+  }, [viewportInfo.width]);
+
   return {
     viewportInfo,
+    deviceType,
     // Orientation for calculations only
     isPortrait: viewportInfo.orientation === 'portrait',
     isLandscape: viewportInfo.orientation === 'landscape'

@@ -39,24 +39,6 @@ export interface ExtendedPropertiesPanelProps extends BasePropertiesPanelProps {
 }
 
 /**
- * Mobile-specific properties for mobile implementations
- */
-export interface MobilePropertiesPanelProps extends BasePropertiesPanelProps {
-  /** Callback to delete the current element (required for mobile) */
-  onDelete: () => void;
-  
-  /** Callback to close the properties panel (required for mobile) */
-  onClose: () => void;
-}
-
-/**
- * Desktop-specific properties for desktop implementations
- */
-export interface DesktopPropertiesPanelProps extends ExtendedPropertiesPanelProps {
-  /** Additional desktop-specific props can be added here if needed */
-}
-
-/**
  * Unified object editor panel configuration
  */
 export interface UnifiedObjectEditorProps extends ExtendedPropertiesPanelProps {
@@ -112,15 +94,6 @@ export interface ElementEditingState {
   /** Whether panel is in edit mode */
   isEditing: boolean;
 }
-
-/**
- * Utility type for panel-specific props
- */
-export type PanelSpecificProps<T extends 'compact' | 'full' | 'responsive'> = 
-  T extends 'compact' ? MobilePropertiesPanelProps :
-  T extends 'full' ? DesktopPropertiesPanelProps :
-  T extends 'responsive' ? UnifiedObjectEditorProps :
-  never;
 
 /**
  * Type guard to check if props include slide operations

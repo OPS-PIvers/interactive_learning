@@ -6,12 +6,11 @@ import { ViewportBounds } from '../../../utils/touchUtils';
 interface CanvasContainerProps {
   children: React.ReactNode;
   canvasTransform: ImageTransformState;
-  setCanvasTransform: (transform: ImageTransformState) => void;
+  setCanvasTransform: (transform: ImageTransformState | ((prevTransform: ImageTransformState) => ImageTransformState)) => void;
   isTransforming: boolean;
   setIsTransforming: (isTransforming: boolean) => void;
   viewportBounds: ViewportBounds;
   canvasDimensions: { width: number; height: number };
-  deviceType: 'mobile' | 'tablet' | 'desktop';
 }
 
 const CanvasContainer: React.FC<CanvasContainerProps> = ({
@@ -22,7 +21,6 @@ const CanvasContainer: React.FC<CanvasContainerProps> = ({
   setIsTransforming,
   viewportBounds,
   canvasDimensions,
-  deviceType,
 }) => {
   const canvasContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -42,13 +40,11 @@ const CanvasContainer: React.FC<CanvasContainerProps> = ({
         transform: `scale(${canvasTransform.scale}) translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px)`,
         transformOrigin: 'center center',
         transition: isTransforming ? 'none' : 'transform 0.3s ease-out',
-        minWidth: deviceType === 'mobile' ? '320px' : canvasDimensions.width,
-        minHeight: deviceType === 'mobile' ? '240px' : canvasDimensions.height,
-        maxWidth: '100%',
-        maxHeight: '100%',
-        width: '100%',
-        height: '100%',
-        touchAction: deviceType === 'mobile' ? 'pan-x pan-y' : 'auto',
+        minWidth: '320px',
+        minHeight: '240px',
+        width: `${canvasDimensions.width}px`,
+        height: `${canvasDimensions.height}px`,
+        touchAction: 'pan-x pan-y',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
         isolation: 'isolate',
@@ -59,24 +55,9 @@ const CanvasContainer: React.FC<CanvasContainerProps> = ({
         position: 'relative',
         zIndex: 1,
       }}
-      onTouchStart={(e) => {
-        e.stopPropagation();
-        if (deviceType === 'mobile') {
-          e.preventDefault();
-        }
-        handleTouchStart(e);
-      }}
-      onTouchMove={(e) => {
-        e.stopPropagation();
-        if (deviceType === 'mobile' && isTransforming) {
-          e.preventDefault();
-        }
-        handleTouchMove(e);
-      }}
-      onTouchEnd={(e) => {
-        e.stopPropagation();
-        handleTouchEnd(e);
-      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {children}
     </div>

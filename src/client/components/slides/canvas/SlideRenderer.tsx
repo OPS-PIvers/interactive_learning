@@ -7,7 +7,6 @@ interface SlideRendererProps {
   currentSlide: InteractiveSlide;
   canvasDimensions: { width: number; height: number };
   selectedElementId: string | null;
-  deviceType: 'mobile' | 'tablet' | 'desktop';
   isEditable: boolean;
   onMouseDown: (e: React.MouseEvent, elementId: string) => void;
   onTouchStart: (e: React.TouchEvent, elementId: string) => void;
@@ -24,7 +23,6 @@ const SlideRenderer: React.FC<SlideRendererProps> = ({
   currentSlide,
   canvasDimensions,
   selectedElementId,
-  deviceType,
   isEditable,
   onMouseDown,
   onTouchStart,
@@ -76,7 +74,6 @@ const SlideRenderer: React.FC<SlideRendererProps> = ({
           key={element.id}
           element={element}
           isSelected={element.id === selectedElementId}
-          deviceType={deviceType}
           isEditable={isEditable}
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
