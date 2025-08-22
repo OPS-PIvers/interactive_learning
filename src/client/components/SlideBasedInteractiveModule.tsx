@@ -33,23 +33,23 @@ interface SlideBasedInteractiveModuleProps {
  * Replaces the legacy hotspot-based InteractiveModule with a modern slide architecture.
  * Automatically migrates existing hotspot projects to slide format.
  */
-const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = ({
-  initialData,
-  slideDeck,
-  projectType: _projectType = 'slide',
-  isEditing,
-  onSave,
-  onImageUpload,
-  onClose,
-  projectName,
-  projectId,
-  isSharedView: _isSharedView = false,
-  theme: _theme = 'dark',
-  autoStart = false,
-  onReloadRequest,
-  viewerModes = { explore: true, selfPaced: true, timed: true },
-  isPublished = false
-}) => {
+const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = (props) => {
+  const {
+    initialData,
+    slideDeck,
+    isEditing,
+    onSave,
+    onImageUpload,
+    onClose,
+    projectName,
+    projectId,
+    autoStart = false,
+    viewerModes = { explore: true, selfPaced: true, timed: true },
+    isPublished = false,
+    onReloadRequest,
+    ...rest
+  } = props;
+
   // State management
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -148,6 +148,7 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
     return (
       <Suspense fallback={<LoadingScreen message="Loading Editor..." />}>
         <SimpleSlideEditor
+          {...rest}
           slide={currentSlideDeck.slides[0] || {
             id: 'default-slide',
             title: projectName || 'New Slide',
@@ -171,7 +172,6 @@ const SlideBasedInteractiveModule: React.FC<SlideBasedInteractiveModuleProps> = 
             };
             handleSlideDeckChange(updatedDeck);
           }}
-          className="h-full"
           projectName={projectName}
           onSave={handleSave}
           onClose={handleClose}

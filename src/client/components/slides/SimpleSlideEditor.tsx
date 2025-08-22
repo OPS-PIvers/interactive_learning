@@ -24,10 +24,9 @@ interface Hotspot {
   element: SlideElement;
 }
 
-interface SimpleSlideEditorProps {
+interface SimpleSlideEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   slide: InteractiveSlide;
   onSlideChange: (slide: InteractiveSlide) => void;
-  className?: string;
   projectName: string;
   onSave: () => Promise<void>;
   onClose: () => void;
@@ -52,7 +51,6 @@ interface SimpleSlideEditorProps {
 export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   slide,
   onSlideChange,
-  className = '',
   projectName,
   onSave,
   onClose,
@@ -61,6 +59,7 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
   onImageUpload,
   project,
   onLivePreview,
+  ...divProps
 }) => {
   const effectExecutorRef = useRef<EffectExecutor | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -292,7 +291,8 @@ export const SimpleSlideEditor: React.FC<SimpleSlideEditorProps> = ({
 
   return (
     <div 
-      className={`simple-slide-editor editor-layout-stable ${className}`} 
+      {...divProps}
+      className={`simple-slide-editor editor-layout-stable ${divProps.className || ''}`}
       data-testid="unified-slide-editor"
       style={{
         // Force stable layout dimensions

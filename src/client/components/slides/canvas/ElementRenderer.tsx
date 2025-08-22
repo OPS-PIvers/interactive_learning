@@ -1,12 +1,12 @@
 import React from 'react';
-import { SlideElement, DeviceType } from '../../../../shared/slideTypes';
+import { SlideElement } from '../../../../shared/slideTypes';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../../../shared/hotspotStylePresets';
 import { Z_INDEX } from '../../../utils/zIndexLevels';
+import { useDeviceDetection } from '../../../hooks/useDeviceDetection';
 
 interface ElementRendererProps {
   element: SlideElement;
   isSelected: boolean;
-  deviceType: DeviceType;
   isEditable: boolean;
   onMouseDown: (e: React.MouseEvent, elementId: string) => void;
   onTouchStart: (e: React.TouchEvent, elementId: string) => void;
@@ -17,14 +17,14 @@ interface ElementRendererProps {
 const ElementRenderer: React.FC<ElementRendererProps> = ({
   element,
   isSelected,
-  deviceType,
   isEditable,
   onMouseDown,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
 }) => {
-  const position = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
+  const { deviceType } = useDeviceDetection();
+  const position = element.position?.[deviceType] || element.position?.desktop || { x: 0, y: 0, width: 100, height: 100 };
 
   return (
     <div

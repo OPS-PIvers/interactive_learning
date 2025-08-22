@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo, memo, useEffect } from 'react';
-import { SlideDeck, SlideElement, DeviceType } from '../../../../shared/slideTypes';
+import { SlideDeck, SlideElement } from '../../../../shared/slideTypes';
 import { ImageTransformState } from '../../../../shared/types';
-import { useDeviceDetection } from '../../../hooks/useDeviceDetection';
 import { useCanvasDimensions } from '../hooks/useCanvasDimensions';
 import { useElementInteractions } from '../hooks/useElementInteractions';
 import { useCanvasGestures } from '../hooks/useCanvasGestures';
@@ -17,7 +16,6 @@ export interface ResponsiveCanvasProps {
   onElementSelect?: (elementId: string | null) => void;
   onElementUpdate?: (elementId: string, updates: Partial<SlideElement>) => void;
   onHotspotDoubleClick?: (elementId: string) => void;
-  deviceTypeOverride?: DeviceType;
   className?: string;
   isEditable?: boolean;
 }
@@ -30,18 +28,9 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   onElementSelect,
   onElementUpdate,
   onHotspotDoubleClick,
-  deviceTypeOverride,
   className = '',
   isEditable = true,
 }) => {
-  const { viewportInfo } = useDeviceDetection();
-  const deviceType = useMemo(() => {
-    if (deviceTypeOverride) return deviceTypeOverride;
-    if (viewportInfo.width < 768) return 'mobile';
-    if (viewportInfo.width < 1024) return 'tablet';
-    return 'desktop';
-  }, [deviceTypeOverride, viewportInfo.width]);
-
   const slideAreaRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +40,7 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
 
   const currentSlide = useMemo(() => slideDeck?.slides?.[currentSlideIndex], [slideDeck?.slides, currentSlideIndex]);
 
-  const canvasDimensions = useCanvasDimensions(slideAreaRef, currentSlide?.layout?.aspectRatio || '16:9', deviceType);
+  const canvasDimensions = useCanvasDimensions(slideAreaRef, currentSlide?.layout?.aspectRatio || '16:9');
 
   const {
     selectedElementId,
@@ -79,7 +68,6 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
   } = useCanvasGestures(
     isEditable,
     currentSlide?.elements,
-    deviceType,
     canvasRef,
     handleElementUpdate,
     handleElementSelect,
@@ -139,14 +127,12 @@ const ResponsiveCanvasComponent: React.FC<ResponsiveCanvasProps> = ({
           setIsTransforming={setIsTransforming}
           viewportBounds={viewportBounds}
           canvasDimensions={canvasDimensions}
-          deviceType={deviceType}
         >
           <SlideRenderer
             canvasRef={canvasRef}
             currentSlide={currentSlide}
             canvasDimensions={canvasDimensions}
             selectedElementId={selectedElementId}
-            deviceType={deviceType}
             isEditable={isEditable}
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStartElement}

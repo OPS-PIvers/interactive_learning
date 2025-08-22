@@ -18,6 +18,7 @@ vi.mock('../client/hooks/useDeviceDetection', () => ({
       pixelRatio: 1,
       orientation: 'landscape' as const
     },
+    deviceType: 'desktop' as const,
     isPortrait: false,
     isLandscape: true
   }))
@@ -424,6 +425,7 @@ describe('Edge Cases and Error Handling', () => {
           pixelRatio: 1,
           orientation: 'portrait'
         },
+        deviceType: 'mobile',
         isPortrait: true,
         isLandscape: false
       });
@@ -444,6 +446,7 @@ describe('Edge Cases and Error Handling', () => {
           pixelRatio: 1,
           orientation: 'landscape'
         },
+        deviceType: 'desktop',
         isPortrait: false,
         isLandscape: true
       });
