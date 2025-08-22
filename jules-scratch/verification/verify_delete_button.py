@@ -12,13 +12,13 @@ def run(playwright):
         page.locator("button", has_text="Add Hotspot").click()
 
         # Click the newly created hotspot to select it
-        page.locator(".slide-canvas > div:nth-child(4)").click()
+        page.locator(".hotspot-element").click()
 
         # Click the "Delete" button in the toolbar
         page.locator("button[aria-label='Delete hotspot']").click()
 
         # Verify that the hotspot has been deleted
-        expect(page.locator(".slide-canvas > div:nth-child(4)")).to_have_count(0)
+        expect(page.locator(".hotspot-element")).to_have_count(0)
 
         page.screenshot(path="jules-scratch/verification/verification.png")
     finally:
