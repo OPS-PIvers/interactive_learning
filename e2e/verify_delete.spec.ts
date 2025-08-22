@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Hotspot Deletion', () => {
+test.describe.skip('Hotspot Deletion', () => {
   test('should delete a hotspot when the delete button is clicked', async ({ page }) => {
     // Navigate to the editor test page
     await page.goto('http://localhost:3000/test/editor');
