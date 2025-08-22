@@ -60,11 +60,11 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
 
   };
 
-  // Unified responsive toolbar using CSS breakpoints
+  // Unified responsive toolbar using CSS breakpoints with modern dark blue theme
   return (
     <>
-      <div className={`slide-editor-toolbar bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl ${Z_INDEX_TAILWIND.TOOLBAR}`}>
-        <div className="flex items-center justify-between p-3 md:p-4">
+      <div className={`slide-editor-toolbar bg-[#17214a] text-white shadow-2xl ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+        <div className="flex items-center p-3 md:p-4">
           {/* Left: Back button and project info */}
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <button
@@ -72,14 +72,15 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               className="flex items-center gap-1 md:gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 md:px-3 hover:bg-slate-700"
               aria-label="Back to projects">
 
-              <ChevronLeftIcon className="w-5 h-5" />
+              <span className="material-icons w-5 h-5 text-lg">arrow_back_ios</span>
               <span className="hidden md:inline font-medium">Back</span>
             </button>
             
             <div className="hidden md:block h-6 w-px bg-slate-600" />
             
             <div className="flex items-center gap-2 md:gap-3 min-w-0">
-              <h1 className="text-sm md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 truncate max-w-32 md:max-w-none">
+              {/* Project name with red color */}
+              <h1 className="text-lg md:text-xl font-bold text-[#b73031] truncate max-w-32 md:max-w-none">
                 {projectName}
               </h1>
               {isPublished &&
@@ -88,6 +89,15 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
                   <span className="md:hidden">PUB</span>
                 </div>
               }
+            </div>
+          </div>
+
+          {/* Center: Expli.Co Learning branding */}
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center">
+              <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-blue-500 to-indigo-600 text-transparent bg-clip-text">
+                Expli.Co Learning
+              </span>
             </div>
           </div>
 
@@ -106,10 +116,10 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
 
             <button
               onClick={onLivePreview}
-              className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-purple-600 md:hover:bg-purple-700 md:font-medium"
+              className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-[#b73031] md:hover:bg-[#9c2829] md:font-medium"
               aria-label="Live preview"
             >
-              <ExternalLinkIcon className="w-4 h-4" />
+              <span className="material-icons w-4 h-4 text-sm">play_circle_outline</span>
               <span className="hidden md:inline">Live Preview</span>
             </button>
 
@@ -129,7 +139,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               'text-slate-400 md:bg-green-500' :
               showSuccessMessage ?
               'text-green-400 md:bg-green-500' :
-              'text-slate-300 hover:text-white hover:bg-slate-700 md:bg-purple-600 md:hover:bg-purple-700'}`
+              'text-slate-300 hover:text-white hover:bg-slate-700 md:bg-[#1e3fe8] md:hover:bg-[#1833b7]'}`
               }
               aria-label="Save project">
 
@@ -145,7 +155,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
                 </> :
 
               <>
-                  <SaveIcon className="w-4 h-4 md:hidden" />
+                  <span className="material-icons w-4 h-4 text-sm md:mr-1">save</span>
                   <span className="hidden md:inline">Save</span>
                 </>
               }
@@ -155,10 +165,10 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
             {project &&
             <button
               onClick={() => setIsShareModalOpen(true)}
-              className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-purple-600 md:hover:bg-purple-700 md:font-medium"
+              className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-[#687178] md:hover:bg-[#545b60] md:font-medium"
               aria-label="Share project">
 
-                <ShareIcon className="w-4 h-4" />
+                <span className="material-icons w-4 h-4 text-sm">share</span>
                 <span className="hidden md:inline">Share</span>
               </button>
             }
@@ -169,10 +179,10 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
             {/* Settings Button */}
             <button
               onClick={handleSettings}
-              className="flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 text-slate-300 md:text-slate-200 hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-slate-700 md:hover:bg-slate-600 md:font-medium"
+              className="flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 text-slate-300 md:text-slate-200 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
               aria-label="Project settings">
 
-              <GearIcon className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="material-icons w-4 h-4 text-sm">settings</span>
               <span className="hidden md:inline">Settings</span>
             </button>
 
