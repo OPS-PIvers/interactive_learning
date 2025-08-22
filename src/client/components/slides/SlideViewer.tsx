@@ -527,8 +527,8 @@ export const SlideViewer = React.memo(forwardRef<SlideViewerRef, SlideViewerProp
             const elements = currentSlide?.elements?.filter((element) => element.isVisible !== false) || [];
             console.log('🎨 RENDERING ELEMENTS:', elements.length, 'elements on slide', currentSlide?.id);
             return elements.map((element) => {
-            const devicePosition = element.position && element.position[deviceType as keyof typeof element.position] 
-              ? element.position[deviceType as keyof typeof element.position]
+            const devicePosition = element.position && element.position[deviceType] 
+              ? element.position[deviceType]
               : element.position?.desktop || element.position?.tablet || element.position?.mobile;
             if (!devicePosition) {
               console.warn(`No position found for element ${element.id} on device ${deviceType}`);

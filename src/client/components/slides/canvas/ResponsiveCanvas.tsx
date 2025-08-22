@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo, memo, useEffect } from 'react';
-import { SlideDeck, SlideElement, DeviceType, ImageTransformState } from '../../../../shared/slideTypes';
+import { SlideDeck, SlideElement, DeviceType } from '../../../../shared/slideTypes';
+import { ImageTransformState } from '../../../../shared/types';
 import { useDeviceDetection } from '../../../hooks/useDeviceDetection';
 import { useCanvasDimensions } from '../hooks/useCanvasDimensions';
 import { useElementInteractions } from '../hooks/useElementInteractions';

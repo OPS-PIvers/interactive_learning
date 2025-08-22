@@ -73,7 +73,7 @@ export const useCanvasGestures = (
     if (!element) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const currentPosition = element.position?.[deviceType as keyof typeof element.position] || { x: 0, y: 0, width: 100, height: 100 };
+    const currentPosition = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
     setDragState({
       isDragging: true,
       elementId,
@@ -130,7 +130,7 @@ export const useCanvasGestures = (
     if (!touch) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const currentPosition = element.position?.[deviceType as keyof typeof element.position] || { x: 0, y: 0, width: 100, height: 100 };
+    const currentPosition = element.position?.[deviceType] || { x: 0, y: 0, width: 100, height: 100 };
     setTouchState({
       isTouching: true,
       isDragging: false,
