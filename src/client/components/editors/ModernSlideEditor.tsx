@@ -270,7 +270,7 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
     setEditingHotspot(null);
   }, [slide, onSlideChange]);
 
-  // Calculate canvas dimensions based on aspect ratio
+  // Calculate canvas dimensions based on aspect ratio and available viewport space
   const getCanvasDimensions = () => {
     const aspectParts = aspectRatio.split(':');
     const w = Number(aspectParts[0]);
@@ -280,8 +280,17 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       return { width: 800, height: 600 }; // Default fallback
     }
     
-    const maxWidth = Math.min(window.innerWidth * 0.8, 1200);
-    const maxHeight = window.innerHeight * 0.6;
+    // Calculate available space accounting for header and footer
+    const headerHeight = 60; // SlideEditorToolbar height
+    const footerHeight = 60; // EditorFooterControls height
+    const padding = 32; // 16px padding on each side (p-4)
+    
+    const availableWidth = window.innerWidth - padding;
+    const availableHeight = window.innerHeight - headerHeight - footerHeight - padding;
+    
+    // Use 90% of available space for better visual spacing
+    const maxWidth = Math.min(availableWidth * 0.9, 1400);
+    const maxHeight = availableHeight * 0.9;
     
     let width, height;
     
@@ -290,7 +299,7 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       height = maxHeight;
       width = (height * w) / h;
     } else {
-      // Width constrained
+      // Width constrained  
       width = maxWidth;
       height = (width * h) / w;
     }
@@ -314,7 +323,9 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
         inset: '0',
         backgroundColor: '#1d2a5d', // Primary background color
         contain: 'layout style',
-        isolation: 'isolate'
+        isolation: 'isolate',
+        display: 'flex',
+        flexDirection: 'column'
       }}
       data-testid="modern-slide-editor"
     >
@@ -333,7 +344,7 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       />
       
       {/* Main Canvas Area */}
-      <main className="flex-1 flex items-center justify-center p-8 bg-[#1d2a5d] overflow-y-auto">
+      <main className="flex-1 flex items-center justify-center p-4 bg-[#1d2a5d] overflow-hidden">
         <div className="w-full h-full flex items-center justify-center">
           <div 
             className="relative shadow-2xl rounded-lg overflow-hidden"
@@ -365,7 +376,6 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
                 developmentMode={developmentMode}
                 onHotspotClick={handleHotspotClick}
                 onHotspotDrag={handleHotspotDrag}
-                onCanvasClick={handleHotspotAdd}
               />
             </div>
           </div>
@@ -388,33 +398,22 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
         onAddHotspot={handleAddHotspotClick}
       />
 
-      {/* TODO: Integrate HotspotEditorModal - requires extensive type conversion work */}
+      {/* Hotspot Editor Modal */}
       {editingHotspot && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-          onClick={() => setEditingHotspot(null)}
-        >
-          <div 
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold mb-4">Edit Hotspot</h3>
-            <p className="text-gray-600 mb-4">
-              Hotspot editor integration is in progress. For now, you can:
-            </p>
-            <ul className="list-disc list-inside text-sm text-gray-600 mb-4">
-              <li>Drag hotspots on the canvas to reposition</li>
-              <li>Click "Add Hotspot" to create new hotspots</li>
-              <li>Full editing capabilities coming soon</li>
-            </ul>
-            <button
-              onClick={() => setEditingHotspot(null)}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <HotspotEditorModal
+          hotspot={editingHotspot.element}
+          isOpen={true}
+          onClose={() => setEditingHotspot(null)}
+          onSave={handleHotspotSave}
+          onDelete={(hotspotId) => {
+            const updatedElements = slide.elements.filter((element: SlideElement) => element.id !== hotspotId);
+            onSlideChange({
+              ...slide,
+              elements: updatedElements
+            });
+            setEditingHotspot(null);
+          }}
+        />
       )}
     </div>
   );

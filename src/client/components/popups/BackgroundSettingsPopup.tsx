@@ -47,14 +47,16 @@ const BackgroundSettingsPopup: React.FC<BackgroundSettingsPopupProps> = ({
   });
 
   useEffect(() => {
-    if (!backgroundImage) {
-      setSelectedOption('none');
-    } else if (backgroundType === 'video' && backgroundVideoType === 'youtube') {
-      setSelectedOption('youtube');
-    } else if (backgroundType === 'video') {
-      setSelectedOption('video');
-    } else {
-      setSelectedOption(backgroundType as BackgroundOption);
+    // Only update selectedOption based on props if we have a background image
+    // This prevents overriding user selection when no background is set
+    if (backgroundImage) {
+      if (backgroundType === 'video' && backgroundVideoType === 'youtube') {
+        setSelectedOption('youtube');
+      } else if (backgroundType === 'video') {
+        setSelectedOption('video');
+      } else {
+        setSelectedOption(backgroundType as BackgroundOption);
+      }
     }
   }, [backgroundImage, backgroundType, backgroundVideoType]);
 
@@ -83,11 +85,11 @@ const BackgroundSettingsPopup: React.FC<BackgroundSettingsPopupProps> = ({
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'video') => {
     if (event.target.files && event.target.files[0]) {
       onReplaceImage(event.target.files[0]);
-      onBackgroundTypeChange('image');
-      setSelectedOption('image');
+      onBackgroundTypeChange(fileType);
+      setSelectedOption(fileType);
     }
   };
 
@@ -162,7 +164,7 @@ const BackgroundSettingsPopup: React.FC<BackgroundSettingsPopupProps> = ({
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleFileUpload}
+                onChange={(e) => handleFileUpload(e, 'image')}
                 className="hidden"
                 id="background-image-upload"
               />
@@ -172,6 +174,26 @@ const BackgroundSettingsPopup: React.FC<BackgroundSettingsPopupProps> = ({
               >
                 <span className="material-icons mr-2 text-lg">upload</span>
                 Upload Image
+              </label>
+            </div>
+          )}
+
+          {/* File Upload for Videos */}
+          {selectedOption === 'video' && (
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => handleFileUpload(e, 'video')}
+                className="hidden"
+                id="background-video-upload"
+              />
+              <label
+                htmlFor="background-video-upload"
+                className="w-full inline-flex items-center justify-center px-4 py-2 border border-[#687178] text-sm font-medium rounded-lg text-gray-300 bg-[#2c3a6f] hover:bg-[#3e4f8a] cursor-pointer transition-colors"
+              >
+                <span className="material-icons mr-2 text-lg">upload</span>
+                Upload Video
               </label>
             </div>
           )}

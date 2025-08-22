@@ -22,7 +22,7 @@ interface SlideCanvasProps {
   developmentMode: 'desktop' | 'mobile';
   onHotspotClick: (hotspot: Hotspot) => void;
   onHotspotDrag: (hotspotId: string, newPosition: RelativePosition) => void;
-  onCanvasClick: (relativePosition: RelativePosition) => void;
+  onCanvasClick?: (relativePosition: RelativePosition) => void;
   className?: string;
 }
 
@@ -195,6 +195,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
   // Handle canvas click (for adding new hotspots)
   const handleCanvasClick = useCallback((event: React.MouseEvent) => {
     if (dragState?.isDragging) return; // Don't add hotspot if we were dragging
+    if (!onCanvasClick) return; // No handler provided
 
     const relativePos = pixelToRelative({
       x: event.clientX,

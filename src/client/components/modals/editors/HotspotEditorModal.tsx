@@ -1,232 +1,373 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { normalizeHotspotPosition } from '../../../../lib/safeMathUtils';
-import { InteractionType } from '../../../../shared/InteractionPresets';
-import { TimelineEventData } from '../../../../shared/type-defs';
-import { HotspotData } from '../../../../shared/types';
-import { UnifiedEditorState, EditorStateActions } from '../../../hooks/useUnifiedEditorState';
-import { getNextTimelineStep, moveEventUp, moveEventDown } from '../../../utils/timelineUtils';
-import { SaveIcon } from '../../icons/SaveIcon';
-import { TrashIcon } from '../../icons/TrashIcon';
-import { XMarkIcon } from '../../icons/XMarkIcon';
-import EditorModalBase from './shared/EditorModalBase';
-import HotspotEditorContent from './HotspotEditorContent';
+import React, { useState, useEffect } from 'react';
+import { SlideElement, ElementInteraction, SlideEffect } from '../../../../shared/slideTypes';
+import { Z_INDEX_TAILWIND } from '../../../utils/zIndexLevels';
 
-interface EnhancedHotspotEditorModalProps {
-  editorState: UnifiedEditorState;
-  editorActions: EditorStateActions;
-  selectedHotspot: HotspotData | null;
-  relatedEvents: TimelineEventData[];
-  onUpdateHotspot: (hotspot: HotspotData) => void;
-  onDeleteHotspot: (hotspotId: string) => void;
-  onAddEvent: (event: TimelineEventData) => void;
-  onUpdateEvent: (event: TimelineEventData) => void;
-  onDeleteEvent: (eventId: string) => void;
-  allHotspots: HotspotData[];
-  onPreviewOverlay?: (event: TimelineEventData | null) => void;
+interface HotspotEditorModalProps {
+  hotspot: SlideElement;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (updatedHotspot: SlideElement) => void;
+  onDelete: (hotspotId: string) => void;
 }
 
-const HotspotEditorToolbar: React.FC<{
-  title: string;
-  onTitleChange: (title: string) => void;
-  onSave: () => void;
-  onDelete: () => void;
-  onClose: () => void;
-}> = React.memo(({ title, onTitleChange, onSave, onDelete, onClose }) => (
-  <div className="p-2 flex items-center justify-between bg-slate-900 border-b border-slate-700">
-    <input
-      type="text"
-      value={title}
-      onChange={(e) => onTitleChange(e.target.value)}
-      className="bg-slate-700 text-xl font-bold p-1 rounded"
-    />
-    <div className="flex items-center space-x-2">
-      <button onClick={onSave} className="p-2 bg-purple-600 rounded hover:bg-purple-700" title="Save & Close">
-        <SaveIcon className="w-4 h-4" />
-      </button>
-      <button onClick={onDelete} className="p-2 bg-red-600 rounded hover:bg-red-700">
-        <TrashIcon className="w-4 h-4" />
-      </button>
-      <button onClick={onClose} className="p-2 bg-slate-600 rounded hover:bg-slate-700">
-        <XMarkIcon className="w-4 h-4" />
-      </button>
-    </div>
-  </div>
-));
-HotspotEditorToolbar.displayName = 'HotspotEditorToolbar';
-
-const HotspotEditorModal: React.FC<EnhancedHotspotEditorModalProps> = ({
-  editorState,
-  editorActions,
-  selectedHotspot,
-  relatedEvents,
-  onUpdateHotspot,
-  onDeleteHotspot,
-  onAddEvent,
-  onUpdateEvent,
-  onDeleteEvent,
-  allHotspots,
-  onPreviewOverlay,
+/**
+ * Modern HotspotEditorModal - Clean hotspot editor using current slide types
+ * 
+ * Features:
+ * - Effect configuration (spotlight, text, video, quiz, etc.)
+ * - Position and size controls
+ * - Interaction settings
+ * - Direct SlideElement updates (no legacy conversions)
+ */
+const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
+  hotspot,
+  isOpen,
+  onClose,
+  onSave,
+  onDelete
 }) => {
-  const eventIdCounter = useRef(0);
-  const { isOpen } = editorState.hotspotEditor;
-  const { isOpen: isSettingsModalOpen, editingEventId } = editorState.interactionEditor;
-
-  const [localHotspot, setLocalHotspot] = useState(selectedHotspot);
-  const [previewingEventIds, setPreviewingEventIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('hotspot');
-  const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
-  const [pendingEventIdToOpen, setPendingEventIdToOpen] = useState<string | null>(null);
+  const [title, setTitle] = useState(hotspot.content?.title || 'Untitled Hotspot');
+  const [description, setDescription] = useState(hotspot.content?.description || '');
+  const [selectedEffectType, setSelectedEffectType] = useState<string>('spotlight');
+  
+  // Initialize with existing interaction if available
+  const existingInteraction = hotspot.interactions?.[0];
+  const [effectParameters, setEffectParameters] = useState<Record<string, any>>(() => {
+    if (existingInteraction?.effect) {
+      return existingInteraction.effect.parameters || {};
+    }
+    return { shape: 'circle', intensity: 70 }; // Default spotlight params
+  });
 
   useEffect(() => {
-    setLocalHotspot(selectedHotspot);
-    setPreviewingEventIds([]);
-  }, [selectedHotspot]);
-
-  // Handle opening editor for newly created events
-  useEffect(() => {
-    if (pendingEventIdToOpen && relatedEvents.some(e => e.id === pendingEventIdToOpen)) {
-      editorActions.openInteractionEditor(pendingEventIdToOpen);
-      setPendingEventIdToOpen(null);
+    if (existingInteraction?.effect) {
+      setSelectedEffectType(existingInteraction.effect.type);
+      setEffectParameters(existingInteraction.effect.parameters || {});
     }
-  }, [pendingEventIdToOpen, relatedEvents, editorActions]);
-
-  const handleAddEvent = (type: InteractionType) => {
-    if (!localHotspot) return;
-
-    const newEvent: TimelineEventData = {
-      id: `event_${++eventIdCounter.current}`,
-      name: `New ${type.toLowerCase().replace('_', ' ')} event`,
-      step: getNextTimelineStep(relatedEvents),
-      type,
-      targetId: localHotspot.id,
-      ...(type === InteractionType.VIDEO && { videoDisplayMode: 'inline', videoShowControls: true, autoplay: false, loop: false }),
-      ...(type === InteractionType.AUDIO && { audioUrl: '', audioDisplayMode: 'background', audioShowControls: false, autoplay: true, volume: 80 }),
-      ...(type === InteractionType.TEXT && { textContent: 'Enter your text here', textPosition: 'center', textX: 50, textY: 50, textWidth: 300, textHeight: 100 }),
-      ...(type === InteractionType.SPOTLIGHT && { spotlightShape: 'circle', spotlightX: localHotspot.x, spotlightY: localHotspot.y, spotlightWidth: 120, spotlightHeight: 120, backgroundDimPercentage: 70, spotlightOpacity: 0 }),
-      ...(type === InteractionType.PAN_ZOOM && { targetX: localHotspot.x, targetY: localHotspot.y, zoomLevel: 2, smooth: true }),
-      ...(type === InteractionType.QUIZ && { quizQuestion: 'Enter your question', quizOptions: ['Option 1', 'Option 2', 'Option 3'], quizCorrectAnswer: 0, quizExplanation: '' }),
-    };
-    onAddEvent(newEvent);
-    setPreviewingEventIds((prev) => [...prev, newEvent.id]);
-    onPreviewOverlay?.(newEvent);
-  };
-
-  const handleEventUpdate = (updatedEvent: TimelineEventData) => {
-    onUpdateEvent(updatedEvent);
-  };
-
-  const handleEventDelete = (eventId: string) => {
-    onDeleteEvent(eventId);
-  };
-
-  const handleMoveEventUp = (eventId: string) => {
-    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
-    const currentIndex = sortedEvents.findIndex(e => e.id === eventId);
-    if (currentIndex > 0) {
-      const currentEvent = sortedEvents[currentIndex];
-      const previousEvent = sortedEvents[currentIndex - 1];
-      if (currentEvent && previousEvent) {
-        // Swap step numbers and update only the two affected events
-        onUpdateEvent({ ...currentEvent, step: previousEvent.step });
-        onUpdateEvent({ ...previousEvent, step: currentEvent.step });
-      }
-    }
-  };
-
-  const handleMoveEventDown = (eventId: string) => {
-    const sortedEvents = [...relatedEvents].sort((a, b) => a.step - b.step);
-    const currentIndex = sortedEvents.findIndex(e => e.id === eventId);
-    if (currentIndex >= 0 && currentIndex < sortedEvents.length - 1) {
-      const currentEvent = sortedEvents[currentIndex];
-      const nextEvent = sortedEvents[currentIndex + 1];
-      if (currentEvent && nextEvent) {
-        // Swap step numbers and update only the two affected events
-        onUpdateEvent({ ...currentEvent, step: nextEvent.step });
-        onUpdateEvent({ ...nextEvent, step: currentEvent.step });
-      }
-    }
-  };
-
-  const handleInteractionTypeSelected = (type: InteractionType) => {
-    if (!localHotspot) return;
-    
-    const newEventId = `event_${eventIdCounter.current + 1}`;
-    setPendingEventIdToOpen(newEventId);
-    setSelectedInteractionId(null);
-    setActiveTab('properties');
-    handleAddEvent(type);
-  };
+  }, [existingInteraction]);
 
   const handleSave = () => {
-    if (localHotspot) {
-      onUpdateHotspot(normalizeHotspotPosition(localHotspot));
+    // Create effect parameters based on type
+    let finalParameters: any = {};
+    
+    switch (selectedEffectType) {
+      case 'spotlight':
+        finalParameters = {
+          position: { x: 0, y: 0, width: 100, height: 100 }, // Default position
+          shape: effectParameters['shape'] || 'circle',
+          intensity: effectParameters['intensity'] || 70,
+          fadeEdges: true,
+          message: effectParameters['message']
+        };
+        break;
+      case 'text':
+        finalParameters = {
+          text: effectParameters['text'] || '',
+          position: { x: 0, y: 0, width: 200, height: 100 }, // Default position  
+          style: { fontSize: 16, color: '#000000' }, // Default style
+          displayMode: effectParameters['displayMode'] || 'modal'
+        };
+        break;
+      case 'video':
+        finalParameters = {
+          videoSource: effectParameters['videoSource'] || 'url',
+          videoUrl: effectParameters['videoUrl'],
+          youtubeVideoId: effectParameters['youtubeVideoId'],
+          displayMode: 'modal',
+          showControls: true,
+          autoplay: false
+        };
+        break;
+      case 'quiz':
+        finalParameters = {
+          question: effectParameters['question'] || '',
+          questionType: effectParameters['questionType'] || 'multiple-choice',
+          choices: effectParameters['choices'] || [],
+          correctAnswer: effectParameters['correctAnswer'] || 0,
+          allowMultipleAttempts: true,
+          resumeAfterCompletion: true
+        };
+        break;
+      default:
+        finalParameters = effectParameters;
     }
-    editorActions.closeHotspotEditor();
+
+    const updatedHotspot: SlideElement = {
+      ...hotspot,
+      content: {
+        ...hotspot.content,
+        title,
+        description
+      },
+      interactions: [{
+        id: existingInteraction?.id || `interaction-${Date.now()}`,
+        trigger: 'click',
+        effect: {
+          id: `effect-${Date.now()}`,
+          type: selectedEffectType as any,
+          duration: 3000,
+          parameters: finalParameters
+        }
+      }]
+    };
+    
+    onSave(updatedHotspot);
   };
 
-  const handleTogglePreview = (eventId: string) => {
-    const isCurrentlyPreviewing = previewingEventIds.includes(eventId);
-    const event = relatedEvents.find((e) => e.id === eventId);
-    if (isCurrentlyPreviewing) {
-      setPreviewingEventIds((prev) => prev.filter((id) => id !== eventId));
-      onPreviewOverlay?.(null);
-    } else {
-      setPreviewingEventIds((prev) => [...prev, eventId]);
-      if (event) {
-        onPreviewOverlay?.(event);
-      }
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this hotspot?')) {
+      onDelete(hotspot.id);
     }
   };
 
-  if (!isOpen || !localHotspot) {
-    return null;
-  }
+  const renderEffectParameters = () => {
+    switch (selectedEffectType) {
+      case 'spotlight':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Shape</label>
+              <select 
+                value={effectParameters['shape'] || 'circle'}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, shape: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              >
+                <option value="circle">Circle</option>
+                <option value="rectangle">Rectangle</option>
+                <option value="oval">Oval</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Intensity: {effectParameters['intensity'] || 70}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={effectParameters['intensity'] || 70}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, intensity: Number(e.target.value) }))}
+                className="w-full"
+              />
+            </div>
+          </div>
+        );
+        
+      case 'text':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Text to Display</label>
+              <textarea 
+                value={effectParameters['text'] || ''}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, text: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+                placeholder="Enter text to display..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Display Mode</label>
+              <select 
+                value={effectParameters['displayMode'] || 'modal'}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, displayMode: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              >
+                <option value="modal">Modal</option>
+                <option value="tooltip">Tooltip</option>
+                <option value="overlay">Overlay</option>
+              </select>
+            </div>
+          </div>
+        );
+        
+      case 'video':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Video Source</label>
+              <select 
+                value={effectParameters['videoSource'] || 'url'}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, videoSource: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              >
+                <option value="url">URL</option>
+                <option value="youtube">YouTube</option>
+              </select>
+            </div>
+            {effectParameters['videoSource'] === 'youtube' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Video ID</label>
+                <input
+                  type="text"
+                  value={effectParameters['youtubeVideoId'] || ''}
+                  onChange={(e) => setEffectParameters(prev => ({ ...prev, youtubeVideoId: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="e.g. dQw4w9WgXcQ"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
+                <input
+                  type="url"
+                  value={effectParameters['videoUrl'] || ''}
+                  onChange={(e) => setEffectParameters(prev => ({ ...prev, videoUrl: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder="https://example.com/video.mp4"
+                />
+              </div>
+            )}
+          </div>
+        );
+        
+      case 'quiz':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+              <input
+                type="text"
+                value={effectParameters['question'] || ''}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, question: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                placeholder="Enter your question..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+              <select 
+                value={effectParameters['questionType'] || 'multiple-choice'}
+                onChange={(e) => setEffectParameters(prev => ({ ...prev, questionType: e.target.value }))}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              >
+                <option value="multiple-choice">Multiple Choice</option>
+                <option value="true-false">True/False</option>
+                <option value="fill-in-the-blank">Fill in the Blank</option>
+              </select>
+            </div>
+            {effectParameters['questionType'] === 'multiple-choice' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Choices (one per line)</label>
+                <textarea 
+                  value={(effectParameters['choices'] as string[])?.join('\n') || ''}
+                  onChange={(e) => setEffectParameters(prev => ({ 
+                    ...prev, 
+                    choices: e.target.value.split('\n').filter(c => c.trim())
+                  }))}
+                  className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+                  placeholder="Option A&#10;Option B&#10;Option C"
+                />
+              </div>
+            )}
+          </div>
+        );
+        
+      default:
+        return (
+          <div className="text-gray-500 text-sm">
+            Select an effect type to configure its parameters.
+          </div>
+        );
+    }
+  };
 
-  const localHotspotEvents = relatedEvents.filter((event) => event.targetId === localHotspot.id);
+  if (!isOpen) return null;
 
   return (
-    <EditorModalBase isOpen={isOpen} onClose={editorActions.closeHotspotEditor}>
-      <HotspotEditorToolbar
-        title={localHotspot.title || `Edit Hotspot`}
-        onTitleChange={(title) => setLocalHotspot((prev) => prev ? { ...prev, title } : null)}
-        onSave={handleSave}
-        onDelete={() => {
-          if (window.confirm(`Are you sure you want to delete the hotspot "${localHotspot.title}"?`)) {
-            onDeleteHotspot(localHotspot.id);
-            editorActions.closeHotspotEditor();
-          }
-        }}
-        onClose={editorActions.closeHotspotEditor}
-      />
-      <div className="flex-grow flex flex-col overflow-hidden">
-        <HotspotEditorContent
-          localHotspot={localHotspot}
-          setLocalHotspot={setLocalHotspot}
-          onUpdateHotspot={onUpdateHotspot}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isSettingsModalOpen={isSettingsModalOpen}
-          editingEventId={editingEventId}
-          relatedEvents={relatedEvents}
-          handleEventUpdate={handleEventUpdate}
-          closeInteractionEditor={editorActions.closeInteractionEditor}
-          selectedInteractionId={selectedInteractionId}
-          setSelectedInteractionId={setSelectedInteractionId}
-          handleInteractionTypeSelected={handleInteractionTypeSelected}
-          localHotspotEvents={localHotspotEvents}
-          handleEventDelete={handleEventDelete}
-          handleTogglePreview={handleTogglePreview}
-          openInteractionEditor={(eventId) => {
-            editorActions.openInteractionEditor(eventId);
-            setActiveTab('properties');
-          }}
-          previewingEventIds={previewingEventIds}
-          allHotspots={allHotspots}
-          handleMoveEventUp={handleMoveEventUp}
-          handleMoveEventDown={handleMoveEventDown}
-        />
+    <div 
+      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${Z_INDEX_TAILWIND.MODAL_BACKDROP}`}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-xl font-semibold">Edit Hotspot</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-6">
+          {/* Basic Info */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                placeholder="Hotspot title..."
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+                placeholder="Optional description..."
+              />
+            </div>
+          </div>
+
+          {/* Effect Configuration */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Effect Type</label>
+              <select 
+                value={selectedEffectType}
+                onChange={(e) => setSelectedEffectType(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              >
+                <option value="spotlight">Spotlight</option>
+                <option value="text">Show Text</option>
+                <option value="video">Play Video</option>
+                <option value="quiz">Quiz</option>
+                <option value="pan_zoom">Pan & Zoom</option>
+                <option value="tooltip">Tooltip</option>
+              </select>
+            </div>
+            
+            {renderEffectParameters()}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+          <button
+            onClick={handleDelete}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          
+          <div className="flex space-x-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Save
+            </button>
+          </div>
+        </div>
       </div>
-    </EditorModalBase>
+    </div>
   );
 };
 
