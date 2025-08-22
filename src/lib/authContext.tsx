@@ -70,7 +70,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setFirebaseInitialized(true);
         
         // Setup auth state listener
-        unsubscribe = onAuthStateChanged(firebaseManager.getAuth(), (user) => {
+        const auth = firebaseManager.getAuth();
+        if (!auth) {
+          throw new Error('Auth not initialized');
+        }
+        unsubscribe = onAuthStateChanged(auth, (user) => {
           setUser(user as User);
           setLoading(false);
         }, (error) => {
@@ -99,7 +103,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { signInWithEmailAndPassword } = await import('firebase/auth');
       
       await firebaseManager.initialize();
-      await signInWithEmailAndPassword(firebaseManager.getAuth(), email, password);
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -114,7 +120,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await firebaseManager.initialize();
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithPopup(firebaseManager.getAuth(), provider);
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Google sign in error:', error);
       throw error;
@@ -127,7 +135,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
       
       await firebaseManager.initialize();
-      const result = await createUserWithEmailAndPassword(firebaseManager.getAuth(), email, password);
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(result.user, { displayName });
     } catch (error) {
       console.error('Sign up error:', error);
@@ -142,7 +152,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await firebaseManager.initialize();
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(firebaseManager.getAuth(), provider);
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Google sign in error:', error);
       throw error;
@@ -155,7 +167,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { signOut } = await import('firebase/auth');
       
       await firebaseManager.initialize();
-      await signOut(firebaseManager.getAuth());
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      await signOut(auth);
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
@@ -168,7 +182,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { sendPasswordResetEmail } = await import('firebase/auth');
       
       await firebaseManager.initialize();
-      await sendPasswordResetEmail(firebaseManager.getAuth(), email);
+      const auth = firebaseManager.getAuth();
+      if (!auth) throw new Error('Auth not initialized');
+      await sendPasswordResetEmail(auth, email);
     } catch (error) {
       console.error('Password reset error:', error);
       throw error;

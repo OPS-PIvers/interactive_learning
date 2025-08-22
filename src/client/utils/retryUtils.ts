@@ -148,6 +148,10 @@ export async function refreshAuthTokenIfNeeded(): Promise<boolean> {
     // Ensure Firebase is initialized first
     await firebaseManager.initialize();
     const auth = firebaseManager.getAuth();
+    if (!auth) {
+      console.warn('Auth not available for token refresh');
+      return false;
+    }
     const user = auth.currentUser;
 
     if (!user) {

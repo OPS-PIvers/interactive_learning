@@ -50,6 +50,12 @@ const getAuthDetails = async () => {
     // Ensure Firebase is initialized first
     await firebaseManager.initialize();
     const auth = firebaseManager.getAuth();
+    if (!auth) {
+      return {
+        userPresent: false,
+        tokenValid: false
+      };
+    }
     const user = auth.currentUser;
 
     if (!user) {
@@ -110,7 +116,7 @@ const checkNetworkConnectivity = async () => {
     await firebaseManager.initialize();
     const auth = firebaseManager.getAuth();
     
-    if (auth.currentUser) {
+    if (auth && auth.currentUser) {
       const startTime = Date.now();
       await auth.currentUser.getIdToken(true);
       const endTime = Date.now();
