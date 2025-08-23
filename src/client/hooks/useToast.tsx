@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import ToastNotification, { ToastData, ToastType } from '../components/ui/ToastNotification';
+import { generateId } from '../utils/generateId';
 
 interface ToastContextType {
   showToast: (toast: Omit<ToastData, 'id'>) => void;
@@ -27,18 +28,14 @@ interface ToastProviderProps {
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const generateId = useCallback(() => {
-    return `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }, []);
-
   const showToast = useCallback((toast: Omit<ToastData, 'id'>) => {
     const newToast: ToastData = {
       ...toast,
-      id: generateId(),
+      id: generateId('toast'),
     };
     
     setToasts(prev => [...prev, newToast]);
-  }, [generateId]);
+  }, []);
 
   const showSuccess = useCallback((title: string, message?: string) => {
     showToast({ type: 'success', title, ...(message && { message }) });

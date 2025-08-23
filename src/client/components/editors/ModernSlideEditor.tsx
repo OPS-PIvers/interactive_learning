@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { InteractiveSlide, SlideElement, BackgroundMedia } from '../../../shared/slideTypes';
 import { Project, extractYouTubeVideoId } from '../../../shared/types';
 import { EffectExecutor } from '../../utils/EffectExecutor';
-import { generateId } from '../../utils/generateId';
+import { generateHotspotId } from '../../utils/generateId';
 import SlideCanvas from '../slides/SlideCanvas';
 import SlideEditorToolbar from '../toolbars/SlideEditorToolbar';
 import EditorFooterControls from '../toolbars/EditorFooterControls';
@@ -155,7 +155,7 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
   // Add new hotspot
   const handleHotspotAdd = useCallback((relativePosition: RelativePosition) => {
     const newElement: SlideElement = {
-      id: generateId(),
+      id: generateHotspotId(),
       type: 'hotspot',
       position: {
         desktop: {
