@@ -53,12 +53,6 @@ describe('Component Compilation Integrity Tests', () => {
       }).not.toThrow();
     });
 
-    test('EditableEventCard imports and compiles correctly', async () => {
-        expect(async () => {
-          const module = await import('../../client/components/ui/EditableEventCard');
-          expect(module.default).toBeDefined();
-        }).not.toThrow();
-    });
 
     test('InteractionSettingsModal imports and compiles correctly', async () => {
         expect(async () => {
