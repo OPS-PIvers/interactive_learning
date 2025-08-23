@@ -1,6 +1,5 @@
 import React from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { TimelineEventData } from '../../../shared/type-defs';
+import { TimelineEventData, InteractionType } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import { PREVIEW_DEFAULTS } from '../../constants/interactionConstants';
 import { Z_INDEX } from '../../utils/styleConstants';

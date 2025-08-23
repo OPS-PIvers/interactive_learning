@@ -1,6 +1,15 @@
-import { InteractionType } from './InteractionPresets';
 import { SlideDeck } from './slideTypes';
 
+
+export enum InteractionType {
+  TEXT = 'text',
+  TOOLTIP = 'tooltip',
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  PAN_ZOOM = 'pan_zoom',
+  SPOTLIGHT = 'spotlight',
+  QUIZ = 'quiz'
+}
 
 export type HotspotSize = 'x-small' | 'small' | 'medium' | 'large';
 export type VideoSourceType = 'file' | 'youtube' | 'device' | 'url';

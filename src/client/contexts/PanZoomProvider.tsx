@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
-import { InteractionType } from '../../shared/InteractionPresets';
 import { ImageTransformState, TimelineEventData, HotspotData } from '../../shared/types';
+import { InteractionType } from '../../shared/type-defs';
 import { useEventGestureCoordination } from '../hooks/useEventGestureCoordination';
 import { usePanZoomEngine } from '../hooks/usePanZoomEngine';
 

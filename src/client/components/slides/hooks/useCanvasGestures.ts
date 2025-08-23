@@ -32,13 +32,13 @@ export const useCanvasGestures = (
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE);
   const { deviceType } = useDeviceDetection();
 
-  const getElementPositionForDevice = (element: SlideElement | undefined): FixedPosition => {
+  const getElementPositionForDevice = useCallback((element: SlideElement | undefined): FixedPosition => {
     const defaultPosition = { x: 0, y: 0, width: 100, height: 100 };
     if (!element || !element.position) return defaultPosition;
     return element.position[deviceType] || element.position.desktop || defaultPosition;
-  };
+  }, [deviceType]);
 
-  const createUpdatedResponsivePosition = (
+  const createUpdatedResponsivePosition = useCallback((
     existingPosition: ResponsivePosition | undefined,
     newPosition: FixedPosition
   ): ResponsivePosition => {
@@ -52,7 +52,7 @@ export const useCanvasGestures = (
       mobile,
       [deviceType]: newPosition,
     };
-  };
+  }, [deviceType]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
     if (!isEditable) return;

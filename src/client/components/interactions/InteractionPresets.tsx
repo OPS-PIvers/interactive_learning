@@ -1,5 +1,6 @@
 import React from 'react';
-import { InteractionType, interactionPresets } from '../../../shared/InteractionPresets';
+import { interactionPresets } from '../../../shared/InteractionPresets';
+import { InteractionType } from '../../../shared/type-defs';
 
 interface InteractionPresetsProps {
   onPresetSelect: (type: InteractionType) => void;

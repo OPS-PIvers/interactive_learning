@@ -1,8 +1,7 @@
 
 // Local Timestamp interface to avoid importing Firebase at top level
-import { InteractionType } from './InteractionPresets';
 import { SlideDeck } from './slideTypes';
-import { TimelineEventData, MediaQuizTrigger } from './type-defs';
+import { InteractionType, TimelineEventData, MediaQuizTrigger } from './type-defs';
 export interface Timestamp {
   seconds: number;
   nanoseconds: number;

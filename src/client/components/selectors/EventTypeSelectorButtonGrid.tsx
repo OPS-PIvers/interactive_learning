@@ -1,7 +1,8 @@
 // src/client/components/EventTypeSelectorButtonGrid.tsx
 import React from 'react';
-import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
+import { interactionPresets } from '../../../shared/InteractionPresets';
 import { Icon } from '../Icon';
+import { InteractionType } from '../../../shared/type-defs';
 
 interface EventTypeSelectorButtonGridProps {
   onSelectEventType: (type: InteractionType) => void;

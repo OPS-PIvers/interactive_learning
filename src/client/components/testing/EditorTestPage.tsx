@@ -71,7 +71,7 @@ export const EditorTestPage: React.FC = () => {
     setIsSaving(true);
     console.warn('📱 Mobile Test: Save requested', slideDeck);
     // Mock save - no actual Firebase calls
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => { setTimeout(resolve, 1500); });
     setIsSaving(false);
   }, [slideDeck]);
 

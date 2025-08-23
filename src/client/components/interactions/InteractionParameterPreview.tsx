@@ -1,6 +1,7 @@
 import React from 'react';
-import { InteractionType, interactionPresets } from '../../../shared/InteractionPresets';
+import { interactionPresets } from '../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../shared/types';
+import { InteractionType } from '../../../shared/type-defs';
 
 interface InteractionParameterPreviewProps {
   event: TimelineEventData;

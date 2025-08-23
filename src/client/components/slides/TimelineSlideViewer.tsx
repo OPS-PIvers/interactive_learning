@@ -7,8 +7,8 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
 import { SlideDeck, SlideViewerState, SlideEffect, EffectParameters } from '../../../shared/slideTypes';
+import { InteractionType } from '../../../shared/type-defs';
 import { TimelineEventData } from '../../../shared/types';
 import { useDeviceDetection } from '../../hooks/useDeviceDetection';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';

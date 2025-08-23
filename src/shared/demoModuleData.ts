@@ -1,5 +1,4 @@
-import { InteractionType } from './InteractionPresets';
-import { TimelineEventData } from './type-defs';
+import { TimelineEventData, InteractionType } from './type-defs';
 import { InteractiveModuleState, HotspotData } from './types';
 
 const hotspots: HotspotData[] = [

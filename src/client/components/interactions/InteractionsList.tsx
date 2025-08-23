@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
+import { interactionPresets } from '../../../shared/InteractionPresets';
 import { SlideElement } from '../../../shared/slideTypes';
+import { InteractionType } from '../../../shared/type-defs';
 import { Icon } from '../Icon';
 import InteractionEditor from './InteractionEditor';
 
