@@ -3,10 +3,7 @@ import { SlideDeck } from '../../../shared/slideTypes';
 import { useIOSSafariViewport } from '../../hooks/useViewportHeight';
 import { getIOSSafeAreaStyle, getIOSZIndexStyle } from '../../utils/iosZIndexManager';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '../icons/ChevronRightIcon';
-import { PauseIcon } from '../icons/PauseIcon';
-import { PlayIcon } from '../icons/PlayIcon';
+import { Icon } from '../Icon';
 
 interface HeaderTimelineProps {
   slideDeck: SlideDeck;
@@ -151,7 +148,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
             className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
             aria-label="Previous slide"
           >
-            <ChevronLeftIcon className="w-5 h-5 md:w-4 md:h-4" />
+            <Icon name="ChevronLeft" className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         ) : viewerMode === 'auto-progression' ? (
           <button
@@ -160,9 +157,9 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
             aria-label={isPlaying ? "Pause auto-progression" : "Play auto-progression"}
           >
             {isPlaying ? (
-              <PauseIcon className="w-5 h-5 md:w-4 md:h-4" />
+              <Icon name="Pause" className="w-5 h-5 md:w-4 md:h-4" />
             ) : (
-              <PlayIcon className="w-5 h-5 md:w-4 md:h-4" />
+              <Icon name="Play" className="w-5 h-5 md:w-4 md:h-4" />
             )}
           </button>
         ) : (
@@ -266,7 +263,7 @@ const HeaderTimeline: React.FC<HeaderTimelineProps> = ({
             className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
             aria-label="Next slide"
           >
-            <ChevronRightIcon className="w-5 h-5 md:w-4 md:h-4" />
+            <Icon name="ChevronRight" className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         ) : viewerMode === 'auto-progression' && onSpeedChange ? (
           <select

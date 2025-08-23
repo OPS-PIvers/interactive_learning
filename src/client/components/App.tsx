@@ -14,7 +14,7 @@ import AuthButton from './auth/AuthButton';
 import { AuthModal } from './auth/AuthModal';
 import EditorTestPage from './testing/EditorTestPage';
 import HookErrorBoundary from './shared/HookErrorBoundary';
-import { SettingsIcon } from './icons/SettingsIcon';
+import { Icon } from './Icon';
 import InteractiveModuleWrapper from './views/InteractiveModuleWrapper';
 import ProjectCard from './ui/ProjectCard';
 import ScrollStacks from './views/ScrollStacks';
@@ -540,7 +540,7 @@ const MainApp: React.FC = () => {
                   }}
                   aria-label="Settings"
                 >
-                  <SettingsIcon className="w-6 h-6 text-slate-300" />
+                  <Icon name="Settings" className="w-6 h-6 text-slate-300" />
                 </button>
                 <AuthButton variant="compact" size="small" />
               </div>
@@ -586,7 +586,7 @@ const MainApp: React.FC = () => {
                 }}
                 aria-label="Settings"
               >
-                <SettingsIcon className="w-7 h-7 text-slate-300" />
+                <Icon name="Settings" className="w-7 h-7 text-slate-300" />
               </button>
               <AuthButton variant="toolbar" size="medium" />
             </div>

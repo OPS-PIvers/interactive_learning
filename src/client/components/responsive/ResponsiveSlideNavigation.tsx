@@ -9,8 +9,7 @@
 import React, { useCallback } from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
-import { PlusIcon } from '../icons/PlusIcon';
+import { Icon } from '../Icon';
 
 export interface ResponsiveSlideNavigationProps {
   slides: InteractiveSlide[];
@@ -61,7 +60,7 @@ export const ResponsiveSlideNavigation: React.FC<ResponsiveSlideNavigationProps>
           className="text-slate-400 hover:text-white p-1 rounded transition-colors"
           title={isCollapsed ? "Expand panel" : "Collapse panel"}
         >
-          <ChevronDownIcon 
+          <Icon name="ChevronDown" 
             className={`w-4 h-4 transition-transform duration-300 ${
               isCollapsed ? 'rotate-90' : '-rotate-90'
             }`} 
@@ -76,7 +75,7 @@ export const ResponsiveSlideNavigation: React.FC<ResponsiveSlideNavigationProps>
             onClick={() => onSlideAdd()}
             className="w-full flex items-center gap-2 p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors text-sm"
           >
-            <PlusIcon className="w-4 h-4" />
+            <Icon name="Plus" className="w-4 h-4" />
             <span>Add Slide</span>
           </button>
         </div>

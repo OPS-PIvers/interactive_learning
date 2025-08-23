@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
-import { PlusIcon } from '../icons/PlusIcon';
+import { Icon } from '../Icon';
 
 interface HeaderInsertDropdownProps {
   onAddElement: (elementType: 'hotspot' | 'text' | 'media' | 'shape') => void;
@@ -127,9 +126,9 @@ const HeaderInsertDropdown: React.FC<HeaderInsertDropdownProps> = ({
         aria-haspopup="true"
         aria-label="Insert element menu"
       >
-        <PlusIcon className="w-4 h-4" />
+        <Icon name="Plus" className="w-4 h-4" />
         <span className="hidden sm:inline">Insert</span>
-        <ChevronDownIcon className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <Icon name="ChevronDown" className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

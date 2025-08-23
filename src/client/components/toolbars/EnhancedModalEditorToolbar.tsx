@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 import FileOperationsSection from './sections/FileOperationsSection';
 import EditingToolsSection from './sections/EditingToolsSection';
 import ViewOptionsSection from './sections/ViewOptionsSection';
@@ -68,7 +68,7 @@ const EnhancedModalEditorToolbar: React.FC<EnhancedModalEditorToolbarProps> = (p
             className="text-slate-300 hover:text-white transition-colors min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-slate-700 flex items-center justify-center"
             aria-label="Close editor settings modal"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <Icon name="XMark" className="w-5 h-5" />
           </button>
         </div>
 

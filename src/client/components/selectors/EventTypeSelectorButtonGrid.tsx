@@ -1,7 +1,7 @@
 // src/client/components/EventTypeSelectorButtonGrid.tsx
 import React from 'react';
 import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
-import { PlusIcon } from '../icons/PlusIcon';
+import { Icon } from '../Icon';
 
 interface EventTypeSelectorButtonGridProps {
   onSelectEventType: (type: InteractionType) => void;
@@ -41,7 +41,7 @@ const EventTypeSelectorButtonGrid: React.FC<EventTypeSelectorButtonGridProps> = 
           {preset?.icon && preset.icon !== '❓' && preset.icon !== '👁️' && preset.icon !== '🚫' && preset.icon !== '💓' && preset.icon !== '✨' ? ( // Filter out less useful default emoji icons for this context
             <span className="text-2xl mb-1">{preset.icon}</span>
           ) : (
-            <PlusIcon className="w-6 h-6 mb-1 text-purple-300" /> // Generic icon
+            <Icon name="Plus" className="w-6 h-6 mb-1 text-purple-300" /> // Generic icon
           )}
           <span className="text-xs font-medium">{preset?.name || type}</span>
         </button>

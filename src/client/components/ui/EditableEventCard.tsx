@@ -5,13 +5,7 @@ import { InteractionType } from '../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
-import { ArrowDownIcon } from '../icons/ArrowDownIcon';
-import { ArrowUpIcon } from '../icons/ArrowUpIcon';
-import { EyeIcon } from '../icons/EyeIcon';
-import { EyeSlashIcon } from '../icons/EyeSlashIcon';
-import { GearIcon } from '../icons/GearIcon';
-import { PencilIcon } from '../icons/PencilIcon';
-import { TrashIcon } from '../icons/TrashIcon';
+import { Icon } from '../Icon';
 // import EventTypeSelector from '../selectors/EventTypeSelector';
 import InteractionParameterPreview from '../interactions/InteractionParameterPreview';
 interface EditableEventCardProps {
@@ -186,7 +180,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
             className="p-1.5 text-slate-500 hover:text-purple-500 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Toggle Preview"
           >
-            {isPreviewing ? ( <EyeSlashIcon className="w-5 h-5" /> ) : ( <EyeIcon className="w-5 h-5" /> )}
+            {isPreviewing ? ( <Icon name="EyeSlash" className="w-5 h-5" /> ) : ( <Icon name="Eye" className="w-5 h-5" /> )}
           </button>
           
           {/* Timeline ordering controls */}
@@ -202,7 +196,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               aria-label="Move Up"
               title="Move event up in timeline"
             >
-              <ArrowUpIcon className="w-4 h-4" />
+              <Icon name="ArrowUp" className="w-4 h-4" />
             </button>
           )}
           
@@ -218,7 +212,7 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
               aria-label="Move Down"
               title="Move event down in timeline"
             >
-              <ArrowDownIcon className="w-4 h-4" />
+              <Icon name="ArrowDown" className="w-4 h-4" />
             </button>
           )}
           
@@ -227,21 +221,21 @@ const EditableEventCard: React.FC<EditableEventCardProps> = ({
             className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Edit Title"
           >
-            <PencilIcon className="w-4 h-4" />
+            <Icon name="Pencil" className="w-4 h-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Edit Parameters"
           >
-            <GearIcon className="w-5 h-5" />
+            <Icon name="Gear" className="w-5 h-5" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(event.id); }}
             className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-800 transition-colors"
             aria-label="Delete Event"
           >
-            <TrashIcon className="w-4 h-4" />
+            <Icon name="Trash" className="w-4 h-4" />
           </button>
         </div>
       </div>

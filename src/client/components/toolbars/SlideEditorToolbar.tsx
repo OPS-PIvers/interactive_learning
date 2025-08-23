@@ -2,14 +2,7 @@ import React, { useState } from 'react';
 import { Project } from '../../../shared/types';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import AuthButton from '../auth/AuthButton';
-import { CheckIcon } from '../icons/CheckIcon';
-import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
-import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
-import { EyeIcon } from '../icons/EyeIcon';
-import { GearIcon } from '../icons/GearIcon';
-import { SaveIcon } from '../icons/SaveIcon';
-import { ShareIcon } from '../icons/ShareIcon';
-import { TrashIcon } from '../icons/TrashIcon';
+import { Icon } from '../Icon';
 import ShareModal from '../modals/ShareModal';
 
 interface SlideEditorToolbarProps {
@@ -77,7 +70,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               className="flex items-center gap-1 md:gap-2 text-slate-300 hover:text-white transition-colors rounded-lg p-2 md:px-3 hover:bg-slate-700"
               aria-label="Back to projects">
 
-              <span className="material-icons w-5 h-5 text-lg">arrow_back_ios</span>
+              <Icon name="ChevronLeft" className="w-5 h-5" />
               <span className="hidden md:inline font-medium">Back</span>
             </button>
             
@@ -115,7 +108,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               }`}
               aria-label="Toggle preview"
             >
-              <EyeIcon className="w-4 h-4" />
+              <Icon name="Eye" className="w-4 h-4" />
               <span className="hidden md:inline">{isPreview ? 'Editing' : 'Preview'}</span>
             </button>
 
@@ -124,7 +117,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-[#b73031] md:hover:bg-[#9c2829] md:font-medium"
               aria-label="Live preview"
             >
-              <span className="material-icons w-4 h-4 text-sm">play_circle_outline</span>
+              <Icon name="Play" className="w-4 h-4" />
               <span className="hidden md:inline">Live Preview</span>
             </button>
 
@@ -155,12 +148,12 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
                 </> :
               showSuccessMessage ?
               <>
-                  <CheckIcon className="w-4 h-4" />
+                  <Icon name="Check" className="w-4 h-4" />
                   <span className="hidden md:inline">Saved!</span>
                 </> :
 
               <>
-                  <span className="material-icons w-4 h-4 text-sm md:mr-1">save</span>
+                  <Icon name="Save" className="w-4 h-4" />
                   <span className="hidden md:inline">Save</span>
                 </>
               }
@@ -173,7 +166,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-[#687178] md:hover:bg-[#545b60] md:font-medium"
               aria-label="Share project">
 
-                <span className="material-icons w-4 h-4 text-sm">share</span>
+                <Icon name="Share" className="w-4 h-4" />
                 <span className="hidden md:inline">Share</span>
               </button>
             }
@@ -188,7 +181,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
                 className="flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 text-red-400 hover:text-white transition-colors rounded-lg hover:bg-red-600"
                 aria-label="Delete hotspot"
               >
-                <TrashIcon className="w-4 h-4" />
+                <Icon name="Trash" className="w-4 h-4" />
                 <span className="hidden md:inline">Delete</span>
               </button>
             )}
@@ -199,7 +192,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
               className="flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 text-slate-300 md:text-slate-200 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
               aria-label="Project settings">
 
-              <span className="material-icons w-4 h-4 text-sm">settings</span>
+              <Icon name="Settings" className="w-4 h-4" />
               <span className="hidden md:inline">Settings</span>
             </button>
 
