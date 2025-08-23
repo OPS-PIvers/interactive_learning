@@ -67,7 +67,7 @@ const ModernSlideEditorDemo: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     // Simulate save delay
-    await new Promise(resolve => { setTimeout(resolve, 1000); });
+    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSaving(false);
     console.log('Slide saved:', slide);
   };
