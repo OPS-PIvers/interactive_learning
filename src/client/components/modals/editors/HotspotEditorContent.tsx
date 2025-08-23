@@ -1,11 +1,11 @@
 import React from 'react';
+import { InteractionType } from '../../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../../shared/type-defs';
 import { HotspotData } from '../../../../shared/types';
 import EditorTabContainer from './shared/EditorTabContainer';
-import StyleTab from './tabs/StyleTab';
 import InteractionsTab from './tabs/InteractionsTab';
 import PropertiesTab from './tabs/PropertiesTab';
-import { InteractionType } from '../../../../shared/InteractionPresets';
+import StyleTab from './tabs/StyleTab';
 
 interface HotspotEditorContentProps {
   localHotspot: HotspotData;

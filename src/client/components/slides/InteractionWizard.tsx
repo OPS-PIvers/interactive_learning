@@ -539,7 +539,7 @@ export const InteractionWizard: React.FC<InteractionWizardProps> = ({
             Next
           </button>
         ) : (
-          <div></div>
+          <div />
         )}
       </div>
     </div>

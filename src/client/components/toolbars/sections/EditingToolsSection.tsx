@@ -1,6 +1,6 @@
+import { ImageIcon, FileIcon, VideoIcon, Link2Icon } from '@radix-ui/react-icons';
 import React, { useState, useEffect } from 'react';
 import { extractYouTubeVideoId } from '../../../../shared/types';
-import { ImageIcon, FileIcon, VideoIcon, Link2Icon } from '@radix-ui/react-icons';
 
 interface EditingToolsSectionProps {
   backgroundImage?: string;

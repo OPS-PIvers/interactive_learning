@@ -1,6 +1,6 @@
+import { SunIcon, ZoomInIcon, TextIcon, VideoIcon, SpeakerLoudIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { InteractionType } from '../../../shared/InteractionPresets';
-import { SunIcon, ZoomInIcon, TextIcon, VideoIcon, SpeakerLoudIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { Icon } from '../Icon';
 
 interface InteractionTypeOption {

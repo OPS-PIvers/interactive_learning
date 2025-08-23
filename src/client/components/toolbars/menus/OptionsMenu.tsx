@@ -1,6 +1,6 @@
 import React from 'react';
-import DropdownMenuContainer from './DropdownMenuContainer';
 import ToolbarButton from '../shared/ToolbarButton';
+import DropdownMenuContainer from './DropdownMenuContainer';
 
 interface OptionsMenuProps {
   // Define props for options here

@@ -1,6 +1,6 @@
 import React from 'react';
-import { HotspotData } from '../../../../../shared/types';
 import { hotspotStylePresets, hotspotSizePresets, applyStylePreset } from '../../../../../shared/hotspotStylePresets';
+import { HotspotData } from '../../../../../shared/types';
 import PropertyField from '../shared/PropertyField';
 
 interface StyleTabProps {

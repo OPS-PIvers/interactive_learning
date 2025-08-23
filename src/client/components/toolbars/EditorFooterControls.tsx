@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import ResponsiveBackgroundModal from '../responsive/ResponsiveBackgroundModal';
 import ResponsiveAspectRatioModal from '../responsive/ResponsiveAspectRatioModal';
+import ResponsiveBackgroundModal from '../responsive/ResponsiveBackgroundModal';
 
 interface EditorFooterControlsProps {
   // Background settings

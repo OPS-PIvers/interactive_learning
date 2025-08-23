@@ -4,8 +4,8 @@ import { SlideDeck, ThemePreset } from '../../../shared/slideTypes';
 import { InteractiveModuleState, Project } from '../../../shared/types';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import LoadingScreen from '../shared/LoadingScreen';
-import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import SlideViewer from '../slides/SlideViewer';
+import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 
 // Lazy load the heavy editor component
 const ModernSlideEditor = lazy(() => import('../editors/ModernSlideEditor'));

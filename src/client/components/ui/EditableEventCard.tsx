@@ -4,10 +4,10 @@ import { useDrag, useDrop } from 'react-dnd';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
-import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import { Icon } from '../Icon';
 // import EventTypeSelector from '../selectors/EventTypeSelector';
 import InteractionParameterPreview from '../interactions/InteractionParameterPreview';
+import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 interface EditableEventCardProps {
   index: number;
   event: TimelineEventData;

@@ -4,11 +4,11 @@ import { TimelineEventData } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import { PREVIEW_DEFAULTS } from '../../constants/interactionConstants';
 import { Z_INDEX } from '../../utils/styleConstants';
-import FileUpload from '../ui/FileUpload';
-import HotspotViewer from '../views/HotspotViewer';
 import PanZoomPreviewOverlay from '../overlays/PanZoomPreviewOverlay';
 import SpotlightPreviewOverlay from '../overlays/SpotlightPreviewOverlay';
 import TextPreviewOverlay from '../overlays/TextPreviewOverlay';
+import FileUpload from '../ui/FileUpload';
+import HotspotViewer from '../views/HotspotViewer';
 
 interface ImageEditCanvasProps {
   backgroundImage: string | undefined;

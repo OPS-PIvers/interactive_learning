@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { ResponsiveCanvas } from '../../client/components/slides/canvas/ResponsiveCanvas';
 import { useComponentPerformance } from '../../client/hooks/useComponentPerformance';
 import { SlideDeck } from '../../shared/slideTypes';

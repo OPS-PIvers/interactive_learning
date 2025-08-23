@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import React from 'react';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { useMemoryMonitoring } from '../../client/hooks/useComponentPerformance';
 
 // Component that uses memory monitoring

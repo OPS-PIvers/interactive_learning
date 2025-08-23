@@ -1,5 +1,5 @@
-import { Project, InteractiveModuleState } from './types';
 import { SlideDeck, BackgroundMedia, InteractiveSlide } from './slideTypes';
+import { Project, InteractiveModuleState } from './types';
 
 /**
  * Migration utilities for converting between legacy and new slide formats

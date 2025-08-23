@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { Icon } from '../Icon';
-import FileOperationsSection from './sections/FileOperationsSection';
-import EditingToolsSection from './sections/EditingToolsSection';
-import ViewOptionsSection from './sections/ViewOptionsSection';
-import PreviewSection from './sections/PreviewSection';
 import AppearanceSection from './sections/AppearanceSection';
 import ControlsSection from './sections/ControlsSection';
+import EditingToolsSection from './sections/EditingToolsSection';
+import FileOperationsSection from './sections/FileOperationsSection';
+import PreviewSection from './sections/PreviewSection';
+import ViewOptionsSection from './sections/ViewOptionsSection';
 
 interface EnhancedModalEditorToolbarProps {
   isOpen: boolean;

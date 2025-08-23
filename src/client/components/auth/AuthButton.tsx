@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../lib/authContext';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { AuthModal } from './AuthModal';
 import { Icon } from '../Icon';
+import { AuthModal } from './AuthModal';
 
 interface AuthButtonProps {
   variant?: 'toolbar' | 'compact' | 'full';

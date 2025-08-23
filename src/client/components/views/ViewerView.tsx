@@ -8,9 +8,9 @@ import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { Icon } from '../Icon';
 import ErrorScreen from '../shared/ErrorScreen';
 import LoadingScreen from '../shared/LoadingScreen';
-import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 import SlideViewer from '../slides/SlideViewer';
 import ViewerFooterToolbar from '../toolbars/ViewerFooterToolbar';
+import SlideBasedInteractiveModule from './SlideBasedInteractiveModule';
 
 const ViewerView: React.FC = () => {
   const { projectId } = useParams<{projectId: string;}>();

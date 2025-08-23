@@ -1,8 +1,8 @@
 import React from 'react';
-import { SlideElement } from '../../../../shared/slideTypes';
 import { getResponsiveHotspotSizeClasses, defaultHotspotSize } from '../../../../shared/hotspotStylePresets';
-import { Z_INDEX } from '../../../utils/zIndexLevels';
+import { SlideElement } from '../../../../shared/slideTypes';
 import { useDeviceDetection } from '../../../hooks/useDeviceDetection';
+import { Z_INDEX } from '../../../utils/zIndexLevels';
 
 interface ElementRendererProps {
   element: SlideElement;

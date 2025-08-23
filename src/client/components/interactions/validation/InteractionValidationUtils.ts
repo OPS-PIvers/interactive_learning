@@ -1,5 +1,5 @@
-import { TimelineEventData } from '../../../../shared/type-defs';
 import { InteractionType } from '../../../../shared/InteractionPresets';
+import { TimelineEventData } from '../../../../shared/type-defs';
 
 // Validation error interface
 export interface ValidationError {

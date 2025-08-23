@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef, useMemo, memo, useEffect } from 'react';
 import { SlideDeck, SlideElement } from '../../../../shared/slideTypes';
 import { ImageTransformState } from '../../../../shared/types';
+import { ViewportBounds } from '../../../utils/touchUtils';
 import { useCanvasDimensions } from '../hooks/useCanvasDimensions';
-import { useElementInteractions } from '../hooks/useElementInteractions';
 import { useCanvasGestures } from '../hooks/useCanvasGestures';
+import { useElementInteractions } from '../hooks/useElementInteractions';
 import CanvasContainer from './CanvasContainer';
 import SlideRenderer from './SlideRenderer';
-import { ViewportBounds } from '../../../utils/touchUtils';
 
 export interface ResponsiveCanvasProps {
   slideDeck: SlideDeck;

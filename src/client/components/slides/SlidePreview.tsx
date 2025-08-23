@@ -1,7 +1,7 @@
 import React from 'react';
 import { SlideDeck } from '../../../shared/slideTypes';
-import SlideBasedViewer from '../views/SlideBasedViewer';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
+import SlideBasedViewer from '../views/SlideBasedViewer';
 
 interface SlidePreviewProps {
   slideDeck: SlideDeck;

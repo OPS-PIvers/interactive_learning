@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../shared/type-defs';
-import { Icon } from '../Icon';
 import PanZoomSettings from '../editors/PanZoomSettings';
 import SpotlightSettings from '../editors/SpotlightSettings';
+import { Icon } from '../Icon';
 import AudioInteractionEditor from './editors/AudioInteractionEditor';
 import QuizInteractionEditor from './editors/QuizInteractionEditor';
 import TextInteractionEditor from './editors/TextInteractionEditor';

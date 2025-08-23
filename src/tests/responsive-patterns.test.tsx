@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
-import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
 import ModernSlideEditor from '../client/components/editors/ModernSlideEditor';
+import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
 import { AuthProvider } from '../lib/authContext';
 import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
 
