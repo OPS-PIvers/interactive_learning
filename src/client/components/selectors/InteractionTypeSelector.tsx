@@ -1,8 +1,7 @@
 import React from 'react';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { SunIcon, ZoomInIcon, TextIcon, VideoIcon, SpeakerLoudIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
-import { PlusIcon } from '../icons/PlusIcon';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 
 interface InteractionTypeOption {
   type: InteractionType;
@@ -73,7 +72,7 @@ export const InteractionTypeSelectorGrid: React.FC<InteractionTypeSelectorGridPr
           onClick={onClose}
           className="p-1 text-slate-400 hover:text-white rounded-md hover:bg-slate-700 transition-colors"
         >
-          <XMarkIcon className="w-5 h-5" />
+          <Icon name="XMark" className="w-5 h-5" />
         </button>
       </div>
       <div className="p-4 max-h-96 overflow-y-auto">
@@ -105,7 +104,7 @@ export const AddInteractionButton: React.FC<{ onClick: () => void }> = ({ onClic
     onClick={onClick}
     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
   >
-    <PlusIcon className="w-5 h-5" />
+    <Icon name="Plus" className="w-5 h-5" />
     Add Interaction
   </button>
 );

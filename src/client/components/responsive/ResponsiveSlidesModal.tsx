@@ -7,8 +7,7 @@
 
 import React from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
-import { PlusIcon } from '../icons/PlusIcon';
-import { TrashIcon } from '../icons/TrashIcon';
+import { Icon } from '../Icon';
 import { ResponsiveModal } from './ResponsiveModal';
 
 interface ResponsiveSlidesModalProps {
@@ -85,7 +84,7 @@ export const ResponsiveSlidesModal: React.FC<ResponsiveSlidesModalProps> = ({
           }}
           className="w-full mb-4 sm:mb-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
         >
-          <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+          <Icon name="Plus" className="w-4 h-4 sm:w-5 sm:h-5" />
           Add New Slide
         </button>
 
@@ -140,7 +139,7 @@ export const ResponsiveSlidesModal: React.FC<ResponsiveSlidesModalProps> = ({
                       className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete slide"
                     >
-                      <TrashIcon className="w-4 h-4" />
+                      <Icon name="Trash" className="w-4 h-4" />
                     </button>
                   )}
                 </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeftIcon } from '../../icons/ChevronLeftIcon';
+import { Icon } from '../../Icon';
 import ToolbarButton from '../shared/ToolbarButton';
 import ToolbarSeparator from '../shared/ToolbarSeparator';
 
@@ -26,7 +26,7 @@ const FileOperationsSection: React.FC<FileOperationsSectionProps> = ({
         onClick={onBack}
         aria-label="Go back to editing mode"
       >
-        <ChevronLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
+        <Icon name="ChevronLeft" className="w-4 h-4 md:w-5 md:h-5" />
         <span className="hidden md:inline text-sm md:text-base font-medium">Back</span>
       </ToolbarButton>
 

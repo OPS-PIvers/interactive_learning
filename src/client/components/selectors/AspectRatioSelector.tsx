@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCommonRatios, validateAspectRatio, formatCustomRatio, getAspectRatioDisplayName } from '../../utils/aspectRatioUtils';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
+import { Icon } from '../Icon';
 
 interface AspectRatioSelectorProps {
   currentRatio: string;
@@ -140,7 +140,7 @@ const AspectRatioSelector: React.FC<AspectRatioSelectorProps> = ({
           <span className="sm:hidden">{currentRatio.split(' ')[0]}</span>
           <span className="hidden sm:inline">{displayName}</span>
         </span>
-        <ChevronDownIcon 
+        <Icon name="ChevronDown" 
           className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 

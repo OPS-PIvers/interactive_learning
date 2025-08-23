@@ -7,15 +7,7 @@
 
 import React from 'react';
 import AuthButton from '../auth/AuthButton';
-import { CheckIcon } from '../icons/CheckIcon';
-import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
-import { ExclamationCircleIcon } from '../icons/ExclamationCircleIcon';
-import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
-import { EyeIcon } from '../icons/EyeIcon';
-import { GearIcon } from '../icons/GearIcon';
-import { PencilIcon } from '../icons/PencilIcon';
-import { SaveIcon } from '../icons/SaveIcon';
-import { ShareIcon } from '../icons/ShareIcon';
+import { Icon } from '../Icon';
 
 export interface ResponsiveHeaderProps {
   projectName: string;
@@ -59,7 +51,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
             onClick={onClose}
             className="flex items-center gap-1 sm:gap-2 text-slate-300 hover:text-white transition-colors p-1 sm:p-2 -ml-1 sm:-ml-0 rounded-lg hover:bg-slate-700"
           >
-            <ChevronLeftIcon className="w-5 h-5" />
+            <Icon name="ChevronLeft" className="w-5 h-5" />
             <span className="text-sm sm:text-base font-medium hidden xs:inline">
               <span className="sm:hidden">Back</span>
               <span className="hidden sm:inline">Back to Dashboard</span>
@@ -93,14 +85,14 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
           
           {showSuccessMessage && !errorMessage && (
             <div className="flex items-center gap-2 text-green-400">
-              <CheckIcon className="w-4 h-4" />
+              <Icon name="Check" className="w-4 h-4" />
               <span className="text-sm">Saved</span>
             </div>
           )}
 
           {errorMessage && (
             <div className="flex items-center gap-2 text-red-400 bg-red-900/50 px-3 py-1 rounded-md">
-              <ExclamationCircleIcon className="w-4 h-4" />
+              <Icon name="ExclamationCircle" className="w-4 h-4" />
               <span className="text-sm font-medium">{errorMessage}</span>
             </div>
           )}
@@ -115,7 +107,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm bg-teal-600 text-white hover:bg-teal-700"
               title="Live Preview"
             >
-              <ExternalLinkIcon className="w-4 h-4" />
+              <Icon name="ExternalLink" className="w-4 h-4" />
               <span className="hidden sm:inline">Live Preview</span>
             </button>
           )}
@@ -130,7 +122,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
             }`}
             title={isPreviewMode ? 'Exit Preview' : 'Preview'}
           >
-            {isPreviewMode ? <PencilIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+            {isPreviewMode ? <Icon name="Pencil" className="w-4 h-4" /> : <Icon name="Eye" className="w-4 h-4" />}
             <span className="hidden sm:inline">
               {isPreviewMode ? 'Edit' : 'Preview'}
             </span>
@@ -143,7 +135,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
             className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-xs sm:text-sm"
             title={isSaving ? 'Saving...' : 'Save'}
           >
-            <SaveIcon className="w-4 h-4" />
+            <Icon name="Save" className="w-4 h-4" />
             <span className="hidden xs:inline">{isSaving ? 'Saving...' : 'Save'}</span>
           </button>
           
@@ -153,7 +145,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
             className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
             title="Settings"
           >
-            <GearIcon className="w-4 sm:w-5 h-4 sm:h-5" />
+            <Icon name="Gear" className="w-4 sm:w-5 h-4 sm:h-5" />
           </button>
 
           {isPublished && (
@@ -162,7 +154,7 @@ export const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
               title="Share"
             >
-              <ShareIcon className="w-4 sm:w-5 h-4 sm:h-5" />
+              <Icon name="Share" className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           )}
           
