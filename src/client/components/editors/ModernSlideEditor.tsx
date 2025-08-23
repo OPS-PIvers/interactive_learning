@@ -8,7 +8,6 @@ import SlideCanvas from '../slides/SlideCanvas';
 import SlideEditorToolbar from '../toolbars/SlideEditorToolbar';
 import EditorFooterControls from '../toolbars/EditorFooterControls';
 import HotspotEditorModal from '../modals/editors/HotspotEditorModal';
-import { UnifiedEditorState, EditorStateActions } from '../../hooks/useUnifiedEditorState';
 
 interface RelativePosition {
   x: number; // 0-1 (percentage of canvas width)
