@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project } from '../../../shared/types';
 import { normalizeFirebaseUrl, addFirebaseImageCORS, logFirebaseImageLoad } from '../../utils/firebaseImageUtils';
-import { EyeIcon } from '../icons/EyeIcon';
-import { PencilIcon } from '../icons/PencilIcon';
-import { ShareIcon } from '../icons/ShareIcon';
-import { TrashIcon } from '../icons/TrashIcon';
+import { Icon } from '../Icon';
 import ShareModal from '../modals/ShareModal';
 
 interface ProjectCardProps {
@@ -60,7 +57,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
               className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center space-x-2"
               aria-label={`View ${project.title}`}
             >
-              <EyeIcon className="w-5 h-5" />
+              <Icon name="Eye" className="w-5 h-5" />
               <span>View</span>
             </button>
             <button
@@ -68,7 +65,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
               className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center space-x-2"
               aria-label={`Edit ${project.title}`}
             >
-              <PencilIcon className="w-5 h-5" />
+              <Icon name="Pencil" className="w-5 h-5" />
               <span>Edit</span>
             </button>
             <button
@@ -76,14 +73,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
               className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors duration-200"
               aria-label={`Share ${project.title}`}
             >
-              <ShareIcon className="w-5 h-5" />
+              <Icon name="Share" className="w-5 h-5" />
             </button>
             <button
               onClick={() => onDelete(project.id)}
               className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-md transition-colors duration-200"
               aria-label={`Delete ${project.title}`}
             >
-              <TrashIcon className="w-5 h-5" />
+              <Icon name="Trash" className="w-5 h-5" />
             </button>
           </div>
         </div>

@@ -4,10 +4,7 @@ import { TimelineEventData } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import { triggerHapticFeedback } from '../../utils/hapticUtils';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
-import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '../icons/ChevronRightIcon';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 
 interface HorizontalTimelineProps {
   uniqueSortedSteps: number[];
@@ -247,7 +244,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
             onClick={onClose}
             className="text-slate-400 hover:text-slate-200 transition-colors duration-200 p-1 rounded-md hover:bg-slate-700/50"
           >
-            <XMarkIcon className="w-4 h-4" />
+            <Icon name="XMark" className="w-4 h-4" />
           </button>
         </div>
         
@@ -318,7 +315,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           disabled={currentStepIndex === 0}
           className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
         >
-          <ChevronLeftIcon className="w-4 h-4" />
+          <Icon name="ChevronLeft" className="w-4 h-4" />
           Previous
         </button>
         
@@ -332,7 +329,7 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({
           className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
         >
           Next
-          <ChevronRightIcon className="w-4 h-4" />
+          <Icon name="ChevronRight" className="w-4 h-4" />
         </button>
       </div>
     );

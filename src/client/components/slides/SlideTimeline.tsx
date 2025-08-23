@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SlideDeck, InteractiveSlide, SlideElement, ElementInteraction, SlideEffect } from '../../../shared/slideTypes';
-import { PauseIcon } from '../icons/PauseIcon';
-import { PlayIcon } from '../icons/PlayIcon';
-import { StopIcon } from '../icons/StopIcon';
+import { Icon } from '../Icon';
 
 interface TimelineStep {
   id: string;
@@ -358,7 +356,7 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
           className="p-2.5 text-slate-400 hover:text-white transition-all duration-200 rounded-lg hover:bg-slate-700/60 shadow-sm hover:shadow-md"
           title="Stop and reset"
         >
-          <StopIcon className="w-4 h-4" />
+          <Icon name="Stop" className="w-4 h-4" />
         </button>
         
         <button
@@ -376,9 +374,9 @@ export const SlideTimeline: React.FC<SlideTimelineProps> = ({
           title={isPlaying ? "Pause" : "Play"}
         >
           {isPlaying ? (
-            <PauseIcon className="w-5 h-5" />
+            <Icon name="Pause" className="w-5 h-5" />
           ) : (
-            <PlayIcon className="w-5 h-5" />
+            <Icon name="Play" className="w-5 h-5" />
           )}
         </button>
         

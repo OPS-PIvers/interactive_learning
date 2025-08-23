@@ -5,7 +5,7 @@ import { getAllThemes } from '../../../shared/themePresets';
 import { useLayoutConstraints } from '../../hooks/useLayoutConstraints';
 import { useProjectTheme } from '../../hooks/useProjectTheme';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -106,7 +106,7 @@ const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
             className="text-slate-400 hover:text-white transition-colors"
             aria-label="Close settings"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <Icon name="XMark" className="w-6 h-6" />
           </button>
         </div>
 

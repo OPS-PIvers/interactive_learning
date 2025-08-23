@@ -1,9 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { InteractionType , interactionPresets } from '../../../shared/InteractionPresets';
 import { SlideElement } from '../../../shared/slideTypes';
-import { PlusIcon } from '../icons/PlusIcon';
-import { SettingsIcon } from '../icons/SettingsIcon';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 import InteractionEditor from './InteractionEditor';
 
 interface InteractionsListProps {
@@ -110,7 +108,7 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
                       aria-label="Edit interaction settings"
                       title="Edit settings"
                     >
-                      <SettingsIcon className="w-4 h-4" />
+                      <Icon name="Settings" className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => handleRemoveInteraction(interaction.id, e)}
@@ -118,7 +116,7 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
                       aria-label="Remove interaction"
                       title="Remove interaction"
                     >
-                      <XMarkIcon className="w-4 h-4" />
+                      <Icon name="XMark" className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -177,7 +175,7 @@ const InteractionsList: React.FC<InteractionsListProps> = ({
                     {preset.description}
                   </div>
                 </div>
-                <PlusIcon className="w-3 h-3 text-slate-400 group-hover:text-purple-400 flex-shrink-0" />
+                <Icon name="Plus" className="w-3 h-3 text-slate-400 group-hover:text-purple-400 flex-shrink-0" />
               </button>
             );
           })}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
-import { ChevronLeftIcon } from '../icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '../icons/ChevronRightIcon';
+import { Icon } from '../Icon';
 import '../../styles/slide-components.css';
 
 interface ViewerFooterToolbarProps {
@@ -182,7 +181,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             title="Back to projects"
             aria-label="Back to projects"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            <Icon name="ChevronLeft" className="w-4 h-4" />
             <span className="hidden sm:inline font-medium">Back</span>
           </button>
         </div>
@@ -197,7 +196,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               aria-label={onPreviousStep ? "Previous step" : "Previous slide"}
               title={onPreviousStep ? "Previous step" : "Previous slide"}
             >
-              <ChevronLeftIcon className="w-4 h-4" />
+              <Icon name="ChevronLeft" className="w-4 h-4" />
               <span className="text-sm font-medium">Previous</span>
             </button>
             
@@ -224,7 +223,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               title={onNextStep ? "Next step" : "Next slide"}
             >
               <span className="text-sm font-medium">Next</span>
-              <ChevronRightIcon className="w-4 h-4" />
+              <Icon name="ChevronRight" className="w-4 h-4" />
             </button>
           </div>
         ) : moduleState === 'idle' ? (
@@ -245,9 +244,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
                 aria-label="Explore Mode"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Icon name="ZoomIn" className="w-5 h-5" />
                 <span>Explore Mode</span>
               </button>
             )}
@@ -259,9 +256,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
                 aria-label="Guided Tour"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M12 5.5V3a1 1 0 00-1-1H9a1 1 0 00-1 1v2.5" />
-                </svg>
+                <Icon name="Play" className="w-5 h-5" />
                 <span>Guided Tour</span>
               </button>
             )}
@@ -274,7 +269,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               title="Previous Slide (←)"
             >
-              <ChevronLeftIcon className="w-4 h-4" />
+              <Icon name="ChevronLeft" className="w-4 h-4" />
             </button>
 
             <div className="text-center px-3">
@@ -292,7 +287,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
               className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               title="Next Slide (→)"
             >
-              <ChevronRightIcon className="w-4 h-4" />
+              <Icon name="ChevronRight" className="w-4 h-4" />
             </button>
 
           </div>
@@ -307,9 +302,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
             aria-label="Show keyboard shortcuts"
             aria-haspopup="dialog"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zM12 17.25h.008v.008H12v-.008z" />
-            </svg>
+            <Icon name="ExclamationCircle" className="w-5 h-5" />
           </button>
         </div>
       </div>

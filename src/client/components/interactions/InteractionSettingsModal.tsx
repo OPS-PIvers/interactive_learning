@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { InteractionType } from '../../../shared/InteractionPresets';
 import { TimelineEventData } from '../../../shared/type-defs';
-import { XMarkIcon } from '../icons/XMarkIcon';
+import { Icon } from '../Icon';
 import PanZoomSettings from '../editors/PanZoomSettings';
 import SpotlightSettings from '../editors/SpotlightSettings';
 import AudioInteractionEditor from './editors/AudioInteractionEditor';
@@ -82,7 +82,7 @@ const InteractionSettingsModal: React.FC<InteractionSettingsModalProps> = ({
       <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
         <h2 className="text-lg font-semibold">Edit: {event.name}</h2>
         <button onClick={onClose} className="p-1 hover:bg-slate-700 rounded-full">
-          <XMarkIcon className="w-5 h-5" />
+          <Icon name="XMark" className="w-5 h-5" />
         </button>
       </div>
 

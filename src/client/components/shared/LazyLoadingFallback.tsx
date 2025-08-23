@@ -1,5 +1,5 @@
 import React from 'react';
-import LoadingSpinnerIcon from '../icons/LoadingSpinnerIcon';
+import { Icon } from '../Icon';
 
 interface LazyLoadingFallbackProps {
   type?: 'modal' | 'component' | 'media';
@@ -24,7 +24,7 @@ const LazyLoadingFallback: React.FC<LazyLoadingFallbackProps> = ({
   return (
     <div className="flex items-center justify-center p-4 min-h-[100px]">
       <div className="flex items-center space-x-3 text-slate-400">
-        <LoadingSpinnerIcon className="w-5 h-5 animate-spin" />
+        <Icon name="LoadingSpinner" className="w-5 h-5 animate-spin" />
         <span className="text-sm">{message || getDefaultMessage()}</span>
       </div>
     </div>
