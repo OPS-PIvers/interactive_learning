@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { InteractiveSlide, SlideElement, BackgroundMedia } from '../../../shared/slideTypes';
-import { Project } from '../../../shared/types';
-import { extractYouTubeVideoId } from '../../../shared/types';
+import { Project, extractYouTubeVideoId } from '../../../shared/types';
 import { EffectExecutor } from '../../utils/EffectExecutor';
 import { generateId } from '../../utils/generateId';
 import SlideCanvas from '../slides/SlideCanvas';

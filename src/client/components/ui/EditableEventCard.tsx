@@ -1,8 +1,7 @@
 import type { Identifier, XYCoord } from 'dnd-core';
 import React, { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { TimelineEventData } from '../../../shared/type-defs';
+import { TimelineEventData, InteractionType } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import DragHandle from './DragHandle'; // Assuming DragHandle.tsx exists
 import { Icon } from '../Icon';

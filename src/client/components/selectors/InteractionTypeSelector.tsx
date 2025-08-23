@@ -1,5 +1,5 @@
 import React from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
+import { InteractionType } from '../../../shared/type-defs';
 import { SunIcon, ZoomInIcon, TextIcon, VideoIcon, SpeakerLoudIcon, QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { Icon } from '../Icon';
 

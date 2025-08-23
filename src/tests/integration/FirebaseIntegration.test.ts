@@ -3,8 +3,8 @@ import { collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { firebaseAPI } from '../../lib/firebaseApi';
 import { firebaseManager } from '../../lib/firebaseConfig';
-import { InteractionType } from '../../shared/InteractionPresets';
 import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
+import { InteractionType } from '../../shared/type-defs';
 import { Project } from '../../shared/types';
 
 /**

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { TimelineEventData } from '../../../shared/type-defs';
+import { TimelineEventData, InteractionType } from '../../../shared/type-defs';
 import { HotspotData } from '../../../shared/types';
 import { usePanZoom } from '../../contexts/PanZoomProvider';
 

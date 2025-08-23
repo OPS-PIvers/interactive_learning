@@ -1,16 +1,6 @@
 // src/shared/InteractionPresets.ts - CANONICAL INTERACTION TYPES ONLY
 // Clean implementation with 7 canonical types
-import { TimelineEventData } from './type-defs';
-
-export enum InteractionType {
-  TEXT = 'text',
-  TOOLTIP = 'tooltip', 
-  AUDIO = 'audio',
-  VIDEO = 'video',
-  PAN_ZOOM = 'pan_zoom',
-  SPOTLIGHT = 'spotlight',
-  QUIZ = 'quiz'
-}
+import { TimelineEventData, InteractionType } from './type-defs';
 
 // Default export for maximum compatibility
 export default InteractionType;

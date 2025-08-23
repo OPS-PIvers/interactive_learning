@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
-import { TimelineEventData } from '../../../shared/type-defs';
+import { TimelineEventData, InteractionType } from '../../../shared/type-defs';
 import { Icon } from '../Icon';
 import PanZoomSettings from '../editors/PanZoomSettings';
 import SpotlightSettings from '../editors/SpotlightSettings';

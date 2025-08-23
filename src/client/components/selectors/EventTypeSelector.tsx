@@ -1,5 +1,5 @@
 import React from 'react';
-import { InteractionType } from '../../../shared/InteractionPresets';
+import { InteractionType } from '../../../shared/type-defs';
 
 interface EventTypeOption {
   value: InteractionType;
