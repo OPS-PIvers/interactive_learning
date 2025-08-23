@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../lib/authContext';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { AuthModal } from './AuthModal';
-import { SignOutIcon } from '../icons/SignOutIcon';
-import { SwitchAccountsIcon } from '../icons/SwitchAccountsIcon';
+import { Icon } from '../Icon';
 
 interface AuthButtonProps {
   variant?: 'toolbar' | 'compact' | 'full';
@@ -112,9 +111,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
           className={`${baseButtonStyles} ${getVariantStyles()} ${className} bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white shadow-sm hover:shadow-md`}
           disabled={loading}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-          </svg>
+          <Icon name="SignOut" className="w-4 h-4" />
           Sign In
         </button>
         {showAuthModal && <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />}
@@ -151,7 +148,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
               onClick={handleSwitchAccount}
               className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 hover:text-white flex items-center gap-3"
             >
-              <SwitchAccountsIcon className="w-5 h-5" />
+              <Icon name="SwitchAccounts" className="w-5 h-5" />
               <span>Switch Account</span>
             </button>
             <button
@@ -166,7 +163,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
                 </>
               ) : (
                 <>
-                  <SignOutIcon className="w-5 h-5" />
+                  <Icon name="SignOut" className="w-5 h-5" />
                   <span>Sign Out</span>
                 </>
               )}
