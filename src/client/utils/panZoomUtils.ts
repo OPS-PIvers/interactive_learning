@@ -77,13 +77,13 @@ hotspots: HotspotData[] = [])
   let targetPixelY: number;
 
   // Step 4: Calculate target pixel coordinates using EXACT same logic as hotspots
-  // Use the same calculation as useHotspotPositioning.getPixelPosition()
+  // Use the same calculation as hotspot positioning logic
   if (imageElement && containerElement) {
     const imageBounds = getActualImageVisibleBoundsRelative(imageElement, containerElement);
 
     if (imageBounds && imageBounds.width > 0 && imageBounds.height > 0) {
       // Calculate pixel position using the same coordinate system as hotspots
-      // This matches the calculation in useHotspotPositioning.ts
+      // This matches the standard hotspot positioning calculation
       const imageContentX = targetX / 100 * imageBounds.width;
       const imageContentY = targetY / 100 * imageBounds.height;
 
