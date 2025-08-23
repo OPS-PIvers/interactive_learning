@@ -1,5 +1,5 @@
 import { ElementInteraction, SlideEffect, SlideElement } from '../../shared/slideTypes';
-import { generateId } from './generateId';
+import { generateEventId } from './generateId';
 
 /**
  * Interaction utilities for ensuring elements have proper interactions
@@ -16,7 +16,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
     case 'hotspot':
       // Default spotlight effect for hotspots
       defaultEffect = {
-        id: generateId(),
+        id: generateEventId(),
         type: 'spotlight',
         duration: 3000,
         parameters: {
@@ -37,7 +37,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
     case 'text':
       // Default show text effect for text elements
       defaultEffect = {
-        id: generateId(),
+        id: generateEventId(),
         type: 'text',
         duration: 5000,
         parameters: {
@@ -59,7 +59,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       // Default play media effect for media elements
       if (element.content?.mediaUrl && (element.content?.mediaType === 'audio' || element.content?.mediaType === 'video')) {
         defaultEffect = {
-          id: generateId(),
+          id: generateEventId(),
           type: element.content.mediaType === 'video' ? 'video' : 'audio',
           duration: 0, // Duration depends on media
           parameters: {
@@ -73,7 +73,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       } else {
         // Fallback to spotlight if no media URL or if it's an image
         defaultEffect = {
-          id: generateId(),
+          id: generateEventId(),
           type: 'spotlight',
           duration: 3000,
           parameters: {
@@ -95,7 +95,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
     default:
       // Default spotlight effect for unknown types
       defaultEffect = {
-        id: generateId(),
+        id: generateEventId(),
         type: 'spotlight',
         duration: 3000,
         parameters: {
@@ -114,7 +114,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
   }
 
   return {
-    id: generateId(),
+    id: generateEventId(),
     trigger: 'click',
     effect: defaultEffect,
   };
