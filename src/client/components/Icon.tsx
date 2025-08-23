@@ -8,7 +8,7 @@ const iconPaths: { [key: string]: string[] } = {
   ChevronLeft: ["M15.75 19.5 8.25 12l7.5-7.5"],
   ChevronRight: ["m8.25 4.5 7.5 7.5-7.5 7.5"],
   ExclamationCircle: ["M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"],
-  ExternalLink: ["M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"],
+  ExternalLink: ["M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6", "M15 3h6v6", "M10 14 21 3"],
   Eye: [
     "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z",
     "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
@@ -37,6 +37,7 @@ const iconPaths: { [key: string]: string[] } = {
   ],
   Stop: ["M6 18h12V6H6v12zM8 8h8v8H8V8z"],
   SwitchAccounts: [
+    "M13 7 A 4 4 0 1 1 5 7 A 4 4 0 1 1 13 7 Z",
     "M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2",
     "M16 3.13a4 4 0 0 1 0 7.75",
     "M21 21v-2a4 4 0 0 0 -3 -3.85"
@@ -46,7 +47,8 @@ const iconPaths: { [key: string]: string[] } = {
   ZoomIn: [
     "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
     "M10 7v3m0 0v3m0-3h3m-3 0H7"
-  ]
+  ],
+  SignIn: ["M7 8l4 -4l4 4", "M15 4l0 12a4 4 0 0 1 -4 4h-7a2 2 0 0 1 -2 -2v-4"]
 };
 
 export type IconName = keyof typeof iconPaths;

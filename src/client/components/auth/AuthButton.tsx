@@ -111,7 +111,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
           className={`${baseButtonStyles} ${getVariantStyles()} ${className} bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white shadow-sm hover:shadow-md`}
           disabled={loading}
         >
-          <Icon name="SignOut" className="w-4 h-4" />
+          <Icon name="SignIn" className="w-4 h-4" />
           Sign In
         </button>
         {showAuthModal && <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />}

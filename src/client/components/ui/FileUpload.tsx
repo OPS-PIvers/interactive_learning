@@ -109,10 +109,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setDragOver(false);
   }, []);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (disabled || isUploading) return;
     fileInputRef.current?.click();
-  }
+  }, [disabled, isUploading]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
