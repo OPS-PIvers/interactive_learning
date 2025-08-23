@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import ToastNotification, { ToastData } from '../components/ui/ToastNotification';
+import ToastNotification, { ToastData, ToastType } from '../components/ui/ToastNotification';
 import { generateId } from '../utils/generateId';
 
 interface ToastContextType {
