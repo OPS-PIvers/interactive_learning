@@ -41,7 +41,7 @@ interface ImageEditCanvasProps {
   timelineEvents?: TimelineEventData[]; // Optional for dimming
 
   // Fallback for no image
-  onImageUpload?: (file: File) => void;
+  onImageUpload?: (file: File) => Promise<void>;
 
   // Drag state management
   isDragModeActive?: boolean;
