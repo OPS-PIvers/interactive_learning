@@ -23,9 +23,9 @@ This file audits the components in `src/client/components`.
 | `src/client/components/overlays/InteractionOverlay.tsx` | Overlay for displaying and interacting with elements. | 1 | `SlideBasedInteractiveModule.tsx` |
 | `src/client/components/responsive/ResponsiveAspectRatioModal.tsx` | A modal that maintains its aspect ratio. | 1 | `SlideBasedInteractiveModule.tsx` |
 | `src/client/components/responsive/ResponsiveBackgroundModal.tsx` | A modal for responsive backgrounds. | 1 | `ModernSlideEditor.tsx` |
-| `src/client/components/responsive/ResponsiveModal.tsx` | A modal component that adapts to screen sizes. | 1 | `InteractionSettingsModal.tsx` |
-| `src/client/components/shared/ErrorBoundary.tsx` | A component to catch JavaScript errors in their child component tree. | 2 | `App.tsx`, `HookErrorBoundary.tsx` |
-| `src/client/components/shared/ErrorScreen.tsx` | A screen to display when a critical error occurs. | 1 | `ErrorBoundary.tsx` |
+| `src/client/components/responsive/ResponsiveModal.tsx` | A modal component that adapts to screen sizes. | 4 | `ShareModal.tsx`, `ResponsiveBackgroundModal.tsx`, `ResponsiveAspectRatioModal.tsx`, `HotspotEditorModal.tsx` |
+| `src/client/components/shared/ErrorBoundary.tsx` | A component to catch JavaScript errors in their child component tree. | 1 | `index.tsx` |
+| `src/client/components/shared/ErrorScreen.tsx` | A screen to display when a critical error occurs. | 2 | `ViewerView.tsx`, `SlideBasedInteractiveModule.tsx` |
 | `src/client/components/shared/HookErrorBoundary.tsx` | An error boundary specifically for React hooks. | 1 | `App.tsx` |
 | `src/client/components/shared/LoadingScreen.tsx` | A screen to display while the application is loading. | 1 | `App.tsx` |
 | `src/client/components/slides/SlideBasedDemo.tsx` | A demo component for slide-based presentations. | 1 | `SlideBasedTestPage.tsx` |
@@ -44,7 +44,7 @@ This file audits the components in `src/client/components`.
 | `src/client/components/toolbars/SlideEditorToolbar.tsx` | Toolbar for the slide editor. | 1 | `ModernSlideEditor.tsx` |
 | `src/client/components/toolbars/ViewerFooterToolbar.tsx` | Footer toolbar for the slide viewer. | 1 | `ViewerView.tsx` |
 | `src/client/components/touch/TouchContainer.tsx` | A container for handling touch events. | 1 | `CanvasContainer.tsx` |
-| `src/client/components/ui/FileUpload.tsx` | A component for file uploads. | 3 | `AudioInteractionEditor.tsx`, `VideoInteractionEditor.tsx`, `ModernSlideEditor.tsx` |
+| `src/client/components/ui/FileUpload.tsx` | A component for file uploads. | 0 | Not currently used |
 | `src/client/components/ui/GradientCreateButton.tsx` | A create button with a gradient style. | 1 | `App.tsx` |
 | `src/client/components/ui/ProjectCard.tsx` | A card component to display project information. | 1 | `App.tsx` |
 | `src/client/components/ui/TextBannerCheckbox.tsx` | A checkbox with a text banner. | 1 | `QuizInteractionEditor.tsx` |
