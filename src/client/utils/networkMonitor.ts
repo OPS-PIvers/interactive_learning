@@ -10,9 +10,17 @@ interface NetworkInformation extends EventTarget {
   onchange?: EventListener;
 }
 
+// Extend Navigator interface for network connection APIs
+interface ExtendedNavigator extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+}
+
 // Get current network connection details
 function getNetworkDetails() {
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection as NetworkInformation | undefined;
+  const extNav = navigator as ExtendedNavigator;
+  const connection = extNav.connection || extNav.mozConnection || extNav.webkitConnection;
 
   return {
     online: navigator.onLine,
@@ -50,8 +58,10 @@ class NetworkMonitor {
     window.addEventListener('online', this.boundUpdateState);
     window.addEventListener('offline', this.boundUpdateState);
     if ('connection' in navigator) {
-      this.connection = (navigator as any).connection;
-      this.connection?.addEventListener('change', this.boundUpdateState);
+      this.connection = (navigator as ExtendedNavigator).connection;
+      if (this.connection) {
+        this.connection.addEventListener('change', this.boundUpdateState);
+      }
     }
   }
 

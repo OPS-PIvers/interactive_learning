@@ -11,6 +11,13 @@ interface InteractionEditorProps {
 }
 
 /**
+ * Helper function to safely get parameter values
+ */
+const getParameterValue = (parameters: EffectParameters, key: string, defaultValue: unknown = ''): unknown => {
+  return (parameters as Record<string, unknown>)[key] ?? defaultValue;
+};
+
+/**
  * InteractionEditor - Inline interaction editing component
  * 
  * Provides comprehensive interaction editing capabilities directly within
@@ -39,7 +46,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
     });
   }, [interaction, onInteractionUpdate]);
 
-  const handleEffectPropertyChange = useCallback((property: string, value: any) => {
+  const handleEffectPropertyChange = useCallback((property: string, value: unknown) => {
     if (!interaction) return;
     onInteractionUpdate(interaction.id, { 
       effect: { 
@@ -49,7 +56,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
     });
   }, [interaction, onInteractionUpdate]);
 
-  const handleParameterChange = useCallback((parameter: string, value: any) => {
+  const handleParameterChange = useCallback((parameter: string, value: unknown) => {
     if (!interaction) return;
     onInteractionUpdate(interaction.id, { 
       effect: { 
@@ -173,7 +180,7 @@ const InteractionEditor: React.FC<InteractionEditorProps> = ({
               Tooltip Text
             </label>
             <textarea
-              value={(interaction.effect.parameters as any)?.text || ''}
+              value={String(getParameterValue(interaction.effect.parameters, 'text', ''))}
               onChange={(e) => handleParameterChange('text', e.target.value)}
               className="w-full p-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               placeholder="Enter tooltip text"

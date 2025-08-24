@@ -3,7 +3,7 @@ declare module 'react-zoom-pan-pinch' {
 
   export interface TransformWrapperProps {
     children: ReactNode;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   export const TransformWrapper: ComponentType<TransformWrapperProps>;

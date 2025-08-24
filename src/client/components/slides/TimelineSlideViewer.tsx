@@ -18,7 +18,7 @@ interface TimelineSlideViewerProps {
   slideDeck: SlideDeck;
   viewerMode: 'explore' | 'guided' | 'auto-progression';
   onSlideChange?: (slideId: string, slideIndex: number) => void;
-  onInteraction?: (interaction: any) => void;
+  onInteraction?: (interaction: unknown) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -103,7 +103,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
         if (element.interactions && element.interactions.length > 0) {
           element.interactions.forEach((interaction) => {
             // Create timeline event data for the converter
-            const effectParams = interaction.effect?.parameters as any; // Type assertion to avoid union type access issues
+            const effectParams = interaction.effect?.parameters as Record<string, unknown>; // Type assertion to avoid union type access issues
             const timelineEventData: TimelineEventData = {
               id: `${element.id}-${interaction.id}`,
               step: stepCounter,
