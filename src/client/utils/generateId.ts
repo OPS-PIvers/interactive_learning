@@ -8,8 +8,13 @@
 export const generateId = (prefix = 'id'): string => {
   const timestamp = Date.now().toString(36);
   
-  // A more robust random part using crypto
-  const randomPart = Math.random().toString(36).substring(2, 15);
+  // Use crypto.getRandomValues for better randomness and guaranteed length
+  const array = new Uint8Array(5); // 5 bytes = 40 bits, enough for 7 base36 chars
+  crypto.getRandomValues(array);
+  const randomPart = Array.from(array)
+    .map(b => b.toString(36).padStart(2, '0'))
+    .join('')
+    .substring(0, 7); // Ensure exactly 7 characters
 
   return `${prefix}-${timestamp}-${randomPart}`;
 };

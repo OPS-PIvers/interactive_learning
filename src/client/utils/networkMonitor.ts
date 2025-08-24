@@ -38,6 +38,8 @@ class NetworkMonitor {
   private listeners: NetworkChangeListener[] = [];
   private currentState: NetworkState;
   private connection?: NetworkInformation;
+  // Bound method references for proper event listener cleanup
+  private boundUpdateState = this.updateState.bind(this);
 
   constructor() {
     this.currentState = this.getCurrentNetworkState();
@@ -45,11 +47,11 @@ class NetworkMonitor {
   }
 
   private setupListeners() {
-    window.addEventListener('online', () => this.updateState());
-    window.addEventListener('offline', () => this.updateState());
+    window.addEventListener('online', this.boundUpdateState);
+    window.addEventListener('offline', this.boundUpdateState);
     if ('connection' in navigator) {
       this.connection = (navigator as any).connection;
-      this.connection?.addEventListener('change', () => this.updateState());
+      this.connection?.addEventListener('change', this.boundUpdateState);
     }
   }
 
@@ -104,9 +106,9 @@ class NetworkMonitor {
   }
 
   public destroy() {
-    window.removeEventListener('online', () => this.updateState());
-    window.removeEventListener('offline', () => this.updateState());
-    this.connection?.removeEventListener('change', () => this.updateState());
+    window.removeEventListener('online', this.boundUpdateState);
+    window.removeEventListener('offline', this.boundUpdateState);
+    this.connection?.removeEventListener('change', this.boundUpdateState);
     this.listeners = [];
   }
 }

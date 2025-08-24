@@ -133,31 +133,27 @@ export function logFirebaseImageLoad(url: string, success: boolean, context: str
 }
 
 /**
- * Optimizes Firebase Storage image URLs for performance.
- * This can include resizing and converting to a modern format like WebP.
- * Note: This might not work if the image is from a bucket with strict permissions.
+ * Placeholder for Firebase Storage image optimization.
+ * 
+ * IMPORTANT: This function is currently non-functional as Firebase Storage
+ * does not support URL-based image transformations. The query parameters
+ * added here (w, h, fm) will have no effect on actual Firebase Storage URLs.
+ * 
+ * This function should be removed or replaced with a proper image optimization
+ * service integration (e.g., Cloudinary, Imgix) when available.
+ * 
+ * @deprecated This function does not actually optimize images
  */
 export function optimizeFirebaseImageUrl(
     url: string,
     options: { width?: number; height?: number; format?: 'webp' | 'jpeg' | 'png' } = {}
 ): string {
-    if (!isFirebaseStorageUrl(url) || !validateFirebaseUrl(url).isValid) {
-        return url;
-    }
-
-    try {
-        const urlObj = new URL(url);
-
-        // These are example parameters for a service like Cloudinary or Imgix.
-        // Firebase Storage itself doesn't support these transformations directly.
-        // This is a placeholder for a real image optimization service.
-        if (options.width) urlObj.searchParams.set('w', String(options.width));
-        if (options.height) urlObj.searchParams.set('h', String(options.height));
-        if (options.format) urlObj.searchParams.set('fm', options.format);
-
-        return urlObj.toString();
-    } catch (error) {
-        console.warn('Failed to optimize Firebase URL:', error);
-        return url;
-    }
+    console.warn(
+        'optimizeFirebaseImageUrl: This function is a non-functional placeholder. ' +
+        'Firebase Storage does not support URL-based image transformations. ' +
+        'Consider using a dedicated image optimization service.'
+    );
+    
+    // Return original URL unchanged since optimization parameters won't work
+    return url;
 }
