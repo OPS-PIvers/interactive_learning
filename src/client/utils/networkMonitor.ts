@@ -128,7 +128,7 @@ enableMonitoring: boolean = true)
 
   if (enableMonitoring && onNetworkChange) {
     const unsubscribe = networkMonitor.addListener(onNetworkChange);
-    networkMonitor.startMonitoring();
+    // Monitoring is always active in the new lightweight implementation
 
     // Return cleanup function that should be called in useEffect cleanup
     // Usage: useEffect(() => { const cleanup = useNetworkMonitoring(...); return cleanup; }, []);
@@ -150,11 +150,11 @@ enableMonitoring: boolean = true)
   }
 
   const unsubscribe = networkMonitor.addListener(onNetworkChange);
-  networkMonitor.startMonitoring();
+  // Monitoring is always active in the new lightweight implementation
 
   return () => {
     unsubscribe();
-    networkMonitor.stopMonitoring();
+    // No need to stop monitoring in the new lightweight implementation
   };
 }
 
@@ -167,7 +167,7 @@ export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState>
     
     const cleanup = () => {
       clearTimeout(timeout);
-      networkMonitor.stopMonitoring();
+      // No need to stop monitoring in the new lightweight implementation
     };
 
     timeout = setTimeout(() => {
@@ -183,7 +183,7 @@ export function waitForNetwork(maxWaitMs: number = 30000): Promise<NetworkState>
     };
 
     // Start monitoring and check immediately
-    networkMonitor.startMonitoring(1000); // Check every second
+    // Monitoring is always active in the new lightweight implementation
     checkNetwork();
 
     // Listen for network changes

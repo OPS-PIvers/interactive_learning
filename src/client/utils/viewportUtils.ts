@@ -120,8 +120,8 @@ export const getSafeAreaInsets = () => {
  */
 export async function lockOrientation(orientation: 'portrait' | 'landscape'): Promise<void> {
     try {
-        if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock(orientation);
+        if (screen.orientation && (screen.orientation as any).lock) {
+            await (screen.orientation as any).lock(orientation);
         }
     } catch (error) {
         console.warn(`Could not lock orientation to ${orientation}:`, error);
