@@ -23,11 +23,6 @@ For each audit, follow this process:
 
 ## Medium Priority
 
-### 4. **Client Assets Audit** (`src/client/assets/`)
-- **Priority**: Medium
-- **Rationale**: Assets can accumulate over time. Need to identify unused images and optimize file sizes.
-- **Scope**: Image files, CLAUDE.md documentation
-- **Impact**: Medium - affects bundle size and load performance
 
 ### 5. **Client Styles Audit** (`src/client/styles/`) - **COMPLETE**
 - **Priority**: Medium  

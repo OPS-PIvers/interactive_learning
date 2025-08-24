@@ -49,3 +49,13 @@ This file contains the audits that have been completed and are ready to be acted
 - **Audit File**: `audits/styles_audit.md`
 - **Recommendations**:
   - No action is needed. The audit concluded that all files in this directory are actively used and well-documented.
+
+### 6. **Assets Directory Audit** (`src/client/assets/`)
+- **Priority**: Medium
+- **Rationale**: Assets can accumulate over time. Need to identify unused images and optimize file sizes.
+- **Scope**: Image files, CLAUDE.md documentation
+- **Impact**: Medium - affects bundle size and load performance
+- **Audit File**: `audits/assets_audit.md`
+- **Recommendations**:
+  - Remove unused documentation: The `CLAUDE.md` file is not used and should be removed.
+  - Optimize images: The `demo-background.jpg` should be optimized to reduce its file size.
