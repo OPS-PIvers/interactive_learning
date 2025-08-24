@@ -67,12 +67,6 @@ For each audit, follow this process:
 - **Scope**: Firebase configuration, CORS settings, MCP configuration, metadata files
 - **Impact**: Low-Medium - affects deployment and integration
 
-### 10. **Vite Plugins Audit** (`/vite-plugins/`)
-- **Priority**: Low
-- **Rationale**: Custom Vite plugins should be reviewed for necessity and performance impact.
-- **Scope**: `tdz-detection.js` and any other custom plugins
-- **Impact**: Low - affects build process
-
 ### 11. **E2E Directory Audit** (`/e2e/`)
 - **Priority**: Low
 - **Rationale**: End-to-end tests are important but appear to be managed separately from main test suite.
@@ -131,7 +125,6 @@ Based on this priority list, the following audit files should be created:
 ### Lower Priority Files
 8. `docs_audit.md` - Documentation currency and accuracy review
 9. `config_dir_audit.md` - Config directory validation
-10. `vite_plugins_audit.md` - Custom Vite plugins necessity review
 11. `e2e_audit.md` - End-to-end testing setup review
 12. `logs_cleanup.md` - Repository cleanup recommendations
 
