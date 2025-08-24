@@ -12,3 +12,12 @@ This file contains the audits that have been completed and are ready to be acted
   - Update placeholder tests in `src/tests/accessibility/Accessibility.test.ts` and `src/tests/integration/DecomposedComponents.test.ts`.
   - Un-skip the test suites in `src/tests/integration/ConcurrentOperations.test.ts` and `src/tests/integration/FirebaseIntegration.test.ts`.
   - Implement the placeholder tests in `src/tests/performance/PerformanceRegression.test.ts`.
+
+### 2. **Config Directory Audit** (`/config/`)
+- **Priority**: Low
+- **Rationale**: Configuration files for Firebase, CORS, and MCP need validation for current requirements.
+- **Scope**: Firebase configuration, CORS settings, MCP configuration, metadata files
+- **Impact**: Low-Medium - affects deployment and integration
+- **Audit File**: `audits/config_audit.md`
+- **Recommendations**:
+  - The `cors.json` file should be updated to specify allowed origins instead of using a wildcard.

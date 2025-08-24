@@ -61,12 +61,6 @@ For each audit, follow this process:
 - **Scope**: `README.md`, `docs/AGENTS.md`, `docs/GEMINI.md`, and any other documentation
 - **Impact**: Low-Medium - affects developer onboarding and maintenance
 
-### 9. **Config Directory Audit** (`/config/`)
-- **Priority**: Low
-- **Rationale**: Configuration files for Firebase, CORS, and MCP need validation for current requirements.
-- **Scope**: Firebase configuration, CORS settings, MCP configuration, metadata files
-- **Impact**: Low-Medium - affects deployment and integration
-
 ### 10. **Vite Plugins Audit** (`/vite-plugins/`)
 - **Priority**: Low
 - **Rationale**: Custom Vite plugins should be reviewed for necessity and performance impact.
