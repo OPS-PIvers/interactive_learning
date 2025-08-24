@@ -152,16 +152,22 @@ export const handleTouchInteraction = (
   }
 };
 
+// Extended Navigator interface for legacy touch properties
+interface ExtendedNavigator extends Navigator {
+  msMaxTouchPoints?: number;
+}
+
 /**
  * Check if current device supports touch interactions
  */
 export const isTouchDevice = (): boolean => {
+  const extNav = navigator as ExtendedNavigator;
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
     (('msMaxTouchPoints' in navigator) &&
-      typeof (navigator as any).msMaxTouchPoints === 'number' &&
-      (navigator as any).msMaxTouchPoints > 0)
+      typeof extNav.msMaxTouchPoints === 'number' &&
+      extNav.msMaxTouchPoints > 0)
   );
 };
 

@@ -4,22 +4,6 @@ import { InteractiveSlide } from '../../shared/slideTypes';
 // Editor state types
 export type EditingMode = 'design' | 'preview' | 'test';
 
-export interface EditorAction {
-  type: string;
-  payload: any;
-  timestamp: number;
-}
-
-export interface EditorState {
-  currentSlide: InteractiveSlide | null;
-  selectedElements: string[];
-  editingMode: EditingMode;
-  undoHistory: EditorAction[];
-  redoHistory: EditorAction[];
-  isDirty: boolean;
-  lastSaved: Date | null;
-}
-
 // Action types
 export const EDITOR_ACTIONS = {
   SET_CURRENT_SLIDE: 'SET_CURRENT_SLIDE',
@@ -37,6 +21,36 @@ export const EDITOR_ACTIONS = {
 
 type EditorActionType = keyof typeof EDITOR_ACTIONS;
 
+// Define action payload types
+export type EditorActionPayload = 
+  | { type: 'SET_CURRENT_SLIDE'; payload: InteractiveSlide }
+  | { type: 'SELECT_ELEMENTS'; payload: string | string[] }
+  | { type: 'ADD_ELEMENT_SELECTION'; payload: string }
+  | { type: 'REMOVE_ELEMENT_SELECTION'; payload: string }
+  | { type: 'CLEAR_SELECTION'; payload?: undefined }
+  | { type: 'SET_EDITING_MODE'; payload: EditingMode }
+  | { type: 'ADD_TO_HISTORY'; payload: Omit<EditorAction, 'timestamp'> }
+  | { type: 'UNDO'; payload?: undefined }
+  | { type: 'REDO'; payload?: undefined }
+  | { type: 'MARK_SAVED'; payload?: undefined }
+  | { type: 'MARK_DIRTY'; payload?: undefined };
+
+export interface EditorAction {
+  type: string;
+  payload: unknown;
+  timestamp: number;
+}
+
+export interface EditorState {
+  currentSlide: InteractiveSlide | null;
+  selectedElements: string[];
+  editingMode: EditingMode;
+  undoHistory: EditorAction[];
+  redoHistory: EditorAction[];
+  isDirty: boolean;
+  lastSaved: Date | null;
+}
+
 // Initial state
 const initialState: EditorState = {
   currentSlide: null,
@@ -49,7 +63,7 @@ const initialState: EditorState = {
 };
 
 // Reducer
-function editorStateReducer(state: EditorState, action: { type: EditorActionType; payload?: any }): EditorState {
+function editorStateReducer(state: EditorState, action: EditorActionPayload): EditorState {
   switch (action.type) {
     case 'SET_CURRENT_SLIDE':
       return {
@@ -139,7 +153,7 @@ function editorStateReducer(state: EditorState, action: { type: EditorActionType
 // Context
 interface EditorStateContextType {
   state: EditorState;
-  dispatch: React.Dispatch<{ type: EditorActionType; payload?: any }>;
+  dispatch: React.Dispatch<EditorActionPayload>;
   // Helper functions
   setCurrentSlide: (slide: InteractiveSlide) => void;
   selectElements: (elementIds: string | string[]) => void;

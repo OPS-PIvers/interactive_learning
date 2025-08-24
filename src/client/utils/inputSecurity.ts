@@ -54,7 +54,7 @@ const MALICIOUS_EXTENSIONS = ['.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.
  */
 export const validateFileUpload = (file: File): FileValidationResult => {
   // File type validation
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type as any)) {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type as typeof ALLOWED_IMAGE_TYPES[number])) {
     return {
       isValid: false,
       error: `Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed. Got: ${file.type}`

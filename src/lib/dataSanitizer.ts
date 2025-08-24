@@ -12,7 +12,7 @@ export class DataSanitizer {
    * @param obj - Object to sanitize
    * @returns New object with undefined fields removed
    */
-  private static removeUndefinedFields<T extends Record<string, any>>(obj: T): Partial<T> {
+  private static removeUndefinedFields<T extends Record<string, unknown>>(obj: T): Partial<T> {
     const sanitized: Partial<T> = {};
     
     for (const [key, value] of Object.entries(obj)) {
@@ -119,7 +119,7 @@ export class DataSanitizer {
    * @param obj - Object to sanitize
    * @returns Sanitized object with undefined fields removed
    */
-  static sanitizeObject<T extends Record<string, any>>(obj: T): Partial<T> {
+  static sanitizeObject<T extends Record<string, unknown>>(obj: T): Partial<T> {
     return this.removeUndefinedFields(obj);
   }
 
@@ -168,7 +168,7 @@ export class DataSanitizer {
       sanitized.metadata = {
         ...sanitized.metadata,
         version: sanitized.metadata.version || '2.0',
-        created: (sanitized.metadata as any).created || (sanitized.metadata as any).createdAt || Date.now(),
+        created: (sanitized.metadata as Record<string, unknown>).created as number || (sanitized.metadata as Record<string, unknown>).createdAt as number || Date.now(),
         modified: Date.now(), // Always update timestamp
         isPublic: sanitized.metadata.isPublic ?? false,
       };
