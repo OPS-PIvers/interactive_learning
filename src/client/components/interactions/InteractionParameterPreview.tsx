@@ -7,7 +7,7 @@ interface InteractionParameterPreviewProps {
   event: TimelineEventData;
 }
 
-const ParameterItem: React.FC<{ label: string; value: any }> = ({ label, value }) => {
+const ParameterItem: React.FC<{ label: string; value: unknown }> = ({ label, value }) => {
   if (value === null || value === undefined || value === '') {
     return null;
   }

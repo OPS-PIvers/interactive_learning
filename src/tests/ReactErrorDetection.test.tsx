@@ -314,7 +314,7 @@ describe('React Error Detection Tests', () => {
 
   describe('Integration Error Scenarios', () => {
     test('should handle complex component interactions without errors', async () => {
-      const ChildComponent = ({ onDataChange }: { onDataChange: (data: any) => void }) => {
+      const ChildComponent = ({ onDataChange }: { onDataChange: (data: unknown) => void }) => {
         React.useEffect(() => {
           // Simulate data loading
           setTimeout(() => {
@@ -328,7 +328,7 @@ describe('React Error Detection Tests', () => {
       const ParentComponent = () => {
         const [childData, setChildData] = React.useState(null);
         
-        const handleChildData = React.useCallback((data: any) => {
+        const handleChildData = React.useCallback((data: unknown) => {
           setChildData(data);
         }, []);
         
