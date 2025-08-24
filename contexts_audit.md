@@ -11,8 +11,8 @@ This audit of the `src/client/contexts` directory will determine the usage and n
 - **Files to Update/Consolidate:** TBD
 - **Files to Remove:** TBD
 
-| Util Name/Path | Is it used? | Does another one exist? | Should it be kept as is, updated, consolidated, or removed? |
-|---|---|---|---|
-| `src/client/contexts/CanvasStateContext.tsx` | TBD | TBD | TBD |
-| `src/client/contexts/EditorStateContext.tsx` | TBD | TBD | TBD |
-| `src/client/contexts/PanZoomProvider.tsx` | TBD | TBD | TBD |
+| Context Provider / Path                      | Is it used? | Overlaps with others? | Recommendation |
+|----------------------------------------------|-------------|-----------------------|----------------|
+| `src/client/contexts/CanvasStateContext.tsx` | TBD         | TBD                   | TBD            |
+| `src/client/contexts/EditorStateContext.tsx` | TBD         | TBD                   | TBD            |
+| `src/client/contexts/PanZoomProvider.tsx`    | TBD         | TBD                   | TBD            |
