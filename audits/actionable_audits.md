@@ -23,7 +23,6 @@ This file contains the audits that have been completed and are ready to be acted
   - Un-skip the test suites in `src/tests/integration/ConcurrentOperations.test.ts` and `src/tests/integration/FirebaseIntegration.test.ts`.
   - Implement the placeholder tests in `src/tests/performance/PerformanceRegression.test.ts`.
 
-<<<<<<< HEAD
 ### 3. **Config Directory Audit** (`/config/`)
 - **Priority**: Low
 - **Rationale**: Configuration files for Firebase, CORS, and MCP need validation for current requirements.
@@ -69,3 +68,12 @@ This file contains the audits that have been completed and are ready to be acted
 - **Audit File**: `audits/demos_audit.md`
 - **Recommendations**:
   - Remove all files in `src/shared/demos/` as they are unused.
+
+### 8. **Vite Plugins Audit** (`/vite-plugins/`)
+- **Priority**: Low
+- **Rationale**: Custom Vite plugins should be reviewed for necessity and performance impact.
+- **Scope**: `tdz-detection.js` and any other custom plugins
+- **Impact**: Low - affects build process
+- **Audit File**: `audits/vite_plugins_audit.md`
+- **Recommendations**:
+  - Keep the `tdz-detection.js` plugin as it provides valuable static analysis.

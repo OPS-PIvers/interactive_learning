@@ -44,7 +44,13 @@ For each audit, follow this process:
 - **Scope**: `README.md`, `docs/AGENTS.md`, `docs/GEMINI.md`, and any other documentation
 - **Impact**: Low-Medium - affects developer onboarding and maintenance
 
-### 10. **Vite Plugins Audit** (`/vite-plugins/`)
+### 9. **Config Directory Audit** (`/config/`) - **COMPLETE**
+- **Priority**: Low
+- **Rationale**: Configuration files for Firebase, CORS, and MCP need validation for current requirements.
+- **Scope**: Firebase configuration, CORS settings, MCP configuration, metadata files
+- **Impact**: Low-Medium - affects deployment and integration
+
+### 10. **Vite Plugins Audit** (`/vite-plugins/`) - **COMPLETE**
 - **Priority**: Low
 - **Rationale**: Custom Vite plugins should be reviewed for necessity and performance impact.
 - **Scope**: `tdz-detection.js` and any other custom plugins
@@ -104,8 +110,8 @@ Based on this priority list, the following audit files should be created:
 7. ✅ `demos_audit.md` - Demo data consolidation analysis (COMPLETE)
 ### Lower Priority Files
 8. `docs_audit.md` - Documentation currency and accuracy review
-9. `config_dir_audit.md` - Config directory validation
-10. `vite_plugins_audit.md` - Custom Vite plugins necessity review
+9. ✅ `config_dir_audit.md` - Config directory validation (COMPLETE - now `config_audit.md`)
+10. ✅ `vite_plugins_audit.md` - Custom Vite plugins necessity review (COMPLETE)
 11. `e2e_audit.md` - End-to-end testing setup review
 12. `logs_cleanup.md` - Repository cleanup recommendations
 
