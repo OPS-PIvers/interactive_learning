@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SlideElement, ElementInteraction, SlideEffect } from '../../../../shared/slideTypes';
+import { SlideElement, ElementInteraction, SlideEffect, EffectParameters, SlideEffectType } from '../../../../shared/slideTypes';
 import { ResponsiveModal } from '../../responsive/ResponsiveModal';
 
 interface HotspotEditorModalProps {
@@ -32,7 +32,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
   
   // Initialize with existing interaction if available
   const existingInteraction = hotspot.interactions?.[0];
-  const [effectParameters, setEffectParameters] = useState<Record<string, any>>(() => {
+  const [effectParameters, setEffectParameters] = useState<Record<string, unknown>>(() => {
     if (existingInteraction?.effect) {
       return existingInteraction.effect.parameters || {};
     }
@@ -48,7 +48,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
 
   const handleSave = () => {
     // Create effect parameters based on type
-    let finalParameters: any = {};
+    let finalParameters: Record<string, unknown> = {};
     
     switch (selectedEffectType) {
       case 'spotlight':
@@ -104,7 +104,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         trigger: 'click',
         effect: {
           id: `effect-${Date.now()}`,
-          type: selectedEffectType as any,
+          type: selectedEffectType as SlideEffectType,
           duration: 3000,
           parameters: finalParameters
         }
