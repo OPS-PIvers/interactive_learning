@@ -21,3 +21,12 @@ This file contains the audits that have been completed and are ready to be acted
 - **Audit File**: `audits/config_audit.md`
 - **Recommendations**:
   - The `cors.json` file should be updated to specify allowed origins instead of using a wildcard.
+
+### 3. **Constants Directory Audit** (`src/client/constants/`)
+- **Priority**: Medium
+- **Rationale**: The single file in this directory is entirely unused.
+- **Scope**: `src/client/constants/interactionConstants.ts`
+- **Impact**: Low - affects code cleanliness and maintainability.
+- **Audit File**: `audits/constants_audit.md`
+- **Recommendations**:
+  - Remove the file `src/client/constants/interactionConstants.ts`.
