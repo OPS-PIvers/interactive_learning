@@ -12,3 +12,12 @@ This file contains the audits that have been completed and are ready to be acted
   - Update placeholder tests in `src/tests/accessibility/Accessibility.test.ts` and `src/tests/integration/DecomposedComponents.test.ts`.
   - Un-skip the test suites in `src/tests/integration/ConcurrentOperations.test.ts` and `src/tests/integration/FirebaseIntegration.test.ts`.
   - Implement the placeholder tests in `src/tests/performance/PerformanceRegression.test.ts`.
+
+### 2. **Shared Demos Directory Audit** (`src/shared/demos/`)
+- **Priority**: Medium
+- **Rationale**: Demo data appears scattered across multiple locations. Need consolidation as mentioned in shared audit.
+- **Scope**: Demo data files that may duplicate functionality from other demo files
+- **Impact**: Medium - affects demo consistency and maintenance
+- **Audit File**: `audits/demos_audit.md`
+- **Recommendations**:
+  - Remove all files in `src/shared/demos/` as they are unused.
