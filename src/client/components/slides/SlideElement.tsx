@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { SlideElement as SlideElementType, DeviceType, ViewportInfo, FixedPosition, ElementAnimation } from '../../../shared/slideTypes';
 import { getResponsivePosition } from '../../hooks/useDeviceDetection';
-import { handleTouchInteraction } from '../../utils/touchFeedback';
+import { handleTouchInteraction } from '../../utils/touchUtils';
 import { Z_INDEX } from '../../utils/zIndexLevels';
 
 interface SlideElementProps {

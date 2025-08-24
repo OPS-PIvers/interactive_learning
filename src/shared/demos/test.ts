@@ -1,4 +1,4 @@
-import { SlideDeck } from './slideTypes';
+import { SlideDeck } from '../slideTypes';
 
 /**
  * Enhanced test/demo slide deck with highly visible interactions

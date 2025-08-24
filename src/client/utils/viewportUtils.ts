@@ -113,3 +113,60 @@ export const getSafeAreaInsets = () => {
     right: 'env(safe-area-inset-right, 0px)'
   };
 };
+
+/**
+ * Lock screen orientation.
+ * This is an async operation and might not succeed if the user has disabled it.
+ */
+export async function lockOrientation(orientation: 'portrait' | 'landscape'): Promise<void> {
+    try {
+        if (screen.orientation && (screen.orientation as any).lock) {
+            await (screen.orientation as any).lock(orientation);
+        }
+    } catch (error) {
+        console.warn(`Could not lock orientation to ${orientation}:`, error);
+    }
+}
+
+/**
+ * Unlock screen orientation.
+ */
+export function unlockOrientation(): void {
+    try {
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
+    } catch (error) {
+        console.warn('Could not unlock orientation:', error);
+    }
+}
+
+/**
+ * Request to enter fullscreen mode.
+ */
+export function enterFullscreen(element: HTMLElement = document.documentElement): void {
+    if (element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if ((element as any).mozRequestFullScreen) { /* Firefox */
+        (element as any).mozRequestFullScreen();
+    } else if ((element as any).webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        (element as any).webkitRequestFullscreen();
+    } else if ((element as any).msRequestFullscreen) { /* IE/Edge */
+        (element as any).msRequestFullscreen();
+    }
+}
+
+/**
+ * Exit fullscreen mode.
+ */
+export function exitFullscreen(): void {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if ((document as any).mozCancelFullScreen) { /* Firefox */
+        (document as any).mozCancelFullScreen();
+    } else if ((document as any).webkitExitFullscreen) { /* Chrome, Safari and Opera */
+        (document as any).webkitExitFullscreen();
+    } else if ((document as any).msExitFullscreen) { /* IE/Edge */
+        (document as any).msExitFullscreen();
+    }
+}

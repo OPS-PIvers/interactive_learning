@@ -117,17 +117,43 @@ export function validateFirebaseUrl(url: string): {
  * Log Firebase image loading for debugging
  */
 export function logFirebaseImageLoad(url: string, success: boolean, context: string = ''): void {
-  const validation = validateFirebaseUrl(url);
+    const validation = validateFirebaseUrl(url);
 
-  if (validation.isFirebase) {
-    const prefix = success ? '✅' : '❌';
+    if (validation.isFirebase) {
+        const prefix = success ? '✅' : '❌';
+        const contextInfo = context ? `[${context}]` : '';
+        console.log(
+            `${prefix} Firebase Image ${contextInfo}: ${success ? 'Loaded' : 'Failed'}`,
+            {
+                url: validation.cleanUrl,
+                issues: validation.issues,
+            }
+        );
+    }
+}
 
-
-
-
-
-
-
-
-  }
+/**
+ * Placeholder for Firebase Storage image optimization.
+ * 
+ * IMPORTANT: This function is currently non-functional as Firebase Storage
+ * does not support URL-based image transformations. The query parameters
+ * added here (w, h, fm) will have no effect on actual Firebase Storage URLs.
+ * 
+ * This function should be removed or replaced with a proper image optimization
+ * service integration (e.g., Cloudinary, Imgix) when available.
+ * 
+ * @deprecated This function does not actually optimize images
+ */
+export function optimizeFirebaseImageUrl(
+    url: string,
+    options: { width?: number; height?: number; format?: 'webp' | 'jpeg' | 'png' } = {}
+): string {
+    console.warn(
+        'optimizeFirebaseImageUrl: This function is a non-functional placeholder. ' +
+        'Firebase Storage does not support URL-based image transformations. ' +
+        'Consider using a dedicated image optimization service.'
+    );
+    
+    // Return original URL unchanged since optimization parameters won't work
+    return url;
 }

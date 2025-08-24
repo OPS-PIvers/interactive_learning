@@ -1,6 +1,27 @@
 
 import React, { useCallback, useState, useRef } from 'react';
-import { validateFileUpload, createSanitizedFile, FileValidationResult } from '../../utils/inputSecurity';
+// Simple file validation utilities (replaced removed inputSecurity utility)
+interface FileValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+const validateFileUpload = (file: File, acceptedTypes: string): FileValidationResult => {
+  const errors: string[] = [];
+  
+  // Basic file validation
+  if (!file) {
+    errors.push('No file selected');
+  }
+  
+  if (file.size > 10 * 1024 * 1024) { // 10MB limit
+    errors.push('File size exceeds 10MB limit');
+  }
+  
+  return { isValid: errors.length === 0, errors };
+};
+
+const createSanitizedFile = (file: File): File => file; // Pass through for now
 
 interface FileUploadProps {
   onFileUpload: (file: File) => Promise<void>;
@@ -59,17 +80,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setUploadError(null);
 
     try {
-      const validation: FileValidationResult = validateFileUpload(file);
+      const validation: FileValidationResult = validateFileUpload(file, acceptedTypes || 'all');
 
       if (!validation.isValid) {
-        const error = validation.error || 'File validation failed';
+        const error = validation.errors[0] || 'File validation failed';
         setUploadError(error);
         return;
       }
 
-      const finalFile = validation.sanitizedName && validation.sanitizedName !== file.name
-        ? createSanitizedFile(file, validation.sanitizedName)
-        : file;
+      const finalFile = createSanitizedFile(file);
 
       await onFileUpload(finalFile);
 

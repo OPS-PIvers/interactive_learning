@@ -15,7 +15,7 @@ export const generateId = (prefix = 'id'): string => {
     .map(b => b.toString(36).padStart(2, '0'))
     .join('')
     .substring(0, 7); // Ensure exactly 7 characters
-    
+
   return `${prefix}-${timestamp}-${randomPart}`;
 };
 

@@ -1,4 +1,4 @@
-import { SlideDeck } from './slideTypes';
+import { SlideDeck } from '../slideTypes';
 
 // Simple ID generator for demo purposes
 const generateId = () => `demo-${Math.random().toString(36).substr(2, 9)}`;
