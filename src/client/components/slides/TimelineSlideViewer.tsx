@@ -117,9 +117,9 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
               targetY: (effectParams?.['targetY'] || (effectParams?.['targetPosition'] as any)?.y) as number,
               zoomFactor: effectParams?.['zoomLevel'] as number,
               message: (effectParams?.['text'] || element.content?.description || '') as string,
-              ...(effectParams?.['mediaType'] === 'video' && { videoUrl: effectParams['mediaUrl'] as string }),
-              ...(effectParams?.['mediaType'] === 'audio' && { audioUrl: effectParams['mediaUrl'] as string }),
-              ...(effectParams?.['autoplay'] ? { autoplay: effectParams['autoplay'] as boolean } : {})
+              ...(effectParams?.['mediaType'] === 'video' && { videoUrl: effectParams?.['mediaUrl'] as string }),
+              ...(effectParams?.['mediaType'] === 'audio' && { audioUrl: effectParams?.['mediaUrl'] as string }),
+              ...(effectParams?.['autoplay'] ? { autoplay: effectParams?.['autoplay'] as boolean } : {})
             };
 
             events.push({
@@ -314,7 +314,7 @@ export const TimelineSlideViewer: React.FC<TimelineSlideViewerProps> = ({
           slideDeck={slideDeck}
             {...(slideDeck?.slides?.[currentSlideIndex]?.id && { initialSlideId: slideDeck?.slides?.[currentSlideIndex]?.id })}
           onSlideChange={handleSlideViewerChange}
-          onInteraction={onInteraction || (() => {})}
+          onInteraction={onInteraction as any || (() => {})}
           className="h-full"
           showTimeline={true} />
 

@@ -128,7 +128,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Shape</label>
               <select 
-                value={(effectParameters['shape'] as string) || 'circle'}
+                value={String(effectParameters['shape'] || 'circle')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, shape: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
               >
@@ -139,13 +139,13 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Intensity: {(effectParameters['intensity'] as number) || 70}%
+                Intensity: {Number(effectParameters['intensity'] || 70)}%
               </label>
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={(effectParameters['intensity'] as number) || 70}
+                value={Number(effectParameters['intensity'] || 70)}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, intensity: Number(e.target.value) }))}
                 className="w-full"
               />
@@ -159,7 +159,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Text to Display</label>
               <textarea 
-                value={(effectParameters['text'] as string) || ''}
+                value={String(effectParameters['text'] || '')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, text: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2 h-20"
                 placeholder="Enter text to display..."
@@ -168,7 +168,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Display Mode</label>
               <select 
-                value={(effectParameters['displayMode'] as string) || 'modal'}
+                value={String(effectParameters['displayMode'] || 'modal')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, displayMode: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
               >
@@ -186,7 +186,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Video Source</label>
               <select 
-                value={(effectParameters['videoSource'] as string) || 'url'}
+                value={String(effectParameters['videoSource'] || 'url')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, videoSource: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
               >
@@ -199,7 +199,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Video ID</label>
                 <input
                   type="text"
-                  value={(effectParameters['youtubeVideoId'] as string) || ''}
+                  value={String(effectParameters['youtubeVideoId'] || '')}
                   onChange={(e) => setEffectParameters(prev => ({ ...prev, youtubeVideoId: e.target.value }))}
                   className="w-full border border-gray-300 rounded px-3 py-2"
                   placeholder="e.g. dQw4w9WgXcQ"
@@ -210,7 +210,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
                 <input
                   type="url"
-                  value={(effectParameters['videoUrl'] as string) || ''}
+                  value={String(effectParameters['videoUrl'] || '')}
                   onChange={(e) => setEffectParameters(prev => ({ ...prev, videoUrl: e.target.value }))}
                   className="w-full border border-gray-300 rounded px-3 py-2"
                   placeholder="https://example.com/video.mp4"
@@ -227,7 +227,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
               <input
                 type="text"
-                value={(effectParameters['question'] as string) || ''}
+                value={String(effectParameters['question'] || '')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, question: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="Enter your question..."
@@ -236,7 +236,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
               <select 
-                value={(effectParameters['questionType'] as string) || 'multiple-choice'}
+                value={String(effectParameters['questionType'] || 'multiple-choice')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, questionType: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2"
               >

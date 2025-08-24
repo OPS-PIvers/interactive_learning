@@ -45,7 +45,7 @@ export type NetworkChangeListener = (state: NetworkState) => void;
 class NetworkMonitor {
   private listeners: NetworkChangeListener[] = [];
   private currentState: NetworkState;
-  private connection?: NetworkInformation;
+  private connection?: NetworkInformation | undefined;
   // Bound method references for proper event listener cleanup
   private boundUpdateState = this.updateState.bind(this);
 
@@ -58,7 +58,7 @@ class NetworkMonitor {
     window.addEventListener('online', this.boundUpdateState);
     window.addEventListener('offline', this.boundUpdateState);
     if ('connection' in navigator) {
-      this.connection = (navigator as ExtendedNavigator).connection || null;
+      this.connection = (navigator as ExtendedNavigator).connection || undefined;
       if (this.connection) {
         this.connection.addEventListener('change', this.boundUpdateState);
       }
