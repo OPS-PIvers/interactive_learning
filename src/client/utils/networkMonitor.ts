@@ -36,192 +36,78 @@ export type NetworkChangeListener = (state: NetworkState) => void;
 
 class NetworkMonitor {
   private listeners: NetworkChangeListener[] = [];
-  private currentState: NetworkState | null = null;
-  private monitoringInterval: ReturnType<typeof setTimeout> | null = null;
-  private isMonitoring = false;
-  private boundUpdateNetworkState: () => void;
-  private connection: NetworkInformation | null = null;
+  private currentState: NetworkState;
+  private connection?: NetworkInformation;
 
   constructor() {
-    this.boundUpdateNetworkState = this.updateNetworkState.bind(this);
-    this.initializeNetworkListeners();
+    this.currentState = this.getCurrentNetworkState();
+    this.setupListeners();
   }
 
-  private initializeNetworkListeners() {
-    // Listen for online/offline events
-    window.addEventListener('online', this.boundUpdateNetworkState);
-    window.addEventListener('offline', this.boundUpdateNetworkState);
-
-    // Listen for connection changes (if supported)
+  private setupListeners() {
+    window.addEventListener('online', () => this.updateState());
+    window.addEventListener('offline', () => this.updateState());
     if ('connection' in navigator) {
-      this.connection = (navigator as any).connection as NetworkInformation;
-      if (this.connection) {
-        this.connection.addEventListener('change', this.boundUpdateNetworkState);
-      }
+      this.connection = (navigator as any).connection;
+      this.connection?.addEventListener('change', () => this.updateState());
     }
   }
 
-  private cleanupNetworkListeners() {
-    // Remove event listeners to prevent memory leaks
-    window.removeEventListener('online', this.boundUpdateNetworkState);
-    window.removeEventListener('offline', this.boundUpdateNetworkState);
-
-    if (this.connection) {
-      this.connection.removeEventListener('change', this.boundUpdateNetworkState);
-    }
-  }
-
-  private updateNetworkState() {
-    const networkDetails = getNetworkDetails();
-    const quality = this.determineNetworkQuality(networkDetails);
-
-    const newState: NetworkState = {
-      online: networkDetails.online,
-      quality,
-      effectiveType: networkDetails.effectiveType || 'unknown',
-      downlink: networkDetails.downlink || 0,
-      rtt: networkDetails.rtt || 0,
-      timestamp: Date.now()
+  private getCurrentNetworkState(): NetworkState {
+    const details = getNetworkDetails();
+    return {
+      ...details,
+      quality: this.determineNetworkQuality(details),
+      timestamp: Date.now(),
     };
+  }
 
-    const stateChanged = !this.currentState ||
-    this.currentState.online !== newState.online ||
-    this.currentState.quality !== newState.quality;
-
-    this.currentState = newState;
-
-    if (stateChanged) {
-
-      this.notifyListeners(newState);
+  private determineNetworkQuality(details: ReturnType<typeof getNetworkDetails>): NetworkState['quality'] {
+    if (!details.online) return 'offline';
+    switch (details.effectiveType) {
+      case '4g':
+        return details.rtt < 150 ? 'excellent' : 'good';
+      case '3g':
+        return 'good';
+      case '2g':
+      case 'slow-2g':
+        return 'poor';
+      default:
+        return 'good';
     }
   }
 
-  private determineNetworkQuality(networkDetails: {
-    online: boolean;
-    connectionType: string;
-    effectiveType: string;
-    downlink: number;
-    rtt: number;
-  }): NetworkState['quality'] {
-    if (!networkDetails.online) {
-      return 'offline';
-    }
-
-    const effectiveType = networkDetails.effectiveType;
-    const downlink = networkDetails.downlink || 0;
-    const rtt = networkDetails.rtt || 0;
-
-    // Use effective type if available
-    if (effectiveType) {
-      switch (effectiveType) {
-        case '4g':
-          return downlink >= 10 && rtt < 100 ? 'excellent' : 'good';
-        case '3g':
-          return downlink >= 1.5 && rtt < 300 ? 'good' : 'fair';
-        case '2g':
-          return 'poor';
-        case 'slow-2g':
-          return 'poor';
-        default:
-          break;
-      }
-    }
-
-    // Fallback to downlink and RTT analysis
-    if (downlink >= 10 && rtt < 100) {
-      return 'excellent';
-    } else if (downlink >= 3 && rtt < 200) {
-      return 'good';
-    } else if (downlink >= 1 && rtt < 500) {
-      return 'fair';
-    } else if (downlink > 0) {
-      return 'poor';
-    }
-
-    return 'good'; // Default if no specific indicators
-  }
-
-  private notifyListeners(state: NetworkState) {
-    this.listeners.forEach((listener) => {
-      try {
-        listener(state);
-      } catch (error) {
-        console.error('Network listener error:', error);
-      }
-    });
-  }
-
-  public startMonitoring(intervalMs: number = 5000) {
-    if (this.isMonitoring) {
-      return;
-    }
-
-    this.isMonitoring = true;
-    this.updateNetworkState(); // Initial update
-
-    this.monitoringInterval = setInterval(() => {
-      this.updateNetworkState();
-    }, intervalMs);
-
-
-  }
-
-  public stopMonitoring() {
-    if (!this.isMonitoring) {
-      return;
-    }
-
-    this.isMonitoring = false;
-
-    if (this.monitoringInterval) {
-      clearInterval(this.monitoringInterval);
-      this.monitoringInterval = null;
-    }
-
-
-  }
-
-  public destroy() {
-    // Stop monitoring first
-    this.stopMonitoring();
-
-    // Clean up event listeners
-    this.cleanupNetworkListeners();
-
-    // Clear all listeners
-    this.listeners = [];
-    this.currentState = null;
-
-
+  private updateState() {
+    this.currentState = this.getCurrentNetworkState();
+    this.listeners.forEach(listener => listener(this.currentState));
   }
 
   public addListener(listener: NetworkChangeListener): () => void {
     this.listeners.push(listener);
-
-    // Send current state to new listener
-    if (this.currentState) {
-      listener(this.currentState);
-    }
-
-    // Return unsubscribe function
+    // Immediately provide the current state to the new listener
+    listener(this.currentState);
     return () => {
-      const index = this.listeners.indexOf(listener);
-      if (index > -1) {
-        this.listeners.splice(index, 1);
-      }
+      this.listeners = this.listeners.filter(l => l !== listener);
     };
   }
 
-  public getCurrentState(): NetworkState | null {
+  public getCurrentState(): NetworkState {
     return this.currentState;
   }
 
   public isOnline(): boolean {
-    return this.currentState?.online ?? navigator.onLine;
+    return this.currentState.online;
   }
 
   public getQuality(): NetworkState['quality'] {
-    return this.currentState?.quality ?? 'good';
+    return this.currentState.quality;
+  }
+
+  public destroy() {
+    window.removeEventListener('online', () => this.updateState());
+    window.removeEventListener('offline', () => this.updateState());
+    this.connection?.removeEventListener('change', () => this.updateState());
+    this.listeners = [];
   }
 }
 

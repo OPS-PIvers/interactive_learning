@@ -29,30 +29,29 @@ export interface CanvasDimensions {
  * @returns Object with width and height values
  */
 export function parseAspectRatio(ratio: string): AspectRatioDimensions {
+  const fallback = { width: 16, height: 9 };
+
   if (!ratio) {
-    return { width: 16, height: 9 }; // Fallback to 16:9
+    return fallback;
   }
+
   if (ratio.startsWith('custom:')) {
     const customRatio = parseFloat(ratio.split(':')[1] ?? '');
-    if (isNaN(customRatio) || customRatio <= 0) {
-      return { width: 16, height: 9 }; // Fallback to 16:9
+    if (!isNaN(customRatio) && customRatio > 0) {
+      return { width: customRatio * 100, height: 100 };
     }
-    return { width: customRatio * 100, height: 100 };
+  } else {
+    const parts = ratio.split(':');
+    if (parts.length === 2) {
+      const width = parseInt(parts[0] ?? '', 10);
+      const height = parseInt(parts[1] ?? '', 10);
+      if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+        return { width, height };
+      }
+    }
   }
 
-  const parts = ratio.split(':');
-  if (parts.length !== 2) {
-    return { width: 16, height: 9 }; // Fallback to 16:9
-  }
-
-  const width = parseInt(parts[0] ?? '', 10);
-  const height = parseInt(parts[1] ?? '', 10);
-
-  if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
-    return { width: 16, height: 9 }; // Fallback to 16:9
-  }
-
-  return { width, height };
+  return fallback;
 }
 
 /**
@@ -69,74 +68,47 @@ export function calculateCanvasDimensions(
   containerWidth: number,
   containerHeight: number,
   padding: number = 48,
-  isMobileLandscape: boolean = false
+  isMobile: boolean = false
 ): CanvasDimensions {
   const { width: ratioWidth, height: ratioHeight } = parseAspectRatio(ratio);
   const aspectRatio = ratioWidth / ratioHeight;
 
-  // Reduce padding for mobile landscape to maximize canvas space
-  const effectivePadding = isMobileLandscape ? Math.min(padding / 2, 16) : padding;
+  const effectivePadding = isMobile ? Math.min(padding, 24) : padding;
   
-  const availableWidth = containerWidth - effectivePadding;
-  const availableHeight = containerHeight - effectivePadding;
+  const availableWidth = containerWidth - effectivePadding * 2;
+  const availableHeight = containerHeight - effectivePadding * 2;
 
   let canvasWidth: number;
   let canvasHeight: number;
 
-  // Calculate dimensions to fit within available space
   if (availableWidth / availableHeight > aspectRatio) {
-    // Container is wider than needed, fit to height
     canvasHeight = availableHeight;
     canvasWidth = canvasHeight * aspectRatio;
   } else {
-    // Container is taller than needed, fit to width
     canvasWidth = availableWidth;
     canvasHeight = canvasWidth / aspectRatio;
   }
 
-  // Adjust minimum dimensions for mobile landscape
-  const minWidth = isMobileLandscape ? 200 : 300;
-  const minHeight = isMobileLandscape ? 150 : 200;
-
-  if (canvasWidth < minWidth) {
-    canvasWidth = minWidth;
-    canvasHeight = canvasWidth / aspectRatio;
+  // Ensure minimum dimensions
+  const minDimension = isMobile ? 150 : 250;
+  if (canvasWidth < minDimension || canvasHeight < minDimension) {
+      if (aspectRatio > 1) { // landscape
+          canvasWidth = minDimension * aspectRatio;
+          canvasHeight = minDimension;
+      } else { // portrait or square
+          canvasWidth = minDimension;
+          canvasHeight = minDimension / aspectRatio;
+      }
   }
 
-  if (canvasHeight < minHeight) {
-    canvasHeight = minHeight;
-    canvasWidth = canvasHeight * aspectRatio;
+  // Final check to ensure it fits within the container
+  if (canvasWidth > availableWidth || canvasHeight > availableHeight) {
+      const scaleDown = Math.min(availableWidth / canvasWidth, availableHeight / canvasHeight);
+      canvasWidth *= scaleDown;
+      canvasHeight *= scaleDown;
   }
 
-  // For mobile, ensure we don't exceed available space
-  if (isMobileLandscape || availableWidth <= 768) {
-    const isBrowser = typeof window !== 'undefined';
-    // Mobile-specific maximum constraints
-    const maxMobileWidth = isBrowser ? Math.min(availableWidth, document.documentElement.clientWidth - 32) : availableWidth;
-    const maxMobileHeight = isBrowser ? Math.min(availableHeight, document.documentElement.clientHeight - (isMobileLandscape ? 64 : 120)) : availableHeight;
-    
-    if (canvasWidth > maxMobileWidth) {
-      canvasWidth = maxMobileWidth;
-      canvasHeight = canvasWidth / aspectRatio;
-    }
-    if (canvasHeight > maxMobileHeight) {
-      canvasHeight = maxMobileHeight;
-      canvasWidth = canvasHeight * aspectRatio;
-    }
-    
-    // Final constraint check to ensure canvas fits mobile viewport
-    if (canvasWidth > maxMobileWidth || canvasHeight > maxMobileHeight) {
-      const scaleFactorWidth = maxMobileWidth / canvasWidth;
-      const scaleFactorHeight = maxMobileHeight / canvasHeight;
-      const scaleFactor = Math.min(scaleFactorWidth, scaleFactorHeight);
-      
-      canvasWidth *= scaleFactor;
-      canvasHeight *= scaleFactor;
-    }
-  }
-
-  // Calculate scale factor (useful for element positioning)
-  const baseWidth = 1200; // Standard base width from slide types
+  const baseWidth = 1200;
   const scale = canvasWidth / baseWidth;
 
   return {
