@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { extractYouTubeVideoId } from '../../../shared/types';
+import { extractYouTubeVideoId } from '../../utils/videoUtils';
 import { ResponsiveModal } from './ResponsiveModal';
 
 interface ResponsiveBackgroundModalProps {

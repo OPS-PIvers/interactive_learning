@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
-import { ViewerModes } from '../../../shared/interactiveTypes';
+import { ViewerModes } from '../../../shared/slideTypes';
 import { SlideDeck } from '../../../shared/slideTypes';
 import { InteractiveModuleState } from '../../../shared/types';
 import ErrorScreen from '../shared/ErrorScreen';

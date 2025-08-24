@@ -390,6 +390,12 @@ export interface SlideLayout {
 }
 
 // Slide deck (collection of slides)
+export interface ViewerModes {
+  explore: boolean;
+  selfPaced: boolean;
+  timed: boolean;
+}
+
 export interface SlideDeck {
   id: string;
   title: string;
