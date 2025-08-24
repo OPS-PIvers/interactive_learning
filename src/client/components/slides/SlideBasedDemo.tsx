@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ElementInteraction } from '../../../shared/slideTypes';
-import { createTestDemoSlideDeck } from '../../../shared/testDemoSlideDeck';
+import { createTestDemoSlideDeck } from '../../../shared/demos/test';
 import { Z_INDEX } from '../../utils/zIndexLevels';
 import { createDemoSlideDeck, convertAIStudioToSlides } from './DemoSlideDeck';
 import { SlideViewer } from './SlideViewer';

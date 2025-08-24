@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ViewerModes } from '../../../shared/interactiveTypes';
+import { ViewerModes } from '../../../shared/slideTypes';
 import { SlideDeck, ElementInteraction } from '../../../shared/slideTypes';
 import { useViewportHeight } from '../../hooks/useViewportHeight';
 import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';

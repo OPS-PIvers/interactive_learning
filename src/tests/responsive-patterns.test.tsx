@@ -4,7 +4,7 @@ import React from 'react';
 import { ResponsiveModal } from '../client/components/responsive/ResponsiveModal';
 import ModernSlideEditor from '../client/components/editors/ModernSlideEditor';
 import { AuthProvider } from '../lib/authContext';
-import { createTestDemoSlideDeck } from '../shared/testDemoSlideDeck';
+import { createTestDemoSlideDeck } from '../shared/demos/test';
 
 describe('CSS-only responsive design', () => {
   test('ResponsiveModal should use CSS media queries for responsiveness', () => {

@@ -1,5 +1,6 @@
 import { Project, InteractiveModuleState } from './types';
 import { SlideDeck, BackgroundMedia, InteractiveSlide } from './slideTypes';
+import { extractYouTubeVideoId } from '../client/utils/videoUtils';
 
 /**
  * Migration utilities for converting between legacy and new slide formats
@@ -31,25 +32,6 @@ export function migrateBackgroundImageToMedia(backgroundImage: string, backgroun
     type: mediaType,
     url: backgroundImage
   };
-}
-
-/**
- * Extracts YouTube video ID from various YouTube URL formats
- */
-function extractYouTubeVideoId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/v\/([^&\n?#]+)/,
-    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-  return null;
 }
 
 /**
@@ -139,37 +121,4 @@ export function ensureProjectCompatibility(project: Project): Project {
   }
 
   return project;
-}
-
-/**
- * Checks if a project needs migration from legacy format
- */
-export function needsMigration(project: Project): boolean {
-  // Needs migration if has legacy data but no slide deck
-  return !project.slideDeck && (
-    !!project.interactiveData.backgroundImage || 
-    !!project.interactiveData.hotspots?.length
-  );
-}
-
-/**
- * Gets the current background media from either legacy or new format
- */
-export function getCurrentBackgroundMedia(project: Project): BackgroundMedia | null {
-  // Check slide deck first (new format)
-  const firstSlide = project.slideDeck?.slides?.[0];
-  if (firstSlide?.backgroundMedia) {
-    return firstSlide.backgroundMedia;
-  }
-
-  // Fall back to legacy format
-  if (project.interactiveData.backgroundImage) {
-    return migrateBackgroundImageToMedia(
-      project.interactiveData.backgroundImage,
-      project.interactiveData.backgroundType,
-      project.interactiveData.backgroundVideoType
-    );
-  }
-
-  return null;
 }
