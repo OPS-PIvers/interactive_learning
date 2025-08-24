@@ -41,12 +41,6 @@ For each audit, follow this process:
 - **Scope**: Global styles, component-specific CSS, custom scrollbar styles, high-contrast styles
 - **Impact**: Medium - affects styling consistency and bundle size
 
-### 6. **Client Constants Audit** (`src/client/constants/`)
-- **Priority**: Medium
-- **Rationale**: Constants should be centralized and not duplicated across the codebase.
-- **Scope**: `interactionConstants.ts` and any other constant definitions
-- **Impact**: Medium - affects maintainability
-
 ### 7. **Shared Demos Directory Audit** (`src/shared/demos/`)
 - **Priority**: Medium
 - **Rationale**: Demo data appears scattered across multiple locations. Need consolidation as mentioned in shared audit.
@@ -125,8 +119,7 @@ Based on this priority list, the following audit files should be created:
 ### Medium Priority Files
 4. `assets_audit.md` - Client assets usage and optimization review
 5. `styles_audit.md` - CSS consolidation and cleanup analysis
-6. `constants_audit.md` - Constants centralization review
-7. `demos_audit.md` - Demo data consolidation analysis
+6. `demos_audit.md` - Demo data consolidation analysis
 
 ### Lower Priority Files
 8. `docs_audit.md` - Documentation currency and accuracy review
