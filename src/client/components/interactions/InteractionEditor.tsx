@@ -14,7 +14,7 @@ interface InteractionEditorProps {
  * Helper function to safely get parameter values
  */
 const getParameterValue = (parameters: EffectParameters, key: string, defaultValue: unknown = ''): unknown => {
-  return (parameters as Record<string, unknown>)[key] ?? defaultValue;
+  return (parameters as unknown as Record<string, unknown>)[key] ?? defaultValue;
 };
 
 /**

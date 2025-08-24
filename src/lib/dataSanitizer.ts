@@ -17,7 +17,7 @@ export class DataSanitizer {
     
     for (const [key, value] of Object.entries(obj)) {
       if (value !== undefined) {
-        sanitized[key as keyof T] = value;
+        sanitized[key as keyof T] = value as T[keyof T];
       }
     }
     
@@ -168,7 +168,7 @@ export class DataSanitizer {
       sanitized.metadata = {
         ...sanitized.metadata,
         version: sanitized.metadata.version || '2.0',
-        created: (sanitized.metadata as Record<string, unknown>).created as number || (sanitized.metadata as Record<string, unknown>).createdAt as number || Date.now(),
+        created: (sanitized.metadata as unknown as Record<string, unknown>)['created'] as number || (sanitized.metadata as unknown as Record<string, unknown>)['createdAt'] as number || Date.now(),
         modified: Date.now(), // Always update timestamp
         isPublic: sanitized.metadata.isPublic ?? false,
       };

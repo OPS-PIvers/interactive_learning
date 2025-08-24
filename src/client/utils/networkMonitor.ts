@@ -58,7 +58,7 @@ class NetworkMonitor {
     window.addEventListener('online', this.boundUpdateState);
     window.addEventListener('offline', this.boundUpdateState);
     if ('connection' in navigator) {
-      this.connection = (navigator as ExtendedNavigator).connection;
+      this.connection = (navigator as ExtendedNavigator).connection || null;
       if (this.connection) {
         this.connection.addEventListener('change', this.boundUpdateState);
       }

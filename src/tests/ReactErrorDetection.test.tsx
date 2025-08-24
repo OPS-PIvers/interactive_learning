@@ -329,7 +329,7 @@ describe('React Error Detection Tests', () => {
         const [childData, setChildData] = React.useState(null);
         
         const handleChildData = React.useCallback((data: unknown) => {
-          setChildData(data);
+          setChildData(data as any);
         }, []);
         
         return (
