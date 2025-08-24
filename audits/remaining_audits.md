@@ -15,13 +15,7 @@ For each audit, follow this process:
 
 ## High Priority
 
-### 1. **Scripts Directory Audit** (`/scripts/`)
-- **Priority**: High
-- **Rationale**: Contains 20+ utility and testing scripts. Many appear to be legacy or development-only scripts that may no longer be needed.
-- **Scope**: Automation scripts, testing utilities, MCP integration, Firebase utilities
-- **Impact**: Medium-High - affects development workflow and automation
-
-### 2. **Configuration Files Audit** (root level)
+### 1. **Configuration Files Audit** (root level)
 - **Priority**: High
 - **Rationale**: Configuration files directly impact build, testing, and deployment. Need to ensure they're optimized and not conflicting.
 - **Scope**: `package.json`, `vite.config.ts`, `vitest.config.ts`, `tsconfig.json`, `tailwind.config.js`, `eslint.config.js`, `firebase.json`, `firestore.rules`, `storage.rules`
@@ -94,16 +88,15 @@ For each audit, follow this process:
 - ⚠️ Contexts (`src/client/contexts/`) - **Started** (incomplete analysis)
 - ✅ Shared (`src/shared/`) - **Complete** (with consolidation recommendations)
 - ✅ Tests (`src/tests/`) - **Complete**
-- ⏳ Scripts (`/scripts/`) - **High Priority**
+- ✅ Scripts (`/scripts/`) - **Complete**
 - ⏳ Configuration Files - **High Priority**
 - ⏳ Remaining directories - **Medium/Low Priority**
 
 ## Next Steps
 
-1. **Follow with Scripts Directory Audit** - Clean up development/automation tools
-2. **Configuration Files Review** - Ensure optimal build and deployment settings
-3. **Work through medium priority items** - Assets, styles, constants
-4. **Complete lower priority audits** - Documentation and configuration cleanup
+1. **Configuration Files Review** - Ensure optimal build and deployment settings
+2. **Work through medium priority items** - Assets, styles, constants
+3. **Complete lower priority audits** - Documentation and configuration cleanup
 
 ## Estimated Impact
 
@@ -119,8 +112,7 @@ Based on this priority list, the following audit files should be created:
 
 ### High Priority Files
 1. `tests_audit.md` - Comprehensive test coverage and redundancy analysis
-2. `scripts_audit.md` - Development and automation scripts review
-3. `config_audit.md` - Build and deployment configuration analysis
+2. `config_audit.md` - Build and deployment configuration analysis
 
 ### Medium Priority Files
 4. `assets_audit.md` - Client assets usage and optimization review
