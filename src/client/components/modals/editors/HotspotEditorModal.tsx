@@ -126,11 +126,11 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Shape</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Shape</label>
               <select 
                 value={String(effectParameters['shape'] || 'circle')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, shape: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="circle">Circle</option>
                 <option value="rectangle">Rectangle</option>
@@ -138,7 +138,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-1">
                 Intensity: {Number(effectParameters['intensity'] || 70)}%
               </label>
               <input
@@ -157,20 +157,20 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Text to Display</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Text to Display</label>
               <textarea 
                 value={String(effectParameters['text'] || '')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, text: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 h-20 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter text to display..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Display Mode</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Display Mode</label>
               <select 
                 value={String(effectParameters['displayMode'] || 'modal')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, displayMode: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="modal">Modal</option>
                 <option value="tooltip">Tooltip</option>
@@ -184,11 +184,11 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Video Source</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Video Source</label>
               <select 
                 value={String(effectParameters['videoSource'] || 'url')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, videoSource: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="url">URL</option>
                 <option value="youtube">YouTube</option>
@@ -196,23 +196,23 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             </div>
             {effectParameters['videoSource'] === 'youtube' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">YouTube Video ID</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">YouTube Video ID</label>
                 <input
                   type="text"
                   value={String(effectParameters['youtubeVideoId'] || '')}
                   onChange={(e) => setEffectParameters(prev => ({ ...prev, youtubeVideoId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="e.g. dQw4w9WgXcQ"
                 />
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Video URL</label>
                 <input
                   type="url"
                   value={String(effectParameters['videoUrl'] || '')}
                   onChange={(e) => setEffectParameters(prev => ({ ...prev, videoUrl: e.target.value }))}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="https://example.com/video.mp4"
                 />
               </div>
@@ -224,21 +224,21 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Question</label>
               <input
                 type="text"
                 value={String(effectParameters['question'] || '')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, question: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter your question..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Question Type</label>
               <select 
                 value={String(effectParameters['questionType'] || 'multiple-choice')}
                 onChange={(e) => setEffectParameters(prev => ({ ...prev, questionType: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="multiple-choice">Multiple Choice</option>
                 <option value="true-false">True/False</option>
@@ -247,14 +247,14 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
             </div>
             {effectParameters['questionType'] === 'multiple-choice' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Choices (one per line)</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Choices (one per line)</label>
                 <textarea 
                   value={(effectParameters['choices'] as string[])?.join('\n') || ''}
                   onChange={(e) => setEffectParameters(prev => ({ 
                     ...prev, 
                     choices: e.target.value.split('\n').filter(c => c.trim())
                   }))}
-                  className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 h-20 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Option A&#10;Option B&#10;Option C"
                 />
               </div>
@@ -264,7 +264,7 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         
       default:
         return (
-          <div className="text-gray-500 text-sm">
+          <div className="text-gray-400 text-sm">
             Select an effect type to configure its parameters.
           </div>
         );
@@ -279,26 +279,26 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
       onClose={onClose}
       title="Edit Hotspot"
     >
-      <div className="p-4 sm:p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6 bg-gray-900 text-gray-200">
         {/* Basic Info */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Hotspot title..."
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 h-20"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 h-20 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Optional description..."
             />
           </div>
@@ -307,11 +307,11 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         {/* Effect Configuration */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Effect Type</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Effect Type</label>
             <select 
               value={selectedEffectType}
               onChange={(e) => setSelectedEffectType(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="spotlight">Spotlight</option>
               <option value="text">Show Text</option>
@@ -326,10 +326,10 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
           <button
             onClick={handleDelete}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm sm:text-base"
+            className="px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800 transition-colors text-sm sm:text-base"
           >
             Delete
           </button>
@@ -337,13 +337,13 @@ const HotspotEditorModal: React.FC<HotspotEditorModalProps> = ({
           <div className="flex space-x-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm sm:text-base"
+              className="px-4 py-2 bg-gray-600 text-gray-200 rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm sm:text-base"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               Save
             </button>
