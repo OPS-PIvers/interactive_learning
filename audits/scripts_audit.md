@@ -5,18 +5,20 @@ This file audits the utility and testing scripts in `/scripts/`.
 ## Summary
 
 - **Total Files Audited:** 24
-- **Files Kept As Is:** 15 (62.5%)
-- **Files Consolidated:** 1 (4.2%)
-- **Files Removed:** 8 (33.3%)
+- **Files Kept As Is:** 14 (58.3%)
+- **Files Consolidated:** 2 (8.3%)
+- **Files Removed:** 5 (20.8%)
+- **Files Added:** 1 (4.2%)
 
 | File Name/Path | Description | Usage Count | Status | Recommendation |
 |---|---|---|---|---|
 | `scripts/CLAUDE.md` | Documentation for the scripts directory. | N/A | Keep | Provides a good overview of the scripts. |
-| `scripts/analyze-console.js` | Puppeteer script to analyze console output and page behavior. | Low | Keep | Useful for debugging. Depends on `puppeteer-utils.js`. |
+| `scripts/console-analyzer.js` | Puppeteer script to analyze console output and page behavior. | Low | Keep | Useful for debugging. Depends on `puppeteer-utils.js`. |
 | `scripts/backup-data.ts` | Script to back up all Firebase data. | High | Keep | Critical for data integrity. Uses `ts-node`. |
-| `scripts/console-monitor.js` | Puppeteer script for monitoring console output. | Low | Consolidate | Redundant with `analyze-console.js`. Both should be merged. |
+| `scripts/console-monitor.js` | Puppeteer script for monitoring console output. | Low | Consolidated | Redundant with `analyze-console.js`. Both have been merged into `console-analyzer.js`. |
+| `scripts/analyze-console.js` | Puppeteer script to analyze console output and page behavior. | Low | Consolidated | Redundant with `console-monitor.js`. Both have been merged into `console-analyzer.js`. |
 | `scripts/create-demo-project.js` | Creates a demo project for testing. | Medium | Keep | Useful for setting up test data. Depends on `puppeteer-utils.js`. |
-| `scripts/fix-public-project.js` | One-off script to fix a specific project. | N/A | Remove | Obsolete and not for general use. |
+| `scripts/fix-public-project.js` | One-off script to fix a specific project. | N/A | Removed | Obsolete and not for general use. |
 | `scripts/mcp-dev-workflow.js` | CLI helper for MCP development tasks. | High | Keep | Central script for MCP development. |
 | `scripts/mcp-puppeteer-server.js` | Custom MCP server using Puppeteer. | High | Keep | Core of the MCP functionality. |
 | `scripts/memory-leak-test.js` | Performance test to detect memory leaks. | Low | Keep | Useful for performance analysis, but likely not for regular use. |
@@ -27,23 +29,23 @@ This file audits the utility and testing scripts in `/scripts/`.
 | `scripts/test-claude-mcp-integration.js` | Tests Claude and MCP integration. | Medium | Keep | Specific test for the development workflow. |
 | `scripts/test-firebase-connection.js` | Tests Firebase connection and public project access. | Medium | Keep | Useful for diagnosing Firebase issues. Depends on `puppeteer-utils.js`. |
 | `scripts/test-hotspot-centering.js` | Tests hotspot centering functionality. | Medium | Keep | Specific feature test. Depends on `puppeteer-auth-helper.js` and `puppeteer-utils.js`. |
-| `scripts/test-live-site.js` | Tests the deployed live site to find project IDs. | N/A | Remove | One-off script, likely obsolete. |
-| `scripts/test-main-app.js` | Analyzes the main app to find project IDs. | N/A | Remove | One-off script, likely obsolete. Similar to `test-live-site.js`. |
+| `scripts/test-live-site.js` | Tests the deployed live site to find project IDs. | N/A | Removed | One-off script, likely obsolete. |
+| `scripts/test-main-app.js` | Analyzes the main app to find project IDs. | N/A | Removed | One-off script, likely obsolete. Similar to `test-live-site.js`. |
 | `scripts/test-mcp-server.js` | Tests the MCP server setup. | Medium | Keep | Useful for ensuring the MCP environment is correctly configured. |
 | `scripts/test-puppeteer.js` | Basic test for Puppeteer setup. | Low | Keep | Simple diagnostic script. Depends on `puppeteer-utils.js`. |
 | `scripts/update-project-public-status.js` | Admin script to update project public status. | Medium | Keep | Useful administrative script. Uses Firebase Admin SDK. |
 | `scripts/validate-mcp-config.js` | Validates MCP configuration files. | Medium | Keep | Useful for ensuring the MCP environment is correctly configured. |
-| `scripts/week3-cross-platform-testing.js` | Configuration for cross-platform testing. | N/A | Remove | Obsolete testing configuration. |
-| `scripts/week3-validation-checklist.js` | Manual testing checklist. | N/A | Remove | Obsolete testing checklist. |
+| `scripts/week3-cross-platform-testing.js` | Configuration for cross-platform testing. | N/A | Removed | Obsolete testing configuration. |
+| `scripts/week3-validation-checklist.js` | Manual testing checklist. | N/A | Removed | Obsolete testing checklist. |
 
 ## Overall Recommendations
 
-1. **Remove obsolete scripts:** There are 8 scripts that are either one-off, outdated, or related to a specific past task. These should be removed to reduce clutter and maintenance overhead.
+1. **Remove obsolete scripts:** There are 5 scripts that are either one-off, outdated, or related to a specific past task. These should be removed to reduce clutter and maintenance overhead.
 2. **Consolidate redundant scripts:** `console-monitor.js` and `analyze-console.js` have overlapping functionality. Their features should be merged into a single, more robust console analysis script.
 3. **Standardize script dependencies:** The use of `puppeteer-utils.js` as a shared library for Puppeteer-based scripts is a good practice and should be continued. This promotes code reuse and simplifies maintenance.
 
 ## Implementation Notes
 
-- The `Remove` recommendations can be implemented directly by deleting the files.
-- The `Consolidate` recommendation for `console-monitor.js` and `analyze-console.js` will require creating a new script that combines the features of both and then removing the old ones.
+- The `Remove` recommendations have been implemented by deleting the files.
+- The `Consolidate` recommendation for `console-monitor.js` and `analyze-console.js` has been implemented by creating a new script `scripts/console-analyzer.js` and removing the old ones.
 - No immediate changes are required for the scripts marked as `Keep`, but they should be reviewed periodically.
