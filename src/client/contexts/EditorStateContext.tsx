@@ -151,7 +151,7 @@ function editorStateReducer(state: EditorState, action: EditorActionPayload): Ed
 }
 
 // Context
-interface EditorStateContextType {
+export interface EditorStateContextType {
   state: EditorState;
   dispatch: React.Dispatch<EditorActionPayload>;
   // Helper functions
@@ -166,7 +166,7 @@ interface EditorStateContextType {
   markDirty: () => void;
 }
 
-const EditorStateContext = createContext<EditorStateContextType | null>(null);
+export const EditorStateContext = createContext<EditorStateContextType | null>(null);
 
 // Provider component
 interface EditorStateProviderProps {
