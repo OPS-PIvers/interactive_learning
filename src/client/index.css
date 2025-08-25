@@ -1,15 +1,10 @@
+@import './styles/variables.css'; /* Centralized design tokens */
 @import './styles/custom-scrollbar.css'; /* Custom scrollbar styles we added */
 @import './styles/high-contrast.css'; /* High contrast mode styles */
 @import './styles/slide-components.css'; /* Slide-based architecture styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --z-accessibility-link: 99999;
-  --z-hidden-element: -1;
-  --z-drag-preview: 500;
-}
 
 /* Main styles for ExpliCoLearning */
 

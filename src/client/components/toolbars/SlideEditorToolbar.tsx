@@ -12,7 +12,7 @@ interface SlideEditorToolbarProps {
   isSaving: boolean;
   isPublished: boolean;
   onImageUpload: (file: File) => void;
-  project?: Project;
+  project: Project;
   onTogglePreview: () => void;
   onLivePreview: () => void;
   isPreview: boolean;
@@ -206,7 +206,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
       </div>
 
       {/* Share Modal */}
-      {project &&
+      {isShareModalOpen &&
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
