@@ -151,7 +151,7 @@ function editorStateReducer(state: EditorState, action: EditorActionPayload): Ed
 }
 
 // Context
-interface EditorStateContextType {
+export interface EditorStateContextType {
   state: EditorState;
   dispatch: React.Dispatch<EditorActionPayload>;
   // Helper functions
