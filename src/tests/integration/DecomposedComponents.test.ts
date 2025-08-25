@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, screen } from '@testing-library/react';
 import React, { useState, useContext } from 'react';
-import { EditorStateContext, type EditorState } from '../../client/contexts/EditorStateContext';
+import { EditorStateContext, type EditorState, type EditorStateContextType } from '../../client/contexts/EditorStateContext';
 
 // Mock useTouchGestures
 const mockUseTouchGestures = vi.fn();
@@ -89,12 +89,29 @@ describe('Component Integration Tests', () => {
   it('should test Editor Toolbar + Properties Panel Sync', () => {
     const App = () => {
         const [selectedElements, setSelectedElements] = useState<string[]>([]);
-        const state = {
-            state: { selectedElements },
-            selectElements: (elementId: string) => setSelectedElements([elementId])
-        } as any;
+        const mockContextValue: EditorStateContextType = {
+            state: {
+                currentSlide: null,
+                selectedElements,
+                editingMode: 'design',
+                undoHistory: [],
+                redoHistory: [],
+                isDirty: false,
+                lastSaved: null,
+            },
+            dispatch: vi.fn(),
+            setCurrentSlide: vi.fn(),
+            selectElements: (elementId: string) => setSelectedElements([elementId]),
+            clearSelection: vi.fn(),
+            setEditingMode: vi.fn(),
+            addToHistory: vi.fn(),
+            undo: vi.fn(),
+            redo: vi.fn(),
+            markSaved: vi.fn(),
+            markDirty: vi.fn(),
+        };
 
-        return React.createElement(EditorStateContext.Provider, { value: state },
+        return React.createElement(EditorStateContext.Provider, { value: mockContextValue },
             React.createElement(MockEditorToolbar),
             React.createElement(MockPropertiesPanel)
         );
