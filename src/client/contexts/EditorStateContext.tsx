@@ -166,7 +166,7 @@ interface EditorStateContextType {
   markDirty: () => void;
 }
 
-const EditorStateContext = createContext<EditorStateContextType | null>(null);
+export const EditorStateContext = createContext<EditorStateContextType | null>(null);
 
 // Provider component
 interface EditorStateProviderProps {
