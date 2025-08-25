@@ -3,10 +3,10 @@ export const Z_INDEX = {
   ELEMENTS: 2,
   SLIDE_CONTENT: 10,
   SLIDE_ELEMENT: 30,
-  SLIDE_ELEMENTS: 30,
+  SLIDE_ELEMENTS: 31,  // Fixed: was duplicate of SLIDE_ELEMENT
   HOTSPOTS: 20,
-  SELECTED: 10,
-  SELECTED_ELEMENTS: 11,
+  SELECTED: 12,  // Fixed: was same as SLIDE_CONTENT
+  SELECTED_ELEMENTS: 13,  // Adjusted to maintain hierarchy
   DRAGGING: 50,
   DRAG_PREVIEW: 600,
   TOOLTIP: 100,
@@ -35,10 +35,10 @@ export const Z_INDEX_TAILWIND = {
     ELEMENTS: 'z-2',
     SLIDE_CONTENT: 'z-10',
     SLIDE_ELEMENT: 'z-30',
-    SLIDE_ELEMENTS: 'z-30',
+    SLIDE_ELEMENTS: 'z-[31]',  // Fixed: was duplicate of SLIDE_ELEMENT
     HOTSPOTS: 'z-20',
-    SELECTED: 'z-10',
-    SELECTED_ELEMENTS: 'z-11',
+    SELECTED: 'z-[12]',  // Fixed: was same as SLIDE_CONTENT
+    SELECTED_ELEMENTS: 'z-[13]',  // Adjusted to maintain hierarchy
     DRAGGING: 'z-50',
     DRAG_PREVIEW: 'z-[600]',
     TOOLTIP: 'z-[100]',

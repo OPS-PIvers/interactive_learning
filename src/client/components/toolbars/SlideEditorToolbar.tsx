@@ -12,7 +12,7 @@ interface SlideEditorToolbarProps {
   isSaving: boolean;
   isPublished: boolean;
   onImageUpload: (file: File) => void;
-  project: Project;
+  project?: Project;  // Fixed: Keep as optional to avoid breaking change
   onTogglePreview: () => void;
   onLivePreview: () => void;
   isPreview: boolean;
@@ -160,7 +160,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
             </button>
 
             {/* Share Button */}
-            {project &&
+            {project && (
             <button
               onClick={() => setIsShareModalOpen(true)}
               className="flex items-center gap-1 md:gap-2 p-2 md:px-4 md:py-2 text-slate-300 md:text-white hover:text-white transition-colors rounded-lg hover:bg-slate-700 md:bg-[#687178] md:hover:bg-[#545b60] md:font-medium"
@@ -169,7 +169,7 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
                 <Icon name="Share" className="w-4 h-4" />
                 <span className="hidden md:inline">Share</span>
               </button>
-            }
+            )}
 
             {/* Divider - desktop only */}
             <div className="hidden md:block h-6 w-px bg-slate-600" />
@@ -206,13 +206,12 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
       </div>
 
       {/* Share Modal */}
-      {isShareModalOpen &&
+      {isShareModalOpen && project && (
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         project={project} />
-
-      }
+      )}
     </>);
 
 };
