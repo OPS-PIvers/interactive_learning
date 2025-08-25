@@ -1,6 +1,5 @@
 // Combined and enhanced console analysis script
 import { createBrowser, createPage, navigateToUrl } from './puppeteer-utils.js';
-import fs from 'fs';
 
 async function analyzeConsole(url) {
   console.log(`🔍 Starting console analysis for: ${url}`);
@@ -74,7 +73,7 @@ async function analyzeConsole(url) {
           await elements[0].click();
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (e) {
-          // ignore errors
+          console.warn(`Could not click element with selector '${selector}': ${e.message}`);
         }
       }
     }
@@ -86,8 +85,7 @@ async function analyzeConsole(url) {
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.log(`📸 Screenshot saved as ${screenshotPath}`);
 
-    console.log('
-📊 CONSOLE ANALYSIS SUMMARY');
+    console.log('\n📊 CONSOLE ANALYSIS SUMMARY');
     console.log('='.repeat(50));
     const errors = consoleEntries.filter(e => e.type === 'error' || e.type === 'pageerror' || e.type === 'requestfailed');
     const warnings = consoleEntries.filter(e => e.type === 'warn');
@@ -99,8 +97,7 @@ async function analyzeConsole(url) {
     console.log(`DOM Loading: ${loadingElements.length}`);
 
     if (errors.length > 0) {
-      console.log('
-🚨 DETAILED ERRORS:');
+      console.log('\n🚨 DETAILED ERRORS:');
       errors.forEach((e, i) => {
         console.log(`${i + 1}. [${e.type.toUpperCase()}] ${e.text}`);
         if(e.stack) console.log(`   Stack: ${e.stack}`);

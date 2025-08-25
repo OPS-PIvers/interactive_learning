@@ -5,7 +5,7 @@ This file audits the utility and testing scripts in `/scripts/`.
 ## Summary
 
 - **Total Files Audited:** 24
-- **Files Kept As Is:** 15 (62.5%)
+- **Files Kept As Is:** 14 (58.3%)
 - **Files Consolidated:** 2 (8.3%)
 - **Files Removed:** 5 (20.8%)
 - **Files Added:** 1 (4.2%)
