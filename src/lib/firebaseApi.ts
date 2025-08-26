@@ -1,5 +1,20 @@
-// Dynamic imports for better code splitting - loaded when needed
-// This prevents the chunking warnings in Vite build
+import {
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  query,
+  orderBy,
+  serverTimestamp,
+  where,
+  getDoc,
+  runTransaction,
+  Timestamp,
+  FieldValue,
+  DocumentData,
+} from 'firebase/firestore';
+import { getFunctions, httpsCallable, HttpsCallable } from 'firebase/functions';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from 'firebase/storage';
 import { debugLog } from '../client/utils/debugUtils';
 import { networkMonitor } from '../client/utils/networkMonitor';
 import { InteractiveSlide, SlideDeck } from '../shared/slideTypes';
