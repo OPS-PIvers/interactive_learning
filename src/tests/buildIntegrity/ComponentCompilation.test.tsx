@@ -45,25 +45,24 @@ describe('Component Compilation Integrity Tests', () => {
     });
   });
 
-  describe('Hotspot Editor Components', () => {
-    test('HotspotEditorModal imports and compiles correctly', async () => {
+  describe('Interaction Editor Components', () => {
+    test('InteractionEditor imports and compiles correctly', async () => {
       expect(async () => {
-         const module = await import("../../client/components/modals/editors/HotspotEditorModal");
-        expect(module.default).toBeDefined();
+         const module = await import("../../client/components/interactions/InteractionEditor");
+         expect(module.default).toBeDefined();
       }).not.toThrow();
     });
 
-
-    test('InteractionSettingsModal imports and compiles correctly', async () => {
+    test('TextInteractionEditor imports and compiles correctly', async () => {
         expect(async () => {
-         const module = await import("../../client/components/interactions/InteractionSettingsModal");
+         const module = await import("../../client/components/interactions/editors/TextInteractionEditor");
             expect(module.default).toBeDefined();
         }).not.toThrow();
     });
 
-    test('InteractionParameterPreview imports and compiles correctly', async () => {
+    test('QuizInteractionEditor imports and compiles correctly', async () => {
         expect(async () => {
-            const module = await import('../../client/components/interactions/InteractionParameterPreview');
+            const module = await import('../../client/components/interactions/editors/QuizInteractionEditor');
             expect(module.default).toBeDefined();
         }).not.toThrow();
     });
