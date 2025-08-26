@@ -101,7 +101,10 @@ describe('Component Integration Tests', () => {
             },
             dispatch: vi.fn(),
             setCurrentSlide: vi.fn(),
-            selectElements: (elementId: string) => setSelectedElements([elementId]),
+            selectElements: (elementIds: string | string[]) => {
+                const ids = Array.isArray(elementIds) ? elementIds : [elementIds];
+                setSelectedElements(ids);
+            },
             clearSelection: vi.fn(),
             setEditingMode: vi.fn(),
             addToHistory: vi.fn(),
