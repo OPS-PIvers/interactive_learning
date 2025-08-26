@@ -39,7 +39,7 @@
     "strictPropertyInitialization": true,
 
     /* CSS imports support */
-    "types": ["vite/client", "@types/react", "@types/react-dom", "vitest/globals"],
+    "types": ["vite/client", "@types/react", "@types/react-dom", "vitest/globals", "jest-axe"],
 
     "paths": {
       "@/*" :  ["./*"]
