@@ -61,7 +61,7 @@ export default defineConfig(({ mode, command }) => {
         outDir: '../../dist',
         emptyOutDir: true,
         target: 'es2020',
-        minify: isProduction ? 'terser' : false,
+        minify: isProduction ? 'esbuild' : false, // esbuild is faster than terser
         rollupOptions: {
           output: {
             entryFileNames: 'assets/[name].[hash].js',
@@ -85,11 +85,6 @@ export default defineConfig(({ mode, command }) => {
                 return 'react';
               }
               
-              // Animation libraries
-              if (id.includes('framer-motion')) {
-                return 'animations';
-              }
-              
               // Utility libraries
               if (id.includes('lodash') || id.includes('qrcode') || id.includes('uuid')) {
                 return 'utils';
@@ -105,15 +100,16 @@ export default defineConfig(({ mode, command }) => {
                 return 'slide-components';
               }
               
-              // Icons can be bundled together
-              if (id.includes('/icons/') && id.includes('components')) {
-                return 'icons';
-              }
-              
               // Node modules that aren't explicitly handled above
               if (id.includes('node_modules')) {
                 return 'vendor';
               }
+            }
+          },
+          ...isProduction && {
+            treeshake: {
+              moduleSideEffects: false,
+              preset: 'smallest'
             }
           }
         },
