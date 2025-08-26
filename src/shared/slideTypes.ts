@@ -138,6 +138,8 @@ export interface ElementStyle {
   fontSize?: number; // For text elements
   fontWeight?: 'normal' | 'bold' | 'light';
   fontFamily?: string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  boxShadow?: string;
 }
 
 export interface ElementAnimation {

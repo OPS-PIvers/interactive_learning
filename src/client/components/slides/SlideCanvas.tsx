@@ -23,6 +23,7 @@ interface SlideCanvasProps {
   onHotspotClick: (hotspot: Hotspot) => void;
   onHotspotDrag: (hotspotId: string, newPosition: RelativePosition) => void;
   onCanvasClick?: (relativePosition: RelativePosition) => void;
+  selectedElementIds?: string[];
   className?: string;
 }
 
@@ -43,6 +44,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
   onHotspotClick,
   onHotspotDrag,
   onCanvasClick,
+  selectedElementIds = [],
   className = ''
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -286,34 +288,43 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
         {hotspots.map((hotspot) => {
           const pixelPos = relativeToPixel(hotspot.relativePosition);
           const isDragging = dragState?.hotspotId === hotspot.id && dragState.isDragging;
+          const isSelected = selectedElementIds.includes(hotspot.id);
 
           return (
             <div
               key={hotspot.id}
+              data-hotspot={hotspot.id}
               className={`absolute cursor-pointer transition-all duration-200 ${
-                isDragging ? 'scale-110' : 'hover:scale-105'
+                isDragging ? 'scale-110' : isSelected ? 'scale-105' : 'hover:scale-105'
               }`}
               style={{
                 left: pixelPos.x - pixelPos.width / 2,
                 top: pixelPos.y - pixelPos.height / 2,
                 width: pixelPos.width,
                 height: pixelPos.height,
-                zIndex: isDragging ? Z_INDEX.DRAG_PREVIEW : Z_INDEX.SLIDE_ELEMENTS,
+                zIndex: isDragging ? Z_INDEX.DRAG_PREVIEW : isSelected ? Z_INDEX.SLIDE_ELEMENTS + 1 : Z_INDEX.SLIDE_ELEMENTS,
               }}
               onMouseDown={(e) => handleHotspotMouseDown(hotspot, e)}
               onTouchStart={(e) => handleHotspotMouseDown(hotspot, e)}
             >
+              {/* Selection indicator */}
+              {isSelected && (
+                <div className="absolute -inset-2 border-2 border-blue-400 bg-blue-400/10 rounded-full" />
+              )}
+              
               {/* Hotspot visual */}
               <div
                 className={`w-full h-full rounded-full border-2 transition-all duration-200 ${
                   isDragging
                     ? 'bg-blue-500 border-blue-600 shadow-lg'
+                    : isSelected
+                    ? 'bg-blue-500 border-blue-600 shadow-md'
                     : 'bg-blue-400 border-blue-500 hover:bg-blue-500'
                 }`}
                 style={{
                   backgroundColor: hotspot.element?.style ? hotspot.element.style.backgroundColor : '#3b82f6',
                   borderColor: hotspot.element?.style ? hotspot.element.style.borderColor : '#1e40af',
-                  opacity: isDragging ? 0.8 : 1,
+                  opacity: isDragging ? 0.8 : isSelected ? 0.9 : 1,
                 }}
               >
                 {/* Pulse animation if enabled */}

@@ -7,7 +7,8 @@ import { generateHotspotId } from '../../utils/generateId';
 import SlideCanvas from '../slides/SlideCanvas';
 import SlideEditorToolbar from '../toolbars/SlideEditorToolbar';
 import EditorFooterControls from '../toolbars/EditorFooterControls';
-import HotspotEditorModal from '../modals/editors/HotspotEditorModal';
+import PropertiesPanel from '../panels/PropertiesPanel';
+import { EditorStateProvider, useEditorState } from '../../contexts/EditorStateContext';
 import classNames from 'classnames';
 
 interface RelativePosition {
@@ -36,7 +37,8 @@ interface ModernSlideEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   onLivePreview: () => void;
 }
 
-export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
+// Separate the inner component that uses the context
+const ModernSlideEditorInner: React.FC<ModernSlideEditorProps> = ({
   slide,
   onSlideChange,
   projectName,
@@ -49,14 +51,32 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
   onLivePreview,
   ...divProps
 }) => {
+  const {
+    state,
+    selectElements,
+    clearSelection,
+    undo,
+    redo,
+    markDirty,
+    setCurrentSlide
+  } = useEditorState();
+
+  // Sync slide changes with editor state
+  useEffect(() => {
+    setCurrentSlide(slide);
+  }, [slide, setCurrentSlide]);
   const effectExecutorRef = useRef<EffectExecutor | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const [aspectRatio, setAspectRatio] = useState(slide.layout?.aspectRatio || '16:9');
   const [developmentMode, setDevelopmentMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [selectedHotspotId, setSelectedHotspotId] = useState<string>();
   const [editingHotspot, setEditingHotspot] = useState<Hotspot | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+
+  // Get selected element from editor state
+  const selectedElement = state.selectedElements.length > 0 
+    ? slide.elements.find(el => el.id === state.selectedElements[0]) || null
+    : null;
 
   const handleDeleteHotspot = useCallback((hotspotId: string) => {
     const updatedElements = slide.elements.filter(
@@ -66,8 +86,9 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       ...slide,
       elements: updatedElements,
     });
-    setSelectedHotspotId(undefined);
-  }, [slide, onSlideChange]);
+    clearSelection();
+    markDirty();
+  }, [slide, onSlideChange, clearSelection, markDirty]);
 
   useEffect(() => {
     if (canvasContainerRef.current && !effectExecutorRef.current) {
@@ -88,7 +109,8 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
 
   const handleBackgroundChange = useCallback((background: BackgroundMedia) => {
     onSlideChange({ ...slide, backgroundMedia: background });
-  }, [slide, onSlideChange]);
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
 
   const handleBackgroundImageChange = useCallback((url: string) => {
     const currentType = slide.backgroundMedia?.type || 'image';
@@ -117,7 +139,8 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
   const handleAspectRatioChange = useCallback((newRatio: string) => {
     setAspectRatio(newRatio);
     onSlideChange({ ...slide, layout: { ...slide.layout, aspectRatio: newRatio } });
-  }, [slide, onSlideChange]);
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
 
   const handleHotspotAdd = useCallback((relativePosition: RelativePosition) => {
     const newElement: SlideElement = {
@@ -134,17 +157,27 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       isVisible: true
     };
     onSlideChange({ ...slide, elements: [...slide.elements, newElement] });
-    setSelectedHotspotId(newElement.id);
+    selectElements(newElement.id);
+    markDirty();
   }, [slide, onSlideChange]);
 
   const handleAddHotspotClick = useCallback(() => {
     const centerRelativePosition: RelativePosition = { x: 0.45, y: 0.45, width: 0.1, height: 0.1 };
     handleHotspotAdd(centerRelativePosition);
-    setTimeout(() => {
-      const newHotspot = hotspots[hotspots.length - 1];
-      if (newHotspot) setEditingHotspot(newHotspot);
-    }, 100);
-  }, [handleHotspotAdd, hotspots]);
+  }, [handleHotspotAdd]);
+
+  const handleElementUpdate = useCallback((elementId: string, updates: Partial<SlideElement>) => {
+    const updatedElements = slide.elements.map((el) => 
+      el.id === elementId ? { ...el, ...updates } : el
+    );
+    onSlideChange({ ...slide, elements: updatedElements });
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
+
+  const handleSlideUpdate = useCallback((updates: Partial<InteractiveSlide>) => {
+    onSlideChange({ ...slide, ...updates });
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
 
   const handleHotspotDrag = useCallback((hotspotId: string, newRelativePosition: RelativePosition) => {
     const updatedElements = slide.elements.map((element) => {
@@ -161,17 +194,23 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
       return element;
     });
     onSlideChange({ ...slide, elements: updatedElements });
-  }, [slide, onSlideChange]);
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
 
   const handleHotspotClick = useCallback((hotspot: Hotspot) => {
-    setEditingHotspot(hotspot);
-  }, []);
+    selectElements(hotspot.id);
+  }, [selectElements]);
+
+  const handleCanvasClick = useCallback(() => {
+    clearSelection();
+  }, [clearSelection]);
 
   const handleHotspotSave = useCallback((updatedHotspot: SlideElement) => {
     const updatedElements = slide.elements.map((el) => el.id === updatedHotspot.id ? updatedHotspot : el);
     onSlideChange({ ...slide, elements: updatedElements });
     setEditingHotspot(null);
-  }, [slide, onSlideChange]);
+    markDirty();
+  }, [slide, onSlideChange, markDirty]);
 
   const [aspectWidth, aspectHeight] = aspectRatio.split(':').map(Number);
   const canvasStyle = {
@@ -193,8 +232,12 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
             onTogglePreview={() => setIsPreview(!isPreview)}
             onLivePreview={onLivePreview}
             isPreview={isPreview}
-            {...(selectedHotspotId && { selectedHotspotId })}
+            {...(state.selectedElements.length > 0 && { selectedHotspotId: state.selectedElements[0] })}
             onDeleteHotspot={handleDeleteHotspot}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={state.undoHistory.length > 0}
+            canRedo={state.redoHistory.length > 0}
           />
         )}
       </header>
@@ -210,10 +253,20 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
                 developmentMode={developmentMode}
                 onHotspotClick={handleHotspotClick}
                 onHotspotDrag={handleHotspotDrag}
+                onCanvasClick={handleCanvasClick}
+                selectedElementIds={state.selectedElements}
               />
             </div>
           </div>
         </div>
+        
+        {/* Properties Panel */}
+        <PropertiesPanel
+          selectedElement={selectedElement}
+          onElementUpdate={handleElementUpdate}
+          currentSlide={slide}
+          onSlideUpdate={handleSlideUpdate}
+        />
       </main>
 
       <footer className="slide-editor__footer">
@@ -233,19 +286,16 @@ export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = ({
         />
       </footer>
 
-      {editingHotspot && (
-        <HotspotEditorModal
-          hotspot={editingHotspot.element}
-          isOpen={true}
-          onClose={() => setEditingHotspot(null)}
-          onSave={handleHotspotSave}
-          onDelete={(hotspotId) => {
-            handleDeleteHotspot(hotspotId);
-            setEditingHotspot(null);
-          }}
-        />
-      )}
     </div>
+  );
+};
+
+// Main component that provides the context
+export const ModernSlideEditor: React.FC<ModernSlideEditorProps> = (props) => {
+  return (
+    <EditorStateProvider initialSlide={props.slide}>
+      <ModernSlideEditorInner {...props} />
+    </EditorStateProvider>
   );
 };
 

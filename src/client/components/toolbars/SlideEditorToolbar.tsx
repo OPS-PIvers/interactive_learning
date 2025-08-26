@@ -18,6 +18,10 @@ interface SlideEditorToolbarProps {
   isPreview: boolean;
   selectedHotspotId?: string;
   onDeleteHotspot: (hotspotId: string) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 /**
@@ -39,6 +43,10 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
   isPreview,
   selectedHotspotId,
   onDeleteHotspot,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -173,6 +181,41 @@ const SlideEditorToolbar: React.FC<SlideEditorToolbarProps> = ({
 
             {/* Divider - desktop only */}
             <div className="hidden md:block h-6 w-px bg-slate-600" />
+
+            {/* Undo/Redo Controls */}
+            {(onUndo || onRedo) && (
+              <>
+                <button
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                  className={`flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 rounded-lg transition-colors ${
+                    canUndo
+                      ? 'text-slate-300 md:text-white hover:text-white hover:bg-slate-700'
+                      : 'text-slate-500 cursor-not-allowed'
+                  }`}
+                  aria-label="Undo"
+                >
+                  <Icon name="Undo" className="w-4 h-4" />
+                  <span className="hidden md:inline">Undo</span>
+                </button>
+                
+                <button
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                  className={`flex items-center gap-1 md:gap-2 p-2 md:px-3 md:py-2 rounded-lg transition-colors ${
+                    canRedo
+                      ? 'text-slate-300 md:text-white hover:text-white hover:bg-slate-700'
+                      : 'text-slate-500 cursor-not-allowed'
+                  }`}
+                  aria-label="Redo"
+                >
+                  <Icon name="Redo" className="w-4 h-4" />
+                  <span className="hidden md:inline">Redo</span>
+                </button>
+                
+                <div className="hidden md:block h-6 w-px bg-slate-600" />
+              </>
+            )}
 
             {/* Delete Hotspot Button */}
             {selectedHotspotId && (
