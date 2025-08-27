@@ -26,9 +26,7 @@ describe('CSS-only responsive design', () => {
     expect(dragHandle).toHaveClass('md:hidden');
   });
 
-  // This test is temporarily disabled because it is causing the test suite to hang.
-  // TODO(#364): Investigate the cause of the hang and re-enable this test.
-  test.skip('ModernSlideEditor should use responsive components', () => {
+  test('ModernSlideEditor should use responsive components', () => {
     const testSlideDeck = createTestDemoSlideDeck();
     const testSlide = testSlideDeck.slides[0] || {
       id: 'test-slide',
