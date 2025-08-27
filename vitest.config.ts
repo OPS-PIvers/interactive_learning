@@ -23,9 +23,10 @@ export default defineConfig({
         minThreads: 1, // Reduced from 2 to prevent hanging
       }
     },
-    testTimeout: 15000, // 15 seconds max per test (was causing hangs at 30s)
-    hookTimeout: 5000, // 5 seconds max for setup/teardown (was causing hangs)
-    isolate: true, // Isolate tests to prevent hanging issues (changed from false)
+    testTimeout: 10000, // 10 seconds max per test (aggressive timeout for CI)
+    hookTimeout: 3000, // 3 seconds max for setup/teardown (aggressive timeout)
+    isolate: true, // Isolate tests to prevent hanging issues
+    bail: 1, // Stop on first failure to prevent endless execution
     passWithNoTests: true,
     // Reduce console noise in CI
     silent: process.env.CI === 'true',

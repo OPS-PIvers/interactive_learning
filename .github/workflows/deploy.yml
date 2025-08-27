@@ -29,7 +29,7 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
-        run: npm run test:run -- --reporter=basic --run --bail=3 --testTimeout=15000 --hookTimeout=5000
+        run: timeout 300 npm run test:run -- --reporter=basic --run --bail=1 --testTimeout=10000 --hookTimeout=3000 --pool=forks --isolate=true
 
       - name: Create environment file
         run: |
@@ -76,7 +76,7 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
-        run: npm run test:run -- --reporter=basic --run --bail=3 --testTimeout=15000 --hookTimeout=5000
+        run: timeout 300 npm run test:run -- --reporter=basic --run --bail=1 --testTimeout=10000 --hookTimeout=3000 --pool=forks --isolate=true
 
       - name: Create environment file
         run: |
