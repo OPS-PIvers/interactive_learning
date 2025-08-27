@@ -19,13 +19,13 @@ export default defineConfig({
     pool: 'threads',
     poolOptions: {
       threads: {
-        maxThreads: 4,
-        minThreads: 2,
+        maxThreads: 2, // Reduced from 4 to prevent resource contention
+        minThreads: 1, // Reduced from 2 to prevent hanging
       }
     },
-    testTimeout: 30000, // 30 seconds max per test
-    hookTimeout: 10000, // 10 seconds max for setup/teardown
-    isolate: false, // Share context between tests for better performance
+    testTimeout: 15000, // 15 seconds max per test (was causing hangs at 30s)
+    hookTimeout: 5000, // 5 seconds max for setup/teardown (was causing hangs)
+    isolate: true, // Isolate tests to prevent hanging issues (changed from false)
     passWithNoTests: true,
     // Reduce console noise in CI
     silent: process.env.CI === 'true',
