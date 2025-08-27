@@ -1,24 +1,719 @@
-Product Requirements Document: Interactive Hotspot Onboarding App (Comprehensive)Version: 2.0Date: August 27, 2025Status: Final Draft1. Overview & VisionThis document provides a comprehensive specification for a web-based application enabling users to create and share interactive, image-based guided walkthroughs. The application is designed to be a powerful tool for product onboarding, feature tutorials, visual training guides, and interactive presentations. It will serve two distinct user personas: Creators, who build the walkthroughs, and Viewers, who consume them. The core of the application is a "guided learning" experience, leading Viewers through a predefined sequence of interactive hotspots to deliver information contextually and effectively.2. Goals & ObjectivesPrimary Goal: To provide the most intuitive and efficient platform for creating and experiencing interactive, image-based walkthroughs that drive user understanding and engagement.Creator-Focused Objectives:To provide a frictionless image upload and setup process, allowing a Creator to start building within seconds.To offer a powerful yet simple-to-use editor with a rich set of configurable events and styling options for hotspots.To ensure the process of sequencing and organizing the learning path is visual, intuitive, and flexible.Viewer-Focused Objectives:To deliver a clean, accessible, and engaging guided experience that works flawlessly on any modern desktop or mobile device.To provide clear, unambiguous navigation and progress indicators that empower the Viewer to understand their place in the walkthrough.Business Objectives:To establish a "share anywhere" model with unique, public URLs for maximum distribution and reach.To build a scalable and maintainable platform that can support future feature enhancements like analytics, collaboration, and advanced event types.3. User Personas3.1 The Creator ("Sarah the Product Manager")Role: Product Manager at a SaaS company.Goal: To create an onboarding tutorial for a new feature in her company's software. She wants to visually guide new users through the interface, explaining key functions step-by-step.Needs: A tool that is fast, requires no coding, allows her to place explanatory text directly onto screenshots of her product, and can be easily shared with new users via a link. She is moderately tech-savvy but values simplicity and efficiency over a complex feature set.3.2 The Viewer ("David the New User")Role: A new customer trying to learn the software Sarah manages.Goal: To quickly understand how to use the new feature so he can complete his work.Needs: A clear, concise, and interactive guide that he can follow at his own pace. He is accessing the tutorial on his tablet and expects a smooth, mobile-friendly experience. He gets frustrated by confusing interfaces and lengthy text documents.4. Key Features & Specifications4.1 The Creator Experience (Editor Interface)The editor is the core of the creation process. It will be a single-page application view where the Creator manages the image, hotspots, and sequence.4.1.1 Image Upload & ManagementInterface: A prominent drag-and-drop area and a "Select File" button styled as a Primary CTA (background: #2d3f89, color: #ffffff).Supported Formats: JPEG, PNG, SVG. The system will validate the file type client-side and show an error message if an unsupported format is used. Error messages will appear in a Warning/Important Callout Box (border: #ad2122, background: #e5c7c7).File Size Limit: 10MB. A client-side check will prevent upload initiation for larger files, displaying the error: "Image exceeds the 10MB size limit."Image Optimization: Upon successful upload, the backend will process the image to create several optimized versions (e.g., small, medium, large thumbnails and a web-optimized full-size version) to ensure fast load times for Viewers on all devices.Replace Image: A "Replace Image" button will be available in the editor's main toolbar, allowing the Creator to swap the background image without losing their placed hotspots.4.1.2 Hotspot Creation & PlacementPlacement: A single click or tap on the image canvas places a new hotspot at that coordinate. The hotspot will appear with its default styling.Repositioning: Hotspots can be dragged and dropped to any location on the image. The cursor will change to a "move" icon on hover.Default Hotspot Style: A 24x24 pixel circular element with a solid fill of Primary Blue (#2d3f89) and a subtle pulsing animation on its border using Gray Light (#999999).4.1.3 Hotspot Configuration PanelClicking an existing hotspot opens a configuration modal or sidebar. This panel will use Form Elements styling (field borders: #999999, focus state: #2d3f89).Panel Sections:Styling:Pulse Animation: A toggle switch (On/Off). On by default.Color Palette: A selection of 8 predefined color swatches from the style guide: Primary Blue (#2d3f89), Blue Dark (#1d2a5d), Blue Light (#4356a0), Primary Red (#ad2122), Red Dark (#7a1718), Primary Gray (#666666), Gray Dark (#333333), Gray Light (#999999).Hide After Trigger: A checkbox (Off by default). If checked, the hotspot will become invisible to the Viewer after they trigger its event and move to the next step.Event:Trigger: A dropdown menu with three options: "On Click," "On Touch," "On Hover." "On Click" is the default. If "On Hover" is chosen, a tooltip will advise that this may not be suitable for mobile-only experiences.Event Type: A dropdown menu to select the event:Text Pop-up:Presents a rich text editor (supporting bold, italics, links) for the modal content.Modal styling: background: #eaecf5, border: #2d3f89, text: #333333 as per "Quote Blocks."Text on Image:Presents a plain text input for the tooltip content.An additional dropdown will allow the Creator to choose the tooltip's position relative to the hotspot (e.g., Top, Bottom, Left, Right).Pan/Zoom to Hotspot:A slider allows the Creator to define the zoom level (e.g., 1.2x to 3x).An optional text input for a banner overlay.Spotlight:Radio buttons to select shape (Circle or Rectangle).A slider to define the size/radius of the shape.A slider (10% to 90%) to define the dimming percentage of the Blue Dark (#1d2a5d) overlay.4.1.4 Walkthrough Sequencing PanelA dedicated panel (e.g., a sidebar) will list all created hotspots.Each item in the list will display the hotspot number and a user-defined title (e.g., "Step 1: Click the File Menu").The list will be re-orderable via drag-and-drop to define the learning sequence.A "Delete" icon (Primary Red #ad2122) will be present for each hotspot in this list, with a confirmation modal ("Are you sure you want to delete this hotspot?") to prevent accidental deletion.4.1.5 Saving & SharingSave: A "Save" button will persist the walkthrough state. The application will also feature auto-saving after every change, with a subtle "All changes saved" text indicator.Share: A "Share" button, styled as a Primary CTA (#2d3f89), will open a modal.Share Modal: This modal will display the unique, permanent URL. It will include a "Copy Link" button that, when clicked, copies the URL to the clipboard and displays a temporary confirmation message ("Link copied to clipboard!").4.2 The Viewer Experience (Guided Learning Interface)The viewer interface is a clean, read-only presentation of the walkthrough, prioritizing the content and guided flow.4.2.1 Initial LoadThe application loads the image and the hotspot data associated with the unique URL.The view automatically centers on the first hotspot in the sequence.The first hotspot is styled in its "In Progress" state.4.2.2 Navigation ElementsTimeline: A horizontal bar at the bottom of the screen.The track of the timeline will be Gray Lighter (#cccccc).The progress bar indicating completed steps will be Primary Blue (#2d3f89).Each hotspot will be represented by a circular indicator on the timeline. Clicking an indicator will navigate to that step.Navigation Buttons:"Previous" and "Next" buttons styled as Secondary buttons (background: #999999, color: #ffffff).The "Previous" button is disabled on the first step. The "Next" button is disabled until the event for the current step has been triggered. Once the event is triggered, the "Next" button becomes active. On the final step, it changes to a "Finish" button styled as a Primary CTA (#2d3f89).4.2.3 State-Based Styling & InteractionCompleted State: Hotspots and timeline indicators for previous steps will be styled with Gray Light (#999999). They remain clickable to allow the Viewer to review past steps.In Progress State: The current, active hotspot and its timeline indicator will be styled with Primary Red (#ad2122) to draw immediate attention. It will also have the pulse animation (if enabled by the Creator).Upcoming State: Hotspots and timeline indicators for future steps will be styled with Gray Lighter (#cccccc). They are not interactive until the Viewer progresses to that step.Event Triggering: The Viewer interacts with the "In Progress" hotspot using the trigger defined by the Creator (click, touch, or hover). Once the event is triggered (e.g., the pop-up is displayed and closed), the step is marked as complete, and the "Next" button becomes active.5. Non-Functional Requirements5.1 PerformanceInitial Load Time: The viewer page should load and become interactive in under 3 seconds on a standard broadband connection.Image Loading: Images must be lazy-loaded and optimized to prevent layout shift and reduce bandwidth.Responsiveness: UI interactions (e.g., opening a modal, panning) should feel instantaneous (<100ms response time).5.2 ScalabilityThe backend infrastructure must support a minimum of 1,000 concurrent viewers for a single shared walkthrough.Image hosting must be on a CDN (Content Delivery Network) to ensure fast delivery globally.5.3 SecurityAll data transmission between the client and server will be over HTTPS.Input sanitization will be implemented on all user-provided text (in pop-ups, tooltips) to prevent XSS attacks.5.4 Accessibility (WCAG 2.1 AA Compliance)Keyboard Navigation: All interactive elements, including hotspots, timeline indicators, and modal controls, must be fully navigable and operable via the keyboard (Tab for focus, Enter/Space to activate).Screen Reader Support: ARIA attributes will be used to describe the state of hotspots (e.g., aria-label="Step 1 of 5: Completed"), the content of modals, and the function of all controls.Focus Management: When a modal (Text Pop-up) opens, focus must be trapped within it. When it closes, focus must return to the element that opened it.Color Contrast: All text and UI elements will meet a minimum contrast ratio of 4.5:1, as defined by WCAG 2.1 AA standards, using the provided style guide colors.6. Technical Specifications6.1 FrontendFramework: React.js (or Vue.js) for a component-based, declarative UI.State Management: React Context API for simple state or Zustand/Redux for more complex state.Styling: Styled-components or Tailwind CSS to implement the design system based on the style guide.6.2 BackendLanguage/Framework: Node.js with Express.js for a lightweight and scalable API.Database: Firestore or MongoDB (NoSQL) to store the flexible structure of walkthrough data (image references, hotspot coordinates, event configurations, sequence array).Image Handling: A service like AWS S3 with Lambda functions (or Cloudinary) to handle image uploads, optimization, and serving via a CDN.6.3 Data Model (Example){
-  "walkthroughId": "unique_string_123",
-  "creatorId": "user_abc",
-  "createdAt": "timestamp",
-  "backgroundImage": {
-    "originalUrl": "...",
-    "optimizedUrl": "..."
-  },
-  "hotspots": [
-    {
-      "id": "hs_001",
-      "title": "Welcome!",
-      "position": { "x": 150, "y": 220 },
-      "style": { "color": "#2d3f89", "pulse": true },
-      "event": {
-        "trigger": "onClick",
-        "type": "textPopup",
-        "content": "<p>Welcome to our new feature!</p>"
-      }
-    }
-  ],
-  "sequence": ["hs_001", "..."]
+# Interactive Hotspot Onboarding App - Rebuild Plan
+
+## Using Existing Architecture & Components
+
+This rebuild plan leverages the existing interactive learning codebase, particularly the working `EffectExecutor`, `SlideViewer`, and responsive component system to create a focused hotspot-based onboarding application.
+
+## Core Architecture Reuse
+
+### 1. Effect System (Already Working)
+**Reuse**: `EffectExecutor.ts` - The heart of interaction execution
+- ✅ **Spotlight effects**: Perfect for hotspot highlighting
+- ✅ **Text popups**: Modal text content display  
+- ✅ **Tooltips**: Contextual hints and messages
+- ✅ **Video/Audio**: Rich media content
+- ✅ **Quiz modals**: Interactive assessment
+- ✅ **Pan/Zoom**: Focus on specific areas
+
+### 2. Viewer System (Existing Foundation)  
+**Reuse**: `SlideViewer.tsx` + `ViewerFooterToolbar.tsx`
+- ✅ **Timeline navigation**: Sequential hotspot progression
+- ✅ **Responsive design**: CSS-first mobile/desktop adaptation
+- ✅ **State management**: Slide progression tracking
+- ✅ **Touch/gesture support**: Mobile-first interaction
+
+### 3. Modal System (Production Ready)
+**Reuse**: `ResponsiveModal.tsx` + constraint system
+- ✅ **Unified responsive modals**: Single component for all screen sizes
+- ✅ **Z-index management**: Centralized layering system
+- ✅ **Touch gestures**: Swipe-to-dismiss, bottom sheet behavior
+- ✅ **Accessibility**: WCAG compliant modal interactions
+
+### 4. Sharing System (Build From Scratch)
+**Note**: Existing sharing never worked, so build simple URL generation
+- 🔨 **Unique URLs**: Simple Firebase document ID as URL parameter
+- 🔨 **QR codes**: Add QR generation library (qrcode.js)
+- 🔨 **Copy to clipboard**: Basic clipboard API integration
+- 🔨 **Public sharing**: Simple boolean flag in Firebase document
+
+## Implementation Strategy: Simplify & Focus
+
+### Phase 1: Core Hotspot Editor (Week 1-2)
+**New Components to Build** (leveraging existing patterns):
+
+1. **HotspotEditor.tsx** - Simplified editor interface
+   - Reuse: `ResponsiveCanvas.tsx` for image rendering
+   - Reuse: `SlideElement.tsx` patterns for hotspot placement
+   - New: Click-to-place hotspot functionality
+   - New: Simple properties panel (style + content)
+
+2. **HotspotPropertiesPanel.tsx** - Configuration sidebar  
+   - Reuse: `PropertiesPanel.tsx` structure and styling
+   - Reuse: Form components and validation
+   - Focus: Effect type selection (text, spotlight, tooltip only)
+   - Focus: Basic styling options (color, pulse animation)
+
+3. **WalkthroughSequencer.tsx** - Step ordering panel
+   - Reuse: Drag-and-drop patterns from existing codebase  
+   - New: Visual step list with reordering
+   - New: Step preview and quick edit
+
+### Phase 2: Enhanced Viewer (Week 2-3)
+**Modified Components** (minimal changes needed):
+
+1. **SlideViewer.tsx** - Already perfect for sequential navigation
+   - ✅ Works with existing `EffectExecutor` (no changes needed)
+   - ✅ Timeline navigation ready  
+   - ✅ Touch/gesture support built-in
+   - Minor: Add hotspot state styling (completed/active/upcoming)
+
+2. **ViewerFooterToolbar.tsx** - Navigation controls
+   - ✅ Previous/Next functionality ready
+   - ✅ Progress indication system ready
+   - Minor: Customize labels for "steps" instead of "slides"
+
+### Phase 3: Image Upload & Management (Week 3-4)  
+**Reuse Existing Infrastructure**:
+
+1. **Firebase Storage** - Already configured
+   - ✅ Image upload handling ready
+   - ✅ CDN delivery via Firebase Storage
+   - ✅ Automatic optimization and thumbnails
+
+2. **Background Upload Components** - Existing patterns
+   - Reuse: File validation and upload logic
+   - Reuse: Progress indicators and error handling
+   - New: Drag-and-drop image upload area
+
+## Simplified Data Model (Reusing SlideTypes)
+
+```typescript
+// Extends existing InteractiveSlide interface
+interface HotspotWalkthrough {
+  id: string;
+  title: string;
+  backgroundMedia: BackgroundMedia; // ✅ Already exists
+  hotspots: SlideElement[]; // ✅ Reuse existing SlideElement
+  sequence: string[]; // ✅ Already supported
+  createdAt: number;
+  updatedAt: number;
+  isPublished: boolean;
 }
-7. Success Metrics & KPIsCreator Adoption: Number of new walkthroughs created per week.Creator Engagement: Average number of hotspots per walkthrough.Viewer Engagement: Walkthrough completion rate ( (Finished Views / Started Views) * 100 ).Sharing & Reach: Number of unique views per shared link.8. Future Considerations (Post-MVP)Phase 2:Collaboration: Allow multiple Creators to edit the same walkthrough.Analytics Dashboard: Provide Creators with data on viewer engagement, drop-off points, and completion rates.Additional Event Types: Implement "Redirect to URL" and "Play Audio/Video" events.Phase 3:Multi-Image Walkthroughs: Allow linking hotspots between multiple uploaded images to create comprehensive tours.Versioning: Allow Creators to save different versions of a walkthrough.Private Sharing: Introduce options to share walkthroughs with specific users or protect them with a password.
+
+// Each hotspot is a SlideElement with simplified interactions
+interface WalkthroughHotspot extends SlideElement {
+  type: 'hotspot';
+  interactions: [ElementInteraction]; // Single interaction per hotspot
+  position: ResponsivePosition; // ✅ Already exists
+  style: {
+    color: string;
+    pulseAnimation: boolean;
+    hideAfterTrigger: boolean;
+  }
+}
+```
+
+## Technical Architecture (95% Existing)
+
+### Frontend (React/TypeScript) ✅
+- **Framework**: Already React 18.3.1 with TypeScript
+- **State Management**: Already using React Context
+- **Styling**: Already using Tailwind CSS + CSS modules
+- **Responsive**: Already mobile-first with CSS breakpoints
+- **Component System**: Already has unified responsive components
+
+### Backend (Firebase) ✅  
+- **Database**: Already Firestore with flexible schema
+- **Storage**: Already Firebase Storage with CDN
+- **Auth**: Already Firebase Auth with social login
+- **Security**: Already has security rules and input sanitization
+
+### Effect System ✅
+- **Execution**: Already working `EffectExecutor` class
+- **Types**: Spotlight, text popups, tooltips all implemented
+- **Cleanup**: Automatic effect lifecycle management  
+- **Performance**: Already optimized for mobile
+
+## Development Effort Estimate
+
+### Existing (0 effort - already working):
+- ✅ Effect execution system 
+- ✅ Responsive viewer with timeline
+- ✅ Modal system and z-index management
+- ✅ Firebase backend infrastructure  
+- ✅ Sharing and URL generation
+- ✅ Mobile-first responsive design
+- ✅ Touch gesture support
+- ✅ Accessibility compliance
+
+### New Development Required:
+1. **HotspotEditor.tsx** - ~3-4 days (click-to-place, simple properties)
+2. **WalkthroughSequencer.tsx** - ~2-3 days (drag-drop step ordering)
+3. **Simplified data adaptation** - ~1-2 days (map to existing SlideTypes)
+4. **Image upload flow** - ~1-2 days (adapt existing patterns)
+5. **Route integration** - ~1 day (add to existing routing)
+
+### Total Estimate: 8-12 days for MVP
+
+## Success Criteria
+
+**Week 1**: Hotspot placement and basic properties working
+**Week 2**: Sequential viewer navigation and effect execution  
+**Week 3**: Image upload and sharing functionality
+**Week 4**: Polish, testing, and deployment
+
+This approach maximizes reuse of the existing working architecture while focusing on the core hotspot-based onboarding experience.
+
+## Key Features Mapped to Existing Components
+
+### Creator Experience 
+**Reuse 95% of existing editor infrastructure**:
+
+1. **Image Upload & Management**
+   - **Reuse**: `BackgroundMedia` interface and Firebase Storage integration
+   - **Reuse**: Existing drag-drop upload patterns and file validation  
+   - **Reuse**: CDN delivery and automatic optimization
+   - **New**: Simplified upload flow focused on single images
+
+2. **Hotspot Placement**
+   - **Reuse**: `SlideElement` positioning system with `ResponsivePosition`
+   - **Reuse**: Click/touch interaction patterns from existing elements
+   - **Reuse**: Drag-and-drop repositioning (already implemented)
+   - **New**: Click-to-place hotspot creation
+
+3. **Properties Panel**
+   - **Reuse**: `PropertiesPanel.tsx` structure and form components
+   - **Reuse**: Style color palette and validation
+   - **Focus**: Simplified to 3 effect types (spotlight, text, tooltip)
+   - **Focus**: Basic styling (color, pulse, hide-after-trigger)
+
+4. **Sequencing Panel**  
+   - **Reuse**: Existing drag-drop libraries and patterns
+   - **New**: Visual step list with thumbnails
+   - **New**: Quick edit and preview functionality
+
+### Viewer Experience
+**Reuse 99% of existing viewer system**:
+
+1. **Sequential Navigation**
+   - **Perfect Match**: `SlideViewer.tsx` already handles sequential progression
+   - **Perfect Match**: `ViewerFooterToolbar.tsx` handles prev/next navigation
+   - **Perfect Match**: Timeline progress indicators
+   - **Minor Change**: Terminology from "slides" to "steps"
+
+2. **Effect Execution**
+   - **Perfect Match**: `EffectExecutor` handles all required effects
+   - **Perfect Match**: Spotlight, text popups, tooltips all working
+   - **Perfect Match**: Automatic cleanup and duration management
+   - **Zero Changes**: Effect system works exactly as needed
+
+3. **State Management**
+   - **Perfect Match**: Existing step progression logic
+   - **Perfect Match**: Completed/active/upcoming state styling
+   - **Perfect Match**: Touch gesture and keyboard navigation
+
+### Sharing & URLs  
+**Build simple sharing system from scratch**:
+
+1. **Simple Share Modal**
+   - **New Component**: `SimpleShareModal.tsx` with basic URL generation
+   - **Simple URLs**: `/view/:walkthroughId` using Firebase document ID
+   - **Basic Features**: Copy URL button, QR code generation
+   - **No Complex Features**: No embed codes, no privacy controls (all public)
+
+## Non-Functional Requirements (Already Met)
+
+### Performance ✅
+- **Load Time**: Existing system already loads in <2 seconds
+- **Image Optimization**: Firebase Storage CDN already optimized
+- **Responsiveness**: Touch interactions already <100ms response
+
+### Scalability ✅  
+- **Concurrent Users**: Firebase already handles 1000+ concurrent viewers
+- **CDN**: Firebase Storage provides global CDN delivery
+- **Backend**: Firestore scales automatically for document-based data
+
+### Security ✅
+- **HTTPS**: All Firebase connections already secured
+- **Input Sanitization**: Already implemented in form handling
+- **Auth**: Firebase Auth handles user management securely
+
+### Accessibility ✅
+- **Keyboard Navigation**: All components already support full keyboard control
+- **Screen Readers**: ARIA attributes already implemented  
+- **Focus Management**: Modal focus trapping already working
+- **Color Contrast**: Existing design system already WCAG 2.1 AA compliant
+
+## Why This Approach Works
+
+### Leverages Battle-Tested Code
+- **EffectExecutor**: Already handles complex effect lifecycle management
+- **SlideViewer**: Already proven to work across devices and browsers
+- **ResponsiveModal**: Already handles complex responsive modal behavior
+- **Firebase Integration**: Already optimized for performance and scale
+
+### Minimal New Development
+- **90% reuse** of existing working components
+- **Focus on hotspot-specific UX** rather than rebuilding infrastructure
+- **Proven patterns** for drag-drop, responsive design, and effect execution
+
+### Quick Time to Market
+- **8-12 days for MVP** using existing architecture
+- **No backend changes** needed - Firestore schema already supports this use case
+- **No new dependencies** - all required libraries already installed and working
+
+This rebuild plan transforms a comprehensive but non-functional codebase into a focused, working hotspot onboarding tool by leveraging the few components that actually work well and discarding the overly complex, broken parts.
+
+---
+
+# COMPREHENSIVE REBUILD EXECUTION PLAN
+
+## Target File Structure (After Rebuild)
+
+```
+src/
+├── client/
+│   ├── components/
+│   │   ├── hotspot/                    # NEW: Core hotspot components
+│   │   │   ├── HotspotEditor.tsx      # NEW: Main editor interface
+│   │   │   ├── HotspotCanvas.tsx      # NEW: Click-to-place canvas
+│   │   │   ├── HotspotElement.tsx     # NEW: Individual hotspot component
+│   │   │   ├── HotspotPropertiesPanel.tsx # NEW: Configuration sidebar
+│   │   │   └── WalkthroughSequencer.tsx   # NEW: Step ordering panel
+│   │   ├── viewers/                    # MODIFIED: Simplified viewers
+│   │   │   ├── HotspotViewer.tsx      # NEW: Hotspot-specific viewer
+│   │   │   └── WalkthroughPlayer.tsx  # NEW: Sequential playback
+│   │   ├── shared/                     # KEEP: Working shared components
+│   │   │   ├── ErrorBoundary.tsx      # ✅ Keep - works
+│   │   │   ├── LoadingScreen.tsx      # ✅ Keep - works
+│   │   │   └── ErrorScreen.tsx        # ✅ Keep - works
+│   │   ├── responsive/                 # KEEP: Modal system
+│   │   │   ├── ResponsiveModal.tsx    # ✅ Keep - essential
+│   │   │   └── ResponsiveModal.css    # ✅ Keep - essential
+│   │   ├── modals/                     # NEW: Simple modals
+│   │   │   └── SimpleShareModal.tsx  # NEW: Basic share functionality
+│   │   ├── toolbars/                   # MODIFIED: Simplified toolbars
+│   │   │   ├── HotspotEditorToolbar.tsx # NEW: Hotspot editor toolbar
+│   │   │   └── ViewerFooterToolbar.tsx  # ✅ Keep - works perfectly
+│   │   ├── ui/                         # KEEP: Working UI components
+│   │   │   ├── ToastNotification.tsx   # ✅ Keep - used for feedback
+│   │   │   └── ProjectCard.tsx         # ✅ Keep - for walkthrough cards
+│   │   ├── auth/                       # KEEP: Auth system
+│   │   │   ├── AuthModal.tsx          # ✅ Keep - works
+│   │   │   └── AuthButton.tsx         # ✅ Keep - works
+│   │   └── App.tsx                     # MODIFIED: Simplified routing
+│   ├── hooks/                          # KEEP: Working hooks only
+│   │   ├── useDeviceDetection.ts      # ✅ Keep - needed for calculations
+│   │   ├── useLayoutConstraints.ts    # ✅ Keep - modal positioning
+│   │   └── useViewportHeight.ts       # ✅ Keep - responsive behavior
+│   ├── utils/                          # KEEP: Working utilities only
+│   │   ├── EffectExecutor.ts          # ✅ Keep - THE KEY FILE
+│   │   ├── zIndexLevels.ts            # ✅ Keep - essential
+│   │   ├── aspectRatioUtils.ts        # ✅ Keep - canvas calculations
+│   │   └── hotspotUtils.ts            # NEW: Hotspot-specific utilities
+│   ├── styles/                         # SIMPLIFIED: Core styles only
+│   │   ├── globals.css                # ✅ Keep - base styles
+│   │   ├── hotspot-components.css     # NEW: Hotspot-specific styles
+│   │   └── responsive-modal.css       # ✅ Keep - modal styles
+│   └── pages/                          # NEW: Simplified page structure
+│       ├── HotspotEditorPage.tsx      # NEW: Editor page
+│       ├── WalkthroughViewerPage.tsx  # NEW: Viewer page  
+│       └── DashboardPage.tsx          # NEW: Project management
+├── shared/                             # SIMPLIFIED: Core types only
+│   ├── hotspotTypes.ts                # NEW: Hotspot-specific types
+│   ├── baseTypes.ts                   # MODIFIED: Simplified base types
+│   └── firebaseTypes.ts               # ✅ Keep - Firebase integration
+├── lib/                                # KEEP: Working Firebase integration
+│   └── firebaseApi.ts                 # ✅ Keep - works perfectly
+└── tests/                              # SIMPLIFIED: Focus on core features
+    ├── components/                     # NEW: Component tests
+    │   ├── HotspotEditor.test.tsx     # NEW: Editor testing
+    │   └── EffectExecutor.test.ts     # ✅ Keep - critical tests
+    └── utils/                          # KEEP: Working utility tests
+        └── hotspotUtils.test.ts       # NEW: Hotspot utility tests
+```
+
+## Files & Directories to DELETE
+
+### 🗑️ Phase 1: Remove Broken/Complex Components (Day 1)
+
+```bash
+# Complex slide-based architecture (keep minimal parts)
+rm -rf src/client/components/slides/canvas/     # Complex canvas system
+rm -rf src/client/components/slides/SlideCanvas.tsx  # Overcomplicated
+rm -rf src/client/components/editors/ModernSlideEditor.tsx  # Too complex
+
+# Broken interaction editors  
+rm -rf src/client/components/interactions/  # All interaction components broken
+
+# Overly complex panels - delete all, build simple ones
+rm -rf src/client/components/panels/  # All panel components overcomplicated
+
+# Complex view components
+rm -rf src/client/components/views/ScrollStacks.tsx
+rm -rf src/client/components/views/SharedModuleViewer.tsx
+rm -rf src/client/components/views/SlideBasedViewer.tsx  
+rm -rf src/client/components/views/SlideBasedInteractiveModule.tsx
+rm -rf src/client/components/views/InteractiveModuleWrapper.tsx
+# Keep: ViewerView.tsx (might be useful)
+
+# Overly complex testing components
+rm -rf src/client/components/testing/
+
+# Non-working modals and overlays
+rm -rf src/client/components/modals/ShareModal.tsx  # Sharing never worked
+rm -rf src/client/components/overlays/  # Complex overlay system unused
+```
+
+### 🗑️ Phase 2: Remove Complex Type System (Day 1)
+
+```bash
+# Overly complex slide types (keep basic interfaces)
+# Edit src/shared/slideTypes.ts to remove complex interfaces:
+# - Remove: SlideLayout, SlideTransition complex parts
+# - Keep: ResponsivePosition, ElementContent, BackgroundMedia
+# - Simplify: InteractiveSlide to HotspotWalkthrough
+
+# Remove unused shared types
+rm -rf src/shared/migration*.ts  # Complex migration system
+rm -rf src/shared/timeline*.ts  # Timeline complexity
+```
+
+### 🗑️ Phase 3: Remove Unused Utilities (Day 2)
+
+```bash
+# Complex utility files
+rm -rf src/client/utils/interactionUtils.ts  # Replace with simple hotspot utils
+rm -rf src/client/utils/slideUtils.ts       # Too complex for hotspots  
+rm -rf src/client/utils/ModalLayoutManager.ts  # ResponsiveModal handles this
+
+# Keep essential utilities:
+# ✅ EffectExecutor.ts
+# ✅ zIndexLevels.ts  
+# ✅ aspectRatioUtils.ts
+```
+
+### 🗑️ Phase 4: Clean Up Styles (Day 2)
+
+```bash
+# Remove complex style files
+rm -rf src/client/styles/slide-components.css  # Replace with hotspot-components.css
+rm -rf src/client/styles/editor-*.css         # Too complex
+
+# Keep essential styles:
+# ✅ globals.css
+# ✅ ResponsiveModal.css (in components/responsive/)
+```
+
+## Step-by-Step Execution Order
+
+### 📅 WEEK 1: Foundation & Cleanup
+
+#### Day 1: Repository Cleanup
+```bash
+# 1. Create backup branch
+git checkout -b backup-before-rebuild
+git push origin backup-before-rebuild
+
+# 2. Return to main and create rebuild branch
+git checkout main
+git checkout -b hotspot-rebuild
+
+# 3. Execute deletions (see above)
+# 4. Commit cleanup
+git add -A
+git commit -m "Phase 1: Remove complex/broken components for hotspot rebuild"
+```
+
+#### Day 2: Core Type System
+```bash
+# 1. Create new hotspot types
+touch src/shared/hotspotTypes.ts
+# Copy and modify existing interfaces for hotspot use
+
+# 2. Simplify existing types
+# Edit slideTypes.ts to keep only: ResponsivePosition, BackgroundMedia, ElementContent
+# Remove complex interfaces: SlideLayout, SlideTransition details
+
+# 3. Create hotspot utilities  
+touch src/client/utils/hotspotUtils.ts
+# Add functions: createHotspot(), updateHotspotSequence(), etc.
+
+# 4. Commit type system
+git add -A  
+git commit -m "Phase 2: Create simplified hotspot type system"
+```
+
+#### Day 3-4: Core Hotspot Components
+```bash
+# 1. Create hotspot components directory
+mkdir -p src/client/components/hotspot
+
+# 2. Build core components (in order):
+# - HotspotElement.tsx (simplest, base component)
+# - HotspotCanvas.tsx (click-to-place functionality)  
+# - HotspotEditor.tsx (main editor interface)
+# - HotspotPropertiesPanel.tsx (configuration)
+
+# 3. Test each component individually
+npm run dev
+# Verify each component renders and handles basic interactions
+
+# 4. Commit components
+git add -A
+git commit -m "Phase 3: Core hotspot components implementation"
+```
+
+#### Day 5: Integration & Basic Editor
+```bash
+# 1. Create editor page
+touch src/client/pages/HotspotEditorPage.tsx
+
+# 2. Update App.tsx routing
+# Add routes for: /editor, /view/:id
+
+# 3. Connect components together
+# HotspotEditor -> HotspotCanvas -> HotspotElement pipeline
+
+# 4. Test full editor flow
+# Should be able to: upload image, place hotspots, configure properties
+
+# 5. Commit editor integration
+git add -A  
+git commit -m "Phase 4: Basic hotspot editor integration"
+```
+
+### 📅 WEEK 2: Viewer & Effects
+
+#### Day 6-7: Viewer Implementation  
+```bash
+# 1. Create viewer components
+touch src/client/components/viewers/HotspotViewer.tsx
+touch src/client/components/viewers/WalkthroughPlayer.tsx
+touch src/client/pages/WalkthroughViewerPage.tsx
+
+# 2. Adapt SlideViewer for hotspots
+# Copy SlideViewer.tsx patterns but simplify for hotspot workflow
+# Focus on: sequential navigation, effect triggering, timeline
+
+# 3. Connect to EffectExecutor  
+# Ensure hotspot clicks trigger: spotlight, text, tooltip effects
+# Test with existing effect system (should work without changes)
+
+# 4. Commit viewer system
+git add -A
+git commit -m "Phase 5: Hotspot viewer with effect execution"
+```
+
+#### Day 8: Sequencing System
+```bash
+# 1. Build WalkthroughSequencer.tsx
+# Drag-and-drop step ordering
+# Visual step list with thumbnails
+# Quick edit functionality
+
+# 2. Integrate with editor
+# Add sequencer panel to HotspotEditor
+# Connect to hotspot data model
+
+# 3. Test sequence management
+# Create hotspots -> reorder -> save -> view in sequence
+
+# 4. Commit sequencing
+git add -A
+git commit -m "Phase 6: Hotspot sequencing and step management"
+```
+
+#### Day 9-10: Toolbar & Navigation
+```bash
+# 1. Create HotspotEditorToolbar.tsx
+# Save, Share, Preview buttons
+# Reuse existing toolbar patterns
+
+# 2. Adapt ViewerFooterToolbar.tsx  
+# Change terminology: "slides" -> "steps"
+# Ensure prev/next navigation works with hotspot sequence
+
+# 3. Test full navigation flow
+# Editor -> save -> share -> viewer -> step navigation
+
+# 4. Commit toolbar system
+git add -A
+git commit -m "Phase 7: Editor and viewer toolbars"
+```
+
+### 📅 WEEK 3: Data & Sharing
+
+#### Day 11-12: Firebase Integration
+```bash
+# 1. Create hotspot data schema
+# Extend existing Firestore collections
+# Map HotspotWalkthrough to existing Project structure
+
+# 2. Update firebaseApi.ts
+# Add functions: createWalkthrough(), getWalkthrough(), updateWalkthrough()
+# Reuse existing patterns from Project management
+
+# 3. Test data persistence
+# Create -> save -> reload -> verify data integrity
+
+# 4. Commit data layer
+git add -A
+git commit -m "Phase 8: Firebase integration for hotspot data"
+```
+
+#### Day 13: Image Upload System
+```bash
+# 1. Reuse existing background upload patterns  
+# Adapt BackgroundMedia interface for single images
+# Reuse Firebase Storage integration
+
+# 2. Create drag-and-drop upload area
+# Simple image upload component
+# File validation and progress indication
+
+# 3. Connect to editor
+# Upload -> set as background -> place hotspots
+
+# 4. Commit upload system
+git add -A
+git commit -m "Phase 9: Image upload and background management"  
+```
+
+#### Day 14: Simple Sharing System
+```bash
+# 1. Build SimpleShareModal.tsx from scratch
+# Basic modal with: URL display, copy button, QR code
+# URL format: /view/:walkthroughId (using Firebase document ID)
+
+# 2. Add QR code generation
+npm install qrcode
+# Simple QR code for walkthrough URL
+
+# 3. Test sharing flow
+# Create walkthrough -> share -> copy URL -> access in new tab
+
+# 4. Commit sharing system  
+git add -A
+git commit -m "Phase 10: Simple URL sharing with QR codes"
+```
+
+### 📅 WEEK 4: Polish & Testing
+
+#### Day 15-16: Dashboard & Project Management
+```bash
+# 1. Create DashboardPage.tsx
+# List of created walkthroughs  
+# Reuse ProjectCard.tsx patterns
+
+# 2. Add project management
+# Create new, edit existing, delete walkthroughs
+# Reuse existing Firebase project management patterns
+
+# 3. Test full user flow
+# Dashboard -> create -> edit -> share -> view
+
+# 4. Commit dashboard
+git add -A
+git commit -m "Phase 11: Dashboard and project management"
+```
+
+#### Day 17-18: Testing & Bug Fixes
+```bash
+# 1. Create test suite
+# Focus on: HotspotEditor, EffectExecutor, data persistence
+# Reuse existing test patterns
+
+# 2. Cross-browser testing
+# Test on: Chrome, Firefox, Safari, mobile browsers
+# Focus on: effect execution, touch interactions, responsiveness
+
+# 3. Fix identified bugs
+# Prioritize: data loss, effect failures, responsive issues
+
+# 4. Commit tests and fixes
+git add -A
+git commit -m "Phase 12: Testing and bug fixes"
+```
+
+#### Day 19-20: Production Preparation
+```bash
+# 1. Performance optimization
+# Image compression, lazy loading, effect cleanup
+# Reuse existing optimization patterns
+
+# 2. Accessibility audit
+# Keyboard navigation, screen reader support
+# Existing components should already be compliant
+
+# 3. Production build testing
+npm run build
+npm run preview
+# Test production build functionality
+
+# 4. Deployment preparation
+# Environment configuration, Firebase rules
+# Documentation updates
+
+# 5. Final commit
+git add -A
+git commit -m "Phase 13: Production-ready hotspot application"
+
+# 6. Create pull request
+git push origin hotspot-rebuild
+# Create PR: hotspot-rebuild -> main
+```
+
+## Fresh Start - No Data Migration Needed
+
+### Why No Migration Required
+- **No working projects exist** - all existing projects were non-functional
+- **No shared URLs work** - the sharing system never functioned properly  
+- **Clean slate approach** - start fresh with working hotspot system
+- **User accounts preserved** - Firebase Auth continues working
+
+### What Gets Preserved
+- ✅ **User authentication** - Firebase Auth accounts remain active
+- ✅ **Firebase project** - Same Firebase project, new document structure
+- ✅ **Core infrastructure** - EffectExecutor, responsive system, etc.
+
+### What Gets Discarded
+- ❌ **All existing "projects"** - they never worked anyway
+- ❌ **Complex slide/timeline data** - overly complicated and broken
+- ❌ **Broken sharing URLs** - never functioned properly
+- ❌ **Migration scripts** - unnecessary since nothing worked
+
+## Testing Checklist
+
+### ✅ Day-by-Day Testing
+- [ ] Day 1: Components render without errors
+- [ ] Day 2: Type system compiles clean
+- [ ] Day 3-4: Hotspot placement and configuration works
+- [ ] Day 5: Editor saves and loads data
+- [ ] Day 6-7: Viewer displays and navigates hotspots
+- [ ] Day 8: Sequence reordering functions
+- [ ] Day 9-10: Toolbars and navigation work
+- [ ] Day 11-12: Firebase save/load works  
+- [ ] Day 13: Image upload functions
+- [ ] Day 14: Sharing URLs work
+- [ ] Day 15-16: Dashboard manages projects
+- [ ] Day 17-18: Cross-browser compatibility
+- [ ] Day 19-20: Production build works
+
+### ✅ Effect System Testing
+- [ ] Spotlight effect highlights correctly
+- [ ] Text popups display and close properly  
+- [ ] Tooltips position correctly
+- [ ] Effect cleanup prevents memory leaks
+- [ ] Mobile touch interactions work
+- [ ] Keyboard navigation functions
+
+### ✅ Data Integrity Testing
+- [ ] Hotspot positions save accurately
+- [ ] Effect configurations persist
+- [ ] Sequence order maintains
+- [ ] Image uploads process correctly
+- [ ] Share URLs generate properly
+- [ ] User authentication preserved
+
+This comprehensive plan provides the detailed roadmap needed to execute the rebuild systematically, with clear daily objectives, specific files to create/modify/delete, and thorough testing checkpoints.
