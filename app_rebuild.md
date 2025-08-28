@@ -160,10 +160,11 @@ interface WalkthroughHotspot extends SlideElement {
 6. **Test Suite Simplification** - ~1 week (30 test files → ~10 essential tests)
 
 ### New Hotspot-Specific Development:
-1. **HotspotEditor.tsx** - ~1-2 weeks (after architecture cleanup)
-2. **Simple viewer components** - ~1 week (reuse EffectExecutor)
+1. **HotspotEditor.tsx** - ~1-2 weeks (using OPS style guide components)
+2. **Simple viewer components** - ~1 week (reuse EffectExecutor + OPS styling)
 3. **Basic data models** - ~3-5 days (simplified from current bloat)
-4. **Sharing system** - ~1 week (rebuild from scratch - current doesn't work)
+4. **Sharing system** - ~1 week (rebuild with OPS modals and buttons)
+5. **OPS Brand Integration** - ~2-3 days (apply style guide across all components)
 
 ### **REALISTIC Total Estimate: 5-8 MONTHS for complete rebuild**
 - **Phase 1: Foundation Cleanup** (2-3 months) - Simplify existing bloat
@@ -185,20 +186,23 @@ interface WalkthroughHotspot extends SlideElement {
 - Simplify test suite to essentials
 
 ### Phase 2: Core Functionality (2-3 months)  
-**Month 4**: Basic hotspot system
-- Simple editor with click-to-place hotspots
+**Month 4**: Basic hotspot system with OPS branding
+- Simple editor with click-to-place hotspots (OPS button styles)
 - Reuse EffectExecutor for interactions
 - Basic data persistence
+- **Apply OPS style guide**: Forms, buttons, color scheme
 
-**Month 5**: Viewer and navigation
-- Sequential hotspot navigation  
+**Month 5**: Viewer and navigation with brand consistency
+- Sequential hotspot navigation (OPS progress indicators)
 - Effect execution (reusing working system)
-- Simple sharing (rebuild from scratch)
+- Simple sharing (rebuild with OPS modals and callout boxes)
+- **OPS typography**: Apply Nunito font and heading hierarchy
 
-**Month 6**: Integration and polish
-- Connect all components
+**Month 6**: Integration and brand polish
+- Connect all components with consistent OPS styling
 - Cross-browser testing
 - Performance optimization
+- **Final brand integration**: Tables, tabs, error states
 
 ### Phase 3: Production Ready (1-2 months)
 **Month 7**: Final testing and deployment
@@ -469,7 +473,7 @@ Given the analysis showing 31,000+ lines of over-engineered code, **starting wit
 - ✅ EffectExecutor.ts (494 lines) - The only part that actually works
 - ✅ Basic Firebase configuration
 - ✅ Simple authentication flow
-- ✅ Color palettes and basic styling
+- ✅ **OPS Style Guide** (ops-style-guide.css) - Complete brand design system
 
 **What to Leave Behind:**
 - ❌ All 137 existing component files (too much technical debt)
@@ -482,6 +486,61 @@ Given the analysis showing 31,000+ lines of over-engineered code, **starting wit
 
 # ORIGINAL DETAILED REBUILD PLAN
 *The following represents the original overly-optimistic plan for reference*
+
+## OPS Style Guide Integration
+
+### Available OPS Brand Components
+
+**Color System:**
+- Primary Blue: `#2d3f89` - Main brand color for buttons, headers
+- Primary Red: `#ad2122` - Accent color for warnings, secondary headers  
+- Gray Scale: Complete spectrum from `#1a1a1a` to `#f3f3f3`
+- Success Green: `#2e8540` - For success states and confirmations
+- Warning Amber: `#f9c642` - For warnings and alerts
+
+**Typography (Nunito Font):**
+- `.title` - 26pt, for main application headers
+- `h1` - 22pt blue-dark, for page titles  
+- `h2` - 18pt red-light, for section headers
+- `h3` - 14pt gray, for subsection headers
+- `h4` - 12pt red-dark, for component headers
+
+**Interactive Elements:**
+- `.button-primary` - Blue buttons for main actions
+- `.button-secondary` - Gray buttons for secondary actions  
+- `.button-tertiary` - Outlined buttons for less prominent actions
+- Form elements with focus states and error styling
+- Progress indicators and tab interfaces
+
+**Layout Components:**
+- `.callout-info` - Blue information boxes
+- `.callout-warning` - Red warning/alert boxes
+- `.callout-note` - Gray note/tip boxes
+- Table styling with alternating row colors
+- Tab interface system
+
+### Hotspot App Brand Integration Plan
+
+**Editor Interface:**
+- Primary blue toolbar and main action buttons
+- Gray secondary buttons for utilities  
+- Red callout boxes for error states
+- Blue callout boxes for helpful tips
+- Nunito typography throughout
+
+**Viewer Interface:**
+- Progress indicators using OPS blue color scheme
+- Navigation buttons following OPS button hierarchy
+- Effect overlays maintaining brand consistency
+- Tab interface for multi-step walkthroughs
+
+**Sharing System:**
+- Modal dialogs using OPS color scheme
+- Primary blue "Share" and "Copy" buttons
+- Success green confirmations
+- Warning amber for limitations/restrictions
+
+---
 
 ### 📅 MONTH 1-2: Foundation Cleanup (Realistic: 2-3 months)
 
@@ -501,7 +560,7 @@ git add -A
 git commit -m "Phase 1: Remove complex/broken components for hotspot rebuild"
 ```
 
-#### Day 2: Core Type System
+#### Day 2: Core Type System + OPS Style Integration
 ```bash
 # 1. Create new hotspot types
 touch src/shared/hotspotTypes.ts
@@ -515,9 +574,13 @@ touch src/shared/hotspotTypes.ts
 touch src/client/utils/hotspotUtils.ts
 # Add functions: createHotspot(), updateHotspotSequence(), etc.
 
-# 4. Commit type system
+# 4. Integrate OPS Style Guide
+# Already added: src/client/styles/ops-style-guide.css
+# Import into globals.css or main index.css
+
+# 5. Commit type system and styling
 git add -A  
-git commit -m "Phase 2: Create simplified hotspot type system"
+git commit -m "Phase 2: Create simplified hotspot type system + OPS style integration"
 ```
 
 #### Day 3-4: Core Hotspot Components
@@ -525,11 +588,11 @@ git commit -m "Phase 2: Create simplified hotspot type system"
 # 1. Create hotspot components directory
 mkdir -p src/client/components/hotspot
 
-# 2. Build core components (in order):
-# - HotspotElement.tsx (simplest, base component)
-# - HotspotCanvas.tsx (click-to-place functionality)  
-# - HotspotEditor.tsx (main editor interface)
-# - HotspotPropertiesPanel.tsx (configuration)
+# 2. Build core components with OPS styling (in order):
+# - HotspotElement.tsx (using OPS color variables for hotspot indicators)
+# - HotspotCanvas.tsx (click-to-place with OPS button styling)  
+# - HotspotEditor.tsx (main interface using OPS layout and typography)
+# - HotspotPropertiesPanel.tsx (forms using OPS form styling)
 
 # 3. Test each component individually
 npm run dev

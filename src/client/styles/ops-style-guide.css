@@ -1,0 +1,391 @@
+/* ORGANIZATIONAL BRAND STYLE GUIDE - CSS REFERENCE */
+
+/* ===== COLOR VARIABLES ===== */
+:root {
+    /* Blue Variations */
+    --primary-blue: #2d3f89;
+    --blue-dark: #1d2a5d;
+    --blue-light: #4356a0;
+    --blue-lighter: #eaecf5;
+    
+    /* Red Variations */
+    --primary-red: #ad2122;
+    --red-dark: #7a1718;
+    --red-light: #c13435;
+    --red-lighter: #e5c7c7;
+    
+    /* Gray Variations */
+    --primary-gray: #666666;
+    --gray-darkest: #1a1a1a;
+    --gray-dark: #333333;
+    --gray-light: #999999;
+    --gray-lighter: #cccccc;
+    --gray-lightest: #f3f3f3;
+    
+    /* Additional Colors */
+    --success-green: #2e8540;
+    --warning-amber: #f9c642;
+    --white: #ffffff;
+    
+    /* Spacing & Sizing */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== TYPOGRAPHY ===== */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+
+body {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    color: var(--gray-dark);
+    line-height: 1.6;
+}
+
+/* Typography Hierarchy */
+.title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 26pt;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22pt;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+h2 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18pt;
+    font-weight: 700;
+    color: var(--red-light);
+}
+
+h3 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14pt;
+    font-weight: 700;
+    color: var(--primary-gray);
+}
+
+h4 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    font-weight: 700;
+    color: var(--red-dark);
+}
+
+p {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    color: var(--gray-dark);
+}
+
+/* ===== BUTTONS/CTAs ===== */
+.button {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Primary Button */
+.button-primary {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    border: none;
+}
+
+.button-primary:hover {
+    background-color: var(--blue-dark);
+}
+
+/* Secondary Button */
+.button-secondary {
+    background-color: var(--gray-light);
+    color: var(--white);
+    border: none;
+}
+
+.button-secondary:hover {
+    background-color: var(--primary-gray);
+}
+
+/* Tertiary/Outline Button */
+.button-tertiary {
+    background-color: var(--white);
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+}
+
+.button-tertiary:hover {
+    background-color: var(--blue-lighter);
+}
+
+/* ===== LINKS ===== */
+a {
+    color: var(--blue-light);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:visited {
+    color: var(--blue-dark);
+}
+
+a:hover, a:focus {
+    color: var(--primary-red);
+    text-decoration: underline;
+}
+
+/* ===== FORM ELEMENTS ===== */
+input, select, textarea {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    padding: 0.75rem;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--border-radius);
+    width: 100%;
+}
+
+/* Focus state */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(45, 63, 137, 0.2);
+}
+
+/* Error state */
+.error input, .error select, .error textarea {
+    border-color: var(--primary-red);
+}
+
+.error-message {
+    color: var(--primary-red);
+    font-size: 11pt;
+    margin-top: 0.25rem;
+}
+
+/* Checkbox & Radio */
+input[type="checkbox"], input[type="radio"] {
+    width: auto;
+    accent-color: var(--primary-blue);
+}
+
+/* ===== TABLE STYLES ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--gray-lighter);
+}
+
+th {
+    background-color: var(--primary-blue);
+    color: var(--blue-lighter);
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.75rem;
+}
+
+td {
+    padding: 0.75rem;
+    border: 1px solid var(--gray-lighter);
+}
+
+/* Alternating Rows */
+tr:nth-child(even) {
+    background-color: var(--white);
+}
+
+tr:nth-child(odd) {
+    background-color: var(--blue-lighter);
+}
+
+/* Cell Highlights */
+.primary-highlight {
+    background-color: var(--blue-lighter);
+}
+
+.secondary-highlight {
+    background-color: var(--red-lighter);
+}
+
+.strong-highlight {
+    background-color: var(--gray-lightest);
+    font-weight: bold;
+}
+
+/* ===== CALLOUT/INFO BOXES ===== */
+.callout {
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius);
+    border-left-width: 4px;
+    border-left-style: solid;
+}
+
+/* Information Box */
+.callout-info {
+    background-color: var(--blue-lighter);
+    border-left-color: var(--primary-blue);
+}
+
+/* Warning/Important Box */
+.callout-warning {
+    background-color: var(--red-lighter);
+    border-left-color: var(--primary-red);
+}
+
+/* Note/Tip Box */
+.callout-note {
+    background-color: var(--gray-lightest);
+    border-left-color: var(--primary-gray);
+}
+
+/* ===== QUOTE BLOCKS ===== */
+blockquote {
+    background-color: var(--blue-lighter);
+    border-left: 4px solid var(--primary-blue);
+    color: var(--gray-dark);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius);
+}
+
+/* ===== CODE/TECHNICAL BLOCKS ===== */
+pre {
+    background-color: var(--gray-lightest);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+code {
+    font-family: monospace;
+    background-color: var(--gray-lightest);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 90%;
+}
+
+/* ===== PROGRESS INDICATORS ===== */
+progress {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--gray-lighter);
+}
+
+progress::-webkit-progress-bar {
+    background-color: var(--gray-lighter);
+    border-radius: var(--border-radius);
+}
+
+progress::-webkit-progress-value {
+    background-color: var(--primary-blue);
+    border-radius: var(--border-radius);
+}
+
+progress::-moz-progress-bar {
+    background-color: var(--primary-blue);
+    border-radius: var(--border-radius);
+}
+
+/* ===== SELECTION STATES ===== */
+::selection {
+    background-color: var(--blue-lighter);
+    color: var(--primary-blue);
+}
+
+
+/* ===== TAB INTERFACE CSS ===== */
+
+/* Tab Container */
+.tab-container {
+    margin: 1.5rem 0;
+    width: 100%;
+}
+
+/* Tab Navigation */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--gray-lighter);
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+/* Tab Buttons */
+.tab-button {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background-color: var(--gray-lightest);
+    border: 1px solid var(--gray-lighter);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--gray-dark);
+    position: relative;
+    transition: all 0.3s ease;
+    text-align: center;
+    margin-right: 2px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12pt;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+/* Hover State */
+.tab-button:hover {
+    background-color: var(--blue-lighter);
+}
+
+/* Active Tab */
+.tab-button.active {
+    color: var(--white);
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    z-index: 1;
+}
+
+/* Active Tab Indicator */
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-blue);
+}
+
+/* Tab Content Panels */
+.tab-content {
+    display: none;
+    padding: 1rem 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .tab-button {
+        padding: 0.75rem 1rem;
+        font-size: 11pt;
+    }
+}
