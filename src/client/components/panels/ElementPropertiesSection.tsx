@@ -94,20 +94,6 @@ const ElementPropertiesSection: React.FC<ElementPropertiesSectionProps> = ({
           </div>
         )}
 
-        {/* Display Mode */}
-        <div>
-          <label className={FORM_STYLES.label}>Display Mode</label>
-          <select
-            value={element.content?.displayMode || 'inline'}
-            onChange={(e) => handleContentUpdate({ displayMode: e.target.value as 'inline' | 'modal' | 'overlay' })}
-            className={FORM_STYLES.select}
-          >
-            <option value="inline">Inline</option>
-            <option value="modal">Modal</option>
-            <option value="overlay">Overlay</option>
-          </select>
-        </div>
-
         {/* Visibility Toggle */}
         <div className="flex items-center space-x-2">
           <input

@@ -5,7 +5,7 @@
  * to provide consistent styling across hotspots, modals, and other interactive elements.
  */
 
-import { ProjectTheme, ThemePresetDefinition, ThemePreset } from './slideTypes';
+import { ProjectTheme, ThemePreset } from './slideTypes';
 
 // Base typography and effects used across all themes
 const baseTypography = {
@@ -64,7 +64,6 @@ const professionalTheme: ProjectTheme = {
     secondary: '#64748b',     // Slate-500
     accent: '#06b6d4',       // Cyan-500
     background: '#f8fafc',   // Slate-50
-    surface: '#ffffff',      // White
     text: '#1e293b',         // Slate-800
     textSecondary: '#64748b', // Slate-500
     success: '#10b981',      // Emerald-500
@@ -94,7 +93,6 @@ const vibrantTheme: ProjectTheme = {
     secondary: '#7c3aed',     // Violet-600
     accent: '#f59e0b',       // Amber-500
     background: '#fefefe',   // Near white
-    surface: '#ffffff',      // White
     text: '#111827',         // Gray-900
     textSecondary: '#6b7280', // Gray-500
     success: '#059669',      // Emerald-600
@@ -114,36 +112,6 @@ const vibrantTheme: ProjectTheme = {
   effects: baseEffects
 };
 
-// Earth Tones Theme - Warm, natural colors
-const earthTheme: ProjectTheme = {
-  id: 'earth',
-  name: 'Earth Tones',
-  description: 'Warm, natural colors inspired by nature',
-  colors: {
-    primary: '#92400e',      // Amber-800
-    secondary: '#78716c',     // Stone-500
-    accent: '#ea580c',       // Orange-600
-    background: '#fefdf8',   // Warm white
-    surface: '#fffbeb',      // Amber-50
-    text: '#44403c',         // Stone-700
-    textSecondary: '#78716c', // Stone-500
-    success: '#16a34a',      // Green-600
-    warning: '#ca8a04',      // Yellow-600
-    error: '#dc2626',        // Red-600
-    // Hotspot colors
-    hotspotDefault: '#92400e',   // Amber-800
-    hotspotHover: '#78350f',     // Amber-900
-    hotspotActive: '#451a03',    // Amber-950
-    hotspotPulse: '#d97706',     // Amber-600
-    // Modal colors
-    modalBackground: '#fffbeb',  // Amber-50
-    modalOverlay: 'rgba(146, 64, 14, 0.3)', // Amber overlay
-    modalBorder: '#fed7aa'       // Orange-200
-  },
-  typography: baseTypography,
-  effects: baseEffects
-};
-
 // Dark Theme - High contrast dark mode
 const darkTheme: ProjectTheme = {
   id: 'dark',
@@ -154,7 +122,6 @@ const darkTheme: ProjectTheme = {
     secondary: '#94a3b8',     // Slate-400
     accent: '#34d399',       // Emerald-400
     background: '#0f172a',   // Slate-900
-    surface: '#1e293b',      // Slate-800
     text: '#f1f5f9',         // Slate-100
     textSecondary: '#94a3b8', // Slate-400
     success: '#34d399',      // Emerald-400
@@ -184,7 +151,6 @@ const customTheme: ProjectTheme = {
     secondary: '#64748b',
     accent: '#06b6d4',
     background: '#ffffff',
-    surface: '#f8fafc',
     text: '#1e293b',
     textSecondary: '#64748b',
     success: '#10b981',
@@ -203,46 +169,20 @@ const customTheme: ProjectTheme = {
 };
 
 // Export all theme presets
-export const themePresets: Record<ThemePreset, ThemePresetDefinition> = {
-  professional: {
-    id: 'professional',
-    name: 'Professional',
-    description: 'Clean, corporate look with blues and grays',
-    theme: professionalTheme
-  },
-  vibrant: {
-    id: 'vibrant',
-    name: 'Vibrant',
-    description: 'Bright, energetic colors with high contrast',
-    theme: vibrantTheme
-  },
-  earth: {
-    id: 'earth',
-    name: 'Earth Tones',
-    description: 'Warm, natural colors inspired by nature',
-    theme: earthTheme
-  },
-  dark: {
-    id: 'dark',
-    name: 'Dark Mode',
-    description: 'High contrast dark theme for modern interfaces',
-    theme: darkTheme
-  },
-  custom: {
-    id: 'custom',
-    name: 'Custom',
-    description: 'Create your own custom color palette',
-    theme: customTheme
-  }
+export const themePresets: Record<ThemePreset, ProjectTheme> = {
+  professional: professionalTheme,
+  vibrant: vibrantTheme,
+  dark: darkTheme,
+  custom: customTheme,
 };
 
 // Helper function to get theme by ID
 export function getThemeById(themeId: ThemePreset): ProjectTheme {
-  return themePresets[themeId].theme;
+  return themePresets[themeId];
 }
 
 // Helper function to get all available themes
-export function getAllThemes(): ThemePresetDefinition[] {
+export function getAllThemes(): ProjectTheme[] {
   return Object.values(themePresets);
 }
 

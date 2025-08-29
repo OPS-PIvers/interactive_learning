@@ -18,7 +18,6 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       defaultEffect = {
         id: generateEventId(),
         type: 'spotlight',
-        duration: 3000,
         parameters: {
           position: {
             x: element.position?.desktop?.x ?? 0,
@@ -27,10 +26,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
             height: element.position?.desktop?.height ?? 100,
           },
           shape: 'circle',
-          intensity: 70,
-          fadeEdges: true,
         },
-        easing: 'easeInOut',
       };
       break;
 
@@ -39,57 +35,11 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       defaultEffect = {
         id: generateEventId(),
         type: 'text',
-        duration: 5000,
         parameters: {
           text: element.content?.textContent || 'Text Element',
           position: element.position?.desktop,
-          style: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: 16,
-            borderRadius: 8,
-            fontSize: 16,
-          },
         },
-        easing: 'easeInOut',
       };
-      break;
-
-    case 'media':
-      // Default play media effect for media elements
-      if (element.content?.mediaUrl && (element.content?.mediaType === 'audio' || element.content?.mediaType === 'video')) {
-        defaultEffect = {
-          id: generateEventId(),
-          type: element.content.mediaType === 'video' ? 'video' : 'audio',
-          duration: 0, // Duration depends on media
-          parameters: {
-            mediaType: element.content.mediaType,
-            mediaUrl: element.content.mediaUrl,
-            autoplay: true,
-            controls: true,
-          },
-          easing: 'easeInOut',
-        };
-      } else {
-        // Fallback to spotlight if no media URL or if it's an image
-        defaultEffect = {
-          id: generateEventId(),
-          type: 'spotlight',
-          duration: 3000,
-          parameters: {
-            position: {
-              x: element.position?.desktop?.x ?? 0,
-              y: element.position?.desktop?.y ?? 0,
-              width: element.position?.desktop?.width ?? 100,
-              height: element.position?.desktop?.height ?? 100,
-            },
-            shape: 'circle',
-            intensity: 70,
-            fadeEdges: true,
-          },
-          easing: 'easeInOut',
-        };
-      }
       break;
 
     default:
@@ -97,7 +47,6 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
       defaultEffect = {
         id: generateEventId(),
         type: 'spotlight',
-        duration: 3000,
         parameters: {
           position: {
             x: element.position?.desktop?.x ?? 0,
@@ -106,10 +55,7 @@ export function createDefaultClickInteraction(element: SlideElement): ElementInt
             height: element.position?.desktop?.height ?? 100,
           },
           shape: 'circle',
-          intensity: 70,
-          fadeEdges: true,
         },
-        easing: 'easeInOut',
       };
   }
 

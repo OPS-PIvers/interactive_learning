@@ -1,696 +1,147 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../../lib/authContext';
-import { appScriptProxy } from '../../lib/firebaseProxy';
-import { demoModuleData } from '../../shared/demos/module';
-import { createDemoSlideDeck } from '../../shared/demos/slideDeck';
-import { SlideDeck, ThemePreset, BackgroundMedia } from '../../shared/slideTypes';
-import { Project, InteractiveModuleState } from '../../shared/types';
-import { ensureProjectCompatibility } from '../../shared/migrationUtils';
-import { createDefaultSlideDeck } from '../utils/slideDeckUtils';
-import { setDynamicViewportProperties } from '../utils/viewportUtils';
-import { Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
-import AuthButton from './auth/AuthButton';
-import { AuthModal } from './auth/AuthModal';
-import EditorTestPage from './testing/EditorTestPage';
-import HookErrorBoundary from './shared/HookErrorBoundary';
-import { Icon } from './Icon';
-import InteractiveModuleWrapper from './views/InteractiveModuleWrapper';
-import ProjectCard from './ui/ProjectCard';
-import ScrollStacks from './views/ScrollStacks';
-import SharedModuleViewer from './views/SharedModuleViewer';
-import SlideBasedTestPage from './testing/SlideBasedTestPage';
-import { GradientCreateButton } from './ui/GradientCreateButton';
-import ViewerView from './views/ViewerView';
+import React, { useState, useEffect } from 'react';
+import { firebaseAPI } from '../../lib/firebaseApi';
+import { DevAuthBypass, TEST_USERS } from '../../lib/testAuthUtils';
+import { SlideDeck } from '../../shared/slideTypes';
+import SlideViewer from './viewer/SlideViewer';
 
-
-const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen-dynamic flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-      <p className="mt-4 text-gray-600">Loading...</p>
-    </div>
-  </div>
-);
-
-// Main App Component for authenticated users
-const MainApp: React.FC = () => {
-  const { user, loading, logout } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isProjectDetailsLoading, setIsProjectDetailsLoading] = useState<boolean>(false);
-  const [_isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+const App: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(null);
+  const [editableTitle, setEditableTitle] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
-  const [_showAuthModal, setShowAuthModal] = useState(false);
-  const [showInitialAnimation, setShowInitialAnimation] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   useEffect(() => {
-    const cleanupVhUpdater = setDynamicViewportProperties();
-    
-    // Add touch editing body class for touch-capable devices
-    const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (hasTouchSupport) {
-      document.body?.classList.add('touch-editing');
+    // Enable dev auth bypass
+    const devBypass = DevAuthBypass.getInstance();
+    if (devBypass.isEnabled()) {
+      const bypassUser = devBypass.getBypassUser();
+      setUser(bypassUser);
+    } else {
+        // In a real app, you'd have a proper auth flow.
+        // For now, we'll just set a default test user.
+        console.warn("Dev auth bypass not enabled. Forcing test user.");
+        devBypass.setBypassUser(TEST_USERS.DEVELOPER);
+        setUser(devBypass.getBypassUser());
     }
-    
-    return () => {
-      cleanupVhUpdater();
-      if (hasTouchSupport) {
-        document.body?.classList.remove('touch-editing');
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const storedProjectId = localStorage.getItem('projectId');
+      if (storedProjectId) {
+        setProjectId(storedProjectId);
+      } else {
+        console.log("No project ID found, creating a new one...");
+        firebaseAPI.createProjectForUser(user.uid, "My New Project")
+          .then(newProjectId => {
+            localStorage.setItem('projectId', newProjectId);
+            setProjectId(newProjectId);
+          })
+          .catch(err => {
+            console.error("Failed to create project:", err);
+            setError("Could not create a new project.");
+          });
       }
-    };
-  }, []);
-
-  // Handle initial animation timing
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowInitialAnimation(false);
-    }, 2000); // Show animation for 2 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Load projects only when user is authenticated
-  const loadProjects = useCallback(async () => {
-    if (!user) {
-      setProjects([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Firebase connection manager handles initialization automatically
-      // Only call init once during app lifecycle, not on every project load
-      const fetchedProjects = await appScriptProxy.listProjects();
-      
-      // Ensure all projects have proper compatibility between legacy and new formats
-      const migratedProjects = fetchedProjects.map(project => ensureProjectCompatibility(project));
-      setProjects(migratedProjects);
-    } catch (err: unknown) {
-      console.error("Failed to load projects:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Please try again later.';
-      setProjects([]); 
-      setError(`Could not load projects: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
     }
   }, [user]);
 
-  // Initialize Firebase once when app starts
-  // Temporarily disabled Firebase initialization
-  // useEffect(() => {
-  //   const initializeFirebase = async () => {
-  //     try {
-  //       await appScriptProxy.init();
-  //     } catch (error) {
-  //       console.error('Failed to initialize Firebase:', error);
-  //     }
-  //   };
-  //   initializeFirebase();
-  // }, []);
-
-  // Load projects when user authentication state changes
   useEffect(() => {
-    if (!loading) {
-      loadProjects();
-    }
-  }, [user, loading, loadProjects]);
-
-  const loadProjectDetailsAndOpenEditor = useCallback(async (project: Project) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    setIsProjectDetailsLoading(true);
-    setError(null);
-    try {
-      // Enhanced condition to properly detect when details need loading
-      const needsDetailLoad = !project.interactiveData?.hotspots ||
-                             !project.interactiveData?.timelineEvents ||
-                             project.interactiveData?.hotspots?.length === 0 ||
-                             project.interactiveData?.timelineEvents?.length === 0 ||
-                             (project.interactiveData as InteractiveModuleState & { _needsDetailLoad?: boolean })?._needsDetailLoad;
-
-      if (needsDetailLoad) {
-        const details = await appScriptProxy.getProjectDetails(project.id) as InteractiveModuleState;
-        
-        // Validate that we actually got data
-        if (!details?.hotspots && !details?.timelineEvents) {
-          console.warn(`No details returned for project ${project.id}, using empty data`);
-        }
-        
-        const newBackgroundImage = details?.backgroundImage !== undefined ? details.backgroundImage : project.interactiveData?.backgroundImage;
-        const updatedProject = {
-          ...project,
-          interactiveData: {
-            ...project.interactiveData,
-            hotspots: details?.hotspots || [],
-            timelineEvents: details?.timelineEvents || [],
-            ...(newBackgroundImage !== undefined && { backgroundImage: newBackgroundImage }),
-            ...(details?.imageFitMode && { imageFitMode: details.imageFitMode }),
+    if (user && projectId) {
+      setIsLoading(true);
+      firebaseAPI.loadSlideDeck(user.uid, projectId)
+        .then(deck => {
+          setSlideDeck(deck);
+          if (deck) {
+            setEditableTitle(deck.title);
           }
-        };
-        
-        // Remove the loading flag
-        if (updatedProject.interactiveData) {
-          delete (updatedProject.interactiveData as InteractiveModuleState & { _needsDetailLoad?: boolean })._needsDetailLoad;
-        }
-        
-        setSelectedProject(updatedProject);
-        setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p));
-      } else {
-        setSelectedProject(project);
-      }
-      setIsEditingMode(true);
-      setIsModalOpen(true);
-    } catch (err: unknown) {
-      console.error(`Failed to load project details for ${project.id}:`, err);
-      setError(`Could not load project details: ${(err as Error)?.message || 'Please try again.'}`);
-      setSelectedProject(null);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          console.error("Failed to load slide deck:", err);
+          setError(`Could not load slide deck: ${err.message}`);
+          setIsLoading(false);
+        });
+    }
+  }, [user, projectId]);
+
+  const handleSaveTitle = async () => {
+    if (!user || !slideDeck) return;
+
+    setIsSaving(true);
+    const updatedDeck: SlideDeck = { ...slideDeck, title: editableTitle };
+
+    try {
+      await firebaseAPI.saveSlideDeck(user.uid, updatedDeck);
+      setSlideDeck(updatedDeck);
+    } catch (err) {
+      console.error("Failed to save title:", err);
+      setError("Could not save the new title.");
+      // Optionally, revert the title change in the UI
+      setEditableTitle(slideDeck.title);
     } finally {
-      setIsProjectDetailsLoading(false);
+      setIsSaving(false);
     }
-  }, [user]);
-
-  const handleEditProject = useCallback((project: Project) => {
-    loadProjectDetailsAndOpenEditor(project);
-  }, [loadProjectDetailsAndOpenEditor]);
-  
-  // Helper function to reduce code duplication
-  const createAndSetupProject = useCallback(async (title: string, description: string, demoData?: unknown) => {
-    setIsLoading(true);
-    try {
-      const newProject = await appScriptProxy.createProject(title, description);
-      let finalProject = newProject;
-
-      // Set project type to 'slide' for new projects (this is the slides-based app)
-      const projectWithSlideType = {
-        ...newProject,
-        projectType: 'slide' as const,
-        slideDeck: demoData ? createDemoSlideDeck() : createDefaultSlideDeck(newProject.id, newProject.title),
-      };
-
-      // If demo data is provided, save it with the project
-      if (demoData) {
-        const projectWithDemoData = {
-          ...projectWithSlideType,
-          interactiveData: demoData,
-        };
-        
-        try {
-          await appScriptProxy.saveProject(projectWithDemoData);
-          finalProject = projectWithDemoData;
-        } catch (saveErr: unknown) {
-          console.error("Failed to save demo project data:", saveErr);
-          setError(`Failed to save demo project data: ${saveErr instanceof Error ? saveErr.message : 'Please try again.'}`);
-          return;
-        }
-      } else {
-        // For projects without demo data, still need to save the project type
-        try {
-          await appScriptProxy.saveProject(projectWithSlideType);
-          finalProject = projectWithSlideType;
-        } catch (saveErr: unknown) {
-          console.error("Failed to save project type:", saveErr);
-          setError(`Failed to save project: ${saveErr instanceof Error ? saveErr.message : 'Please try again.'}`);
-          return;
-        }
-      }
-
-      setProjects(prevProjects => [...prevProjects, finalProject]);
-      setSelectedProject(finalProject);
-      setIsEditingMode(true);
-      setIsModalOpen(true);
-    } catch (err: unknown) {
-      console.error("Failed to create project:", err);
-      setError(`Failed to create new project: ${(err as Error)?.message || ''}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleCreateNewProject = useCallback(async () => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    const createDemo = window.confirm("Create a new project from the demo module? \n\nChoose 'Cancel' to create a blank project.");
-
-    if (createDemo) {
-      await createAndSetupProject("Demo Module", "A module demonstrating all features.", demoModuleData);
-    } else {
-      const title = prompt("Enter new project title:");
-      if (!title) return;
-      const description = prompt("Enter project description (optional):") || "";
-      await createAndSetupProject(title, description);
-    }
-  }, [user, createAndSetupProject]);
-
-  const handleCloseModal = useCallback((moduleCleanupCompleteCallback?: () => void) => {
-    if (moduleCleanupCompleteCallback && typeof moduleCleanupCompleteCallback === 'function') {
-      moduleCleanupCompleteCallback();
-    }
-
-    setIsModalOpen(false);
-    setSelectedProject(null);
-    setIsEditingMode(false);
-    loadProjects();
-  }, [loadProjects]);
-
-  const handleSaveProjectData = useCallback(async (projectId: string, data: InteractiveModuleState, thumbnailUrl?: string, slideDeck?: SlideDeck) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    const projectToSave = projects.find(p => p.id === projectId);
-    if (!projectToSave) {
-      setError("Project not found for saving.");
-      return;
-    }
-
-    const newThumbnailUrl = thumbnailUrl || projectToSave?.thumbnailUrl;
-    const projectDataToSend: Project = {
-      ...projectToSave,
-      interactiveData: data,
-      ...(newThumbnailUrl && { thumbnailUrl: newThumbnailUrl }),
-      ...(slideDeck && { slideDeck: slideDeck }),
-    };
-    
-    setIsLoading(true);
-    try {
-      const savedProjectWithPotentiallyNewThumbnail = await appScriptProxy.saveProject(projectDataToSend);
-
-      setProjects(prevProjects =>
-        prevProjects.map(p => (p.id === projectId ? savedProjectWithPotentiallyNewThumbnail : p))
-      );
-
-      if (selectedProject?.id === projectId) {
-        setSelectedProject(savedProjectWithPotentiallyNewThumbnail);
-      }
-
-    } catch (err: unknown) {
-      console.error("Failed to save project:", err);
-      setError(`Failed to save project data: ${(err as Error)?.message || ''}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, projects, selectedProject]);
-
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!user || !selectedProject?.id) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    setIsLoading(true);
-    console.log('Starting image upload:', { fileName: file.name, fileSize: file.size, projectId: selectedProject.id });
-    
-    try {
-      const imageUrl = await appScriptProxy.uploadImage(file, selectedProject.id);
-      console.log('Image upload successful:', { imageUrl });
-      
-      // Create background media object in the new slide format
-      const backgroundMedia: BackgroundMedia = {
-        type: 'image',
-        url: imageUrl
-      };
-      
-      // Update legacy interactiveData for backward compatibility
-      const updatedData = {
-        ...selectedProject?.interactiveData,
-        backgroundImage: imageUrl,
-      };
-      
-      // Update slide deck if it exists (new slide architecture)
-      let updatedSlideDeck: SlideDeck | undefined = selectedProject.slideDeck;
-      if (updatedSlideDeck?.slides && updatedSlideDeck.slides.length > 0) {
-        // Update the first slide's background media
-        updatedSlideDeck = {
-          ...updatedSlideDeck,
-          slides: updatedSlideDeck.slides.map((slide, index) => 
-            index === 0 ? { ...slide, backgroundMedia } : slide
-          )
-        };
-      } else if (updatedSlideDeck) {
-        // Create a default slide with the background if none exists
-        updatedSlideDeck = {
-          ...updatedSlideDeck,
-          slides: [{
-            id: 'default-slide',
-            title: selectedProject.title,
-            backgroundMedia,
-            elements: [],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              scaling: 'fit',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }
-          }]
-        };
-      } else {
-        // Create a new slide deck if none exists
-        updatedSlideDeck = {
-          id: selectedProject.id,
-          title: selectedProject.title,
-          slides: [{
-            id: 'default-slide',
-            title: selectedProject.title,
-            backgroundMedia,
-            elements: [],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              scaling: 'fit',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }
-          }],
-          settings: {
-            autoAdvance: false,
-            allowNavigation: true,
-            showProgress: true,
-            showControls: true,
-            keyboardShortcuts: true,
-            touchGestures: true,
-            fullscreenMode: false
-          },
-          metadata: {
-            created: Date.now(),
-            modified: Date.now(),
-            version: '1.0.0',
-            isPublic: false
-          }
-        };
-      }
-      
-      const updatedProject: Project = {
-        ...selectedProject,
-        interactiveData: updatedData,
-        slideDeck: updatedSlideDeck
-      };
-
-      // Update local project state first to ensure React state is current
-      setProjects(prev => prev.map(p => 
-        p.id === selectedProject?.id ? updatedProject : p
-      ));
-      setSelectedProject(updatedProject as Project);
-      
-      // Use a small delay to ensure React state has propagated before saving
-      await new Promise(resolve => {
-        setTimeout(resolve, 50);
-      });
-      
-      if (!selectedProject) return;
-      await handleSaveProjectData(selectedProject.id, updatedData as InteractiveModuleState, undefined, updatedSlideDeck);
-      console.log('Project data saved successfully with new background image');
-    } catch (err: unknown) {
-      console.error("Failed to upload image:", err);
-      
-      // Provide more helpful error messages based on error type
-      let errorMessage = 'Unknown error occurred';
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
-      }
-      
-      // Check for common Firebase Storage errors and provide user-friendly messages
-      if (errorMessage.includes('storage/unauthorized')) {
-        errorMessage = 'You do not have permission to upload images. Please check your authentication.';
-      } else if (errorMessage.includes('storage/canceled')) {
-        errorMessage = 'Image upload was canceled.';
-      } else if (errorMessage.includes('storage/timeout')) {
-        errorMessage = 'Image upload timed out. Please check your internet connection and try again.';
-      } else if (errorMessage.includes('storage/invalid-format')) {
-        errorMessage = 'Invalid image format. Please use JPG, PNG, or other supported image formats.';
-      } else if (errorMessage.includes('storage/too-large')) {
-        errorMessage = 'Image file is too large. Please use an image smaller than 10MB.';
-      }
-      
-      setError(`Failed to upload background image: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, selectedProject, handleSaveProjectData]);
-
-  const handleDeleteProject = useCallback(async (projectId: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await appScriptProxy.deleteProject(projectId);
-      setProjects(prevProjects => prevProjects.filter(p => p.id !== projectId));
-      if (selectedProject?.id === projectId) {
-        handleCloseModal();
-      }
-    } catch (err: unknown) {
-      console.error("Failed to delete project:", err);
-      setError(`Failed to delete project: ${(err as Error)?.message || ''}`);
-    }
-    finally {
-      setIsLoading(false);
-    }
-  }, [user, selectedProject, handleCloseModal]);
-
-  const handleProjectThemeChange = useCallback(async (theme: ThemePreset) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (!selectedProject) {
-      setError("No project selected for saving theme.");
-      return;
-    }
-
-    const projectToUpdate = selectedProject;
-    const updatedProject = { ...projectToUpdate, theme };
-
-    // Optimistic update
-    setProjects(prevProjects =>
-      prevProjects.map(p => (p.id === projectToUpdate.id ? updatedProject : p))
-    );
-    setSelectedProject(updatedProject);
-
-    try {
-      await appScriptProxy.saveProject(updatedProject);
-    } catch (err: unknown) {
-      console.error("Failed to save project theme:", err);
-      setError(`Failed to save theme: ${(err as Error)?.message || ''}`);
-      // Rollback on error
-      setProjects(prevProjects =>
-        prevProjects.map(p => (p.id === projectToUpdate.id ? projectToUpdate : p))
-      );
-      setSelectedProject(projectToUpdate);
-    }
-  }, [user, selectedProject]);
-  
-  const handleModuleReloadRequest = useCallback(async () => {
-    if (selectedProject) {
-      const projectToReload = {
-        ...selectedProject,
-        interactiveData: {
-          ...selectedProject?.interactiveData,
-          hotspots: [],
-          timelineEvents: [],
-        }
-      };
-      await loadProjectDetailsAndOpenEditor(projectToReload as Project);
-    } else {
-      console.warn("Module reload requested, but no project is currently selected.");
-    }
-  }, [selectedProject, loadProjectDetailsAndOpenEditor]);
-
-  // Show loading screen while authentication is being determined
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  return (
-    <div className={`min-h-screen-dynamic bg-gradient-to-br from-slate-900 to-slate-800 text-white transition-all duration-2000 ${showInitialAnimation ? 'scale-105 opacity-95' : 'scale-100 opacity-100'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)', paddingLeft: '16px', paddingRight: '16px', paddingBottom: '16px' }}>
-      <header className="mb-6 sm:mb-8 text-center" style={{ paddingTop: '16px' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="block sm:hidden">
-            <div className={`flex justify-between items-center mb-3 px-2 transition-all duration-1000 delay-200 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
-              <GradientCreateButton
-                onClick={handleCreateNewProject}
-                size="medium"
-                variant="compact"
-              />
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  className="p-2 rounded-full hover:bg-slate-700 transition-colors"
-                  onClick={() => {
-                    // Settings functionality to be implemented
-                  }}
-                  aria-label="Settings"
-                >
-                  <Icon name="Settings" className="w-6 h-6 text-slate-300" />
-                </button>
-                <AuthButton variant="compact" size="small" />
-              </div>
-            </div>
-            <h1 className={`text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 leading-tight px-4 transition-all duration-1000 ${showInitialAnimation ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 translate-y-0 scale-100'}`}>
-              ExpliCoLearning
-            </h1>
-          </div>
-          
-          <div className={`hidden sm:flex justify-between items-center mb-2 transition-all duration-1000 delay-200 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`} style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)' }}>
-            <div className="flex-1 flex items-center space-x-4">
-              <span className="text-slate-300">
-                Welcome, {user?.displayName || user?.email}
-              </span>
-              <div className="h-6 w-px bg-slate-600" />
-              <button
-                onClick={async () => {
-                  try {
-                    await logout();
-                  } catch (error) {
-                    console.error('Sign out error:', error);
-                  }
-                }}
-                className="text-slate-300 hover:text-white transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-            <h1 className={`flex-shrink-0 text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 whitespace-nowrap transition-all duration-1000 ${showInitialAnimation ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 translate-y-0 scale-100'}`}>
-              ExpliCoLearning
-            </h1>
-            <div className="flex-1 flex justify-end items-center space-x-4">
-              <GradientCreateButton
-                onClick={handleCreateNewProject}
-                size="large"
-                variant="toolbar"
-              />
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-slate-700 transition-colors"
-                onClick={() => {
-                  // TODO: Implement settings functionality
-                }}
-                aria-label="Settings"
-              >
-                <Icon name="Settings" className="w-7 h-7 text-slate-300" />
-              </button>
-              <AuthButton variant="toolbar" size="medium" />
-            </div>
-          </div>
-        </div>
-        <p className={`text-slate-400 mt-2 text-base sm:text-lg px-4 transition-all duration-1000 delay-300 ${showInitialAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>Create and explore engaging interactive modules.</p>
-      </header>
-
-      <div className={`max-w-6xl mx-auto transition-all duration-1000 delay-500 ${showInitialAnimation ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>
-        {isLoading && !isProjectDetailsLoading && (
-          <div className="text-center py-10">
-            <p className="text-slate-400 text-xl">Loading projects...</p>
-          </div>
-        )}
-        {isProjectDetailsLoading && (
-          <div className={`fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center ${Z_INDEX_TAILWIND.LOADING_OVERLAY}`}>
-            <p className="text-slate-300 text-2xl">Loading project details...</p>
-          </div>
-        )}
-        {error && (
-          <div className="text-center py-10 bg-red-800/50 p-4 rounded-lg">
-            <p className="text-red-300 text-xl">{error}</p>
-            <button 
-              onClick={selectedProject ? () => loadProjectDetailsAndOpenEditor(selectedProject) : loadProjects}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        {!isLoading && !error && projects.length === 0 && !isProjectDetailsLoading && (
-          <div className="text-center py-10">
-            <p className="text-slate-500 text-xl">No projects yet. Try creating one!</p>
-          </div>
-        )}
-        {!isLoading && !error && projects.length > 0 && (
-          <ScrollStacks
-            projects={projects}
-            onEdit={handleEditProject}
-            onDelete={handleDeleteProject}
-          />
-        )}
-      </div>
-
-      {selectedProject && selectedProject.interactiveData && !isProjectDetailsLoading && (
-        <HookErrorBoundary>
-          <InteractiveModuleWrapper
-            selectedProject={selectedProject}
-            isEditingMode={isEditingMode}
-            onClose={handleCloseModal}
-            onSave={handleSaveProjectData}
-            onImageUpload={handleImageUpload}
-            onReloadRequest={handleModuleReloadRequest}
-            isPublished={selectedProject.isPublished ?? false}
-            onProjectThemeChange={handleProjectThemeChange}
-          />
-        </HookErrorBoundary>
-      )}
-    </div>
-  );
-};
-
-const AuthenticatedApp: React.FC = () => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  };
 
   if (!user) {
-    return <AuthModal isOpen={true} />;
+    return <div>Authenticating...</div>;
+  }
+
+  if (isLoading) {
+    return <div>Loading Slide Deck...</div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red' }}>Error: {error}</div>;
   }
 
   return (
-    <div className="h-screen-dynamic bg-gray-50 overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 0px)', paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <header style={{ marginBottom: '20px' }}>
+        <h1>ExpliCo</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="text"
+            value={editableTitle}
+            onChange={(e) => setEditableTitle(e.target.value)}
+            style={{ fontSize: '1.5rem', padding: '5px' }}
+            disabled={isSaving}
+          />
+          <button onClick={handleSaveTitle} disabled={isSaving || editableTitle === slideDeck?.title}>
+            {isSaving ? 'Saving...' : 'Save Title'}
+          </button>
+        </div>
+      </header>
+
       <main>
-        <MainApp />
+        {slideDeck && slideDeck.slides.length > 0 ? (
+          <>
+            <SlideViewer slideDeck={slideDeck} currentSlideIndex={currentSlideIndex} />
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
+              <button
+                onClick={() => setCurrentSlideIndex(i => Math.max(0, i - 1))}
+                disabled={currentSlideIndex === 0}
+              >
+                Previous Slide
+              </button>
+              <span>Slide {currentSlideIndex + 1} of {slideDeck.slides.length}</span>
+              <button
+                onClick={() => setCurrentSlideIndex(i => Math.min(slideDeck.slides.length - 1, i + 1))}
+                disabled={currentSlideIndex === slideDeck.slides.length - 1}
+              >
+                Next Slide
+              </button>
+            </div>
+          </>
+        ) : (
+          <p>This slide deck is empty.</p>
+        )}
       </main>
     </div>
-  );
-};
-
-// Firebase initialization is handled lazily by AuthProvider to prevent build issues
-
-// Main App Component with Routing and Authentication
-const App: React.FC = () => {
-  return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AuthenticatedApp />} />
-          <Route path="/view/:projectId" element={<ViewerView />} />
-          <Route path="/shared/:moduleId" element={
-            <div className="min-h-screen-dynamic bg-gray-50">
-              <main>
-                <SharedModuleViewer />
-              </main>
-            </div>
-          } />
-          <Route path="/slide-test" element={<SlideBasedTestPage />} />
-          <Route path="/mobile-test" element={<EditorTestPage />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
   );
 };
 

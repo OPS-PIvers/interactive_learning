@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ImageTransformState } from '../../shared/types';
 import { ViewportBounds } from '../utils/touchUtils';
+
+export interface ImageTransformState {
+  scale: number;
+  translateX: number;
+  translateY: number;
+}
 
 // Canvas dimension types
 export interface CanvasDimensions {

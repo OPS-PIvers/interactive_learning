@@ -27,15 +27,6 @@ const SlidePropertiesSection: React.FC<SlidePropertiesSectionProps> = ({
     });
   };
 
-  const handleLayoutUpdate = (layoutUpdates: Partial<InteractiveSlide['layout']>) => {
-    onUpdate({
-      layout: {
-        ...slide.layout,
-        ...layoutUpdates
-      }
-    });
-  };
-
   return (
     <div className="properties-section">
       <div className="properties-section__header">
@@ -76,14 +67,13 @@ const SlidePropertiesSection: React.FC<SlidePropertiesSectionProps> = ({
               value={slide.backgroundMedia?.type || 'color'}
               onChange={(e) => handleBackgroundMediaUpdate({ 
                 type: e.target.value as BackgroundMedia['type'],
-                ...(e.target.value === 'color' && { color: slide.backgroundColor || '#000000' })
+                ...(e.target.value === 'color' && { color: '#000000' })
               })}
               className={FORM_STYLES.select}
             >
               <option value="color">Solid Color</option>
               <option value="image">Image</option>
               <option value="video">Video</option>
-              <option value="youtube">YouTube Video</option>
               <option value="none">None</option>
             </select>
           </div>
@@ -95,19 +85,17 @@ const SlidePropertiesSection: React.FC<SlidePropertiesSectionProps> = ({
               <div className="flex space-x-2">
                 <input
                   type="color"
-                  value={slide.backgroundMedia.color || slide.backgroundColor || '#000000'}
+                  value={slide.backgroundMedia.color || '#000000'}
                   onChange={(e) => {
                     handleBackgroundMediaUpdate({ color: e.target.value });
-                    onUpdate({ backgroundColor: e.target.value });
                   }}
                   className={FORM_STYLES.colorInput}
                 />
                 <input
                   type="text"
-                  value={slide.backgroundMedia.color || slide.backgroundColor || '#000000'}
+                  value={slide.backgroundMedia.color || '#000000'}
                   onChange={(e) => {
                     handleBackgroundMediaUpdate({ color: e.target.value });
-                    onUpdate({ backgroundColor: e.target.value });
                   }}
                   className={`${FORM_STYLES.input} flex-1`}
                   placeholder="#000000"
@@ -132,104 +120,21 @@ const SlidePropertiesSection: React.FC<SlidePropertiesSectionProps> = ({
             </div>
           )}
 
-          {/* YouTube Video */}
-          {slide.backgroundMedia?.type === 'youtube' && (
-            <div>
-              <label className={FORM_STYLES.label}>YouTube Video ID</label>
-              <input
-                type="text"
-                value={slide.backgroundMedia.youtubeId || ''}
-                onChange={(e) => handleBackgroundMediaUpdate({ youtubeId: e.target.value })}
-                className={FORM_STYLES.input}
-                placeholder="e.g. dQw4w9WgXcQ"
-              />
-            </div>
-          )}
-
-          {/* Video/Audio Controls */}
-          {(slide.backgroundMedia?.type === 'video' || slide.backgroundMedia?.type === 'youtube') && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="autoplay"
-                  checked={slide.backgroundMedia.autoplay || false}
-                  onChange={(e) => handleBackgroundMediaUpdate({ autoplay: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="autoplay" className={FORM_STYLES.label}>Autoplay</label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="loop"
-                  checked={slide.backgroundMedia.loop || false}
-                  onChange={(e) => handleBackgroundMediaUpdate({ loop: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="loop" className={FORM_STYLES.label}>Loop</label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="muted"
-                  checked={slide.backgroundMedia.muted || false}
-                  onChange={(e) => handleBackgroundMediaUpdate({ muted: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="muted" className={FORM_STYLES.label}>Muted</label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="controls"
-                  checked={slide.backgroundMedia.controls || false}
-                  onChange={(e) => handleBackgroundMediaUpdate({ controls: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="controls" className={FORM_STYLES.label}>Show Controls</label>
-              </div>
-            </div>
-          )}
-
-          {/* Volume Control */}
-          {(slide.backgroundMedia?.type === 'video' || slide.backgroundMedia?.type === 'youtube') && (
+          {/* Image/Video URL */}
+          {(slide.backgroundMedia?.type === 'image' || slide.backgroundMedia?.type === 'video') && (
             <div>
               <label className={FORM_STYLES.label}>
-                Volume: {Math.round((slide.backgroundMedia.volume || 1) * 100)}%
+                {slide.backgroundMedia.type === 'image' ? 'Image URL' : 'Video URL'}
               </label>
               <input
-                type="range"
-                min="0"
-                max="100"
-                value={Math.round((slide.backgroundMedia.volume || 1) * 100)}
-                onChange={(e) => handleBackgroundMediaUpdate({ volume: Number(e.target.value) / 100 })}
-                className="w-full"
+                type="url"
+                value={slide.backgroundMedia.url || ''}
+                onChange={(e) => handleBackgroundMediaUpdate({ url: e.target.value })}
+                className={FORM_STYLES.input}
+                placeholder={`https://example.com/${slide.backgroundMedia.type === 'image' ? 'image.jpg' : 'video.mp4'}`}
               />
             </div>
           )}
-        </div>
-
-        {/* Layout Settings */}
-        <div className="space-y-4">
-          <h5 className="text-sm font-semibold text-gray-400">Layout</h5>
-          
-          <div>
-            <label className={FORM_STYLES.label}>Aspect Ratio</label>
-            <select
-              value={slide.layout?.aspectRatio || '16:9'}
-              onChange={(e) => handleLayoutUpdate({ aspectRatio: e.target.value })}
-              className={FORM_STYLES.select}
-            >
-              <option value="16:9">16:9 (Widescreen)</option>
-              <option value="4:3">4:3 (Standard)</option>
-              <option value="1:1">1:1 (Square)</option>
-              <option value="21:9">21:9 (Ultra-wide)</option>
-            </select>
-          </div>
         </div>
 
         {/* Element Summary */}
@@ -261,25 +166,6 @@ const SlidePropertiesSection: React.FC<SlidePropertiesSectionProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Metadata */}
-        {slide.metadata && (
-          <div className="space-y-4">
-            <h5 className="text-sm font-semibold text-gray-400">Metadata</h5>
-            
-            <div className="bg-gray-700 p-3 rounded text-sm space-y-1">
-              <div className="text-gray-400">
-                Created: {new Date(slide.metadata.created).toLocaleDateString()}
-              </div>
-              <div className="text-gray-400">
-                Modified: {new Date(slide.metadata.modified).toLocaleDateString()}
-              </div>
-              <div className="text-gray-400">
-                Version: {slide.metadata.version}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

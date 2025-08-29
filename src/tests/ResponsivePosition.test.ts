@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { ResponsivePosition, FixedPosition, DeviceType } from '../shared/slideTypes';
+import { ResponsivePosition, FixedPosition } from '../shared/slideTypes';
 
 // Test utilities for responsive positioning
 const createResponsivePosition = (
@@ -11,10 +11,6 @@ const createResponsivePosition = (
   tablet: tablet || { x: desktop.x * 0.8, y: desktop.y * 0.8, width: desktop.width * 0.8, height: desktop.height * 0.8 },
   mobile: mobile || { x: desktop.x * 0.6, y: desktop.y * 0.6, width: desktop.width * 0.6, height: desktop.height * 0.6 }
 });
-
-const getPositionForDevice = (position: ResponsivePosition, device: DeviceType): FixedPosition => {
-  return position[device];
-};
 
 const validatePosition = (position: FixedPosition): boolean => {
   return position.x >= 0 && 
@@ -90,22 +86,9 @@ describe('ResponsivePosition System Tests', () => {
         mobile: { x: 60, y: 60, width: 120, height: 90 }
       };
 
-      expect(getPositionForDevice(responsivePos, 'desktop')).toEqual(responsivePos.desktop);
-      expect(getPositionForDevice(responsivePos, 'tablet')).toEqual(responsivePos.tablet);
-      expect(getPositionForDevice(responsivePos, 'mobile')).toEqual(responsivePos.mobile);
-    });
-
-    test('handles missing device positions gracefully', () => {
-      const responsivePos: ResponsivePosition = {
-        desktop: { x: 100, y: 100, width: 200, height: 150 },
-        tablet: { x: 80, y: 80, width: 160, height: 120 },
-        mobile: { x: 60, y: 60, width: 120, height: 90 }
-      };
-
-      // All positions are defined, so should work normally
-      expect(() => getPositionForDevice(responsivePos, 'desktop')).not.toThrow();
-      expect(() => getPositionForDevice(responsivePos, 'tablet')).not.toThrow();
-      expect(() => getPositionForDevice(responsivePos, 'mobile')).not.toThrow();
+      expect(responsivePos.desktop).toEqual(responsivePos.desktop);
+      expect(responsivePos.tablet).toEqual(responsivePos.tablet);
+      expect(responsivePos.mobile).toEqual(responsivePos.mobile);
     });
   });
 
@@ -274,9 +257,9 @@ describe('ResponsivePosition System Tests', () => {
       };
 
       // Should be able to get position for each device
-      const desktopPos = getPositionForDevice(slideElement.position, 'desktop');
-      const tabletPos = getPositionForDevice(slideElement.position, 'tablet');
-      const mobilePos = getPositionForDevice(slideElement.position, 'mobile');
+      const desktopPos = slideElement.position.desktop;
+      const tabletPos = slideElement.position.tablet;
+      const mobilePos = slideElement.position.mobile;
 
       expect(validatePosition(desktopPos)).toBe(true);
       expect(validatePosition(tabletPos)).toBe(true);
@@ -288,11 +271,11 @@ describe('ResponsivePosition System Tests', () => {
       const element2Pos = createResponsivePosition({ x: 300, y: 200, width: 100, height: 100 });
 
       // Check relative positioning is maintained across devices
-      const devices: DeviceType[] = ['desktop', 'tablet', 'mobile'];
+      const devices = ['desktop', 'tablet', 'mobile'] as const;
       
       devices.forEach(device => {
-        const pos1 = getPositionForDevice(element1Pos, device);
-        const pos2 = getPositionForDevice(element2Pos, device);
+        const pos1 = element1Pos[device];
+        const pos2 = element2Pos[device];
 
         // Element 2 should always be to the right and below element 1
         expect(pos2.x).toBeGreaterThan(pos1.x);
@@ -312,7 +295,7 @@ describe('ResponsivePosition System Tests', () => {
 
       // All positions should fit within their respective slide constraints
       Object.entries(slideConstraints).forEach(([device, constraints]) => {
-        const position = getPositionForDevice(elementPos, device as DeviceType);
+        const position = elementPos[device as keyof typeof elementPos];
         expect(isWithinBounds(position, constraints.width, constraints.height)).toBe(true);
       });
     });

@@ -1,4 +1,4 @@
-import { VideoSourceType } from '../../shared/types';
+export type VideoSourceType = 'youtube' | 'file' | 'url';
 
 const YOUTUBE_PATTERNS = [
   /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,

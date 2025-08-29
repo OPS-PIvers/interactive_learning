@@ -15,12 +15,7 @@ vi.mock('../client/hooks/useDeviceDetection', () => ({
     viewportInfo: {
       width: 1280,
       height: 800,
-      pixelRatio: 1,
-      orientation: 'landscape' as const
     },
-    deviceType: 'desktop' as const,
-    isPortrait: false,
-    isLandscape: true
   }))
 }));
 
@@ -422,12 +417,7 @@ describe('Edge Cases and Error Handling', () => {
         viewportInfo: {
           width: 100,
           height: 100,
-          pixelRatio: 1,
-          orientation: 'portrait'
         },
-        deviceType: 'mobile',
-        isPortrait: true,
-        isLandscape: false
       });
 
       const { result } = renderHook(() => useLayoutConstraints());
@@ -443,12 +433,7 @@ describe('Edge Cases and Error Handling', () => {
         viewportInfo: {
           width: 5000,
           height: 5000,
-          pixelRatio: 1,
-          orientation: 'landscape'
         },
-        deviceType: 'desktop',
-        isPortrait: false,
-        isLandscape: true
       });
 
       const { result } = renderHook(() => useLayoutConstraints());

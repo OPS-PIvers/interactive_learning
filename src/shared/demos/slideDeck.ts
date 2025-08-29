@@ -16,8 +16,6 @@ export const createDemoSlideDeck = (): SlideDeck => {
       {
         id: 'demo-slide-1',
         title: 'Welcome to Interactive Learning',
-        backgroundColor: '#1e293b', // slate-800
-        backgroundImage: '',
         elements: [
           {
             id: 'welcome-title',
@@ -60,16 +58,12 @@ export const createDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: generateId(),
                   type: 'spotlight',
-                  duration: 4000,
-                  easing: 'ease-in-out',
                   parameters: {
                     position: {
                       x: 120, y: 220, width: 110, height: 110
                     },
                     shape: 'circle',
-                    intensity: 75,
-                    fadeEdges: true,
-                    message: '✨ Spotlight Effect Working! This hotspot is perfectly highlighted.'
+                    text: '✨ Spotlight Effect Working! This hotspot is perfectly highlighted.'
                   }
                 }
               }
@@ -81,7 +75,6 @@ export const createDemoSlideDeck = (): SlideDeck => {
               animation: {
                 type: 'pulse',
                 duration: 2000,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -105,20 +98,9 @@ export const createDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: generateId(),
                   type: 'text',
-                  duration: 3000,
-                  easing: 'ease-in-out',
                   parameters: {
                     text: '🎉 Text Overlay Working! This message appears with smooth animations.',
                     position: { x: 250, y: 180, width: 300, height: 100 },
-                    style: {
-                      backgroundColor: 'rgba(16, 185, 129, 0.95)', // emerald-500
-                      color: 'white',
-                      padding: 20,
-                      borderRadius: 12,
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                    }
                   }
                 }
               }
@@ -128,9 +110,8 @@ export const createDemoSlideDeck = (): SlideDeck => {
               borderRadius: 25,
               opacity: 0.9,
               animation: {
-                type: 'bounce',
+                type: 'pulse',
                 duration: 1500,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -147,25 +128,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Pan & Zoom',
               description: 'Click to zoom and center on this hotspot'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'pan_zoom',
-                  duration: 2500,
-                  easing: 'ease-in-out',
-                  parameters: {
-                    targetPosition: {
-                      x: 525, y: 225, width: 100, height: 100
-                    },
-                    zoomLevel: 2.0,
-                    centerOnTarget: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#8b5cf6', // violet-500
               borderRadius: 25,
@@ -173,7 +136,6 @@ export const createDemoSlideDeck = (): SlideDeck => {
               animation: {
                 type: 'glow',
                 duration: 3000,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -197,14 +159,9 @@ export const createDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: generateId(),
                   type: 'tooltip',
-                  duration: 3000,
-                  easing: 'ease-out',
                   parameters: {
                     text: 'This is a tooltip! Perfect for showing contextual information without interrupting the flow.',
                     position: 'top',
-                    maxWidth: 250,
-                    arrow: true,
-                    delay: 0
                   }
                 }
               }
@@ -228,25 +185,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Audio Player',
               description: 'Click to play audio content'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'audio',
-                  duration: 0, // Audio controls duration
-                  easing: 'ease-in-out',
-                  parameters: {
-                    mediaUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-                    mediaType: 'audio',
-                    autoplay: true,
-                    controls: true,
-                    volume: 0.7
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#06b6d4', // cyan-500
               borderRadius: 25,
@@ -266,25 +205,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Video Player',
               description: 'Click to play video content'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'video',
-                  duration: 0, // Video controls duration
-                  easing: 'ease-in-out',
-                  parameters: {
-                    mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-                    mediaType: 'video',
-                    autoplay: false,
-                    controls: true,
-                    volume: 0.8
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#dc2626', // red-600
               borderRadius: 25,
@@ -304,32 +225,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Interactive Quiz',
               description: 'Click to start a quiz question'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'quiz',
-                  duration: 0, // Quiz controls duration
-                  easing: 'ease-in-out',
-                  parameters: {
-                    question: 'What is the primary benefit of interactive learning?',
-                    questionType: 'multiple-choice',
-                    choices: [
-                      'Better engagement and retention',
-                      'Faster completion times',
-                      'Lower development costs',
-                      'Simpler content creation'
-                    ],
-                    correctAnswer: 'Better engagement and retention',
-                    explanation: 'Interactive learning increases engagement, which leads to better knowledge retention and understanding.',
-                    allowMultipleAttempts: false,
-                    resumeAfterCompletion: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#7c3aed', // violet-600
               borderRadius: 25,
@@ -358,21 +254,10 @@ export const createDemoSlideDeck = (): SlideDeck => {
             isVisible: true
           }
         ],
-        transitions: [],
-        layout: {
-          containerWidth: 800,
-          containerHeight: 600,
-          aspectRatio: '4:3',
-          scaling: 'fit',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }
       },
       {
         id: 'demo-slide-2',
         title: 'Media and Advanced Effects',
-        backgroundColor: '#0f172a', // slate-900
-        backgroundImage: '',
         elements: [
           {
             id: 'media-title',
@@ -408,24 +293,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Video Player',
               description: 'Click to open video in modal'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'video',
-                  duration: 0, // User controlled
-                  easing: 'ease-in-out',
-                  parameters: {
-                    mediaType: 'video',
-                    mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                    autoplay: true,
-                    controls: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#f59e0b', // amber-500
               borderRadius: 30,
@@ -445,24 +313,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Audio Player',
               description: 'Click to play audio'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'audio',
-                  duration: 0, // User controlled
-                  easing: 'ease-in-out',
-                  parameters: {
-                    mediaType: 'audio',
-                    mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-                    autoplay: true,
-                    controls: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#06b6d4', // cyan-500
               borderRadius: 30,
@@ -482,32 +333,7 @@ export const createDemoSlideDeck = (): SlideDeck => {
               title: 'Interactive Quiz',
               description: 'Click to answer a question'
             },
-            interactions: [
-              {
-                id: generateId(),
-                trigger: 'click',
-                effect: {
-                  id: generateId(),
-                  type: 'quiz',
-                  duration: 0, // User controlled
-                  easing: 'ease-in-out',
-                  parameters: {
-                    question: 'What is the main benefit of the new slide-based architecture?',
-                    questionType: 'multiple-choice',
-                    choices: [
-                      'Better performance',
-                      'Perfect positioning alignment',
-                      'More features',
-                      'Easier installation'
-                    ],
-                    correctAnswer: 'Perfect positioning alignment',
-                    explanation: 'The slide-based architecture eliminates coordinate calculation errors and ensures perfect alignment across all devices.',
-                    allowMultipleAttempts: true,
-                    resumeAfterCompletion: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#ec4899', // pink-500
               borderRadius: 30,
@@ -538,33 +364,17 @@ export const createDemoSlideDeck = (): SlideDeck => {
             isVisible: true
           }
         ],
-        transitions: [],
-        layout: {
-          containerWidth: 800,
-          containerHeight: 600,
-          aspectRatio: '4:3',
-          scaling: 'fit',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }
       }
     ],
     settings: {
-      autoAdvance: false,
-      autoAdvanceDelay: 5000,
       allowNavigation: true,
-      showProgress: true,
       showControls: true,
-      keyboardShortcuts: true,
-      touchGestures: true,
-      fullscreenMode: false
     },
     metadata: {
       created: Date.now(),
       modified: Date.now(),
       author: 'Demo System',
       version: '1.0.0',
-      tags: ['demo', 'interactive', 'tutorial'],
       isPublic: true
     }
   };

@@ -70,15 +70,6 @@ describe('FirebaseAPI - Slide Architecture', () => {
                 isVisible: true
               }
             ],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'contain',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -88,13 +79,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -132,15 +118,6 @@ describe('FirebaseAPI - Slide Architecture', () => {
             title: 'Original Slide',
             backgroundMedia: { type: 'image', url: 'original.jpg' },
             elements: [],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'contain',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -150,13 +127,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -208,13 +180,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -250,15 +217,6 @@ describe('FirebaseAPI - Slide Architecture', () => {
             title: 'Test Slide',
             backgroundMedia: { type: 'image', url: 'test.jpg' },
             elements: [],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'contain',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -268,13 +226,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -324,21 +277,12 @@ describe('FirebaseAPI - Slide Architecture', () => {
                   tablet: { x: 0, y: 0, width: 80, height: 40 },
                   mobile: { x: 0, y: 0, width: 60, height: 30 }
                 },
-                style: { fontSize: 16 },
+                style: { },
                 content: { textContent: 'Original text' },
                 interactions: [],
                 isVisible: true
               }
             ],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'contain',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -348,13 +292,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -426,15 +365,6 @@ describe('FirebaseAPI - Slide Architecture', () => {
                 isVisible: true
               }
             ],
-            transitions: [],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'contain',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -444,13 +374,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -491,13 +416,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -531,13 +451,8 @@ describe('FirebaseAPI - Slide Architecture', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 

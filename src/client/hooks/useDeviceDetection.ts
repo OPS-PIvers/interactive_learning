@@ -1,70 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import { DeviceType, FixedPosition, ResponsivePosition } from '../../shared/slideTypes';
+import { useState, useEffect } from 'react';
+import { FixedPosition, ResponsivePosition } from '../../shared/slideTypes';
 
-/**
- * Hook for viewport information
- * Used for mathematical calculations only - NOT for conditional UI rendering
- * UI responsiveness should be handled with CSS breakpoints
- */
 export const useDeviceDetection = () => {
-  const [viewportInfo, setViewportInfo] = useState(() => {
-    if (typeof window === 'undefined') {
-      return {
-        width: 1024,
-        height: 768,
-        pixelRatio: 1,
-        orientation: 'landscape'
-      };
-    }
-
-    return {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      pixelRatio: window.devicePixelRatio || 1,
-      orientation: window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
-    };
+  const [viewportInfo, setViewportInfo] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
 
   useEffect(() => {
-    const updateViewportInfo = () => {
+    const handleResize = () => {
       setViewportInfo({
         width: window.innerWidth,
         height: window.innerHeight,
-        pixelRatio: window.devicePixelRatio || 1,
-        orientation: window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
       });
     };
-
-    // Debounced resize handler
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(updateViewportInfo, 150);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-    window.addEventListener('orientationchange', updateViewportInfo);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', debouncedResize);
-      window.removeEventListener('orientationchange', updateViewportInfo);
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const deviceType: DeviceType = useMemo(() => {
-    if (viewportInfo.width < 768) return 'mobile';
-    if (viewportInfo.width < 1024) return 'tablet';
-    return 'desktop';
-  }, [viewportInfo.width]);
-
-  return {
-    viewportInfo,
-    deviceType,
-    // Orientation for calculations only
-    isPortrait: viewportInfo.orientation === 'portrait',
-    isLandscape: viewportInfo.orientation === 'landscape'
-  };
+  return { viewportInfo };
 };
 
 /**

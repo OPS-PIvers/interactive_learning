@@ -140,27 +140,6 @@ describe('React Hooks Compliance Tests', () => {
 
       // Result should have expected properties
       expect(typeof result.current.viewportInfo).toBe('object');
-      expect(typeof result.current.isPortrait).toBe('boolean');
-      expect(typeof result.current.isLandscape).toBe('boolean');
-    });
-
-    test('useToast hook maintains consistent behavior', async () => {
-      const { useToast, ToastProvider } = await import('../../client/hooks/useToast');
-
-      const { result } = renderHook(() => useToast(), {
-        wrapper: ({ children }) => {
-          return <ToastProvider>{children}</ToastProvider>;
-        }
-      });
-
-      // Should provide showToast function
-      expect(typeof result.current.showToast).toBe('function');
-
-      // Should not cause errors when called multiple times
-      expect(() => {
-        result.current.showToast({ title: 'Test message', type: 'success' });
-        result.current.showToast({ title: 'Another message', type: 'error' });
-      }).not.toThrow();
     });
   });
 

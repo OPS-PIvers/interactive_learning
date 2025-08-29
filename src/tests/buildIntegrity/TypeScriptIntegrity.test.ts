@@ -4,11 +4,9 @@ import {
   InteractiveSlide, 
   SlideElement, 
   ResponsivePosition, 
-  FixedPosition, 
-  DeviceType,
+  FixedPosition,
   SlideEffect,
   ElementInteraction,
-  SlideTransition
 } from '../../shared/slideTypes';
 
 describe('TypeScript Integration Tests', () => {
@@ -26,13 +24,8 @@ describe('TypeScript Integration Tests', () => {
           isPublic: false,
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -46,23 +39,13 @@ describe('TypeScript Integration Tests', () => {
       const testSlide: InteractiveSlide = {
         id: 'test-slide-id',
         title: 'Test Slide',
-        backgroundImage: 'test-background.jpg',
+        backgroundMedia: { type: 'image', url: 'test-background.jpg' },
         elements: [],
-        transitions: [],
-        layout: {
-          aspectRatio: '16:9',
-          backgroundSize: 'contain',
-          containerWidth: 1920,
-          containerHeight: 1080,
-          scaling: 'fit',
-          backgroundPosition: 'center center'
-        }
       };
 
       expect(testSlide.id).toBe('test-slide-id');
       expect(testSlide.title).toBe('Test Slide');
       expect(testSlide.elements).toEqual([]);
-      expect(testSlide.layout.aspectRatio).toBe('16:9');
     });
 
     test('SlideElement type supports all element types', () => {
@@ -96,9 +79,6 @@ describe('TypeScript Integration Tests', () => {
           mobile: { x: 120, y: 120, width: 180, height: 60 }
         },
         style: {
-          fontSize: 16,
-          color: '#000000',
-          fontWeight: 'bold'
         },
         content: {
           textContent: 'Test text content'
@@ -147,22 +127,6 @@ describe('TypeScript Integration Tests', () => {
       expect(typeof fixedPosition.width).toBe('number');
       expect(typeof fixedPosition.height).toBe('number');
     });
-
-    test('DeviceType enum is properly defined', () => {
-      const desktopDevice: DeviceType = 'desktop';
-      const tabletDevice: DeviceType = 'tablet';
-      const mobileDevice: DeviceType = 'mobile';
-
-      expect(desktopDevice).toBe('desktop');
-      expect(tabletDevice).toBe('tablet');
-      expect(mobileDevice).toBe('mobile');
-
-      // Test that only valid device types are allowed
-      const validDeviceTypes = ['desktop', 'tablet', 'mobile'];
-      expect(validDeviceTypes).toContain(desktopDevice);
-      expect(validDeviceTypes).toContain(tabletDevice);
-      expect(validDeviceTypes).toContain(mobileDevice);
-    });
   });
 
   describe('Interaction and Effect System', () => {
@@ -176,17 +140,14 @@ describe('TypeScript Integration Tests', () => {
           parameters: {
             position: { x: 100, y: 100, width: 50, height: 50 },
             shape: 'circle',
-            intensity: 80,
-            fadeEdges: true
+            message: 'A message',
           },
-          duration: 1000
         }
       };
 
       expect(interaction.id).toBe('interaction-1');
       expect(interaction.trigger).toBe('click');
       expect(interaction.effect.type).toBe('spotlight');
-      expect(interaction.effect.duration).toBe(1000);
     });
 
     test('SlideEffect supports different effect types', () => {
@@ -196,50 +157,22 @@ describe('TypeScript Integration Tests', () => {
         parameters: {
           position: { x: 0, y: 0, width: 100, height: 100 },
           shape: 'circle',
-          intensity: 75,
-          fadeEdges: true
         },
-        duration: 500
       };
 
-      const panZoomEffect: SlideEffect = {
-        id: 'pan-zoom-effect',
-        type: 'pan_zoom',
+      const textEffect: SlideEffect = {
+        id: 'text-effect',
+        type: 'text',
         parameters: {
-          targetPosition: { x: 200, y: 200, width: 300, height: 200 },
-          zoomLevel: 2.0,
-          duration: 1500
+            text: 'Hello',
+            position: { x: 0, y: 0, width: 100, height: 100 },
         },
-        duration: 1500
       };
 
       expect(spotlightEffect.type).toBe('spotlight');
-      expect(panZoomEffect.type).toBe('pan_zoom');
+      expect(textEffect.type).toBe('text');
       expect(spotlightEffect.parameters).toBeDefined();
-      expect(panZoomEffect.parameters).toBeDefined();
-    });
-
-    test('SlideTransition type supports navigation transitions', () => {
-      const transition: SlideTransition = {
-        id: 'transition-1',
-        fromSlideId: 'current-slide',
-        toSlideId: 'next-slide',
-        trigger: 'timer',
-        effect: {
-          type: 'slide',
-          direction: 'left',
-          duration: 500
-        },
-        conditions: [{
-          type: 'timeout',
-          value: 3000
-        }]
-      };
-
-      expect(transition.id).toBe('transition-1');
-      expect(transition.trigger).toBe('timer');
-      expect(transition.toSlideId).toBe('next-slide');
-      expect(transition.effect.type).toBe('slide');
+      expect(textEffect.parameters).toBeDefined();
     });
   });
 
@@ -253,7 +186,7 @@ describe('TypeScript Integration Tests', () => {
           {
             id: 'slide-1',
             title: 'Interactive Slide',
-            backgroundImage: 'background.jpg',
+            backgroundMedia: { type: 'color', color: '#ff0000'},
             elements: [
               {
                 id: 'element-1',
@@ -275,39 +208,13 @@ describe('TypeScript Integration Tests', () => {
                       parameters: {
                         text: 'You clicked the hotspot!',
                         position: { x: 150, y: 150, width: 200, height: 100 },
-                        style: { fontSize: 14, color: '#000000' }
                       },
-                      duration: 2000
                     }
                   }
                 ],
                 isVisible: true
               }
             ],
-            transitions: [
-              {
-                id: 'auto-transition',
-                fromSlideId: 'slide-1',
-                toSlideId: 'slide-2',
-                trigger: 'timer',
-                effect: {
-                  type: 'fade',
-                  duration: 1000
-                },
-                conditions: [{
-                  type: 'timeout',
-                  value: 5000
-                }]
-              }
-            ],
-            layout: {
-              aspectRatio: '16:9',
-              backgroundSize: 'cover',
-              containerWidth: 1920,
-              containerHeight: 1080,
-              scaling: 'fit',
-              backgroundPosition: 'center center'
-            }
           }
         ],
         metadata: {
@@ -317,13 +224,8 @@ describe('TypeScript Integration Tests', () => {
           isPublic: false
         },
         settings: {
-          autoAdvance: false,
           allowNavigation: true,
-          showProgress: true,
           showControls: true,
-          keyboardShortcuts: true,
-          touchGestures: true,
-          fullscreenMode: false,
         }
       };
 
@@ -331,7 +233,6 @@ describe('TypeScript Integration Tests', () => {
       expect(complexSlideDeck.slides).toHaveLength(1);
       expect(complexSlideDeck.slides[0]!.elements).toHaveLength(1);
       expect(complexSlideDeck.slides[0]!.elements[0]!.interactions).toHaveLength(1);
-      expect(complexSlideDeck.slides[0]!.transitions).toHaveLength(1);
     });
 
     test('type narrowing works correctly for element types', () => {
@@ -367,19 +268,10 @@ describe('TypeScript Integration Tests', () => {
         id: 'minimal-slide',
         title: 'Minimal Slide',
         elements: [],
-        transitions: [],
-        layout: {
-          aspectRatio: '16:9',
-          backgroundSize: 'contain',
-          containerWidth: 1920,
-          containerHeight: 1080,
-          scaling: 'fit',
-          backgroundPosition: 'center center'
-        }
       };
 
-      // backgroundImage is optional
-      expect(minimalSlide.backgroundImage).toBeUndefined();
+      // backgroundMedia is optional
+      expect(minimalSlide.backgroundMedia).toBeUndefined();
       expect(minimalSlide.elements).toEqual([]);
     });
 
@@ -388,14 +280,11 @@ describe('TypeScript Integration Tests', () => {
       const spotlightParameters = {
         position: { x: 0, y: 0, width: 100, height: 100 },
         shape: 'circle' as const,
-        intensity: 80,
-        fadeEdges: true
       };
 
       const textParameters = {
         text: 'Display text',
         position: { x: 50, y: 50, width: 200, height: 100 },
-        style: { fontSize: 16, color: '#000000' }
       };
 
       // Both should be valid EffectParameters
@@ -411,10 +300,7 @@ describe('TypeScript Integration Tests', () => {
         parameters: {
           position: { x: 0, y: 0, width: 100, height: 100 },
           shape: 'circle',
-          intensity: 80,
-          fadeEdges: true
         },
-        duration: 1000
       };
 
       expect(validSpotlightEffect.type).toBe('spotlight');
@@ -434,7 +320,7 @@ describe('TypeScript Integration Tests', () => {
         // Other properties are optional
       };
 
-      const slideKeys: SlideKeys[] = ['id', 'title', 'elements', 'transitions', 'layout'];
+      const slideKeys: SlideKeys[] = ['id', 'title', 'elements', 'backgroundMedia'];
       const elementTypes: ElementType[] = ['hotspot', 'text', 'media', 'shape'];
 
       expect(partialDeck.id).toBe('partial-deck');

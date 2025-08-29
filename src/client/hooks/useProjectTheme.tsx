@@ -61,14 +61,6 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
         colors: {
           ...currentTheme?.colors,
           ...(customThemeUpdates.colors || {})
-        },
-        typography: {
-          ...currentTheme?.typography,
-          ...(customThemeUpdates.typography || {})
-        },
-        effects: {
-          ...currentTheme?.effects,
-          ...(customThemeUpdates.effects || {})
         }
       };
       
@@ -80,45 +72,27 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
     }
   }, [currentTheme, currentThemeId, onThemeChange]);
 
-  // Get CSS styles for specific element types
   const applyThemeToElement = useCallback((elementType: 'hotspot' | 'modal' | 'text') => {
-    const { colors, effects, typography } = currentTheme || {};
+    const { colors } = currentTheme || {};
     
     switch (elementType) {
       case 'hotspot':
         return {
-          backgroundColor: colors?.hotspotDefault,
-          borderColor: colors?.hotspotDefault,
-          color: colors?.surface,
-          borderRadius: `${effects?.borderRadius?.large ?? 0}px`,
-          boxShadow: effects?.shadow?.medium,
-          '--hover-bg': colors?.hotspotHover,
-          '--active-bg': colors?.hotspotActive,
-          '--pulse-bg': colors?.hotspotPulse,
-          '--transition-duration': `${effects?.animation?.duration?.medium ?? 300}ms`,
-          '--transition-easing': effects?.animation?.easing?.easeInOut
+          backgroundColor: colors?.primary,
+          borderColor: colors?.primary,
+          color: colors?.text,
         } as Record<string, string>;
       
       case 'modal':
         return {
-          backgroundColor: colors?.modalBackground,
-          borderColor: colors?.modalBorder,
+          backgroundColor: colors?.background,
+          borderColor: colors?.secondary,
           color: colors?.text,
-          borderRadius: `${effects?.borderRadius?.medium ?? 0}px`,
-          boxShadow: effects?.shadow?.large,
-          '--overlay-bg': colors?.modalOverlay,
-          '--text-secondary': colors?.textSecondary,
-          '--border-radius-small': `${effects?.borderRadius?.small ?? 0}px`
         } as Record<string, string>;
       
       case 'text':
         return {
           color: colors?.text,
-          fontFamily: typography?.fontFamily,
-          fontSize: `${typography?.fontSize?.medium ?? 16}px`,
-          fontWeight: (typography?.fontWeight?.normal ?? 400).toString(),
-          lineHeight: (typography?.lineHeight?.medium ?? 1.5).toString(),
-          '--text-secondary': colors?.textSecondary,
           '--primary-color': colors?.primary,
           '--accent-color': colors?.accent
         } as Record<string, string>;
@@ -128,55 +102,15 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
     }
   }, [currentTheme]);
 
-  // Generate CSS custom properties for the current theme
   const getCSSVariables = useCallback(() => {
-    const { colors, typography, effects } = currentTheme || {};
+    const { colors } = currentTheme || {};
     
     return {
-      // Colors
       '--color-primary': colors?.primary,
       '--color-secondary': colors?.secondary,
       '--color-accent': colors?.accent,
       '--color-background': colors?.background,
-      '--color-surface': colors?.surface,
       '--color-text': colors?.text,
-      '--color-text-secondary': colors?.textSecondary,
-      '--color-success': colors?.success,
-      '--color-warning': colors?.warning,
-      '--color-error': colors?.error,
-      
-      // Hotspot colors
-      '--color-hotspot-default': colors?.hotspotDefault,
-      '--color-hotspot-hover': colors?.hotspotHover,
-      '--color-hotspot-active': colors?.hotspotActive,
-      '--color-hotspot-pulse': colors?.hotspotPulse,
-      
-      // Modal colors
-      '--color-modal-background': colors?.modalBackground,
-      '--color-modal-overlay': colors?.modalOverlay,
-      '--color-modal-border': colors?.modalBorder,
-      
-      // Typography
-      '--font-family': typography?.fontFamily,
-      '--font-size-small': `${typography?.fontSize?.small ?? 14}px`,
-      '--font-size-medium': `${typography?.fontSize?.medium ?? 16}px`,
-      '--font-size-large': `${typography?.fontSize?.large ?? 18}px`,
-      '--font-size-xlarge': `${typography?.fontSize?.xlarge ?? 24}px`,
-      '--font-weight-light': (typography?.fontWeight?.light ?? 300).toString(),
-      '--font-weight-normal': (typography?.fontWeight?.normal ?? 400).toString(),
-      '--font-weight-bold': (typography?.fontWeight?.bold ?? 700).toString(),
-      
-      // Effects
-      '--border-radius-small': `${effects?.borderRadius?.small ?? 0}px`,
-      '--border-radius-medium': `${effects?.borderRadius?.medium ?? 0}px`,
-      '--border-radius-large': `${effects?.borderRadius?.large ?? 0}px`,
-      '--shadow-small': effects?.shadow?.small,
-      '--shadow-medium': effects?.shadow?.medium,
-      '--shadow-large': effects?.shadow?.large,
-      '--animation-duration-fast': `${effects?.animation?.duration?.fast ?? 150}ms`,
-      '--animation-duration-medium': `${effects?.animation?.duration?.medium ?? 300}ms`,
-      '--animation-duration-slow': `${effects?.animation?.duration?.slow ?? 500}ms`,
-      '--animation-easing': effects?.animation?.easing?.ease
     };
   }, [currentTheme]);
 
@@ -186,7 +120,9 @@ export const ProjectThemeProvider: React.FC<ProjectThemeProviderProps> = ({
     const root = document.documentElement;
     
     Object.entries(cssVariables).forEach(([property, value]) => {
-      root.style.setProperty(property, value);
+      if (value) {
+        root.style.setProperty(property, value);
+      }
     });
     
     // Cleanup function to remove custom properties

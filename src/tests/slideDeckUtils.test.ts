@@ -21,17 +21,6 @@ describe('slideDeckUtils', () => {
       expect(defaultSlide.id).toBe('test-id-slide-1');
       expect(defaultSlide.title).toBe('Slide 1');
       expect(defaultSlide.elements).toEqual([]);
-      expect(defaultSlide.transitions).toEqual([]);
-      expect(defaultSlide.layout).toEqual({
-        aspectRatio: '16:9',
-        backgroundSize: 'cover',
-        containerWidth: 1920,
-        containerHeight: 1080,
-        scaling: 'fit',
-        backgroundPosition: 'center center'
-      });
-      expect(defaultSlide.metadata).toBeDefined();
-      expect(defaultSlide.metadata?.version).toBe('1.0');
     });
 
     it('should create unique slide IDs for different projects', () => {
@@ -48,13 +37,8 @@ describe('slideDeckUtils', () => {
       
       // Verify settings
       expect(slideDeck.settings).toEqual({
-        autoAdvance: false,
         allowNavigation: true,
-        showProgress: true,
         showControls: true,
-        keyboardShortcuts: true,
-        touchGestures: true,
-        fullscreenMode: false,
       });
       
       // Verify metadata

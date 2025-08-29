@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import React from 'react';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
-import { SlideDeck, InteractiveSlide, SlideElement, DeviceType } from '../../shared/slideTypes';
+import { SlideDeck, InteractiveSlide, SlideElement } from '../../shared/slideTypes';
 
 // Mock dependencies
 vi.mock('../../lib/authContext', () => ({
@@ -16,7 +16,7 @@ vi.mock('../../client/hooks/useToast', () => ({
 }));
 
 vi.mock('../../client/hooks/useDeviceDetection', () => ({
-  useDeviceDetection: () => ({ viewportInfo: { width: 1024, height: 768, pixelRatio: 1, orientation: 'landscape' }, isPortrait: false, isLandscape: true })
+  useDeviceDetection: () => ({ viewportInfo: { width: 1024, height: 768 } })
 }));
 
 vi.mock('../../lib/firebaseApi', () => ({
@@ -50,17 +50,7 @@ describe('Slide Editing Workflow Tests', () => {
       {
         id: 'slide-1',
         title: 'Test Slide 1',
-        backgroundImage: 'test-bg.jpg',
         elements: [],
-        transitions: [],
-        layout: {
-          aspectRatio: '16:9',
-          backgroundSize: 'contain',
-          containerWidth: 1920,
-          containerHeight: 1080,
-          scaling: 'fit',
-          backgroundPosition: 'center center'
-        }
       } as InteractiveSlide
     ],
     metadata: {
@@ -70,13 +60,8 @@ describe('Slide Editing Workflow Tests', () => {
       isPublic: false,
     },
     settings: {
-      autoAdvance: false,
       allowNavigation: true,
-      showProgress: true,
       showControls: true,
-      keyboardShortcuts: true,
-      touchGestures: true,
-      fullscreenMode: false,
     }
   };
 
@@ -223,7 +208,7 @@ describe('Slide Editing Workflow Tests', () => {
       };
 
       const ResponsivePositionTest: React.FC = () => {
-        const [currentDevice, setCurrentDevice] = React.useState<DeviceType>('desktop');
+        const [currentDevice, setCurrentDevice] = React.useState<'desktop' | 'tablet' | 'mobile'>('desktop');
         const position = testPosition[currentDevice];
 
         return (
@@ -304,7 +289,7 @@ describe('Slide Editing Workflow Tests', () => {
               tablet: { x: 160, y: 160, width: 240, height: 80 },
               mobile: { x: 120, y: 120, width: 180, height: 60 }
             },
-            style: { fontSize: 16, color: '#000000' },
+            style: { },
             content: { textContent: 'Sample text' },
             interactions: [],
             isVisible: true
@@ -536,13 +521,8 @@ describe('Slide Editing Workflow Tests', () => {
             isPublic: false,
           },
           settings: {
-            autoAdvance: false,
             allowNavigation: true,
-            showProgress: true,
             showControls: true,
-            keyboardShortcuts: true,
-            touchGestures: true,
-            fullscreenMode: false,
           }
         }));
 
@@ -553,15 +533,6 @@ describe('Slide Editing Workflow Tests', () => {
               id: `slide-${prev.slides.length + 1}`,
               title: `Slide ${prev.slides.length + 1}`,
               elements: [],
-              transitions: [],
-              layout: {
-                aspectRatio: '16:9',
-                backgroundSize: 'contain',
-                containerWidth: 1920,
-                containerHeight: 1080,
-                scaling: 'fit',
-                backgroundPosition: 'center center'
-              }
             } as InteractiveSlide]
           }));
         };

@@ -8,7 +8,6 @@
  */
 
 import { useMemo } from 'react';
-import { Z_INDEX, Z_INDEX_TAILWIND } from '../utils/zIndexLevels';
 import { useDeviceDetection } from './useDeviceDetection';
 import { useViewportHeight } from './useViewportHeight';
 
@@ -161,29 +160,29 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
 
     switch (type) {
       case 'properties':
-        backdrop = Z_INDEX.MODAL_BACKDROP;
-        content = Z_INDEX.PROPERTIES_PANEL;
-        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
-        tailwindContent = Z_INDEX_TAILWIND.PROPERTIES_PANEL;
+        backdrop = 9800;
+        content = 9900;
+        tailwindBackdrop = 'z-[9800]';
+        tailwindContent = 'z-[9900]';
         break;
       case 'confirmation':
-        backdrop = Z_INDEX.MODAL_BACKDROP;
-        content = Z_INDEX.CONFIRMATION_DIALOG;
-        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
-        tailwindContent = Z_INDEX_TAILWIND.CONFIRMATION_DIALOG;
+        backdrop = 9800;
+        content = 9950;
+        tailwindBackdrop = 'z-[9800]';
+        tailwindContent = 'z-[9950]';
         break;
       case 'fullscreen':
-        backdrop = Z_INDEX.MODAL_BACKDROP;
-        content = Z_INDEX.SYSTEM_MODAL;
-        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
-        tailwindContent = Z_INDEX_TAILWIND.SYSTEM_MODAL;
+        backdrop = 9800;
+        content = 10000;
+        tailwindBackdrop = 'z-[9800]';
+        tailwindContent = 'z-[10000]';
         break;
       case 'standard':
       default:
-        backdrop = Z_INDEX.MODAL_BACKDROP;
-        content = Z_INDEX.MODAL_CONTENT;
-        tailwindBackdrop = Z_INDEX_TAILWIND.MODAL_BACKDROP;
-        tailwindContent = Z_INDEX_TAILWIND.MODAL_CONTENT;
+        backdrop = 9800;
+        content = 9801;
+        tailwindBackdrop = 'z-[9800]';
+        tailwindContent = 'z-[9801]';
         break;
     }
 
@@ -222,7 +221,7 @@ export function useLayoutConstraints(options: ModalConstraintOptions = {}): Layo
     zIndex,
     cssVariables,
     layoutMode: 'standard', // This should be handled by CSS
-    orientation: viewportInfo.orientation as 'portrait' | 'landscape',
+    orientation: viewportInfo.width > viewportInfo.height ? 'landscape' : 'portrait',
     toolbarHeight,
     headerHeight,
   };

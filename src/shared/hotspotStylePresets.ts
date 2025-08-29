@@ -1,5 +1,3 @@
-import { HotspotData } from './types';
-
 /**
  * Hotspot Style Presets for ExpliCoLearning
  * 

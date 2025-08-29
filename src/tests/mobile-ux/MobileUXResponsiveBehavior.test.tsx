@@ -28,37 +28,16 @@ const mockSlides = [
     id: 'slide-1', 
     title: 'Slide 1', 
     elements: [], 
-    transitions: [],
-    layout: {
-      aspectRatio: '16:9',
-      scaling: 'fit' as const,
-      backgroundSize: 'cover' as const,
-      backgroundPosition: 'center'
-    }
   },
   { 
     id: 'slide-2', 
     title: 'Slide 2', 
     elements: [], 
-    transitions: [],
-    layout: {
-      aspectRatio: '16:9',
-      scaling: 'fit' as const,
-      backgroundSize: 'cover' as const,
-      backgroundPosition: 'center'
-    }
   },
   { 
     id: 'slide-3', 
     title: 'Slide 3', 
     elements: [], 
-    transitions: [],
-    layout: {
-      aspectRatio: '16:9',
-      scaling: 'fit' as const,
-      backgroundSize: 'cover' as const,
-      backgroundPosition: 'center'
-    }
   }
 ];
 

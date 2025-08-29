@@ -13,7 +13,6 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
       {
         id: 'test-slide-1',
         title: 'Interactive Elements Test',
-        backgroundColor: '#0f172a', // Dark blue background for contrast
         elements: [
           // Large, clearly visible hotspot for click testing
           {
@@ -35,14 +34,10 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: 'spotlight-effect-large',
                   type: 'spotlight',
-                  duration: 4000,
-                  easing: 'ease-in-out',
                   parameters: {
                     position: { x: 170, y: 170, width: 120, height: 120 },
                     shape: 'circle',
-                    intensity: 90,
-                    fadeEdges: true,
-                    message: 'SPOTLIGHT ACTIVATED! Click effect is working!'
+                    text: 'SPOTLIGHT ACTIVATED! Click effect is working!'
                   }
                 }
               }
@@ -56,7 +51,6 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               animation: {
                 type: 'pulse',
                 duration: 1500,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -75,23 +69,7 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               title: 'Pan & Zoom',
               description: 'Click to test pan/zoom functionality'
             },
-            interactions: [
-              {
-                id: 'pan-zoom-effect',
-                trigger: 'click',
-                effect: {
-                  id: 'zoom-effect-test',
-                  type: 'pan_zoom',
-                  duration: 2500,
-                  easing: 'ease-in-out',
-                  parameters: {
-                    targetPosition: { x: 375, y: 275, width: 100, height: 100 },
-                    zoomLevel: 2.0,
-                    centerOnTarget: true
-                  }
-                }
-              }
-            ],
+            interactions: [],
             style: {
               backgroundColor: '#22c55e', // Bright green
               borderColor: '#ffffff',
@@ -99,9 +77,8 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               borderRadius: 25,
               opacity: 1,
               animation: {
-                type: 'bounce',
+                type: 'pulse',
                 duration: 2000,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -127,18 +104,9 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: 'text-effect-test',
                   type: 'text',
-                  duration: 3500,
-                  easing: 'ease-out',
                   parameters: {
                     text: 'TEXT OVERLAY WORKING! This interaction is functioning correctly.',
                     position: { x: 300, y: 400, width: 300, height: 100 },
-                    style: {
-                      fontSize: 24,
-                      color: '#fbbf24',
-                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      padding: 20,
-                      borderRadius: 8
-                    }
                   }
                 }
               }
@@ -152,7 +120,6 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               animation: {
                 type: 'pulse',
                 duration: 1800,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
@@ -206,22 +173,12 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
             isVisible: true
           }
         ],
-        transitions: [],
-        layout: {
-          containerWidth: 1000,
-          containerHeight: 600,
-          aspectRatio: '5:3',
-          scaling: 'fit',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }
       },
 
       // Second slide for navigation testing
       {
         id: 'test-slide-2',
         title: 'Second Test Slide',
-        backgroundColor: '#1e293b', // Darker slate
         elements: [
           {
             id: 'success-message',
@@ -290,12 +247,9 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
                 effect: {
                   id: 'feedback-effect',
                   type: 'spotlight',
-                  duration: 2000,
                   parameters: {
                     position: { x: 300, y: 340, width: 300, height: 120 },
                     shape: 'rectangle',
-                    intensity: 85,
-                    fadeEdges: true
                   }
                 }
               }
@@ -309,38 +263,22 @@ export const createTestDemoSlideDeck = (): SlideDeck => {
               animation: {
                 type: 'pulse',
                 duration: 2000,
-                iterationCount: 'infinite'
               }
             },
             isVisible: true
           }
         ],
-        transitions: [],
-        layout: {
-          containerWidth: 1000,
-          containerHeight: 600,
-          aspectRatio: '5:3',
-          scaling: 'fit',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }
       }
     ],
     settings: {
-      autoAdvance: false,
       allowNavigation: true,
-      showProgress: true,
       showControls: true,
-      keyboardShortcuts: true,
-      touchGestures: true,
-      fullscreenMode: false
     },
     metadata: {
       created: Date.now(),
       modified: Date.now(),
       author: 'Test Demo System',
       version: '1.0.0',
-      tags: ['test', 'demo', 'playwright', 'interactions'],
       isPublic: false
     }
   };

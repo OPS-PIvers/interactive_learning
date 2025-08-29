@@ -1,6 +1,9 @@
-import { ImageTransformState } from '../../shared/types';
-
 // Viewport bounds interface for transform validation
+export interface ImageTransformState {
+  scale: number;
+  translateX: number;
+  translateY: number;
+}
 export interface ViewportBounds {
   width: number;
   height: number;

@@ -1,6 +1,5 @@
 import React from 'react';
 import { InteractiveSlide } from '../../../shared/slideTypes';
-import { Z_INDEX_TAILWIND } from '../../utils/zIndexLevels';
 import { Icon } from '../Icon';
 import '../../styles/slide-components.css';
 
@@ -152,9 +151,9 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
   
   // Unified responsive layout using CSS breakpoints
   return (
-    <div className={`viewer-footer-toolbar fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 transform transition-transform duration-300 ease-in-out ${Z_INDEX_TAILWIND.TOOLBAR}`}>
+    <div className={`viewer-footer-toolbar fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-sm border-t border-slate-700/50 transform transition-transform duration-300 ease-in-out z-[9999]`}>
       {/* Timeline Progress */}
-      {showProgress && slides && slides.length > 0 && (
+      {slides && slides.length > 0 && (
         <div className="timeline-progress px-4 py-2 bg-slate-800/60">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-slate-300 font-medium">Progress</span>
@@ -309,7 +308,7 @@ export const ViewerFooterToolbar: React.FC<ViewerFooterToolbarProps> = ({
 
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts && (
-        <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm ${Z_INDEX_TAILWIND.SYSTEM_MODAL} flex items-center justify-center p-4`}>
+        <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4`}>
           <div 
             className="bg-slate-800 rounded-lg border border-slate-700 p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
             role="dialog"
