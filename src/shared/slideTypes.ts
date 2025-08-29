@@ -144,8 +144,7 @@ export interface ProjectTheme {
     modalOverlay: string;
     modalBorder: string;
   };
-  typography: any;
-  effects: any;
+  // Removed typography and effects for type safety in simplified system
 }
 
 export type ThemePreset = 'professional' | 'vibrant' | 'dark' | 'custom';
