@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { firebaseAPI } from '../../lib/firebaseApi';
+import * as firebaseApi from '../../lib/firebaseApi';
 import { DevAuthBypass, TEST_USERS } from '../../lib/testAuthUtils';
 import { SlideDeck } from '../../shared/slideTypes';
 import SlideViewer from './viewer/SlideViewer';
 
+interface User {
+  uid: string;
+  email: string | null;
+}
+
 const App: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [slideDeck, setSlideDeck] = useState<SlideDeck | null>(null);
   const [editableTitle, setEditableTitle] = useState('');
@@ -36,12 +41,12 @@ const App: React.FC = () => {
         setProjectId(storedProjectId);
       } else {
         console.log("No project ID found, creating a new one...");
-        firebaseAPI.createProjectForUser(user.uid, "My New Project")
-          .then(newProjectId => {
+        firebaseApi.createProjectForUser(user.uid, "My New Project")
+          .then((newProjectId: string) => {
             localStorage.setItem('projectId', newProjectId);
             setProjectId(newProjectId);
           })
-          .catch(err => {
+          .catch((err: Error) => {
             console.error("Failed to create project:", err);
             setError("Could not create a new project.");
           });
@@ -52,15 +57,15 @@ const App: React.FC = () => {
   useEffect(() => {
     if (user && projectId) {
       setIsLoading(true);
-      firebaseAPI.loadSlideDeck(user.uid, projectId)
-        .then(deck => {
+      firebaseApi.loadSlideDeck(user.uid, projectId)
+        .then((deck: SlideDeck | null) => {
           setSlideDeck(deck);
           if (deck) {
             setEditableTitle(deck.title);
           }
           setIsLoading(false);
         })
-        .catch(err => {
+        .catch((err: Error) => {
           console.error("Failed to load slide deck:", err);
           setError(`Could not load slide deck: ${err.message}`);
           setIsLoading(false);
@@ -75,7 +80,7 @@ const App: React.FC = () => {
     const updatedDeck: SlideDeck = { ...slideDeck, title: editableTitle };
 
     try {
-      await firebaseAPI.saveSlideDeck(user.uid, updatedDeck);
+      await firebaseApi.saveSlideDeck(user.uid, updatedDeck);
       setSlideDeck(updatedDeck);
     } catch (err) {
       console.error("Failed to save title:", err);

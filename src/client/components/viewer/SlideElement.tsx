@@ -19,7 +19,6 @@ const SlideElement: React.FC<SlideElementProps> = ({ element }) => {
     backgroundColor: element.style.backgroundColor || 'transparent',
     border: `${element.style.borderWidth || 0}px solid ${element.style.borderColor || 'transparent'}`,
     borderRadius: `${element.style.borderRadius || 0}px`,
-    opacity: element.style.opacity || 1,
     zIndex: element.style.zIndex || 'auto',
     // We'll add a simple transition for visibility
     transition: 'opacity 0.3s ease-in-out',

@@ -7,53 +7,6 @@
 
 import { ProjectTheme, ThemePreset } from './slideTypes';
 
-// Base typography and effects used across all themes
-const baseTypography = {
-  fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-  fontSize: {
-    small: 12,
-    medium: 14,
-    large: 16,
-    xlarge: 20
-  },
-  fontWeight: {
-    light: 300,
-    normal: 400,
-    bold: 600
-  },
-  lineHeight: {
-    small: 1.4,
-    medium: 1.5,
-    large: 1.6
-  }
-};
-
-const baseEffects = {
-  borderRadius: {
-    small: 4,
-    medium: 8,
-    large: 16
-  },
-  shadow: {
-    small: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    medium: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    large: '0 10px 15px rgba(0, 0, 0, 0.1)'
-  },
-  animation: {
-    duration: {
-      fast: 150,
-      medium: 300,
-      slow: 500
-    },
-    easing: {
-      ease: 'ease',
-      easeIn: 'ease-in',
-      easeOut: 'ease-out',
-      easeInOut: 'ease-in-out'
-    }
-  }
-};
-
 // Professional Theme - Blues and grays
 const professionalTheme: ProjectTheme = {
   id: 'professional',
@@ -78,9 +31,7 @@ const professionalTheme: ProjectTheme = {
     modalBackground: '#ffffff',   // White
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
     modalBorder: '#e2e8f0'       // Slate-200
-  },
-  typography: baseTypography,
-  effects: baseEffects
+  }
 };
 
 // Vibrant Theme - Bright colors with high contrast
@@ -107,9 +58,7 @@ const vibrantTheme: ProjectTheme = {
     modalBackground: '#ffffff',   // White
     modalOverlay: 'rgba(124, 58, 237, 0.4)', // Violet overlay
     modalBorder: '#f3e8ff'       // Violet-50
-  },
-  typography: baseTypography,
-  effects: baseEffects
+  }
 };
 
 // Dark Theme - High contrast dark mode
@@ -136,9 +85,7 @@ const darkTheme: ProjectTheme = {
     modalBackground: '#1e293b',  // Slate-800
     modalOverlay: 'rgba(0, 0, 0, 0.7)',
     modalBorder: '#475569'       // Slate-600
-  },
-  typography: baseTypography,
-  effects: baseEffects
+  }
 };
 
 // Custom theme template (empty for user customization)
@@ -163,9 +110,7 @@ const customTheme: ProjectTheme = {
     modalBackground: '#ffffff',
     modalOverlay: 'rgba(0, 0, 0, 0.5)',
     modalBorder: '#e2e8f0'
-  },
-  typography: baseTypography,
-  effects: baseEffects
+  }
 };
 
 // Export all theme presets

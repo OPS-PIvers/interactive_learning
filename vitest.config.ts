@@ -29,7 +29,7 @@ export default defineConfig({
     bail: 1, // Stop on first failure to prevent endless execution
     passWithNoTests: true,
     // Reduce console noise in CI
-    silent: process.env.CI === 'true',
+    silent: process.env['CI'] === 'true',
     // Faster test runs
     cache: {
       dir: './node_modules/.vitest'

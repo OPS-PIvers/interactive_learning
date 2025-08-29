@@ -3,10 +3,10 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
-    const isCodespaces = !!process.env.CODESPACES;
+    const isCodespaces = !!process.env['CODESPACES'];
     
     // Explicit environment detection
-    const isProduction = mode === 'production' || process.env.NODE_ENV === 'production' || command === 'build';
+    const isProduction = mode === 'production' || process.env['NODE_ENV'] === 'production' || command === 'build';
     const isDevelopment = !isProduction;
     
     // Debug logging for mode detection
@@ -15,9 +15,6 @@ export default defineConfig(({ mode, command }) => {
     return {
       plugins: [
         react({
-          // CRITICAL: Explicit JSX development mode control
-          // Only use development JSX runtime in actual development
-          jsxDev: isDevelopment,
           // Explicit JSX runtime configuration
           jsxRuntime: 'automatic',
           jsxImportSource: 'react',
@@ -81,6 +78,7 @@ export default defineConfig(({ mode, command }) => {
               if (id.includes('node_modules')) {
                 return 'vendor';
               }
+              return undefined;
             }
           },
           ...isProduction && {

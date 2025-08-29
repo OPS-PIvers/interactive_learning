@@ -8,8 +8,11 @@ import { firebaseManager } from '../lib/firebaseConfig';
 import { getAnalytics } from "firebase/analytics";
 
 // Initialize Firebase
-firebaseManager.initializeApp();
-const analytics = getAnalytics(firebaseManager.getApp());
+firebaseManager.initialize();
+const app = firebaseManager.getApp();
+if (app) {
+  const analytics = getAnalytics(app);
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
