@@ -4,6 +4,12 @@ import App from './components/App';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import './styles.css';
 import './index.css';
+import { firebaseManager } from '../lib/firebaseConfig';
+import { getAnalytics } from "firebase/analytics";
+
+// Initialize Firebase
+firebaseManager.initializeApp();
+const analytics = getAnalytics(firebaseManager.getApp());
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

@@ -1,9 +1,6 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import circularDependency from 'vite-plugin-circular-dependency';
-import { tdzDetectionPlugin } from './vite-plugins/tdz-detection.js';
-
 export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
     const isCodespaces = !!process.env.CODESPACES;
@@ -25,26 +22,6 @@ export default defineConfig(({ mode, command }) => {
           jsxRuntime: 'automatic',
           jsxImportSource: 'react',
         }),
-        // Circular dependency detection for build-time safety
-        circularDependency({
-          // Exclude certain patterns if needed
-          exclude: [
-            /node_modules/,
-            /dist/,
-            /\.config\.[jt]s$/,
-          ],
-          // Fail the build on circular dependencies in production
-          failOnError: isProduction,
-          // Show warnings in development
-          warningOnly: isDevelopment,
-          // Include import statements in analysis
-          include: [/\.[jt]sx?$/],
-        }),
-        // Custom TDZ and runtime error detection
-        tdzDetectionPlugin({
-          failOnError: false, // Always warn, don't fail build
-          warningOnly: true,
-        })
       ],
       root: 'src/client',
       server: {

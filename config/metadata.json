@@ -1,6 +1,0 @@
-{
-  "name": "ExpliCoLearning",
-  "description": "A powerful slide-based web application for creating interactive learning experiences by adding elements (hotspots, text, media, shapes) to slides with responsive positioning and sequencing. Features modern editor with drag-and-drop, real-time preview, and Firebase backend integration.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}
