@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FixedPosition, ResponsivePosition } from '../../shared/slideTypes';
+import { FixedPosition, ResponsivePosition } from '../../shared/baseTypes';
 
 export const useDeviceDetection = () => {
   const [viewportInfo, setViewportInfo] = useState({

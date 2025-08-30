@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ResponsivePosition } from '../shared/slideTypes';
+import { ResponsivePosition } from '../shared/baseTypes';
 
 // Since testing device detection requires complex window mocking in Node.js,
 // we focus on testing the utility functions and type safety aspects

@@ -8,7 +8,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { ProjectTheme, ThemePreset } from '../../shared/slideTypes';
+import { ProjectTheme, ThemePreset } from '../../shared/baseTypes';
 import { themePresets, defaultTheme, getThemeById } from '../../shared/themePresets';
 
 interface ThemeContextValue {

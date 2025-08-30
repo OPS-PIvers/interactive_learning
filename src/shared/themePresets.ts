@@ -5,7 +5,7 @@
  * to provide consistent styling across hotspots, modals, and other interactive elements.
  */
 
-import { ProjectTheme, ThemePreset } from './slideTypes';
+import { ProjectTheme, ThemePreset } from './baseTypes';
 
 // Professional Theme - Blues and grays
 const professionalTheme: ProjectTheme = {

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { ResponsivePosition, FixedPosition } from '../shared/slideTypes';
+import { ResponsivePosition, FixedPosition } from '../shared/baseTypes';
 
 // Test utilities for responsive positioning
 const createResponsivePosition = (

@@ -2,86 +2,87 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp,
   collection,
-  setDoc,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
 } from 'firebase/firestore';
-import { SlideDeck } from '../shared/slideTypes';
 import { firebaseManager } from './firebaseConfig';
+import type { HotspotWalkthrough } from '../shared/hotspotTypes';
 
-const getProjectDocAndVerifyOwner = async (projectId: string, userId: string) => {
-  const db = firebaseManager.getFirestore();
+const db = firebaseManager.getFirestore();
+
+// Hotspot Walkthrough CRUD operations
+export async function createWalkthrough(walkthrough: Omit<HotspotWalkthrough, 'id' | 'createdAt' | 'updatedAt'>): Promise<HotspotWalkthrough> {
   if (!db) throw new Error('Firestore not initialized');
-
-  const projectRef = doc(db, 'projects', projectId);
-  const projectDoc = await getDoc(projectRef);
-
-  if (!projectDoc.exists()) {
-    throw new Error('Project not found.');
-  }
-
-  const projectData = projectDoc.data();
-  if (projectData['createdBy'] !== userId) {
-    throw new Error('User does not have permission to access this project.');
-  }
-
-  return projectDoc;
-};
-
-export async function saveSlideDeck(userId: string, slideDeck: SlideDeck): Promise<void> {
-  if (!userId || !slideDeck || !slideDeck.id) {
-    throw new Error('Invalid input for saving slide deck.');
-  }
-
-  await getProjectDocAndVerifyOwner(slideDeck.id, userId);
-
-  const db = firebaseManager.getFirestore();
-  if (!db) {
-    throw new Error('Firestore not initialized');
-  }
-  const projectRef = doc(db, 'projects', slideDeck.id);
-  await updateDoc(projectRef, {
-    slideDeck: slideDeck,
-    updatedAt: serverTimestamp(),
-  });
-}
-
-export async function loadSlideDeck(userId: string, projectId: string): Promise<SlideDeck | null> {
-  if (!userId || !projectId) {
-    throw new Error('Invalid input for loading slide deck.');
-  }
-
-  const projectDoc = await getProjectDocAndVerifyOwner(projectId, userId);
-  return projectDoc.data()['slideDeck'] || null;
-}
-
-export async function createProjectForUser(userId: string, title: string): Promise<string> {
-  if (!userId) {
-    throw new Error('User must be authenticated to create a project.');
-  }
-
-  const db = firebaseManager.getFirestore();
-  if (!db) {
-    throw new Error('Firestore not initialized');
-  }
-
-  const projectsCollection = collection(db, 'projects');
-  const newProjectRef = doc(projectsCollection);
-
-  const newSlideDeck: Partial<SlideDeck> = {
-    id: newProjectRef.id,
-    title: title,
-    slides: [],
-    settings: { allowNavigation: true, showControls: true },
-    metadata: { created: Date.now(), modified: Date.now(), version: '1.0', isPublic: false },
-  };
-
-  await setDoc(newProjectRef, {
-    createdBy: userId,
+  const walkthroughWithTimestamps = {
+    ...walkthrough,
     createdAt: serverTimestamp(),
-    title: title,
-    slideDeck: newSlideDeck,
-  });
+    updatedAt: serverTimestamp()
+  };
+  const docRef = await addDoc(collection(db, 'walkthroughs'), walkthroughWithTimestamps);
 
-  return newProjectRef.id;
+  return {
+    ...walkthrough,
+    id: docRef.id,
+    createdAt: Date.now(), // Approximate client-side timestamp
+    updatedAt: Date.now(), // Approximate client-side timestamp
+  };
+}
+
+export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
+  if (!db) throw new Error('Firestore not initialized');
+  const docRef = doc(db, 'walkthroughs', id);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    throw new Error('Walkthrough not found');
+  }
+
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    ...data,
+    createdAt: data['createdAt']?.toMillis() || 0,
+    updatedAt: data['updatedAt']?.toMillis() || 0,
+  } as HotspotWalkthrough;
+}
+
+export async function updateWalkthrough(walkthrough: Partial<HotspotWalkthrough> & { id: string }): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
+  const docRef = doc(db, 'walkthroughs', walkthrough.id);
+  await updateDoc(docRef, {
+    ...walkthrough,
+    updatedAt: serverTimestamp()
+  });
+}
+
+export async function deleteWalkthrough(id: string): Promise<void> {
+  if (!db) throw new Error('Firestore not initialized');
+  const docRef = doc(db, 'walkthroughs', id);
+  await deleteDoc(docRef);
+}
+
+export async function getUserWalkthroughs(userId: string): Promise<HotspotWalkthrough[]> {
+  if (!db) throw new Error('Firestore not initialized');
+  const q = query(
+    collection(db, 'walkthroughs'),
+    where('creatorId', '==', userId),
+    orderBy('updatedAt', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data['createdAt']?.toMillis() || 0,
+      updatedAt: data['updatedAt']?.toMillis() || 0,
+    } as HotspotWalkthrough;
+  });
 }

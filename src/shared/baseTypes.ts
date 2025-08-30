@@ -1,5 +1,6 @@
 /**
- * Simplified Slide-Based Interactive Architecture Types
+ * Base types for the interactive hotspot application.
+ * Originally derived from the simplified slide-based architecture.
  */
 
 // Background media types
@@ -7,25 +8,6 @@ export interface BackgroundMedia {
   type: 'image' | 'video' | 'youtube' | 'audio' | 'color' | 'none';
   url?: string;
   color?: string;
-}
-
-// Core slide structure
-export interface InteractiveSlide {
-  id: string;
-  title: string;
-  backgroundMedia?: BackgroundMedia;
-  elements: SlideElement[];
-}
-
-// Slide elements (hotspots, text, media)
-export interface SlideElement {
-  id: string;
-  type: 'hotspot' | 'text' | 'media' | 'shape';
-  position: ResponsivePosition;
-  content: ElementContent;
-  interactions: ElementInteraction[];
-  style: ElementStyle;
-  isVisible: boolean;
 }
 
 // Fixed positioning with responsive breakpoints
@@ -42,7 +24,7 @@ export interface FixedPosition {
   height: number;
 }
 
-// Element content
+// Generic element content
 export interface ElementContent {
   title?: string;
   description?: string;
@@ -51,7 +33,7 @@ export interface ElementContent {
   mediaType?: 'image' | 'video' | 'audio';
 }
 
-// Element styling
+// Generic element styling
 export interface ElementStyle {
   backgroundColor?: string;
   borderColor?: string;
@@ -71,11 +53,11 @@ export interface ElementAnimation {
 export interface ElementInteraction {
   id: string;
   trigger: 'click' | 'hover';
-  effect: SlideEffect;
+  effect: Effect;
 }
 
-// Simplified Slide effects
-export interface SlideEffect {
+// Simplified Effects (used by EffectExecutor)
+export interface Effect {
   id: string;
   type: 'spotlight' | 'text' | 'tooltip';
   parameters: SpotlightParameters | ShowTextParameters | TooltipParameters;
@@ -95,30 +77,6 @@ export interface ShowTextParameters {
 export interface TooltipParameters {
   text: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
-}
-
-// Slide deck (collection of slides)
-export interface SlideDeck {
-  id: string;
-  title: string;
-  description?: string;
-  slides: InteractiveSlide[];
-  settings: DeckSettings;
-  metadata: DeckMetadata;
-  theme?: ProjectTheme;
-}
-
-export interface DeckSettings {
-  allowNavigation: boolean;
-  showControls: boolean;
-}
-
-export interface DeckMetadata {
-  created: number;
-  modified: number;
-  author?: string;
-  version: string;
-  isPublic: boolean;
 }
 
 // Theme system
@@ -144,7 +102,6 @@ export interface ProjectTheme {
     modalOverlay: string;
     modalBorder: string;
   };
-  // Removed typography and effects for type safety in simplified system
 }
 
 export type ThemePreset = 'professional' | 'vibrant' | 'dark' | 'custom';
