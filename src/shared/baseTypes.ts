@@ -8,6 +8,9 @@ export interface BackgroundMedia {
   type: 'image' | 'video' | 'youtube' | 'audio' | 'color' | 'none';
   url?: string;
   color?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
 }
 
 // Fixed positioning with responsive breakpoints
