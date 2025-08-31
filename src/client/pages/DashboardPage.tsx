@@ -2,19 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HotspotWalkthrough } from '@/shared/hotspotTypes';
 import { getUserWalkthroughs, deleteWalkthrough } from '@/lib/firebaseApi';
+import { useAuth } from '@/client/hooks/useAuth';
 import ProjectCard from '../components/dashboard/ProjectCard';
 import CreateWalkthroughModal from '../components/dashboard/CreateWalkthroughModal';
 import LoadingScreen from '../components/shared/LoadingScreen';
 import ErrorScreen from '../components/shared/ErrorScreen';
-
-// Placeholder for useAuth hook
-const useAuth = () => {
-  return {
-    user: {
-      uid: 'test-user'
-    }
-  }
-}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -39,10 +31,8 @@ export default function DashboardPage() {
 
     try {
       setLoading(true);
-      // const data = await getUserWalkthroughs(user.uid);
-      // setWalkthroughs(data);
-      // Mock data for now
-      setWalkthroughs([]);
+      const data = await getUserWalkthroughs(user.uid);
+      setWalkthroughs(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load walkthroughs');
     } finally {
@@ -54,7 +44,7 @@ export default function DashboardPage() {
     if (!confirm('Are you sure you want to delete this walkthrough?')) return;
 
     try {
-      // await deleteWalkthrough(id);
+      await deleteWalkthrough(id);
       setWalkthroughs(prev => prev.filter(w => w.id !== id));
     } catch (err) {
       alert('Failed to delete walkthrough');

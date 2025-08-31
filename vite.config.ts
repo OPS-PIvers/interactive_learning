@@ -4,7 +4,6 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  root: 'src/client',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

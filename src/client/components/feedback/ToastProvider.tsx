@@ -13,7 +13,15 @@ interface ToastContextType {
   hideToast: (id: string) => void;
 }
 
-export const ToastContext = createContext<ToastContextType | null>(null);
+const ToastContext = createContext<ToastContextType | null>(null);
+
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
+  return context;
+};
 
 export default function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
