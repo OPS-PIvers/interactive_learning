@@ -47,9 +47,11 @@ export default function DashboardPage() {
 
     try {
       setLoading(true);
+      console.log('Dashboard: Loading walkthroughs for user:', user.uid);
       const data = await getUserWalkthroughs(user.uid);
       // Ensure data is always an array to prevent undefined access
       setWalkthroughs(Array.isArray(data) ? data : []);
+      console.log('Dashboard: Loaded walkthroughs successfully, count:', Array.isArray(data) ? data.length : 0);
     } catch (err) {
       console.error('Dashboard: Error loading walkthroughs:', err);
       setError(err instanceof Error ? err.message : 'Failed to load walkthroughs');
