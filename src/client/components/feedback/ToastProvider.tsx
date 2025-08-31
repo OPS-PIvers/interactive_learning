@@ -33,7 +33,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     setToasts(prev => [...prev, toast]);
 
     // Auto-hide toast after duration
-    if (toast.duration > 0) {
+    if (toast.duration && toast.duration > 0) {
       setTimeout(() => {
         hideToast(id);
       }, toast.duration);

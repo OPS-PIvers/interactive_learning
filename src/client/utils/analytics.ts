@@ -21,7 +21,7 @@ class Analytics {
   private userId?: string;
 
   constructor() {
-    this.enabled = import.meta.env.VITE_ENABLE_ANALYTICS === 'true';
+    this.enabled = import.meta.env['VITE_ENABLE_ANALYTICS'] === 'true';
     this.sessionId = this.generateSessionId();
 
     if (this.enabled) {
@@ -35,7 +35,7 @@ class Analytics {
 
   private initializeAnalytics(): void {
     // Initialize Google Analytics if ID is provided
-    const gaId = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
+    const gaId = import.meta.env['VITE_GOOGLE_ANALYTICS_ID'];
     if (gaId) {
       this.initializeGoogleAnalytics(gaId);
     }
@@ -69,7 +69,7 @@ class Analytics {
     this.userId = userId;
 
     if (this.enabled && (window as any).gtag) {
-      (window as any).gtag('config', import.meta.env.VITE_GOOGLE_ANALYTICS_ID, {
+      (window as any).gtag('config', import.meta.env['VITE_GOOGLE_ANALYTICS_ID'], {
         user_id: userId
       });
     }
@@ -87,8 +87,8 @@ class Analytics {
     if ((window as any).gtag) {
       (window as any).gtag('event', event.name, {
         event_category: event.category,
-        event_label: event.data?.label,
-        value: event.data?.value,
+        event_label: event.data?.['label'],
+        value: event.data?.['value'],
         custom_parameters: event.data
       });
     }
@@ -129,7 +129,7 @@ class Analytics {
   }
 
   private sendToCustomEndpoint(event: AnalyticsEvent): void {
-    const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+    const endpoint = import.meta.env['VITE_ANALYTICS_ENDPOINT'];
     if (!endpoint) return;
 
     fetch(endpoint, {

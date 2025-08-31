@@ -66,9 +66,9 @@ describe('hotspotUtils', () => {
       const reordered = reorderHotspots(walkthrough, newSequence);
 
       expect(reordered.sequence).toEqual(newSequence);
-      expect(reordered.hotspots[0].sequenceIndex).toBe(2);
-      expect(reordered.hotspots[1].sequenceIndex).toBe(1);
-      expect(reordered.hotspots[2].sequenceIndex).toBe(0);
+      expect(reordered.hotspots[0]?.sequenceIndex).toBe(2);
+      expect(reordered.hotspots[1]?.sequenceIndex).toBe(1);
+      expect(reordered.hotspots[2]?.sequenceIndex).toBe(0);
     });
   });
 

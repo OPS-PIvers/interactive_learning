@@ -64,10 +64,11 @@ export default function ConfirmDialog({
 
   return (
     <ResponsiveModal
+      type="settings"
       isOpen={isOpen}
       onClose={onClose}
       title=""
-      size="sm"
+      size="small"
     >
       <div className="text-center space-y-4">
         {/* Icon */}

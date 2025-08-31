@@ -35,7 +35,7 @@ export class EffectExecutor {
   }
 
   async executeEffect(effect: SimpleEffect): Promise<void> {
-    console.log('🎬 Executing effect:', effect.type, 'ID:', effect.id);
+    // Effect execution started - tracked via analytics in production
     this.cleanupEffect(effect.id);
 
     try {
@@ -252,7 +252,7 @@ export class EffectExecutor {
     });
 
     // Log memory usage in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       const totalUsage = Array.from(this.memoryUsage.values()).reduce((sum, usage) => sum + usage, 0);
       console.log(`EffectExecutor Memory Usage: ${(totalUsage / 1024).toFixed(2)}KB`);
     }

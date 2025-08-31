@@ -42,8 +42,7 @@ export default defineConfig({
       enabled: false,
       name: 'chromium',
       provider: 'playwright',
-      headless: true,
-      include: ['src/tests/browser/**/*.test.ts']
+      headless: true
     }
   },
   optimizeDeps: {

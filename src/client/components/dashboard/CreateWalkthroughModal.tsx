@@ -23,10 +23,11 @@ export default function CreateWalkthroughModal({
 
   return (
     <ResponsiveModal
+      type="settings"
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Walkthrough"
-      size="md"
+      size="medium"
     >
       <div className="space-y-6">
         <div>

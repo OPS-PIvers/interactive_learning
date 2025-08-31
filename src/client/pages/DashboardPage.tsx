@@ -7,10 +7,12 @@ import ProjectCard from '../components/dashboard/ProjectCard';
 import CreateWalkthroughModal from '../components/dashboard/CreateWalkthroughModal';
 import LoadingScreen from '../components/shared/LoadingScreen';
 import ErrorScreen from '../components/shared/ErrorScreen';
+import { useToast } from '../components/feedback/ToastProvider';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [walkthroughs, setWalkthroughs] = useState<HotspotWalkthrough[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +48,17 @@ export default function DashboardPage() {
     try {
       await deleteWalkthrough(id);
       setWalkthroughs(prev => prev.filter(w => w.id !== id));
+      showToast({
+        type: 'success',
+        title: 'Walkthrough Deleted',
+        message: 'The walkthrough has been deleted successfully.'
+      });
     } catch (err) {
-      alert('Failed to delete walkthrough');
+      showToast({
+        type: 'error',
+        title: 'Delete Failed',
+        message: 'Failed to delete walkthrough. Please try again.'
+      });
     }
   };
 
@@ -73,8 +84,8 @@ export default function DashboardPage() {
     return (
       <ErrorScreen
         title="Dashboard Error"
-        message={error}
-        onRetry={loadWalkthroughs}
+        error={new Error(error)}
+        onReload={loadWalkthroughs}
       />
     );
   }
@@ -141,7 +152,11 @@ export default function DashboardPage() {
                 onShare={() => {
                   const url = `${window.location.origin}/view/${walkthrough.id}`;
                   navigator.clipboard.writeText(url);
-                  alert('Share link copied to clipboard!');
+                  showToast({
+                    type: 'success',
+                    title: 'Link Copied',
+                    message: 'Share link copied to clipboard!'
+                  });
                 }}
               />
             ))}

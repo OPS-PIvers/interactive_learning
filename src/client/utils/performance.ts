@@ -43,7 +43,9 @@ class PerformanceMonitor {
         const lcpObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
-          this.metrics.set('largest-contentful-paint', lastEntry.startTime);
+          if (lastEntry) {
+            this.metrics.set('largest-contentful-paint', lastEntry.startTime);
+          }
         });
 
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
@@ -58,9 +60,9 @@ class PerformanceMonitor {
     window.addEventListener('load', () => {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
 
-      this.metrics.set('load-time', navigation.loadEventEnd - navigation.navigationStart);
-      this.metrics.set('dom-content-loaded', navigation.domContentLoadedEventEnd - navigation.navigationStart);
-      this.metrics.set('dom-interactive', navigation.domInteractive - navigation.navigationStart);
+      this.metrics.set('load-time', navigation.loadEventEnd - navigation.fetchStart);
+      this.metrics.set('dom-content-loaded', navigation.domContentLoadedEventEnd - navigation.fetchStart);
+      this.metrics.set('dom-interactive', navigation.domInteractive - navigation.fetchStart);
     });
   }
 
@@ -73,7 +75,7 @@ class PerformanceMonitor {
     performance.measure(name, `${name}-start`, `${name}-end`);
 
     const measure = performance.getEntriesByName(name, 'measure')[0];
-    const duration = measure.duration;
+    const duration = measure?.duration ?? 0;
 
     this.metrics.set(name, duration);
     return duration;
@@ -85,24 +87,37 @@ class PerformanceMonitor {
 
   getAllMetrics(): PerformanceData {
     const memoryInfo = (performance as any).memory;
+    const fcp = this.metrics.get('first-contentful-paint');
+    const lcp = this.metrics.get('largest-contentful-paint');
 
-    return {
+    const result: PerformanceData = {
       loadTime: this.metrics.get('load-time') || 0,
-      domContentLoaded: this.metrics.get('dom-content-loaded') || 0,
-      firstContentfulPaint: this.metrics.get('first-contentful-paint'),
-      largestContentfulPaint: this.metrics.get('largest-contentful-paint'),
-      memoryUsage: memoryInfo ? {
+      domContentLoaded: this.metrics.get('dom-content-loaded') || 0
+    };
+
+    if (fcp !== undefined) {
+      result.firstContentfulPaint = fcp;
+    }
+
+    if (lcp !== undefined) {
+      result.largestContentfulPaint = lcp;
+    }
+
+    if (memoryInfo) {
+      result.memoryUsage = {
         used: memoryInfo.usedJSHeapSize,
         total: memoryInfo.totalJSHeapSize
-      } : undefined
-    };
+      };
+    }
+
+    return result;
   }
 
   trackCustomMetric(name: string, value: number): void {
     this.metrics.set(name, value);
 
     // Send to analytics
-    if (import.meta.env.VITE_ENABLE_PERFORMANCE_MONITORING === 'true') {
+    if (import.meta.env['VITE_ENABLE_PERFORMANCE_MONITORING'] === 'true') {
       import('./analytics').then(({ analytics }) => {
         analytics.trackPerformance({
           name,

@@ -13,7 +13,7 @@ export const usePerformanceMonitoring = () => {
       console.log('Performance Metrics:', metrics);
     }
 
-    if (import.meta.env.VITE_ENABLE_PERFORMANCE_MONITORING === 'true') {
+    if (import.meta.env['VITE_ENABLE_PERFORMANCE_MONITORING'] === 'true') {
       analytics.trackPerformance({
         name: 'page_load',
         value: metrics.loadTime,

@@ -34,8 +34,9 @@ export default function OptimizedImage({
   useEffect(() => {
     if (loading === 'lazy' && imgRef.current) {
       observerRef.current = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
+        (entries) => {
+          const [entry] = entries;
+          if (entry && entry.isIntersecting) {
             setIsVisible(true);
             observerRef.current?.disconnect();
           }

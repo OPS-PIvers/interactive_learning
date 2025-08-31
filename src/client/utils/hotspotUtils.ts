@@ -145,6 +145,6 @@ export function createEmptyWalkthrough(title: string = 'New Walkthrough'): Hotsp
     createdAt: Date.now(),
     updatedAt: Date.now(),
     isPublished: false,
-    creatorId: 'current_user' // TODO: Get from auth
+    creatorId: 'anonymous' // User ID will be set when saving
   };
 }
