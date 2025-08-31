@@ -29,10 +29,11 @@ export async function createWalkthrough(walkthrough: Omit<HotspotWalkthrough, 'i
   const db = await getDb();
   const walkthroughWithTimestamps = {
     ...walkthrough,
+    createdBy: walkthrough.creatorId, // Map creatorId to createdBy for security rules
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   };
-  const docRef = await addDoc(collection(db, 'walkthroughs'), walkthroughWithTimestamps);
+  const docRef = await addDoc(collection(db, 'projects'), walkthroughWithTimestamps);
 
   return {
     ...walkthrough,
@@ -44,7 +45,7 @@ export async function createWalkthrough(walkthrough: Omit<HotspotWalkthrough, 'i
 
 export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
   const db = await getDb();
-  const docRef = doc(db, 'walkthroughs', id);
+  const docRef = doc(db, 'projects', id);
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
@@ -62,33 +63,43 @@ export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
 
 export async function updateWalkthrough(walkthrough: Partial<HotspotWalkthrough> & { id: string }): Promise<void> {
   const db = await getDb();
-  const docRef = doc(db, 'walkthroughs', walkthrough.id);
-  await updateDoc(docRef, {
+  const docRef = doc(db, 'projects', walkthrough.id);
+  const updateData: any = {
     ...walkthrough,
     updatedAt: serverTimestamp()
-  });
+  };
+  // Map creatorId to createdBy if present
+  if (walkthrough.creatorId) {
+    updateData.createdBy = walkthrough.creatorId;
+  }
+  await updateDoc(docRef, updateData);
 }
 
 export async function deleteWalkthrough(id: string): Promise<void> {
   const db = await getDb();
-  const docRef = doc(db, 'walkthroughs', id);
+  const docRef = doc(db, 'projects', id);
   await deleteDoc(docRef);
 }
 
 export async function getUserWalkthroughs(userId: string): Promise<HotspotWalkthrough[]> {
+  console.log('getUserWalkthroughs: Querying projects for userId:', userId);
   const db = await getDb();
   const q = query(
-    collection(db, 'walkthroughs'),
-    where('creatorId', '==', userId),
+    collection(db, 'projects'),
+    where('createdBy', '==', userId),
     orderBy('updatedAt', 'desc')
   );
 
+  console.log('getUserWalkthroughs: Executing Firestore query...');
   const snapshot = await getDocs(q);
+  console.log('getUserWalkthroughs: Query completed, found', snapshot.docs.length, 'documents');
   return snapshot.docs.map(doc => {
     const data = doc.data();
     return {
       id: doc.id,
       ...data,
+      // Map createdBy back to creatorId for the interface
+      creatorId: data['createdBy'] || data['creatorId'],
       createdAt: data['createdAt']?.toMillis() || 0,
       updatedAt: data['updatedAt']?.toMillis() || 0,
     } as HotspotWalkthrough;

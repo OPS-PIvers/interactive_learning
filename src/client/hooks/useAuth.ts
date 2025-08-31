@@ -52,7 +52,14 @@ export const useAuth = () => {
           return;
         }
         
-        await firebaseManager.initialize();
+        // Add timeout for Firebase initialization to prevent hanging
+        console.log('useAuth: Initializing Firebase with timeout...');
+        await Promise.race([
+          firebaseManager.initialize(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Firebase initialization timeout')), 8000)
+          )
+        ]);
         
         if (!mounted) {
           console.log('useAuth: Component unmounted during initialization');
@@ -97,14 +104,14 @@ export const useAuth = () => {
       }
     };
 
-    // Set up timeout for auth initialization
+    // Set up timeout for auth initialization (generous timeout since we have Firebase-specific timeout)
     timeoutId = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('useAuth: Auth initialization timeout after 10 seconds');
+        console.warn('useAuth: Auth initialization timeout after 15 seconds');
         setError('Authentication timeout - please refresh the page');
         setLoading(false);
       }
-    }, 10000);
+    }, 15000);
 
     initAuth();
 
