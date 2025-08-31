@@ -5,6 +5,7 @@ import { EffectExecutor } from '../utils/EffectExecutor';
 import HotspotViewer from '../components/viewers/HotspotViewer';
 import LoadingScreen from '../components/shared/LoadingScreen';
 import ErrorScreen from '../components/shared/ErrorScreen';
+import { getWalkthrough } from '@/lib/firebaseApi';
 
 export default function WalkthroughViewerPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,12 +29,9 @@ export default function WalkthroughViewerPage() {
       }
 
       try {
-        // TODO: Load walkthrough from Firebase
-        // const data = await getWalkthrough(id);
-        // setWalkthrough(data);
-        
-        // Temporary: Create demo walkthrough with sample hotspots
-        setWalkthrough(createDemoWalkthroughWithHotspots(id));
+        // Load walkthrough from Firebase
+        const data = await getWalkthrough(id);
+        setWalkthrough(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load walkthrough');
       } finally {
@@ -50,7 +48,8 @@ export default function WalkthroughViewerPage() {
   };
   
   const handleStepChange = (step: number) => {
-    console.log('Current step:', step);
+    // Track step change for analytics
+    // analytics.trackEvent({ name: 'walkthrough_step_change', category: 'user_action', data: { step } });
     // Track analytics or update user progress
   };
   

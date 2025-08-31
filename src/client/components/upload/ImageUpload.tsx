@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { BackgroundMedia } from '../../../shared/slideTypes';
+import { useToast } from '../feedback/ToastProvider';
 
 interface ImageUploadProps {
   onUpload: (media: BackgroundMedia) => void;
@@ -15,6 +16,7 @@ export default function ImageUpload({
   
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const { showToast } = useToast();
   
   const validateFile = (file: File): string | null => {
     // Check file type
@@ -61,7 +63,11 @@ export default function ImageUpload({
     const error = validateFile(file);
     
     if (error) {
-      alert(error);
+      showToast({
+        type: 'error',
+        title: 'Upload Error',
+        message: error
+      });
       return;
     }
     
@@ -71,7 +77,11 @@ export default function ImageUpload({
       const media = await uploadFile(file);
       onUpload(media);
     } catch (err) {
-      alert('Upload failed. Please try again.');
+      showToast({
+        type: 'error',
+        title: 'Upload Failed',
+        message: 'Upload failed. Please try again.'
+      });
       console.error('Upload error:', err);
     } finally {
       setUploading(false);
