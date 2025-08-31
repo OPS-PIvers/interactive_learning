@@ -3,17 +3,40 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { getAuthService, firebaseManager } from '../../lib/firebaseConfig';
 
 export const useAuth = () => {
+  console.log('=== useAuth HOOK CALLED ===');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  console.log('useAuth: Current state:', { user: !!user, loading, error });
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const initAuth = async () => {
       try {
         console.log('useAuth: Starting Firebase initialization...');
+        
+        // Development auth bypass for testing
+        const authBypass = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+        if (authBypass) {
+          console.log('useAuth: Auth bypass enabled - simulating authenticated user');
+          const mockUser = {
+            uid: 'dev-test-user-123',
+            email: 'dev@localhost',
+            displayName: 'Development User',
+          } as User;
+          
+          if (mounted) {
+            setUser(mockUser);
+            setLoading(false);
+            setError(null);
+          }
+          return;
+        }
+        
         await firebaseManager.initialize();
         
         if (!mounted) {
@@ -50,11 +73,23 @@ export const useAuth = () => {
       }
     };
 
+    // Set up timeout for auth initialization
+    timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('useAuth: Auth initialization timeout after 10 seconds');
+        setError('Authentication timeout - please refresh the page');
+        setLoading(false);
+      }
+    }, 10000);
+
     initAuth();
 
     return () => {
       mounted = false;
       unsubscribe?.();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
