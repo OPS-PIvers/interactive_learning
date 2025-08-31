@@ -9,24 +9,32 @@ interface FirebaseConfiguration {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
-  measurementId: string;
+  measurementId?: string; // Optional as per Firebase docs
 }
 
 // Firebase config is loaded from environment variables
 function getFirebaseConfig(): FirebaseConfiguration {
-  const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  // Extract required environment variables
+  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+  const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+  const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+  const appId = import.meta.env.VITE_FIREBASE_APP_ID;
+  const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
+
+  // Validate required environment variables
+  const requiredVars = {
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
   };
 
-  // Basic validation to ensure all required environment variables are loaded
-  const missingVars = Object.entries(firebaseConfig)
-    .filter(([key, value]) => !value && key !== 'measurementId') // measurementId is optional
+  const missingVars = Object.entries(requiredVars)
+    .filter(([, value]) => !value)
     .map(([key]) => key);
   
   if (missingVars.length > 0) {
@@ -35,7 +43,22 @@ function getFirebaseConfig(): FirebaseConfiguration {
     throw new Error(`Firebase configuration is missing required variable(s): ${missingVars.join(', ')}.`);
   }
 
-  return firebaseConfig as FirebaseConfiguration;
+  // Build configuration object with proper types
+  const firebaseConfig: FirebaseConfiguration = {
+    apiKey: apiKey!,
+    authDomain: authDomain!,
+    projectId: projectId!,
+    storageBucket: storageBucket!,
+    messagingSenderId: messagingSenderId!,
+    appId: appId!,
+  };
+
+  // Add optional measurementId if present
+  if (measurementId) {
+    firebaseConfig.measurementId = measurementId;
+  }
+
+  return firebaseConfig;
 }
 
 // Environment validation removed to prevent import.meta.env access during initialization
