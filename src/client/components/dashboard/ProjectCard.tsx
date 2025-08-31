@@ -48,9 +48,9 @@ export default function ProjectCard({
         )}
 
         {/* Hotspot Count Badge */}
-        {walkthrough.hotspots.length > 0 && (
+        {(walkthrough.hotspots?.length || 0) > 0 && (
           <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-            {walkthrough.hotspots.length} steps
+            {walkthrough.hotspots?.length || 0} steps
           </div>
         )}
 
@@ -130,7 +130,7 @@ export default function ProjectCard({
 
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>Updated {formatDate(walkthrough.updatedAt)}</span>
-          <span>{walkthrough.hotspots.length} hotspots</span>
+          <span>{walkthrough.hotspots?.length || 0} hotspots</span>
         </div>
       </div>
     </div>

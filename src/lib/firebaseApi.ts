@@ -58,6 +58,9 @@ export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
     ...data,
     createdAt: data['createdAt']?.toMillis() || 0,
     updatedAt: data['updatedAt']?.toMillis() || 0,
+    // Ensure required arrays exist to prevent undefined errors
+    hotspots: data['hotspots'] || [],
+    sequence: data['sequence'] || [],
   } as HotspotWalkthrough;
 }
 
@@ -102,6 +105,9 @@ export async function getUserWalkthroughs(userId: string): Promise<HotspotWalkth
       creatorId: data['createdBy'] || data['creatorId'],
       createdAt: data['createdAt']?.toMillis() || 0,
       updatedAt: data['updatedAt']?.toMillis() || 0,
+      // Ensure required arrays exist to prevent undefined errors
+      hotspots: data['hotspots'] || [],
+      sequence: data['sequence'] || [],
     } as HotspotWalkthrough;
   });
 }
