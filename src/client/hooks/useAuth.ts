@@ -28,6 +28,20 @@ export const useAuth = () => {
             uid: 'dev-test-user-123',
             email: 'dev@localhost',
             displayName: 'Development User',
+            emailVerified: true,
+            isAnonymous: false,
+            phoneNumber: null,
+            photoURL: null,
+            providerId: 'firebase',
+            metadata: {} as any,
+            providerData: [],
+            refreshToken: '',
+            tenantId: null,
+            delete: async () => {},
+            getIdToken: async () => 'dev-token',
+            getIdTokenResult: async () => ({} as any),
+            reload: async () => {},
+            toJSON: () => ({})
           } as User;
           
           if (mounted) {
