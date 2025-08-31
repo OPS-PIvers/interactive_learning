@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  root: 'src/client',
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
@@ -14,14 +15,14 @@ export default defineConfig(({ mode }) => ({
     outDir: '../../dist',
     target: 'es2018',
     sourcemap: mode === 'development',
+    emptyOutDir: true,
     
     rollupOptions: {
       output: {
         manualChunks: {
           // Vendor chunks for better caching
           react: ['react', 'react-dom', 'react-router-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          ui: ['framer-motion', 'tailwindcss']
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
         }
       }
     },
