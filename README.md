@@ -1,34 +1,45 @@
-# Interactive Hotspot Onboarding Application
+# ExpliCoLearning - Interactive Hotspot Training Application
 
-This repository contains the foundational codebase for an interactive hotspot onboarding application. The project has undergone a significant architectural refactoring (Phase 1) to simplify the codebase and establish a clean foundation for future development.
+Modern web application for creating interactive, hotspot-based multimedia training walkthroughs. The project has been completely rebuilt from a complex slide-based system into a focused, maintainable hotspot-centric architecture.
 
 ## 🎯 Project Goal
 
-The goal is to build a modern, mobile-first web application for creating interactive, hotspot-based walkthroughs and learning experiences.
+Build a modern, mobile-first web application for creating interactive hotspot-based learning experiences with real-time effects, unified responsive design, and comprehensive browser automation testing.
 
-## ✅ Phase 1: Foundation Cleanup - COMPLETE
+## ✅ Architecture Rebuild - COMPLETE
 
-The initial phase of the rebuild is complete. This involved:
-- **Removing Over-engineered Code:** A complex, slide-based architecture of over 31,000 lines was removed.
-- **Architectural Simplification:** The data models, APIs, and component structure have been drastically simplified.
-- **Establishing a Clean Foundation:** The codebase is now in a stable state, ready for the development of the core hotspot features in Phase 2.
+The application has been successfully rebuilt with:
+- **Simplified Architecture:** Migrated from 31,000+ line slide system to focused hotspot model
+- **Clean Data Models:** `HotspotWalkthrough` and `WalkthroughHotspot` interfaces replace complex slide structures
+- **Unified Responsive Design:** Single components adapt across all devices using CSS-first approach
+- **Real Effect System:** Maintained working spotlight, text, tooltip, and video effects
+- **Reduced Codebase:** Down to 86 TypeScript files for better maintainability
 
 ## 🏗️ Core Architecture
 
-The simplified architecture is built on the following key components:
+### Technology Stack
+- **Frontend:** React 18.3.1 with TypeScript and Vite
+- **Backend:** Firebase 10.14.1 (Firestore + Storage)
+- **Styling:** Tailwind CSS with unified responsive design
+- **Testing:** Vitest with React Testing Library
+- **Automation:** Dual approach with Playwright MCP (@playwright/test 1.55.0) and Puppeteer 24.14.0
 
-- **React & TypeScript:** A modern frontend stack.
-- **Vite:** For fast development and optimized builds.
-- **Firebase:** For backend services including authentication and database (Firestore).
-- **EffectExecutor:** A robust system for executing visual effects like spotlights and tooltips, which has been preserved from the old architecture.
-- **Hotspot-Focused Data Model:** The new data model is centered around `HotspotWalkthroughs` and `WalkthroughHotspots`, providing a clear and concise structure.
+### Core Components
+- **HotspotViewer:** Main viewer for interactive hotspot walkthroughs
+- **HotspotEditor:** Visual drag-and-drop editor with canvas
+- **WalkthroughSequencer:** Manages hotspot ordering and guided tours
+- **ResponsiveModal:** Unified modal system across all devices
+- **Real Effects System:** Spotlight, text, tooltip, and video effects that actually work
 
-## 🚀 Next Steps: Phase 2
+## 🚀 Current Features
 
-Phase 2 will focus on building the core application functionality on top of this clean foundation, including:
-- A simple editor for creating and managing hotspot walkthroughs.
-- A viewer for playing back the interactive walkthroughs.
-- Integration with Firebase for data persistence.
+The application now includes:
+- **Interactive Hotspot Editor:** Visual drag-and-drop interface for creating hotspot walkthroughs
+- **Walkthrough Viewer:** Plays back interactive hotspot experiences with real effects
+- **Dashboard:** Project management with create/edit/share functionality
+- **Authentication:** Firebase Auth with development bypass for testing
+- **Responsive Design:** Works seamlessly across mobile, tablet, and desktop
+- **Browser Automation:** Dual testing approach with Playwright MCP and Puppeteer integration
 
 ## 🛠️ Development
 
@@ -42,8 +53,16 @@ npm install
 npm run dev
 
 # Run the test suite
-npm test
+npm run test:run
 
 # Build the project
 npm run build
+
+# Run browser automation tests (Puppeteer)
+npm run test:auth
+
+# Validate Puppeteer MCP server
+npm run mcp:validate
+
+# Playwright MCP tools available via Claude Code interface
 ```

@@ -7,14 +7,15 @@ This file provides instructions for AI agents working on the ExpliCoLearning pro
 
 ## Project Context
 
-Interactive web application for creating slide-based multimedia training modules with unified responsive design across all devices.
+Interactive web application for creating hotspot-based multimedia training walkthroughs with unified responsive design across all devices. Rebuilt from a complex slide system to a simplified hotspot-focused architecture.
 
 ### Tech Stack
 - React 18.3.1 + TypeScript + Vite
-- Firebase 11.9.1 (Firestore + Storage)
+- Firebase 10.14.1 (Firestore + Storage)
 - Tailwind CSS styling (CSS-first responsive design)
-- Vitest testing
-- Key deps: @dnd-kit/core, lodash.debounce, framer-motion
+- Vitest testing with React Testing Library
+- Dual browser automation: @playwright/test 1.55.0 + Puppeteer 24.14.0
+- Key deps: lodash.debounce, react-router-dom 6.25.1
 
 ## Essential Commands
 ```bash
@@ -27,9 +28,10 @@ npm run dev
 # Production build
 npm run build
 
-# MCP testing and validation (Playwright)
-npm run mcp:validate
-npm run auth:test
+# MCP testing and validation (Dual browser automation)
+npm run mcp:validate        # Puppeteer MCP server validation
+npm run test:auth          # Automated authentication testing
+# Playwright MCP tools available directly via Claude Code interface
 ```
 
 ## STRICT ARCHITECTURAL RULES
@@ -135,51 +137,39 @@ const modalTop = constraints.safeArea.top; // Math calculation OK
 - **Centralized z-index**: Always use values from `zIndexLevels.ts`
 - **Accessibility**: Include ARIA attributes for all interactive elements
 
-## Current File Structure
+## Current File Structure  
 ```
 src/
-├── client/                     # Frontend application (React)
-│   ├── components/            # React components (unified responsive design)
-│   │   ├── SlideBasedInteractiveModule.tsx  # Main slide module container
-│   │   ├── SlideBasedViewer.tsx            # Slide presentation viewer
-│   │   ├── SlideEditorToolbar.tsx          # Modern unified editor toolbar
-│   │   ├── ViewerFooterToolbar.tsx         # Unified viewer navigation
-│   │   ├── UnifiedPropertiesPanel.tsx      # Unified element properties
-│   │   ├── animations/        # Animation and transition components
-│   │   ├── icons/            # Custom icon components  
-│   │   ├── interactions/     # Interaction system components
-│   │   ├── responsive/       # Unified responsive modal components
-│   │   │   ├── ResponsiveModal.tsx          # Base unified modal
-│   │   │   ├── ResponsiveBackgroundModal.tsx
-│   │   │   └── ResponsiveInsertModal.tsx
-│   │   ├── slides/          # Slide-specific components
-│   │   │   ├── UnifiedSlideEditor.tsx       # Main slide editor
-│   │   │   ├── ResponsiveCanvas.tsx         # Unified drag-drop canvas
-│   │   │   ├── SlideViewer.tsx             # Individual slide viewer
-│   │   │   └── effects/     # Slide effect components
-│   │   ├── touch/           # Touch gesture handling components
-│   │   ├── ui/              # Reusable UI components
-│   │   ├── views/           # Page-level view components
-│   │   └── shared/          # Error boundaries and loading states
-│   ├── hooks/               # Custom React hooks (17 files)
-│   │   ├── useDeviceDetection.ts       # Device type detection (MATH ONLY)
-│   │   ├── useLayoutConstraints.ts     # Modal constraint system
-│   │   ├── useViewportHeight.ts        # Viewport management
-│   │   ├── useTouchGestures.ts         # Touch handling
-│   │   ├── useScreenReaderAnnouncements.ts # Accessibility
-│   │   └── useUnifiedEditorState.ts    # Unified editor state
-│   ├── utils/               # Client-side utilities (34 files)
-│   │   ├── ModalLayoutManager.ts       # Modal constraint system
-│   │   ├── zIndexLevels.ts            # Centralized z-index management
-│   │   ├── touchUtils.ts              # Touch event utilities
-│   │   └── viewportUtils.ts           # Viewport calculations
-│   └── styles/             # CSS and styling files
-├── lib/                    # Core logic, Firebase utilities
-├── shared/                 # Types and shared logic
-│   ├── slideTypes.ts       # Slide-based architecture interfaces
-│   ├── types.ts           # Core TypeScript interfaces
-│   └── migrationUtils.ts  # Legacy-to-slide conversion
-└── tests/                 # Test files (Vitest)
+├── client/                 # Frontend application (React)
+│   ├── components/         # React components (86 TypeScript files)
+│   │   ├── hotspot/        # Hotspot-specific components
+│   │   │   ├── HotspotElement.tsx      # Individual hotspot component
+│   │   │   ├── HotspotEditor.tsx       # Visual hotspot editor
+│   │   │   ├── HotspotCanvas.tsx       # Drag-and-drop canvas
+│   │   │   ├── HotspotPropertiesPanel.tsx # Properties editor
+│   │   │   └── WalkthroughSequencer.tsx # Sequence management
+│   │   ├── viewers/        # Viewer components
+│   │   │   └── HotspotViewer.tsx       # Main hotspot viewer
+│   │   ├── responsive/     # Unified responsive modal components  
+│   │   ├── shared/         # Error boundaries and loading states
+│   │   ├── auth/          # Authentication components
+│   │   ├── dashboard/     # Dashboard and project management
+│   │   ├── modals/        # Modal dialog components
+│   │   ├── upload/        # File upload components
+│   │   ├── feedback/      # User feedback components
+│   │   ├── touch/         # Touch gesture handling components
+│   │   └── ui/            # Reusable UI components
+│   ├── hooks/             # Custom React hooks (device detection for calculations only)
+│   ├── utils/             # Client-side utilities (centralized z-index, layout management)
+│   ├── pages/             # Page-level components
+│   ├── services/          # API and service layer
+│   └── contexts/          # React context providers
+├── lib/                   # Firebase integration and backend logic
+├── shared/                # Types and data models (hotspot-focused architecture)
+│   ├── hotspotTypes.ts    # Core hotspot data models
+│   ├── baseTypes.ts       # Base interfaces and types
+│   └── hotspotStylePresets.ts # Styling presets
+└── tests/                 # Vitest test suite with React Testing Library
 ```
 
 ## Naming Conventions
@@ -197,40 +187,39 @@ src/
 - **No JavaScript Branching**: Device detection only for mathematical calculations
 - **Constraint System**: Unified modal positioning preventing toolbar overlap
 
-### Slide-Based Architecture
+### Hotspot-Based Architecture  
 ```typescript
-// Core interfaces from slideTypes.ts
-interface SlideDeck {
+// Core interfaces from hotspotTypes.ts
+interface HotspotWalkthrough {
   id: string;
   title: string;
-  slides: InteractiveSlide[];
-  settings: DeckSettings;
+  description: string;
+  backgroundMedia: BackgroundMedia;
+  hotspots: WalkthroughHotspot[];
+  sequence: string[];
+  createdAt: number;
+  updatedAt: number;
+  isPublished: boolean;
+  creatorId: string;
 }
 
-interface InteractiveSlide {
+interface WalkthroughHotspot {
   id: string;
-  title: string;
-  elements: SlideElement[];
-  backgroundMedia?: BackgroundMedia;
-  layout: SlideLayout;
-}
-
-interface SlideElement {
-  id: string;
-  type: 'hotspot' | 'text' | 'media' | 'shape';
+  type: 'hotspot';
   position: ResponsivePosition;
-  content: ElementContent;
-  interactions: ElementInteraction[];
-  style: ElementStyle;
+  content: HotspotContent;
+  interaction: HotspotInteraction;
+  style: HotspotStyle;
+  sequenceIndex: number;
 }
 ```
 
 ### Responsive Positioning System
 ```typescript
-// All elements use ResponsivePosition for cross-device compatibility
+// All hotspots use ResponsivePosition for cross-device compatibility
 interface ResponsivePosition {
-  desktop: FixedPosition;  // 1920x1080+ displays
-  tablet: FixedPosition;   // 768-1919px displays
+  desktop: FixedPosition;  // 1024+ displays
+  tablet: FixedPosition;   // 768-1023px displays  
   mobile: FixedPosition;   // <768px displays
 }
 
@@ -334,7 +323,9 @@ const { constraints, styles } = useLayoutConstraints({
 
 ## MCP Integration & Browser Automation
 
-The project uses Microsoft Playwright MCP for comprehensive cross-browser testing and automation.
+The project uses dual browser automation approach:
+- **Playwright MCP**: Primary automation via Claude Code interface (@playwright/test 1.55.0)
+- **Puppeteer MCP**: Custom server integration (@hisma/server-puppeteer)
 
 ### Authentication Setup
 ```bash
@@ -347,10 +338,13 @@ VITE_DEV_USER_NAME=Development User
 TEST_USER_EMAIL=test@localhost.dev  
 TEST_USER_PASSWORD=TestPassword123!
 
-# Playwright settings
+# Playwright settings (for direct testing)
 PLAYWRIGHT_TEST_URL=http://localhost:3000
 PLAYWRIGHT_BROWSER=chromium
 PLAYWRIGHT_HEADLESS=true
+
+# Puppeteer settings (for MCP server)
+PUPPETEER_LAUNCH_OPTIONS={"headless": true, "args": ["--no-sandbox"]}
 ```
 
 ### Playwright MCP Tools Available

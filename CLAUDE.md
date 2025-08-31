@@ -1,9 +1,9 @@
 # CLAUDE.md - ExpliCoLearning
 
 ## Project Overview
-Modern interactive web application for creating slide-based multimedia learning experiences. The app features a simplified, working interaction system that executes real effects when users interact with slide elements. Built with React and TypeScript, using a mobile-first responsive design.
+Modern interactive web application for creating hotspot-based multimedia learning walkthroughs. The app has been rebuilt from a complex slide-based architecture to a simplified, focused hotspot system that executes real effects when users interact with elements. Built with React and TypeScript, using a mobile-first responsive design.
 
-**Core Innovation**: Real-time effect execution system that actually makes interactions work - no more "fake" interactions that just log to console. Click a hotspot and see spotlight effects, text displays, videos, quizzes, and more.
+**Core Innovation**: Real-time effect execution system that actually makes interactions work - no more "fake" interactions that just log to console. Click a hotspot and see spotlight effects, text displays, videos, quizzes, and more. The app has migrated from an over-engineered 31,000+ line slide system to a clean, maintainable hotspot-focused architecture.
 
 ## Development Commands
 - `npm run dev` - Start development server on port 3000
@@ -15,62 +15,79 @@ Modern interactive web application for creating slide-based multimedia learning 
 
 ## Core Architecture
 
-### Effect Execution System
-- **EffectExecutor** (`src/client/utils/EffectExecutor.ts`) - The heart of the interaction system
-- **Real Effects**: Spotlight overlays, text displays, video players, quiz modals, pan/zoom, tooltips
-- **Lifecycle Management**: Automatic cleanup, duration handling, multiple effect coordination
-- **Device Agnostic**: Works consistently across mobile, tablet, and desktop
-
-### Component Architecture
-- **SlideViewer** (`src/client/components/slides/SlideViewer.tsx`) - Core viewer with EffectExecutor integration
-- **SlideElement** (`src/client/components/slides/SlideElement.tsx`) - Individual interactive elements
+### Hotspot-Focused System
+- **HotspotWalkthrough** - Core data model for interactive learning experiences
+- **WalkthroughHotspot** - Individual interactive hotspots with effects and content
+- **ResponsivePosition** - Fixed pixel positioning with desktop/tablet/mobile breakpoints
 - **Unified Responsive Design**: CSS-first approach, no JavaScript device branching
 - **Z-Index Management**: Centralized system in `zIndexLevels.ts`
 - **Touch-First**: Designed for touch interactions that work with mouse/keyboard
 
+### Component Architecture  
+- **HotspotViewer** (`src/client/components/viewers/HotspotViewer.tsx`) - Core viewer for hotspot walkthroughs
+- **HotspotElement** (`src/client/components/hotspot/HotspotElement.tsx`) - Individual interactive hotspots
+- **HotspotEditor** (`src/client/components/hotspot/HotspotEditor.tsx`) - Visual editing interface
+- **HotspotCanvas** (`src/client/components/hotspot/HotspotCanvas.tsx`) - Drag-and-drop canvas
+- **ResponsiveModal** - Unified modal system for all device types
+
 ### Data Flow
-1. User interacts with SlideElement (click, hover, touch)
-2. SlideElement calls onInteraction with element and interaction IDs
-3. SlideViewer finds the interaction and its effect
-4. EffectExecutor.executeEffect() creates real DOM elements and animations
-5. Effects auto-cleanup after duration or user dismissal
+1. User interacts with HotspotElement (click, hover, touch)
+2. HotspotElement triggers its configured effect
+3. Effect system creates real DOM elements and animations
+4. Effects auto-cleanup after duration or user dismissal
+5. WalkthroughSequencer manages hotspot ordering and flow
 
 ## Key Dependencies
 - **React 18.3.1** with TypeScript
-- **Vite** for build tooling and dev server
-- **Firebase 11.9.1** for backend (Firestore + Storage)
-- **dnd-kit** for accessible drag-and-drop functionality
-- **Framer Motion** for smooth animations and transitions
-- **Tailwind CSS** for styling
+- **Vite** for build tooling and dev server  
+- **Firebase 10.14.1** for backend (Firestore + Storage)
+- **Tailwind CSS** for responsive styling
 - **lodash.debounce** for performance optimization
-- **react-router-dom** for client-side routing
+- **react-router-dom 6.25.1** for client-side routing
+- **@playwright/test 1.55.0** for primary browser testing
+- **Puppeteer 24.14.0** for MCP server integration
+- **Vitest** for testing framework with React Testing Library
 
-## Simplified File Structure
+## Current File Structure
 ```
 src/
-├── client/
-│   ├── components/
-│   │   ├── slides/         # Core slide components (SlideViewer, SlideElement)
-│   │   ├── responsive/     # Unified responsive modal components
-│   │   ├── ui/             # Reusable UI components
-│   │   └── shared/         # Error boundaries and loading states
-│   ├── hooks/              # Custom hooks (device detection for calculations only)
-│   ├── utils/              # Core utilities:
-│   │   ├── EffectExecutor.ts   # THE KEY FILE - makes interactions work
-│   │   ├── zIndexLevels.ts     # Centralized z-index management
-│   │   └── interactionUtils.ts # Default interaction creation
-│   └── styles/             # CSS modules and stylesheets
-├── lib/                    # Firebase integration
-├── shared/                 # Types and slide architecture (simplified)
-└── tests/                  # Vitest test suite
+├── client/                 # Frontend application (React)
+│   ├── components/         # React components (86 TypeScript files)
+│   │   ├── hotspot/        # Hotspot-specific components
+│   │   │   ├── HotspotElement.tsx      # Individual hotspot component
+│   │   │   ├── HotspotEditor.tsx       # Visual hotspot editor
+│   │   │   ├── HotspotCanvas.tsx       # Drag-and-drop canvas
+│   │   │   ├── HotspotPropertiesPanel.tsx # Properties editor
+│   │   │   └── WalkthroughSequencer.tsx # Sequence management
+│   │   ├── viewers/        # Viewer components
+│   │   │   └── HotspotViewer.tsx       # Main hotspot viewer
+│   │   ├── responsive/     # Unified responsive modal components  
+│   │   ├── shared/         # Error boundaries and loading states
+│   │   ├── auth/          # Authentication components
+│   │   ├── dashboard/     # Dashboard and project management
+│   │   ├── modals/        # Modal dialog components
+│   │   ├── upload/        # File upload components
+│   │   ├── feedback/      # User feedback components
+│   │   └── ui/            # Reusable UI components
+│   ├── hooks/             # Custom React hooks (device detection for calculations only)
+│   ├── utils/             # Client-side utilities (centralized z-index, layout management)
+│   ├── pages/             # Page-level components
+│   ├── services/          # API and service layer
+│   └── contexts/          # React context providers
+├── lib/                   # Firebase integration and backend logic
+├── shared/                # Types and data models (hotspot-focused architecture)
+│   ├── hotspotTypes.ts    # Core hotspot data models
+│   ├── baseTypes.ts       # Base interfaces and types
+│   └── hotspotStylePresets.ts # Styling presets
+└── tests/                 # Vitest test suite with React Testing Library
 ```
 
-## What Was Removed
-- **All migration code** - No backward compatibility with old formats
-- **Complex timeline converters** - Simplified interaction model
-- **Duplicate mobile/desktop components** - Unified responsive components only
-- **Legacy effect renderers** - Replaced with working EffectExecutor
-- **Unused parameter interfaces** - Streamlined to what's actually used
+## Architecture Evolution
+- **From Slides to Hotspots**: Migrated from complex 31,000+ line slide-based system to focused hotspot walkthroughs
+- **Simplified Data Models**: `HotspotWalkthrough` and `WalkthroughHotspot` replace complex slide architecture
+- **Unified Responsive Design**: Single components that adapt across all devices via CSS
+- **Preserved Core Functionality**: Real effect execution system maintained from original architecture  
+- **Clean Codebase**: Down to 86 TypeScript files from hundreds in the original system
 
 ## Component Conventions
 - **Naming**: PascalCase with descriptive prefixes (no `Mobile*`/`Desktop*` - unified components only)
@@ -115,20 +132,36 @@ The application uses unified toolbar components that adapt automatically to all 
 
 ## Working Interaction System
 
-### Creating Interactive Elements
+### Creating Interactive Hotspots
 ```typescript
-// Elements automatically get default click interactions
-const hotspotElement = {
+// Hotspots use the simplified WalkthroughHotspot interface
+const hotspot: WalkthroughHotspot = {
+  id: 'hotspot-1',
   type: 'hotspot',
-  position: { desktop: { x: 100, y: 100, width: 50, height: 50 } },
-  interactions: [{
+  position: { 
+    desktop: { x: 100, y: 100, width: 50, height: 50 },
+    tablet: { x: 80, y: 80, width: 40, height: 40 },
+    mobile: { x: 50, y: 50, width: 30, height: 30 }
+  },
+  content: {
+    title: 'Interactive Hotspot',
+    description: 'Click to see spotlight effect'
+  },
+  interaction: {
     trigger: 'click',
     effect: {
       type: 'spotlight',
       duration: 3000,
-      parameters: { shape: 'circle', intensity: 70 }
+      parameters: { shape: 'circle' }
     }
-  }]
+  },
+  style: {
+    color: '#3b82f6',
+    pulseAnimation: true,
+    size: 'medium',
+    hideAfterTrigger: false
+  },
+  sequenceIndex: 0
 };
 ```
 
@@ -137,15 +170,13 @@ const hotspotElement = {
 - **text**: Floating text boxes with custom styling
 - **tooltip**: Quick popup messages
 - **video**: Modal video players (YouTube supported)
-- **audio**: Background audio or mini-players
 - **quiz**: Interactive question modals with multiple choice
-- **pan_zoom**: Slide canvas transformation with smooth animations
 
-### Element Types
-- **hotspot**: Circular indicators for click interactions
-- **text**: Text content that can show additional text on interaction
-- **media**: Images/videos that can trigger video players
-- **shape**: Geometric shapes for layout and interaction
+### Hotspot System
+- **HotspotWalkthrough**: Container for multiple related hotspots with background media
+- **WalkthroughHotspot**: Individual interactive hotspot with effects and content
+- **WalkthroughSequencer**: Manages hotspot ordering and guided tour functionality
+- **ResponsivePosition**: Fixed pixel positioning that adapts across device breakpoints
 
 ## Testing Guidelines
 - Use Vitest for unit tests
@@ -296,13 +327,19 @@ npm run build      # Must compile
 - **Touch Events**: Coordinate between user gestures and automated events
 - **Bundle Size**: Use direct imports for better tree-shaking
 
-## Browser Automation - Playwright MCP Integration
-The project uses Microsoft Playwright MCP for comprehensive cross-browser testing and automation. Playwright offers superior browser support and more reliable automation compared to legacy solutions, with support for Chromium, Firefox, and WebKit browsers.
+## Browser Automation - Dual Integration Approach
+The project uses both Playwright and Puppeteer for comprehensive browser automation and testing:
 
-### MCP Server Configuration
-- **Microsoft Playwright MCP**: Official server using `@playwright/mcp@latest`
-- **Installation**: `claude mcp add playwright -s user -- npx @playwright/mcp@latest`
-- **Status**: Automatically configured and connected in Claude Code
+### Playwright MCP Integration (Primary)
+- **Microsoft Playwright MCP**: Official server using `@playwright/test@1.55.0`
+- **Cross-browser Support**: Chromium, Firefox, and WebKit testing
+- **MCP Tools Available**: Full suite of browser automation tools via Claude Code
+- **Device Emulation**: Mobile and desktop viewport testing
+
+### Puppeteer MCP Server (Legacy Support)  
+- **@hisma/server-puppeteer**: Custom MCP server configuration
+- **Scripts Available**: `npm run mcp:workflow`, `npm run mcp:validate`, `npm run mcp:demo`
+- **Authentication Testing**: `npm run test:auth` for automated authentication flows
 
 ### Available Browser Automation Tools
 - **Navigation**: `browser_navigate`, `browser_navigate_back`, `browser_navigate_forward`
