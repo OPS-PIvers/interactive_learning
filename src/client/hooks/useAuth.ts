@@ -72,6 +72,15 @@ export const useAuth = () => {
               setError(null);
             }
           });
+          
+          // Also check current auth state immediately in case user is already authenticated
+          const currentUser = auth.currentUser;
+          if (currentUser && mounted) {
+            console.log('useAuth: Found existing authenticated user:', currentUser.email);
+            setUser(currentUser);
+            setLoading(false);
+            setError(null);
+          }
         } else {
           console.warn('useAuth: Auth service not available');
           if (mounted) {

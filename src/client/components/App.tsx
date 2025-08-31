@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from 'react-router-dom';
 import LoadingScreen from './shared/LoadingScreen';
 import ToastProvider from './feedback/ToastProvider';
@@ -25,6 +26,7 @@ const WalkthroughViewerPage = React.lazy(
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   console.log('=== AUTH PAGE RENDERING ===');
   console.log('AuthPage: Component is rendering');
@@ -34,7 +36,8 @@ const AuthPage = () => {
     setError(null);
     try {
       await authService.signInWithEmail(email, password);
-      // Auth state change will be handled by useAuth hook
+      console.log('AuthPage: Login successful, redirecting to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -47,7 +50,8 @@ const AuthPage = () => {
     setError(null);
     try {
       await authService.signUpWithEmail(email, password, displayName);
-      // Auth state change will be handled by useAuth hook
+      console.log('AuthPage: Signup successful, redirecting to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
@@ -60,7 +64,8 @@ const AuthPage = () => {
     setError(null);
     try {
       await authService.signInWithGoogle();
-      // Auth state change will be handled by useAuth hook
+      console.log('AuthPage: Google sign-in successful, redirecting to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google sign-in failed');
     } finally {
@@ -72,8 +77,8 @@ const AuthPage = () => {
     console.log('AuthPage: Development bypass activated');
     // Enable dev bypass in localStorage so useAuth hook can detect it
     localStorage.setItem('devAuthBypass', 'true');
-    // Reload to trigger useAuth re-initialization
-    window.location.reload();
+    console.log('AuthPage: Dev bypass enabled, redirecting to dashboard');
+    navigate('/dashboard');
   };
 
   return (
