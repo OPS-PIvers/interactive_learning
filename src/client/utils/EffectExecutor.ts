@@ -174,25 +174,43 @@ export class EffectExecutor {
     if (!effect) return;
 
     try {
-      if (effect.animation) effect.animation.cancel();
+      // Cancel any ongoing animations
+      if (effect.animation) {
+        effect.animation.cancel();
+      }
+
+      // Remove event listeners
       if (effect.listeners) {
         effect.listeners.forEach(({ element, type, listener }) => {
           element.removeEventListener(type, listener as EventListener);
         });
       }
+
+      // Cleanup DOM elements
       if (effect.element) {
+        // Fade out before removal for better UX
         effect.element.style.transition = 'opacity 0.2s ease-out';
         effect.element.style.opacity = '0';
+
         setTimeout(() => {
-          if (effect.element.parentNode) {
+          if (effect.element && effect.element.parentNode) {
             effect.element.parentNode.removeChild(effect.element);
           }
         }, 200);
       }
+
+      // Revoke object URLs to prevent memory leaks
       if (effect.objectUrls) {
-        effect.objectUrls.forEach(url => URL.revokeObjectURL(url));
+        effect.objectUrls.forEach(url => {
+          URL.revokeObjectURL(url);
+        });
       }
-      if (effect.cleanup) effect.cleanup();
+
+      // Custom cleanup
+      if (effect.cleanup) {
+        effect.cleanup();
+      }
+
     } catch (error) {
       console.warn('Error during effect cleanup:', error);
     } finally {
@@ -201,46 +219,86 @@ export class EffectExecutor {
     }
   }
 
+  /**
+   * Enhanced cleanup with memory management
+   */
   private enhancedCleanup(): void {
-    this.cleanupTimers.forEach(timer => clearTimeout(timer));
+    // Clear all timers
+    this.cleanupTimers.forEach(timer => {
+      clearTimeout(timer);
+    });
     this.cleanupTimers.clear();
+
+    // Monitor memory usage
     this.monitorMemoryUsage();
+
+    // Limit active effects to prevent memory issues
     if (this.activeEffects.size > this.maxActiveEffects) {
       this.cleanupOldestEffects();
     }
   }
 
+  /**
+   * Monitor memory usage of effects
+   */
   private monitorMemoryUsage(): void {
     this.activeEffects.forEach((effect, id) => {
       const element = effect.element;
       if (element) {
+        // Estimate memory usage based on element size and complexity
         const usage = this.estimateElementMemoryUsage(element);
         this.memoryUsage.set(id, usage);
       }
     });
+
+    // Log memory usage in development
     if (process.env.NODE_ENV === 'development') {
       const totalUsage = Array.from(this.memoryUsage.values()).reduce((sum, usage) => sum + usage, 0);
       console.log(`EffectExecutor Memory Usage: ${(totalUsage / 1024).toFixed(2)}KB`);
     }
   }
 
+  /**
+   * Estimate memory usage of a DOM element
+   */
   private estimateElementMemoryUsage(element: HTMLElement): number {
-    let usage = element.outerHTML.length * 2;
+    let usage = 0;
+
+    // Base element size
+    usage += element.outerHTML.length * 2; // UTF-16 encoding
+
+    // Images and media
     const images = element.querySelectorAll('img, video');
     images.forEach(img => {
       if (img instanceof HTMLImageElement && img.naturalWidth) {
-        usage += img.naturalWidth * img.naturalHeight * 4;
+        usage += img.naturalWidth * img.naturalHeight * 4; // RGBA bytes
       }
     });
-    usage += element.querySelectorAll('*').length * 100;
+
+    // Event listeners (estimate)
+    usage += element.querySelectorAll('*').length * 100; // Rough estimate
+
     return usage;
   }
 
+  /**
+   * Cleanup oldest effects when memory limit reached
+   */
   private cleanupOldestEffects(): void {
     const effects = Array.from(this.activeEffects.entries());
-    effects.sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+
+    // Sort by creation time (oldest first)
+    effects.sort((a, b) => {
+      const aTime = a[1].createdAt || 0;
+      const bTime = b[1].createdAt || 0;
+      return aTime - bTime;
+    });
+
+    // Clean up oldest effects until under limit
     const toRemove = effects.slice(0, effects.length - this.maxActiveEffects);
-    toRemove.forEach(([id]) => this.cleanupEffect(id));
+    toRemove.forEach(([id]) => {
+      this.cleanupEffect(id);
+    });
   }
 
   public cleanup(): void {

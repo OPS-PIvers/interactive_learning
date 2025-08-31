@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           // Vendor chunks for better caching
           react: ['react', 'react-dom', 'react-router-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          ui: ['framer-motion', 'tailwindcss']
         }
       }
     },

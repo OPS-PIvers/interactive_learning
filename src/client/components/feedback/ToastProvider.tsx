@@ -13,15 +13,7 @@ interface ToastContextType {
   hideToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | null>(null);
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
-};
+export const ToastContext = createContext<ToastContextType | null>(null);
 
 export default function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -40,7 +32,8 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
 
     setToasts(prev => [...prev, toast]);
 
-    if (toast.duration && toast.duration > 0) {
+    // Auto-hide toast after duration
+    if (toast.duration > 0) {
       setTimeout(() => {
         hideToast(id);
       }, toast.duration);
@@ -93,6 +86,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
 
+      {/* Toast Container */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map((toast) => (
           <div
