@@ -14,7 +14,7 @@ export function createDefaultHotspot(
   sequenceIndex: number
 ): WalkthroughHotspot {
   return {
-    id: `hotspot_${Date.now()}_${sequenceIndex}`,
+    id: generateHotspotId(),
     type: 'hotspot',
     position,
     content: {

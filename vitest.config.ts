@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
@@ -8,7 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
     alias: {
-      '@firebase/analytics': './src/tests/mocks/firebaseAnalytics.ts',
+      '@firebase/analytics': path.resolve(__dirname, './src/tests/mocks/firebaseAnalytics.ts'),
+      '@': path.resolve(__dirname, './src')
     },
     coverage: {
       provider: 'v8',
@@ -33,6 +35,18 @@ export default defineConfig({
     // Faster test runs
     cache: {
       dir: './node_modules/.vitest'
+    },
+    include: ['src/tests/**/*.test.ts', 'src/tests/**/*.test.tsx'],
+    exclude: ['src/tests/browser/**/*.test.ts'],
+    browser: {
+      enabled: false,
+      name: 'chromium',
+      provider: 'playwright',
+      headless: true,
+      include: ['src/tests/browser/**/*.test.ts']
     }
   },
+  optimizeDeps: {
+    include: ['firebase/analytics']
+  }
 })

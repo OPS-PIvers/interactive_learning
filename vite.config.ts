@@ -1,130 +1,66 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-export default defineConfig(({ mode, command }) => {
-    const env = loadEnv(mode, '.', '');
-    const isCodespaces = !!process.env['CODESPACES'];
+import { resolve } from 'path';
+
+export default defineConfig(({ mode }) => ({
+  plugins: [react()],
+  root: 'src/client',
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
+  },
+
+  build: {
+    outDir: '../../dist',
+    target: 'es2018',
+    sourcemap: mode === 'development',
     
-    // Explicit environment detection
-    const isProduction = mode === 'production' || process.env['NODE_ENV'] === 'production' || command === 'build';
-    const isDevelopment = !isProduction;
-    
-    // Debug logging for mode detection
-    console.log(`🔧 Vite Config - Mode: ${mode}, Command: ${command}, Production: ${isProduction}, Development: ${isDevelopment}`);
-    
-    return {
-      plugins: [
-        react({
-          // Explicit JSX runtime configuration
-          jsxRuntime: 'automatic',
-          jsxImportSource: 'react',
-        }),
-      ],
-      root: 'src/client',
-      server: {
-        host: '0.0.0.0',
-        port: 3000,
-        open: false,
-      },
-      preview: {
-        host: isCodespaces ? '0.0.0.0' : 'localhost',
-        port: 4173,
-        open: !isCodespaces
-      },
-      build: {
-        outDir: '../../dist',
-        emptyOutDir: true,
-        target: 'es2020',
-        minify: isProduction ? 'esbuild' : false, // esbuild is faster than terser
-        rollupOptions: {
-          output: {
-            entryFileNames: 'assets/[name].[hash].js',
-            chunkFileNames: 'assets/[name].[hash].js',
-            assetFileNames: 'assets/[name].[hash].[ext]',
-            format: 'es',
-            manualChunks: (id) => {
-              // Core shared code should stay in main bundle to prevent import issues
-              if (id.includes('src/shared/')) {
-                return undefined; // Keep in main bundle
-              }
-              
-              // Keep Firebase in main bundle to prevent TDZ initialization issues
-              // Firebase modules need to be initialized in a specific order
-              if (id.includes('firebase')) {
-                return undefined; // Keep in main bundle
-              }
-              
-              // React core libraries
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                return 'react';
-              }
-              
-              // Utility libraries
-              if (id.includes('lodash') || id.includes('qrcode') || id.includes('uuid')) {
-                return 'utils';
-              }
-              
-              // Large editor components (>500 lines)
-              if (id.includes('UnifiedSlideEditor') || id.includes('SlideEditor')) {
-                return 'editor-core';
-              }
-              
-              // Slide system components
-              if (id.includes('/slides/') && id.includes('components')) {
-                return 'slide-components';
-              }
-              
-              // Node modules that aren't explicitly handled above
-              if (id.includes('node_modules')) {
-                return 'vendor';
-              }
-              return undefined;
-            }
-          },
-          ...isProduction && {
-            treeshake: {
-              moduleSideEffects: false,
-              preset: 'smallest'
-            }
-          }
-        },
-        cssCodeSplit: true,
-        sourcemap: true, // Enable source maps in production for debugging
-        reportCompressedSize: false,
-        chunkSizeWarningLimit: 800 // Increase from default 500kB to 800kB
-      },
-      define: {
-        // CRITICAL: Explicit environment definitions
-        'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
-        '__DEV__': isDevelopment,
-        'global': 'globalThis'
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks for better caching
+          react: ['react', 'react-dom', 'react-router-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
         }
-      },
-      optimizeDeps: {
-        // Tree-shake Firebase - only include modules we actually use
-        include: [
-          'react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/storage', 'firebase/auth'
-        ],
-        // Explicitly exclude unused Firebase modules for bundle optimization
-        exclude: [
-          'firebase/analytics',
-          'firebase/performance', 
-          'firebase/functions',
-          'firebase/messaging',
-          'firebase/remote-config',
-          'firebase/database'
-        ],
-        // Force pre-bundling in development for consistency
-        force: isDevelopment
-      },
-      // Add specific handling for enum/const files
-      esbuild: {
-        // Ensure const assertions are preserved in production
-        keepNames: true,
-      },
-    };
-});
+      }
+    },
+    
+    // Optimize for production
+    minify: mode === 'production' ? 'esbuild' : false,
+    
+    // Asset optimization
+    assetsDir: 'assets',
+    assetsInlineLimit: 4096,
+
+    // CSS optimization
+    cssCodeSplit: true,
+    cssMinify: mode === 'production'
+  },
+
+  // Development server configuration
+  server: {
+    port: 3000,
+    host: true,
+    strictPort: true
+  },
+
+  // Environment variables
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+  },
+
+  // Performance optimization
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/storage'
+    ]
+  }
+}));

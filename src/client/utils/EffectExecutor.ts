@@ -1,10 +1,9 @@
 import { Z_INDEX } from './zIndexLevels';
 
 /**
- * Simplified EffectExecutor for Phase 1 - Foundation Cleanup
+ * Enhanced EffectExecutor for Phase 3 - Polish & Testing
  * 
- * This is a streamlined version that supports basic effects needed for hotspot functionality.
- * Supports: spotlight, text, and tooltip effects only.
+ * This version includes advanced memory management, cleanup, and performance monitoring.
  */
 
 export interface SimpleEffect {
@@ -18,23 +17,25 @@ interface EffectInstance {
   element: HTMLElement;
   type: string;
   cleanup: () => void;
+  createdAt: number;
+  animation?: Animation;
+  listeners?: { element: HTMLElement, type: string, listener: EventListener }[];
+  objectUrls?: string[];
 }
 
 export class EffectExecutor {
   private activeEffects = new Map<string, EffectInstance>();
   private container: HTMLElement;
+  private cleanupTimers: Set<number> = new Set();
+  private memoryUsage: Map<string, number> = new Map();
+  private maxActiveEffects: number = 10;
 
   constructor(container: HTMLElement) {
     this.container = container;
   }
 
-  /**
-   * Execute a simple effect
-   */
   async executeEffect(effect: SimpleEffect): Promise<void> {
     console.log('🎬 Executing effect:', effect.type, 'ID:', effect.id);
-
-    // Clean up any existing effect with the same ID
     this.cleanupEffect(effect.id);
 
     try {
@@ -51,40 +52,29 @@ export class EffectExecutor {
         default:
           console.warn('Unknown effect type:', effect.type);
       }
+      this.enhancedCleanup();
     } catch (error) {
       console.error('Error executing effect:', error);
     }
   }
 
-  /**
-   * Execute spotlight effect - highlights an area with overlay
-   */
   private async executeSpotlight(effect: SimpleEffect): Promise<void> {
     const params = effect.parameters || {};
     const shape = params.shape || 'circle';
     const intensity = params.intensity || 70;
     const message = params.message;
 
-    // Create overlay
     const overlay = document.createElement('div');
     overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background-color: rgba(0, 0, 0, ${intensity / 100});
-      z-index: ${Z_INDEX.MODAL_BACKDROP};
-      pointer-events: auto;
-      cursor: pointer;
+      z-index: ${Z_INDEX.MODAL_BACKDROP}; pointer-events: auto; cursor: pointer;
     `;
 
-    // Create spotlight area (simplified - just a centered circle)
     if (shape === 'circle') {
-      const spotlightSize = 200; // Fixed size for simplicity
+      const spotlightSize = 200;
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;
-      
       overlay.style.background = `
         radial-gradient(circle at ${centerX}px ${centerY}px, 
           transparent ${spotlightSize/2}px, 
@@ -92,164 +82,171 @@ export class EffectExecutor {
       `;
     }
 
-    // Add message if provided
     if (message) {
       const messageElement = document.createElement('div');
       messageElement.textContent = message;
       messageElement.style.cssText = `
-        position: absolute;
-        top: 60%;
-        left: 50%;
-        transform: translateX(-50%);
-        color: white;
-        font-size: 18px;
-        text-align: center;
-        padding: 12px 24px;
-        background-color: rgba(0, 0, 0, 0.8);
-        border-radius: 8px;
-        max-width: 300px;
+        position: absolute; top: 60%; left: 50%; transform: translateX(-50%);
+        color: white; font-size: 18px; text-align: center; padding: 12px 24px;
+        background-color: rgba(0, 0, 0, 0.8); border-radius: 8px; max-width: 300px;
       `;
       overlay.appendChild(messageElement);
     }
 
     this.container.appendChild(overlay);
-
-    // Auto-dismiss click handler
-    const cleanup = () => {
-      if (overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-      }
-      this.activeEffects.delete(effect.id);
-    };
-
+    const cleanup = () => this.cleanupEffect(effect.id);
     overlay.addEventListener('click', cleanup);
 
-    // Store effect instance
     this.activeEffects.set(effect.id, {
       element: overlay,
       type: 'spotlight',
-      cleanup
+      cleanup,
+      createdAt: Date.now(),
+      listeners: [{ element: overlay, type: 'click', listener: cleanup }]
     });
 
-    // Auto-cleanup after duration
     const duration = effect.duration || 5000;
-    setTimeout(cleanup, duration);
+    const timerId = window.setTimeout(cleanup, duration);
+    this.cleanupTimers.add(timerId);
   }
 
-  /**
-   * Execute show text effect
-   */
   private async executeShowText(effect: SimpleEffect): Promise<void> {
     const params = effect.parameters || {};
     const text = params.text || 'Sample text';
-
     const textElement = document.createElement('div');
     textElement.textContent = text;
     textElement.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      border: 2px solid #2d3f89;
-      border-radius: 8px;
-      padding: 16px 24px;
-      font-size: 16px;
-      color: #333;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      z-index: ${Z_INDEX.MODAL_CONTENT};
-      max-width: 400px;
-      text-align: center;
-      cursor: pointer;
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background-color: white; border: 2px solid #2d3f89; border-radius: 8px;
+      padding: 16px 24px; font-size: 16px; color: #333;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: ${Z_INDEX.MODAL_CONTENT};
+      max-width: 400px; text-align: center; cursor: pointer;
     `;
-
     this.container.appendChild(textElement);
 
-    const cleanup = () => {
-      if (textElement.parentNode) {
-        textElement.parentNode.removeChild(textElement);
-      }
-      this.activeEffects.delete(effect.id);
-    };
-
+    const cleanup = () => this.cleanupEffect(effect.id);
     textElement.addEventListener('click', cleanup);
 
     this.activeEffects.set(effect.id, {
       element: textElement,
       type: 'text',
-      cleanup
+      cleanup,
+      createdAt: Date.now(),
+      listeners: [{ element: textElement, type: 'click', listener: cleanup }]
     });
 
-    // Auto-cleanup after duration
     const duration = effect.duration || 3000;
-    setTimeout(cleanup, duration);
+    const timerId = window.setTimeout(cleanup, duration);
+    this.cleanupTimers.add(timerId);
   }
 
-  /**
-   * Execute tooltip effect
-   */
   private async executeTooltip(effect: SimpleEffect): Promise<void> {
     const params = effect.parameters || {};
     const text = params.text || 'Tooltip text';
-
     const tooltip = document.createElement('div');
     tooltip.textContent = text;
     tooltip.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #333;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      z-index: ${Z_INDEX.TOOLTIP};
-      max-width: 200px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      cursor: pointer;
+      position: fixed; top: 20px; right: 20px; background-color: #333;
+      color: white; padding: 8px 12px; border-radius: 4px; font-size: 14px;
+      z-index: ${Z_INDEX.TOOLTIP}; max-width: 200px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); cursor: pointer;
     `;
-
     this.container.appendChild(tooltip);
 
-    const cleanup = () => {
-      if (tooltip.parentNode) {
-        tooltip.parentNode.removeChild(tooltip);
-      }
-      this.activeEffects.delete(effect.id);
-    };
-
+    const cleanup = () => this.cleanupEffect(effect.id);
     tooltip.addEventListener('click', cleanup);
 
     this.activeEffects.set(effect.id, {
       element: tooltip,
       type: 'tooltip',
-      cleanup
+      cleanup,
+      createdAt: Date.now(),
+      listeners: [{ element: tooltip, type: 'click', listener: cleanup }]
     });
 
-    // Auto-cleanup after shorter duration for tooltips
     const duration = effect.duration || 2000;
-    setTimeout(cleanup, duration);
+    const timerId = window.setTimeout(cleanup, duration);
+    this.cleanupTimers.add(timerId);
   }
 
-  /**
-   * Clean up a specific effect
-   */
   private cleanupEffect(effectId: string): void {
     const effect = this.activeEffects.get(effectId);
-    if (effect) {
-      effect.cleanup();
+    if (!effect) return;
+
+    try {
+      if (effect.animation) effect.animation.cancel();
+      if (effect.listeners) {
+        effect.listeners.forEach(({ element, type, listener }) => {
+          element.removeEventListener(type, listener as EventListener);
+        });
+      }
+      if (effect.element) {
+        effect.element.style.transition = 'opacity 0.2s ease-out';
+        effect.element.style.opacity = '0';
+        setTimeout(() => {
+          if (effect.element.parentNode) {
+            effect.element.parentNode.removeChild(effect.element);
+          }
+        }, 200);
+      }
+      if (effect.objectUrls) {
+        effect.objectUrls.forEach(url => URL.revokeObjectURL(url));
+      }
+      if (effect.cleanup) effect.cleanup();
+    } catch (error) {
+      console.warn('Error during effect cleanup:', error);
+    } finally {
       this.activeEffects.delete(effectId);
+      this.memoryUsage.delete(effectId);
     }
   }
 
-  /**
-   * Clean up all active effects
-   */
-  public cleanup(): void {
-    for (const [id, effect] of this.activeEffects) {
-      effect.cleanup();
+  private enhancedCleanup(): void {
+    this.cleanupTimers.forEach(timer => clearTimeout(timer));
+    this.cleanupTimers.clear();
+    this.monitorMemoryUsage();
+    if (this.activeEffects.size > this.maxActiveEffects) {
+      this.cleanupOldestEffects();
     }
+  }
+
+  private monitorMemoryUsage(): void {
+    this.activeEffects.forEach((effect, id) => {
+      const element = effect.element;
+      if (element) {
+        const usage = this.estimateElementMemoryUsage(element);
+        this.memoryUsage.set(id, usage);
+      }
+    });
+    if (process.env.NODE_ENV === 'development') {
+      const totalUsage = Array.from(this.memoryUsage.values()).reduce((sum, usage) => sum + usage, 0);
+      console.log(`EffectExecutor Memory Usage: ${(totalUsage / 1024).toFixed(2)}KB`);
+    }
+  }
+
+  private estimateElementMemoryUsage(element: HTMLElement): number {
+    let usage = element.outerHTML.length * 2;
+    const images = element.querySelectorAll('img, video');
+    images.forEach(img => {
+      if (img instanceof HTMLImageElement && img.naturalWidth) {
+        usage += img.naturalWidth * img.naturalHeight * 4;
+      }
+    });
+    usage += element.querySelectorAll('*').length * 100;
+    return usage;
+  }
+
+  private cleanupOldestEffects(): void {
+    const effects = Array.from(this.activeEffects.entries());
+    effects.sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+    const toRemove = effects.slice(0, effects.length - this.maxActiveEffects);
+    toRemove.forEach(([id]) => this.cleanupEffect(id));
+  }
+
+  public cleanup(): void {
+    this.activeEffects.forEach((_, id) => this.cleanupEffect(id));
     this.activeEffects.clear();
+    this.enhancedCleanup();
   }
 }
 
