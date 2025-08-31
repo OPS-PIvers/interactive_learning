@@ -24,12 +24,15 @@ function getFirebaseConfig(): FirebaseConfiguration {
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
   };
 
-  // Basic validation to ensure environment variables are loaded
-  if (!firebaseConfig.projectId) {
-    console.error(
-      'Firebase config not found. Ensure you have a .env file with required VITE_FIREBASE_... variables.'
-    );
-    throw new Error('Firebase configuration is missing.');
+  // Basic validation to ensure all required environment variables are loaded
+  const missingVars = Object.entries(firebaseConfig)
+    .filter(([key, value]) => !value && key !== 'measurementId') // measurementId is optional
+    .map(([key]) => key);
+  
+  if (missingVars.length > 0) {
+    const errorMessage = `Firebase config missing required variable(s): ${missingVars.join(', ')}. Ensure you have a .env file with all required VITE_FIREBASE_... variables.`;
+    console.error(errorMessage);
+    throw new Error(`Firebase configuration is missing required variable(s): ${missingVars.join(', ')}.`);
   }
 
   return firebaseConfig as FirebaseConfiguration;
@@ -109,9 +112,14 @@ class FirebaseConnectionManager {
           storage: `${devConfig.storageEmuHost}:${devConfig.storageEmuPort}`,
         });
 
-        connectAuthEmulator(this.auth, `http://${devConfig.authEmuHost}:${devConfig.authEmuPort}`);
-        connectFirestoreEmulator(this.db, devConfig.firestoreEmuHost, devConfig.firestoreEmuPort);
-        connectStorageEmulator(this.storage, devConfig.storageEmuHost, devConfig.storageEmuPort);
+        // Null safety checks before connecting to emulators
+        if (this.auth && this.db && this.storage) {
+          connectAuthEmulator(this.auth, `http://${devConfig.authEmuHost}:${devConfig.authEmuPort}`);
+          connectFirestoreEmulator(this.db, devConfig.firestoreEmuHost, devConfig.firestoreEmuPort);
+          connectStorageEmulator(this.storage, devConfig.storageEmuHost, devConfig.storageEmuPort);
+        } else {
+          console.warn('Some Firebase services failed to initialize, skipping emulator connections');
+        }
       }
 
       this.isInitialized = true;

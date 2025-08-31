@@ -42,7 +42,7 @@
     "firebase:build": "NODE_ENV=production npm run build",
     "firebase:deploy": "firebase deploy --only hosting",
     "firebase:serve": "firebase serve --only hosting --host 0.0.0.0",
-    "firebase:emulator": "firebase emulators:start --only hosting,firestore --project=interactive-learning-278",
+    "firebase:emulator": "firebase emulators:start --only hosting,firestore",
     "deploy": "npm run firebase:build && npm run firebase:deploy",
     "deploy:all": "npm run firebase:build && firebase deploy",
     "backup": "npx ts-node scripts/backup-data.ts",
