@@ -7,7 +7,8 @@ export default defineConfig(({ mode }) => ({
   root: 'src/client',
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
+      '@': resolve(__dirname, 'src'),
+      '~/': resolve(__dirname, 'src/client/')
     }
   },
 

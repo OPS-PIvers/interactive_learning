@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HotspotWalkthrough } from '@/shared/hotspotTypes';
-import { getUserWalkthroughs, deleteWalkthrough } from '@/lib/firebaseApi';
-import { useAuth } from '@/client/hooks/useAuth';
+import { HotspotWalkthrough } from '../../shared/hotspotTypes';
+import { getUserWalkthroughs, deleteWalkthrough } from '../../lib/firebaseApi';
+import { useAuth } from '../hooks/useAuth';
 import ProjectCard from '../components/dashboard/ProjectCard';
 import CreateWalkthroughModal from '../components/dashboard/CreateWalkthroughModal';
 import LoadingScreen from '../components/shared/LoadingScreen';
@@ -10,7 +10,7 @@ import ErrorScreen from '../components/shared/ErrorScreen';
 import { useToast } from '../components/feedback/ToastProvider';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading, error: authError } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -20,13 +20,27 @@ export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to complete loading before making navigation decisions
+    if (authLoading) {
+      return;
+    }
+
+    if (authError) {
+      console.error('Dashboard: Auth error detected:', authError);
+      setError(`Authentication error: ${authError}`);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
+      console.log('Dashboard: No user, redirecting to auth');
       navigate('/auth');
       return;
     }
 
+    console.log('Dashboard: User authenticated, loading walkthroughs');
     loadWalkthroughs();
-  }, [user, navigate]);
+  }, [user, authLoading, authError, navigate]);
 
   const loadWalkthroughs = async () => {
     if (!user) return;
@@ -76,8 +90,9 @@ export default function DashboardPage() {
     navigate('/editor/new', { state: { duplicate } });
   };
 
-  if (loading) {
-    return <LoadingScreen message="Loading your walkthroughs..." />;
+  // Show loading screen while auth is loading or while loading walkthroughs
+  if (authLoading || loading) {
+    return <LoadingScreen message={authLoading ? "Authenticating..." : "Loading your walkthroughs..."} />;
   }
 
   if (error) {

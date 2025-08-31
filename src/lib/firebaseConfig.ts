@@ -23,40 +23,37 @@ function getFirebaseConfig(): FirebaseConfiguration {
   const appId = import.meta.env.VITE_FIREBASE_APP_ID;
   const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
 
-  // Validate required environment variables
-  const requiredVars = {
-    apiKey,
-    authDomain,
-    projectId,
-    storageBucket,
-    messagingSenderId,
-    appId,
+  // Production fallback configuration for when env vars are missing
+  const productionFallback = {
+    apiKey: "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
+    authDomain: "interactive-learning-278.firebaseapp.com",
+    projectId: "interactive-learning-278",
+    storageBucket: "interactive-learning-278.firebasestorage.app",
+    messagingSenderId: "559846873035",
+    appId: "1:559846873035:web:f0abe20a8d354b02a9084e",
+    measurementId: "G-FQZK3QEV9L"
   };
 
-  const missingVars = Object.entries(requiredVars)
-    .filter(([, value]) => !value)
-    .map(([key]) => key);
-  
-  if (missingVars.length > 0) {
-    const errorMessage = `Firebase config missing required variable(s): ${missingVars.join(', ')}. Ensure you have a .env file with all required VITE_FIREBASE_... variables.`;
-    console.error(errorMessage);
-    throw new Error(`Firebase configuration is missing required variable(s): ${missingVars.join(', ')}.`);
-  }
-
-  // Build configuration object with proper types
+  // Use environment variables if available, otherwise fallback to production config
   const firebaseConfig: FirebaseConfiguration = {
-    apiKey: apiKey!,
-    authDomain: authDomain!,
-    projectId: projectId!,
-    storageBucket: storageBucket!,
-    messagingSenderId: messagingSenderId!,
-    appId: appId!,
+    apiKey: apiKey || productionFallback.apiKey,
+    authDomain: authDomain || productionFallback.authDomain,
+    projectId: projectId || productionFallback.projectId,
+    storageBucket: storageBucket || productionFallback.storageBucket,
+    messagingSenderId: messagingSenderId || productionFallback.messagingSenderId,
+    appId: appId || productionFallback.appId,
   };
 
   // Add optional measurementId if present
-  if (measurementId) {
-    firebaseConfig.measurementId = measurementId;
+  if (measurementId || productionFallback.measurementId) {
+    firebaseConfig.measurementId = measurementId || productionFallback.measurementId;
   }
+
+  console.log('Firebase config loaded:', { 
+    projectId: firebaseConfig.projectId,
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasAppId: !!firebaseConfig.appId
+  });
 
   return firebaseConfig;
 }
@@ -98,21 +95,30 @@ class FirebaseConnectionManager {
 
   private async _doInitialize(): Promise<void> {
     try {
+      console.log('Starting Firebase initialization...');
+      
       // Dynamic import Firebase modules to prevent TDZ issues
       const { initializeApp } = await import('firebase/app');
       const { getAuth, connectAuthEmulator } = await import('firebase/auth');
       const { getFirestore, connectFirestoreEmulator } = await import('firebase/firestore');
       const { getStorage, connectStorageEmulator } = await import('firebase/storage');
 
+      // Get Firebase configuration
+      const config = getFirebaseConfig();
+      console.log('Initializing Firebase app with project:', config.projectId);
+
       // Initialize Firebase app
-      this.app = initializeApp(getFirebaseConfig());
+      this.app = initializeApp(config);
+      console.log('Firebase app initialized successfully');
 
       // Initialize Firestore with standard settings for all devices
       this.db = getFirestore(this.app);
+      console.log('Firestore initialized successfully');
 
       // Initialize other services
       this.storage = getStorage(this.app);
       this.auth = getAuth(this.app);
+      console.log('Firebase Auth and Storage initialized successfully');
 
       // Analytics and Performance initialization removed for bundle optimization
       // This reduces Firebase bundle size by ~200-300KB
@@ -146,8 +152,14 @@ class FirebaseConnectionManager {
       }
 
       this.isInitialized = true;
+      console.log('Firebase initialization completed successfully');
     } catch (error) {
       console.error('Firebase Connection Manager: Initialization failed:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
       this.initPromise = null;
       throw error;
     }

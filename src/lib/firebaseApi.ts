@@ -14,11 +14,19 @@ import {
 import { firebaseManager } from './firebaseConfig';
 import type { HotspotWalkthrough } from '../shared/hotspotTypes';
 
-const db = firebaseManager.getFirestore();
+// Helper function to get initialized Firestore instance
+const getDb = async () => {
+  await firebaseManager.initialize();
+  const db = firebaseManager.getFirestore();
+  if (!db) {
+    throw new Error('Firestore initialization failed');
+  }
+  return db;
+};
 
 // Hotspot Walkthrough CRUD operations
 export async function createWalkthrough(walkthrough: Omit<HotspotWalkthrough, 'id' | 'createdAt' | 'updatedAt'>): Promise<HotspotWalkthrough> {
-  if (!db) throw new Error('Firestore not initialized');
+  const db = await getDb();
   const walkthroughWithTimestamps = {
     ...walkthrough,
     createdAt: serverTimestamp(),
@@ -35,7 +43,7 @@ export async function createWalkthrough(walkthrough: Omit<HotspotWalkthrough, 'i
 }
 
 export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
-  if (!db) throw new Error('Firestore not initialized');
+  const db = await getDb();
   const docRef = doc(db, 'walkthroughs', id);
   const docSnap = await getDoc(docRef);
 
@@ -53,7 +61,7 @@ export async function getWalkthrough(id: string): Promise<HotspotWalkthrough> {
 }
 
 export async function updateWalkthrough(walkthrough: Partial<HotspotWalkthrough> & { id: string }): Promise<void> {
-  if (!db) throw new Error('Firestore not initialized');
+  const db = await getDb();
   const docRef = doc(db, 'walkthroughs', walkthrough.id);
   await updateDoc(docRef, {
     ...walkthrough,
@@ -62,13 +70,13 @@ export async function updateWalkthrough(walkthrough: Partial<HotspotWalkthrough>
 }
 
 export async function deleteWalkthrough(id: string): Promise<void> {
-  if (!db) throw new Error('Firestore not initialized');
+  const db = await getDb();
   const docRef = doc(db, 'walkthroughs', id);
   await deleteDoc(docRef);
 }
 
 export async function getUserWalkthroughs(userId: string): Promise<HotspotWalkthrough[]> {
-  if (!db) throw new Error('Firestore not initialized');
+  const db = await getDb();
   const q = query(
     collection(db, 'walkthroughs'),
     where('creatorId', '==', userId),
