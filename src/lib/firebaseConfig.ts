@@ -9,32 +9,56 @@ interface FirebaseConfiguration {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
-  measurementId: string;
+  measurementId?: string; // Optional as per Firebase docs
 }
 
-// Debug environment variables (development only)
-if (import.meta.env['DEV']) {
-
-
-
-
-
-
-
-}
-
-// Hardcoded Firebase config to eliminate import.meta.env TDZ issues
+// Firebase config is loaded from environment variables
 function getFirebaseConfig(): FirebaseConfiguration {
-  // Hardcoded configuration to eliminate any import.meta.env access during initialization
-  return {
-    apiKey: "AIzaSyCkR-xQevjY3DhKgGoYBrzpP8x-nsII-pA",
-    authDomain: "interactive-learning-278.firebaseapp.com",
-    projectId: "interactive-learning-278",
-    storageBucket: "interactive-learning-278.firebasestorage.app",
-    messagingSenderId: "559846873035",
-    appId: "1:559846873035:web:f0abe20a8d354b02a9084e",
-    measurementId: "G-FQZK3QEV9L"
+  // Extract required environment variables
+  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+  const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+  const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+  const appId = import.meta.env.VITE_FIREBASE_APP_ID;
+  const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
+
+  // Validate required environment variables
+  const requiredVars = {
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
   };
+
+  const missingVars = Object.entries(requiredVars)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+  
+  if (missingVars.length > 0) {
+    const errorMessage = `Firebase config missing required variable(s): ${missingVars.join(', ')}. Ensure you have a .env file with all required VITE_FIREBASE_... variables.`;
+    console.error(errorMessage);
+    throw new Error(`Firebase configuration is missing required variable(s): ${missingVars.join(', ')}.`);
+  }
+
+  // Build configuration object with proper types
+  const firebaseConfig: FirebaseConfiguration = {
+    apiKey: apiKey!,
+    authDomain: authDomain!,
+    projectId: projectId!,
+    storageBucket: storageBucket!,
+    messagingSenderId: messagingSenderId!,
+    appId: appId!,
+  };
+
+  // Add optional measurementId if present
+  if (measurementId) {
+    firebaseConfig.measurementId = measurementId;
+  }
+
+  return firebaseConfig;
 }
 
 // Environment validation removed to prevent import.meta.env access during initialization
@@ -93,7 +117,33 @@ class FirebaseConnectionManager {
       // Analytics and Performance initialization removed for bundle optimization
       // This reduces Firebase bundle size by ~200-300KB
 
-      // Emulator setup removed to prevent import.meta.env access
+      // Emulator setup for local development
+      if (import.meta.env.DEV) {
+        // Vite's import.meta.env is recommended for environment variables
+        const devConfig = {
+          authEmuHost: import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1',
+          authEmuPort: parseInt(import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_PORT || '9099', 10),
+          firestoreEmuHost: import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST || '127.0.0.1',
+          firestoreEmuPort: parseInt(import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_PORT || '8080', 10),
+          storageEmuHost: import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_HOST || '127.0.0.1',
+          storageEmuPort: parseInt(import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_PORT || '9199', 10),
+        };
+
+        console.log('Connecting to Firebase emulators:', {
+          auth: `http://${devConfig.authEmuHost}:${devConfig.authEmuPort}`,
+          firestore: `${devConfig.firestoreEmuHost}:${devConfig.firestoreEmuPort}`,
+          storage: `${devConfig.storageEmuHost}:${devConfig.storageEmuPort}`,
+        });
+
+        // Null safety checks before connecting to emulators
+        if (this.auth && this.db && this.storage) {
+          connectAuthEmulator(this.auth, `http://${devConfig.authEmuHost}:${devConfig.authEmuPort}`);
+          connectFirestoreEmulator(this.db, devConfig.firestoreEmuHost, devConfig.firestoreEmuPort);
+          connectStorageEmulator(this.storage, devConfig.storageEmuHost, devConfig.storageEmuPort);
+        } else {
+          console.warn('Some Firebase services failed to initialize, skipping emulator connections');
+        }
+      }
 
       this.isInitialized = true;
     } catch (error) {
