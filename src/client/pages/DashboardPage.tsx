@@ -48,9 +48,13 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const data = await getUserWalkthroughs(user.uid);
-      setWalkthroughs(data);
+      // Ensure data is always an array to prevent undefined access
+      setWalkthroughs(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Dashboard: Error loading walkthroughs:', err);
       setError(err instanceof Error ? err.message : 'Failed to load walkthroughs');
+      // Reset to empty array on error to prevent undefined state
+      setWalkthroughs([]);
     } finally {
       setLoading(false);
     }
@@ -61,13 +65,14 @@ export default function DashboardPage() {
 
     try {
       await deleteWalkthrough(id);
-      setWalkthroughs(prev => prev.filter(w => w.id !== id));
+      setWalkthroughs(prev => (prev || []).filter(w => w.id !== id));
       showToast({
         type: 'success',
         title: 'Walkthrough Deleted',
         message: 'The walkthrough has been deleted successfully.'
       });
     } catch (err) {
+      console.error('Dashboard: Error deleting walkthrough:', err);
       showToast({
         type: 'error',
         title: 'Delete Failed',
@@ -143,7 +148,7 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {walkthroughs.length === 0 ? (
+        {!walkthroughs || walkthroughs.length === 0 ? (
           /* Empty State */
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -167,7 +172,7 @@ export default function DashboardPage() {
         ) : (
           /* Project Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {walkthroughs.map((walkthrough) => (
+            {(walkthroughs || []).map((walkthrough) => (
               <ProjectCard
                 key={walkthrough.id}
                 walkthrough={walkthrough}
