@@ -10,7 +10,7 @@ import ErrorScreen from '../components/shared/ErrorScreen';
 import { useToast } from '../components/feedback/ToastProvider';
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, error: authError } = useAuth();
+  const { user, loading: authLoading, error: authError, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -120,12 +120,23 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Create Walkthrough
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Welcome, {user?.displayName || user?.email || 'User'}!
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Create Walkthrough
+              </button>
+              <button
+                onClick={logout}
+                className="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>

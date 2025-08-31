@@ -20,7 +20,8 @@ export const useAuth = () => {
         console.log('useAuth: Starting Firebase initialization...');
         
         // Development auth bypass for testing
-        const authBypass = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+        const authBypass = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true' || 
+                          localStorage.getItem('devAuthBypass') === 'true';
         if (authBypass) {
           console.log('useAuth: Auth bypass enabled - simulating authenticated user');
           const mockUser = {
@@ -93,5 +94,31 @@ export const useAuth = () => {
     };
   }, []);
 
-  return { user, loading, error };
+  const logout = async () => {
+    try {
+      console.log('useAuth: Logging out user');
+      
+      // Clear dev bypass if it was used
+      localStorage.removeItem('devAuthBypass');
+      
+      // If using real Firebase auth, sign out
+      if (user && user.uid !== 'dev-test-user-123') {
+        const auth = getAuthService();
+        if (auth) {
+          await auth.signOut();
+        }
+      }
+      
+      // Clear user state
+      setUser(null);
+      setLoading(false);
+      setError(null);
+      
+    } catch (error) {
+      console.error('useAuth: Logout failed:', error);
+      setError(error instanceof Error ? error.message : 'Logout failed');
+    }
+  };
+
+  return { user, loading, error, logout };
 };

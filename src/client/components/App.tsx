@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,6 +8,9 @@ import {
 } from 'react-router-dom';
 import LoadingScreen from './shared/LoadingScreen';
 import ToastProvider from './feedback/ToastProvider';
+import AuthenticationPage from './auth/AuthenticationPage';
+import { authService } from '../services/authService';
+import { useToast } from './feedback/ToastProvider';
 
 // Lazy-loaded page components
 const DashboardPage = React.lazy(() => import('../pages/DashboardPage'));
@@ -18,39 +21,70 @@ const WalkthroughViewerPage = React.lazy(
   () => import('../pages/WalkthroughViewerPage')
 );
 
-// A placeholder for the auth page with enhanced logging and visibility
+// Authentication wrapper component
 const AuthPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   console.log('=== AUTH PAGE RENDERING ===');
   console.log('AuthPage: Component is rendering');
-  
+
+  const handleLogin = async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.signInWithEmail(email, password);
+      // Auth state change will be handled by useAuth hook
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (email: string, password: string, displayName: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.signUpWithEmail(email, password, displayName);
+      // Auth state change will be handled by useAuth hook
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.signInWithGoogle();
+      // Auth state change will be handled by useAuth hook
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDevBypass = () => {
+    console.log('AuthPage: Development bypass activated');
+    // Enable dev bypass in localStorage so useAuth hook can detect it
+    localStorage.setItem('devAuthBypass', 'true');
+    // Reload to trigger useAuth re-initialization
+    window.location.reload();
+  };
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#1e293b', // Dark background to ensure visibility
-        color: '#f1f5f9', // Light text color
-        fontFamily: 'Inter, sans-serif',
-        fontSize: '24px',
-        flexDirection: 'column',
-        gap: '20px'
-      }}
-    >
-      <h1 style={{ color: '#ef4444', margin: 0 }}>Authentication Required</h1>
-      <p style={{ color: '#94a3b8', textAlign: 'center', margin: 0 }}>
-        Please authenticate to access the application
-      </p>
-      <div style={{ 
-        padding: '10px 20px', 
-        backgroundColor: '#374151', 
-        borderRadius: '8px',
-        fontSize: '14px'
-      }}>
-        Debug: AuthPage component loaded successfully
-      </div>
-    </div>
+    <AuthenticationPage
+      onLogin={handleLogin}
+      onSignup={handleSignup}
+      onGoogleSignIn={handleGoogleSignIn}
+      onDevBypass={handleDevBypass}
+      loading={loading}
+      error={error}
+    />
   );
 };
 
