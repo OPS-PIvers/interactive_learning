@@ -48,6 +48,12 @@ export const useAuth = () => {
             setUser(mockUser);
             setLoading(false);
             setError(null);
+            
+            // Clear timeout on auth bypass success
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null as any;
+            }
           }
           return;
         }
@@ -77,6 +83,12 @@ export const useAuth = () => {
               setUser(user);
               setLoading(false);
               setError(null);
+              
+              // Clear timeout on successful auth state change
+              if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null as any;
+              }
             }
           });
           
@@ -87,6 +99,12 @@ export const useAuth = () => {
             setUser(currentUser);
             setLoading(false);
             setError(null);
+            
+            // Clear timeout on immediate auth success
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null as any;
+            }
           }
         } else {
           console.warn('useAuth: Auth service not available');
@@ -104,9 +122,9 @@ export const useAuth = () => {
       }
     };
 
-    // Set up timeout for auth initialization (generous timeout since we have Firebase-specific timeout)
+    // Set up timeout for auth initialization (only trigger if auth actually fails)
     timeoutId = setTimeout(() => {
-      if (mounted && loading) {
+      if (mounted && loading && !user && !error) {
         console.warn('useAuth: Auth initialization timeout after 15 seconds');
         setError('Authentication timeout - please refresh the page');
         setLoading(false);
